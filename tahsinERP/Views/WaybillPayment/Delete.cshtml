@@ -1,0 +1,92 @@
+@model tahsinERP.Models.F_WAYBILL_PAYMENTS
+@{
+    ViewBag.Title = "Yo'l varaqasi to'lovini o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var T = new
+    {
+        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
+        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
+        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
+        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
+        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
+    };
+    var currencyShort = Model.CURRENCy != null ? Model.CURRENCy.Shortname : "";
+}
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Delete", "WaybillPayment", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.Hidden("ID", Model.ID)
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                        <li class="breadcrumb-item"><a href="~/Waybill/Index">@T.Waybills</a></li>
+                                        <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@T.Waybill to'lovlari</a></li>
+                                        <li class="breadcrumb-item active">To'lovni o'chirish</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <section class="invoice-edit-wrapper">
+                        <div class="row">
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            <h4 class="text-primary">@T.Waybill to'lovi</h4>
+                                            <p class="text-muted small">O'chirilsa, moliyadagi ushbu to'lovga bog'liq Chiqim tranzaksiyasi ham bekor qilinadi (hisobdan chiqariladi).</p>
+                                            <hr />
+                                            <table class="table table-bordered table-sm">
+                                                <tr>
+                                                    <th style="width:180px">@T.Waybill</th>
+                                                    <td>@(Model.F_WAYBILLS != null ? Model.F_WAYBILLS.WaybillNo : Model.WaybillID.ToString())</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>@T.Forwarder</th>
+                                                    <td>@(Model.FORWARDER != null ? Model.FORWARDER.ForwarderName : "")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>To'lov sanasi</th>
+                                                    <td>@(Model.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>To'lov miqdori</th>
+                                                    <td>@Model.Payment_Amount.ToString("N2") @currencyShort</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Izoh</th>
+                                                    <td>@(Model.Comment ?? "")</td>
+                                                </tr>
+                                            </table>
+                                            <hr />
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Ushbu to\'lovni o\'chirishga ishonchingiz komilmi? Moliyadagi Chiqim tranzaksiyasi ham bekor qilinadi.');">
+                                                <i class="bx bx-trash"></i> O'chirish
+                                            </button>
+                                            <a href="@Url.Action("Index", "WaybillPayment")" class="btn btn-outline-secondary ml-1">Bekor qilish</a>
+                                            <a href="@Url.Action("Details", "WaybillPayment", new { Id = Model.ID })" class="btn btn-outline-info ml-1">Tafsilotlar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

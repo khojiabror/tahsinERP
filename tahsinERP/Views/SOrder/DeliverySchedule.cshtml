@@ -1,0 +1,357 @@
+@model tahsinERP.ViewModels.DeliveryScheduleViewModel
+@{
+    ViewBag.Title = "Yetkazib berish rejasi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SOrder/Index">Buyurtmalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SOrder/Details/@Model.OrderID">Buyurtma ma'lumotlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Yetkazib berish rejasi
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="delivery-schedule-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <h4>Buyurtma: @Model.OrderNo</h4>
+                                                <p class="text-muted mb-0">
+                                                    <strong>Mijoz:</strong> @Model.CustomerName<br />
+                                                    <strong>Sana:</strong> @Model.IssuedDate.ToString("dd.MM.yyyy")
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <h5 class="mb-2">Buyurtma maxsulotlari</h5>
+                                        <div class="table-responsive mb-3">
+                                            <table class="table table-bordered table-striped">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Maxsulot kodi</th>
+                                                        <th>Maxsulot nomi</th>
+                                                        <th>O'lchov birligi</th>
+                                                        <th class="text-right">Buyurtma miqdori</th>
+                                                        <th class="text-right">Rejalashtirilgan</th>
+                                                        <th class="text-right">Yetkazilgan</th>
+                                                        <th class="text-right">Qolgan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var product in Model.OrderProducts)
+                                                    {
+                                                        var remaining = product.OrderQuantity - product.PlannedQuantity;
+                                                        <tr>
+                                                            <td>@product.ProductPNo</td>
+                                                            <td>@product.ProductName</td>
+                                                            <td>@product.UnitName</td>
+                                                            <td class="text-right">@product.OrderQuantity.ToString("N2")</td>
+                                                            <td class="text-right">@product.PlannedQuantity.ToString("N2")</td>
+                                                            <td class="text-right">@product.ShippedQuantity.ToString("N2")</td>
+                                                            <td class="text-right @(remaining > 0 ? "text-warning" : "text-success")">
+                                                                <strong>@remaining.ToString("N2")</strong>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <hr />
+
+                                        <h5 class="mb-2">Yetkazib berish rejasi</h5>
+                                        @using (Html.BeginForm("SaveDeliverySchedule", "SOrder", FormMethod.Post, new { @id = "scheduleForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderID" value="@Model.OrderID" />
+
+                                            <div id="scheduleItemsContainer">
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered" id="scheduleTable">
+                                                        <thead class="thead-light">
+                                                            <tr>
+                                                                <th width="5%">№</th>
+                                                                <th width="20%">Maxsulot</th>
+                                                                <th width="15%">Yetkazib berish sanasi</th>
+                                                                <th width="15%">Miqdor</th>
+                                                                <th width="10%">Amallar</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="scheduleTableBody">
+                                                            @if (Model.ScheduleItems != null && Model.ScheduleItems.Any())
+                                                            {
+                                                                int idx = 0;
+                                                                foreach (var item in Model.ScheduleItems)
+                                                                {
+                                                                    var orderProduct = Model.OrderProducts.FirstOrDefault(p => p.SOrderProductID == item.SOrderProductID);
+                                                                    <tr data-order-product-id="@item.SOrderProductID">
+                                                                        <td>@(idx + 1)</td>
+                                                                        <td>
+                                                                            @(orderProduct?.ProductPNo ?? "") - @(orderProduct?.ProductName ?? "")
+                                                                            <input type="hidden" name="ScheduleItems[@idx].OrderProductID" value="@item.SOrderProductID" />
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="date" 
+                                                                                   name="ScheduleItems[@idx].DeliveryDate" 
+                                                                                   class="form-control delivery-date" 
+                                                                                   value="@item.DeliveryDate.ToString("yyyy-MM-dd")" 
+                                                                                   @(changePermit ? "" : "disabled") 
+                                                                                   required />
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" 
+                                                                                   name="ScheduleItems[@idx].QtyPlanned" 
+                                                                                   class="form-control qty-planned" 
+                                                                                   value="@item.QtyPlanned.ToString("N2")" 
+                                                                                   step="0.01" 
+                                                                                   min="0.01" 
+                                                                                   max="@(orderProduct != null ? orderProduct.OrderQuantity.ToString("N2") : "")"
+                                                                                   data-order-qty="@(orderProduct?.OrderQuantity ?? 0)"
+                                                                                   data-planned="@(orderProduct?.PlannedQuantity ?? 0)"
+                                                                                   @(changePermit ? "" : "disabled") 
+                                                                                   required />
+                                                                        </td>
+                                                                        <td>
+                                                                            @if (changePermit)
+                                                                            {
+                                                                                <button type="button" class="btn btn-sm btn-danger remove-schedule-row">
+                                                                                    <i class="bx bx-trash"></i>
+                                                                                </button>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                    idx++;
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            if (changePermit)
+                                            {
+                                                <text>
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-6">
+                                                            <button type="button" class="btn btn-success" id="addScheduleRow">
+                                                                <i class="bx bx-plus"></i> Qator qo'shish
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-3">
+                                                        <div class="col-12">
+                                                            <button type="submit" class="btn btn-primary btn-lg">
+                                                                <i class="bx bx-save"></i> Saqlash
+                                                            </button>
+                                                            <a href="@Url.Action("Details", new { id = Model.OrderID })" class="btn btn-secondary btn-lg">
+                                                                <i class="bx bx-x"></i> Bekor qilish
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </text>
+                                            }
+                                            else
+                                            {
+                                                <text>
+                                                    <div class="row mt-3">
+                                                        <div class="col-12">
+                                                            <a href="@Url.Action("Details", new { id = Model.OrderID })" class="btn btn-secondary btn-lg">
+                                                                <i class="bx bx-x"></i> Orqaga
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </text>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var changePermit = (changePermit ? "true" : "false");
+            var orderProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.OrderProducts.Select(p => new { 
+                SOrderProductID = p.SOrderProductID, 
+                ProductPNo = p.ProductPNo, 
+                ProductName = p.ProductName,
+                OrderQuantity = p.OrderQuantity,
+                PlannedQuantity = p.PlannedQuantity
+            })));
+
+            var scheduleRowIndex = @(Model.ScheduleItems?.Count ?? 0);
+            
+            // Disable all inputs if no change permission
+            if (!changePermit) {
+                $('.delivery-date, .qty-planned, .order-product-select').prop('disabled', true);
+                $('#addScheduleRow').prop('disabled', true);
+            }
+            
+            // Add new schedule row
+            $('#addScheduleRow').on('click', function () {
+                if (!changePermit) {
+                    return false;
+                }
+                    var row = '<tr>' +
+                        '<td>' + (scheduleRowIndex + 1) + '</td>' +
+                        '<td>' +
+                        '<select name="ScheduleItems[' + scheduleRowIndex + '].OrderProductID" class="form-control order-product-select" required>' +
+                        '<option value="">---Tanlang---</option>';
+                    
+                    orderProducts.forEach(function(product) {
+                        var remaining = product.OrderQuantity - product.PlannedQuantity;
+                        if (remaining > 0) {
+                            row += '<option value="' + product.SOrderProductID + '" data-order-qty="' + product.OrderQuantity + '" data-planned="' + product.PlannedQuantity + '">' +
+                                product.ProductPNo + ' - ' + product.ProductName + ' (Qolgan: ' + remaining.toFixed(2) + ')' +
+                                '</option>';
+                        }
+                    });
+                    
+                    row += '</select>' +
+                        '</td>' +
+                        '<td>' +
+                        '<input type="date" name="ScheduleItems[' + scheduleRowIndex + '].DeliveryDate" class="form-control delivery-date" required />' +
+                        '</td>' +
+                        '<td>' +
+                        '<input type="number" name="ScheduleItems[' + scheduleRowIndex + '].QtyPlanned" class="form-control qty-planned" value="0" step="0.01" min="0.01" required />' +
+                        '</td>' +
+                        '<td>' +
+                        '<button type="button" class="btn btn-sm btn-danger remove-schedule-row">' +
+                        '<i class="bx bx-trash"></i>' +
+                        '</button>' +
+                        '</td>' +
+                        '</tr>';
+                    
+                    $('#scheduleTableBody').append(row);
+                    scheduleRowIndex++;
+                    updateRowNumbers();
+                });
+
+                // Remove schedule row
+                $(document).on('click', '.remove-schedule-row', function () {
+                    if (confirm('Ushbu qatorni o\'chirishni tasdiqlaysizmi?')) {
+                        $(this).closest('tr').remove();
+                        updateRowNumbers();
+                    }
+                });
+
+                // Update max quantity when product is selected
+                $(document).on('change', '.order-product-select', function () {
+                    var $row = $(this).closest('tr');
+                    var $option = $(this).find('option:selected');
+                    var orderQty = parseFloat($option.data('order-qty')) || 0;
+                    var planned = parseFloat($option.data('planned')) || 0;
+                    var remaining = orderQty - planned;
+                    
+                    var $qtyInput = $row.find('.qty-planned');
+                    $qtyInput.attr('max', remaining);
+                    $qtyInput.attr('data-order-qty', orderQty);
+                    $qtyInput.attr('data-planned', planned);
+                });
+
+                // Validate quantities
+                $(document).on('input', '.qty-planned', function () {
+                    var $row = $(this).closest('tr');
+                    var qty = parseFloat($(this).val()) || 0;
+                    var maxQty = parseFloat($(this).attr('max')) || 0;
+                    
+                    if (qty > maxQty) {
+                        $(this).addClass('is-invalid');
+                        alert('Miqdor qolgan miqdordan (' + maxQty.toFixed(2) + ') oshib ketdi!');
+                        $(this).val(maxQty);
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                // Form validation
+                $('#scheduleForm').on('submit', function (e) {
+                    var hasRows = $('#scheduleTableBody tr').length > 0;
+                    if (!hasRows) {
+                        e.preventDefault();
+                        alert('Kamida bitta yetkazib berish rejasi qo\'shish kerak!');
+                        return false;
+                    }
+
+                    // Validate all quantities
+                    var isValid = true;
+                    $('#scheduleTableBody tr').each(function () {
+                        var $qtyInput = $(this).find('.qty-planned');
+                        var qty = parseFloat($qtyInput.val()) || 0;
+                        var maxQty = parseFloat($qtyInput.attr('max')) || 0;
+                        
+                        if (qty <= 0 || qty > maxQty) {
+                            isValid = false;
+                            $qtyInput.addClass('is-invalid');
+                        } else {
+                            $qtyInput.removeClass('is-invalid');
+                        }
+                    });
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Barcha miqdorlar to\'g\'ri kiritilganligini tekshiring!');
+                        return false;
+                    }
+                });
+
+                // Update row numbers
+                function updateRowNumbers() {
+                    $('#scheduleTableBody tr').each(function (index) {
+                        $(this).find('td:first').text(index + 1);
+                    });
+                }
+
+                // Set today's date as default for new date inputs
+                $(document).on('focus', '.delivery-date', function () {
+                    if (!$(this).val()) {
+                        var today = new Date().toISOString().split('T')[0];
+                        $(this).val(today);
+                    }
+                });
+        });
+    </script>
+}

@@ -1,0 +1,310 @@
+@{
+    ViewBag.Title = "Moliya Dashboard - Umumiy ko'rinish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Dashboard</li>
+                                    <li class="breadcrumb-item">Moliya Dashboard</li>
+                                    <li class="breadcrumb-item active">Umumiy ko'rinish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Moliya Dashboard - Umumiy ko'rinish</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("FinancialOverview")" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label class="control-label">Dan sana:</label>
+                                                <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="control-label">Gacha sana:</label>
+                                                <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="control-label">&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <!-- Summary Cards -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-inflow">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Jami kirim</div>
+                                                    <div class="stat-card-value">@ViewBag.TotalIncome.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-outflow">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Jami chiqim</div>
+                                                    <div class="stat-card-value">@ViewBag.TotalExpense.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-net">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Net kassa oqimi</div>
+                                                    <div class="stat-card-value">@ViewBag.NetCashflow.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-balance">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Joriy balans</div>
+                                                    <div class="stat-card-value">@((ViewBag.CashBalance + ViewBag.BankBalance).ToString("N2"))</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Oylik trend</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="monthlyTrendChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Eng ko'p chiqim kategoriyalar</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="topExpenseChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Eng ko'p kirim kategoriyalar</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="topIncomeChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Balans tafsilotlari</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <table class="table table-striped">
+                                                        <tr>
+                                                            <td><strong>Naqd pul balansi:</strong></td>
+                                                            <td class="text-right">@ViewBag.CashBalance.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><strong>Bank balansi:</strong></td>
+                                                            <td class="text-right">@ViewBag.BankBalance.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><strong>Jami balans:</strong></td>
+                                                            <td class="text-right"><strong>@((ViewBag.CashBalance + ViewBag.BankBalance).ToString("N2")) @(ViewBag.CurrencyShortname ?? "UZS")</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .stat-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            overflow: hidden;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .stat-card-inflow {
+            background: linear-gradient(135deg, #28c76f 0%, #20b85c 100%);
+            color: white;
+        }
+        .stat-card-outflow {
+            background: linear-gradient(135deg, #ea5455 0%, #d43f3f 100%);
+            color: white;
+        }
+        .stat-card-net {
+            background: linear-gradient(135deg, #00cfe8 0%, #00a8b5 100%);
+            color: white;
+        }
+        .stat-card-balance {
+            background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%);
+            color: white;
+        }
+        .stat-card-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .stat-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            line-height: 1.2;
+        }
+        .stat-card-currency {
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Monthly Trend Chart
+        var monthlyData = @Html.Raw(Json.Encode(ViewBag.MonthlyData));
+        var monthlyPeriods = monthlyData.map(function(item) { return item.Period; });
+        var monthlyIncome = monthlyData.map(function(item) { return item.Income; });
+        var monthlyExpense = monthlyData.map(function(item) { return item.Expense; });
+
+        var monthlyCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyPeriods,
+                datasets: [{
+                    label: 'Kirim',
+                    data: monthlyIncome,
+                    borderColor: 'rgb(40, 199, 111)',
+                    backgroundColor: 'rgba(40, 199, 111, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Chiqim',
+                    data: monthlyExpense,
+                    borderColor: 'rgb(234, 84, 85)',
+                    backgroundColor: 'rgba(234, 84, 85, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Top Expense Categories Chart
+        var topExpenseData = @Html.Raw(Json.Encode(ViewBag.TopExpenseCategories));
+        var expenseLabels = topExpenseData.map(function(item) { return item.CategoryName; });
+        var expenseAmounts = topExpenseData.map(function(item) { return item.Amount; });
+
+        var expenseCtx = document.getElementById('topExpenseChart').getContext('2d');
+        new Chart(expenseCtx, {
+            type: 'bar',
+            data: {
+                labels: expenseLabels,
+                datasets: [{
+                    label: 'Chiqim',
+                    data: expenseAmounts,
+                    backgroundColor: 'rgba(234, 84, 85, 0.8)',
+                    borderColor: 'rgb(234, 84, 85)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Top Income Categories Chart
+        var topIncomeData = @Html.Raw(Json.Encode(ViewBag.TopIncomeCategories));
+        var incomeLabels = topIncomeData.map(function(item) { return item.CategoryName; });
+        var incomeAmounts = topIncomeData.map(function(item) { return item.Amount; });
+
+        var incomeCtx = document.getElementById('topIncomeChart').getContext('2d');
+        new Chart(incomeCtx, {
+            type: 'bar',
+            data: {
+                labels: incomeLabels,
+                datasets: [{
+                    label: 'Kirim',
+                    data: incomeAmounts,
+                    backgroundColor: 'rgba(40, 199, 111, 0.8)',
+                    borderColor: 'rgb(40, 199, 111)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

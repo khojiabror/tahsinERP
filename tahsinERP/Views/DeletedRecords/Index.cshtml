@@ -1,0 +1,242 @@
+@model dynamic
+@{
+    ViewBag.Title = "O'chirilganlar";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+@using tahsinERP.Models
+@using tahsinERP.ViewModels
+
+@if (RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
+{
+    bool changePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "AdminPanel");
+    var modules = ViewBag.Modules as List<DeletedModuleInfo> ?? new List<DeletedModuleInfo>();
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Admin Panel</li>
+                                    <li class="breadcrumb-item active">O'chirilganlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @Html.AntiForgeryToken()
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible mb-2" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        @TempData["Success"]
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible mb-2" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <section class="invoice-list-wrapper">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title"><i class="bx bx-trash"></i> O'chirilgan ma'lumotlarni tiklash</h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- Modul tanlash -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label>Modulni tanlang</label>
+                                    <select id="moduleSelect" class="form-control select2">
+                                        <option value="">-- Modulni tanlang --</option>
+                                        @foreach (var m in modules.OrderBy(x => x.DisplayName))
+                                        {
+                                            <option value="@m.Key">@m.DisplayName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Qidirish</label>
+                                    <input type="text" id="searchTerm" class="form-control" placeholder="Qidirish..." disabled />
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button" id="btnLoad" class="btn btn-primary w-100" disabled>
+                                        <i class="bx bx-search"></i> Yuklash
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- DataTable -->
+                            <div id="tableContainer" class="table-responsive" style="display:none;">
+                                <table id="deletedDataTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr id="tableHeaderRow">
+                                            <th>ID</th>
+                                            <th>Asosiy</th>
+                                            @if (changePermit)
+                                            {
+                                                <th>Amallar</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+
+                            <div id="emptyState" class="text-center py-5 text-muted">
+                                <i class="bx bx-folder-open font-large-2"></i>
+                                <p class="mt-2">Modulni tanlang va "Yuklash" tugmasini bosing</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="changePermit" value="@(changePermit ? "1" : "0")" />
+
+    @section Scripts {
+    <script>
+        $(document).ready(function () {
+            var selectedModule = '';
+            var dataTable = null;
+
+            // Select2 - qidirish bilan modul tanlash
+            $('#moduleSelect').select2({
+                placeholder: 'Modulni qidirish yoki tanlash',
+                allowClear: true,
+                width: '100%',
+                language: {
+                    noResults: function () { return "Natija topilmadi"; },
+                    searching: function () { return "Qidirilmoqda..."; }
+                }
+            });
+
+            $('#moduleSelect').on('change', function () {
+                selectedModule = $(this).val();
+                $('#searchTerm').prop('disabled', !selectedModule);
+                $('#btnLoad').prop('disabled', !selectedModule);
+                if (!selectedModule) {
+                    $('#tableContainer').hide();
+                    $('#emptyState').show();
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+                }
+            });
+
+            $('#btnLoad').on('click', loadDeletedData);
+
+            $('#searchTerm').on('keypress', function (e) {
+                if (e.which === 13) loadDeletedData();
+            });
+
+            function loadDeletedData() {
+                if (!selectedModule) return;
+                var searchTerm = $('#searchTerm').val();
+
+                $.ajax({
+                    url: '@Url.Action("GetDeletedData", "DeletedRecords")',
+                    type: 'GET',
+                    data: { moduleKey: selectedModule, searchTerm: searchTerm },
+                    success: function (response) {
+                        if (response.error) {
+                            alert(response.error);
+                            return;
+                        }
+                        renderTable(response.data, response.columns);
+                        $('#emptyState').hide();
+                        $('#tableContainer').show();
+                    },
+                    error: function (xhr) {
+                        alert('Xatolik: ' + (xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : xhr.statusText));
+                    }
+                });
+            }
+
+            function renderTable(data, columns) {
+                if (dataTable) {
+                    dataTable.destroy();
+                }
+
+                var changePermit = $('#changePermit').val() === '1';
+                var thead = '<tr><th>ID</th><th>Asosiy</th>';
+                if (columns && columns.length > 0) {
+                    columns.forEach(function (col) {
+                        thead += '<th>' + col + '</th>';
+                    });
+                }
+                if (changePermit) {
+                    thead += '<th>Amallar</th>';
+                }
+                thead += '</tr>';
+                $('#deletedDataTable thead').html(thead);
+
+                var tbody = '';
+                data.forEach(function (row) {
+                    var cols = '';
+                    if (row.Columns) {
+                        for (var k in row.Columns) {
+                            var v = row.Columns[k];
+                            cols += (v != null && v !== '') ? (v + ' | ') : '';
+                        }
+                        cols = cols.replace(/\s*\|\s*$/, '');
+                    }
+                    var cells = '<td>' + row.Id + '</td><td>' + (row.DisplayText || '') + '</td>';
+                    if (columns && columns.length > 0) {
+                        columns.forEach(function (col) {
+                            var val = row.Columns && row.Columns[col] != null ? row.Columns[col] : '';
+                            if (val && typeof val === 'object' && val.toISOString) val = val.toISOString().split('T')[0];
+                            cells += '<td>' + val + '</td>';
+                        });
+                    } else {
+                        cells += '<td>' + cols + '</td>';
+                    }
+                    if (changePermit) {
+                        var token = $('input[name="__RequestVerificationToken"]').val();
+                        cells += '<td>' +
+                            '<form method="post" action="@Url.Action("Recover", "DeletedRecords")" style="display:inline;" onsubmit="return confirm(\'Tiklashni tasdiqlaysizmi?\');">' +
+                            (token ? '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />' : '') +
+                            '<input type="hidden" name="moduleKey" value="' + selectedModule + '" />' +
+                            '<input type="hidden" name="id" value="' + row.Id + '" />' +
+                            '<button type="submit" class="btn btn-sm btn-success"><i class="bx bx-undo"></i> Tiklash</button>' +
+                            '</form></td>';
+                    }
+                    tbody += '<tr>' + cells + '</tr>';
+                });
+                $('#deletedDataTable tbody').html(tbody || '<tr><td colspan="99" class="text-center">O\'chirilgan yozuv topilmadi</td></tr>');
+
+                dataTable = $('#deletedDataTable').DataTable({
+                    language: {
+                        search: "Qidirish:",
+                        lengthMenu: "_MENU_ ta ko'rsatish",
+                        info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
+                        emptyTable: "Ma'lumot yo'q"
+                    },
+                    pageLength: 25,
+                    order: [[0, "desc"]],
+                    dom: 'Blfrtip',
+                    buttons: ['excelHtml5', 'pdfHtml5']
+                });
+            }
+        });
+    </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

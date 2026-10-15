@@ -1,0 +1,171 @@
+@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
+@{
+    ViewBag.Title = "Tabel - Chop etish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int daysInMonth = DateTime.DaysInMonth(Model.Year, Model.Month);
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "HrTimesheets")">Tabel</a></li>
+                                    <li class="breadcrumb-item active">Chop etish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row mb-2">
+                    <div class="col-12 text-right">
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="bx bx-printer"></i> Chop etish
+                        </button>
+                        <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-success">
+                            <i class="bx bx-export"></i> Excelga eksport
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card" id="printArea" data-print-target="true">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <h4>ISH VAQTI HISOBOTI</h4>
+                            <p>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month) @Model.Year yil</p>
+                            @if (!string.IsNullOrEmpty(Model.OrgUnitName))
+                            {
+                                <p><strong>Bo'lim:</strong> @Model.OrgUnitName</p>
+                            }
+                            <p><strong>Oylik fond soati:</strong> @Model.FundHours.ToString("0.##")</p>
+                        </div>
+
+                        <div class="timesheet-table-wrapper">
+                            <table class="table table-bordered timesheet-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 30px;">№</th>
+                                    <th rowspan="2" style="width: 60px;">Tab.№</th>
+                                    <th rowspan="2" style="width: 150px;">F.I.O.</th>
+                                    <th rowspan="2" style="width: 100px;">Lavozim</th>
+                                    <th colspan="@daysInMonth" style="text-align: center;">Oy kunlari</th>
+                                    <th rowspan="2" style="width: 60px;">Ish kunlari</th>
+                                    <th rowspan="2" style="width: 60px;">Ish soatlari</th>
+                                    <th rowspan="2" style="width: 60px;">Qo'shimcha</th>
+                                    <th rowspan="2" style="width: 60px;">Qatnashmagan</th>
+                                </tr>
+                                <tr>
+                                    @for (int day = 1; day <= daysInMonth; day++)
+                                    {
+                                        <th style="width: 30px; text-align: center;">@day</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int rowNum = 1; }
+                                @foreach (var line in Model.Lines.OrderBy(l => l.EmployeeTabNo))
+                                {
+                                    <tr>
+                                        <td>@rowNum</td>
+                                        <td>@line.EmployeeTabNo</td>
+                                        <td>@line.EmployeeFullName</td>
+                                        <td>@line.PositionName</td>
+                                        @for (int day = 1; day <= daysInMonth; day++)
+                                        {
+                                            var propertyName = $"Day{day:D2}Hours";
+                                            var property = typeof(tahsinERP.ViewModels.HR.HrTimesheetLineViewModel).GetProperty(propertyName);
+                                            var hours = property?.GetValue(line) as decimal?;
+                                            <td style="text-align: center;">@(hours?.ToString("F1") ?? "0")</td>
+                                        }
+                                        <td style="text-align: center;">@line.TotalWorkedDays.ToString("F1")</td>
+                                        <td style="text-align: center;">@line.TotalWorkedHours.ToString("F2")</td>
+                                        <td style="text-align: center;">@line.OvertimeHours.ToString("F2")</td>
+                                        <td style="text-align: center;">@line.AbsentDays.ToString("F1")</td>
+                                    </tr>
+                                    rowNum++;
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="@(4 + daysInMonth + 2)" style="text-align:right;">Jami qo'shimcha soat</th>
+                                    <th style="text-align:center;">@Model.Lines.Sum(l => l.OvertimeHours).ToString("F2")</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Tuzuvchi:</strong> _________________</p>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <p><strong>Tasdiqlovchi:</strong> _________________</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .timesheet-table-wrapper {
+            overflow: auto;
+            max-height: calc(100vh - 280px);
+            border: 1px solid #e5e7eb;
+        }
+        .timesheet-table {
+            width: max-content;
+            min-width: 100%;
+            font-size: 10px;
+        }
+        .timesheet-table th,
+        .timesheet-table td {
+            white-space: nowrap;
+            padding: 2px 4px;
+        }
+    </style>
+
+    <style media="print">
+        .content-header, .breadcrumb-wrapper, .btn, .content-overlay {
+            display: none !important;
+        }
+        #printArea {
+            border: none;
+            box-shadow: none;
+        }
+        body {
+            background: white;
+        }
+        .timesheet-table-wrapper {
+            overflow: visible;
+            max-height: none;
+            border: none;
+        }
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    </style>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

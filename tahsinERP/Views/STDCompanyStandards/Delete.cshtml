@@ -1,0 +1,87 @@
+@model tahsinERP.Models.STD_COMPANY_STANDARDS
+@{
+    ViewBag.Title = "Standartni o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/STDCompanyStandards">Korxona Standartlari</a></li>
+                                    <li class="breadcrumb-item active">O'chirish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="bx bx-trash mr-1"></i>Standartni o'chirish</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="alert alert-warning">
+                                        <i class="bx bx-error-circle"></i>
+                                        <strong>Diqqat!</strong> Siz standartni o'chirmoqchisiz. Bu amalni qaytarib bo'lmaydi.
+                                    </div>
+
+                                    <h5>Quyidagi standart o'chiriladi:</h5>
+                                    
+                                    <dl class="row mt-3">
+                                        <dt class="col-sm-4">Standart kodi:</dt>
+                                        <dd class="col-sm-8"><strong>@Model.StandardCode</strong></dd>
+
+                                        <dt class="col-sm-4">Soha:</dt>
+                                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Area) ? "-" : Model.Area)</dd>
+
+                                        <dt class="col-sm-4">Versiya:</dt>
+                                        <dd class="col-sm-8">
+                                            <span class="badge badge-light-info">v@(Model.VersionNo)</span>
+                                        </dd>
+
+                                        <dt class="col-sm-4">Eslatma:</dt>
+                                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Notes) ? "-" : Model.Notes)</dd>
+                                    </dl>
+
+                                    @using (Html.BeginForm("Delete", "STDCompanyStandards", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(model => model.DocumentID)
+
+                                        <div class="form-group mt-4">
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Rostdan ham o\'chirmoqchimisiz? Bu amalni qaytarib bo\'lmaydi.');">
+                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                            </button>
+                                            <a href="@Url.Action("Details", "STDCompanyStandards", new { id = Model.DocumentID })" class="btn btn-outline-secondary">
+                                                <i class="bx bx-x"></i> Bekor qilish
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

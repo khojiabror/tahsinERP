@@ -1,0 +1,256 @@
+@model List<tahsinERP.ViewModels.UserViewModel>
+@{
+    ViewBag.Title = "Foydalanuvchilar";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Foydalanuvchilar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "User")" class="btn btn-success">
+                                <i class="bx bx-plus"></i> Yangi foydalanuvchi qo'shish
+                            </a>
+                        </div>
+                    }
+
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 col-sm-6 col-lg-4 mb-2">
+                                    <label for="RoleId" class="form-label">Rol bo'yicha filtrlash</label>
+                                    @Html.DropDownList("RoleId", ViewBag.RoleList as SelectList, "Barcha rollar", new { @class = "form-control", @id = "RoleId" })
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-8 d-flex align-items-end mb-2">
+                                    <a href="@Url.Action("Index", "User", new { status = "InActive" })" class="btn btn-warning mr-2">
+                                        <i class="bx bx-user-x"></i> Nofaol foydalanuvchilar
+                                    </a>
+                                    <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                                        <i class="bx bx-refresh"></i> Yangilash
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+
+                                    <!-- Table -->
+                                    <div class="table-responsive">
+                                        <table id="userDataTable" class="table table-striped table-bordered dataex-html5-selectors" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Foydalanuvchi nomi</th>
+                                                    <th>F.I.Sh</th>
+                                                    <th>E-mail</th>
+                                                    <th>Roli</th>
+                                                    <th>Faolligi</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th class="text-center">Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "User", new { id = item.ID })" class="font-weight-bold">
+                                                                @item.UName
+                                                            </a>
+                                                        </td>
+                                                        <td>@item.FullName</td>
+                                                        <td>@item.Email</td>
+                                                        <td><span class="badge badge-light-primary">@item.Role</span></td>
+                                                        <td>
+                                                            @if (item.IsActive)
+                                                            {
+                                                                <span class="badge badge-light-success">Faol</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-light-danger">Nofaol</span>
+                                                            }
+                                                        </td>
+                                                        @if (changePermit)
+                                                        {
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Edit", "User", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                    <i class="bx bx-edit"></i>
+                                                                </a>
+                                                                <a href="@Url.Action("Delete", "User", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                    <i class="bx bx-trash"></i>
+                                                                </a>
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .users-list-filter .card {
+            border: 1px solid #e0e0e0;
+        }
+        .users-list-filter .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            var table = $('#userDataTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]],
+                @if (changePermit)
+                {
+                    <text>
+                    "columnDefs": [
+                        { "orderable": false, "targets": -1 }
+                    ],
+                    </text>
+                }
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Foydalanuvchilar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: @(changePermit ? "':not(:last-child)'" : "':visible'"),
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Foydalanuvchilar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: @(changePermit ? "':not(:last-child)'" : "':visible'"),
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        title: 'Foydalanuvchilar ro\'yxati',
+                        customize: function (doc) {
+                            doc.defaultStyle.fontSize = 9;
+                            doc.styles.tableHeader.fontSize = 10;
+                        }
+                    }
+                ],
+                "scrollX": true
+            });
+
+            // Role filter
+            $('#RoleId').on('change', function() {
+                var roleId = this.value;
+                if (roleId) {
+                    window.location.href = '@Url.Action("Index", "User")?roleID=' + roleId;
+                } else {
+                    window.location.href = '@Url.Action("Index", "User")';
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,174 @@
+@{
+    ViewBag.Title = "Hisoblar tahlili";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Dashboard</li>
+                                    <li class="breadcrumb-item">Moliya Dashboard</li>
+                                    <li class="breadcrumb-item active">Hisoblar tahlili</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Hisoblar bo'yicha tahlil</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("AccountAnalytics")" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label class="control-label">Dan sana:</label>
+                                                <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Gacha sana:</label>
+                                                <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Hisob:</label>
+                                                @Html.DropDownList("accountID", ViewBag.AccountList as SelectList, "Barcha hisoblar", new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Hisoblar bo'yicha tranzaksiyalar</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Hisob kodi</th>
+                                                                    <th>Hisob nomi</th>
+                                                                    <th>Turi</th>
+                                                                    <th>Kirim</th>
+                                                                    <th>Chiqim</th>
+                                                                    <th>Net summa</th>
+                                                                    <th>Tranzaksiyalar soni</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @if (ViewBag.AccountUsage != null)
+                                                                {
+                                                                    var accountUsageList = ViewBag.AccountUsage as System.Collections.IEnumerable;
+                                                                    if (accountUsageList != null)
+                                                                    {
+                                                                    foreach (tahsinERP.Controllers.Finance.AccountUsageData item in accountUsageList)
+                                                                    {
+                                                                        <tr>
+                                                                            <td>@(item.AccountCode ?? "-")</td>
+                                                                            <td>@(item.AccountName ?? "-")</td>
+                                                                            <td><span class="badge badge-info">@(item.AccountType ?? "-")</span></td>
+                                                                            <td class="text-success">@item.TotalInflow.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</td>
+                                                                            <td class="text-danger">@item.TotalOutflow.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</td>
+                                                                            <td class="@(item.NetAmount >= 0 ? "text-success" : "text-danger")">
+                                                                                <strong>@item.NetAmount.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</strong>
+                                                                            </td>
+                                                                            <td>@item.TransactionCount</td>
+                                                                        </tr>
+                                                                    }
+                                                                    }
+                                                                }
+                                                                @if (ViewBag.AccountUsage == null || (ViewBag.AccountUsage as System.Collections.IEnumerable) == null || !(ViewBag.AccountUsage as System.Collections.IEnumerable).Cast<object>().Any())
+                                                                {
+                                                                    <tr>
+                                                                        <td colspan="7" class="text-center">Ma'lumot topilmadi</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Hisoblar bo'yicha kirim/chiqim (Bar Chart)</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="accountBarChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var accountData = @Html.Raw(Json.Encode(ViewBag.AccountUsage));
+        var accountLabels = accountData.map(function(item) { return item.AccountName; });
+        var accountInflow = accountData.map(function(item) { return item.TotalInflow; });
+        var accountOutflow = accountData.map(function(item) { return item.TotalOutflow; });
+
+        var accountCtx = document.getElementById('accountBarChart').getContext('2d');
+        new Chart(accountCtx, {
+            type: 'bar',
+            data: {
+                labels: accountLabels,
+                datasets: [{
+                    label: 'Kirim',
+                    data: accountInflow,
+                    backgroundColor: 'rgba(40, 199, 111, 0.8)',
+                    borderColor: 'rgb(40, 199, 111)',
+                    borderWidth: 1
+                }, {
+                    label: 'Chiqim',
+                    data: accountOutflow,
+                    backgroundColor: 'rgba(234, 84, 85, 0.8)',
+                    borderColor: 'rgb(234, 84, 85)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

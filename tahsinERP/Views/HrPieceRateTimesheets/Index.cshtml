@@ -1,0 +1,200 @@
+@model List<tahsinERP.ViewModels.HR.HrPieceRateTimesheetIndexViewModel>
+@{
+    ViewBag.Title = "Ishbay tabel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTimesheets"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets");
+    bool approvePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets", "Approve");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Ishbay tabel</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+                @if (TempData["Warning"] != null) { <div class="alert alert-warning">@TempData["Warning"]</div> }
+                @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+                @if (changePermit)
+                {
+                    <div class="invoice-create-btn mb-1">
+                        <a href="@Url.Action("CreateSimple")" class="btn btn-success">
+                            <i class="bx bx-plus"></i> Ishbay ma'lumot kiritish
+                        </a>
+                        <a href="@Url.Action("GridCreate")" class="btn btn-primary ml-1">
+                            <i class="bx bx-table"></i> Jadval orqali kiritish
+                        </a>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input type="number" name="year" class="form-control" value="@ViewBag.Year" placeholder="Yil" min="2000" max="2100" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="month" class="form-control" id="monthFilter">
+                                            <option value="">Barcha oylar</option>
+                                            @for (int i = 1; i <= 12; i++)
+                                            {
+                                                <option value="@i" @(ViewBag.Month != null && (int)ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary">Filtr</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table id="timesheetsTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Yil</th>
+                                            <th>Oy</th>
+                                            <th>Bo'lim</th>
+                                            <th>Holat</th>
+                                            <th>Pullik haq hisoblangan</th>
+                                            <th>Yaratilgan</th>
+                                            <th>Tasdiqlangan</th>
+                                            <th>Amallar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model != null)
+                                        {
+                                            foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>@item.Year</td>
+                                                    <td>@item.MonthName</td>
+                                                    <td>@item.OrgUnitName</td>
+                                                    <td>
+                                                        <span class="badge badge-primary">
+                                                            @item.EntryCount ta yozuv
+                                                        </span>
+                                                    </td>
+                                                    <td>@item.CalculatedAmount.ToString("N2")</td>
+                                                    <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
+                                                    <td>
+                                                        @if (item.Status == "Approved" && item.ApprovedDT.HasValue)
+                                                        {
+                                                            <span class="badge badge-success">@item.ApprovedDT.Value.ToString("dd.MM.yyyy")</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-warning">Tasdiqlanmagan</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @if (changePermit)
+                                                        {
+                                                            <a href="@Url.Action("GridEdit", new { year = item.Year, month = item.Month })" class="btn btn-sm btn-warning" title="Grid tahrirlash">
+                                                                <i class="bx bx-table"></i>
+                                                            </a>
+                                                        }
+                                                        <a href="@Url.Action("Details", new { year = item.Year, month = item.Month, orgUnitId = item.OrgUnitID })" class="btn btn-sm btn-info">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                        @if (approvePermit && item.Status != "Approved")
+                                                        {
+                                                            using (Html.BeginForm("Approve", "HrPieceRateTimesheets", FormMethod.Post, new { style = "display: inline-block;", onsubmit = "return confirm('Bu tabelni tasdiqlashni xohlaysizmi?');" }))
+                                                            {
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="year" value="@item.Year" />
+                                                                <input type="hidden" name="month" value="@item.Month" />
+                                                                <input type="hidden" name="orgUnitId" value="@item.OrgUnitID" />
+                                                                <button type="submit" class="btn btn-sm btn-success">
+                                                                    <i class="bx bx-check"></i>
+                                                                </button>
+                                                            }
+                                                        }
+                                                        @if (changePermit)
+                                                        {
+                                                            <a href="@Url.Action("DeleteEntries", new { year = item.Year, month = item.Month, orgUnitId = item.OrgUnitID })" class="btn btn-sm btn-danger" onclick="return confirm('Bu oy uchun barcha ishbay ma\'lumotlarni o\'chirish?');">
+                                                                <i class="bx bx-trash"></i>
+                                                            </a>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var table = $('#timesheetsTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
+                "order": [[0, "desc"], [1, "desc"]],
+                "dom": "lBfrtip",
+                buttons: [
+                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
+                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                ]
+            });
+
+            // Handle month filter change - reload page with new filter
+            $('#monthFilter').on('change', function() {
+                var month = $(this).val();
+                var year = $('input[name="year"]').val();
+                var orgUnitId = $('select[name="orgUnitId"]').val();
+                
+                var url = '@Url.Action("Index")' + '?year=' + year;
+                if (month) {
+                    url += '&month=' + month;
+                }
+                if (orgUnitId) {
+                    url += '&orgUnitId=' + orgUnitId;
+                }
+                
+                window.location.href = url;
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

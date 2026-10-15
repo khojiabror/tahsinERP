@@ -1,0 +1,90 @@
+@model tahsinERP.Models.ROLE
+@{
+    ViewBag.Title = "Yangi rol qo'shish";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
+                                    <li class="breadcrumb-item active">Yangi rol</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>Yangi rol ma'lumotlari</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Create", "Role", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                        <div class="form-group">
+                                            <label for="RName">Rol nomi <span class="text-danger">*</span></label>
+                                            @Html.TextBoxFor(model => model.RName, new { 
+                                                @class = "form-control", 
+                                                @placeholder = "Masalan: Manager, Admin, User",
+                                                @required = "required",
+                                                @autofocus = "autofocus"
+                                            })
+                                            @Html.ValidationMessageFor(model => model.RName, "", new { @class = "text-danger" })
+                                            <small class="form-text text-muted">Rol nomi takrorlanmasligi kerak</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="Description">Tavsif</label>
+                                            @Html.TextAreaFor(model => model.Description, new { 
+                                                @class = "form-control", 
+                                                @rows = "4",
+                                                @placeholder = "Ushbu roldagi xodim nima ish qilishini yozing..."
+                                            })
+                                            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                        </div>
+
+                                        <div class="alert alert-info">
+                                            <i class="bx bx-info-circle"></i>
+                                            <strong>Eslatma:</strong> Yangi rol yaratilganda, barcha modullar uchun default huquqlar (ViewPermit = true, ChangePermit = false) avtomatik yaratiladi. Keyinchalik huquqlarni tahrirlash sahifasida o'zgartirishingiz mumkin.
+                                        </div>
+
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-save"></i> Saqlash
+                                            </button>
+                                            <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
+                                                <i class="bx bx-x"></i> Bekor qilish
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

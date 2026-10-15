@@ -1,0 +1,187 @@
+@model tahsinERP.ViewModels.Reports.SRMCoverageViewModel
+@{
+    ViewBag.Title = "Coverage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item ">
+                                    SRM Hisobotlar
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Coverage report
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <section class="invoice-list-wrapper">
+                <div class="users-list-filter px-1 mb-1">
+                    @using (Html.BeginForm("Coverage", "Reports", FormMethod.Get, new { @class = "form" }))
+                    {
+                        <div class="row border rounded py-2 mb-2">
+                            <div class="col-md-3 col-sm-6">
+                                <label>Ombor:</label>
+                                @Html.DropDownList("warehouseId", Model.Warehouses as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label>Kategoriya:</label>
+                                @Html.DropDownList("categoryId", Model.Categories as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label>Mahsulot turi:</label>
+                                <select name="productType" class="form-control">
+                                    <option value="" @(string.IsNullOrEmpty(Model.ProductType) ? "selected=\"selected\"" : "")>Barchasi</option>
+                                    <option value="finished" @(Model.ProductType == "finished" ? "selected=\"selected\"" : "")>Tayyor mahsulot</option>
+                                    <option value="raw" @(Model.ProductType == "raw" ? "selected=\"selected\"" : "")>Xomashyo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label>Ko'rinish:</label>
+                                @{
+                                    var vm = (Model.ViewMode ?? "daily").ToLowerInvariant();
+                                }
+                                <select name="viewMode" class="form-control">
+                                    <option value="daily" @(vm == "daily" ? "selected=\"selected\"" : "")>Kunlik</option>
+                                    <option value="weekly" @(vm == "weekly" ? "selected=\"selected\"" : "")>Haftalik</option>
+                                    <option value="monthly" @(vm == "monthly" ? "selected=\"selected\"" : "")>Oylik</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label>Dan:</label>
+                                <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                            </div>
+                        </div>
+                        <div class="row border rounded py-2 mb-2 mt-1">
+                            <div class="col-md-3 col-sm-6">
+                                <label>Gacha:</label>
+                                <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-3 col-sm-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="bx bx-refresh"></i> Hisoblash
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-12 col-sm-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="coverageTable" class="table table-striped table-bordered nowrap" style="width:100%">
+                                        <thead>
+                                            <tr class="table-primary">
+                                                <th>Kod</th>
+                                                <th>Xomashyo</th>
+                                                <th>Birlik</th>
+                                                <th class="text-right">Qoldiq</th>
+                                                <th class="text-right">Reja (jami)</th>
+                                                <th class="text-right">Fakt (jami)</th>
+                                                <th class="text-center">ABC</th>
+                                                <th class="text-center">XYZ</th>
+                                                <th class="text-right">Safety DOH</th>
+                                                @foreach (var d in Model.Dates)
+                                                {
+                                                    <th class="text-center">@d.ToString("dd.MM")</th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var row in Model.Rows)
+                                            {
+                                                <tr>
+                                                    <td>@row.ProductCode</td>
+                                                    <td>@row.ProductName</td>
+                                                    <td>@row.UnitName</td>
+                                                    <td class="text-right">@row.CurrentStock.ToString("N2")</td>
+                                                    <td class="text-right">@row.PlannedTotal.ToString("N2")</td>
+                                                    <td class="text-right">@row.ActualTotal.ToString("N2")</td>
+                                                    <td class="text-center font-weight-bold">@row.ABCClass</td>
+                                                    <td class="text-center font-weight-bold">@row.XYZClass</td>
+                                                    <td class="text-right">@(row.SafetyDOH.HasValue ? row.SafetyDOH.Value.ToString("N1") : "-")</td>
+                                                    @foreach (var cell in row.DayCells)
+                                                    {
+                                                        if (!cell.CoverageInDays.HasValue)
+                                                        {
+                                                            <td class="text-center text-muted">-</td>
+                                                        }
+                                                        else
+                                                        {
+                                                            var cov = cell.CoverageInDays.Value;
+                                                            var rounded = Math.Round(cov, 1);
+                                                            var isSafe = rounded >= 1.0;
+                                                            var cellClass = isSafe ? "text-success" : "text-danger";
+                                                            var bgStyle = isSafe ? "background-color: #ffffff;" : "background-color: #f8d7da;";
+                                                            <td class="text-center @cellClass" style="@bgStyle">@rounded</td>
+                                                        }
+                                                    }
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#coverageTable').DataTable({
+                language: {
+                    search: "Qidirish:",
+                    lengthMenu: "_MENU_ ta ko'rsatish",
+                    info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    infoEmpty: "Yozuvlar yo'q",
+                    infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    paginate: {
+                        first: "Birinchi",
+                        last: "Oxirgi",
+                        next: "Keyingi",
+                        previous: "Oldingi"
+                    },
+                    zeroRecords: "Ma'lumot topilmadi"
+                },
+                pageLength: 50,
+                scrollX: true,
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        className: 'btn btn-success mr-1'
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        className: 'btn btn-danger',
+                        orientation: 'landscape',
+                        pageSize: 'A3',
+                        title: 'Coverage report'
+                    }
+                ]
+            });
+        });
+    </script>
+}

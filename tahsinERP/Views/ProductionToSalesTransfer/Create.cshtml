@@ -1,0 +1,379 @@
+@model tahsinERP.Controllers.SRM.ProductionToSalesTransferViewModel
+
+@{
+    ViewBag.Title = "Ishlab chiqarishdan sotuv omboriga o'tkazma";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "ProductionToSalesTransfer", "Create"))
+{
+    using (Html.BeginForm("Create", "ProductionToSalesTransfer", FormMethod.Post, new { enctype = "multipart/form-data", @id = "transferForm" }))
+    {
+        @Html.AntiForgeryToken()
+        
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/ProductionToSalesTransfer/Index">O'tkazmalar</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            Yangi o'tkazma
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <section class="basic-select2">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">
+                                            <i class="bx bx-transfer"></i> Ishlab chiqarishdan sotuv omboriga o'tkazma
+                                        </h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Ishlab chiqarish ombori</label>
+                                                        <input type="text" class="form-control" value="@ViewBag.ProductionWH.WHName" readonly />
+                                                        @Html.HiddenFor(m => m.ProductionWHID)
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Sotuv ombori</label>
+                                                        <input type="text" class="form-control" value="@ViewBag.SalesWH.WHName" readonly />
+                                                        @Html.HiddenFor(m => m.SalesWHID)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="TransferDate">O'tkazma sanasi <span class="text-danger">*</span></label>
+                                                        @Html.TextBoxFor(m => m.TransferDate, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required", max = DateTime.Now.ToString("yyyy-MM-dd") + "T23:59" })
+                                                        @Html.ValidationMessageFor(m => m.TransferDate, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="TransferDocNo">Hujjat raqami</label>
+                                                        @Html.TextBoxFor(m => m.TransferDocNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                        @Html.ValidationMessageFor(m => m.TransferDocNo, "", new { @class = "text-danger" })
+                                                        <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="transferDocument">Hujjat fayli</label>
+                                                        <input type="file" name="transferDocument" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+                                                        <small class="text-muted">PDF, Word yoki rasm fayli</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="Description">Izoh</label>
+                                                @Html.TextAreaFor(m => m.Description, new { @class = "form-control", @rows = "3", @placeholder = "O'tkazma haqida qisqacha ma'lumot" })
+                                                @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
+                                            </div>
+                                            
+                                            <hr />
+                                            
+                                            <h5 class="mb-2">Mahsulotlar</h5>
+                                            <div id="productLines">
+                                                <div class="product-line row mb-2">
+                                                    <div class="col-md-4">
+                                                        <label>Mahsulot <span class="text-danger">*</span></label>
+                                                        @Html.DropDownList("lines[0].ProductID", ViewBag.Products as SelectList, "---Tanlang---", new { @class = "form-control select2 product-select", @required = "required" })
+                                                        <small class="text-muted available-stock-hint"></small>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label>Lot (ishlab chiqarish)</label>
+                                                        <select name="lines[0].LotAllocationsDummy" class="form-control lot-select select2" multiple="multiple" data-placeholder="Lot tanlang" title="Bir yoki bir nechta lot tanlang">
+                                                            <option value="">---Tanlang---</option>
+                                                        </select>
+                                                        <input type="hidden" name="lines[0].LotAllocations" class="lot-allocations-input" value="" />
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label>Tanlangan lotlar qoldig'i</label>
+                                                        <input type="text" class="form-control available-stock" readonly placeholder="0" />
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label>O'tkazish miqdori <span class="text-danger">*</span></label>
+                                                        <input type="number" name="lines[0].Quantity" class="form-control quantity-input" step="0.01" min="0" required placeholder="0" />
+                                                    </div>
+                                                    <div class="col-md-1">
+                                                        <label>&nbsp;</label>
+                                                        <button type="button" class="btn btn-danger btn-block remove-line" style="display:none;">
+                                                            <i class="bx bx-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <button type="button" class="btn btn-outline-primary mb-2" id="addProductLine">
+                                                <i class="bx bx-plus"></i> Mahsulot qo'shish
+                                            </button>
+                                            
+                                            <hr />
+                                            
+                                            <div class="form-actions">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bx bx-save"></i> Saqlash
+                                                </button>
+                                                <a href="@Url.Action("Index", "ProductionToSalesTransfer")" class="btn btn-light">
+                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+
+    @section scripts {
+    <script>
+        (function() {
+            var $ = window.jQuery || window.$;
+            if (!$) return;
+
+            var productIndex = 1;
+            var productStockMap = {};
+            var lotDataMap = {}; // { productID: [{ ProductionID, RemainingAmount, DisplayText }] }
+
+            function parseAvailableFromText(text) {
+                var m = (text || '').match(/Mavjud:\s*([0-9]+(?:\.[0-9]+)?)/i);
+                return m ? m[1] : null;
+            }
+
+            function buildStockMap() {
+                productStockMap = {};
+                var sel = $('#productLines .product-select').first();
+                if (sel.length) {
+                    sel.find('option').each(function() {
+                        var v = $(this).val();
+                        if (!v) return;
+                        var avail = parseAvailableFromText($(this).text());
+                        if (avail != null) productStockMap[v] = parseFloat(avail);
+                    });
+                }
+            }
+
+            function updateStockHint(line) {
+                var sel = line.find('.product-select');
+                var hint = line.find('.available-stock-hint');
+                var avail = productStockMap[sel.val()];
+                hint.text(avail != null ? ('Mavjud: ' + avail) : '');
+            }
+
+            function isLotsizSelected(line) {
+                var selected = line.find('.lot-select').val();
+                return selected && selected.length && selected.indexOf('__LOTSIZ__') >= 0;
+            }
+
+            function updateLotSelectedSum(line) {
+                var lotSelect = line.find('.lot-select');
+                var stockInp = line.find('.available-stock');
+                var productID = line.find('.product-select').val();
+                if (isLotsizSelected(line)) {
+                    var avail = productStockMap[productID];
+                    stockInp.val(avail != null ? avail : '');
+                    return;
+                }
+                var lots = lotDataMap[productID];
+                if (!lots) { stockInp.val(''); return; }
+                var selected = lotSelect.val();
+                var sum = 0;
+                if (selected && selected.length) {
+                    selected.forEach(function(pid) {
+                        if (pid === '__LOTSIZ__') return;
+                        var l = lots.find(function(x) { return x.ProductionID == pid; });
+                        if (l) sum += l.RemainingAmount;
+                    });
+                }
+                stockInp.val(sum > 0 ? sum : '');
+            }
+
+            function buildLotAllocationsForLine(line) {
+                if (isLotsizSelected(line)) return 'LOTSIZ';
+                var lotSelect = line.find('.lot-select');
+                var qtyInp = line.find('.quantity-input');
+                var productID = line.find('.product-select').val();
+                var qty = parseFloat(qtyInp.val()) || 0;
+                var lots = lotDataMap[productID];
+                if (!lots || qty <= 0) return '';
+                var selected = lotSelect.val();
+                if (!selected || !selected.length) return '';
+                var ordered = [];
+                lots.forEach(function(l) {
+                    if (selected.indexOf('' + l.ProductionID) >= 0)
+                        ordered.push({ ProductionID: l.ProductionID, RemainingAmount: l.RemainingAmount });
+                });
+                var parts = [];
+                var remaining = qty;
+                for (var i = 0; i < ordered.length && remaining > 0.0001; i++) {
+                    var take = Math.min(ordered[i].RemainingAmount, remaining);
+                    if (take > 0) {
+                        parts.push('ProdID:' + ordered[i].ProductionID + ':' + take);
+                        remaining -= take;
+                    }
+                }
+                return parts.join('|');
+            }
+
+            function loadLotOptions(line) {
+                var productID = line.find('.product-select').val();
+                var lotSelect = line.find('.lot-select');
+                lotSelect.find('option:not([value=""])').remove();
+                lotSelect.html('<option value="">---Yuklanmoqda---</option>');
+                if (!productID) {
+                    lotSelect.html('<option value="">---Tanlang---</option>');
+                    line.find('.available-stock').val('');
+                    return;
+                }
+                $.get('@Url.RouteUrl("ProductionTransferLots")', { productID: productID })
+                    .done(function(res) {
+                        lotDataMap[productID] = res.data || [];
+                        var opts = '';
+                        (res.data || []).forEach(function(lot) {
+                            opts += '<option value="' + lot.ProductionID + '" data-remaining="' + lot.RemainingAmount + '">' + (lot.DisplayText || '') + '</option>';
+                        });
+                        opts += '<option value="__LOTSIZ__">Lotsiz o\'tkazish</option>';
+                        lotSelect.html(opts || '<option value="">---Lot topilmadi---</option>');
+                        line.find('.available-stock').val('');
+                        if (lotSelect.hasClass('select2-hidden-accessible')) {
+                            try { lotSelect.select2('destroy'); } catch(e) {}
+                        }
+                        lotSelect.select2({ placeholder: "Lot tanlang yoki lotsiz", allowClear: true });
+                    })
+                    .fail(function() {
+                        lotSelect.html('<option value="">---Xatolik---</option>');
+                        lotDataMap[productID] = [];
+                    });
+            }
+
+            function validateQuantity(line) {
+                var qtyInp = line.find('.quantity-input');
+                var stockInp = line.find('.available-stock');
+                var maxQty = parseFloat(stockInp.val()) || 0;
+                var qty = parseFloat(qtyInp.val()) || 0;
+                if (maxQty > 0 && qty > maxQty) {
+                    qtyInp.addClass('border-danger');
+                    return false;
+                }
+                qtyInp.removeClass('border-danger');
+                return true;
+            }
+
+            $(document).ready(function() {
+                buildStockMap();
+                $('.product-select, .lot-select').each(function() {
+                    if ($(this).hasClass('product-select'))
+                        $(this).select2({ placeholder: "Tanlang", allowClear: true });
+                    else
+                        $(this).select2({ placeholder: "Lot tanlang", allowClear: true });
+                });
+
+                $(document).on('change', '.product-select', function() {
+                    var line = $(this).closest('.product-line');
+                    updateStockHint(line);
+                    loadLotOptions(line);
+                    line.find('.quantity-input').val('').removeClass('border-danger');
+                });
+
+                $(document).on('change', '.lot-select', function() {
+                    var line = $(this).closest('.product-line');
+                    updateLotSelectedSum(line);
+                    line.find('.quantity-input').removeClass('border-danger');
+                });
+
+                $(document).on('input', '.quantity-input', function() {
+                    validateQuantity($(this).closest('.product-line'));
+                });
+
+                $('#addProductLine').on('click', function() {
+                    var first = $('.product-line').first();
+                    var newLine = first.clone();
+                    newLine.find('.select2-container').remove();
+                    newLine.find('select').removeClass('select2-hidden-accessible').show();
+                    newLine.find('select.product-select').attr('name', 'lines[' + productIndex + '].ProductID').val('');
+                    newLine.find('select.lot-select').removeAttr('name').html('<option value="">---Tanlang---</option>');
+                    newLine.find('input.lot-allocations-input').attr('name', 'lines[' + productIndex + '].LotAllocations').val('');
+                    newLine.find('input.quantity-input').attr('name', 'lines[' + productIndex + '].Quantity').val('');
+                    newLine.find('.available-stock').val('');
+                    newLine.find('.available-stock-hint').text('');
+                    newLine.find('.remove-line').show();
+                    $('#productLines').append(newLine);
+                    $('.product-line').last().find('.product-select').select2({ placeholder: "Tanlang", allowClear: true });
+                    $('.product-line').last().find('.lot-select').select2({ placeholder: "Lot tanlang", allowClear: true });
+                    buildStockMap();
+                    productIndex++;
+                });
+
+                $(document).on('click', '.remove-line', function() {
+                    if ($('.product-line').length > 1) {
+                        $(this).closest('.product-line').remove();
+                        buildStockMap();
+                    }
+                });
+
+                $('#transferForm').on('submit', function() {
+                    var ok = true;
+                    var hasLines = false;
+                    $('.product-line').each(function() {
+                        var line = $(this);
+                        var pid = line.find('.product-select').val();
+                        var qty = parseFloat(line.find('.quantity-input').val()) || 0;
+                        if (pid && qty > 0) {
+                            hasLines = true;
+                            var alloc = buildLotAllocationsForLine(line);
+                            line.find('.lot-allocations-input').val(alloc);
+                            if (!alloc) {
+                                ok = false;
+                                line.find('.lot-select').addClass('border-danger');
+                            } else {
+                                line.find('.lot-select').removeClass('border-danger');
+                            }
+                            if (!validateQuantity(line)) ok = false;
+                        }
+                    });
+                    if (hasLines && !ok) {
+                        alert('Lot tanlang (yoki \"Lotsiz o\'tkazish\") va miqdor mavjud qoldiqdan oshmasligi kerak.');
+                        return false;
+                    }
+                    return true;
+                });
+            });
+        })();
+    </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

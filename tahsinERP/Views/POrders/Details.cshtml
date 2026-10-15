@@ -1,0 +1,220 @@
+@model tahsinERP.Models.P_ORDERS
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@{
+    ViewBag.Title = "Buyurtma tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    // Amount QQS bilan (net + QQS) saqlanadi. QQS stavkasini shartnomadan emas, balki
+    // saqlangan ma'lumotdan ajratamiz: net = mahsulot satrlari yig'indisi (TotalPrice),
+    // jami (QQS bilan) = Model.Amount. Shunda to'g'ridan-to'g'ri (shartnomasiz) buyurtmalarda ham
+    // QQS to'g'ri ko'rsatiladi.
+    var totalWithVat = Model.Amount ?? 0d;
+    var hasLines = Model.P_ORDER_PRODUCTS != null && Model.P_ORDER_PRODUCTS.Any();
+    var totalBase = hasLines ? Model.P_ORDER_PRODUCTS.Sum(p => p.TotalPrice) : totalWithVat;
+    var totalVat = totalWithVat - totalBase;
+    var vatRate = totalBase > 0
+        ? (totalWithVat / totalBase - 1d) * 100d
+        : (ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d);
+    if (vatRate < 0) { vatRate = 0; }
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "POrders", "Details"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/POrders/Index">Xarid buyurtmalari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tafsilotlar
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Buyurtma ma'lumotlari</h4>
+                                <div class="heading-elements">
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+                                    {
+                                        <a href="@Url.Action("Edit", "POrders", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        </a>
+                                    }
+                                    <a href="@Url.Action("Index", "POrders")" class="btn btn-sm btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Buyurtma raqami:</th>
+                                                    <td>@Model.OrderNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sana:</th>
+                                                    <td>@Model.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Korxona:</th>
+                                                    <td>@(Model.COMPANy?.Name ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Ta'minotchi:</th>
+                                                    <td>
+                                                        @if (Model.SUPPLIER != null)
+                                                        {
+                                                            <a href="@Url.Action("Details", "Supplier", new { id = Model.SupplierID })">@Model.SUPPLIER.Name</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">- (Direct PO uchun normal)</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Shartnoma:</th>
+                                                    <td>
+                                                        @if (Model.P_CONTRACTS != null)
+                                                        {
+                                                            <a href="@Url.Action("Details", "PContracts", new { id = Model.ContractID })">@Model.P_CONTRACTS.ContractNo</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">- (Direct PO uchun normal)</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Valyuta:</th>
+                                                    <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami summa:</th>
+                                                    <td><strong>@(Model.Amount?.ToString("N2") ?? "0.00")</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>QQS (%):</th>
+                                                    <td>@vatRate.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami QQS:</th>
+                                                    <td>@totalVat.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami (QQS bilan):</th>
+                                                    <td><strong>@totalWithVat.ToString("N2")</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Izoh:</th>
+                                                    <td>@(Model.Description ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    @{
+                                        var bomVersionNotes = ViewBag.BomVersionNotes as List<string>;
+                                    }
+                                    @if (bomVersionNotes != null && bomVersionNotes.Any())
+                                    {
+                                        <div class="alert alert-info mb-2">
+                                            @foreach (var note in bomVersionNotes)
+                                            {
+                                                <div>@note</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <h5>Buyurtma mahsulotlari</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Mahsulot kodi</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Miqdor</th>
+                                                    <th>Birlik</th>
+                                                    <th>Narx</th>
+                                                    <th>Narx (QQS bilan)</th>
+                                                    <th>QQS summa</th>
+                                                    <th>Jami</th>
+                                                    <th>Jami (QQS bilan)</th>
+                                                    <th>MOQ</th>
+                                                    <th>Hisob tushuntirishi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.P_ORDER_PRODUCTS != null && Model.P_ORDER_PRODUCTS.Any())
+                                                {
+                                                    foreach (var product in Model.P_ORDER_PRODUCTS.OrderBy(p => p.PRODUCT != null ? (p.PRODUCT.Name ?? "") : "", StringComparer.OrdinalIgnoreCase).ThenBy(p => p.ID))
+                                                    {
+                                                        var lineBase = product.TotalPrice;
+                                                        var unitVat = product.Price * vatRate / 100d;
+                                                        var lineVat = lineBase * vatRate / 100d;
+                                                        var lineWithVat = lineBase + lineVat;
+                                                        var unitWithVat = product.Price + unitVat;
+                                                        <tr>
+                                                            <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                            <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                            <td>@product.Amount.ToString("N2")</td>
+                                                            <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                            <td>@product.Price.ToString("N2")</td>
+                                                            <td>@unitWithVat.ToString("N2")</td>
+                                                            <td>@lineVat.ToString("N2")</td>
+                                                            <td>@lineBase.ToString("N2")</td>
+                                                            <td>@lineWithVat.ToString("N2")</td>
+                                                            <td>@(product.MOQ?.ToString("N2") ?? "-")</td>
+                                                            <td class="align-top small">@(string.IsNullOrWhiteSpace(product.Priority) ? "—" : product.Priority)</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="11" class="text-center">Mahsulotlar topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

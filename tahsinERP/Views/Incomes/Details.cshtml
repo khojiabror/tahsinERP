@@ -1,0 +1,376 @@
+@model tahsinERP.Models.INCOME
+@using tahsinERP.Services.DlocFifo
+@{
+    ViewBag.Title = "Kirim hujjati tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var dlocEnabled = ViewBag.DlocEnabled == true;
+    var hasDlocLocations = ViewBag.HasDlocLocations == true;
+    var putawayByLine = ViewBag.PutawayByLine as System.Collections.Generic.Dictionary<int, DlocFifoReporting.IncomePutawayRow>
+        ?? new System.Collections.Generic.Dictionary<int, DlocFifoReporting.IncomePutawayRow>();
+    var dlocList = ViewBag.DlocLocations as SelectList;
+    var hasProducts = Model.INCOME_PRODUCTS != null && Model.INCOME_PRODUCTS.Count > 0;
+    var hasIncomeDocs = Model.WRHS_INCOME_DOCS != null && Model.WRHS_INCOME_DOCS.Count > 0;
+    var productColSpan = dlocEnabled ? 9 : 7;
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Details"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Incomes/Index">Ombor kirimlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Kirim hujjati ma'lumotlari</h4>
+                                <div class="heading-elements">
+                                    @if (ViewBag.CanEdit == true)
+                                    {
+                                        <a href="@Url.Action("Edit", "Incomes", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        </a>
+                                    }
+                                    <a href="@Url.Action("Index", "Incomes")" class="btn btn-sm btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @if (TempData["Success"] != null)
+                                    {
+                                        <div class="alert alert-success">@TempData["Success"]</div>
+                                    }
+                                    @if (TempData["Error"] != null)
+                                    {
+                                        <div class="alert alert-danger">@TempData["Error"]</div>
+                                    }
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Hujjat raqami:</th>
+                                                    <td>@Model.DocNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sana:</th>
+                                                    <td>@Model.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Qabul qiluvchi ombor:</th>
+                                                    <td>@(Model.Warehouse?.WHName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Yuboruvchi ombor:</th>
+                                                    <td>@(Model.Warehouse1?.WHName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Invoys:</th>
+                                                    <td>
+                                                        @if (Model.P_INVOICES != null)
+                                                        {
+                                                            <a href="@Url.Action("Details", "PInvoices", new { id = Model.InvoiceID })">@Model.P_INVOICES.InvoiceNo</a>
+                                                        }
+                                                        else if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
+                                                        {
+                                                            <span class="badge badge-info">Avtomatik yaratilgan</span>
+                                                            if (ViewBag.LinkedExpenseId != null)
+                                                            {
+                                                                <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })" class="ml-1">@(ViewBag.LinkedExpenseDocNo) <i class="bx bx-link-external"></i></a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted ml-1">(Expense dan)</span>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>-</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                @if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
+                                                {
+                                                    <tr>
+                                                        <th>Manbasi:</th>
+                                                        <td>
+                                                            <span class="badge badge-info">Avtomatik yaratilgan</span>
+                                                            @if (ViewBag.LinkedExpenseId != null)
+                                                            {
+                                                                <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })" class="ml-1">Chiqim hujjati: @(ViewBag.LinkedExpenseDocNo) <i class="bx bx-link-external"></i></a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <small class="text-muted ml-1">SRM modulidan Expense yaratilganda avtomatik yaratilgan</small>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Valyuta:</th>
+                                                    <td>@(Model.CURRENCy1?.Shortname ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami miqdor:</th>
+                                                    <td>@(Model.Amount?.ToString("N2") ?? "0.00")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami summa:</th>
+                                                    <td><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Status:</th>
+                                                    <td>
+                                                        @if (Model.RecieveStatus == true)
+                                                        {
+                                                            <span class="badge badge-success">Qabul qilingan</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Izoh:</th>
+                                                    <td>
+                                                        @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
+                                                        {
+                                                            var marker = "Chiqimdan avtomatik bog'langan: ";
+                                                            var idx = Model.Description.IndexOf(marker);
+                                                            var rest = idx >= 0 ? Model.Description.Substring(idx + marker.Length) : Model.Description;
+                                                            var dashIdx = rest.IndexOf(" - ");
+                                                            var suffix = (dashIdx >= 0 && rest.Length > dashIdx + 3) ? rest.Substring(dashIdx + 3) : "";
+                                                            <span>Chiqimdan avtomatik bog'langan: </span>
+                                                            <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                                                            @(string.IsNullOrEmpty(suffix) ? "" : " - " + suffix)
+                                                        }
+                                                        else
+                                                        {
+                                                            @(Model.Description ?? "-")
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            @if (ViewBag.IncomePolicyMessage != null)
+                                            {
+                                                <div class="alert alert-warning mt-2 mb-0 py-1 px-2 small">
+                                                    @ViewBag.IncomePolicyMessage
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <hr />
+                                    <h5>Kirim mahsulotlari</h5>
+
+                                    @if (ViewBag.CanMrpReceive == true)
+                                    {
+                                        if (dlocEnabled && hasDlocLocations)
+                                        {
+                                            <p class="text-muted small mb-2">Har bir qator uchun DLOC tanlang, keyin qabul qiling.</p>
+                                        }
+                                        using (Html.BeginForm("Receive", "Incomes", FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("id", Model.ID)
+
+                                            <div class="table-responsive">
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot kodi</th>
+                                                            <th>Mahsulot nomi</th>
+                                                            @if (dlocEnabled)
+                                                            {
+                                                                <th>DLOC</th>
+                                                                <th>Lot</th>
+                                                            }
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik</th>
+                                                            <th>Dona narxi</th>
+                                                            <th>Jami</th>
+                                                            <th>Izoh</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (hasProducts)
+                                                        {
+                                                            foreach (var product in Model.INCOME_PRODUCTS)
+                                                            {
+                                                                putawayByLine.TryGetValue(product.ID, out var putaway);
+                                                                <tr>
+                                                                    <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                                    <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                                    @if (dlocEnabled)
+                                                                    {
+                                                                        <td>
+                                                                            @if (hasDlocLocations)
+                                                                            {
+                                                                                @Html.DropDownList("locationId_" + product.ID, dlocList, "Tanlang...", new { @class = "form-control form-control-sm", required = "required", style = "min-width:120px" })
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <span class="text-muted">@(putaway?.LocationCode ?? "")</span>
+                                                                            }
+                                                                        </td>
+                                                                        <td>@(putaway?.LotNo ?? "")</td>
+                                                                    }
+                                                                    <td>@product.Amount.ToString("N2")</td>
+                                                                    <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                                    <td>@(product.PiecePrice?.ToString("N2") ?? "-")</td>
+                                                                    <td>@(product.TotalPrice?.ToString("N2") ?? "-")</td>
+                                                                    <td>
+                                                                        @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(product.Comment) && product.Comment.Contains("Chiqimdan bog'langan:"))
+                                                                        {
+                                                                            <span>Chiqimdan bog'langan: </span>
+                                                                            <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            @(product.Comment ?? "-")
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <tr>
+                                                                <td colspan="@productColSpan" class="text-center">Mahsulotlar topilmadi</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="mt-2">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bx bx-check"></i> Qabul qilish
+                                                </button>
+                                            </div>
+                                        }
+                                        using (Html.BeginForm("Reject", "Incomes", FormMethod.Post, new { @class = "d-inline ml-1", onsubmit = "return confirm('Rad qilish kirim va chiqim hujjatlarini o\\'chiradi. Davom etasizmi?');" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("id", Model.ID)
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="bx bx-x"></i> Rad qilish
+                                            </button>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot kodi</th>
+                                                        <th>Mahsulot nomi</th>
+                                                        @if (dlocEnabled)
+                                                        {
+                                                            <th>DLOC</th>
+                                                            <th>Lot</th>
+                                                        }
+                                                        <th>Miqdor</th>
+                                                        <th>Birlik</th>
+                                                        <th>Dona narxi</th>
+                                                        <th>Jami</th>
+                                                        <th>Izoh</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (hasProducts)
+                                                    {
+                                                        foreach (var product in Model.INCOME_PRODUCTS)
+                                                        {
+                                                            putawayByLine.TryGetValue(product.ID, out var putaway);
+                                                            <tr>
+                                                                <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                                <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                                @if (dlocEnabled)
+                                                                {
+                                                                    <td>@(putaway?.LocationCode ?? "")</td>
+                                                                    <td>@(putaway?.LotNo ?? "")</td>
+                                                                }
+                                                                <td>@product.Amount.ToString("N2")</td>
+                                                                <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                                <td>@(product.PiecePrice?.ToString("N2") ?? "-")</td>
+                                                                <td>@(product.TotalPrice?.ToString("N2") ?? "-")</td>
+                                                                <td>
+                                                                    @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(product.Comment) && product.Comment.Contains("Chiqimdan bog'langan:"))
+                                                                    {
+                                                                        <span>Chiqimdan bog'langan: </span>
+                                                                        <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        @(product.Comment ?? "-")
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr>
+                                                            <td colspan="@productColSpan" class="text-center">Mahsulotlar topilmadi</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+
+                                    @if (hasIncomeDocs)
+                                    {
+                                        <hr />
+                                        <h5>Kirim hujjatlari</h5>
+                                        <ul>
+                                            @foreach (var doc in Model.WRHS_INCOME_DOCS)
+                                            {
+                                                <li>
+                                                    <a href="@Url.Action("DownloadDoc", "Incomes", new { id = doc.ID })" target="_blank">
+                                                        <i class="bx bx-file"></i> Hujjat #@doc.ID
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

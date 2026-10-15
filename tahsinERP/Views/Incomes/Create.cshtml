@@ -1,0 +1,532 @@
+@model tahsinERP.ViewModels.IncomeCreateViewModel
+@using System.Collections.Generic
+@{
+    ViewBag.Title = "Yangi ombor kirimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var unitsList = ViewBag.Units as SelectList;
+    var unitsData = new List<object>();
+
+    if (unitsList != null)
+    {
+        foreach (SelectListItem item in unitsList)
+        {
+            unitsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+
+    var productsData = ViewBag.ProductsData as IEnumerable<tahsinERP.ViewModels.ProductLookupItem> ?? new List<tahsinERP.ViewModels.ProductLookupItem>();
+    var requireDloc = ViewBag.RequireDloc == true;
+    var dlocEnabled = ViewBag.DlocEnabled == true;
+    var dlocLocationsJson = ViewBag.DlocLocationsJson as string ?? "[]";
+    var defaultWhId = ViewBag.DefaultWarehouseId as int?;
+    var dlocManageUrl = Url.Action("Index", "WarehouseLocations", new { warehouseId = defaultWhId });
+    var dlocCreateUrl = Url.Action("Create", "WarehouseLocations", new { warehouseId = defaultWhId });
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Incomes/Index">Ombor kirimlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Yangi kirim
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                @if (ViewBag.NoWarehouseError != null)
+                {
+                    <div class="alert alert-danger" style="font-size:1.1rem; font-weight:600;">
+                        @ViewBag.NoWarehouseError
+                    </div>
+                }
+                else
+                {
+                    <section id="form-repeater-wrapper">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            @using (Html.BeginForm("Create", "Incomes", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "incomeForm" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                                <div class="row">
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="DocNo">Hujjat raqami</label>
+                                                        @Html.TextBoxFor(model => model.DocNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                        @Html.ValidationMessageFor(model => model.DocNo, "", new { @class = "text-danger" })
+                                                        <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="IssueDateTime">Sana va vaqt</label>
+                                                        @Html.TextBoxFor(model => model.IssueDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.IssueDateTime, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="InvoiceID">Invoys</label>
+                                                        @Html.DropDownListFor(model => model.InvoiceID, ViewBag.Invoices as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "invoiceSelect" })
+                                                        @Html.ValidationMessageFor(model => model.InvoiceID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <button type="button" class="btn btn-outline-primary mt-2" id="loadInvoiceBtn" style="display:none;">
+                                                            <i class="bx bx-refresh"></i> Invoys mahsulotlarini yuklash
+                                                        </button>
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="ReceivingWHID">Qabul qiluvchi ombor</label>
+                                                        @Html.DropDownListFor(model => model.ReceivingWHID, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.ReceivingWHID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    @if (dlocEnabled && requireDloc)
+                                                    {
+                                                        <div class="col-12">
+                                                            <div class="alert alert-info py-1 px-2 mb-2 small">
+                                                                Har bir mahsulot qatori uchun <strong>DLOC</strong> tanlang. Joriy qoldiq va MAX jadvalda ko‘rinadi.
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else if (dlocEnabled)
+                                                    {
+                                                        <div class="col-12">
+                                                            <div class="alert alert-warning py-1 px-2 mb-2 small">
+                                                                Bu omborda hali DLOC yo‘q. Avval
+                                                                <a href="@dlocCreateUrl" target="_blank">joylashuv yarating</a>
+                                                                (yoki <a href="@dlocManageUrl" target="_blank">ro‘yxat</a>), keyin sahifani <strong>Ctrl+F5</strong> bilan yangilang.
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label for="CurrencyID">Valyuta</label>
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <label for="Description">Izoh</label>
+                                                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
+                                                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-6 col-12 form-group">
+                                                        <label for="incomeFile">Kirim hujjati (PDF)</label>
+                                                        <input type="file" name="incomeFile" id="incomeFile" class="form-control" accept=".pdf" />
+                                                    </div>
+                                                </div>
+
+                                                <br />
+                                                <h5>Kirim mahsulotlari</h5>
+                                                <p class="text-muted small mb-2">QQS % kiritiladi (0–100). Jami = miqdor × dona narx × (1 + QQS/100). Izohga avtomatik <code>QQS %: …%</code> qo‘shiladi.</p>
+                                                if (dlocEnabled && requireDloc)
+                                                {
+                                                    <p class="text-muted small mb-2">DLOC tanlangach joriy qoldiq va MAX ko‘rinadi; miqdor o‘zgarganda kirimdan keyingi holat tekshiriladi.</p>
+                                                }
+                                                
+                                                 <div class="table-responsive">
+                                                    <table id="incomeProductsTable" class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Mahsulot</th>
+                                                                <th>Mahsulot nomi</th>
+                                                                @if (dlocEnabled)
+                                                                {
+                                                                    <th>DLOC @if (requireDloc) { <span class="text-danger">*</span> }</th>
+                                                                    <th>Joy sig'imi</th>
+                                                                }
+                                                                <th>Miqdor</th>
+                                                                <th>Birlik</th>
+                                                                <th>Dona narxi</th>
+                                                                <th>QQS %</th>
+                                                                <th>Jami</th>
+                                                                <th>Izoh</th>
+                                                                <th>Amallar</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                        <tfoot>
+                                                            <tr>
+                                                                <td colspan="@(dlocEnabled ? 8 : 6)" class="text-right"><strong>Jami:</strong></td>
+                                                                <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                                <td colspan="2"></td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+
+                                                <div class="row mt-2">
+                                                    <div class="col-12">
+                                                        <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                            <i class="bx bx-plus"></i> Qo'shish
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-3">
+                                                    <div class="col-12">
+                                                        <button type="submit" class="btn btn-success">
+                                                            <i class="bx bx-save"></i> Saqlash
+                                                        </button>
+                                                        <a href="@Url.Action("Index", "Incomes")" class="btn btn-secondary">
+                                                            <i class="bx bx-x"></i> Bekor qilish
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                }
+            </div>
+        </div>
+    </div>
+
+    @section scripts {
+        <script>
+            (function ($) {
+                $(document).ready(function () {
+                    $('.select2').select2();
+
+                    var productRowIndex = 0;
+                    var products = @Html.Raw(Json.Encode(productsData));
+                    var units = @Html.Raw(Json.Encode(unitsData));
+                    var requireDloc = @(requireDloc ? "true" : "false");
+                    var dlocEnabled = @(dlocEnabled ? "true" : "false");
+                    var dlocLocations = @Html.Raw(dlocLocationsJson);
+                    var dlocPutawayUrl = '@Url.Action("GetDlocPutawayInfo", "Incomes")';
+                    var dlocCreateUrl = '@dlocCreateUrl';
+
+                    $('#invoiceSelect').on('change', function () {
+                        if ($(this).val()) {
+                            $('#loadInvoiceBtn').show();
+                        } else {
+                            $('#loadInvoiceBtn').hide();
+                        }
+                    });
+
+                    $('#loadInvoiceBtn').click(function () {
+                        var invoiceId = $('#invoiceSelect').val();
+                        if (!invoiceId) {
+                            alert('Invoysni tanlang');
+                            return;
+                        }
+
+                        $.ajax({
+                            url: '@Url.Action("LoadInvoiceProducts", "Incomes")',
+                            type: 'POST',
+                            data: { invoiceId: invoiceId },
+                            success: function (response) {
+                                if (response.success) {
+                                    $('#incomeProductsTable tbody').empty();
+                                    productRowIndex = 0;
+
+                                    response.data.forEach(function (item) {
+                                        var vr = typeof item.VATRate === 'number' ? item.VATRate : 0;
+                                        addProductRow(item.ProductID, item.ProductPNo, item.ProductName,
+                                                     item.Amount, item.UnitID, item.PiecePrice, item.TotalPrice, '', vr);
+                                    });
+
+                                    updateTotal();
+                                    alert('Invoys mahsulotlari muvaffaqiyatli yuklandi');
+                                } else {
+                                    alert('Xatolik: ' + response.message);
+                                }
+                            },
+                            error: function () {
+                                alert('Server xatoligi yuz berdi');
+                            }
+                        });
+                    });
+
+                    $('#addRowBtn').click(function () {
+                        addProductRow(null, '', '', 0, null, 0, 0, '', 0);
+                    });
+
+                    function escapeHtml(text) {
+                        return String(text == null ? '' : text)
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#39;');
+                    }
+
+                    function buildProductOptions(selectedId) {
+                        var options = '<option value="">---Tanlang---</option>';
+                        products.forEach(function (product) {
+                            var selected = product.Value == selectedId ? 'selected' : '';
+                            options += '<option value="' + escapeHtml(product.Value) + '" data-name="' + escapeHtml(product.Name) +
+                                '" data-pno="' + escapeHtml(product.PNo) + '" ' + selected + '>' +
+                                escapeHtml((product.PNo ? product.PNo + ' - ' : '') + (product.Name || '')) +
+                                '</option>';
+                        });
+                        return options;
+                    }
+
+                    function buildUnitOptions(selectedId) {
+                        var options = '<option value="">---Tanlang---</option>';
+                        units.forEach(function (unit) {
+                            var selected = unit.Value == selectedId ? 'selected' : '';
+                            options += '<option value="' + escapeHtml(unit.Value) + '" ' + selected + '>' + escapeHtml(unit.Text) + '</option>';
+                        });
+                        return options;
+                    }
+
+                    function buildDlocOptions(selectedId) {
+                        var options = '<option value="">---DLOC---</option>';
+                        (dlocLocations || []).forEach(function (loc) {
+                            var id = loc.ID || loc.id;
+                            var code = loc.LocationCode || loc.locationCode || '';
+                            var selected = selectedId && String(selectedId) === String(id) ? 'selected' : '';
+                            options += '<option value="' + escapeHtml(String(id)) + '" ' + selected + '>' + escapeHtml(code) + '</option>';
+                        });
+                        return options;
+                    }
+
+                    function refreshDlocCapacity($row) {
+                        if (!requireDloc) return;
+                        var locId = $row.find('.dloc-select').val();
+                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                        var $hint = $row.find('.dloc-capacity-hint');
+                        if (!locId) {
+                            $hint.removeClass('text-danger text-success').addClass('text-muted')
+                                .text('DLOC tanlang');
+                            $row.data('dlocOk', false);
+                            return;
+                        }
+                        $.get(dlocPutawayUrl, { locationId: locId, incomingQty: amount }, function (res) {
+                            if (!res || !res.success) {
+                                $hint.removeClass('text-success').addClass('text-danger')
+                                    .text(res && res.message ? res.message : 'Ma\'lumot olinmadi');
+                                $row.data('dlocOk', false);
+                                return;
+                            }
+                            var txt = 'Joriy: ' + Number(res.currentQty).toFixed(2) +
+                                ' | Min: ' + Number(res.minCapacity).toFixed(2) +
+                                ' | Max: ' + Number(res.maxCapacity).toFixed(2) +
+                                ' | Bo\'sh: ' + Number(res.availableQty).toFixed(2);
+                            if (amount > 0) {
+                                txt += ' | Kirimdan keyin: ' + Number(res.afterQty).toFixed(2);
+                            }
+                            $hint.removeClass('text-muted text-danger text-success');
+                            if (res.isOk) {
+                                $hint.addClass('text-success').text(txt);
+                                $row.data('dlocOk', true);
+                            } else {
+                                $hint.addClass('text-danger').text((res.message || txt) + ' — kirim mumkin emas');
+                                $row.data('dlocOk', false);
+                            }
+                        }).fail(function () {
+                            $hint.removeClass('text-success').addClass('text-danger').text('Server xatoligi');
+                            $row.data('dlocOk', false);
+                        });
+                    }
+
+                    function syncProductFields($row) {
+                        var $selected = $row.find('.product-select option:selected');
+                        var name = $selected.data('name');
+                        var pno = $selected.data('pno');
+
+                        if (!name) {
+                            name = $row.find('.product-name').val() || $row.find('.product-name-display').val() || '';
+                        }
+                        if (!pno) {
+                            pno = $row.find('.product-pno').val() || '';
+                        }
+
+                        $row.find('.product-name-display').val(name);
+                        $row.find('.product-name').val(name);
+                        $row.find('.product-pno').val(pno);
+                    }
+
+                    function stripQqsFromComment(text) {
+                        if (!text) return '';
+                        return String(text)
+                            .replace(/\s*\|\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
+                            .replace(/\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
+                            .trim();
+                    }
+
+                    function mergeIncomeComment(userPart, vatRate) {
+                        var u = stripQqsFromComment(userPart || '');
+                        var v = isNaN(vatRate) ? 0 : Number(vatRate);
+                        var pct = (Math.round(v * 100) / 100).toString();
+                        var qqs = 'QQS %: ' + pct + '%';
+                        if (!u) return qqs;
+                        return u + ' | ' + qqs;
+                    }
+
+                    function recalcRow($row) {
+                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                        var price = parseFloat($row.find('.price-input').val()) || 0;
+                        var vat = parseFloat($row.find('.vat-input').val());
+                        if (isNaN(vat)) vat = 0;
+                        vat = Math.max(0, Math.min(100, vat));
+                        var base = amount * price;
+                        var total = base * (1 + vat / 100);
+                        $row.find('.total-price').val(total.toFixed(2));
+                        var $comm = $row.find('.comment-input');
+                        var user = $comm.data('userComment');
+                        if (user === undefined) user = stripQqsFromComment($comm.val());
+                        $comm.val(mergeIncomeComment(user, vat));
+                        $comm.data('userComment', user);
+                    }
+
+                    function addProductRow(productId, productPNo, productName, amount, unitId, piecePrice, totalPrice, comment, vatRate, locationId) {
+                        var vr = typeof vatRate === 'number' && !isNaN(vatRate) ? vatRate : 0;
+                        var userComment = stripQqsFromComment(comment || '');
+                        var merged = mergeIncomeComment(userComment, vr);
+                        var dlocCols = '';
+                        if (dlocEnabled) {
+                            if (requireDloc) {
+                                dlocCols =
+                                    '<td><select name="IncomeProducts[' + productRowIndex + '].LocationID" class="form-control dloc-select select2" required>' +
+                                        buildDlocOptions(locationId) +
+                                    '</select></td>' +
+                                    '<td class="small"><span class="dloc-capacity-hint text-muted">DLOC tanlang</span></td>';
+                            } else {
+                                dlocCols =
+                                    '<td class="small">' +
+                                        '<select class="form-control" disabled><option>Joylashuv yo‘q</option></select>' +
+                                        '<a href="' + dlocCreateUrl + '" target="_blank" class="d-block mt-1">+ Joy yaratish</a>' +
+                                    '</td>' +
+                                    '<td class="small text-warning">Avval DLOC yarating</td>';
+                            }
+                        }
+                        var row = '<tr data-row-index="' + productRowIndex + '">' +
+                            '<td>' +
+                                '<select name="IncomeProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
+                                    buildProductOptions(productId) +
+                                '</select>' +
+                                '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="' + escapeHtml(productPNo || '') + '" />' +
+                            '</td>' +
+                            '<td>' +
+                                '<input type="text" class="form-control product-name-display" value="' + escapeHtml(productName || '') + '" disabled />' +
+                                '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductName" class="product-name" value="' + escapeHtml(productName || '') + '" />' +
+                            '</td>' +
+                            dlocCols +
+                            '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + (amount || 0) + '" step="0.01" min="0" required /></td>' +
+                            '<td>' +
+                                '<select name="IncomeProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
+                                    buildUnitOptions(unitId) +
+                                '</select>' +
+                            '</td>' +
+                            '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].PiecePrice" class="form-control price-input" value="' + (piecePrice || 0) + '" step="0.01" min="0" /></td>' +
+                            '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].VATRate" class="form-control vat-input" value="' + vr + '" step="0.01" min="0" max="100" /></td>' +
+                            '<td><input type="number" name="IncomeProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="' + (totalPrice || 0) + '" readonly /></td>' +
+                            '<td><input type="text" name="IncomeProducts[' + productRowIndex + '].Comment" class="form-control comment-input" value="' + escapeHtml(merged) + '" /></td>' +
+                            '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                            '</tr>';
+
+                        $('#incomeProductsTable tbody').append(row);
+                        var $row = $('#incomeProductsTable tbody tr').last();
+                        $row.find('.comment-input').data('userComment', userComment);
+
+                        if (typeof $.fn.select2 !== 'undefined') {
+                            $row.find('select.product-select').select2();
+                            $row.find('select.unit-select').select2();
+                            if (dlocEnabled && requireDloc) {
+                                $row.find('select.dloc-select').select2();
+                            }
+                        }
+
+                        syncProductFields($row);
+                        recalcRow($row);
+                        if (requireDloc && locationId) {
+                            refreshDlocCapacity($row);
+                        }
+                        productRowIndex++;
+                    }
+
+                    $(document).on('click', '.remove-row', function () {
+                        $(this).closest('tr').remove();
+                        updateTotal();
+                    });
+
+                    $(document).on('change', '.product-select', function () {
+                        var $row = $(this).closest('tr');
+                        syncProductFields($row);
+                    });
+
+                    $(document).on('input', '.amount-input, .price-input, .vat-input', function () {
+                        var $row = $(this).closest('tr');
+                        recalcRow($row);
+                        updateTotal();
+                        if (requireDloc && $(this).hasClass('amount-input')) {
+                            refreshDlocCapacity($row);
+                        }
+                    });
+
+                    $(document).on('change', '.dloc-select', function () {
+                        refreshDlocCapacity($(this).closest('tr'));
+                    });
+
+                    $(document).on('input', '.comment-input', function () {
+                        var $c = $(this);
+                        $c.data('userComment', stripQqsFromComment($c.val()));
+                    });
+
+                    function updateTotal() {
+                        var total = 0;
+                        $('.total-price').each(function () {
+                            total += parseFloat($(this).val()) || 0;
+                        });
+                        $('#totalAmount').text(total.toFixed(2));
+                    }
+
+                    $('#incomeForm').submit(function (e) {
+                        if ($('#incomeProductsTable tbody tr').length === 0) {
+                            e.preventDefault();
+                            alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                            return false;
+                        }
+                        if (requireDloc) {
+                            var invalid = false;
+                            $('#incomeProductsTable tbody tr').each(function () {
+                                var $row = $(this);
+                                var locId = $row.find('.dloc-select').val();
+                                if (!locId) {
+                                    invalid = true;
+                                    alert('Har bir mahsulot uchun DLOC tanlang');
+                                    return false;
+                                }
+                                if ($row.data('dlocOk') === false) {
+                                    invalid = true;
+                                    alert('Ba\'zi qatorlarda DLOC sig\'imi oshib ketgan. Miqdorni kamaytiring yoki boshqa joy tanlang.');
+                                    return false;
+                                }
+                            });
+                            if (invalid) {
+                                e.preventDefault();
+                                return false;
+                            }
+                        }
+                    });
+                });
+            })(jQuery);
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

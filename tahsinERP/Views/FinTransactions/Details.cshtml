@@ -1,0 +1,107 @@
+@model tahsinERP.Models.FIN_TRANSACTIONS
+
+@{
+    ViewBag.Title = "Tranzaksiya tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions");
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/FinTransactions">Tranzaksiyalar</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Tranzaksiya tafsilotlari</h4>
+                                @if (changePermit && (string.IsNullOrEmpty(Model.SourceDocType) || Model.SourceDocType == "Manual"))
+                                {
+                                    <div class="heading-elements">
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
+                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Sana:</dt>
+                                        <dd class="col-sm-8">@Model.TxnDate.ToString("dd.MM.yyyy")</dd>
+                                        
+                                        <dt class="col-sm-4">Hisob:</dt>
+                                        <dd class="col-sm-8">@(Model.FIN_ACCOUNTS != null ? $"{Model.FIN_ACCOUNTS.Name} ({Model.FIN_ACCOUNTS.Code})" : "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Kategoriya:</dt>
+                                        <dd class="col-sm-8">@(Model.FIN_CATEGORIES != null ? Model.FIN_CATEGORIES.Name : "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Yo'nalish:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (Model.Direction == 1)
+                                            { <span class="badge badge-success">Kirim</span> }
+                                            else
+                                            { <span class="badge badge-danger">Chiqim</span> }
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Summa:</dt>
+                                        <dd class="col-sm-8"><strong>@Model.Amount.ToString("N2") @(Model.CURRENCy != null ? Model.CURRENCy.Shortname : "")</strong></dd>
+                                        
+                                        <dt class="col-sm-4">Kontragent:</dt>
+                                        <dd class="col-sm-8">@(Model.CounterpartyName ?? "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Maqsad:</dt>
+                                        <dd class="col-sm-8">@(Model.Purpose ?? "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Manba hujjat:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (!string.IsNullOrEmpty(Model.SourceDocType) && Model.SourceDocID.HasValue)
+                                            {
+                                                <a href="@ViewBag.SourceDocLink" target="_blank">@Model.SourceDocType #@Model.SourceDocID</a>
+                                            }
+                                            else
+                                            { <span>Qo'lda kiritilgan</span> }
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Shartnoma raqami:</dt>
+                                        <dd class="col-sm-8">@(Model.ContractNo ?? "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Izoh:</dt>
+                                        <dd class="col-sm-8">@(Model.Comment ?? "-")</dd>
+                                        
+                                        <dt class="col-sm-4">Yaratilgan:</dt>
+                                        <dd class="col-sm-8">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
+                                        
+                                        <dt class="col-sm-4">Yaratgan foydalanuvchi:</dt>
+                                        <dd class="col-sm-8">@(Model.USER != null ? Model.USER.FullName : "-")</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

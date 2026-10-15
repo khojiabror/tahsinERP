@@ -1,0 +1,144 @@
+@model tahsinERP.ViewModels.HR.HrPayrollHeaderViewModel
+@{
+    ViewBag.Title = "Ish haqi hisobi - Chop etish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "HrPayroll")">Ish haqi hisobi</a></li>
+                                    <li class="breadcrumb-item active">Chop etish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row mb-2">
+                    <div class="col-12 text-right">
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="bx bx-printer"></i> Chop etish
+                        </button>
+                        <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-success">
+                            <i class="bx bx-export"></i> Excelga eksport
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card" id="printArea" data-print-target="true">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <h4>ISH HAQI HISOBOTI</h4>
+                            <p>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month) @Model.Year yil</p>
+                            @if (!string.IsNullOrEmpty(Model.OrgUnitName))
+                            {
+                                <p><strong>Bo'lim:</strong> @Model.OrgUnitName</p>
+                            }
+                        </div>
+
+                        <table class="table table-bordered" style="font-size: 11px;">
+                            <thead>
+                                <tr>
+                                    <th>№</th>
+                                    <th>Tab.№</th>
+                                    <th>F.I.O.</th>
+                                    <th>Lavozim</th>
+                                    <th>Asosiy maosh</th>
+                                    <th>Ishlangan soatlar</th>
+                                    <th>Hisoblangan</th>
+                                    <th>Mukofotlar</th>
+                                    <th>Jarimalar</th>
+                                    <th>To'lovga</th>
+                                    <th>Valyuta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int rowNum = 1; }
+                                @foreach (var line in Model.Lines.OrderBy(l => l.EmployeeTabNo))
+                                {
+                                    <tr>
+                                        <td>@rowNum</td>
+                                        <td>@line.EmployeeTabNo</td>
+                                        <td>@line.EmployeeFullName</td>
+                                        <td>@line.PositionName</td>
+                                        <td style="text-align: right;">@line.BaseSalary.ToString("N2")</td>
+                                        <td style="text-align: right;">@line.HoursWorked.ToString("F2")</td>
+                                        <td style="text-align: right;">@line.GrossSalary.ToString("N2")</td>
+                                        <td style="text-align: right;">@line.Bonuses.ToString("N2")</td>
+                                        <td style="text-align: right;">@line.Penalties.ToString("N2")</td>
+                                        <td style="text-align: right; font-weight: bold;">@line.NetSalary.ToString("N2")</td>
+                                        <td>@line.CurrencyCode</td>
+                                    </tr>
+                                    rowNum++;
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="font-weight-bold">
+                                    <td colspan="6" class="text-right">JAMI:</td>
+                                    <td style="text-align: right;">@Model.TotalGrossSalary.ToString("N2")</td>
+                                    <td style="text-align: right;">@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</td>
+                                    <td style="text-align: right;">@Model.Lines.Sum(l => l.Penalties).ToString("N2")</td>
+                                    <td style="text-align: right; color: green;">@Model.TotalNetSalary.ToString("N2")</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <div class="mt-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Tuzuvchi:</strong> _________________</p>
+                                    <p>Sana: @DateTime.Now.ToString("dd.MM.yyyy")</p>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <p><strong>Tasdiqlovchi:</strong> _________________</p>
+                                    @if (Model.ApprovedDT.HasValue)
+                                    {
+                                        <p>Sana: @Model.ApprovedDT.Value.ToString("dd.MM.yyyy")</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style media="print">
+        .content-header, .breadcrumb-wrapper, .btn, .content-overlay {
+            display: none !important;
+        }
+        #printArea {
+            border: none;
+            box-shadow: none;
+        }
+        body {
+            background: white;
+        }
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    </style>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

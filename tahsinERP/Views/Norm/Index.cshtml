@@ -1,0 +1,152 @@
+@model IEnumerable<tahsinERP.ViewModels.ProductNormIndexViewModel>
+@{
+    ViewBag.Title = "Norma kiritish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Norma kiritish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="productTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Mahsulot raqami</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Normalar soni</th>
+                                                    <th class="text-center">Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "Norm", new { id = item.ProductID })" class="font-weight-bold text-primary">
+                                                                    @item.ProductCode
+                                                                </a>
+                                                            </td>
+                                                            <td>@item.ProductName</td>
+                                                            <td>
+                                                                <span class="badge badge-light-info">
+                                                                    @item.NormCount ta
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Details", "Norm", new { id = item.ProductID })" class="btn btn-sm btn-outline-primary" title="Normalarni ko'rish">
+                                                                    <i class="bx bx-show"></i> Normalar
+                                                                </a>
+                                                                @if (changePermit)
+                                                                {
+                                                                    <a href="@Url.Action("Create", "Norm", new { productId = item.ProductID })" class="btn btn-sm btn-outline-success" title="Yangi NORMA qo'shish">
+                                                                        <i class="bx bx-plus"></i> Yangi NORM
+                                                                    </a>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="4" class="text-center text-muted">Mahsulotlar topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Wait for document and all scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use jQuery since noConflict(true) is called in _Layout.cshtml
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery is not loaded');
+                return;
+            }
+
+            jQuery('#productTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
+                "order": [[0, "asc"]],
+                "dom": "lBfrtip",
+                "columnDefs": [
+                    { "orderable": false, "targets": -1 }
+                ],
+                buttons: [
+                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
+                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                ]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

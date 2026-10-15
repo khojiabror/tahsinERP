@@ -1,0 +1,56 @@
+@model tahsinERP.Models.F_CONTRACT_TARIFFS
+@{
+    ViewBag.Title = "Tarif tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/FContractTariff/Index">Tariflar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Tarif tafsilotlari</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <h4 class="text-primary">Tarif ma'lumotlari</h4>
+                            <hr />
+                            <p><b>Shartnoma:</b> @Model.F_CONTRACTS?.ContractNo</p>
+                            <p><b>Transport turi:</b> @Model.F_TRANSPORT_TYPES?.TransportType</p>
+                            <p><b>Yo'nalish:</b> @(string.IsNullOrEmpty(Model.FromCity) ? Model.FromRegion : Model.FromCity) → @(string.IsNullOrEmpty(Model.ToCity) ? Model.ToRegion : Model.ToCity)</p>
+                            <p><b>@tahsinERP.Services.LogisticsTerms.TariffBasis:</b> @Model.FreightBasis</p>
+                            <p><b>@tahsinERP.Services.LogisticsTerms.TariffRate:</b> @Model.Rate.ToString("N2") @Model.CURRENCy?.Shortname</p>
+                            <p><b>Eng kam to'lov summasi:</b> @(Model.MinimumCharge?.ToString("N2") ?? "-")</p>
+                            <p><b>Faol:</b> @(Model.IsActive ? "Ha" : "Yo'q")</p>
+                            <p><b>Izoh:</b> @(Model.Description ?? "-")</p>
+                            <a href="@Url.Action("Index", "FContractTariff", new { contractId = Model.ContractID })" class="btn btn-outline-secondary mt-1">Orqaga</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

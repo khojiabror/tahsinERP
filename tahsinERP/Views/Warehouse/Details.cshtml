@@ -1,0 +1,133 @@
+@model tahsinERP.Models.Warehouse
+
+@{
+    ViewBag.Title = "Ombor ma'lumotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString());
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Warehouse/Index">Korxona omborlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Ombor ma'lumotlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-xl-12 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">
+                                    <i class="bx bx-package"></i> @Model.WHName
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <dl class="row">
+                                                <dt class="col-sm-4">Ombor nomi:</dt>
+                                                <dd class="col-sm-8">
+                                                    <strong>@Html.DisplayFor(model => model.WHName)</strong>
+                                                </dd>
+
+                                                <dt class="col-sm-4">Tavsif:</dt>
+                                                <dd class="col-sm-8">
+                                                    @(string.IsNullOrEmpty(Model.Description) ? 
+                                                        "<span class='text-muted'>Tavsif kiritilmagan</span>" : 
+                                                        Model.Description)
+                                                </dd>
+
+                                                <dt class="col-sm-4">Sex:</dt>
+                                                <dd class="col-sm-8">
+                                                    @if (Model.SHOP != null)
+                                                    {
+                                                        <span class="badge badge-info">@Model.SHOP.ShopName</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </dd>
+
+                                                <dt class="col-sm-4">MRP:</dt>
+                                                <dd class="col-sm-8">
+                                                    @if (Model.USER != null)
+                                                    {
+                                                        <span class="badge badge-primary">@Model.USER.FullName</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">Tayinlanmagan</span>
+                                                    }
+                                                </dd>
+
+                                                <dt class="col-sm-4">Holati:</dt>
+                                                <dd class="col-sm-8">
+                                                    @if (Model.IsDeleted == true)
+                                                    {
+                                                        <span class="badge badge-danger">O'chirilgan</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-success">Faol</span>
+                                                    }
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr />
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <a href="@Url.Action("Index", "Warehouse")" class="btn btn-secondary">
+                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                            </a>
+                                        </div>
+                                        @if (changePermit)
+                                        {
+                                            <div>
+                                                <a href="@Url.Action("Edit", "Warehouse", new { id = Model.ID })" class="btn btn-primary">
+                                                    <i class="bx bx-edit-alt"></i> Tahrirlash
+                                                </a>
+                                                <a href="@Url.Action("Delete", "Warehouse", new { id = Model.ID })" class="btn btn-danger">
+                                                    <i class="bx bx-trash"></i> O'chirish
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

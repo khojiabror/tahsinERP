@@ -1,0 +1,123 @@
+@model tahsinERP.Models.P_ORDER_PAYMENTS
+@{
+    ViewBag.Title = "Tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Edit", "POrderPayment", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/POrderPayment/Index">Buyurtma to'lovlari</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            To'lovni ni tahrirlash
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <!-- app invoice View Page -->
+                    <section class="basic-select2">
+                        <div class="row">
+                            <!-- invoice view page -->
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-md-6 mt-25">
+                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                    <hr>
+                                                    <h6 class="invoice-to">Ta'minotchi</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(model => model.SupplierID, (SelectList)ViewBag.suppliers, "Ta'minotchini tanlang:", new { id = "SupplierID", onchange = "refreshdatatablesupplier()", @class = "form-control select2", @placeholder = "Ta'minotchini kiriting", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Buyurtma</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownListFor(model => model.OrderID, (IEnumerable<SelectListItem>)ViewBag.orders, "Buyurtmani tanlang: ", new { @class = "form-control select2", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">To'lov miqdori</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.Payment_Amount, new { @class = "form-control round", @placeholder = "to'lov miqdori", @required = "required", @type = "number" })
+                                                        @Html.ValidationMessageFor(model => model.Payment_Amount, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Valyuta</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Izoh</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextAreaFor(model => model.Comment, new { @class = "form-control round", @placeholder = "Izoh yozib qoldirish uchun(ixtiyoriy)" })
+                                                        @Html.ValidationMessageFor(model => model.Comment, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item border-0 pb-0">
+                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="edit" type="submit" value="Edit">
+                                                                <i class='bx bx-save'></i>
+                                                                Saqlash
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+<script>
+    function refreshdatatablesupplier() {
+    const supplierID = $("#SupplierID").val();
+    $.ajax({
+        url: '@Url.Action("GetOrdersBySupplier", "POrderPayment")',
+        type: 'GET',
+        data: { supplierID: supplierID },
+        success: function (data) {
+            var orderDropdown = $("#OrderID");
+            orderDropdown.empty();
+            $.each(data, function (index, item) {
+                orderDropdown.append(new Option(item.Text, item.Value));
+            });
+
+            // Default shartnomani tanlab olamiz
+            if (data.length > 0) {
+                orderDropdown.val(data[0].Value).trigger('change');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching orders:", error);
+        }
+    });
+}
+</script>

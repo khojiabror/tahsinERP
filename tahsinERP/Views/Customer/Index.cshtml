@@ -1,0 +1,212 @@
+@model List<tahsinERP.Models.CUSTOMER>
+@{
+    ViewBag.Title = "Ro'yxat";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = false;
+    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+    {
+        changePermit = true;
+    }
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+
+                                    <li class="breadcrumb-item active">
+                                        Haridorlar
+                                    </li>
+
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <!-- users list start -->
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "Customer")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
+                                Yangi
+                                Haridor qo'shish
+                            </a>
+                        </div>
+                    }
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="customerDataTable" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Haridor ismi</th>
+                                                    <th>Elektron manzili</th>
+                                                    <th>DUNS</th>
+                                                    <th>Turi</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th class="text-center">Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "Customer", new { id = item.ID })" class="font-weight-bold">
+                                                                    @(item.Name ?? "")
+                                                                </a>
+                                                            </td>
+                                                            <td>@(item.Email ?? "-")</td>
+                                                            <td>@(item.DUNS ?? "-")</td>
+                                                            <td>
+                                                                @if (!string.IsNullOrEmpty(item.Type))
+                                                                {
+                                                                    <span class="badge badge-light-info">@item.Type</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td class="text-center">
+                                                                    <a href="@Url.Action("Edit", "Customer", new { id = item.ID })" 
+                                                                       class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                        <i class="bx bx-edit"></i>
+                                                                    </a>
+                                                                    <a href="@Url.Action("Delete", "Customer", new { id = item.ID })" 
+                                                                       class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                        <i class="bx bx-trash"></i>
+                                                                    </a>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            var changePermit = @(changePermit ? "true" : "false");
+            
+            var columnDefs = [];
+            if (changePermit) {
+                columnDefs.push({ "orderable": false, "targets": -1 });
+            }
+            
+            $('#customerDataTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]],
+                "columnDefs": columnDefs,
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Haridorlar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Haridorlar_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        title: 'Haridorlar ro\'yxati',
+                        customize: function (doc) {
+                            doc.defaultStyle.fontSize = 9;
+                            doc.styles.tableHeader.fontSize = 10;
+                        }
+                    }
+                ],
+                "scrollX": true
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,148 @@
+@model tahsinERP.Models.PRODUCT_CATEGORIES
+@{
+    ViewBag.Title = "Yaratish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Create", "ProductCategory", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home/Index"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/ProductCategory/Index">Maxsulot turlari</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            Yangi maxsulot turi qo'shish
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <!-- app invoice View Page -->
+                    <section class="basic-select2">
+                        <div class="row">
+                            <!-- invoice view page -->
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-md-6 mt-25">
+                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                    <hr>
+                                                    <h6 class="invoice-to">Kod <small class="text-muted">(avtomatik generatsiya qilinadi)</small></h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.Code, new { @class = "form-control", @placeholder = "Nomi" })
+                                                        <small class="text-muted">Kod avtomatik ravishda oxirgi kodga +1 qilib generatsiya qilinadi (5 xonalik: 00000, 00001, ...)</small>
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Nomi <span class="text-danger">*</span></h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.Name, new { @class = "form-control", @placeholder = "Nomi", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Xomashyo guruhi</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.RawMaterialGroup, new { @class = "form-control", @placeholder = "Xomashyo guruhi" })
+                                                        @Html.ValidationMessageFor(model => model.RawMaterialGroup, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Xomashyo kichik guruhi</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.RawMaterialSubGrp, new { @class = "form-control", @placeholder = "Xomashyo kichik guruhi" })
+                                                        @Html.ValidationMessageFor(model => model.RawMaterialSubGrp, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <hr>
+                                                    <h6 class="invoice-to">Xususiyatlar</h6>
+                                                    <div class="form-group">
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.IsRawMaterial, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="IsRawMaterial">Xomashyo</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.IsFinishedGood, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="IsFinishedGood">Tayyor maxsulot</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.IsComponent, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="IsComponent">Yarim tayyor</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.IsConsumable, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="IsConsumable">Sarflanish</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.RequiresNORM, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="RequiresNORM">NORM talab qiladi</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.RequiresCutting, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="RequiresCutting">Kesish talab qiladi</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.IncludeInMRP, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="IncludeInMRP">MRP ga kiritish</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.AllowPurchase, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="AllowPurchase">Xarid qilishga ruxsat</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @Html.CheckBoxFor(model => model.AllowSales, new { @class = "custom-control-input" })
+                                                            <label class="custom-control-label" for="AllowSales">Sotishga ruxsat</label>
+                                                        </div>
+                                                        <div class="custom-control custom-checkbox">
+                                                            @{
+                                                                bool calculateByWeightValue = Model?.CalculateByWeight ?? false;
+                                                            }
+                                                            <input type="checkbox" name="CalculateByWeight" id="CalculateByWeight" value="true" @(calculateByWeightValue ? "checked" : "") class="custom-control-input" />
+                                                            <input type="hidden" name="CalculateByWeight" value="false" />
+                                                            <label class="custom-control-label" for="CalculateByWeight">
+                                                                Hisob-kitoblar og'irlikka nisbatan qilinsin
+                                                            </label>
+                                                        </div>
+                                                        <small class="text-muted d-block mt-2">
+                                                            BOM da donada, lekin shartnoma/invoice/income/expense da kg/gr da yuritiladigan maxsulotlar uchun (masalan: shurup, bolt va h.k.). 
+                                                            Agar belgilansa, bu kategoriyadagi barcha maxsulotlar uchun POrder generatsiya, ishlab chiqarish expense va shartnoma qoldig'i kg da hisoblanadi.
+                                                        </small>
+                                                    </div>
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item border-0 pb-0">
+                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
+                                                                <i class='bx bx-save'></i>
+                                                                Saqlash
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,221 @@
+@model List<tahsinERP.ViewModels.STDCompanyStandardsIndexViewModel>
+@{
+    ViewBag.Title = "Korxona Standartlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Korxona Standartlari</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "STDCompanyStandards")" class="btn btn-success">
+                                <i class="bx bx-plus"></i> Yangi standart qo'shish
+                            </a>
+                        </div>
+                    }
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="standardsDataTable" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Standart kodi</th>
+                                                    <th>Soha</th>
+                                                    <th>Versiya</th>
+                                                    <th>Eslatma</th>
+                                                    <th>Yaratilgan sana</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th class="text-center">Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "STDCompanyStandards", new { id = item.DocumentID })" class="font-weight-bold">
+                                                                @item.StandardCode
+                                                            </a>
+                                                        </td>
+                                                        <td>@(string.IsNullOrEmpty(item.Area) ? "-" : item.Area)</td>
+                                                        <td>
+                                                            <span class="badge badge-light-info">
+                                                                v@(item.VersionNo.ToString("F2"))
+                                                            </span>
+                                                        </td>
+                                                        <td>@(string.IsNullOrEmpty(item.Notes) ? "-" : (item.Notes.Length > 50 ? item.Notes.Substring(0, 50) + "..." : item.Notes))</td>
+                                                        <td>@(item.CreatedDT?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                                        @if (changePermit)
+                                                        {
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Details", "STDCompanyStandards", new { id = item.DocumentID })" 
+                                                                   class="btn btn-sm btn-outline-info" title="Batafsil">
+                                                                    <i class="bx bx-show"></i>
+                                                                </a>
+                                                                <a href="@Url.Action("Edit", "STDCompanyStandards", new { id = item.DocumentID })" 
+                                                                   class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                    <i class="bx bx-edit"></i>
+                                                                </a>
+                                                                <a href="@Url.Action("Delete", "STDCompanyStandards", new { id = item.DocumentID })" 
+                                                                   class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                    <i class="bx bx-trash"></i>
+                                                                </a>
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            var changePermit = @(changePermit ? "true" : "false");
+            
+            var columnDefs = [];
+            if (changePermit) {
+                columnDefs.push({ "orderable": false, "targets": -1 });
+            }
+            
+            $('#standardsDataTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[4, "desc"]],
+                "columnDefs": columnDefs,
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="bx bxs-file-excel"></i> Excel',
+                        titleAttr: 'Excelga yuklash',
+                        className: 'btn btn-success mr-1',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Korxona_Standartlari_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="bx bxs-file-pdf"></i> PDF',
+                        titleAttr: 'PDFga yuklash',
+                        className: 'btn btn-danger',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        filename: function () {
+                            var now = new Date();
+                            var dateStr = now.getFullYear() + 
+                                String(now.getMonth() + 1).padStart(2, '0') + 
+                                String(now.getDate()).padStart(2, '0') + '_' +
+                                String(now.getHours()).padStart(2, '0') + 
+                                String(now.getMinutes()).padStart(2, '0') + 
+                                String(now.getSeconds()).padStart(2, '0');
+                            return 'Korxona_Standartlari_' + dateStr;
+                        },
+                        exportOptions: {
+                            columns: changePermit ? ':not(:last-child)' : ':visible',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return data.replace(/<[^>]*>/g, '').trim();
+                                }
+                            }
+                        },
+                        title: 'Korxona standartlari ro\'yxati',
+                        customize: function (doc) {
+                            doc.defaultStyle.fontSize = 9;
+                            doc.styles.tableHeader.fontSize = 10;
+                        }
+                    }
+                ],
+                "scrollX": true
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

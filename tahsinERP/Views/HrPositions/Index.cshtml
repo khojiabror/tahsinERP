@@ -1,0 +1,151 @@
+@model List<tahsinERP.Models.HR_POSITIONS>
+@{
+    ViewBag.Title = "Lavozimlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPositions"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPositions");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Lavozimlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (changePermit)
+                {
+                    <div class="invoice-create-btn mb-1">
+                        <a href="@Url.Action("Create")" class="btn btn-success">
+                            <i class="bx bx-plus"></i> Lavozim qo'shish
+                        </a>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select name="isActive" class="form-control">
+                                            <option value="">Hammasi</option>
+                                            <option value="true" @(ViewBag.IsActive == true ? "selected" : "")>Faol bo'lgan</option>
+                                            <option value="false" @(ViewBag.IsActive == false ? "selected" : "")>Inactive</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="isManager" class="form-control">
+                                            <option value="">Hammasi</option>
+                                            <option value="true" @(ViewBag.IsManager == true ? "selected" : "")>Rahbariyat</option>
+                                            <option value="false" @(ViewBag.IsManager == false ? "selected" : "")>Oddiy</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="submit" class="btn btn-primary btn-block">Filtr</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table id="positionsTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Kod</th>
+                                            <th>Nomi</th>
+                                            <th>Rahbariyat</th>
+                                            <th>Holat</th>
+                                            <th>Yaratilgan</th>
+                                            <th>Amallar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td>@item.Code</td>
+                                                <td>@item.Name</td>
+                                                <td>
+                                                    <span class="badge badge-@(item.IsManager ? "info" : "secondary")">
+                                                        @(item.IsManager ? "Ha" : "Yo'q")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-@(item.IsActive ? "success" : "danger")">
+                                                        @(item.IsActive ? "Faol" : "Nofaol")
+                                                    </span>
+                                                </td>
+                                                <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
+                                                <td>
+                                                    <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-info">
+                                                        <i class="bx bx-show"></i>
+                                                    </a>
+                                                    @if (changePermit)
+                                                    {
+                                                        <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-warning">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Lavozimni o\'chirish?');">
+                                                            <i class="bx bx-trash"></i>
+                                                        </a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#positionsTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                },
+                "pageLength": 25,
+                "order": [[1, "asc"]]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

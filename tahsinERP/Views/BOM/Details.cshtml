@@ -1,0 +1,407 @@
+@model tahsinERP.ViewModels.BOM.BomDetailsViewModel
+@{
+    ViewBag.Title = "BOM Tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Bom">BOM</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (Model != null)
+                {
+                    <!-- PDF Export Button -->
+                    <div class="row mb-2">
+                        <div class="col-12 text-right">
+                            <button id="generatePDF" class="btn btn-outline-danger">
+                                <i class='bx bx-save'></i> PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="bomContent">
+                    <div class="row">
+                        <!-- Product Info Card -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Mahsulot ma'lumotlari</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                        {
+                                            <div class="col-md-3 text-center mb-3">
+                                                <img src="@Model.ImageUrl" alt="@Model.ProductName" class="img-fluid rounded" style="max-height: 200px; object-fit: contain;" />
+                                            </div>
+                                        }
+                                        <div class="@(string.IsNullOrEmpty(Model.ImageUrl) ? "col-md-12" : "col-md-9")">
+                                            <dl class="row">
+                                                <dt class="col-sm-3">Mahsulot raqami:</dt>
+                                                <dd class="col-sm-9"><strong>@Model.ProductPno</strong></dd>
+
+                                                <dt class="col-sm-3">Mahsulot nomi:</dt>
+                                                <dd class="col-sm-9">@Model.ProductName</dd>
+
+                                                <dt class="col-sm-3">Norm versiyasi:</dt>
+                                                <dd class="col-sm-9">
+                                                    <span class="badge badge-light-info">@Model.NormVersion</span>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOM Tree -->
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">BOM Strukturasi</h4>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.RootNode != null)
+                                    {
+                                        <div class="bom-tree-container">
+                                            <ul class="bom-tree">
+                                                @{
+                                                    ViewBag.IsRoot = true;
+                                                }
+                                                @Html.Partial("_BomTreeNode", Model.RootNode)
+                                            </ul>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info">
+                                            <i class="bx bx-info-circle"></i> Bu mahsulot uchun BOM komponentlari topilmadi.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Material Summary Table -->
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Materiallar bo'yicha sarf va summa</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-sm" id="materialSummaryTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Material kodi</th>
+                                                    <th>Material nomi</th>
+                                                    <th class="text-right">Xomashyo sarfi</th>
+                                                    <th>O'lchov birligi</th>
+                                                    <th class="text-right">Narxi</th>
+                                                    <th class="text-right">Xomashyo summasi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.MaterialSummaries != null && Model.MaterialSummaries.Any())
+                                                {
+                                                    foreach (var item in Model.MaterialSummaries)
+                                                    {
+                                                        <tr>
+                                                            <td>@item.MaterialPno</td>
+                                                            <td>@item.MaterialName</td>
+                                                            <td class="text-right">@item.TotalQuantity.ToString("F2")</td>
+                                                            <td>@(string.IsNullOrWhiteSpace(item.UnitShortname) ? "-" : item.UnitShortname)</td>
+                                                            <td class="text-right">@item.UnitPrice.ToString("F2")</td>
+                                                            <td class="text-right">@item.TotalAmount.ToString("F2")</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="6" class="text-center text-muted">Materiallar topilmadi.</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                            @if (Model.MaterialSummaries != null && Model.MaterialSummaries.Any())
+                                            {
+                                                <tfoot>
+                                                    <tr>
+                                                        <th colspan="5" class="text-right">Jami:</th>
+                                                        <th class="text-right">@Model.MaterialSummaries.Sum(x => x.TotalAmount).ToString("F2")</th>
+                                                    </tr>
+                                                </tfoot>
+                                            }
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div> <!-- End bomContent -->
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bx bx-error"></i> BOM ma'lumotlari topilmadi.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+
+    <style>
+        .bom-tree-container {
+            padding: 20px;
+        }
+
+        .bom-tree {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .bom-tree ul {
+            list-style: none;
+            padding-left: 30px;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .bom-tree ul:before {
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ddd;
+        }
+
+        .bom-tree li {
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .bom-tree li:before {
+            content: "";
+            position: absolute;
+            left: -15px;
+            top: 15px;
+            width: 15px;
+            height: 2px;
+            background: #ddd;
+        }
+
+        .bom-node {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: 500;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .bom-node-root {
+            background-color: #28a745;
+            color: white;
+            font-size: 1.1em;
+            padding: 12px 20px;
+        }
+
+        .bom-node-component {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .bom-quantity {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .bom-image-box {
+            flex-shrink: 0;
+        }
+
+        #materialSummaryTable th, #materialSummaryTable td {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        #materialSummaryTable tfoot th {
+            font-weight: 700;
+            background: #fff7d6;
+        }
+
+        @@media print {
+            #bomContent {
+                font-size: 11px;
+            }
+
+            .bom-tree-container {
+                padding: 8px;
+            }
+
+            #materialSummaryTable {
+                width: 100% !important;
+                table-layout: fixed;
+            }
+
+            #materialSummaryTable th,
+            #materialSummaryTable td {
+                font-size: 10px !important;
+                padding: 4px !important;
+                white-space: normal !important;
+                word-break: break-word;
+            }
+
+            .card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+
+    <!-- html2pdf.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        // Wait for jQuery and html2pdf to be loaded
+        (function() {
+            function initPDFScript() {
+                // Check if jQuery is available
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn === 'undefined') {
+                    setTimeout(initPDFScript, 100);
+                    return;
+                }
+                
+                var $ = jQuery;
+                
+                $(document).ready(function () {
+                    if ($.fn.DataTable && $('#materialSummaryTable').length) {
+                        $('#materialSummaryTable').DataTable({
+                            pageLength: 25,
+                            ordering: true,
+                            order: [[0, 'asc']],
+                            dom: 't',
+                            searching: false
+                        });
+                    }
+
+                    // Wait for html2pdf to be fully loaded
+                    function waitForHtml2Pdf(callback, maxAttempts) {
+                        var attempts = 0;
+                        var checkInterval = setInterval(function() {
+                            attempts++;
+                            if (typeof html2pdf !== 'undefined') {
+                                clearInterval(checkInterval);
+                                callback();
+                            } else if (attempts >= maxAttempts) {
+                                clearInterval(checkInterval);
+                                alert('PDF kutubxonasi yuklanmadi. Iltimos, sahifani yangilang.');
+                            }
+                        }, 100);
+                    }
+                    
+                    // Use event delegation for PDF button
+                    $(document).on('click', '#generatePDF', function (e) {
+                        e.preventDefault();
+                        
+                        var btn = $(this);
+                        var originalText = btn.html();
+                        btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> PDF yaratilmoqda...');
+
+                        waitForHtml2Pdf(function() {
+                            var element = document.getElementById('bomContent');
+                            if (!element) {
+                                alert('PDF uchun kontent topilmadi. Element ID: bomContent');
+                                btn.prop('disabled', false).html(originalText);
+                                return;
+                            }
+
+                            var productPno = '@(Model?.ProductPno ?? "BOM")';
+                            var timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
+                            
+                            var orientation = (window.erpExportHelpers && window.erpExportHelpers.getOrientationByElementSize)
+                                ? window.erpExportHelpers.getOrientationByElementSize(element)
+                                : 'portrait';
+
+                            var opt = {
+                                margin: [0.3, 0.3, 0.3, 0.3],
+                                filename: productPno + '_BOM_' + timestamp + '.pdf',
+                                image: { type: 'jpeg', quality: 0.98 },
+                                html2canvas: { 
+                                    scale: 2,
+                                    useCORS: true,
+                                    logging: false,
+                                    scrollX: 0,
+                                    scrollY: 0,
+                                    windowWidth: Math.max(element.scrollWidth, element.offsetWidth, document.body.scrollWidth),
+                                    windowHeight: Math.max(element.scrollHeight, element.offsetHeight, document.body.scrollHeight)
+                                },
+                                jsPDF: { 
+                                    unit: 'in', 
+                                    format: 'a4', 
+                                    orientation: orientation
+                                },
+                                pagebreak: { mode: ['css', 'legacy'] }
+                            };
+
+                            html2pdf().set(opt).from(element).save().then(function() {
+                                btn.prop('disabled', false).html(originalText);
+                            }).catch(function(error) {
+                                console.error('PDF yaratishda xatolik:', error);
+                                alert('PDF yaratishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
+                                btn.prop('disabled', false).html(originalText);
+                            });
+                        }, 50);
+                    });
+                });
+            }
+            
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPDFScript);
+            } else {
+                initPDFScript();
+            }
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,122 @@
+@model tahsinERP.Models.CUSTOMER_BASE
+@{
+    ViewBag.Title = "Tafsilotlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool changePermit = ViewBag.ChangePermit as bool? ?? false;
+}
+
+<div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/CustomerBase">Ma'lumotnoma</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        @Model.CompanyName ma'lumotlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Ma'lumotlar</h4>
+                                <div class="heading-elements">
+                                    @if (changePermit)
+                                    {
+                                        <a href="@Url.Action("Edit", "CustomerBase", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        </a>
+                                    }
+                                    <a href="@Url.Action("Index", "CustomerBase")" class="btn btn-sm btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5 class="text-primary">Asosiy ma'lumotlar</h5>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Korxona / Do'kon:</th>
+                                                    <td><strong>@(Model.CompanyName ?? "-")</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Maxsulot turi:</th>
+                                                    <td>@(Model.ProductType ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5 class="text-primary">Geografik ma'lumotlar</h5>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Davlat:</th>
+                                                    <td>@(Model.Country ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Viloyat:</th>
+                                                    <td>@(Model.Province ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Region:</th>
+                                                    <td>@(Model.Region ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5 class="text-primary">Murojaat ma'lumotlari</h5>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Aloqa uchun:</th>
+                                                    <td>@(Model.ContactPerson ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Lavozimi:</th>
+                                                    <td>@(Model.Position ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Telefon:</th>
+                                                    <td>@(Model.Phone ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5 class="text-primary">Qo'shimcha ma'lumotlar</h5>
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Izoh:</th>
+                                                    <td>@(Model.Comment ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

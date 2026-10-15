@@ -1,0 +1,165 @@
+@model tahsinERP.Models.PRODUCT
+@{
+    ViewBag.Title = "O'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Delete", "Product", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Product">Maxsulotlar</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            @Model.PNo ni o'chirib yuborish
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <section class="invoice-edit-wrapper">
+                        <div class="row">
+                            <div class="col-xl-12 col-md-12 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <div class="alert alert-warning">
+                                                <i class="bx bx-error-circle"></i>
+                                                <strong>Diqqat!</strong> Siz ushbu maxsulotni o'chirishni xohlaysizmi?
+                                            </div>
+
+                                            <h4 class="text-primary">Maxsulot ma'lumotlari</h4>
+                                            <hr>
+
+                                            <div class="row">
+                                                <!-- Product Details - Left Column -->
+                                                <div class="col-md-8">
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><b>Maxsulot raqami:</b></div>
+                                                        <div class="col-8">@Model.PNo</div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><b>Nomi:</b></div>
+                                                        <div class="col-8">@Model.Name</div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><b>Turi:</b></div>
+                                                        <div class="col-8">
+                                                            @if (Model.IsFinishedGood == true)
+                                                            {
+                                                                <span class="badge badge-success">Maxsulot</span>
+                                                            }
+                                                            else if (Model.IsComponent == true)
+                                                            {
+                                                                <span class="badge badge-warning">Yarim tayyor maxsulot</span>
+                                                            }
+                                                            else if (Model.IsRawMaterial == true)
+                                                            {
+                                                                <span class="badge badge-info">Xomashyo</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>-</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <hr />
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><b>Og'irligi:</b></div>
+                                                        <div class="col-8">@(Model.Weight.HasValue ? Model.Weight.Value.ToString() + " kg" : "-")</div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><b>O'lchamlari:</b></div>
+                                                        <div class="col-8">@Model.Length x @Model.Width x @Model.Height mm</div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><b>Hajmi (CBM):</b></div>
+                                                        <div class="col-8">
+                                                            @if (Model.Length.HasValue && Model.Width.HasValue && Model.Height.HasValue)
+                                                            {
+                                                                var cbm = (Model.Length.Value / 1000.0) * (Model.Width.Value / 1000.0) * (Model.Height.Value / 1000.0);
+                                                                @(cbm.ToString("F6") + " m³")
+                                                            }
+                                                            else
+                                                            {
+                                                                <text>-</text>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><b>O'lchov birligi:</b></div>
+                                                        <div class="col-8">@(Model.UNIT != null ? Model.UNIT.ShortName : "-")</div>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(Model.Description))
+                                                    {
+                                                        <div class="row mb-2">
+                                                            <div class="col-4"><b>Tavsifi:</b></div>
+                                                            <div class="col-8">@Model.Description</div>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <!-- Product Image - Right Column -->
+                                                <div class="col-md-4">
+                                                    <div class="card border">
+                                                        <div class="card-header">
+                                                            <h5 class="card-title mb-0"><i class="bx bx-image"></i> Maxsulot rasmi</h5>
+                                                        </div>
+                                                        <div class="card-body text-center">
+                                                            @if (ViewBag.ProductImage != null)
+                                                            {
+                                                                <img src="data:image/png;base64,@ViewBag.ProductImage" alt="@Model.PNo" class="img-fluid" style="max-width: 100%; max-height: 200px; border-radius: 8px;" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="text-muted py-4">
+                                                                    <i class="bx bx-image" style="font-size: 48px;"></i>
+                                                                    <p class="mb-0">Rasm mavjud emas</p>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr>
+                                            <div class="mb-2">
+                                                <button class="btn btn-danger" type="submit">
+                                                    <i class='bx bx-trash'></i> O'chirish
+                                                </button>
+                                                @Html.ActionLink("Bekor qilish", "Index", null, new { @class = "btn btn-outline-secondary" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

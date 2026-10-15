@@ -1,0 +1,169 @@
+@model tahsinERP.Models.ROLE
+@{
+    ViewBag.Title = "Rol ma'lumotlari";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
+                                    <li class="breadcrumb-item active">@Model.RName</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="bx bx-info-circle mr-1"></i>@Model.RName</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label><strong>Rol nomi:</strong></label>
+                                        <p class="form-control-plaintext">@Model.RName</p>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><strong>Tavsif:</strong></label>
+                                        <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)</p>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><strong>Huquqlar soni:</strong></label>
+                                        <p class="form-control-plaintext">
+                                            <span class="badge badge-light-info">@(Model.PERMISSIONS?.Count ?? 0) ta</span>
+                                        </p>
+                                    </div>
+
+                                    @if (changePermit)
+                                    {
+                                        <div class="form-group">
+                                            <a href="@Url.Action("Permissions", "Role", new { id = Model.ID })" class="btn btn-warning">
+                                                <i class="bx bx-lock"></i> Huquqlarni boshqarish
+                                            </a>
+                                            <a href="@Url.Action("Edit", "Role", new { id = Model.ID })" class="btn btn-primary">
+                                                <i class="bx bx-edit"></i> Tahrirlash
+                                            </a>
+                                            <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
+                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.PERMISSIONS != null && Model.PERMISSIONS.Any())
+                {
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title"><i class="bx bx-lock mr-1"></i>Huquqlar ro'yxati</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table id="rolePermissionsDataTable" class="table table-striped table-bordered" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Modul</th>
+                                                        <th>Controller</th>
+                                                        <th>Action</th>
+                                                        <th class="text-center">View</th>
+                                                        <th class="text-center">Change</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var permission in Model.PERMISSIONS.OrderBy(p => p.PERMISSIONMODULE?.Module).ThenBy(p => p.PERMISSIONMODULE?.Controller))
+                                                    {
+                                                        <tr>
+                                                            <td>@(permission.PERMISSIONMODULE?.Module ?? "-")</td>
+                                                            <td><code class="small">@(permission.PERMISSIONMODULE?.Controller ?? "-")</code></td>
+                                                            <td><code class="small">@(permission.PERMISSIONMODULE?.Action ?? "-")</code></td>
+                                                            <td class="text-center">
+                                                                @if (permission.ViewPermit)
+                                                                {
+                                                                    <span class="badge badge-success"><i class="bx bx-check"></i></span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge badge-secondary"><i class="bx bx-x"></i></span>
+                                                                }
+                                                            </td>
+                                                            <td class="text-center">
+                                                                @if (permission.ChangePermit)
+                                                                {
+                                                                    <span class="badge badge-success"><i class="bx bx-check"></i></span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge badge-secondary"><i class="bx bx-x"></i></span>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                $('#rolePermissionsDataTable').DataTable({
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": {
+                            "first": "Birinchi",
+                            "last": "Oxirgi",
+                            "next": "Keyingi",
+                            "previous": "Oldingi"
+                        },
+                        "zeroRecords": "Ma'lumot topilmadi"
+                    },
+                    "pageLength": 25,
+                    "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Barchasi"]],
+                    "order": [[0, "asc"], [1, "asc"]], // Sort by Module, then Controller
+                    "scrollX": true
+                });
+            });
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

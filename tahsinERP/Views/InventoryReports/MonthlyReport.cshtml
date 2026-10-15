@@ -1,0 +1,219 @@
+@model tahsinERP.ViewModels.WarehouseMonthlyReportViewModel
+@{
+    ViewBag.Title = "Ombor oylik hisoboti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Func<object, string, decimal> getDecimal = (obj, propName) =>
+    {
+        if (obj == null || string.IsNullOrWhiteSpace(propName))
+        {
+            return 0m;
+        }
+
+        var prop = obj.GetType().GetProperty(propName);
+        if (prop == null)
+        {
+            return 0m;
+        }
+
+        var raw = prop.GetValue(obj, null);
+        if (raw == null)
+        {
+            return 0m;
+        }
+
+        try { return Convert.ToDecimal(raw); } catch { return 0m; }
+    };
+}
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        body { background: #fff !important; }
+        body * { visibility: hidden; }
+        #reportCard, #reportCard * { visibility: visible !important; }
+        #reportCard { display: block !important; position: relative !important; left: 0 !important; top: 0 !important; width: 100% !important; color: #000 !important; }
+        #reportCard table { color: #000 !important; }
+        #reportCard th, #reportCard td { color: #000 !important; border-color: #333 !important; }
+        .content-header, .navbar, .main-menu, .menu, footer, .breadcrumb, .sidenav-overlay, .drag-target { display: none !important; }
+        .app-content, .content-wrapper, .content-body { padding: 0 !important; display: block !important; width: 100% !important; overflow: visible !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .card-body { padding: 1rem !important; }
+    }
+    @@media screen {
+        .print-only { display: none; }
+    }
+    .report-title { font-size: 1.25rem; font-weight: 600; }
+    .report-meta { font-size: 0.9rem; color: #555; }
+    .signature-line { margin-top: 2rem; border-top: 1px solid #333; padding-top: 0.5rem; font-size: 0.9rem; }
+    #monthlyReportTable th, #monthlyReportTable td { vertical-align: middle; }
+    #monthlyReportTable .total-row { font-weight: 700; background-color: #f8f9fa; }
+</style>
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row no-print">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="breadcrumb-wrapper col-12">
+                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                        <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="~/InventoryReports/Dashboard">Ombor hisobotlari</a></li>
+                        <li class="breadcrumb-item active">Oylik hisobot</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="card no-print">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Ombor oylik hisoboti (MRP)</h4>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("MonthlyReport", "InventoryReports", FormMethod.Get, new { @class = "form" }))
+                    {
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label>Ko'rinishi</label>
+                                <select name="viewMode" class="form-control">
+                                    <option value="quantity" @(Model.ViewMode == "quantity" ? "selected" : "")>Miqdor bo'yicha</option>
+                                    <option value="amount" @(Model.ViewMode == "amount" ? "selected" : "")>Summa bo'yicha</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>Ombor</label>
+                                @Html.DropDownList("warehouseId", Model.Warehouses, new { @class = "form-control" })
+                            </div>
+                            <div class="col-md-2">
+                                <label>Oy</label>
+                                @Html.DropDownList("month", Enumerable.Range(1, 12).Select(i => new SelectListItem { Text = new DateTime(2024, i, 1).ToString("MMMM", new System.Globalization.CultureInfo("uz-Latn-UZ")), Value = i.ToString(), Selected = i == Model.Month }), new { @class = "form-control" })
+                            </div>
+                            <div class="col-md-2">
+                                <label>Yil</label>
+                                <input type="number" name="year" class="form-control" value="@Model.Year" min="2020" max="2030" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary">Hisobotni ko'rsatish</button>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end justify-content-end">
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> Chop etish</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card" id="reportCard">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrWhiteSpace(Model.CompanyName))
+                        {
+                            <p class="report-meta mb-0">@Model.CompanyName</p>
+                        }
+                        <h5 class="report-title mt-2">OMBOR OYLIK HISOBOTI</h5>
+                        <p class="report-meta mb-0">Oy: <strong>@Model.PeriodTitleUz</strong> (@Model.PeriodTitle)</p>
+                        <p class="report-meta mb-0">Ombor: <strong>@(Model.SelectedWarehouseName ?? "—")</strong></p>
+                        <p class="report-meta mb-0">Hujjat sanasi: <strong>@Model.ReportDate</strong></p>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm" id="monthlyReportTable" style="width:100%">
+                            <thead>
+                                <tr class="table-primary">
+                                    <th style="width:40px">№</th>
+                                    <th>Kod</th>
+                                    <th>Mahsulot</th>
+                                    @if (Model.ViewMode != "amount")
+                                    {
+                                        <th>Birlik</th>
+                                    }
+                                    <th class="text-right">Oldingi qoldiq</th>
+                                    <th class="text-right">Inventarizatsiya orqali</th>
+                                    <th class="text-right">Kirim</th>
+                                    <th class="text-right">Chiqim</th>
+                                    <th class="text-right">Oy oxiridagi qoldiq</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Rows != null && Model.Rows.Count > 0)
+                                {
+                                    var num = 1;
+                                    var byAmount = Model.ViewMode == "amount";
+                                    foreach (var row in Model.Rows)
+                                    {
+                                        <tr>
+                                            <td>@(num++)</td>
+                                            <td>@row.ProductCode</td>
+                                            <td>@row.ProductName</td>
+                                            @if (!byAmount)
+                                            {
+                                                <td>@row.UnitName</td>
+                                            }
+                                            @if (byAmount)
+                                            {
+                                                <td class="text-right">@row.OpeningBalanceSum.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(row, "AdjustmentSum").ToString("N2")</td>
+                                                <td class="text-right">@row.IncomeSum.ToString("N2")</td>
+                                                <td class="text-right">@row.ExpenseSum.ToString("N2")</td>
+                                                <td class="text-right">@row.ClosingBalanceSum.ToString("N2")</td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-right">@row.OpeningBalance.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(row, "AdjustmentQty").ToString("N2")</td>
+                                                <td class="text-right">@row.IncomeQty.ToString("N2")</td>
+                                                <td class="text-right">@row.ExpenseQty.ToString("N2")</td>
+                                                <td class="text-right">@row.ClosingBalance.ToString("N2")</td>
+                                            }
+                                        </tr>
+                                    }
+                                    if (Model.Totals != null)
+                                    {
+                                        <tr class="total-row">
+                                            <td colspan="@(byAmount ? 3 : 4)" class="text-right"><strong>JAMI</strong></td>
+                                            @if (byAmount)
+                                            {
+                                                <td class="text-right">@Model.Totals.TotalOpeningSum.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(Model.Totals, "TotalAdjustmentSum").ToString("N2")</td>
+                                                <td class="text-right">@Model.Totals.TotalIncomeSum.ToString("N2")</td>
+                                                <td class="text-right">@Model.Totals.TotalExpenseSum.ToString("N2")</td>
+                                                <td class="text-right">@Model.Totals.TotalClosingSum.ToString("N2")</td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-right">@Model.Totals.TotalOpening.ToString("N2")</td>
+                                                <td class="text-right">@getDecimal(Model.Totals, "TotalAdjustment").ToString("N2")</td>
+                                                <td class="text-right">@Model.Totals.TotalIncome.ToString("N2")</td>
+                                                <td class="text-right">@Model.Totals.TotalExpense.ToString("N2")</td>
+                                                <td class="text-right">@Model.Totals.TotalClosing.ToString("N2")</td>
+                                            }
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    var emptyColspan = Model.ViewMode == "amount" ? 8 : 9;
+                                    <tr>
+                                        <td colspan="@emptyColspan" class="text-center">Ushbu oy uchun kirim/chiqim ma'lumotlari topilmadi.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (Model.ViewMode == "amount" && Model.Rows != null && Model.Rows.Count > 0)
+                    {
+                        <p class="report-meta small mb-0">Summalar so'mda (kirim/chiqim hujjatlaridagi narxlar bo'yicha).</p>
+                    }
+
+                    <div class="signature-line no-print">
+                        <p class="mb-0">Ombor muduri (MRP): _________________________  Qo'l: ____________</p>
+                        <p class="mb-0 text-muted small">Hisobotni chop etib, imzo va qo'l qo'yilgach rahbariyatga topshiriladi.</p>
+                    </div>
+                    <div class="signature-line print-only">
+                        <p class="mb-0">Ombor muduri (MRP): _________________________  Qo'l: ____________</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

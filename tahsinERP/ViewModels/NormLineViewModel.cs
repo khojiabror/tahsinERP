@@ -1,0 +1,92 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace tahsinERP.ViewModels
+{
+    public class NormLineViewModel
+    {
+        public int ID { get; set; }
+        
+        [Required(ErrorMessage = "Materialni tanlang")]
+        [Display(Name = "Material")]
+        public int MaterialID { get; set; }
+        
+        [Display(Name = "Material kodi")]
+        public string MaterialCode { get; set; }
+        
+        [Display(Name = "Material nomi")]
+        public string MaterialName { get; set; }
+        
+        [Display(Name = "Material turi")]
+        public string MaterialType { get; set; }
+        
+        [Display(Name = "Uzunlik (mm)")]
+        public double? Length { get; set; }
+        
+        [Display(Name = "Kenglik (mm)")]
+        public double? Width { get; set; }
+        
+        [Display(Name = "Qalinlik (mm)")]
+        public double? Height { get; set; }
+        
+        [Display(Name = "Standart uzunlik (mm)")]
+        public double? StandardLengthMm { get; set; }
+        
+        [Display(Name = "Hisob (mm)")]
+        public double? CalculatedLengthMm { get; set; }
+        
+        [Display(Name = "Hisob (m)")]
+        public double? CalculatedLengthM { get; set; }
+        
+        [Display(Name = "Miqdori (dona)")]
+        [Range(0, int.MaxValue, ErrorMessage = "Miqdor manfiy bo'lishi mumkin emas")]
+        public int Quantity { get; set; } = 1;
+        
+        [Display(Name = "Bitta bar/sheet dan kesilgan dona")]
+        [Range(1, int.MaxValue, ErrorMessage = "Dona 1 dan katta bo'lishi kerak")]
+        public int PiecesPerBar { get; set; } = 1;
+        
+        [Display(Name = "Bitta mahsulot uchun sarflanish (m)")]
+        public decimal ConsumptionPerProduct { get; set; }
+        
+        [Display(Name = "Bitta mahsulot uchun chiqindi (m)")]
+        public decimal WastePerProduct { get; set; }
+
+        public bool IsWasteManual { get; set; }
+        
+        [Display(Name = "Birlik")]
+        public int? UnitID { get; set; }
+
+        [Display(Name = "Narx")]
+        public decimal? UnitPrice { get; set; }
+        
+        [Display(Name = "Valyuta")]
+        public string Currency { get; set; }
+        
+        [Display(Name = "Norma")]
+        public decimal Norma { get; set; }
+        
+        [Display(Name = "Chiqindi")]
+        public decimal Chiqindi { get; set; }
+        
+        [Display(Name = "Bitta mahsulot uchun umumiy narx")]
+        public decimal TotalCostPerProduct { get; set; }
+        
+        [Display(Name = "Oy")]
+        public string Month { get; set; }
+
+        // Kesish usuli — foydalanuvchi kiritadigan erkin matn (qaysi yog'ochdan qaysi o'lchamda qanchadan kesish).
+        // NORM_INPUT_LINES.Comment ustuniga saqlanadi.
+        [Display(Name = "Kesish usuli")]
+        public string CuttingMethod { get; set; }
+
+        public bool IsSelected { get; set; } = true;
+
+        // Optimizatsiya natijasi: bu qator boshqa (uzunroq) kesimning chiqindisidan olingan bo'lsa true.
+        public bool UsesWaste { get; set; }
+
+        // Optimizatsiya izohi (qaysi qator chiqindisidan, qancha olingani va h.k.).
+        public string OptimizationNote { get; set; }
+    }
+}
+

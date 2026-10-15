@@ -1,0 +1,380 @@
+@model tahsinERP.Models.P_CONTRACTS
+@using tahsinERP.Services
+@{
+    ViewBag.Title = "Shartnoma tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts", "Details"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/PContracts/Index">Xarid shartnomalari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tafsilotlar
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Shartnoma ma'lumotlari</h4>
+                                <div class="heading-elements">
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContracts"))
+                                    {
+                                        <a href="@Url.Action("Edit", "PContracts", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        </a>
+                                    }
+                                    @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Details"))
+                                    {
+                                        <a href="@Url.Action("Supplier", "Reconciliation", new { id = Model.SupplierID, contractId = Model.ID })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bx bx-transfer-alt"></i> Akt-sverki
+                                        </a>
+                                    }
+                                    <a href="@Url.Action("Index", "PContracts")" class="btn btn-sm btn-secondary">
+                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Shartnoma raqami:</th>
+                                                    <td>@Model.ContractNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sana:</th>
+                                                    <td>@Model.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Korxona:</th>
+                                                    <td>@(Model.COMPANy?.Name ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Ta'minotchi:</th>
+                                                    <td>
+                                                        @if (Model.SUPPLIER != null)
+                                                        {
+                                                            <a href="@Url.Action("Details", "Supplier", new { id = Model.SupplierID })">@Model.SUPPLIER.Name</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>-</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Valyuta:</th>
+                                                    <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <th width="40%">Shartnoma summasi:</th>
+                                                    <td><strong>@(Model.Amount?.ToString("N2") ?? "0.00")</strong></td>
+                                                </tr>
+                                                @{
+                                                    var contractProducts = Model.P_CONTRACT_PRODUCTS;
+                                                    var baseAmount = contractProducts != null ? contractProducts.Sum(p => p.Amount) : 0d;
+                                                    var vatAmount = contractProducts != null ? contractProducts.Sum(p => p.VATAmount ?? 0) : 0d;
+                                                    var totalAmount = contractProducts != null ? contractProducts.Sum(p => p.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat(p.Amount, p.VATAmount)) : 0d;
+                                                    var vatPercent = PContractVatHelper.GetVatPercentFromLine(baseAmount, vatAmount);
+                                                }
+                                                <tr>
+                                                    <th>QQS (@vatPercent.ToString("N2")%):</th>
+                                                    <td>@vatAmount.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>QQSsiz summa:</th>
+                                                    <td>@baseAmount.ToString("N2")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jami (QQS bilan):</th>
+                                                    <td><strong>@totalAmount.ToString("N2")</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Incoterms:</th>
+                                                    <td>@(Model.Incoterms ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>To'lov shartlari:</th>
+                                                    <td>@(Model.PaymentTerms ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Muddat:</th>
+                                                    <td>@Model.DueDate.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>IDN:</th>
+                                                    <td>@(Model.IDN ?? "-")</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <section id="column-selectors">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h4 class="card-title">Shartnoma mahsulotlari</h4>
+                                                    </div>
+                                                    <div class="card-content">
+                                                        <div class="card-body card-dashboard">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-striped dataex-html5-selectors" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Mahsulot kodi</th>
+                                                                            <th>Mahsulot nomi</th>
+                                                                            <th>Miqdor</th>
+                                                                            <th>Birlik</th>
+                                                                            <th>Narx</th>
+                                                                            <th>QQS (%)</th>
+                                                                            <th>Jami narx</th>
+                                                                            <th>MOQ</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @if (Model.P_CONTRACT_PRODUCTS != null && Model.P_CONTRACT_PRODUCTS.Any())
+                                                                        {
+                                                                            foreach (var product in Model.P_CONTRACT_PRODUCTS)
+                                                                            {
+                                                                                <tr>
+                                                                                    @{
+                                                                                        var baseTotal = product.Amount;
+                                                                                        vatPercent = PContractVatHelper.GetVatPercentFromLine(product.Amount, product.VATAmount);
+                                                                                        var totalWithVat = product.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat(product.Amount, product.VATAmount);
+                                                                                    }
+                                                                                    <td>
+                                                                                        @if (product.PRODUCT != null && product.PRODUCT.ID > 0)
+                                                                                        {
+                                                                                            <a href="@Url.Action("Details", "Product", new { id = product.PRODUCT.ID })">@(product.PRODUCT.PNo ?? "-")</a>
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            <span>-</span>
+                                                                                        }
+                                                                                    </td>
+                                                                                    <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                                                    <td>@product.Quantity.ToString("N2")</td>
+                                                                                    <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                                                    <td>@product.Price.ToString("N2")</td>
+                                                                                    <td>@vatPercent.ToString("N2")</td>
+                                                                                    <td>@totalWithVat.ToString("N2")</td>
+                                                                                    <td>@(product.MOQ?.ToString("N2") ?? "-")</td>
+                                                                                </tr>
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <tr>
+                                                                                <td colspan="8" class="text-center">Mahsulotlar topilmadi</td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <hr />
+
+                                    <!-- Linked Invoices -->
+                                    @{
+                                        var linkedInvoices = ViewBag.LinkedInvoices as List<tahsinERP.Models.P_INVOICES>;
+                                        var invoicesCount = ViewBag.InvoicesCount as int? ?? 0;
+                                    }
+                                    @if (linkedInvoices != null && linkedInvoices.Any())
+                                    {
+                                        <section id="column-selectors">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="card">
+                                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                                            <h4 class="card-title">Bog'langan invoyslar</h4>
+                                                        </div>
+                                                        <div class="card-content">
+                                                            <div class="card-body card-dashboard">
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-striped" style="width:100%">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Invoys raqami</th>
+                                                                                <th>Sana</th>
+                                                                                <th>Summa</th>
+                                                                                <th>Valyuta</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            @foreach (var invoice in linkedInvoices)
+                                                                            {
+                                                                                <tr>
+                                                                                    <td>
+                                                                                        <a href="@Url.Action("Details", "PInvoices", new { id = invoice.ID })">@invoice.InvoiceNo</a>
+                                                                                    </td>
+                                                                                    <td>@invoice.InvoiceDate.ToString("dd.MM.yyyy")</td>
+                                                                                    <td>@((invoice.Amount ?? 0).ToString("N2"))</td>
+                                                                                    <td>@(invoice.CURRENCy?.Shortname ?? "")</td>
+                                                                                </tr>
+                                                                            }
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    }
+
+                                    <!-- Totals Comparison -->
+                                    @{
+                                        var contractedTotal = ViewBag.ContractedTotal as double? ?? 0;
+                                        var orderedTotal = ViewBag.OrderedTotal as double? ?? 0;
+                                        var invoicedTotal = ViewBag.InvoicedTotal as double? ?? 0;
+                                    }
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5 class="card-title">Xulosa</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Ko'rsatkich</th>
+                                                                <th>Summa</th>
+                                                                <th>Holati</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Shartnoma bo'yicha</td>
+                                                                <td>@contractedTotal.ToString("N2")</td>
+                                                                <td><span class="badge badge-info">Shartnoma</span></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Buyurtma bo'yicha</td>
+                                                                <td>@orderedTotal.ToString("N2")</td>
+                                                                <td>
+                                                                    @if (orderedTotal > contractedTotal)
+                                                                    {
+                                                                        <span class="badge badge-warning">Oshib ketgan</span>
+                                                                    }
+                                                                    else if (orderedTotal == contractedTotal)
+                                                                    {
+                                                                        <span class="badge badge-success">To'liq</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge badge-info">Qisman</span>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Invoys bo'yicha</td>
+                                                                <td>@invoicedTotal.ToString("N2")</td>
+                                                                <td>
+                                                                    @if (invoicedTotal > contractedTotal)
+                                                                    {
+                                                                        <span class="badge badge-warning">Oshib ketgan</span>
+                                                                    }
+                                                                    else if (invoicedTotal == contractedTotal)
+                                                                    {
+                                                                        <span class="badge badge-success">To'liq</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge badge-info">Qisman</span>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Navigation Links -->
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("Index", "POrders", new { contractID = Model.ID })" class="btn btn-outline-primary">
+                                                    <i class="bx bx-list-ul"></i> Buyurtmalar (@ViewBag.OrdersCount)
+                                                </a>
+                                                <a href="@Url.Action("Index", "PInvoices", new { contractID = Model.ID })" class="btn btn-outline-primary">
+                                                    <i class="bx bx-receipt"></i> Invoyslar (@invoicesCount)
+                                                </a>
+                                                @if (Model.SUPPLIER != null)
+                                                {
+                                                    <a href="@Url.Action("Details", "Supplier", new { id = Model.SupplierID })" class="btn btn-outline-primary">
+                                                        <i class="bx bx-user"></i> Ta'minotchi
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if (Model.P_CONTRACT_DOCS != null && Model.P_CONTRACT_DOCS.Any())
+                                    {
+                                        <hr />
+                                        <h5>Shartnoma hujjatlari</h5>
+                                        <ul>
+                                            @foreach (var doc in Model.P_CONTRACT_DOCS)
+                                            {
+                                                <li>
+                                                    <a href="@Url.Action("DownloadDoc", "PContracts", new { id = doc.ID })" target="_blank">
+                                                        <i class="bx bx-file"></i> Shartnoma hujjati #@doc.ID
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

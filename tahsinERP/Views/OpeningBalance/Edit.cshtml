@@ -1,0 +1,956 @@
+@model tahsinERP.ViewModels.Finance.OpeningBalanceViewModel
+@using System.Linq
+
+@{
+    ViewBag.Title = "Opening balans — tahrir";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var canChange = ViewBag.CanChange as bool? ?? false;
+}
+
+<style>
+    .opening-total-system {
+        background-color: #f2f4f4 !important;
+        cursor: not-allowed;
+    }
+</style>
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "OpeningBalance")">Opening balans</a></li>
+                                    <li class="breadcrumb-item active">@(canChange ? "Tahrir" : "Ko'rish")</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Opening balans — boshlang'ich qoldiqlar</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-body">
+                            @if (TempData["Success"] != null)
+                            {
+                                <div class="alert alert-success">@TempData["Success"]</div>
+                            }
+                            @if (TempData["Error"] != null)
+                            {
+                                <div class="alert alert-danger">@TempData["Error"]</div>
+                            }
+
+                            @if (canChange)
+                            {
+                                using (Html.BeginForm("Edit", "OpeningBalance", FormMethod.Post, new { @class = "form" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.HiddenFor(m => m.DefaultCurrencyID)
+
+                                    <div class="row mb-2">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label">Opening sana *</label>
+                                                @Html.TextBoxFor(m => m.SnapshotDate, new
+                                                {
+                                                    @class = "form-control",
+                                                    type = "date",
+                                                    required = "required",
+                                                    Value = Model.SnapshotDate.ToString("yyyy-MM-dd")
+                                                })
+                                                <small class="text-muted">Bu sanaga nisbatan barcha balanslar birinchi marta kiritiladi.</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <div class="form-group">
+                                                <button type="button" id="btnLoadOpeningByDate" class="btn btn-info">
+                                                    Load qilish
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 d-flex align-items-end">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-warning" id="btnAutoFillCurrent">
+                                                    Auto-fill from current balances
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success ml-1" id="btnImportExcel">
+                                                    Excel import (AR/AP)
+                                                </button>
+                                                <a class="btn btn-outline-primary ml-1" href="@Url.Action("DownloadOpeningBalanceExcelTemplate", "OpeningBalance")">
+                                                    Excel template
+                                                </a>
+                                                <input type="file" id="openingExcelFile" accept=".xlsx" style="display:none;" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-light-primary">
+                                        AR/AP bo'limlarida <strong>Umumiy oldi-berdi</strong> tizim ma'lumotidan olinadi (read-only).
+                                        Faqat <strong>to'langan/olingan</strong> summani kiriting.
+                                    </div>
+
+                                    <hr />
+                                    <h5 class="mb-1">Mijozlardan haqqimiz (AR) — shartnoma kesimida</h5>
+                                    <div class="form-group mb-1">
+                                        <label class="d-inline-flex align-items-center">
+                                            @Html.CheckBoxFor(m => m.LeaveCustomerReceivableEmpty, new { @class = "form-check-input mr-50" })
+                                            <span>AR bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                        </label>
+                                    </div>
+                                    <div class="d-flex justify-content-end mb-1">
+                                        <span class="badge badge-light-danger">Jami haqqimiz: @(Model.CustomerReceivableLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm" id="tblOpeningCustomerLines">
+                                            <thead>
+                                                <tr>
+                                                    <th style="min-width:260px;">Mijoz</th>
+                                                    <th style="min-width:220px;">Shartnoma</th>
+                                                    <th class="text-right" style="min-width:170px;">Umumiy oldi-berdi</th>
+                                                    <th class="text-right" style="min-width:170px;">Olgan pulimiz</th>
+                                                    <th class="text-right" style="min-width:170px;">Qoldiq (haqqimiz)</th>
+                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="width:80px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.CustomerReceivableLines.Count; i++)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @Html.DropDownListFor(
+                                                                m => m.CustomerReceivableLines[i].CounterpartyID,
+                                                                new SelectList(Model.CustomerList, "Value", "Text", Model.CustomerReceivableLines[i].CounterpartyID),
+                                                                "-- Tanlang --",
+                                                                new { @class = "form-control opening-counterparty", data_type = "customer" })
+                                                        </td>
+                                                        <td>
+                                                            @Html.HiddenFor(m => m.CustomerReceivableLines[i].ContractNo, new { @class = "opening-contract-no" })
+                                                            <select class="form-control opening-contract-select"
+                                                                    name="CustomerReceivableLines[@i].ContractID"
+                                                                    data-type="customer"
+                                                                    data-selected-id="@(Model.CustomerReceivableLines[i].ContractID.HasValue ? Model.CustomerReceivableLines[i].ContractID.Value.ToString() : "")"
+                                                                    data-selected-text="@Model.CustomerReceivableLines[i].ContractNo">
+                                                                <option value="">-- Shartnoma tanlanmagan --</option>
+                                                                @if (Model.CustomerReceivableLines[i].ContractID.HasValue)
+                                                                {
+                                                                    <option value="@Model.CustomerReceivableLines[i].ContractID.Value" selected="selected">@Model.CustomerReceivableLines[i].ContractNo</option>
+                                                                }
+                                                            </select>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.CustomerReceivableLines[i].TotalAmount, new { @class = "form-control text-right opening-total opening-total-system", type = "number", step = "0.01", @readonly = "readonly" })
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.CustomerReceivableLines[i].PaidAmount, new { @class = "form-control text-right opening-paid", type = "number", step = "0.01" })
+                                                        </td>
+                                                        <td class="text-right align-middle">
+                                                            <span class="badge badge-light-danger opening-balance-text">@((Model.CustomerReceivableLines[i].TotalAmount - Model.CustomerReceivableLines[i].PaidAmount).ToString("N2"))</span>
+                                                            @Html.HiddenFor(m => m.CustomerReceivableLines[i].Amount, new { @class = "opening-amount-hidden" })
+                                                        </td>
+                                                        <td>
+                                                            @Html.DropDownListFor(m => m.CustomerReceivableLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
+                                                        </td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="btnAddCustomerLine">+ Qator qo'shish</button>
+
+                                    <h5 class="mb-1">Ta'minotchilardan qarzimiz (AP) — shartnoma kesimida</h5>
+                                    <div class="form-group mb-1">
+                                        <label class="d-inline-flex align-items-center">
+                                            @Html.CheckBoxFor(m => m.LeaveSupplierPayableEmpty, new { @class = "form-check-input mr-50" })
+                                            <span>AP bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                        </label>
+                                    </div>
+                                    <div class="d-flex justify-content-end mb-1">
+                                        <span class="badge badge-light-warning">Jami qarzimiz: @(Model.SupplierPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm" id="tblOpeningSupplierLines">
+                                            <thead>
+                                                <tr>
+                                                    <th style="min-width:260px;">Ta'minotchi</th>
+                                                    <th style="min-width:220px;">Shartnoma</th>
+                                                    <th class="text-right" style="min-width:170px;">Umumiy oldi-berdi</th>
+                                                    <th class="text-right" style="min-width:170px;">To'lagan pulimiz</th>
+                                                    <th class="text-right" style="min-width:170px;">Qoldiq (qarzimiz)</th>
+                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="width:80px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.SupplierPayableLines.Count; i++)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @Html.DropDownListFor(
+                                                                m => m.SupplierPayableLines[i].CounterpartyID,
+                                                                new SelectList(Model.SupplierList, "Value", "Text", Model.SupplierPayableLines[i].CounterpartyID),
+                                                                "-- Tanlang --",
+                                                                new { @class = "form-control opening-counterparty", data_type = "supplier" })
+                                                        </td>
+                                                        <td>
+                                                            @Html.HiddenFor(m => m.SupplierPayableLines[i].ContractNo, new { @class = "opening-contract-no" })
+                                                            <select class="form-control opening-contract-select"
+                                                                    name="SupplierPayableLines[@i].ContractID"
+                                                                    data-type="supplier"
+                                                                    data-selected-id="@(Model.SupplierPayableLines[i].ContractID.HasValue ? Model.SupplierPayableLines[i].ContractID.Value.ToString() : "")"
+                                                                    data-selected-text="@Model.SupplierPayableLines[i].ContractNo">
+                                                                <option value="">-- Shartnoma tanlanmagan --</option>
+                                                                @if (Model.SupplierPayableLines[i].ContractID.HasValue)
+                                                                {
+                                                                    <option value="@Model.SupplierPayableLines[i].ContractID.Value" selected="selected">@Model.SupplierPayableLines[i].ContractNo</option>
+                                                                }
+                                                            </select>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.SupplierPayableLines[i].TotalAmount, new { @class = "form-control text-right opening-total opening-total-system", type = "number", step = "0.01", @readonly = "readonly" })
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.SupplierPayableLines[i].PaidAmount, new { @class = "form-control text-right opening-paid", type = "number", step = "0.01" })
+                                                        </td>
+                                                        <td class="text-right align-middle">
+                                                            <span class="badge badge-light-warning opening-balance-text">@((Model.SupplierPayableLines[i].TotalAmount - Model.SupplierPayableLines[i].PaidAmount).ToString("N2"))</span>
+                                                            @Html.HiddenFor(m => m.SupplierPayableLines[i].Amount, new { @class = "opening-amount-hidden" })
+                                                        </td>
+                                                        <td>
+                                                            @Html.DropDownListFor(m => m.SupplierPayableLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
+                                                        </td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSupplierLine">+ Qator qo'shish</button>
+
+                                    <h5 class="mb-1 mt-2">Oylikdan qarzimiz (HRM) — xodim kesimida</h5>
+                                    <div class="form-group mb-1">
+                                        <label class="d-inline-flex align-items-center">
+                                            @Html.CheckBoxFor(m => m.LeavePayrollEmpty, new { @class = "form-check-input mr-50" })
+                                            <span>Oylik bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                        </label>
+                                    </div>
+                                    <div class="d-flex justify-content-end mb-1">
+                                        <span class="badge badge-light-info">Jami oylik qarzi: @(Model.EmployeePayrollLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm" id="tblOpeningPayrollLines">
+                                            <thead>
+                                                <tr>
+                                                    <th style="min-width:280px;">Xodim</th>
+                                                    <th class="text-right" style="min-width:170px;">Umumiy hisoblangan</th>
+                                                    <th class="text-right" style="min-width:170px;">To'lagan pulimiz</th>
+                                                    <th class="text-right" style="min-width:170px;">Qoldiq (qarzimiz)</th>
+                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="width:80px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.EmployeePayrollLines.Count; i++)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @Html.DropDownListFor(
+                                                                m => m.EmployeePayrollLines[i].EmployeeID,
+                                                                new SelectList(Model.EmployeeList, "Value", "Text", Model.EmployeePayrollLines[i].EmployeeID),
+                                                                "-- Tanlang --",
+                                                                new { @class = "form-control" })
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.EmployeePayrollLines[i].TotalAmount, new { @class = "form-control text-right opening-total", type = "number", step = "0.01" })
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.EmployeePayrollLines[i].PaidAmount, new { @class = "form-control text-right opening-paid", type = "number", step = "0.01" })
+                                                        </td>
+                                                        <td class="text-right align-middle">
+                                                            <span class="badge badge-light-info opening-balance-text">@((Model.EmployeePayrollLines[i].TotalAmount - Model.EmployeePayrollLines[i].PaidAmount).ToString("N2"))</span>
+                                                            @Html.HiddenFor(m => m.EmployeePayrollLines[i].Amount, new { @class = "opening-amount-hidden" })
+                                                        </td>
+                                                        <td>
+                                                            @Html.DropDownListFor(m => m.EmployeePayrollLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
+                                                        </td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddPayrollLine">+ Qator qo'shish</button>
+
+                                    <h5 class="mb-1 mt-2">Logistikadan qarzimiz — ekspeditor shartnomasi kesimida</h5>
+                                    <div class="form-group mb-1">
+                                        <label class="d-inline-flex align-items-center">
+                                            @Html.CheckBoxFor(m => m.LeaveForwarderPayableEmpty, new { @class = "form-check-input mr-50" })
+                                            <span>Logistika bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                        </label>
+                                    </div>
+                                    <div class="d-flex justify-content-end mb-1">
+                                        <span class="badge badge-light-warning">Jami logistika qarzi: @(Model.ForwarderPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm" id="tblOpeningForwarderLines">
+                                            <thead>
+                                                <tr>
+                                                    <th style="min-width:260px;">Ekspeditor</th>
+                                                    <th style="min-width:220px;">Shartnoma</th>
+                                                    <th class="text-right" style="min-width:170px;">Umumiy oldi-berdi</th>
+                                                    <th class="text-right" style="min-width:170px;">To'lagan pulimiz</th>
+                                                    <th class="text-right" style="min-width:170px;">Qoldiq (qarzimiz)</th>
+                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="width:80px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.ForwarderPayableLines.Count; i++)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @Html.DropDownListFor(
+                                                                m => m.ForwarderPayableLines[i].CounterpartyID,
+                                                                new SelectList(Model.ForwarderList, "Value", "Text", Model.ForwarderPayableLines[i].CounterpartyID),
+                                                                "-- Tanlang --",
+                                                                new { @class = "form-control opening-counterparty", data_type = "forwarder" })
+                                                        </td>
+                                                        <td>
+                                                            @Html.HiddenFor(m => m.ForwarderPayableLines[i].ContractNo, new { @class = "opening-contract-no" })
+                                                            <select class="form-control opening-contract-select"
+                                                                    name="ForwarderPayableLines[@i].ContractID"
+                                                                    data-type="forwarder"
+                                                                    data-selected-id="@(Model.ForwarderPayableLines[i].ContractID.HasValue ? Model.ForwarderPayableLines[i].ContractID.Value.ToString() : "")"
+                                                                    data-selected-text="@Model.ForwarderPayableLines[i].ContractNo">
+                                                                <option value="">-- Shartnoma tanlanmagan --</option>
+                                                                @if (Model.ForwarderPayableLines[i].ContractID.HasValue)
+                                                                {
+                                                                    <option value="@Model.ForwarderPayableLines[i].ContractID.Value" selected="selected">@Model.ForwarderPayableLines[i].ContractNo</option>
+                                                                }
+                                                            </select>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.ForwarderPayableLines[i].TotalAmount, new { @class = "form-control text-right opening-total opening-total-system", type = "number", step = "0.01", @readonly = "readonly" })
+                                                        </td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.ForwarderPayableLines[i].PaidAmount, new { @class = "form-control text-right opening-paid", type = "number", step = "0.01" })
+                                                        </td>
+                                                        <td class="text-right align-middle">
+                                                            <span class="badge badge-light-warning opening-balance-text">@((Model.ForwarderPayableLines[i].TotalAmount - Model.ForwarderPayableLines[i].PaidAmount).ToString("N2"))</span>
+                                                            @Html.HiddenFor(m => m.ForwarderPayableLines[i].Amount, new { @class = "opening-amount-hidden" })
+                                                        </td>
+                                                        <td>
+                                                            @Html.DropDownListFor(m => m.ForwarderPayableLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
+                                                        </td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddForwarderLine">+ Qator qo'shish</button>
+
+                                    <hr />
+                                    <h5 class="mb-1">Boshqa balans kategoriyalari (manual opening)</h5>
+                                    <p class="text-muted small mb-2">
+                                        <strong>Bo'sh qoldirish:</strong> belgilangan bo'lsa, summada <strong>0</strong> kiritilsa bu kategoriya uchun opening yozuvi saqlanmaydi.
+                                    </p>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Kategoriya</th>
+                                                    <th>Turi</th>
+                                                    <th class="text-right">Summasi</th>
+                                                    <th>Valyuta</th>
+                                                    <th class="text-center" style="white-space: nowrap;">Bo'sh qoldirish</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.Items.Count; i++)
+                                                {
+                                                    <tr>
+                                                        @Html.HiddenFor(m => m.Items[i].CategoryID)
+                                                        @Html.HiddenFor(m => m.Items[i].Type)
+                                                        <td>@Model.Items[i].CategoryName</td>
+                                                        <td>@Model.Items[i].TypeName</td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.Items[i].Amount, new
+                                                            {
+                                                                @class = "form-control text-right",
+                                                                type = "number",
+                                                                step = "0.01"
+                                                            })
+                                                        </td>
+                                                        <td>
+                                                            @Html.DropDownListFor(m => m.Items[i].CurrencyID,
+                                                                Model.CurrencyList,
+                                                                new { @class = "form-control" })
+                                                        </td>
+                                                        <td class="text-center align-middle">
+                                                            @Html.CheckBoxFor(m => m.Items[i].LeaveEmpty, new { @class = "form-check-input", title = "0 bo'lsa snapshot yozilmasin" })
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="form-actions mt-2">
+                                        <button type="submit" class="btn btn-primary">Saqlash</button>
+                                        <a href="@Url.Action("Edit", new { snapshotDate = Model.SnapshotDate.ToString("yyyy-MM-dd") })" class="btn btn-secondary">Yangilash</a>
+                                        <a href="@Url.Action("Index", "OpeningBalance")" class="btn btn-light">Ro'yxatga</a>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <p><strong>Sana:</strong> @Model.SnapshotDate.ToString("yyyy-MM-dd")</p>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Kategoriya</th>
+                                                <th>Turi</th>
+                                                <th class="text-right">Summasi</th>
+                                                <th>Valyuta</th>
+                                                <th class="text-center">Bo'sh qoldirish</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model.Items)
+                                            {
+                                                <tr>
+                                                    <td>@item.CategoryName</td>
+                                                    <td>@item.TypeName</td>
+                                                    <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                    <td>@item.CurrencyShortname</td>
+                                                    <td class="text-center">@(item.LeaveEmpty ? "Ha" : "Yo'q")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <hr />
+                                <h5 class="mb-1">Mijozlardan haqqimiz (AR)</h5>
+                                <div class="table-responsive mb-2">
+                                    <table class="table table-bordered table-sm">
+                                        <thead><tr><th>Mijoz</th><th>Shartnoma</th><th class="text-right">Umumiy</th><th class="text-right">Olingan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <tbody>
+                                            @if (Model.CustomerReceivableLines != null && Model.CustomerReceivableLines.Any())
+                                            {
+                                                foreach (var x in Model.CustomerReceivableLines)
+                                                {
+                                                    <tr><td>@x.CounterpartyName</td><td>@x.ContractNo</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
+                                                }
+                                            }
+                                            else { <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr> }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <h5 class="mb-1">Ta'minotchilardan qarzimiz (AP)</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm">
+                                        <thead><tr><th>Ta'minotchi</th><th>Shartnoma</th><th class="text-right">Umumiy</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <tbody>
+                                            @if (Model.SupplierPayableLines != null && Model.SupplierPayableLines.Any())
+                                            {
+                                                foreach (var x in Model.SupplierPayableLines)
+                                                {
+                                                    <tr><td>@x.CounterpartyName</td><td>@x.ContractNo</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
+                                                }
+                                            }
+                                            else { <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr> }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <h5 class="mb-1 mt-2">Oylikdan qarzimiz (HRM)</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm">
+                                        <thead><tr><th>Xodim</th><th class="text-right">Hisoblangan</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <tbody>
+                                            @if (Model.EmployeePayrollLines != null && Model.EmployeePayrollLines.Any())
+                                            {
+                                                foreach (var x in Model.EmployeePayrollLines)
+                                                {
+                                                    <tr><td>@x.EmployeeName</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
+                                                }
+                                            }
+                                            else { <tr><td colspan="4" class="text-center text-muted">Yo'q</td></tr> }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <h5 class="mb-1 mt-2">Logistikadan qarzimiz</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm">
+                                        <thead><tr><th>Ekspeditor</th><th>Shartnoma</th><th class="text-right">Umumiy</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <tbody>
+                                            @if (Model.ForwarderPayableLines != null && Model.ForwarderPayableLines.Any())
+                                            {
+                                                foreach (var x in Model.ForwarderPayableLines)
+                                                {
+                                                    <tr><td>@x.CounterpartyName</td><td>@x.ContractNo</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
+                                                }
+                                            }
+                                            else { <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr> }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <a href="@Url.Action("Index", "OpeningBalance")" class="btn btn-secondary">Ro'yxatga</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts
+{
+    @if (canChange)
+    {
+        <script type="text/javascript">
+            (function () {
+                var loadBtn = document.getElementById('btnLoadOpeningByDate');
+                var dateInput = document.getElementById('SnapshotDate');
+                if (!loadBtn || !dateInput) return;
+
+                loadBtn.addEventListener('click', function () {
+                    var dateValue = dateInput.value;
+                    if (!dateValue) {
+                        alert('Avval sana tanlang.');
+                        return;
+                    }
+                    var baseUrl = '@Url.Action("Edit", "OpeningBalance")';
+                    window.location.href = baseUrl + '?snapshotDate=' + encodeURIComponent(dateValue);
+                });
+                var autoFillBtn = document.getElementById('btnAutoFillCurrent');
+                if (autoFillBtn) {
+                    autoFillBtn.addEventListener('click', function (e) {
+                        if (!confirm("Current balances asosida detailed opening qatorlari qayta hisoblab yozilsinmi?")) {
+                            return;
+                        }
+                        var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                        var token = tokenInput ? tokenInput.value : '';
+                        var snapVal = dateInput ? dateInput.value : '@Model.SnapshotDate.ToString("yyyy-MM-dd")';
+                        var form = document.createElement('form');
+                        form.method = 'post';
+                        form.action = '@Url.Action("AutoFillFromCurrentBalances", "OpeningBalance")';
+                        var tokenField = document.createElement('input');
+                        tokenField.type = 'hidden';
+                        tokenField.name = '__RequestVerificationToken';
+                        tokenField.value = token;
+                        form.appendChild(tokenField);
+                        var dateField = document.createElement('input');
+                        dateField.type = 'hidden';
+                        dateField.name = 'snapshotDate';
+                        dateField.value = snapVal;
+                        form.appendChild(dateField);
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                }
+
+                var defaultCurrencyId = '@Model.DefaultCurrencyID';
+
+                function buildCurrencyOptions() {
+                    var source = document.querySelector('select[name="Items[0].CurrencyID"]');
+                    if (!source) {
+                        source = document.querySelector('select[name="CustomerReceivableLines[0].CurrencyID"]')
+                            || document.querySelector('select[name="SupplierPayableLines[0].CurrencyID"]')
+                            || document.querySelector('select[name="EmployeePayrollLines[0].CurrencyID"]');
+                    }
+                    return source ? source.innerHTML : '<option value="5">USD</option>';
+                }
+
+                // Yangi qator qo'shilganda valyutani ushbu sahifaning standart valyutasiga (ID=5) o'rnatadi.
+                function applyDefaultCurrency($row) {
+                    if (!$row || !$row.length) return;
+                    var $cur = $row.find('select[name$=".CurrencyID"]');
+                    if ($cur.length && defaultCurrencyId) {
+                        $cur.val(String(defaultCurrencyId));
+                    }
+                }
+                var customerOptionsData = @Html.Raw(System.Web.Helpers.Json.Encode(Model.CustomerList.Select(x => new { value = x.Value, text = x.Text }).ToList()));
+                var supplierOptionsData = @Html.Raw(System.Web.Helpers.Json.Encode(Model.SupplierList.Select(x => new { value = x.Value, text = x.Text }).ToList()));
+                var employeeOptionsData = @Html.Raw(System.Web.Helpers.Json.Encode(Model.EmployeeList.Select(x => new { value = x.Value, text = x.Text }).ToList()));
+                var forwarderOptionsData = @Html.Raw(System.Web.Helpers.Json.Encode(Model.ForwarderList.Select(x => new { value = x.Value, text = x.Text }).ToList()));
+                var customerContractsUrl = '@Url.Action("GetCustomerContracts", "OpeningBalance")';
+                var supplierContractsUrl = '@Url.Action("GetSupplierContracts", "OpeningBalance")';
+                var forwarderContractsUrl = '@Url.Action("GetForwarderContracts", "OpeningBalance")';
+                var customerTotalsUrl = '@Url.Action("GetCustomerContractTotals", "OpeningBalance")';
+                var supplierTotalsUrl = '@Url.Action("GetSupplierContractTotals", "OpeningBalance")';
+                var forwarderTotalsUrl = '@Url.Action("GetForwarderContractTotals", "OpeningBalance")';
+                var importExcelUrl = '@Url.Action("ImportOpeningBalanceExcel", "OpeningBalance")';
+
+                function escapeHtml(s) {
+                    if (s === null || s === undefined) return '';
+                    return String(s)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                }
+                function buildOptionsHtml(items) {
+                    if (!items || !items.length) return '';
+                    return items.map(function (x) {
+                        return '<option value="' + escapeHtml(x.value) + '">' + escapeHtml(x.text) + '</option>';
+                    }).join('');
+                }
+                var customerOptionsHtml = buildOptionsHtml(customerOptionsData);
+                var supplierOptionsHtml = buildOptionsHtml(supplierOptionsData);
+                var employeeOptionsHtml = buildOptionsHtml(employeeOptionsData);
+                var forwarderOptionsHtml = buildOptionsHtml(forwarderOptionsData);
+
+                function createLineHtml(prefix, index, type) {
+                    var counterpartyOptions = '';
+                    if (type === 'customer') {
+                        var cSource = document.querySelector('select[name="CustomerReceivableLines[0].CounterpartyID"]');
+                        counterpartyOptions = cSource ? cSource.innerHTML : ('<option value="">-- Tanlang --</option>' + customerOptionsHtml);
+                    } else if (type === 'forwarder') {
+                        var fSource = document.querySelector('select[name="ForwarderPayableLines[0].CounterpartyID"]');
+                        counterpartyOptions = fSource ? fSource.innerHTML : ('<option value="">-- Tanlang --</option>' + forwarderOptionsHtml);
+                    } else {
+                        var sSource = document.querySelector('select[name="SupplierPayableLines[0].CounterpartyID"]');
+                        counterpartyOptions = sSource ? sSource.innerHTML : ('<option value="">-- Tanlang --</option>' + supplierOptionsHtml);
+                    }
+                    if (type === 'payroll') {
+                        return '<tr>'
+                            + '<td><select class="form-control" name="' + prefix + '[' + index + '].EmployeeID"><option value="">-- Tanlang --</option>' + employeeOptionsHtml + '</select></td>'
+                            + '<td><input class="form-control text-right opening-total" type="number" step="0.01" name="' + prefix + '[' + index + '].TotalAmount" value="0" /></td>'
+                            + '<td><input class="form-control text-right opening-paid" type="number" step="0.01" name="' + prefix + '[' + index + '].PaidAmount" value="0" /></td>'
+                            + '<td class="text-right align-middle"><span class="badge badge-light-info opening-balance-text">0,00</span><input class="opening-amount-hidden" type="hidden" name="' + prefix + '[' + index + '].Amount" value="0" /></td>'
+                            + '<td><select class="form-control" name="' + prefix + '[' + index + '].CurrencyID">' + buildCurrencyOptions() + '</select></td>'
+                            + '<td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O\'chir</button></td>'
+                            + '</tr>';
+                    }
+
+                    return '<tr>'
+                        + '<td><select class="form-control opening-counterparty" data-type="' + type + '" name="' + prefix + '[' + index + '].CounterpartyID">' + counterpartyOptions + '</select></td>'
+                        + '<td><input type="hidden" class="opening-contract-no" name="' + prefix + '[' + index + '].ContractNo" />'
+                        + '<select class="form-control opening-contract-select" data-type="' + type + '" name="' + prefix + '[' + index + '].ContractID">'
+                        + '<option value="">-- Shartnoma tanlanmagan --</option>'
+                        + '</select></td>'
+                        + '<td><input class="form-control text-right opening-total opening-total-system" type="number" step="0.01" readonly="readonly" name="' + prefix + '[' + index + '].TotalAmount" value="0" /></td>'
+                        + '<td><input class="form-control text-right opening-paid" type="number" step="0.01" name="' + prefix + '[' + index + '].PaidAmount" value="0" /></td>'
+                        + '<td class="text-right align-middle"><span class="badge badge-light-secondary opening-balance-text">0,00</span><input class="opening-amount-hidden" type="hidden" name="' + prefix + '[' + index + '].Amount" value="0" /></td>'
+                        + '<td><select class="form-control" name="' + prefix + '[' + index + '].CurrencyID">' + buildCurrencyOptions() + '</select></td>'
+                        + '<td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O\'chir</button></td>'
+                        + '</tr>';
+                }
+
+                function recalcRowBalance($row) {
+                    var total = parseFloat(($row.find('.opening-total').val() || '0').toString().replace(',', '.')) || 0;
+                    var paid = parseFloat(($row.find('.opening-paid').val() || '0').toString().replace(',', '.')) || 0;
+                    var balance = total - paid;
+                    $row.find('.opening-balance-text').text(balance.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    $row.find('.opening-amount-hidden').val(balance.toFixed(2));
+                }
+
+                function loadContractsForRow($row) {
+                    var $counterparty = $row.find('.opening-counterparty');
+                    var $contract = $row.find('.opening-contract-select');
+                    var type = $counterparty.data('type')
+                        || $counterparty.attr('data-type')
+                        || $counterparty.attr('data_type')
+                        || $contract.data('type')
+                        || $contract.attr('data-type')
+                        || $contract.attr('data_type');
+                    var counterpartyId = parseInt($counterparty.val() || '0', 10);
+                    var selectedId = $contract.attr('data-selected-id') || '';
+                    var selectedText = $contract.attr('data-selected-text') || '';
+
+                    $contract.empty().append('<option value="">-- Shartnoma tanlanmagan --</option>');
+                    if (!counterpartyId || !type) {
+                        if (selectedId && selectedText) {
+                            $contract.append('<option value="' + selectedId + '">' + selectedText + '</option>');
+                        }
+                        return;
+                    }
+
+                    var url;
+                    if (type === 'customer') {
+                        url = customerContractsUrl + '?customerId=' + encodeURIComponent(counterpartyId);
+                    } else if (type === 'forwarder') {
+                        url = forwarderContractsUrl + '?forwarderId=' + encodeURIComponent(counterpartyId);
+                    } else {
+                        url = supplierContractsUrl + '?supplierId=' + encodeURIComponent(counterpartyId);
+                    }
+
+                    fetch(url, { credentials: 'same-origin' })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (!res || !res.success || !res.data) return;
+                            res.data.forEach(function (x) {
+                                $contract.append('<option value="' + x.id + '">' + x.text + '</option>');
+                            });
+                            if (selectedId) {
+                                $contract.val(String(selectedId));
+                            }
+                            syncContractNo($row);
+                        })
+                        .catch(function () { });
+                }
+
+                function syncContractNo($row) {
+                    var $contract = $row.find('.opening-contract-select');
+                    var $hiddenNo = $row.find('.opening-contract-no');
+                    var txt = $contract.find('option:selected').text() || '';
+                    if ($contract.val()) {
+                        $hiddenNo.val(txt === '-- Shartnoma tanlanmagan --' ? '' : txt);
+                    } else {
+                        $hiddenNo.val('');
+                    }
+                }
+
+                function toFixed2(v) {
+                    var n = parseFloat((v || '0').toString().replace(',', '.')) || 0;
+                    return n.toFixed(2);
+                }
+
+                function recalcSystemTotalForRow($row) {
+                    var $counterparty = $row.find('.opening-counterparty');
+                    var $contract = $row.find('.opening-contract-select');
+                    if (!$counterparty.length || !$contract.length) return;
+
+                    var type = $counterparty.data('type')
+                        || $counterparty.attr('data-type')
+                        || $counterparty.attr('data_type')
+                        || $contract.data('type')
+                        || $contract.attr('data-type')
+                        || $contract.attr('data_type');
+                    var counterpartyId = parseInt($counterparty.val() || '0', 10);
+                    var contractId = parseInt($contract.val() || '0', 10);
+                    if (!(counterpartyId > 0 && contractId > 0)) {
+                        $row.find('.opening-total').val('0.00');
+                        $row.find('.opening-paid').val('0.00');
+                        recalcRowBalance($row);
+                        return;
+                    }
+
+                    var dateInput = document.getElementById('SnapshotDate');
+                    var snapshotDate = dateInput && dateInput.value ? dateInput.value : '@Model.SnapshotDate.ToString("yyyy-MM-dd")';
+                    var url = '';
+                    if (type === 'customer') {
+                        url = customerTotalsUrl + '?customerId=' + encodeURIComponent(counterpartyId) + '&contractId=' + encodeURIComponent(contractId) + '&snapshotDate=' + encodeURIComponent(snapshotDate);
+                    } else if (type === 'supplier') {
+                        url = supplierTotalsUrl + '?supplierId=' + encodeURIComponent(counterpartyId) + '&contractId=' + encodeURIComponent(contractId) + '&snapshotDate=' + encodeURIComponent(snapshotDate);
+                    } else if (type === 'forwarder') {
+                        url = forwarderTotalsUrl + '?forwarderId=' + encodeURIComponent(counterpartyId) + '&contractId=' + encodeURIComponent(contractId) + '&snapshotDate=' + encodeURIComponent(snapshotDate);
+                    } else {
+                        return;
+                    }
+
+                    fetch(url, { credentials: 'same-origin' })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (!res || !res.success || !res.data) return;
+                            var totalVal = parseFloat((res.data.totalAmount || 0).toString().replace(',', '.')) || 0;
+                            var paidVal = parseFloat((res.data.paidAmount || 0).toString().replace(',', '.')) || 0;
+                            if (paidVal > totalVal) paidVal = totalVal;
+
+                            $row.find('.opening-total').val(toFixed2(totalVal));
+                            // Tavsiyaviy qiymat: hozirgacha to'langan summa (user keyin qo'lda o'zgartirishi mumkin)
+                            $row.find('.opening-paid').val(toFixed2(paidVal));
+                            var paidBox = $row.find('.opening-paid');
+                            var currPaid = parseFloat((paidBox.val() || '0').toString().replace(',', '.')) || 0;
+                            var maxPaid = totalVal;
+                            if (currPaid > maxPaid) {
+                                paidBox.val(toFixed2(maxPaid));
+                            }
+                            recalcRowBalance($row);
+                        })
+                        .catch(function () { });
+                }
+
+                function nextIndex(tbody, prefix) {
+                    var rows = tbody.querySelectorAll('tr');
+                    if (!rows.length) return 0;
+                    var lastInput = rows[rows.length - 1].querySelector('select[name^="' + prefix + '["],input[name^="' + prefix + '["]');
+                    if (!lastInput) return rows.length;
+                    var m = lastInput.name.match(/\[(\d+)\]/);
+                    return m ? (parseInt(m[1], 10) + 1) : rows.length;
+                }
+
+                function appendImportedLine(tbodySelector, prefix, type, row) {
+                    var tbody = document.querySelector(tbodySelector + ' tbody');
+                    var idx = nextIndex(tbody, prefix);
+                    tbody.insertAdjacentHTML('beforeend', createLineHtml(prefix, idx, type));
+                    var $row = $(tbody).find('tr:last');
+                    $row.find('.opening-counterparty').val(String(row.CounterpartyID || ''));
+                    $row.find('.opening-contract-select').html(
+                        '<option value="">-- Shartnoma tanlanmagan --</option>'
+                        + '<option value="' + (row.ContractID || '') + '" selected="selected">' + (row.ContractNo || '') + '</option>'
+                    );
+                    $row.find('.opening-contract-no').val(row.ContractNo || '');
+                    $row.find('.opening-total').val(toFixed2(row.TotalAmount || 0));
+                    $row.find('.opening-paid').val(toFixed2(row.PaidAmount || 0));
+                    $row.find('select[name$=".CurrencyID"]').val(String(row.CurrencyID || ''));
+                    recalcRowBalance($row);
+                }
+
+                var btnAddCustomer = document.getElementById('btnAddCustomerLine');
+                if (btnAddCustomer) {
+                    btnAddCustomer.addEventListener('click', function () {
+                        var tbody = document.querySelector('#tblOpeningCustomerLines tbody');
+                        var idx = nextIndex(tbody, 'CustomerReceivableLines');
+                        tbody.insertAdjacentHTML('beforeend', createLineHtml('CustomerReceivableLines', idx, 'customer'));
+                        var $newRow = $(tbody).find('tr:last');
+                        applyDefaultCurrency($newRow);
+                        recalcRowBalance($newRow);
+                    });
+                }
+
+                var btnAddSupplier = document.getElementById('btnAddSupplierLine');
+                if (btnAddSupplier) {
+                    btnAddSupplier.addEventListener('click', function () {
+                        var tbody = document.querySelector('#tblOpeningSupplierLines tbody');
+                        var idx = nextIndex(tbody, 'SupplierPayableLines');
+                        tbody.insertAdjacentHTML('beforeend', createLineHtml('SupplierPayableLines', idx, 'supplier'));
+                        var $newRow = $(tbody).find('tr:last');
+                        applyDefaultCurrency($newRow);
+                        recalcRowBalance($newRow);
+                    });
+                }
+
+                var btnAddPayroll = document.getElementById('btnAddPayrollLine');
+                if (btnAddPayroll) {
+                    btnAddPayroll.addEventListener('click', function () {
+                        var tbody = document.querySelector('#tblOpeningPayrollLines tbody');
+                        var idx = nextIndex(tbody, 'EmployeePayrollLines');
+                        tbody.insertAdjacentHTML('beforeend', createLineHtml('EmployeePayrollLines', idx, 'payroll'));
+                        var $newRow = $(tbody).find('tr:last');
+                        applyDefaultCurrency($newRow);
+                        recalcRowBalance($newRow);
+                    });
+                }
+
+                var btnAddForwarder = document.getElementById('btnAddForwarderLine');
+                if (btnAddForwarder) {
+                    btnAddForwarder.addEventListener('click', function () {
+                        var tbody = document.querySelector('#tblOpeningForwarderLines tbody');
+                        var idx = nextIndex(tbody, 'ForwarderPayableLines');
+                        tbody.insertAdjacentHTML('beforeend', createLineHtml('ForwarderPayableLines', idx, 'forwarder'));
+                        var $newRow = $(tbody).find('tr:last');
+                        applyDefaultCurrency($newRow);
+                        recalcRowBalance($newRow);
+                    });
+                }
+
+                var importBtn = document.getElementById('btnImportExcel');
+                var fileInput = document.getElementById('openingExcelFile');
+                if (importBtn && fileInput) {
+                    importBtn.addEventListener('click', function () {
+                        fileInput.value = '';
+                        fileInput.click();
+                    });
+
+                    fileInput.addEventListener('change', function () {
+                        if (!fileInput.files || !fileInput.files.length) return;
+                        var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                        var token = tokenInput ? tokenInput.value : '';
+                        var dateInput = document.getElementById('SnapshotDate');
+                        var snapVal = dateInput && dateInput.value ? dateInput.value : '@Model.SnapshotDate.ToString("yyyy-MM-dd")';
+                        var fd = new FormData();
+                        fd.append('__RequestVerificationToken', token);
+                        fd.append('snapshotDate', snapVal);
+                        fd.append('file', fileInput.files[0]);
+
+                        fetch(importExcelUrl, {
+                            method: 'POST',
+                            body: fd,
+                            credentials: 'same-origin'
+                        })
+                            .then(function (r) { return r.json(); })
+                            .then(function (res) {
+                                if (!res || !res.success) {
+                                    alert((res && res.message) ? res.message : 'Import xatoligi.');
+                                    return;
+                                }
+
+                                var cBody = document.querySelector('#tblOpeningCustomerLines tbody');
+                                var sBody = document.querySelector('#tblOpeningSupplierLines tbody');
+                                if (cBody && Array.isArray(res.customerLines) && res.customerLines.length) {
+                                    cBody.innerHTML = '';
+                                    res.customerLines.forEach(function (x) { appendImportedLine('#tblOpeningCustomerLines', 'CustomerReceivableLines', 'customer', x); });
+                                }
+                                if (sBody && Array.isArray(res.supplierLines) && res.supplierLines.length) {
+                                    sBody.innerHTML = '';
+                                    res.supplierLines.forEach(function (x) { appendImportedLine('#tblOpeningSupplierLines', 'SupplierPayableLines', 'supplier', x); });
+                                }
+
+                                if (Array.isArray(res.errors) && res.errors.length) {
+                                    alert('Import tugadi, ba\'zi qatorlarda xatolar bor:\n- ' + res.errors.join('\n- '));
+                                } else {
+                                    alert('Import muvaffaqiyatli yakunlandi. Endi "Saqlash" tugmasini bosing.');
+                                }
+                            })
+                            .catch(function () {
+                                alert('Import paytida server bilan bog\'lanishda xatolik.');
+                            });
+                    });
+                }
+
+                document.addEventListener('click', function (e) {
+                    if (e.target && e.target.classList.contains('btn-remove-line')) {
+                        var tr = e.target.closest('tr');
+                        if (tr) tr.remove();
+                    }
+                });
+
+                $(document).on('change', '.opening-counterparty', function () {
+                    var $row = $(this).closest('tr');
+                    var $contract = $row.find('.opening-contract-select');
+                    $contract.attr('data-selected-id', '');
+                    $contract.attr('data-selected-text', '');
+                    $row.find('.opening-total').val('0.00');
+                    $row.find('.opening-paid').val('0.00');
+                    loadContractsForRow($row);
+                    recalcRowBalance($row);
+                });
+
+                $(document).on('change', '.opening-contract-select', function () {
+                    var $row = $(this).closest('tr');
+                    syncContractNo($row);
+                    recalcSystemTotalForRow($row);
+                });
+
+                $(document).on('input', '.opening-total, .opening-paid', function () {
+                    recalcRowBalance($(this).closest('tr'));
+                });
+
+                // Boshlang'ich yuklashda serverdan kelgan "Umumiy oldi-berdi"/"To'langan" qiymatlarini
+                // saqlab qolamiz. recalcSystemTotalForRow bu yerda chaqirilmaydi, chunki shartnoma ro'yxati
+                // asinxron yuklanadi va o'sha paytda contract qiymati bo'sh bo'lib, qiymatlarni 0 ga tushiradi.
+                $('#tblOpeningCustomerLines tbody tr, #tblOpeningSupplierLines tbody tr, #tblOpeningForwarderLines tbody tr').each(function () {
+                    loadContractsForRow($(this));
+                    recalcRowBalance($(this));
+                });
+                $('#tblOpeningPayrollLines tbody tr').each(function () {
+                    recalcRowBalance($(this));
+                });
+            })();
+        </script>
+    }
+}

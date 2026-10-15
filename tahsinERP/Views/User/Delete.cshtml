@@ -1,0 +1,106 @@
+@model tahsinERP.ViewModels.UserViewModel
+@{
+    ViewBag.Title = "Foydalanuvchi ma'lumotlarini o'chirish";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Delete", "User", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.ID)
+
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                        <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                        <li class="breadcrumb-item"><a href="~/User/Index">Foydalanuvchilar</a></li>
+                                        <li class="breadcrumb-item active">O'chirish</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <h4 class="alert-heading"><i class="bx bx-error"></i> Diqqat!</h4>
+                        <p>Siz foydalanuvchini o'chirmoqchisiz. Bu amalni bekor qilib bo'lmaydi.</p>
+                    </div>
+
+                    <section class="invoice-edit-wrapper">
+                        <div class="row">
+                            <div class="col-xl-12 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row my-2 py-50">
+                                                <div class="col-sm-6 col-12">
+                                                    <h4 class="text-primary mb-3">Foydalanuvchi ma'lumotlari</h4>
+                                                    <p><strong>Foydalanuvchi nomi:</strong> @Html.DisplayFor(model => model.UName)</p>
+                                                    <p><strong>E-mail:</strong> @Html.DisplayFor(model => model.Email)</p>
+                                                    <p><strong>Ismi sharifi:</strong> @Html.DisplayFor(model => model.FullName)</p>
+                                                    <p><strong>Roli:</strong> <span class="badge badge-light-primary">@Html.DisplayFor(model => model.Role)</span></p>
+                                                    <p>
+                                                        <strong>Faolligi:</strong>
+                                                        @if (Model.IsActive)
+                                                        {
+                                                            <span class="badge badge-light-success">Faol</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-light-danger">Nofaol</span>
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <div class="col-sm-6 col-12 text-center">
+                                                    <h4 class="text-primary mb-3">Foydalanuvchi rasmi</h4>
+                                                    @if (ViewBag.Base64String != null)
+                                                    {
+                                                        <img alt="" src="@ViewBag.Base64String" style="height:200px;width:200px;border-radius:8px;border:2px solid #ddd;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="text-muted">
+                                                            <i class="bx bx-user" style="font-size:100px;"></i>
+                                                            <p>Rasm yuklanmagan</p>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <hr>
+
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <button class="btn btn-danger" type="submit" onclick="return confirm('Haqiqatan ham bu foydalanuvchini o\'chirmoqchimisiz?');">
+                                                        <i class='bx bx-trash'></i> O'chirish
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                                                        <i class='bx bx-x'></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

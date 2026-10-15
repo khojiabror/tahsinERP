@@ -1,0 +1,93 @@
+@model tahsinERP.Models.FIN_BALANCE_CATEGORIES
+
+@{
+    ViewBag.Title = "Balans kategoriyasini tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/FinBalanceCategories">Balans kategoriyalari</a></li>
+                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Balans kategoriyasini tahrirlash</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Edit", "FinBalanceCategories", FormMethod.Post, new { @class = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.ID)
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Name, "Nomi *", new { @class = "control-label" })
+                                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
+                                            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.Type, "Turi *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.Type, ViewBag.TypeList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.ValidationMessageFor(m => m.Type, "", new { @class = "text-danger" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.ParentID, "Ota kategoriya", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.ParentID, ViewBag.ParentID as SelectList, "Ota kategoriya yo'q", new { @class = "form-control" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.SortOrder, "Tartib raqami", new { @class = "control-label" })
+                                            @Html.TextBoxFor(m => m.SortOrder, new { @class = "form-control", type = "number" })
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.CalculationType, "Hisoblash turi *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.CalculationType, ViewBag.CalculationTypeList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.ValidationMessageFor(m => m.CalculationType, "", new { @class = "text-danger" })
+                                            <small class="form-text text-muted">
+                                                <strong>Hisob asosida:</strong> Hisoblar qoldiqlari yig'indisi (Naqd pul, Bank)<br/>
+                                                <strong>Tranzaksiya asosida:</strong> Kategoriyalar orqali tranzaksiyalar (Ustav kapitali)<br/>
+                                                <strong>Hujjat asosida:</strong> Hujjatlardan to'g'ridan-to'g'ri (Qarzlar, Haqlar)
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

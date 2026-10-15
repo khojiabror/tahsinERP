@@ -1,0 +1,87 @@
+@model tahsinERP.Models.HR_PAYROLL_HEADERS
+@{
+    ViewBag.Title = "Ish haqi hisobini o'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ish haqi hisobi</a></li>
+                                    <li class="breadcrumb-item active">O'chirish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="alert alert-warning">
+                    <strong>Diqqat!</strong> Bu ish haqi hisobini o'chirishni tasdiqlaysizmi?
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Yil:</dt>
+                                <dd class="col-sm-9">@Model.Year</dd>
+
+                                <dt class="col-sm-3">Oy:</dt>
+                                <dd class="col-sm-9">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month)</dd>
+
+                                <dt class="col-sm-3">Tashkilot bo'limi:</dt>
+                                <dd class="col-sm-9">@(Model.HR_ORG_UNITS?.Name ?? "Butun kompaniya")</dd>
+
+                                <dt class="col-sm-3">Tur:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge badge-info">
+                                        @(Model.PayrollType == "Hourly" ? "Soatbay" : Model.PayrollType == "PieceRate" ? "Ishbay" : Model.PayrollType ?? "-")
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-3">Holat:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Posted" ? "info" : "warning")">
+                                        @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : Model.Status == "Posted" ? "O'tkazilgan" : Model.Status ?? "-")
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-3">Yaratilgan:</dt>
+                                <dd class="col-sm-9">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
+                            </dl>
+
+                            @using (Html.BeginForm("Delete", "HrPayroll", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("id", Model.ID)
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bx bx-trash"></i> O'chirish
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

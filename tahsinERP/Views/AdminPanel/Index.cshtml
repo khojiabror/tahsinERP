@@ -1,0 +1,329 @@
+@model tahsinERP.ViewModels.AdminDashboardViewModel
+@{
+    ViewBag.Title = "Admin Panel";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @*<div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                <li class="breadcrumb-item active">Admin Panel</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+        <div class="content-body">
+            <!-- Statistika kartochkalari -->
+            <section id="statistics-cards">
+                <div class="row">
+                    <!-- Foydalanuvchilar -->
+                    <div class="col-xl-3 col-md-6 col-sm-6">
+                        <div class="card text-center">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="badge-circle badge-circle-lg badge-circle-light-primary mx-auto my-1">
+                                        <i class="bx bx-user font-medium-5"></i>
+                                    </div>
+                                    <p class="text-muted mb-0">Foydalanuvchilar</p>
+                                    <h2 class="mb-0">@Model.TotalUsers</h2>
+                                    <small class="text-success">@Model.ActiveUsers faol</small> |
+                                    <small class="text-danger">@Model.InactiveUsers nofaol</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rollar -->
+                    <div class="col-xl-3 col-md-6 col-sm-6">
+                        <div class="card text-center">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="badge-circle badge-circle-lg badge-circle-light-success mx-auto my-1">
+                                        <i class="bx bx-shield font-medium-5"></i>
+                                    </div>
+                                    <p class="text-muted mb-0">Rollar</p>
+                                    <h2 class="mb-0">@Model.TotalRoles</h2>
+                                    <small class="text-muted">@Model.TotalPermissionModules modul</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bugungi kirishlar -->
+                    <div class="col-xl-3 col-md-6 col-sm-6">
+                        <div class="card text-center">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="badge-circle badge-circle-lg badge-circle-light-warning mx-auto my-1">
+                                        <i class="bx bx-log-in font-medium-5"></i>
+                                    </div>
+                                    <p class="text-muted mb-0">Bugungi kirishlar</p>
+                                    <h2 class="mb-0">@Model.TodayUserEntries</h2>
+                                    <small class="text-muted">Jami: @Model.TotalUserEntries</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loglar -->
+                    <div class="col-xl-3 col-md-6 col-sm-6">
+                        <div class="card text-center">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="badge-circle badge-circle-lg badge-circle-light-info mx-auto my-1">
+                                        <i class="bx bx-file font-medium-5"></i>
+                                    </div>
+                                    <p class="text-muted mb-0">Bugungi loglar</p>
+                                    <h2 class="mb-0">@Model.TodayLogs</h2>
+                                    <small class="text-muted">Haftalik: @Model.ThisWeekLogs</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="row">
+                <!-- Oxirgi kirishlar -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title"><i class="bx bx-log-in mr-1"></i>Oxirgi tizimga kirishlar</h4>
+                            <a href="~/UserEntries" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Foydalanuvchi</th>
+                                                <th>IP</th>
+                                                <th>Sana</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.RecentUserEntries != null && Model.RecentUserEntries.Any())
+                                            {
+                                                foreach (var entry in Model.RecentUserEntries)
+                                                {
+                                                    <tr>
+                                                        <td>@(entry.USER?.FullName ?? "Noma'lum")</td>
+                                                        <td><code>@entry.IP</code></td>
+                                                        <td>@entry.DateTime.ToString("dd.MM.yyyy HH:mm:ss")</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="3" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Oxirgi loglar -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title"><i class="bx bx-file mr-1"></i>Oxirgi harakatlar</h4>
+                            <a href="~/Log" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Foydalanuvchi</th>
+                                                <th>Harakat</th>
+                                                <th>Sana</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.RecentLogs != null && Model.RecentLogs.Any())
+                                            {
+                                                foreach (var log in Model.RecentLogs)
+                                                {
+                                                    <tr>
+                                                        <td>@(log.USER?.FullName ?? log.USER?.Uname ?? "Noma'lum")</td>
+                                                        <td>
+                                                            <small>@log.ControllerName</small><br>
+                                                            <span class="text-muted">@(log.ActionName?.Length > 50 ? log.ActionName.Substring(0, 50) + "..." : log.ActionName)</span>
+                                                        </td>
+                                                        <td>@log.DateTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="3" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Foydalanuvchilar ro'yxati -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title"><i class="bx bx-user mr-1"></i>Foydalanuvchilar</h4>
+                            <a href="~/User" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>F.I.Sh</th>
+                                                <th>Login</th>
+                                                <th>Rol</th>
+                                                <th>Holat</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.Users != null)
+                                            {
+                                                foreach (var user in Model.Users.Take(10))
+                                                {
+                                                    <tr>
+                                                        <td>@user.FullName</td>
+                                                        <td><code>@user.Uname</code></td>
+                                                        <td>
+                                                            @if (user.ROLES != null && user.ROLES.Any())
+                                                            {
+                                                                <span class="badge badge-light-primary">@user.ROLES.First().RName</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (user.IsActive)
+                                                            {
+                                                                <span class="badge badge-light-success">Faol</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-light-danger">Nofaol</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rollar va huquqlar -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title"><i class="bx bx-shield mr-1"></i>Rollar va huquqlar</h4>
+                            <a href="~/Permission" class="btn btn-sm btn-outline-primary">Boshqarish</a>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Rol nomi</th>
+                                                <th class="text-center">Huquqlar soni</th>
+                                                <th>Amallar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.Roles != null)
+                                            {
+                                                foreach (var role in Model.Roles)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <i class="bx bx-shield text-primary mr-1"></i>
+                                                            <strong>@role.RName</strong>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span class="badge badge-light-info">
+                                                                @(role.PERMISSIONS?.Count ?? 0) huquq
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <a href="/Role/Permissions/@role.ID" 
+                                                               class="btn btn-sm btn-outline-primary">
+                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tezkor amallar -->
+            <section id="quick-actions">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="bx bx-zap mr-1"></i>Tezkor amallar</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <a href="~/User" class="btn btn-outline-primary btn-block">
+                                            <i class="bx bx-user"></i> Foydalanuvchilar
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <a href="~/Role" class="btn btn-outline-success btn-block">
+                                            <i class="bx bx-shield"></i> Rollar
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <a href="~/PModule" class="btn btn-outline-warning btn-block">
+                                            <i class="bx bx-lock"></i> Huquqlar
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <a href="~/LastActions" class="btn btn-outline-info btn-block">
+                                            <i class="bx bx-file"></i> Loglar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>

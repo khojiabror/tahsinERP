@@ -1,0 +1,203 @@
+@{
+    ViewBag.Title = "Kompaniya qiymati";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var shareholderValues = ViewBag.ShareholderValues as List<tahsinERP.Controllers.Finance.ShareholderValueData> ?? new List<tahsinERP.Controllers.Finance.ShareholderValueData>();
+    var method = (ViewBag.Method as string) ?? "ebitda";
+    var breakdown = ViewBag.Breakdown as tahsinERP.Controllers.Finance.CompanyValuationBreakdown;
+    var multiple = (decimal)(ViewBag.EbitdaMultiple ?? 3m);
+    var years = (int)(ViewBag.DcfYears ?? 3);
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">Kompaniya qiymati</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Kompaniya qiymati - @(((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy"))</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("ShareholderValue")" class="mb-3">
+                                        <div class="row align-items-end">
+                                            <div class="col-md-3">
+                                                <label class="control-label">Hisoblash uslubi:</label>
+                                                <select name="method" class="form-control" onchange="this.form.submit()">
+                                                    <option value="ebitda" @(method == "ebitda" ? "selected" : "")>EBITDA bilan</option>
+                                                    <option value="dcf" @(method == "dcf" ? "selected" : "")>DCF bilan</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Sana:</label>
+                                                <input type="date" name="asOfDate" class="form-control" value="@(ViewBag.AsOfDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            @if (method == "ebitda")
+                                            {
+                                                <div class="col-md-3">
+                                                    <label class="control-label">EBITDA multiplikatori (3-6x):</label>
+                                                    <input type="number" name="ebitdaMultiple" min="1" max="10" step="0.1" class="form-control" value="@multiple.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="col-md-3">
+                                                    <label class="control-label">Loyihalash yili (2-5):</label>
+                                                    <input type="number" name="dcfYears" min="1" max="10" step="1" class="form-control" value="@years" />
+                                                </div>
+                                            }
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <div class="card bg-primary text-white">
+                                                <div class="card-body text-center">
+                                                    <h3 style="color:white;">Jami kompaniya qiymati (@(method == "dcf" ? "DCF uslubi" : "EBITDA uslubi"))</h3>
+                                                    <h2 style="color:white;">@ViewBag.CompanyValue.ToString("N2")</h2>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if (breakdown != null && method == "ebitda" && breakdown.Ebitda != null)
+                                    {
+                                        <div class="table-responsive mb-3">
+                                            <table class="table table-bordered mb-0">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Operatsion daromad (oxirgi 12 oy)</td>
+                                                        <td class="text-right">@breakdown.Ebitda.OperatingIncome.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Operatsion xarajatlar</td>
+                                                        <td class="text-right">-@breakdown.Ebitda.OperatingExpenses.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Qaytarib qo'shiladi: soliqlar</td>
+                                                        <td class="text-right">+@breakdown.Ebitda.TaxExpense.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Qaytarib qo'shiladi: foiz/kredit xarajatlari</td>
+                                                        <td class="text-right">+@breakdown.Ebitda.InterestExpense.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Qaytarib qo'shiladi: amortizatsiya</td>
+                                                        <td class="text-right">+@breakdown.Ebitda.DepreciationExpense.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr class="font-weight-bold">
+                                                        <td>EBITDA</td>
+                                                        <td class="text-right">@breakdown.Ebitda.Ebitda.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr class="font-weight-bold">
+                                                        <td>Kompaniya qiymati = EBITDA × @multiple.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)</td>
+                                                        <td class="text-right">@breakdown.CompanyValue.ToString("N2")</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    @if (breakdown != null && method == "dcf")
+                                    {
+                                        <div class="table-responsive mb-3">
+                                            <table class="table table-bordered mb-0">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Jami aktivlar</td>
+                                                        <td class="text-right">@breakdown.TotalAssets.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Jami passivlar (majburiyatlar)</td>
+                                                        <td class="text-right">-@breakdown.TotalLiabilities.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr class="font-weight-bold">
+                                                        <td>Sof aktivlar</td>
+                                                        <td class="text-right">@breakdown.NetAssets.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Yillik daromad (oxirgi 12 oy)</td>
+                                                        <td class="text-right">@breakdown.AnnualRevenue.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Tannarx modulidagi o'rtacha margin</td>
+                                                        <td class="text-right">@breakdown.AvgMarginPercent.ToString("N2")%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Yillik foyda = daromad × margin</td>
+                                                        <td class="text-right">@breakdown.AnnualProfit.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Kelajak foydasi = yillik foyda × @breakdown.DcfYears yil</td>
+                                                        <td class="text-right">+@breakdown.FutureProfit.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr class="font-weight-bold">
+                                                        <td>Kompaniya qiymati = Sof aktivlar + Kelajak foydasi</td>
+                                                        <td class="text-right">@breakdown.CompanyValue.ToString("N2")</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Aksiyador</th>
+                                                    <th class="text-right">Ulush %</th>
+                                                    <th class="text-right">Qiymati</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var shValue in shareholderValues)
+                                                {
+                                                    <tr>
+                                                        <td>@shValue.Shareholder.FullName</td>
+                                                        <td class="text-right">@shValue.SharePercent%</td>
+                                                        <td class="text-right"><strong>@shValue.Value.ToString("N2")</strong></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th>Jami:</th>
+                                                    <th class="text-right">@shareholderValues.Sum(s => s.SharePercent)%</th>
+                                                    <th class="text-right">@shareholderValues.Sum(s => s.Value).ToString("N2")</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

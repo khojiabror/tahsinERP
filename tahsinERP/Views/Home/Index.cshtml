@@ -1,0 +1,368 @@
+@{
+    ViewBag.Title = "Bosh sahifa - Dashboard";
+}
+<!-- BEGIN: Content-->
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2">
+                <div class="row breadcrumbs-top">
+                    @*<div class="col-12">
+                        <h2 class="content-header-title float-left mb-0">Dashboard</h2>
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                <li class="breadcrumb-item active">Dashboard</li>
+                            </ol>
+                        </div>
+                    </div>*@
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <section id="dashboard-ecommerce">
+                <div class="row mb-1">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-50">Rahbariyat nazorat paneli</h4>
+                                    <small class="text-muted">Konversiya, bajarilish, zaxira riski va vazifalar ijrosi bir ekranda</small>
+                                </div>
+                                <div class="d-flex align-items-center mt-1 mt-md-0">
+                                    <select id="warehouseFilter" class="form-control mr-1" style="min-width: 220px;">
+                                        <option value="">Barcha omborlar (xomashyo)</option>
+                                    </select>
+                                    <input type="date" id="fromDate" class="form-control mr-1" style="min-width: 150px;" />
+                                    <input type="date" id="toDate" class="form-control mr-1" style="min-width: 150px;" />
+                                    <button class="btn btn-primary" id="applyFilters">
+                                        <i class="bx bx-refresh mr-25"></i> Yangilash
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Oylik savdo konversiyasi</p><h2 class="mb-50" id="kpi-conversion">0%</h2><small class="text-muted">Shartnoma -> Buyurtma</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Savdo buyurtmasi bajarilishi</p><h2 class="mb-50" id="kpi-fulfillment">0%</h2><small class="text-muted">Buyurtma -> Hisob-faktura</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Ishlab chiqarish bajarilishi</p><h2 class="mb-50" id="kpi-production">0%</h2><small class="text-muted">Reja -> Amalda</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Vazifalar bajarilishi</p><h2 class="mb-50" id="kpi-tasks">0%</h2><small class="text-muted"><span id="task-done">0</span>/<span id="task-total">0</span> bajarildi</small></div></div></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">DOH (zaxira kunlari)</p><h3 id="kpi-doh">0 kun</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Qamrov (kun)</p><h3 id="kpi-coverage">0 kun</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Savdo buyurtmalari</p><h3 id="kpi-orders-amount">0</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Hisob-faktura hajmi</p><h3 id="kpi-invoice-amount">0</h3></div></div></div>
+                </div>
+
+                <div class="row match-height">
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title mb-0">Savdo konversiyasi trendi</h4></div>
+                            <div class="card-body"><div id="sales-funnel-chart"></div></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title mb-0">Ishlab chiqarish: reja va fakt trendi</h4></div>
+                            <div class="card-body"><div id="production-trend-chart"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row match-height">
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title mb-0">DOH / qamrov riski (SKU bo'yicha)</h4></div>
+                            <div class="card-body"><div id="coverage-heat-chart"></div></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title mb-0">Buyurtma va ishlab chiqarish bajarilishi KPI</h4></div>
+                            <div class="card-body"><div id="execution-gauge-chart"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title mb-0">Boshqaruv signal paneli</h4></div>
+                            <div class="card-body"><div id="insight-list"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            @if (ViewBag.ShowCookieConsent)
+            {
+                <script>
+                    (function() {
+                        function showCookieConsent() {
+                            if (typeof jQuery !== 'undefined') {
+                                jQuery(document).ready(function () {
+                                    jQuery("#cookieConsent").modal('show');
+                                });
+                            } else {
+                                setTimeout(showCookieConsent, 100);
+                            }
+                        }
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', showCookieConsent);
+                        } else {
+                            showCookieConsent();
+                        }
+                    })();
+                </script>
+            }
+        </div>
+    </div>
+</div>
+<!-- END: Content-->
+
+<!-- BEGIN: Page Vendor JS-->
+<script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
+<!-- END: Page Vendor JS-->
+<!-- BEGIN: Page JS-->
+<!-- dashboard-ecommerce.js o'chirildi - o'z chart kodlarimiz ishlatilmoqda va bu fayl jQuery xatosiga sabab bo'lmoqda -->
+<!-- <script src="~/app-assets/js/scripts/pages/dashboard-ecommerce.js"></script> -->
+<!-- END: Page JS-->
+
+<script>
+    (function () {
+        var charts = {};
+        var currencyShortname = '@(ViewBag.CurrencyShortname ?? "")';
+        var warehouseInitialized = false;
+
+        function formatSpaceNumber(value, decimals) {
+            var d = typeof decimals === 'number' ? decimals : 0;
+            var n = Number(value || 0);
+            var fixed = n.toFixed(d);
+            var parts = fixed.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return d > 0 ? parts.join('.') : parts[0];
+        }
+
+        function formatAmount(value, decimals) {
+            return formatSpaceNumber(value, typeof decimals === 'number' ? decimals : 0) + (currencyShortname ? (' ' + currencyShortname) : '');
+        }
+
+        function formatPercent(value) {
+            return Number(value || 0).toFixed(1) + '%';
+        }
+
+        function destroyCharts() {
+            Object.keys(charts).forEach(function (k) {
+                if (charts[k] && typeof charts[k].destroy === 'function') charts[k].destroy();
+            });
+            charts = {};
+        }
+
+        function renderInsights(insights) {
+            var html = '';
+            (insights || []).forEach(function (x) {
+                var color = x.level === 'high' ? 'danger' : (x.level === 'medium' ? 'warning' : 'success');
+                html += '<div class="alert alert-light-' + color + ' mb-1"><i class="bx bx-bell mr-50"></i>' + x.text + '</div>';
+            });
+            document.getElementById('insight-list').innerHTML = html || '<p class="text-muted mb-0">Signal topilmadi</p>';
+        }
+
+        function renderSalesFunnelChart(data) {
+            var trend = data.trend || [];
+            var periods = trend.map(function (x) { return x.period; });
+            charts.sales = new ApexCharts(document.querySelector("#sales-funnel-chart"), {
+                chart: { type: 'line', height: 330, stacked: false, toolbar: { show: true } },
+                series: [
+                    { name: 'Buyurtma', type: 'column', data: trend.map(function (x) { return x.orderAmount; }) },
+                    { name: 'Hisob-faktura', type: 'column', data: trend.map(function (x) { return x.invoiceAmount; }) }
+                ],
+                stroke: { width: [0, 0], curve: 'smooth' },
+                colors: ['#39DA8A', '#00CFDD'],
+                xaxis: { categories: periods },
+                yaxis: [{ title: { text: 'Summa' }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    y: { formatter: function (val) { return formatAmount(val, 2); } }
+                },
+                legend: { position: 'top' }
+            });
+            charts.sales.render();
+        }
+
+        function renderProductionTrendChart(data) {
+            var trend = data.trend || [];
+            var periods = trend.map(function (x) { return x.period; });
+            charts.production = new ApexCharts(document.querySelector("#production-trend-chart"), {
+                chart: { type: 'line', height: 330, stacked: false, toolbar: { show: true } },
+                series: [
+                    { name: 'Reja miqdori', type: 'line', data: trend.map(function (x) { return x.plannedQty; }) },
+                    { name: 'Amaldagi miqdor', type: 'line', data: trend.map(function (x) { return x.producedQty; }) }
+                ],
+                stroke: { width: [3, 3], curve: 'smooth' },
+                colors: ['#FDAC41', '#198754'],
+                xaxis: { categories: periods },
+                yaxis: [{ title: { text: 'Miqdor' }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    y: { formatter: function (val) { return formatSpaceNumber(val, 2); } }
+                },
+                legend: { position: 'top' }
+            });
+            charts.production.render();
+        }
+
+        function renderCoverageChart(data) {
+            var stock = (data.stockCoverage || []).slice(0, 12);
+            charts.coverage = new ApexCharts(document.querySelector("#coverage-heat-chart"), {
+                chart: { type: 'bar', height: 340, toolbar: { show: false } },
+                series: [{ name: 'Qamrov (kun)', data: stock.map(function (x) { return x.coverageDays; }) }],
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        distributed: true,
+                        borderRadius: 4,
+                        colors: {
+                            ranges: [
+                                { from: 0, to: 20, color: '#FF5B5C' },
+                                { from: 20, to: 45, color: '#FDAC41' },
+                                { from: 45, to: 90, color: '#39DA8A' },
+                                { from: 90, to: 9999, color: '#6c757d' }
+                            ]
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (v) { return formatSpaceNumber(v, 1) + ' kun'; }
+                },
+                xaxis: { categories: stock.map(function (x) { return x.product; }) },
+                tooltip: {
+                    y: {
+                        formatter: function (val, opts) {
+                            var i = opts.dataPointIndex;
+                            var item = stock[i] || {};
+                            return formatSpaceNumber(val, 1) + ' kun | Zaxira: ' + formatSpaceNumber(item.stockQty || 0, 2) + ' | Kunlik talab: ' + formatSpaceNumber(item.avgDailyDemand || 0, 2);
+                        }
+                    }
+                }
+            });
+            charts.coverage.render();
+        }
+
+        function renderExecutionGauge(data) {
+            var k = data.kpis || {};
+            charts.gauge = new ApexCharts(document.querySelector("#execution-gauge-chart"), {
+                chart: { type: 'radialBar', height: 340 },
+                series: [k.orderFulfillmentRate || 0, k.productionExecutionRate || 0, k.taskCompletionRate || 0],
+                labels: ['Buyurtma bajarilishi', 'Ishlab chiqarish bajarilishi', 'Vazifa bajarilishi'],
+                colors: ['#1f8ef1', '#198754', '#FDAC41'],
+                plotOptions: {
+                    radialBar: {
+                        offsetY: 0,
+                        startAngle: -130,
+                        endAngle: 130,
+                        hollow: { size: '30%' },
+                        dataLabels: {
+                            name: { fontSize: '13px' },
+                            value: {
+                                fontSize: '22px',
+                                formatter: function (v) { return Number(v).toFixed(1) + '%'; }
+                            },
+                            total: {
+                                show: true,
+                                label: 'O‘rtacha nazorat',
+                                formatter: function (w) {
+                                    var s = w.globals.seriesTotals;
+                                    var avg = s.reduce(function (a, b) { return a + b; }, 0) / s.length;
+                                    return avg.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            charts.gauge.render();
+        }
+
+        function bindKpis(k) {
+            $('#kpi-conversion').text(formatPercent(k.salesConversionRate));
+            $('#kpi-fulfillment').text(formatPercent(k.orderFulfillmentRate));
+            $('#kpi-production').text(formatPercent(k.productionExecutionRate));
+            $('#kpi-tasks').text(formatPercent(k.taskCompletionRate));
+            $('#task-done').text(formatSpaceNumber(k.completedTasks || 0, 0));
+            $('#task-total').text(formatSpaceNumber(k.totalTasks || 0, 0));
+            $('#kpi-doh').text(formatSpaceNumber(k.dohDays || 0, 1) + ' kun');
+            $('#kpi-coverage').text(formatSpaceNumber(k.coverageDays || 0, 1) + ' kun');
+            $('#kpi-orders-amount').text(formatAmount(k.orderAmount, 2));
+            $('#kpi-invoice-amount').text(formatAmount(k.invoiceAmount, 2));
+        }
+
+        function bindWarehouseOptions(data) {
+            if (warehouseInitialized) return;
+            var list = data.warehouses || [];
+            var current = data.selectedWarehouseId;
+            var html = '<option value="">Barcha omborlar (xomashyo)</option>';
+            list.forEach(function (w) {
+                var selected = current && Number(current) === Number(w.id) ? ' selected' : '';
+                html += '<option value="' + w.id + '"' + selected + '>' + (w.name || ('Ombor #' + w.id)) + '</option>';
+            });
+            $('#warehouseFilter').html(html);
+            warehouseInitialized = true;
+        }
+
+        function loadExecutiveDashboard() {
+            var fromDate = $('#fromDate').val();
+            var toDate = $('#toDate').val();
+            var warehouseId = $('#warehouseFilter').val();
+            $.ajax({
+                url: '/Home/GetExecutiveDashboard',
+                method: 'GET',
+                data: { fromDate: fromDate, toDate: toDate, warehouseId: warehouseId },
+                success: function (data) {
+                    if (!data || data.error) {
+                        $('#insight-list').html('<p class="text-danger mb-0">' + (data && data.error ? data.error : 'Ma\'lumot yuklanmadi') + '</p>');
+                        return;
+                    }
+                    bindWarehouseOptions(data);
+                    destroyCharts();
+                    bindKpis(data.kpis || {});
+                    renderInsights(data.insights || []);
+                    renderSalesFunnelChart(data);
+                    renderProductionTrendChart(data);
+                    renderCoverageChart(data);
+                    renderExecutionGauge(data);
+                },
+                error: function () {
+                    $('#insight-list').html('<p class="text-danger mb-0">Rahbariyat paneli yuklanmadi</p>');
+                }
+            });
+        }
+
+        function init() {
+            if (typeof jQuery === 'undefined' || typeof ApexCharts === 'undefined') {
+                return setTimeout(init, 100);
+            }
+            var now = new Date();
+            var to = now.toISOString().split('T')[0];
+            var fromObj = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            var from = fromObj.toISOString().split('T')[0];
+            $('#fromDate').val(from);
+            $('#toDate').val(to);
+            $('#applyFilters').on('click', loadExecutiveDashboard);
+            $('#warehouseFilter').on('change', loadExecutiveDashboard);
+            loadExecutiveDashboard();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+</script>

@@ -1,0 +1,496 @@
+@model tahsinERP.Models.SALES_INVOICES
+@{
+    ViewBag.Title = "Create Invoice";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SalesInvoices">Invoyslar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Invoys yaratish
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-12 col-md-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @if (TempData["ErrorMessage"] != null)
+                                        {
+                                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                <i class="bx bx-error"></i> @TempData["ErrorMessage"]
+                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            </div>
+                                        }
+                                        @Html.ValidationSummary(false, "", new { @class = "alert alert-danger", @role = "alert", @id = "validationSummary" })
+
+                                        @using (Html.BeginForm("Create", "SalesInvoices", FormMethod.Post, new { @class = "form", @id = "invoiceCreateForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Invoys raqami</label>
+                                                        @Html.TextBoxFor(m => m.InvoiceNo, new { @class = "form-control", @placeholder = "Bo'sh qoldirsangiz avtomatik yoziladi" })
+                                                        @Html.ValidationMessageFor(m => m.InvoiceNo, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Invoys sanasi *</label>
+                                                        @Html.TextBoxFor(
+                                                            m => m.InvoiceDate,
+                                                            new
+                                                            {
+                                                                @class = "form-control",
+                                                                type = "date",
+                                                                required = "required",
+                                                                Value = Model.InvoiceDate.ToString("yyyy-MM-dd"),
+                                                                max = DateTime.Now.ToString("yyyy-MM-dd")
+                                                            })
+                                                        @Html.ValidationMessageFor(m => m.InvoiceDate, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Mijoz *</label>
+                                                        @Html.DropDownListFor(m => m.CustomerID, ViewBag.Customers as SelectList, "Tanlang", new { @class = "form-control", @id = "CustomerID", required = "required" })
+                                                        @Html.ValidationMessageFor(m => m.CustomerID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Shartnoma *</label>
+                                                        @Html.DropDownListFor(m => m.ContractID, ViewBag.Contracts as SelectList, new { @class = "form-control", @id = "ContractID", required = "required" })
+                                                        <small class="text-muted">Xaridor tanlang, keyin shartnoma tanlang</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Buyurtma</label>
+                                                        @Html.DropDownListFor(m => m.OrderID, ViewBag.Orders as SelectList, new { @class = "form-control", @id = "OrderID" })
+                                                        <small class="text-muted">Shartnoma tanlang, buyurtmalar yuklanadi</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Valyuta *</label>
+                                                        @Html.DropDownListFor(m => m.CurrencyCode, ViewBag.Currencies as SelectList, "Tanlang", new { @class = "form-control", required = "required" })
+                                                        @Html.ValidationMessageFor(m => m.CurrencyCode, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr />
+                                            <h5>Invoys qatorlari</h5>
+                                            <div class="alert alert-info mb-2">
+                                                <i class="bx bx-info-circle"></i> Tayyor maxsulot tanlang, miqdor va QQS % kiriting. Birlik narxi shartnomadan avtomatik yuklanadi.
+                                            </div>
+
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered" id="invoiceLinesTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot</th>
+                                                            <th>Tavsif</th>
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik narxi</th>
+                                                            <th>QQS %</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                @Html.DropDownList("lines[0].ProductID", ViewBag.Products as SelectList, "Tanlang", new { @class = "form-control product-select", required = "required" })
+                                                                <small class="text-muted available-stock-hint"></small>
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" name="lines[0].Description" class="form-control" />
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" name="lines[0].Qty" class="form-control qty-input" step="0.01" min="0" required />
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" name="lines[0].UnitPrice" class="form-control price-input" step="0.01" min="0" required readonly />
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" name="lines[0].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="0" required />
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-sm btn-danger remove-line">O'chirish</button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-md-12">
+                                                    <button type="button" class="btn btn-sm btn-primary" id="addLine">
+                                                        <i class="bx bx-plus"></i> Qator qo'shish
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-md-12 text-right">
+                                                    <strong>Jami summa: <span id="totalAmount">0.00</span> @Model.CurrencyCode</strong><br />
+                                                    <strong>QQS: <span id="totalVAT">0.00</span> @Model.CurrencyCode</strong><br />
+                                                    <strong>Jami (QQS bilan): <span id="totalWithVAT">0.00</span> @Model.CurrencyCode</strong>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-md-12">
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "SalesInvoices")" class="btn btn-secondary">
+                                                        Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var urls = {
+                contracts: '@Url.Action("GetContractsByCustomer", "SalesInvoices")',
+                orders: '@Url.Action("GetOrdersByContract", "SalesInvoices")',
+                price: '@Url.Action("GetContractPriceForProduct", "SalesInvoices")',
+                currency: '@Url.Action("GetContractCurrency", "SalesInvoices")',
+                orderProducts: '@Url.Action("GetOrderProductsForInvoice", "SalesInvoices")'
+            };
+            var initialOrderId = @(Model.OrderID.HasValue ? Model.OrderID.Value : 0);
+
+            function init() {
+                var lineIndex = 1;
+                var productStockMap = {};
+
+                function loadContracts(customerId) {
+                    var sel = document.getElementById('ContractID');
+                    if (!sel) return;
+                    sel.disabled = true;
+                    sel.innerHTML = '<option value="">Yuklanmoqda...</option>';
+                    fetch(urls.contracts + '?customerId=' + customerId)
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            sel.innerHTML = '<option value="">Tanlang</option>';
+                            if (data && data.length) {
+                                data.forEach(function(c) {
+                                    var opt = document.createElement('option');
+                                    opt.value = c.ID;
+                                    opt.textContent = c.ContractNo;
+                                    sel.appendChild(opt);
+                                });
+                            }
+                            sel.disabled = false;
+                            document.getElementById('OrderID').innerHTML = '<option value="">Tanlang</option>';
+                            document.getElementById('CurrencyCode').value = '';
+                        })
+                        .catch(function() {
+                            sel.innerHTML = '<option value="">Xatolik</option>';
+                            sel.disabled = false;
+                        });
+                }
+
+                function loadOrders(contractId) {
+                    var sel = document.getElementById('OrderID');
+                    if (!sel) return;
+                    sel.disabled = true;
+                    sel.innerHTML = '<option value="">Yuklanmoqda...</option>';
+                    fetch(urls.orders + '?contractId=' + contractId)
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            sel.innerHTML = '<option value="">Tanlang</option>';
+                            if (data && data.length) {
+                                data.forEach(function(o) {
+                                    var opt = document.createElement('option');
+                                    opt.value = o.ID;
+                                    opt.textContent = o.OrderNo;
+                                    sel.appendChild(opt);
+                                });
+                            }
+                            sel.disabled = false;
+                        })
+                        .catch(function() {
+                            sel.innerHTML = '<option value="">Xatolik</option>';
+                            sel.disabled = false;
+                        });
+                    fetch(urls.currency + '?contractId=' + contractId)
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) {
+                            var curSel = document.getElementById('CurrencyCode');
+                            if (curSel && d && d.CurrencyCode) curSel.value = d.CurrencyCode;
+                        });
+                }
+
+                function loadPriceForProduct(contractId, productId, priceInput, vatInput) {
+                    if (!contractId || !productId || !priceInput) return;
+                    fetch(urls.price + '?contractId=' + contractId + '&productId=' + productId)
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) {
+                            if (d && d.PiecePrice != null) priceInput.value = parseFloat(d.PiecePrice).toFixed(2);
+                            if (vatInput && d && d.VatRate != null) vatInput.value = parseFloat(d.VatRate).toFixed(2);
+                            if (typeof calculateTotals === 'function') calculateTotals();
+                        });
+                }
+
+                var custEl = document.getElementById('CustomerID');
+                if (custEl) {
+                    custEl.addEventListener('change', function() {
+                        var v = this.value;
+                        if (v) loadContracts(v);
+                        else {
+                            document.getElementById('ContractID').innerHTML = '<option value="">Tanlang</option>';
+                            document.getElementById('OrderID').innerHTML = '<option value="">Tanlang</option>';
+                            document.getElementById('CurrencyCode').value = '';
+                        }
+                    });
+                }
+                var contractEl = document.getElementById('ContractID');
+                if (contractEl) {
+                    contractEl.addEventListener('change', function() {
+                        var v = this.value;
+                        if (v) loadOrders(v);
+                        else {
+                            document.getElementById('OrderID').innerHTML = '<option value="">Tanlang</option>';
+                        }
+                    });
+                }
+
+                function parseAvailableFromText(text) {
+                    var match = text.match(/Mavjud:\s*([0-9]+(?:\.[0-9]+)?)/i);
+                    return match ? match[1] : null;
+                }
+
+                function buildStockMap() {
+                    productStockMap = {};
+                    var table = document.getElementById('invoiceLinesTable');
+                    if (!table) return;
+                    var firstSelect = table.querySelector('tbody tr:first-child td:first-child select');
+                    if (!firstSelect) return;
+                    for (var i = 0; i < firstSelect.options.length; i++) {
+                        var opt = firstSelect.options[i];
+                        var value = opt.value;
+                        if (!value) continue;
+                        var available = parseAvailableFromText(opt.textContent);
+                        if (available !== null) productStockMap[value] = available;
+                    }
+                }
+
+                function updateStockHint(row) {
+                    if (!row) return;
+                    var sel = row.querySelector('.product-select');
+                    var hint = row.querySelector('.available-stock-hint');
+                    if (!sel || !hint) return;
+                    var available = productStockMap[sel.value];
+                    hint.textContent = available ? ('Mavjud: ' + available) : '';
+                }
+
+                function calculateTotals() {
+                    var totalAmount = 0, totalVAT = 0;
+                    var rows = document.querySelectorAll('#invoiceLinesTable tbody tr');
+                    for (var i = 0; i < rows.length; i++) {
+                        var r = rows[i];
+                        var qInp = r.querySelector('.qty-input'), pInp = r.querySelector('.price-input'), vInp = r.querySelector('.vat-input');
+                        var qty = parseFloat(qInp ? qInp.value : 0) || 0;
+                        var price = parseFloat(pInp ? pInp.value : 0) || 0;
+                        var vatRate = parseFloat(vInp ? vInp.value : 0) || 0;
+                        var lineAmount = qty * price;
+                        totalAmount += lineAmount;
+                        totalVAT += lineAmount * vatRate / 100;
+                    }
+                    var totalEl = document.getElementById('totalAmount');
+                    var vatEl = document.getElementById('totalVAT');
+                    var withVatEl = document.getElementById('totalWithVAT');
+                    if (totalEl) totalEl.textContent = totalAmount.toFixed(2);
+                    if (vatEl) vatEl.textContent = totalVAT.toFixed(2);
+                    if (withVatEl) withVatEl.textContent = (totalAmount + totalVAT).toFixed(2);
+                }
+
+                function addListeners() {
+                    document.querySelectorAll('.qty-input, .price-input, .vat-input').forEach(function(el) {
+                        el.addEventListener('input', calculateTotals);
+                    });
+                }
+
+                var addBtn = document.getElementById('addLine');
+                if (addBtn) {
+                    addBtn.addEventListener('click', function() {
+                        var table = document.getElementById('invoiceLinesTable');
+                        if (!table) return;
+                        var firstRow = table.querySelector('tbody tr:first-child');
+                        if (!firstRow) return;
+                        var tbody = table.querySelector('tbody');
+                        var productSelect = firstRow.querySelector('select.product-select');
+                        if (!productSelect) return;
+
+                        var newSelect = productSelect.cloneNode(true);
+                        newSelect.name = 'lines[' + lineIndex + '].ProductID';
+                        newSelect.removeAttribute('id');
+                        newSelect.value = '';
+
+                        var newRow = document.createElement('tr');
+                        var td1 = document.createElement('td');
+                        td1.appendChild(newSelect);
+                        var small = document.createElement('small');
+                        small.className = 'text-muted available-stock-hint';
+                        td1.appendChild(small);
+                        newRow.appendChild(td1);
+
+                        ['Description','Qty','UnitPrice','VATRate'].forEach(function(name, idx) {
+                            var inp = document.createElement('input');
+                            inp.className = 'form-control' + (idx === 1 ? ' qty-input' : idx === 2 ? ' price-input' : idx === 3 ? ' vat-input' : '');
+                            inp.type = idx === 0 ? 'text' : 'number';
+                            inp.name = 'lines[' + lineIndex + '].' + name;
+                            if (idx === 1 || idx === 2) { inp.step = '0.01'; inp.min = '0'; inp.required = true; if (idx === 2) inp.readOnly = true; }
+                            if (idx === 3) { inp.step = '0.01'; inp.min = '0'; inp.max = '100'; inp.value = '0'; inp.required = true; }
+                            var td = document.createElement('td');
+                            td.appendChild(inp);
+                            newRow.appendChild(td);
+                        });
+
+                        var tdBtn = document.createElement('td');
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn-sm btn-danger remove-line';
+                        btn.textContent = 'O\'chirish';
+                        btn.addEventListener('click', function() {
+                            if (confirm('Bu qatorni o\'chirishni tasdiqlaysizmi?')) {
+                                newRow.remove();
+                                calculateTotals();
+                            }
+                        });
+                        tdBtn.appendChild(btn);
+                        newRow.appendChild(tdBtn);
+
+                        tbody.appendChild(newRow);
+
+                        newRow.querySelectorAll('.qty-input, .price-input, .vat-input').forEach(function(el) {
+                            el.addEventListener('input', calculateTotals);
+                        });
+                        newSelect.addEventListener('change', function() { updateStockHint(newRow); });
+                        updateStockHint(newRow);
+                        lineIndex++;
+                    });
+                }
+
+                document.addEventListener('click', function(e) {
+                    if (e.target && e.target.classList && e.target.classList.contains('remove-line')) {
+                        if (confirm('Bu qatorni o\'chirishni tasdiqlaysizmi?')) {
+                            var tr = e.target.closest('tr');
+                            if (tr) { tr.remove(); calculateTotals(); }
+                        }
+                    }
+                });
+
+                document.addEventListener('change', function(e) {
+                    if (e.target && e.target.classList && e.target.classList.contains('product-select')) {
+                        var tr = e.target.closest('tr');
+                        if (tr) {
+                            updateStockHint(tr);
+                            var contractId = contractEl ? contractEl.value : '';
+                            var productId = e.target.value;
+                            var priceInp = tr.querySelector('.price-input');
+                            var vatInp = tr.querySelector('.vat-input');
+                            if (contractId && productId && priceInp) loadPriceForProduct(contractId, productId, priceInp, vatInp);
+                        }
+                    }
+                });
+
+                addListeners();
+                calculateTotals();
+                buildStockMap();
+                var firstRow = document.querySelector('#invoiceLinesTable tbody tr:first-child');
+                updateStockHint(firstRow);
+
+                if (initialOrderId) {
+                    fetch(urls.orderProducts + '?orderId=' + initialOrderId)
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (!data || data.length === 0) return;
+                            var tbody = document.getElementById('invoiceLinesTable').querySelector('tbody');
+                            var first = tbody.querySelector('tr');
+                            for (var i = 0; i < data.length; i++) {
+                                var row = (i === 0) ? first : first.cloneNode(true);
+                                var sel = row.querySelector('.product-select');
+                                var qtyInp = row.querySelector('.qty-input');
+                                var priceInp = row.querySelector('.price-input');
+                                var vatInp = row.querySelector('.vat-input');
+                                if (sel) sel.value = data[i].ProductID;
+                                if (qtyInp) qtyInp.value = data[i].Qty;
+                                if (priceInp) priceInp.value = data[i].UnitPrice;
+                                if (vatInp) vatInp.value = (data[i].VATRate != null ? parseFloat(data[i].VATRate) : 0).toFixed(2);
+                                if (i > 0) {
+                                    row.querySelectorAll('[name]').forEach(function(inp) {
+                                        if (inp.name && inp.name.indexOf('lines[0]') === 0)
+                                            inp.name = inp.name.replace('lines[0]', 'lines[' + i + ']');
+                                    });
+                                    tbody.appendChild(row);
+                                }
+                            }
+                            lineIndex = data.length;
+                            addListeners();
+                            calculateTotals();
+                            buildStockMap();
+                            document.querySelectorAll('#invoiceLinesTable tbody tr').forEach(function(r) { updateStockHint(r); });
+                        });
+                }
+
+                var vs = document.getElementById('validationSummary');
+                if (vs && vs.textContent.trim()) vs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

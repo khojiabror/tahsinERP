@@ -1,0 +1,314 @@
+@model tahsinERP.Models.SALES_TTNK_HEADERS
+@{
+    ViewBag.Title = "Create TTNK from Invoices";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var invoices = ViewBag.Invoices as List<tahsinERP.Models.SALES_INVOICES>;
+    var invoiceLines = ViewBag.InvoiceLines as List<tahsinERP.Models.SALES_INVOICE_LINES>;
+    var products = ViewBag.Products as Dictionary<int, tahsinERP.Models.PRODUCT>;
+    var invoiceIDs = ViewBag.InvoiceIDs as string;
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SalesTTNK">TTNK</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        TTNK yaratish
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-12 col-md-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @if (invoices != null && invoices.Any())
+                                        {
+                                            <div class="alert alert-info">
+                                                <strong>Invoyslar:</strong> 
+                                                @string.Join(", ", invoices.Select(i => i.InvoiceNo))
+                                            </div>
+                                        }
+
+                                        @using (Html.BeginForm("CreateFromInvoices", "SalesTTNK", FormMethod.Post, new { @class = "form" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("invoiceIDs", invoiceIDs)
+                                            @Html.HiddenFor(m => m.InvoiceID)
+                                            @Html.HiddenFor(m => m.OrderID)
+                                            @Html.HiddenFor(m => m.ContractID)
+
+                                            <h5>Asosiy ma'lumotlar</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>TTNK raqami *</label>
+                                                        @Html.TextBoxFor(m => m.TTNKNumber, new { @class = "form-control", required = "required" })
+                                                        @Html.ValidationMessageFor(m => m.TTNKNumber, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>TTNK sanasi *</label>
+                                                        @Html.TextBoxFor(m => m.TTNKDate, new { @class = "form-control", type = "date", required = "required", Value = Model.TTNKDate.ToString("yyyy-MM-dd") })
+                                                        @Html.ValidationMessageFor(m => m.TTNKDate, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mt-3">Yuk tashuvchi ma'lumotlari</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Yuk tashuvchi nomi</label>
+                                                        @Html.TextBoxFor(m => m.CarrierName, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Yuk tashuvchi INN</label>
+                                                        @Html.TextBoxFor(m => m.CarrierINN, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mt-3">Yuk beruvchi va oluvchi</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Yuk beruvchi nomi</label>
+                                                        @Html.TextBoxFor(m => m.ShipperName, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Yuk beruvchi INN</label>
+                                                        @Html.TextBoxFor(m => m.ShipperINN, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Yuk oluvchi nomi</label>
+                                                        @Html.TextBoxFor(m => m.ConsigneeName, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Yuk oluvchi INN</label>
+                                                        @Html.TextBoxFor(m => m.ConsigneeINN, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mt-3">Transport ma'lumotlari</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Haydovchi</label>
+                                                        @Html.TextBoxFor(m => m.DriverName, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Haydovchi PINFL</label>
+                                                        @Html.TextBoxFor(m => m.DriverPINFL, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Mas'ul shaxs</label>
+                                                        @Html.TextBoxFor(m => m.ResponsiblePersonName, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Mas'ul shaxs PINFL</label>
+                                                        @Html.TextBoxFor(m => m.ResponsiblePersonPINFL, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Mashina raqami</label>
+                                                        @Html.TextBoxFor(m => m.TruckNo, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Mashina modeli</label>
+                                                        @Html.TextBoxFor(m => m.TruckModel, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Pritsep raqami</label>
+                                                        @Html.TextBoxFor(m => m.TrailerNo, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Pritsep modeli</label>
+                                                        @Html.TextBoxFor(m => m.TrailerModel, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mt-3">Marshrut</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Jo'nash manzili</label>
+                                                        @Html.TextBoxFor(m => m.DepartureAddress, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Jo'nash viloyati</label>
+                                                        @Html.TextBoxFor(m => m.DepartureRegion, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Yetkazish manzili</label>
+                                                        @Html.TextBoxFor(m => m.ArrivalAddress, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Yetkazish viloyati</label>
+                                                        @Html.TextBoxFor(m => m.ArrivalRegion, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Masofa (km)</label>
+                                                        @Html.TextBoxFor(m => m.DistanceKm, new { @class = "form-control", type = "number", step = "0.01" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mt-3">Yuk ma'lumotlari</h5>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Yuk og'irligi (brutto, t)</label>
+                                                        @Html.TextBoxFor(m => m.CargoWeightGrossT, new { @class = "form-control", type = "number", step = "0.01" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Yuk og'irligi (netto, t)</label>
+                                                        @Html.TextBoxFor(m => m.CargoWeightNetT, new { @class = "form-control", type = "number", step = "0.01" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Valyuta</label>
+                                                        @Html.TextBoxFor(m => m.CurrencyCode, new { @class = "form-control" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Yetkazib berish narxi</label>
+                                                        @Html.TextBoxFor(m => m.DeliveryCost, new { @class = "form-control", type = "number", step = "0.01" })
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>QQS summa</label>
+                                                        @Html.TextBoxFor(m => m.VATAmount, new { @class = "form-control", type = "number", step = "0.01" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr />
+                                            <h5>TTNK qatorlari</h5>
+
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered" id="ttnkLinesTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot</th>
+                                                            <th>Tavsif</th>
+                                                            <th>HS Kod</th>
+                                                            <th>Miqdor</th>
+                                                            <th>O'lchov birligi</th>
+                                                            <th>Og'irlik (netto)</th>
+                                                            <th>Og'irlik (brutto)</th>
+                                                            <th>Joylar soni</th>
+                                                            <th>Qadoq turi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (invoiceLines != null)
+                                                        {
+                                                            int index = 0;
+                                                            foreach (var invoiceLine in invoiceLines)
+                                                            {
+                                                                var product = products != null && products.ContainsKey(invoiceLine.ProductID) ? products[invoiceLine.ProductID] : null;
+                                                                <tr>
+                                                                    <td>
+                                                                        @if (product != null)
+                                                                        {
+                                                                            @product.PNo
+                                                                        }
+                                                                        <input type="hidden" name="lines[@index].ProductID" value="@invoiceLine.ProductID" />
+                                                                        <input type="hidden" name="lines[@index].InvoiceLineID" value="@invoiceLine.ID" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" name="lines[@index].Description" class="form-control" value="@(invoiceLine.Description ?? "")" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" name="lines[@index].HSCode" class="form-control" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" name="lines[@index].Qty" class="form-control" step="0.01" min="0" value="@invoiceLine.Qty" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" name="lines[@index].UnitOfMeasure" class="form-control" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" name="lines[@index].WeightNetT" class="form-control" step="0.01" min="0" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" name="lines[@index].WeightGrossT" class="form-control" step="0.01" min="0" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" name="lines[@index].PlaceCount" class="form-control" min="0" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" name="lines[@index].PackageType" class="form-control" />
+                                                                    </td>
+                                                                </tr>
+                                                                index++;
+                                                            }
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-md-12">
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="bx bx-save"></i> TTNK yaratish
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "SalesInvoices")" class="btn btn-secondary">
+                                                        Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

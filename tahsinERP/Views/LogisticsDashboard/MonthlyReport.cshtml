@@ -1,0 +1,134 @@
+@model tahsinERP.ViewModels.LogisticsMonthlyReportViewModel
+@{
+    ViewBag.Title = "Logistika oylik hisoboti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        body { background: #fff !important; }
+        body * { visibility: hidden; }
+        #reportCard, #reportCard * { visibility: visible !important; }
+        #reportCard { display: block !important; position: relative !important; left: 0 !important; top: 0 !important; width: 100% !important; color: #000 !important; }
+    }
+    @@media screen {
+        .print-only { display: none; }
+    }
+    .report-title { font-size: 1.25rem; font-weight: 600; }
+    .report-meta { font-size: 0.9rem; color: #555; }
+    #monthlyReportTable th, #monthlyReportTable td { vertical-align: middle; }
+    #monthlyReportTable .total-row { font-weight: 700; background-color: #f8f9fa; }
+</style>
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row no-print">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="breadcrumb-wrapper col-12">
+                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                        <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="~/LogisticsDashboard/Index">Logistika paneli</a></li>
+                        <li class="breadcrumb-item active">Oylik hisobot</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="card no-print">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Logistika oylik hisoboti</h4>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("MonthlyReport", "LogisticsDashboard", FormMethod.Get, new { @class = "form" }))
+                    {
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label>Oy</label>
+                                @Html.DropDownList("month", Enumerable.Range(1, 12).Select(i => new SelectListItem { Text = new DateTime(2024, i, 1).ToString("MMMM", new System.Globalization.CultureInfo("uz-Latn-UZ")), Value = i.ToString(), Selected = i == Model.Month }), new { @class = "form-control" })
+                            </div>
+                            <div class="col-md-2">
+                                <label>Yil</label>
+                                <input type="number" name="year" class="form-control" value="@Model.Year" min="2020" max="2030" />
+                            </div>
+                            <div class="col-md-4">
+                                <label>Yuk tashuvchi</label>
+                                @Html.DropDownList("forwarderId", Model.Forwarders, "Barchasi", new { @class = "form-control" })
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary">Hisobotni ko'rsatish</button>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end justify-content-end">
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> Chop etish</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card" id="reportCard">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrWhiteSpace(Model.CompanyName))
+                        {
+                            <p class="report-meta mb-0">@Model.CompanyName</p>
+                        }
+                        <h5 class="report-title mt-2">LOGISTIKA OYLIK HISOBOTI</h5>
+                        <p class="report-meta mb-0">Oy: <strong>@Model.PeriodTitleUz</strong> (@Model.PeriodTitle)</p>
+                        <p class="report-meta mb-0">Hujjat sanasi: <strong>@Model.ReportDate</strong></p>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm" id="monthlyReportTable" style="width:100%">
+                            <thead>
+                                <tr class="table-primary">
+                                    <th style="width:40px">№</th>
+                                    <th>Yuk tashuvchi</th>
+                                    <th class="text-right">Reyslar soni</th>
+                                    <th class="text-right">Oldingi qarzdorlik</th>
+                                    <th class="text-right">Oy xarajati</th>
+                                    <th class="text-right">Oy to'lovi</th>
+                                    <th class="text-right">Oy oxiridagi qarzdorlik</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Rows != null && Model.Rows.Count > 0)
+                                {
+                                    var num = 1;
+                                    foreach (var row in Model.Rows)
+                                    {
+                                        <tr>
+                                            <td>@(num++)</td>
+                                            <td>@row.ForwarderName</td>
+                                            <td class="text-right">@row.TripsInMonth</td>
+                                            <td class="text-right">@row.OpeningDebt.ToString("N2")</td>
+                                            <td class="text-right">@row.FreightInMonth.ToString("N2")</td>
+                                            <td class="text-right">@row.PaymentInMonth.ToString("N2")</td>
+                                            <td class="text-right">@row.ClosingDebt.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                    <tr class="total-row">
+                                        <td colspan="2" class="text-right"><strong>JAMI</strong></td>
+                                        <td class="text-right">@Model.Totals.TotalTrips</td>
+                                        <td class="text-right">@Model.Totals.TotalOpeningDebt.ToString("N2")</td>
+                                        <td class="text-right">@Model.Totals.TotalFreight.ToString("N2")</td>
+                                        <td class="text-right">@Model.Totals.TotalPayment.ToString("N2")</td>
+                                        <td class="text-right">@Model.Totals.TotalClosingDebt.ToString("N2")</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center">Ushbu oy uchun logistika ma'lumotlari topilmadi.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

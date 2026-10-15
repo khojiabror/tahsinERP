@@ -1,0 +1,292 @@
+@model tahsinERP.ViewModels.SContractViewModel
+@{
+    ViewBag.Title = "Tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SContract/Index">Shartnomalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Shartnoma tahrirlash
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-xl-12 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body pb-0 mx-25">
+                                    @using (Html.BeginForm("Edit", "SContract", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(model => model.ID)
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                        <div class="row">
+                                            <div class="col-lg-12 col-md-12 mt-25">
+                                                <div class="row">
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>Shartnoma raqami</label>
+                                                        @Html.TextBoxFor(model => model.ContractNo, new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>Mijoz</label>
+                                                        @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2" })
+                                                        @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>Tuzilgan sanasi</label>
+                                                        @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "IssuedDate", @class = "form-control" })
+                                                        @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>Tugaydigan sana</label>
+                                                        @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "DueDate", @class = "form-control" })
+                                                        @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>Incoterms</label>
+                                                        @Html.TextBoxFor(model => model.Incoterms, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>To'lov sharti</label>
+                                                        @Html.TextBoxFor(model => model.PaymentTerms, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>Valyuta</label>
+                                                        @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
+                                                        <label>Umumiy summasi</label>
+                                                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @id = "Amount", @readonly = "readonly" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <section id="column-selectors">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="card">
+                                                    <div class="card-header">
+                                                        <h4 class="card-title">Shartnoma predmeti</h4>
+                                                        <button type="button" class="btn btn-sm btn-success float-right" id="addProductBtn">
+                                                            <i class="bx bx-plus"></i> Yangi maxsulot qo'shish
+                                                        </button>
+                                                    </div>
+                                                    <div class="card-content">
+                                                        <div class="card-body card-dashboard">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-striped" id="productTable" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Maxsulot</th>
+                                                                            <th>Miqdori</th>
+                                                                            <th>O'lchov birligi</th>
+                                                                            <th>Birlik narxi</th>
+                                                                            <th>QQS (%)</th>
+                                                                            <th>Jami narx</th>
+                                                                            <th>Amallar</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="productTableBody">
+                                                                        @for (int i = 0; i < Model.ProductList.Count; i++)
+                                                                        {
+                                                                            <tr data-index="@i">
+                                                                                <td>
+                                                                                    @Html.HiddenFor(m => m.ProductList[i].ID)
+                                                                                    @Html.HiddenFor(m => m.ProductList[i].ProductID)
+                                                                                    <span class="product-display">@Model.ProductList[i].ProductPNo</span>
+                                                                                </td>
+                                                                                <td>
+                                                                                    @Html.TextBoxFor(m => m.ProductList[i].Amount, new { @class = "form-control product-amount-edit" })
+                                                                                </td>
+                                                                                <td>
+                                                                                    @Html.DropDownListFor(m => m.ProductList[i].UnitID, (SelectList)ViewBag.Units, new { @class = "form-control" })
+                                                                                </td>
+                                                                                <td>
+                                                                                    @Html.TextBoxFor(m => m.ProductList[i].PiecePrice, new { @class = "form-control product-price-edit" })
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="number" name="ProductList[@i].VatPercent" class="form-control vat-input" value="@Model.ProductList[i].VatPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" step="0.01" min="0" max="100" />
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="number" class="form-control total-with-vat" value="0" readonly />
+                                                                                </td>
+                                                                                <td>
+                                                                                    @if (Model.ProductList[i].ID > 0)
+                                                                                    {
+                                                                                        <a href="~/SContract/DeleteProduct/@Model.ProductList[i].ID" onclick="return confirm('Ushbu shartnoma maxsulotini o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                                                            <i class="bx bx-trash"></i>
+                                                                                        </a>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <button type="button" class="btn btn-sm btn-danger remove-product-row" onclick="removeProductRow(this)">
+                                                                                            <i class="bx bx-trash"></i>
+                                                                                        </button>
+                                                                                    }
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button class="btn btn-primary" type="submit">Saqlash</button>
+                                                <a href="~/SContract/Index" class="btn btn-danger">Bekor qilish</a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section scripts {
+        <script>
+            var productIndex = @Model.ProductList.Count;
+            var productsOptions = '';
+            @if (ViewBag.Products != null)
+            {
+                foreach (var item in (ViewBag.Products as SelectList))
+                {
+                    <text>
+                    productsOptions += '<option value="@item.Value">@item.Text</option>';
+                    </text>
+                }
+            }
+            var unitsOptions = '';
+            @if (ViewBag.Units != null)
+            {
+                foreach (var item in (ViewBag.Units as SelectList))
+                {
+                    <text>
+                    unitsOptions += '<option value="@item.Value">@item.Text</option>';
+                    </text>
+                }
+            }
+
+            $j(document).ready(function () {
+                window.updateRowTotal = function ($row) {
+                    var price = parseFloat($row.find('.product-price-edit').val()) || 0;
+                    var amount = parseFloat($row.find('.product-amount-edit').val()) || 0;
+                    var vatPercent = parseFloat($row.find('.vat-input').val()) || 0;
+                    var baseTotal = price * amount;
+                    var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
+                    $row.find('.total-with-vat').val(totalWithVat.toFixed(2));
+                };
+
+                window.calculateTotalAmount = function () {
+                    var total = 0;
+                    $j('#productTableBody tr').each(function () {
+                        updateRowTotal($j(this));
+                        total += parseFloat($j(this).find('.total-with-vat').val()) || 0;
+                    });
+                    $j('#Amount').val(Math.round(total));
+                };
+
+                $j(document).on('input change', '.product-price-edit, .product-amount-edit, .vat-input', function () {
+                    calculateTotalAmount();
+                });
+
+                $j('#addProductBtn').on('click', function () {
+                    addProductRow();
+                });
+
+                calculateTotalAmount();
+            });
+
+            function addProductRow() {
+                var productsSelect = '<select name="ProductList[' + productIndex + '].ProductID" class="form-control product-select select2" required>' +
+                    '<option value="">Tanlang...</option>' +
+                    productsOptions +
+                    '</select>';
+
+                var unitsSelect = '<select name="ProductList[' + productIndex + '].UnitID" class="form-control select2" required>' +
+                    '<option value="">Tanlang...</option>' +
+                    unitsOptions +
+                    '</select>';
+
+                var newRow = '<tr data-index="' + productIndex + '">' +
+                    '<td>' +
+                    '<input type="hidden" name="ProductList[' + productIndex + '].ID" value="0" />' +
+                    productsSelect +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" name="ProductList[' + productIndex + '].Amount" class="form-control product-amount-edit" min="1" required />' +
+                    '</td>' +
+                    '<td>' +
+                    unitsSelect +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" name="ProductList[' + productIndex + '].PiecePrice" class="form-control product-price-edit" step="0.01" min="0" required />' +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" name="ProductList[' + productIndex + '].VatPercent" class="form-control vat-input" value="12" step="0.01" min="0" max="100" />' +
+                    '</td>' +
+                    '<td>' +
+                    '<input type="number" class="form-control total-with-vat" value="0" readonly />' +
+                    '</td>' +
+                    '<td>' +
+                    '<button type="button" class="btn btn-sm btn-danger remove-product-row" onclick="removeProductRow(this)">' +
+                    '<i class="bx bx-trash"></i>' +
+                    '</button>' +
+                    '</td>' +
+                    '</tr>';
+
+                $j('#productTableBody').append(newRow);
+                productIndex++;
+
+                if (typeof $j.fn.select2 !== 'undefined') {
+                    $j('#productTableBody tr:last .select2').select2();
+                }
+
+                calculateTotalAmount();
+            }
+
+            function removeProductRow(button) {
+                $j(button).closest('tr').remove();
+                calculateTotalAmount();
+            }
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

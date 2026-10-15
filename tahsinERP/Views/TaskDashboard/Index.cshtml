@@ -1,0 +1,747 @@
+@model tahsinERP.ViewModels.TaskDashboardViewModel
+@{
+    ViewBag.Title = "Task Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tasks">Tasks</a></li>
+                                    <li class="breadcrumb-item active">Dashboard</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <!-- Filters -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("Index")" class="row">
+                                    @if (ViewBag.IsAdminOrDeveloper == true)
+                                    {
+                                        <div class="col-md-6">
+                                            <label>Foydalanuvchi</label>
+                                            @{
+                                                var userSelectList = ViewBag.UserID as SelectList;
+                                                var selectedUserId = ViewBag.SelectedUserID as int?;
+                                            }
+                                            <select name="userId" class="form-control" onchange="this.form.submit()">
+                                                <option value="">Barcha foydalanuvchilar</option>
+                                                @if (userSelectList != null)
+                                                {
+                                                    foreach (var item in userSelectList)
+                                                    {
+                                                        <option value="@item.Value" @(selectedUserId.HasValue && selectedUserId.Value.ToString() == item.Value ? "selected" : "")>@item.Text</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-md-6">
+                                            <label>Foydalanuvchi</label>
+                                            <select name="userId" class="form-control" disabled>
+                                                @if (ViewBag.UserID != null)
+                                                {
+                                                    var userSelectList = ViewBag.UserID as SelectList;
+                                                    foreach (var item in userSelectList)
+                                                    {
+                                                        <option value="@item.Value" selected>@item.Text</option>
+                                                    }
+                                                }
+                                            </select>
+                                            Html.Hidden("userId", ViewBag.CurrentUserID)
+                                        </div>
+                                    }
+                                    <div class="col-md-6">
+                                        <label>&nbsp;</label>
+                                        <div>
+                                            <a href="@Url.Action("Index", "Tasks")" class="btn btn-secondary">
+                                                <i class="bx bx-list-ul"></i> Barcha vazifalar
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-task primary font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserTaskCount</h3>
+                                            <span>Jami vazifalar (@Model.UserName)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-check-circle success font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserDoneCount</h3>
+                                            <span>Bajarildi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-time-five warning font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserInProgressCount</h3>
+                                            <span>Jarayonda</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-list-ul info font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.UserTodoCount</h3>
+                                            <span>Rejada</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Stats -->
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-calendar-x danger font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.OverdueCount</h3>
+                                            <span>Muddati o'tgan</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-time info font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.RecentTasksCount</h3>
+                                            <span>So'nggi 7 kun</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <!-- Status Pie Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Status bo'yicha taqsimot</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="statusPieChart" style="min-height: 350px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Priority Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Prioritet bo'yicha taqsimot</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="priorityBarChart" style="min-height: 350px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Details Chart -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Prioritet bo'yicha batafsil statistika</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="priorityStackedChart" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overdue Tasks Chart -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Muddatidan o'tgan vazifalar (Loyiha bo'yicha)</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="overdueTasksChart" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employee Rating Chart -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Xodimlar reytingi</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="employeeRatingChart" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts
+{
+    <!-- ApexCharts Script -->
+    <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            console.log('Task Dashboard script loaded');
+            
+            // Check if jQuery is loaded
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery is not loaded!');
+                document.getElementById('statusPieChart').innerHTML = '<p class="text-center text-danger">jQuery kutubxonasi yuklanmagan!</p>';
+                return;
+            }
+            
+            // Check if ApexCharts is loaded
+            if (typeof ApexCharts === 'undefined') {
+                console.error('ApexCharts library is not loaded!');
+                $('#statusPieChart, #priorityBarChart, #priorityStackedChart').html('<p class="text-center text-danger">ApexCharts kutubxonasi yuklanmagan!</p>');
+                return;
+            }
+            
+            console.log('ApexCharts loaded successfully');
+
+            // Status Pie Chart
+            @if (Model.StatusStatistics != null && Model.StatusStatistics.Any())
+            {
+                <text>
+                var statusLabels = [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        var label = stat.StatusName + " (" + stat.Count + ")";
+                        <text>'@label.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+                var statusSeries = [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        <text>@stat.Count,</text>
+                    }
+                ];
+                
+                // Status ranglarini dinamik belgilash
+                var statusColors = [
+                    @foreach (var stat in Model.StatusStatistics)
+                    {
+                        var statusNameLower = stat.StatusName?.ToLower() ?? "";
+                        string color = "#6C757D"; // default grey
+                        if (statusNameLower.Contains("jarayonda") || statusNameLower.Contains("in_progress") || statusNameLower.Contains("in progress"))
+                        {
+                            color = "#FFC107"; // sariq (yellow)
+                        }
+                        else if (statusNameLower.Contains("rejada") || statusNameLower.Contains("todo") || statusNameLower.Contains("planned"))
+                        {
+                            color = "#6C757D"; // grey
+                        }
+                        else if (statusNameLower.Contains("bajarildi") || statusNameLower.Contains("done"))
+                        {
+                            color = "#28A745"; // yashil (green)
+                        }
+                        else if (statusNameLower.Contains("bekor") || statusNameLower.Contains("cancelled") || statusNameLower.Contains("cancel"))
+                        {
+                            color = "#DC3545"; // qizil (red)
+                        }
+                        <text>'@color',</text>
+                    }
+                ];
+
+                console.log('Status Labels:', statusLabels);
+                console.log('Status Series:', statusSeries);
+                console.log('Status Colors:', statusColors);
+
+                var statusPieOptions = {
+                    chart: {
+                        type: 'pie',
+                        height: 350
+                    },
+                    labels: statusLabels,
+                    series: statusSeries,
+                    colors: statusColors,
+                    legend: {
+                        position: 'bottom'
+                    },
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                width: 200
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                };
+
+                try {
+                    var statusPieChart = new ApexCharts(document.querySelector("#statusPieChart"), statusPieOptions);
+                    statusPieChart.render();
+                    console.log('Status Pie Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Status Pie Chart:', e);
+                    document.querySelector("#statusPieChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No status statistics available');
+                document.querySelector("#statusPieChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
+                </text>
+            }
+
+            // Priority Bar Chart
+            @if (Model.PriorityStatistics != null && Model.PriorityStatistics.Any())
+            {
+                <text>
+                var priorityCategories = [
+                    @foreach (var stat in Model.PriorityStatistics)
+                    {
+                        <text>'@stat.PriorityName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+                
+                // Priority ranglarini dinamik belgilash
+                var priorityColors = [
+                    @foreach (var stat in Model.PriorityStatistics)
+                    {
+                        var priorityNameLower = stat.PriorityName?.ToLower() ?? "";
+                        string color = "#DC3545"; // default to'q qizil
+                        if (priorityNameLower.Contains("juda muhim") || priorityNameLower.Contains("critical"))
+                        {
+                            color = "#DC3545"; // to'q qizil
+                        }
+                        else if (priorityNameLower.Contains("muhim") || priorityNameLower.Contains("high"))
+                        {
+                            color = "#FF6666"; // qizil
+                        }
+                        else if (priorityNameLower.Contains("normal") || priorityNameLower.Contains("medium"))
+                        {
+                            color = "#FFCCCC"; // och qizil
+                        }
+                        <text>'@color',</text>
+                    }
+                ];
+
+                var priorityBarOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: 350
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: 'Jami',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.TotalCount,</text>
+                            }
+                        ]
+                    }, {
+                        name: 'Bajarildi',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.DoneCount,</text>
+                            }
+                        ]
+                    }],
+                    xaxis: {
+                        categories: priorityCategories,
+                        labels: {
+                            style: {
+                                colors: priorityColors
+                            }
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Vazifalar soni'
+                        }
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    colors: priorityColors,
+                    legend: {
+                        position: 'top'
+                    }
+                };
+
+                try {
+                    var priorityBarChart = new ApexCharts(document.querySelector("#priorityBarChart"), priorityBarOptions);
+                    priorityBarChart.render();
+                    console.log('Priority Bar Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Priority Bar Chart:', e);
+                    document.querySelector("#priorityBarChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+
+                // Priority Stacked Chart
+                var priorityStackedOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: 400,
+                        stacked: true,
+                        stackType: '100%'
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false
+                        }
+                    },
+                    series: [{
+                        name: 'Rejada',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.TodoCount,</text>
+                            }
+                        ]
+                    }, {
+                        name: 'Jarayonda',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.InProgressCount,</text>
+                            }
+                        ]
+                    }, {
+                        name: 'Bajarildi',
+                        data: [
+                            @foreach (var stat in Model.PriorityStatistics)
+                            {
+                                <text>@stat.DoneCount,</text>
+                            }
+                        ]
+                    }],
+                    xaxis: {
+                        categories: priorityCategories,
+                        labels: {
+                            style: {
+                                colors: priorityColors
+                            }
+                        }
+                    },
+                    colors: ['#6C757D', '#FFC107', '#28A745'],
+                    legend: {
+                        position: 'top'
+                    },
+                    fill: {
+                        opacity: 1
+                    }
+                };
+
+                try {
+                    var priorityStackedChart = new ApexCharts(document.querySelector("#priorityStackedChart"), priorityStackedOptions);
+                    priorityStackedChart.render();
+                    console.log('Priority Stacked Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Priority Stacked Chart:', e);
+                    document.querySelector("#priorityStackedChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No priority statistics available');
+                document.querySelector("#priorityBarChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
+                document.querySelector("#priorityStackedChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
+                </text>
+            }
+
+            // Overdue Tasks Chart
+            @if (Model.OverdueTasksStatistics != null && Model.OverdueTasksStatistics.Any())
+            {
+                <text>
+                var overdueCategories = [
+                    @foreach (var stat in Model.OverdueTasksStatistics)
+                    {
+                        <text>'@stat.ProjectName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+                var overdueSeries = [
+                    @foreach (var stat in Model.OverdueTasksStatistics)
+                    {
+                        <text>@stat.OverdueCount,</text>
+                    }
+                ];
+
+                var overdueChartOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: 400
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            borderRadius: 4
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true
+                    },
+                    series: [{
+                        name: 'Muddatidan o\'tgan vazifalar',
+                        data: overdueSeries
+                    }],
+                    xaxis: {
+                        categories: overdueCategories
+                    },
+                    colors: ['#DC3545'],
+                    legend: {
+                        position: 'top'
+                    },
+                    fill: {
+                        opacity: 1
+                    }
+                };
+
+                try {
+                    var overdueChart = new ApexCharts(document.querySelector("#overdueTasksChart"), overdueChartOptions);
+                    overdueChart.render();
+                    console.log('Overdue Tasks Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Overdue Tasks Chart:', e);
+                    document.querySelector("#overdueTasksChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No overdue tasks statistics available');
+                document.querySelector("#overdueTasksChart").innerHTML = '<p class="text-center text-muted">Muddatidan o\'tgan vazifalar yo\'q</p>';
+                </text>
+            }
+
+            // Employee Rating Chart
+            @if (Model.EmployeeRatings != null && Model.EmployeeRatings.Any())
+            {
+                <text>
+                var employeeNames = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>'@emp.FullName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
+                    }
+                ];
+                var ratingScores = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>@emp.RatingScore,</text>
+                    }
+                ];
+                var onTimeCompleted = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>@emp.OnTimeCompletedCount,</text>
+                    }
+                ];
+                var overdueNotCompleted = [
+                    @foreach (var emp in Model.EmployeeRatings)
+                    {
+                        <text>@emp.OverdueNotCompletedCount,</text>
+                    }
+                ];
+
+                // Determine if we should show on-time completed or overdue
+                var hasOnTimeCompleted = @(Model.EmployeeRatings.Any(r => r.OnTimeCompletedCount > 0) ? "true" : "false");
+
+                var employeeRatingOptions = {
+                    chart: {
+                        type: 'bar',
+                        height: @(Model.EmployeeRatings.Count * 50 + 100),
+                        toolbar: {
+                            show: true
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            borderRadius: 4,
+                            dataLabels: {
+                                position: 'top'
+                            }
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function (val, opts) {
+                            if (hasOnTimeCompleted) {
+                                return onTimeCompleted[opts.dataPointIndex] + ' ta muddatida bajarilgan';
+                            } else {
+                                return overdueNotCompleted[opts.dataPointIndex] + ' ta muddati o\'tgan';
+                            }
+                        },
+                        offsetX: 0,
+                        offsetY: -5,
+                        style: {
+                            fontSize: '12px',
+                            colors: ['#333']
+                        }
+                    },
+                    series: [{
+                        name: hasOnTimeCompleted ? 'Muddatida bajarilgan' : 'Muddati o\'tgan',
+                        data: hasOnTimeCompleted ? onTimeCompleted : overdueNotCompleted
+                    }],
+                    xaxis: {
+                        categories: employeeNames,
+                        title: {
+                            text: hasOnTimeCompleted ? 'Muddatida bajarilgan vazifalar soni' : 'Muddati o\'tgan vazifalar soni'
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Xodimlar'
+                        }
+                    },
+                    colors: hasOnTimeCompleted ? ['#28A745'] : ['#DC3545'],
+                    legend: {
+                        position: 'top'
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val, opts) {
+                                var index = opts.dataPointIndex;
+                                if (hasOnTimeCompleted) {
+                                    return 'Muddatida bajarilgan: ' + val + ' ta<br/>Muddati o\'tgan: ' + overdueNotCompleted[index] + ' ta';
+                                } else {
+                                    return 'Muddati o\'tgan: ' + val + ' ta';
+                                }
+                            }
+                        }
+                    }
+                };
+
+                try {
+                    var employeeRatingChart = new ApexCharts(document.querySelector("#employeeRatingChart"), employeeRatingOptions);
+                    employeeRatingChart.render();
+                    console.log('Employee Rating Chart rendered');
+                } catch (e) {
+                    console.error('Error rendering Employee Rating Chart:', e);
+                    document.querySelector("#employeeRatingChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                console.log('No employee ratings available');
+                document.querySelector("#employeeRatingChart").innerHTML = '<p class="text-center text-muted">Xodimlar reytingi ma\'lumotlari yo\'q</p>';
+                </text>
+            }
+        });
+    </script>
+}

@@ -1,0 +1,311 @@
+@model tahsinERP.ViewModels.HR.HrPayrollHeaderViewModel
+@using System.Collections.Generic
+@using tahsinERP.Models
+@{
+    ViewBag.Title = "Ish haqi hisobini tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currencyItems = ViewBag.CurrencyItems as List<CURRENCy> ?? new List<CURRENCy>();
+}
+
+@if (RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ish haqi hisobi</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = Model.ID })">Batafsil</a></li>
+                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="btn-group" role="group">
+                            <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-sm btn-outline-secondary">
+                                <i class="bx bx-show"></i> Batafsil
+                            </a>
+                            <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-sm btn-success">
+                                <i class="bx bx-export"></i> Excelga eksport
+                            </a>
+                            <a href="@Url.Action("Report", new { id = Model.ID })" class="btn btn-sm btn-info" target="_blank">
+                                <i class="bx bx-printer"></i> Chop etish
+                            </a>
+                            @if (Model.Status == "Draft")
+                            {
+                                <a href="@Url.Action("Approve", new { id = Model.ID })" class="btn btn-sm btn-warning" onclick="return confirm('Hisobni tasdiqlash?');">
+                                    <i class="bx bx-check"></i> Tasdiqlash
+                                </a>
+                            }
+                        </div>
+                        <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Posted" ? "info" : "warning") ml-2">
+                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "O'tkazilgan")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Xulosa</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @if (Model.PayrollType == "Hourly")
+                            {
+                                <div class="col-md-3 mb-1">
+                                    <label class="mb-0"><strong>Daromad solig'i (%)</strong></label>
+                                    <input type="number"
+                                           id="incomeTaxPercent"
+                                           class="form-control form-control-sm"
+                                           value="@Model.IncomeTaxPercent.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
+                                           min="0"
+                                           max="100"
+                                           step="0.01" />
+                                </div>
+                            }
+                            <div class="col-md-3">
+                                <strong>Jami hisoblangan:</strong> @Model.TotalGrossSalary.ToString("N2")
+                            </div>
+                            @if (Model.PayrollType == "Hourly")
+                            {
+                                <div class="col-md-3">
+                                    <strong>Jami daromad solig'i:</strong> <span id="summaryIncomeTax">@Model.TotalIncomeTax.ToString("N2")</span>
+                                </div>
+                            }
+                            <div class="col-md-3">
+                                <strong>Mukofotlar:</strong> @Model.Lines.Sum(l => l.Bonuses).ToString("N2")
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Jarimalar:</strong> @Model.Lines.Sum(l => l.Penalties).ToString("N2")
+                            </div>
+                            <div class="col-md-3">
+                                <strong>To'lovga:</strong> <span class="text-success font-weight-bold">@Model.TotalNetSalary.ToString("N2")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped" id="payrollGrid">
+                                    <thead>
+                                        <tr>
+                                            <th>№</th>
+                                            <th>Tab.№</th>
+                                            <th>F.I.O.</th>
+                                            <th>Lavozim</th>
+                                            <th>Asosiy maosh</th>
+                                            <th>Ishlangan soatlar</th>
+                                            <th>Hisoblangan</th>
+                                            @if (Model.PayrollType == "Hourly")
+                                            {
+                                                <th>Daromad solig'i</th>
+                                            }
+                                            <th>Mukofotlar</th>
+                                            <th>Jarimalar</th>
+                                            <th>To'lovga</th>
+                                            <th>Valyuta</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ int rowNum = 1; }
+                                        @foreach (var line in Model.Lines)
+                                        {
+                                            <tr data-line-id="@line.ID">
+                                                <td>@rowNum</td>
+                                                <td>@line.EmployeeTabNo</td>
+                                                <td>@line.EmployeeFullName</td>
+                                                <td>@line.PositionName</td>
+                                                <td>@line.BaseSalary.ToString("N2")</td>
+                                                <td>@line.HoursWorked.ToString("F2")</td>
+                                                <td>@line.GrossSalary.ToString("N2")</td>
+                                                @if (Model.PayrollType == "Hourly")
+                                                {
+                                                    <td class="income-tax">@line.IncomeTaxAmount.ToString("N2")</td>
+                                                }
+                                                <td>
+                                                    <input type="number"
+                                                           class="form-control form-control-sm bonuses-input"
+                                                           data-line-id="@line.ID"
+                                                           value="@line.Bonuses.ToString("F2")"
+                                                           step="0.01"
+                                                           min="0"
+                                                           style="width: 100px;"
+                                                           @(Model.Status != "Draft" ? "readonly" : "") />
+                                                </td>
+                                                <td>
+                                                    <input type="number"
+                                                           class="form-control form-control-sm penalties-input"
+                                                           data-line-id="@line.ID"
+                                                           value="@line.Penalties.ToString("F2")"
+                                                           step="0.01"
+                                                           min="0"
+                                                           style="width: 100px;"
+                                                           @(Model.Status != "Draft" ? "readonly" : "") />
+                                                </td>
+                                                <td class="net-salary">@line.NetSalary.ToString("N2")</td>
+                                                <td>
+                                                    @if (Model.Status == "Draft" && currencyItems.Count > 0)
+                                                    {
+                                                        <select class="form-control form-control-sm currency-select"
+                                                                data-line-id="@line.ID"
+                                                                style="min-width: 90px;">
+                                                            @foreach (var c in currencyItems)
+                                                            {
+                                                                <option value="@c.ID" @(line.CurrencyID == c.ID ? "selected" : "")>@c.Shortname</option>
+                                                            }
+                                                        </select>
+                                                    }
+                                                    else
+                                                    {
+                                                        @(line.CurrencyCode ?? "-")
+                                                    }
+                                                </td>
+                                            </tr>
+                                            rowNum++;
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="font-weight-bold">
+                                            <td colspan="6" class="text-right">JAMI:</td>
+                                            <td>@Model.TotalGrossSalary.ToString("N2")</td>
+                                            @if (Model.PayrollType == "Hourly")
+                                            {
+                                                <td id="totalIncomeTax">@Model.TotalIncomeTax.ToString("N2")</td>
+                                            }
+                                            <td>@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</td>
+                                            <td>@Model.Lines.Sum(l => l.Penalties).ToString("N2")</td>
+                                            <td class="text-success">@Model.TotalNetSalary.ToString("N2")</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            (function ($) {
+                if (!$) return;
+                $(document).ready(function () {
+                    var isHourlyPayroll = '@Model.PayrollType' === 'Hourly';
+                    function getIncomeTaxPercent() {
+                        if (!isHourlyPayroll) return 0;
+                        var taxPercent = parseFloat($('#incomeTaxPercent').val());
+                        if (isNaN(taxPercent) || taxPercent < 0) taxPercent = 0;
+                        if (taxPercent > 100) taxPercent = 100;
+                        return taxPercent;
+                    }
+                    var dtUz = {
+                        decimal: "",
+                        emptyTable: "Jadvalda ma'lumot yo'q",
+                        info: "_TOTAL_ yozuvdan _START_ - _END_ gacha ko'rsatilmoqda",
+                        infoEmpty: "0 yozuvdan 0 - 0 gacha ko'rsatilmoqda",
+                        infoFiltered: "(_MAX_ yozuvdan filtrlangan)",
+                        lengthMenu: "Ko'rsatish _MENU_ ta yozuv",
+                        loadingRecords: "Yuklanmoqda...",
+                        processing: "Qayta ishlanmoqda...",
+                        search: "Qidirish:",
+                        zeroRecords: "Mos yozuv topilmadi",
+                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" }
+                    };
+                    if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#payrollGrid')) {
+                        $('#payrollGrid').DataTable({
+                            language: dtUz,
+                            pageLength: 25,
+                            order: [[1, "asc"]],
+                            autoWidth: false,
+                            columnDefs: [
+                                { orderable: false, targets: isHourlyPayroll ? [8, 9, 11] : [7, 8, 10] }
+                            ]
+                        });
+                    }
+
+                    $('.bonuses-input, .penalties-input').on('change blur', function () {
+                        var $input = $(this);
+                        var lineId = $input.data('line-id');
+                        var bonuses = parseFloat($('.bonuses-input[data-line-id="' + lineId + '"]').val()) || 0;
+                        var penalties = parseFloat($('.penalties-input[data-line-id="' + lineId + '"]').val()) || 0;
+
+                        $.post('@Url.Action("UpdateLine")', {
+                            lineId: lineId,
+                            bonuses: bonuses,
+                            penalties: penalties,
+                            incomeTaxPercent: getIncomeTaxPercent()
+                        }, function (result) {
+                            if (result.success) {
+                                $('tr[data-line-id="' + lineId + '"] .net-salary').text(parseFloat(result.netSalary).toFixed(2));
+                                if (isHourlyPayroll) {
+                                    $('tr[data-line-id="' + lineId + '"] .income-tax').text(parseFloat(result.incomeTaxAmount || 0).toFixed(2));
+                                }
+                                location.reload();
+                            } else {
+                                alert('Xatolik: ' + result.message);
+                            }
+                        });
+                    });
+
+                    $('#incomeTaxPercent').on('change blur', function () {
+                        if (!isHourlyPayroll) return;
+                        var taxPercent = getIncomeTaxPercent();
+                        $('.bonuses-input').first().trigger('change');
+                    });
+
+                    $('.currency-select').on('change', function () {
+                        var $sel = $(this);
+                        var lineId = $sel.data('line-id');
+                        var currencyId = parseInt($sel.val(), 10);
+                        if (!lineId || !currencyId) return;
+                        $.post('@Url.Action("UpdateLine")', {
+                            lineId: lineId,
+                            currencyId: currencyId
+                        }, function (result) {
+                            if (!result.success) {
+                                alert('Xatolik: ' + result.message);
+                                location.reload();
+                            }
+                        });
+                    });
+                });
+            })(window.jQuery || window.$j);
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

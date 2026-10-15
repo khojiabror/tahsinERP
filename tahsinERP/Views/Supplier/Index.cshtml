@@ -1,0 +1,169 @@
+@model List<tahsinERP.Models.SUPPLIER>
+@{
+    ViewBag.Title = "Ta'minotchilar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var type = ViewBag.Type;
+}
+
+@{
+    bool changePermit = ViewBag.ChangePermit as bool? ?? false;
+}
+<div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Ta'minotchilar
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="invoice-create-btn mb-1">
+                        @if (changePermit)
+                        {
+                            <a href="@Url.Action("Create", "Supplier")" class="btn btn-success bg-light invoice-create">
+                                <i class="bx bx-plus"></i> Yangi ta'minotchi
+                            </a>
+                        }
+                    </div>
+
+                    <div class="users-list-filter px-1">
+                        <form>
+                            <div class="row border rounded py-2 mb-2">
+                                <div class="col-12 col-sm-12 col-lg-4">
+                                    <label for="SourceID">Turi</label>
+                                    <fieldset class="form-group">
+                                        @Html.DropDownList("SourceID", ViewBag.SourceList as SelectList, "Barchasi", new { @class = "form-control", @id = "typeFilter", onchange = "refreshDataTable()" })
+                                    </fieldset>
+                                </div>
+                                <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
+                                    <a href="~/Supplier" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
+                                        <i class="bx bx-refresh"></i> Ro'yxatni yangilash
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="suppliersTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nomi</th>
+                                                    <th>Aloqa uchun</th>
+                                                    <th>Turi</th>
+                                                    <th>Telefon</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th>Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "Supplier", new { id = item.ID })">@item.Name</a>
+                                                            </td>
+                                                            <td>@(item.ContactPersonName ?? "-")</td>
+                                                            <td>@(item.Type ?? "-")</td>
+                                                            <td>@(item.Telephone ?? "-")</td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div class="d-flex">
+                                                                        <a href="@Url.Action("Edit", "Supplier", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Tahrirlash">
+                                                                            <i class="bx bx-edit-alt"></i>
+                                                                        </a>
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteSupplier(@item.ID, '@item.Name')" title="O'chirish">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function refreshDataTable() {
+            const source = document.getElementById("typeFilter").value;
+            window.location.href = '@Url.Action("Index", "Supplier")?type=' + (source || '');
+        }
+
+        function deleteSupplier(id, name) {
+            if (!confirm('"' + name + '" ta\'minotchini o\'chirishni tasdiqlaysizmi?')) {
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '@Url.Action("Delete", "Supplier")',
+                type: 'POST',
+                data: { id: id, __RequestVerificationToken: token },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Xatolik: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('Server xatoligi yuz berdi');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $('#suppliersTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "order": [[0, "asc"]]
+            });
+        });
+    </script>

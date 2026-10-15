@@ -1,0 +1,102 @@
+@model tahsinERP.ViewModels.PermissionModuleViewModel
+@{
+    ViewBag.Title = "Modul ma'lumotlari";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/PModule">Ruxsat modullari</a></li>
+                                    <li class="breadcrumb-item active">@Model.Module</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="bx bx-info-circle mr-1"></i>@Model.Module</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label><strong>Modul nomi:</strong></label>
+                                        <p class="form-control-plaintext">@Model.Module</p>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><strong>Controller:</strong></label>
+                                        <p class="form-control-plaintext"><code>@Model.Controller</code></p>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><strong>Action:</strong></label>
+                                        <p class="form-control-plaintext"><code>@Model.Action</code></p>
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(Model.Parametr))
+                                    {
+                                        <div class="form-group">
+                                            <label><strong>Parametr:</strong></label>
+                                            <p class="form-control-plaintext">@Model.Parametr</p>
+                                        </div>
+                                    }
+
+                                    <div class="form-group">
+                                        <label><strong>Rollar:</strong></label>
+                                        <p class="form-control-plaintext">
+                                            @if (!string.IsNullOrEmpty(Model.RoleNames))
+                                            {
+                                                foreach (var role in Model.RoleNames.Split(',').Select(r => r.Trim()))
+                                                {
+                                                    <span class="badge badge-light-primary mr-1">@role</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Rollar yo'q</span>
+                                            }
+                                        </p>
+                                    </div>
+
+                                    @if (changePermit)
+                                    {
+                                        <div class="form-group">
+                                            <a href="@Url.Action("Edit", "PModule", new { id = Model.ID })" class="btn btn-primary">
+                                                <i class="bx bx-edit"></i> Tahrirlash
+                                            </a>
+                                            <a href="@Url.Action("Index", "PModule")" class="btn btn-outline-secondary">
+                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

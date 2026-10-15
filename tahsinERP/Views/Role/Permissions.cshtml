@@ -1,0 +1,445 @@
+@model tahsinERP.ViewModels.RolePermissionsViewModel
+@{
+    ViewBag.Title = "Huquqlarni boshqarish";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
+                                    <li class="breadcrumb-item active">@Model.RoleName - Huquqlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col-12">
+                    <div class="card">
+                            <div class="card-header border-bottom">
+                                <h4 class="card-title mb-0">
+                                    <i class="bx bx-shield mr-1"></i>
+                                    <strong>@Model.RoleName</strong> roli uchun huquqlar
+                                </h4>
+                                @if (!string.IsNullOrEmpty(Model.Description))
+                                {
+                                    <p class="text-muted mb-0 mt-1">@Model.Description</p>
+                                }
+                            </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                    @using (Html.BeginForm("Permissions", "Role", FormMethod.Post, new { @id = "permissionsForm" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.RoleID)
+                                        @Html.HiddenFor(m => m.RoleName)
+
+                                        <!-- Controls -->
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnSelectAllView">
+                                                        <i class="bx bx-check-square"></i> Barcha View
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-success" id="btnSelectAllChange">
+                                                        <i class="bx bx-check-square"></i> Barcha Change
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" id="btnSelectAllDelete">
+                                                        <i class="bx bx-check-square"></i> Barcha Delete
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-warning" id="btnDeselectAll">
+                                                        <i class="bx bx-square"></i> Barchasini bekor qilish
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 text-right">
+                                                <input type="text" id="searchBox" class="form-control form-control-sm d-inline-block" placeholder="Qidirish..." style="width: 250px;">
+                                                <select id="pageSize" class="form-control form-control-sm d-inline-block ml-2" style="width: 100px;">
+                                                    <option value="10">10</option>
+                                                    <option value="25" selected>25</option>
+                                                    <option value="50">50</option>
+                                                    <option value="100">100</option>
+                                                    <option value="-1">Barchasi</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Table -->
+                                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                            <table class="table table-hover table-sm table-bordered" id="permissionsTable">
+                                                <thead class="thead-light sticky-top">
+                                                    <tr>
+                                                    <th>Modul</th>
+                                                    <th>Controller</th>
+                                                    <th>Action</th>
+                                                    <th class="text-center" style="width: 100px;">View</th>
+                                                    <th class="text-center" style="width: 100px;">Change</th>
+                                                    <th class="text-center" style="width: 100px;">Delete</th>
+                                                </tr>
+                                            </thead>
+                                                <tbody id="tableBody">
+                                                    @{
+                                                        var groupedPermissions = Model.Permissions
+                                                            .GroupBy(p => p.Module ?? "Boshqa")
+                                                            .OrderBy(g => g.Key);
+                                                    }
+                                                    @foreach (var group in groupedPermissions)
+                                                    {
+                                                        foreach (var perm in group.OrderBy(p => p.Controller).ThenBy(p => p.Action))
+                                                        {
+                                                            var permIndex = Model.Permissions.IndexOf(perm);
+                                                            <tr class="permission-row" data-module="@group.Key" data-controller="@perm.Controller" data-action="@perm.Action">
+                                                                @Html.HiddenFor(m => m.Permissions[permIndex].ID)
+                                                                @Html.HiddenFor(m => m.Permissions[permIndex].PermissionModuleID)
+                                                                @Html.HiddenFor(m => m.Permissions[permIndex].Module)
+                                                                @Html.HiddenFor(m => m.Permissions[permIndex].Controller)
+                                                                @Html.HiddenFor(m => m.Permissions[permIndex].Action)
+                                                                @Html.HiddenFor(m => m.Permissions[permIndex].Parameter)
+                                                                <td>
+                                                                    <span class="badge badge-light-info">@perm.Module</span>
+                                                                </td>
+                                                                <td>
+                                                                    <code class="small">@perm.Controller</code>
+                                                        </td>
+                                                        <td>
+                                                                    <code class="small">@perm.Action</code>
+                                                                    @if (!string.IsNullOrEmpty(perm.Parameter))
+                                                                    {
+                                                                        <br><small class="text-muted">(@perm.Parameter)</small>
+                                                                    }
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="custom-control custom-switch">
+                                                                        @Html.CheckBoxFor(m => m.Permissions[permIndex].ViewPermit, 
+                                                                            new { @class = "custom-control-input view-checkbox-input", @id = $"view_{permIndex}", @data_index = permIndex })
+                                                                        <label class="custom-control-label" for="view_@permIndex"></label>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="custom-control custom-switch">
+                                                                        @Html.CheckBoxFor(m => m.Permissions[permIndex].ChangePermit, 
+                                                                            new { @class = "custom-control-input change-checkbox-input", @id = $"change_{permIndex}", @data_index = permIndex })
+                                                                        <label class="custom-control-label" for="change_@permIndex"></label>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="custom-control custom-switch">
+                                                                        @Html.CheckBoxFor(m => m.Permissions[permIndex].DeletePermit, 
+                                                                            new { @class = "custom-control-input delete-checkbox-input", @id = $"delete_{permIndex}", @data_index = permIndex })
+                                                                        <label class="custom-control-label" for="delete_@permIndex"></label>
+                                                                    </div>
+                                                        </td>
+                                                    </tr>
+                                                        }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                        <!-- Pagination -->
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div id="paginationInfo" class="text-muted"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <nav>
+                                                    <ul class="pagination justify-content-end mb-0" id="pagination"></ul>
+                                                </nav>
+                                            </div>
+                                        </div>
+
+                                        <!-- Action Buttons -->
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-primary" id="btnSave">
+                                                    <i class="bx bx-save"></i> Saqlash
+                                            </button>
+                                                <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
+                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                </a>
+                                            </div>
+                                        </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <style>
+        .permission-row {
+            display: table-row;
+        }
+        .permission-row.hidden {
+            display: none !important;
+        }
+        /* Form submit qilishda barcha checkboxlar o'qilishi uchun - yashirilgan qatorlardagi inputlar ham o'qilishi kerak */
+        #permissionsForm input[type="checkbox"],
+        #permissionsForm input[type="hidden"] {
+            /* Yashirilgan qatorlardagi inputlar ham form submit qilishda o'qilishi uchun */
+        }
+        #permissionsTable thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+        }
+        .pagination .page-link {
+            cursor: pointer;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #5A8DEE;
+            border-color: #5A8DEE;
+        }
+    </style>
+
+    <script>
+        (function() {
+            var currentPage = 1;
+            var pageSize = 25;
+            var allRows = [];
+            var filteredRows = [];
+
+            function init() {
+                allRows = Array.from(document.querySelectorAll('.permission-row'));
+                filteredRows = allRows;
+                updatePageSize();
+                renderTable();
+                setupEventListeners();
+            }
+
+            function setupEventListeners() {
+                // Search
+                document.getElementById('searchBox').addEventListener('input', function() {
+                    var searchTerm = this.value.toLowerCase();
+                    filteredRows = allRows.filter(function(row) {
+                        var text = row.textContent.toLowerCase();
+                        return text.indexOf(searchTerm) > -1;
+                    });
+                    currentPage = 1;
+                    renderTable();
+                });
+
+                // Page size
+                document.getElementById('pageSize').addEventListener('change', function() {
+                    pageSize = parseInt(this.value);
+                    if (pageSize === -1) pageSize = filteredRows.length;
+                    currentPage = 1;
+                    renderTable();
+                });
+
+                // Select All View
+                document.getElementById('btnSelectAllView').addEventListener('click', function() {
+                    document.querySelectorAll('.view-checkbox-input').forEach(function(cb) {
+                        cb.checked = true;
+                    });
+                });
+
+                // Select All Change
+                document.getElementById('btnSelectAllChange').addEventListener('click', function() {
+                    document.querySelectorAll('.change-checkbox-input').forEach(function(cb) {
+                        cb.checked = true;
+                    });
+                });
+
+                // Select All Delete
+                document.getElementById('btnSelectAllDelete').addEventListener('click', function() {
+                    document.querySelectorAll('.delete-checkbox-input').forEach(function(cb) {
+                        cb.checked = true;
+                    });
+                });
+
+                // Deselect All
+                document.getElementById('btnDeselectAll').addEventListener('click', function() {
+                    document.querySelectorAll('.view-checkbox-input, .change-checkbox-input, .delete-checkbox-input').forEach(function(cb) {
+                        cb.checked = false;
+                    });
+                });
+
+                // Form submit
+                document.getElementById('permissionsForm').addEventListener('submit', function(e) {
+                    // Barcha qatorlarni ko'rsatish - checkboxlar to'g'ri o'qilishi uchun
+                    // CSS display: none bilan yashirilgan elementlar form submit qilishda o'qilmaydi
+                    // Shuning uchun barcha qatorlarni ko'rsatish kerak
+                    allRows.forEach(function(row) {
+                        row.classList.remove('hidden');
+                        row.style.display = '';
+                        row.style.visibility = '';
+                    });
+                    
+                    // Barcha inputlarni ko'rsatish (agar ular yashirilgan bo'lsa)
+                    document.querySelectorAll('#permissionsForm input[type="checkbox"], #permissionsForm input[type="hidden"]').forEach(function(input) {
+                        input.style.display = '';
+                        input.style.visibility = '';
+                        input.removeAttribute('disabled');
+                    });
+                    
+                    // Kichik kechikish - DOM yangilanishi uchun
+                    // Form submit qilish davom etadi
+                });
+            }
+
+            function updatePageSize() {
+                var select = document.getElementById('pageSize');
+                var value = select.value;
+                if (value === '-1') {
+                    pageSize = filteredRows.length;
+                } else {
+                    pageSize = parseInt(value);
+                }
+            }
+
+            function renderTable() {
+                updatePageSize();
+                var total = filteredRows.length;
+                var totalPages = Math.ceil(total / pageSize);
+                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                var start = (currentPage - 1) * pageSize;
+                var end = start + pageSize;
+
+                allRows.forEach(function(row) {
+                    row.classList.add('hidden');
+                });
+
+                filteredRows.slice(start, end).forEach(function(row) {
+                    row.classList.remove('hidden');
+                });
+
+                updatePagination(total, totalPages);
+                updateInfo(total, start, end);
+            }
+
+            function updatePagination(total, totalPages) {
+                var pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+
+                if (totalPages <= 1) return;
+
+                // Previous
+                var prev = document.createElement('li');
+                prev.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+                var prevLink = document.createElement('a');
+                prevLink.className = 'page-link';
+                prevLink.href = '#';
+                prevLink.textContent = 'Oldingi';
+                prevLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderTable();
+                    }
+                    return false;
+                });
+                prev.appendChild(prevLink);
+                pagination.appendChild(prev);
+
+                // Pages
+                var dotsAdded = false;
+                for (var i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                        dotsAdded = false;
+                        var li = document.createElement('li');
+                        li.className = 'page-item' + (i === currentPage ? ' active' : '');
+                        var link = document.createElement('a');
+                        link.className = 'page-link';
+                        link.href = '#';
+                        link.textContent = i;
+                        link.setAttribute('data-page', i);
+                        link.addEventListener('click', (function(pageNum) {
+                            return function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                currentPage = pageNum;
+                                renderTable();
+                                return false;
+                            };
+                        })(i));
+                        li.appendChild(link);
+                        pagination.appendChild(li);
+                    } else if (!dotsAdded && (i === currentPage - 3 || i === currentPage + 3)) {
+                        dotsAdded = true;
+                        var dots = document.createElement('li');
+                        dots.className = 'page-item disabled';
+                        dots.innerHTML = '<span class="page-link">...</span>';
+                        pagination.appendChild(dots);
+                    }
+                }
+
+                // Next
+                var next = document.createElement('li');
+                next.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+                var nextLink = document.createElement('a');
+                nextLink.className = 'page-link';
+                nextLink.href = '#';
+                nextLink.textContent = 'Keyingi';
+                nextLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                    }
+                    return false;
+                });
+                next.appendChild(nextLink);
+                pagination.appendChild(next);
+            }
+
+            function updateInfo(total, start, end) {
+                var info = document.getElementById('paginationInfo');
+                if (total === 0) {
+                    info.textContent = 'Yozuvlar yo\'q';
+                } else {
+                    info.textContent = total + ' ta yozuvdan ' + (start + 1) + ' dan ' + Math.min(end, total) + ' gacha';
+                }
+            }
+
+            // Initialize
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

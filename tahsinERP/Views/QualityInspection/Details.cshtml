@@ -1,0 +1,114 @@
+@model tahsinERP.Models.QUALITY_INSPECTION
+@{
+    ViewBag.Title = "Sifat Nazorati Ma'lumotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool changePermit = ViewBag.ChangePermit as bool? ?? false;
+}
+
+<div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/QualityInspection/Index">Sifat Nazorati</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-12 col-md-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body pb-0 mx-25">
+                                        <div class="row invoice-info">
+                                            <div class="col-lg-12 col-md-12 mt-25">
+                                                <h4 class="text-primary">Sifat Nazorati Ma'lumotlari</h4>
+                                                <hr />
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><strong>Mahsulot:</strong> @(Model.PRODUCT?.PNo ?? Model.ProductID.ToString()) - @(Model.PRODUCT?.Name ?? "")</p>
+                                                        <p><strong>Tekshiruv sanasi:</strong> @Model.InspectionDate.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>Tekshirilgan miqdor:</strong> @Model.QtyInspected.ToString("N3")</p>
+                                                        <p><strong>Qabul qilingan miqdor:</strong> <span class="text-success">@Model.QtyAccepted.ToString("N3")</span></p>
+                                                        <p><strong>Rad etilgan miqdor:</strong> <span class="text-danger">@Model.QtyRejected.ToString("N3")</span></p>
+                                                        @{ var defectTypeDisplay = Model.DEFECT_TYPES != null && !string.IsNullOrEmpty(Model.DEFECT_TYPES.DefectType) ? Model.DEFECT_TYPES.DefectType : "-"; }
+                                                        <p><strong>Nuqson turi:</strong> @defectTypeDisplay</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        @{ var statusDisplay = Model.StatusCode == "APPROVED" ? "Tasdiqlangan" : Model.StatusCode == "REJECTED" ? "Rad etilgan" : Model.StatusCode == "DRAFT" ? "Qoralama" : Model.StatusCode ?? "-"; }
+                                                        <p><strong>Holat:</strong> 
+                                                            <span class="badge badge-@(Model.StatusCode == "APPROVED" ? "success" : Model.StatusCode == "REJECTED" ? "danger" : "warning")">
+                                                                @statusDisplay
+                                                            </span>
+                                                        </p>
+                                                        @if (Model.ApprovalDate.HasValue)
+                                                        {
+                                                            <p><strong>Tasdiqlash sanasi:</strong> @Model.ApprovalDate.Value.ToString("dd.MM.yyyy")</p>
+                                                        }
+                                                        @if (Model.S_ORDERS != null)
+                                                        {
+                                                            <p><strong>Buyurtma:</strong> 
+                                                                <a href="@Url.Action("Details", "SOrder", new { id = Model.SOrderID })">@Model.S_ORDERS.OrderNo</a>
+                                                            </p>
+                                                        }
+                                                        @if (Model.PRODUCT_PRODUCTION != null && Model.ProductionID > 0)
+                                                        {
+                                                            <p><strong>Ishlab chiqarish:</strong> 
+                                                                <a href="@Url.Action("Details", "ProductProduction", new { id = Model.ProductionID })">ID: @Model.ProductionID</a>
+                                                            </p>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(Model.Notes))
+                                                        {
+                                                            <p><strong>Izohlar:</strong> @Model.Notes</p>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <hr />
+                                                <div class="row mt-3">
+                                                    <div class="col-12">
+                                                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                        </a>
+                                                        @if (changePermit && Model.StatusCode != "APPROVED")
+                                                        {
+                                                            <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
+                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                            </a>
+                                                            <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-danger">
+                                                                <i class="bx bx-trash"></i> O'chirish
+                                                            </a>
+                                                        }
+                                                        @if (Model.StatusCode != "APPROVED")
+                                                        {
+                                                            <a href="@Url.Action("Approve", new { id = Model.ID })" class="btn btn-success">
+                                                                <i class="bx bx-check"></i> Tasdiqlash
+                                                            </a>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+        </div>
+    </div>
+</div>
+

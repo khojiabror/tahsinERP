@@ -1,0 +1,178 @@
+@model tahsinERP.ViewModels.AssignDlocPageViewModel
+@{
+    ViewBag.Title = "DLOC ga joylashtirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var locations = ViewBag.DlocLocations as List<tahsinERP.Services.DlocFifo.WarehouseLocationDto>
+        ?? new List<tahsinERP.Services.DlocFifo.WarehouseLocationDto>();
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="breadcrumb-wrapper col-12">
+                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                        <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Inventory")">Ombor qoldiqlari</a></li>
+                        <li class="breadcrumb-item active">DLOC ga joylashtirish</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <div class="row mb-2">
+                <div class="col-12 d-flex flex-wrap">
+                    <a href="@Url.Action("Index", "Inventory")" class="btn btn-secondary mr-1 mb-1">
+                        <i class="bx bx-arrow-back"></i> Umumiy qoldiq
+                    </a>
+                    <a href="@Url.Action("IndexDloc", "Inventory")" class="btn btn-info mr-1 mb-1">
+                        <i class="bx bx-grid-alt"></i> Joylar bo'yicha
+                    </a>
+                    <a href="@Url.Action("Index", "WarehouseLocations")" class="btn btn-outline-primary mb-1">
+                        <i class="bx bx-cog"></i> DLOC sozlamalari
+                    </a>
+                </div>
+            </div>
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+
+            <div class="alert alert-info">
+                <strong>Maqsad:</strong> umumiy qoldiq (<code>PRODUCT_STOCKS</code>) bor, lekin DLOC/lot da ko'rinmayotgan mahsulotlarni joylashtirish.
+                Qoldiq miqdori o'zgarmaydi — faqat DLOC da aks ettiriladi.
+            </div>
+
+            <div class="card mb-2">
+                <div class="card-body">
+                    @using (Html.BeginForm("AssignDloc", "Inventory", FormMethod.Get, new { @class = "form" }))
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Ombor *</label>
+                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Omborni tanlang", new { @class = "form-control", @required = "required", @id = "warehouseFilter" })
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-search"></i> Ko'rsatish
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (Model.WarehouseId.HasValue)
+            {
+                if (Model.Rows == null || !Model.Rows.Any())
+                {
+                    <div class="alert alert-success">Ushbu omborda DLOC ga joylashtirilmagan qoldiq yo'q.</div>
+                }
+                else
+                {
+                    using (Html.BeginForm("AssignDloc", "Inventory", FormMethod.Post, new { @id = "assignDlocForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="WarehouseId" value="@Model.WarehouseId" />
+
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title mb-0">Joylashtirilmagan qoldiqlar (@Model.Rows.Count)</h4>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bx bx-map-pin"></i> Tanlanganlarni DLOC ga joylashtirish
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped" id="assignDlocTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:40px">
+                                                    <input type="checkbox" id="selectAll" title="Barchasini tanlash" />
+                                                </th>
+                                                <th>Mahsulot</th>
+                                                <th>Umumiy qoldiq</th>
+                                                <th>DLOC da</th>
+                                                <th>Joylashtirilmagan</th>
+                                                <th>DLOC *</th>
+                                                <th>Miqdor *</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int i = 0; i < Model.Rows.Count; i++)
+                                            {
+                                                var row = Model.Rows[i];
+                                                <tr data-unassigned="@row.UnassignedQty.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                                    <td>
+                                                        <input type="checkbox" name="Lines[@i].Selected" value="true" class="row-select" />
+                                                        <input type="hidden" name="Lines[@i].ProductID" value="@row.ProductID" />
+                                                    </td>
+                                                    <td>
+                                                        <strong>@row.ProductPNo</strong><br />
+                                                        <small class="text-muted">@row.ProductName</small>
+                                                    </td>
+                                                    <td>@row.StockQty.ToString("N3") @row.UnitName</td>
+                                                    <td>@row.LedgerQty.ToString("N3")</td>
+                                                    <td><strong class="text-warning">@row.UnassignedQty.ToString("N3")</strong></td>
+                                                    <td>
+                                                        <select name="Lines[@i].LocationID" class="form-control dloc-select">
+                                                            <option value="">— DLOC tanlang —</option>
+                                                            @foreach (var loc in locations)
+                                                            {
+                                                                <option value="@loc.ID">@loc.LocationCode @(string.IsNullOrEmpty(loc.LocationName) ? "" : "— " + loc.LocationName)</option>
+                                                            }
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" name="Lines[@i].AssignQty" class="form-control assign-qty"
+                                                               step="0.001" min="0.001" max="@row.UnassignedQty.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                               value="@row.UnassignedQty.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="alert alert-secondary">Avval DLOC sozlangan omborni tanlang.</div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#selectAll').on('change', function () {
+                $('.row-select').prop('checked', this.checked);
+            });
+
+            $('#assignDlocForm').on('submit', function (e) {
+                var hasLine = false;
+                $('#assignDlocTable tbody tr').each(function () {
+                    var $row = $(this);
+                    if (!$row.find('.row-select').is(':checked')) return;
+                    var loc = $row.find('.dloc-select').val();
+                    var qty = parseFloat($row.find('.assign-qty').val()) || 0;
+                    if (loc && qty > 0) hasLine = true;
+                });
+                if (!hasLine) {
+                    e.preventDefault();
+                    alert('Kamida bitta qatorni tanlang, DLOC va miqdorni kiriting.');
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,189 @@
+@model tahsinERP.Models.EXPENS
+
+@{
+    ViewBag.Title = "O'tkazma ma'lumotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductionToSalesTransfer", "Details"))
+{
+    var income = ViewBag.CorrespondingIncome as tahsinERP.Models.INCOME;
+    
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/ProductionToSalesTransfer/Index">O'tkazmalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        O'tkazma ma'lumotlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">
+                                    <i class="bx bx-transfer"></i> O'tkazma: @Model.DocNo
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5 class="mb-2">Asosiy ma'lumotlar</h5>
+                                            <dl class="row">
+                                                <dt class="col-sm-4">Hujjat raqami:</dt>
+                                                <dd class="col-sm-8"><a href="@Url.Action("Details", "Expenses", new { id = Model.ID })">@Model.DocNo</a></dd>
+
+                                                <dt class="col-sm-4">Ishlab chiqarish ombori:</dt>
+                                                <dd class="col-sm-8">
+                                                    <span class="badge badge-info">@(Model.Warehouse != null ? Model.Warehouse.WHName : "-")</span>
+                                                </dd>
+
+                                                <dt class="col-sm-4">Sotuv ombori:</dt>
+                                                <dd class="col-sm-8">
+                                                    <span class="badge badge-success">@(Model.Warehouse1 != null ? Model.Warehouse1.WHName : "-")</span>
+                                                </dd>
+
+                                                <dt class="col-sm-4">Sana va vaqt:</dt>
+                                                <dd class="col-sm-8">@Model.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                                                <dt class="col-sm-4">Holati:</dt>
+                                                <dd class="col-sm-8">
+                                                    @if (Model.SendStatus == true)
+                                                    {
+                                                        <span class="badge badge-success">Yuborilgan</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-warning">Kutilmoqda</span>
+                                                    }
+                                                </dd>
+
+                                                @if (!string.IsNullOrEmpty(Model.Description))
+                                                {
+                                                    <dt class="col-sm-4">Izoh:</dt>
+                                                    <dd class="col-sm-8">@Model.Description</dd>
+                                                }
+                                            </dl>
+                                        </div>
+                                        
+                                        @if (income != null)
+                                        {
+                                            <div class="col-md-6">
+                                                <h5 class="mb-2">Qabul qilish hujjati</h5>
+                                                <dl class="row">
+                                                    <dt class="col-sm-4">Hujjat raqami:</dt>
+                                                    <dd class="col-sm-8"><a href="@Url.Action("Details", "Incomes", new { id = income.ID })">@income.DocNo</a></dd>
+
+                                                    <dt class="col-sm-4">Qabul qilish sanasi:</dt>
+                                                    <dd class="col-sm-8">@income.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                                                    <dt class="col-sm-4">Holati:</dt>
+                                                    <dd class="col-sm-8">
+                                                        @if (income.RecieveStatus == true)
+                                                        {
+                                                            <span class="badge badge-success">Qabul qilingan</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                        }
+                                                    </dd>
+                                                </dl>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <hr />
+                                    
+                                    <h5 class="mb-2">Mahsulotlar</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Mahsulot kodi</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Miqdor</th>
+                                                    <th>Birlik</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.EXPENSE_PRODUCTS != null && Model.EXPENSE_PRODUCTS.Any())
+                                                {
+                                                    foreach (var product in Model.EXPENSE_PRODUCTS)
+                                                    {
+                                                        var prod = product.PRODUCT;
+                                                        var pNo = prod != null ? prod.PNo : product.ProductID.ToString();
+                                                        var pName = prod != null ? prod.Name : "-";
+                                                        var unitName = product.UNIT != null ? product.UNIT.ShortName : "-";
+                                                        <tr>
+                                                            <td>@pNo</td>
+                                                            <td>@pName</td>
+                                                            <td>@product.Amount.ToString("N2")</td>
+                                                            <td>@unitName</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="4" class="text-center text-muted">Mahsulotlar topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    @if (Model.WRHS_EXPENSE_DOCS != null && Model.WRHS_EXPENSE_DOCS.Any())
+                                    {
+                                        <hr />
+                                        <h5 class="mb-2">Bog'langan hujjatlar</h5>
+                                        <ul class="list-unstyled">
+                                            @foreach (var doc in Model.WRHS_EXPENSE_DOCS)
+                                            {
+                                                <li>
+                                                    <a href="@Url.Action("DownloadDocument", "ProductionToSalesTransfer", new { id = doc.ID })" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bx bx-download"></i> Hujjatni yuklab olish
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                    
+                                    <hr />
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <a href="@Url.Action("Index", "ProductionToSalesTransfer")" class="btn btn-secondary">
+                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,94 @@
+@model tahsinERP.Models.CUSTOMER_BASE
+@{
+    ViewBag.Title = "O'chirish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using (Html.BeginForm("Delete", "CustomerBase", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+        @Html.AntiForgeryToken()
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/CustomerBase">Ma'lumotnoma</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            @Model.CompanyName ni o'chirib yuborish
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <section class="invoice-edit-wrapper">
+                        <div class="row">
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row invoice-info">
+                                                <div class="col-lg-12 col-md-6 mt-25">
+                                                    <h4 class="text-primary">Ma'lumotlar</h4>
+                                                    <hr />
+                                                    <span><b>Korxona / Do'kon</b>: @Html.DisplayFor(model => model.CompanyName, new { @class = "form-control" })</span>
+                                                    <br />
+                                                    <span><b>Maxsulot turi</b>: @Html.DisplayFor(model => model.ProductType, new { @class = "form-control" })</span>
+                                                    <hr />
+                                                    <section>
+                                                        <div>
+                                                            <h6 class="text-primary">Geografik ma'lumotlari</h6>
+                                                            <span><b>Davlat</b>: @Html.DisplayFor(model => model.Country, new { @class = "form-control" })</span>
+                                                            <br />
+                                                            <span><b>Viloyat</b>: @Html.DisplayFor(model => model.Province, new { @class = "form-control" })</span>
+                                                            <br />
+                                                            <span><b>Region</b>: @Html.DisplayFor(model => model.Region, new { @class = "form-control" })</span>
+                                                            <br />
+                                                            <hr />
+                                                        </div>
+                                                    </section>
+                                                    <h6 class="text-primary">Murojaat uchun</h6>
+                                                    <span><b>Aloqa uchun</b>: @Html.DisplayFor(model => model.ContactPerson, new { @class = "form-control" })</span>
+                                                    <br />
+                                                    <span><b>Lavozimi</b>: @Html.DisplayFor(model => model.Position, new { @class = "form-control" })</span>
+                                                    <br />
+                                                    <span><b>Telefon</b>: @Html.DisplayFor(model => model.Phone, new { @class = "form-control" })</span>
+                                                    <br />
+                                                    <span><b>Izoh</b>: @Html.DisplayFor(model => model.Comment, new { @class = "form-control" })</span>
+                                                    <br />
+                                                </div>
+                                                <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item border-0 pb-0">
+                                                        <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu yozuvni o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                            <i class='bx bx-trash'></i>
+                                                            O'chirish
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <hr>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

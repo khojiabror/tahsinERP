@@ -1,0 +1,209 @@
+@model tahsinERP.ViewModels.ProductPlanViewModel
+@using System.Web.Helpers
+@{
+    ViewBag.Title = "Ishlab Chiqarish Rejasi Ma'lumotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/ProductPlan/Index">Ishlab Chiqarish Rejasi</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-edit-wrapper">
+                    <div class="row">
+                        <div class="col-xl-12 col-md-12 col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body pb-0 mx-25">
+                                        <div class="row invoice-info">
+                                            <div class="col-lg-12 col-md-12 mt-25">
+                                                <h4 class="text-primary">Ishlab Chiqarish Rejasi Ma'lumotlari</h4>
+                                                <hr />
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><strong>Mahsulot:</strong> @(Model.Product?.PNo ?? Model.ProductID.ToString()) - @(Model.Product?.Name ?? "")</p>
+                                                        <p><strong>Reja miqdori:</strong> <span class="text-primary"><strong>@Model.TotalQty.ToString("N2")</strong></span></p>
+                                                        <p><strong>Boshlanish sanasi:</strong> @Model.StartDate.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>Tugash sanasi:</strong> @Model.EndDate.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>Kunlar soni:</strong> @((Model.EndDate - Model.StartDate).Days + 1)</p>
+                                                        <p>
+                                                            <strong>Savdo buyurtmasi:</strong>
+                                                            @if (Model.SalesOrderID.HasValue && !string.IsNullOrWhiteSpace(Model.SalesOrderNo))
+                                                            {
+                                                                <a href="@Url.Action("Details", "SOrder", new { id = Model.SalesOrderID.Value })">@Model.SalesOrderNo</a>
+                                                            }
+                                                            else
+                                                            {
+                                                                @:-
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        @if (Model.LinkedDeliverySchedules != null && Model.LinkedDeliverySchedules.Any())
+                                                        {
+                                                            <p><strong>Bog'langan yetkazib berish jadvallari:</strong></p>
+                                                            <ul>
+                                                                @foreach (var schedule in Model.LinkedDeliverySchedules)
+                                                                {
+                                                                    <li>
+                                                                        <a href="@Url.Action("Details", "SOrder", new { id = schedule.SOrderID })">
+                                                                            Buyurtma: @(schedule.S_ORDERS?.OrderNo ?? schedule.SOrderID.ToString()) - 
+                                                                            @schedule.DeliveryDate.ToString("dd.MM.yyyy") - 
+                                                                            Reja: @schedule.QtyPlanned.ToString("N2")
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                            </ul>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <hr />
+
+                                                <!-- Daily Grid with Inline Editing -->
+                                                <div class="row mt-3">
+                                                    <div class="col-12">
+                                                        <h5 class="text-primary mb-3">Kunlik Reja (Inline Tahrirlash)</h5>
+                                                        <div id="dailyGridContainer">
+                                                            @if (Model.DailyPlans != null && Model.DailyPlans.Any())
+                                                            {
+                                                                @Html.Partial("_DailyGridPartial", Model.DailyPlans)
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="alert alert-info">Kunlik reja ma'lumotlari mavjud emas</div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Plan vs Actual Chart -->
+                                                <div class="row mt-4">
+                                                    <div class="col-12">
+                                                        <h5 class="text-primary mb-3">Reja vs Fakt (Kunlik)</h5>
+                                                        <canvas id="planVsActualChart" height="100"></canvas>
+                                                    </div>
+                                                </div>
+
+                                                <hr />
+                                                <div class="row mt-3">
+                                                    <div class="col-12">
+                                                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                        </a>
+                                                        @if (changePermit)
+                                                        {
+                                                            <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
+                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                            </a>
+                                                            <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-danger">
+                                                                <i class="bx bx-trash"></i> O'chirish
+                                                            </a>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    if (Model.DailyPlans != null && Model.DailyPlans.Any())
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+        <script>
+            (function() {
+                function initPlanVsActualChart() {
+                    var canvas = document.getElementById('planVsActualChart');
+                    if (!canvas || typeof Chart === 'undefined') {
+                        return;
+                    }
+
+                    var ctx = canvas.getContext('2d');
+                    var labels = @Html.Raw(Json.Encode(Model.DailyPlans.Select(d => d.Day.ToString("dd.MM")).ToList()));
+                    var planData = @Html.Raw(Json.Encode(Model.DailyPlans.Select(d => d.Total).ToList()));
+                    var actualData = @Html.Raw(Json.Encode(Model.DailyPlans.Select(d => d.ActualTotal ?? 0).ToList()));
+
+                    var chartData = {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Reja',
+                            data: planData,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }, {
+                            label: 'Fakt',
+                            data: actualData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1
+                        }]
+                    };
+
+                    // Eski chart (Chart.js 3: getChart; aks holda xavfsiz destroy)
+                    if (typeof Chart.getChart === 'function') {
+                        var existing = Chart.getChart(canvas);
+                        if (existing && typeof existing.destroy === 'function') {
+                            existing.destroy();
+                        }
+                    } else if (window.planVsActualChart && typeof window.planVsActualChart.destroy === 'function') {
+                        try { window.planVsActualChart.destroy(); } catch (e) { }
+                    }
+
+                    window.planVsActualChart = new Chart(ctx, {
+                        type: 'line',
+                        data: chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initPlanVsActualChart);
+                } else {
+                    initPlanVsActualChart();
+                }
+            })();
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

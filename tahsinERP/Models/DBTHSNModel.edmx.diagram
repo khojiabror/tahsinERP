@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="e5cf4fa1d8e141a3a645583c1f3a6da1" Name="Diagram1">
+        <EntityTypeShape EntityType="DBTHSNModel.ADM_COMPANY_ORDERS" Width="1.5" PointX="21.5" PointY="111.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.APP_TASK_PRIORITY_REF" Width="1.5" PointX="0.75" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.APP_TASK_PROJECTS" Width="1.5" PointX="0.75" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.APP_TASK_STATUS_REF" Width="1.5" PointX="0.75" PointY="9.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.APP_TASKS" Width="1.5" PointX="3" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.BOM_HEADERS" Width="1.5" PointX="10.5" PointY="166.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.BOM_LINES" Width="1.5" PointX="12.75" PointY="169.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.COM_OFFICIAL_LETTERS" Width="1.5" PointX="21.5" PointY="106.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.COMPANy" Width="1.5" PointX="0.75" PointY="132.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.COMPANY_LICENSES" Width="1.5" PointX="3" PointY="132.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.COOKIES_CONFIRMATION" Width="1.5" PointX="8.25" PointY="129.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.CURRENCy" Width="1.5" PointX="3" PointY="119.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.CUSTOMER_BASE" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.CUSTOMER" Width="1.5" PointX="3" PointY="140.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.DAMAGED_PRODUCTS" Width="1.5" PointX="10.5" PointY="170.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.DEFECT_TYPES" Width="1.5" PointX="14.25" PointY="177.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.DOC_DOCUMENT_STATUS_REF" Width="1.5" PointX="17" PointY="108.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.DOC_DOCUMENT_TYPES" Width="1.5" PointX="17" PointY="105.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.DOC_DOCUMENTS" Width="1.5" PointX="19.25" PointY="117.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.DOC_FILES" Width="1.5" PointX="21.5" PointY="101.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.DOC_TEMPLATES" Width="1.5" PointX="17" PointY="101.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.EXPENSE_PRODUCTS" Width="1.5" PointX="15.75" PointY="166.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.EXPENS" Width="1.5" PointX="10.5" PointY="161.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_CONTRACT_DOCS" Width="1.5" PointX="5.25" PointY="149.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_CONTRACT_TARIFFS" Width="1.5" PointX="8.25" PointY="141.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_CONTRACTS" Width="1.5" PointX="3" PointY="134.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_TRANSPORT_TYPES" Width="1.5" PointX="14.25" PointY="123.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILL_DOCS" Width="1.5" PointX="18.75" PointY="131.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILL_PAYMENT_SPLITS" Width="1.5" PointX="24.75" PointY="131.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILL_PAYMENTS" Width="1.5" PointX="24.75" PointY="127.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILLS" Width="1.5" PointX="16.5" PointY="127.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_ACCOUNTS" Width="1.5" PointX="11.25" PointY="142.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_BALANCE_CATEGORIES" Width="1.5" PointX="7.5" PointY="117.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_BALANCE_SNAPSHOTS" Width="1.5" PointX="8.25" PointY="147.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_CATEGORIES" Width="1.5" PointX="9.75" PointY="117.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_OPENING_CONTRACT_BALANCES" Width="1.5" PointX="5.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_PL_ITEMS" Width="1.5" PointX="12" PointY="117.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_PL_PLANS" Width="1.5" PointX="14.25" PointY="141.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIN_TRANSACTIONS" Width="1.5" PointX="27.5" PointY="136" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.FORWARDER" Width="1.5" PointX="0.75" PointY="138.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_EMPLOYEE_ALLOWANCES" Width="1.5" PointX="19.5" PointY="127.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_EMPLOYEE_HISTORY" Width="1.5" PointX="14.25" PointY="145.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_EMPLOYEES" Width="1.5" PointX="17.25" PointY="140.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_JOB_DESCRIPTIONS" Width="1.5" PointX="25.5" PointY="119.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_ORG_UNITS" Width="1.5" PointX="17" PointY="121.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PAYROLL_HEADERS" Width="1.5" PointX="17.25" PointY="146.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PAYROLL_LINES" Width="1.5" PointX="25.5" PointY="143.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_OPERATIONS" Width="1.5" PointX="8.25" PointY="159.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_TARIFFS" Width="1.5" PointX="16.5" PointY="160" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_TIMESHEET_APPROVALS" Width="1.5" PointX="8.25" PointY="151.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_PIECE_RATE_WORK_ENTRIES" Width="1.5" PointX="19.5" PointY="155.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_POSITIONS" Width="1.5" PointX="15" PointY="116.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_SALARY_GRADES" Width="1.5" PointX="15" PointY="111.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_STAFFING_PLAN" Width="1.5" PointX="22.25" PointY="115" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_TIMESHEET_HEADERS" Width="1.5" PointX="19.25" PointY="134.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_TIMESHEET_LINES" Width="1.5" PointX="22.5" PointY="146.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HR_TIMESHEET_SETTINGS" Width="1.5" PointX="21.5" PointY="136" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.HSCODE" Width="1.5" PointX="6" PointY="159.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.INCOME_PRODUCTS" Width="1.5" PointX="18.75" PointY="165.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.INCOME" Width="1.5" PointX="10.5" PointY="147.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.JOB_DESC" Width="1.5" PointX="27.75" PointY="119.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.NORM_INPUT_LINES" Width="1.5" PointX="19.5" PointY="149.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.NORMLINE" Width="1.5" PointX="12.75" PointY="188.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.NORMVERSION" Width="1.5" PointX="10.5" PointY="212.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_CONTRACT_DOCS" Width="1.5" PointX="8.25" PointY="139.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_CONTRACT_PRODUCTS" Width="1.5" PointX="13.5" PointY="156.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_CONTRACTS" Width="1.5" PointX="6" PointY="132.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_INVOICE_DOCS" Width="1.5" PointX="10.5" PointY="139.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_INVOICE_PRODUCTS" Width="1.5" PointX="10.5" PointY="154.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_INVOICES" Width="1.5" PointX="8.25" PointY="132.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_ORDER_PRODUCTS" Width="1.5" PointX="13.5" PointY="152.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_ORDERS" Width="1.5" PointX="11.25" PointY="131.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_REQUISITION_APPROVALS" Width="1.5" PointX="11.25" PointY="123.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_REQUISITION_PRODUCTS" Width="1.5" PointX="13.5" PointY="172.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.P_REQUISITIONS" Width="1.5" PointX="9" PointY="122.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PERMISSIONMODULE" Width="1.5" PointX="3.75" PointY="151.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PERMISSION" Width="1.5" PointX="6" PointY="151.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCT_CATEGORIES" Width="1.5" PointX="6" PointY="173.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCT_PRODUCTION" Width="1.5" PointX="5.25" PointY="169" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCT_STOCKS" Width="1.5" PointX="10.5" PointY="173.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCTIMAGE" Width="1.5" PointX="10.5" PointY="223.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCTIONPROCESS" Width="1.5" PointX="9" PointY="177.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCTPLAN" Width="1.5" PointX="19.5" PointY="145" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCTPLANS_DAILY" Width="1.5" PointX="21.75" PointY="132.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.PRODUCT" Width="1.5" PointX="8.25" PointY="164.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.QUALITY_INSPECTION" Width="1.5" PointX="16.5" PointY="152.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.RECONCILIATION_ADJUSTMENTS" Width="1.5" PointX="2.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.ROLE" Width="1.5" PointX="3.75" PointY="145.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.S_CONTRACT_PRODUCTS" Width="1.5" PointX="19.5" PointY="141.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.S_CONTRACTS" Width="1.5" PointX="3" PointY="126.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.S_ORDER_PRODUCTS" Width="1.5" PointX="19.5" PointY="160.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.S_ORDERS" Width="1.5" PointX="5.25" PointY="126.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_INVOICE_LINES" Width="1.5" PointX="25.5" PointY="152.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_INVOICES" Width="1.5" PointX="14.25" PointY="131.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_SF_HEADERS" Width="1.5" PointX="24.5" PointY="134.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_SF_LINES" Width="1.5" PointX="27.75" PointY="153.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_TTNK_HEADERS" Width="1.5" PointX="22.5" PointY="119.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_TTNK_INVOICES" Width="1.5" PointX="27.75" PointY="127.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SALES_TTNK_LINES" Width="1.5" PointX="27.75" PointY="145.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SAMPLE_FILES" Width="1.5" PointX="7.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS" Width="1.5" PointX="29.75" PointY="137.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER_SHARE_PERIODS" Width="1.5" PointX="29.75" PointY="132.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER" Width="1.5" PointX="27.5" PointY="132.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHOP_PLANNED_DTS" Width="1.5" PointX="5.25" PointY="186.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SHOP" Width="1.5" PointX="3" PointY="169.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" Width="1.5" PointX="22.5" PointY="141.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.STD_COMPANY_STANDARDS" Width="1.5" PointX="21.5" PointY="98.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SUPPLIER_BASE" Width="1.5" PointX="7.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.SUPPLIER" Width="1.5" PointX="3.75" PointY="114" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.TANNARX" Width="1.5" PointX="22.5" PointY="163.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.TANNARX_ACTUAL_AUDIT" Width="1.5" PointX="24.75" PointY="166.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.UNIT" Width="1.5" PointX="6" PointY="179.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.USER_ENTRIES" Width="1.5" PointX="8.25" PointY="181.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.USER_LICENSES" Width="1.5" PointX="7.75" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.USERIMAGE" Width="1.5" PointX="8.25" PointY="184.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.USERLOG" Width="1.5" PointX="8.25" PointY="187" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.USER" Width="1.5" PointX="6" PointY="138.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.Warehouse" Width="1.5" PointX="5.25" PointY="163.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.WASTE_STOCKS" Width="1.5" PointX="13.5" PointY="164.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.WASTE" Width="1.5" PointX="11.25" PointY="177.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.WRHS_EXPENSE_DOCS" Width="1.5" PointX="12.75" PointY="161.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.WRHS_INCOME_DOCS" Width="1.5" PointX="12.75" PointY="129.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_FACT_MONTHLY" Width="1.5" PointX="9.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_PLAN_VS_FACT_MONTHLY" Width="1.5" PointX="9.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_ADMIN_EXPENSES" Width="1.5" PointX="4.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" Width="1.5" PointX="9.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS" Width="1.5" PointX="6.75" PointY="10.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS" Width="1.5" PointX="11.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" Width="1.5" PointX="11.75" PointY="3.75" IsExpanded="true" />
+        <AssociationConnector Association="DBTHSNModel.FK_ADM_COMPANY_ORDERS_Document" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_APP_TASKS_PRIORITY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_APP_TASKS_PROJECT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_APP_TASKS_STATUS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_BOM_HEADER_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_BOM_LINES_BOMID_BOM_HEADERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_BOM_LINES_ComponentID_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_BOM_LINES_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_COM_OFFICIAL_LETTERS_Document" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_COMPANY_LICENSES_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACTS_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICES_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_ORDERS_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PCONTRACTS_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTION_SHOPS_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_ORDERS_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SCONTRACTS_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_USERS_COMPANIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_COOKIES_CONFIRMATION_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__F_WAYBILL__Curre__4979DDF4" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__P_CONTRAC__Curre__4D4A6ED8" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__P_INVOICE__Curre__4E3E9311" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__P_ORDERS__Curren__5026DB83" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__PROD_WRHS__Curre__55DFB4D9" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__PROD_WRHS__Curre__56D3D912" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__S_CONTRAC__Curre__5C8CB268" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__S_ORDERS__Curren__5D80D6A1" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CURRENCIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACTS_CURRENCIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_CURRENCIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_ACCOUNTS_CURRENCY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CURRENCY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CURRENCY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_LINES_CURRENCIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CURRENCIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_Currency" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_HEADERS_Currency" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_CURRENCY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PCONTRACTS_CUSTOMERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_ORDERS_CUSTOMERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_Customer" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_HEADERS_Customer" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SF_HEADERS_CUSTOMER" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DAMAGED_PRODUCTS_DEFECT_TYPES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DAMAGED_PRODUCTS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_DEFECT_TYPES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DOC_DOCUMENTS_Status" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DOC_DOCUMENTS_DocType" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DOC_DOCUMENTS_OrgUnit" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DOC_DOCUMENTS_Position" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DOC_DOCUMENTS_Template" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_DOC_FILES_Document" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Document" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_JOB_DESC_DOC_DOCUMENTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_STD_COMPANY_STANDARDS_DOC_DOCUMENTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSE_PRODUCTS_PROD_WRHS_EXPENSES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSE_PRODUCTS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSE_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSE_DOCS_PROD_WRHS_EXPENSES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSES_PROD_WRHS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSES_PROD_WRHS2" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_DOCS_F_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACTS_FORWARDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_F_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_TRANSPORT_TYPES_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_F_TRANSPORT_TYPES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_DOCS_F_WAYBILLS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_FORWARDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_PAYMENTS_WAYBILLS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_FORWARDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_P_INVOICES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_P_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_S_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_SALES_INVOICES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_TTNK" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_ACCOUNTS_BalanceCategory" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_ACCOUNTS_CREATEDBY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_ACCOUNT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_CATEGORIES_PARENT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CATEGORY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_BALANCE_SNAPSHOTS_CREATEDBY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_CATEGORIES_PARENT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CATEGORY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_PL_ITEMS_PARENT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_PL_PLANS_ITEM" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_PL_PLANS_CREATEDBY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_FIN_TRANSACTIONS_CREATEDBY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_FINTRAN" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMP_ALLOW_EMP" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_CREATED_BY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_EMPLOYEES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_ORG_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_FROM_POSITIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_ORG_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEE_HISTORY_TO_POSITIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_ORG_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_POSITIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_HR_SALARY_GRADES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_EMPLOYEES_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_EMPLOYEES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_EMPLOYEES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_EMPLOYEES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_OrgUnit" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_JOB_DESCRIPTIONS_Position" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_JOB_DESC_HR_JOB_DESCRIPTIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_ORG_UNITS_Parent" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_ORG_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_ORG_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_STAFFING_PLAN_OrgUnit" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_HR_ORG_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_HR_TIMESHEET_HEADERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Approved" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_HEADERS_USERS_Created" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PAYROLL_LINES_HR_PAYROLL_HEADERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_CreatedByUserID_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_OPERATIONS_ModifiedByUserID_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_OPERATIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_OPERATIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_CreatedByUserID_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_ModifiedByUserID_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_POSITIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TARIFFS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_APPROVED_BY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_CREATED_BY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_TIMESHEET_APPROVALS_MODIFIED_BY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_CreatedByUserID_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_ModifiedByUserID_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_PIECE_RATE_WORK_ENTRIES_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_STAFFING_PLAN_Position" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_STAFFING_PLAN_Grade" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Approved" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_HEADERS_USERS_Created" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_HR_TIMESHEET_HEADERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_SETTINGS_HEADER" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_HR_TIMESHEET_LINES_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_CONTRACT_PRODUCTS_HSCODES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTS_HSCODES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_HsCode" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_INCOME_PRODS_PROD_WRHS_INCOMES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_INCOME_PRODUCTS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_INCOME_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_INCOMES_InvoiceID_P_INVOICES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_INCOME_DOCS_PROD_WRHS_INCOMES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_INCOMES_PROD_WRHS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_INCOMES_PROD_WRHS_SENDER" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORM_INPUT_LINES_CreatedByUserID_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORM_INPUT_LINES_MaterialID_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORM_INPUT_LINES_ProductID_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORM_INPUT_LINES_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORMLINES_MaterialID_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORMLINES_NormID_NORMVERSIONS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORMLINES_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_NORMVERSION_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_CONTRACT_DOCS_P_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_CONTRACT_PRODUCTS_ID_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_CONTRACT_PRODUCTS_P_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_CONTRACT_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICES_P_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_ORDERS_P_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PCONTRACTS_SUPPLIERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICE_DOCS_P_INVOICES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICE_PRODUCTS_ID_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICE_PRODUCTS_P_INVOICES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICE_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICES_P_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_INVOICES_SUPPLIERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_ORDER_PRODUCTS_ID_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_ORDER_PRODUCTS_P_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_ORDER_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_ORDERS_REQUISITION" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_ORDERS_SUPPLIERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_REQUISITION_APPROVALS_REQUISITION" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_REQUISITION_PRODUCTS_PRODUCT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_REQUISITION_PRODUCTS_REQUISITION" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_P_REQUISITION_PRODUCTS_UNIT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PERMISSIONS_PERMISSIONMODULES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PERMISSIONS_ROLES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTS_CATEGORY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCT_PRODUCTION_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCT_PRODUCTION_SHOPS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__PROD_STOC__UnitI__5F691F13" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_STOCKS_PROD_WRHS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_STOCKS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTIMAGES_PARTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_WASTES_PRODUCTIONPROCESSES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTPLAN_S_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTPLANS_DAILY_PRODUCTPLANS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTPLANS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTS_SHOPS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_CONTRACT_PRODUCTS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_ORDER_PRODUCTS_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICE_LINES_Product" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_LINES_Product" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_Product" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SORDER_DELIVERY_Product" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_TANNARX_PRODUCTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_S_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_SORDER_DELIVERY_SCHEDULE" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_ApprovedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_QUALITY_INSPECTION_USERS_InspectedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_CONTRACT_PRODUCTS_S_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_CONTRACT_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_ORDERS_S_CONTRACTS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_CONTRACT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_TTNK_HEADERS_CONTRACT" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_ORDER_PRODUCTS_S_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_S_ORDER_PRODUCTS_UNITS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_ORDER" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SORDER_DELIVERY_SCHEDULE_S_ORDERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_TTNK_HEADERS_ORDER" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICE_LINES_Invoice" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_LINES_InvoiceLine" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_InvoiceLine" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_INVOICES_CreatedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_HEADERS_Invoice" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_HEADERS_Invoice" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_INVOICES_Invoice" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SF_HEADERS_INVOICE" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_TTNK_HEADERS_INVOICE" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_HEADERS_CreatedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_SF_LINES_Header" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_INVOICES_Header" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_Header" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_SH" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_SHARE_PERIODS_SH" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SHOP_PLANNED_DTS_SHOPS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_PROD_SHOPS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_TANNARX_ACTUAL_AUDIT_TANNARX" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_TANNARX_USERS_CreatedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_TANNARX_USERS_ModifiedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK__WASTE_STO__UnitI__5E74FADA" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_USER_ENTRIES_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_USERIMAGES_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_USERLOGS_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_WASTE_STOCKS_WHID_WAREHOUSES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FK_WASTE_STOCKS_WASTES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FIN_BALANCE_CATEGORY_CATEGORIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.FIN_PL_ITEM_CATEGORIES" ManuallyRouted="false" />
+        <AssociationConnector Association="DBTHSNModel.USERROLES" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="DBTHSNModel.EXPENSE_PRODUCT_ALLOCATIONS" Width="1.5" PointX="27.25" PointY="162.625" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIFO_POLICY" Width="1.5" PointX="7.5" PointY="190.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.FIFO_VIOLATIONS" Width="1.5" PointX="9.375" PointY="11.75" />
+        <EntityTypeShape EntityType="DBTHSNModel.INCOME_LOTS" Width="1.5" PointX="25" PointY="157.125" />
+        <EntityTypeShape EntityType="DBTHSNModel.LOT_LOCATIONS" Width="1.5" PointX="27.25" PointY="159.125" />
+        <EntityTypeShape EntityType="DBTHSNModel.WAREHOUSE_LOCATIONS" Width="1.5" PointX="25" PointY="171.25" />
+        <AssociationConnector Association="DBTHSNModel.FK_EPA_EP" />
+        <AssociationConnector Association="DBTHSNModel.FK_EPA_IL" />
+        <AssociationConnector Association="DBTHSNModel.FK_EPA_WHL" />
+        <AssociationConnector Association="DBTHSNModel.FK_EP_IL" />
+        <AssociationConnector Association="DBTHSNModel.FK_EP_WHL" />
+        <AssociationConnector Association="DBTHSNModel.FK_FP_WAREHOUSE" />
+        <AssociationConnector Association="DBTHSNModel.FK_IL_INCOME" />
+        <AssociationConnector Association="DBTHSNModel.FK_IL_INCOME_PRODUCTS" />
+        <AssociationConnector Association="DBTHSNModel.FK_LL_IL" />
+        <AssociationConnector Association="DBTHSNModel.FK_LL_WHL" />
+        <AssociationConnector Association="DBTHSNModel.FK_WHL_WAREHOUSES" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

@@ -1,0 +1,153 @@
+@model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
+@{
+    ViewBag.Title = "Tabel yaratish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tabel</a></li>
+                                    <li class="breadcrumb-item active">Yaratish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Info"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        @TempData["Info"]
+                        @if (ViewBag.ExistingTimesheetId != null)
+                        {
+                            <a href="@Url.Action("Edit", new { id = ViewBag.ExistingTimesheetId })" class="btn btn-sm btn-primary ml-2">Mavjud tabelni ochish</a>
+                        }
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+                @using (Html.BeginForm("Create", "HrTimesheets", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.Year, new { @class = "control-label" })
+                                            <span class="text-danger">*</span>
+                                            @Html.TextBoxFor(model => model.Year, new { @class = "form-control", @type = "number", @min = "2000", @max = "2100", @required = "required" })
+                                            @Html.ValidationMessageFor(model => model.Year, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.Month, new { @class = "control-label" })
+                                            <span class="text-danger">*</span>
+                                            <select name="Month" class="form-control" required>
+                                                @for (int i = 1; i <= 12; i++)
+                                                {
+                                                    <option value="@i" @(i == Model.Month ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                                }
+                                            </select>
+                                            @Html.ValidationMessageFor(model => model.Month, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.OrgUnitID, new { @class = "control-label" })
+                                            @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, "Butun kompaniya", new { @class = "form-control select2" })
+                                            @Html.ValidationMessageFor(model => model.OrgUnitID, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            @Html.LabelFor(model => model.FundHours, new { @class = "control-label" })
+                                            <span class="text-danger">*</span>
+                                            @Html.TextBoxFor(model => model.FundHours, new { @class = "form-control", @type = "number", @step = "0.01", @min = "1", @max = "744", @required = "required" })
+                                            @Html.ValidationMessageFor(model => model.FundHours, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label">Qo'lda xodim qo'shish (ixtiyoriy)</label>
+                                            @Html.ListBox("selectedEmployeeIds", ViewBag.EmployeeOptions as MultiSelectList, new { @class = "form-control select2-multi", @style = "min-height: 180px;" })
+                                            <small class="text-muted">Bir yoki bir nechta xodimni tanlab yuborsangiz, tabel ochilganda darrov qo'shiladi.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-save"></i> Tabel yaratish
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({ width: '100%' });
+            $('.select2-multi').select2({
+                width: '100%',
+                placeholder: "Xodimlarni tanlang",
+                allowClear: true
+            });
+
+            // Validate Year and Month - cannot be in future
+            $('form').on('submit', function(e) {
+                var year = parseInt($('#Year').val());
+                var month = parseInt($('select[name="Month"]').val());
+                
+                if (year && month) {
+                    var currentDate = new Date();
+                    var timesheetMonth = new Date(year, month - 1, 1);
+                    var currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+                    if (timesheetMonth > currentMonth) {
+                        e.preventDefault();
+                        alert('Kelajakka tabel kirita olmaysiz');
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

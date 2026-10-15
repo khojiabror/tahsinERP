@@ -1,0 +1,266 @@
+@model tahsinERP.Models.DOC_DOCUMENTS
+@{
+    ViewBag.Title = "Maktub Tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+    var letter = Model.COM_OFFICIAL_LETTERS;
+    var files = Model.DOC_FILES?.Where(f => f.IsMain).OrderByDescending(f => f.VersionNo).ToList();
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Rasmiy Maktublar</a></li>
+                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <h4>Maktub: @letter.LetterNo</h4>
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            @if (changePermit)
+                                            {
+                                                <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
+                                                    <i class="bx bx-edit"></i> Tahrirlash
+                                                </a>
+                                                <form method="post" action="@Url.Action("GenerateDoc", "OfficialLetters", new { id = Model.ID })" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-success" style="color: white;">
+                                                        <i class="bx bx-file"></i> Hujjat yaratish
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th>Raqam</th>
+                                                    <td>@letter.LetterNo</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sana</th>
+                                                    <td>@letter.LetterDate.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Yo'nalish</th>
+                                                    <td><span class="badge badge-@(letter.DirectionCode == "OUT" ? "primary" : "secondary")">@(letter.DirectionCode == "OUT" ? "Chiqish" : "Kirish")</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Kompaniya</th>
+                                                    <td>@(letter.ExternalCompanyName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Kontakt shaxs</th>
+                                                    <td>@(letter.ExternalContactName ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Rahbar lavozimi</th>
+                                                    <td>@(letter.ExternalContactPosition ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Bizning havola</th>
+                                                    <td>@(letter.OurRefNo ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Ularning havola</th>
+                                                    <td>@(letter.TheirRefNo ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Kanal</th>
+                                                    <td>@(letter.ChannelCode ?? "-")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Holat</th>
+                                                    <td>
+                                                        <span class="badge badge-@(Model.DOC_DOCUMENT_STATUS_REF?.Code == "APPROVED" ? "success" : Model.DOC_DOCUMENT_STATUS_REF?.Code == "CANCELLED" ? "danger" : Model.DOC_DOCUMENT_STATUS_REF?.Code == "FOR_APPROVAL" ? "warning" : "info")">
+                                                            @(Model.DOC_DOCUMENT_STATUS_REF?.Name ?? "-")
+                                                        </span>
+                                                        @if (changePermit && Model.DOC_DOCUMENT_STATUS_REF?.Code != "APPROVED" && Model.DOC_DOCUMENT_STATUS_REF?.Code != "CANCELLED")
+                                                        {
+                                                            <div class="mt-2">
+                                                                @if (Model.DOC_DOCUMENT_STATUS_REF?.Code == "DRAFT")
+                                                                {
+                                                                    <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="statusCode" value="FOR_APPROVAL" />
+                                                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Tasdiqlash uchun yuborilsinmi?');">
+                                                                            <i class="bx bx-send"></i> Tasdiqlash uchun yuborish
+                                                                        </button>
+                                                                    </form>
+                                                                    <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="statusCode" value="APPROVED" />
+                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('To\'g\'ridan-to\'g\'ri tasdiqlansinmi?');">
+                                                                            <i class="bx bx-check"></i> Tasdiqlash
+                                                                        </button>
+                                                                    </form>
+                                                                }
+                                                                @if (Model.DOC_DOCUMENT_STATUS_REF?.Code == "FOR_APPROVAL")
+                                                                {
+                                                                    <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="statusCode" value="APPROVED" />
+                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Tasdiqlansinmi?');">
+                                                                            <i class="bx bx-check"></i> Tasdiqlash
+                                                                        </button>
+                                                                    </form>
+                                                                }
+                                                                <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="statusCode" value="CANCELLED" />
+                                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Rad etilsinmi?');">
+                                                                        <i class="bx bx-x"></i> Rad etish
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Mavzu</th>
+                                                    <td>@Model.Title</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>Matn</h5>
+                                            <div class="border p-3" style="min-height: 200px;">
+                                                @{
+                                                    var bodyHtml = ViewBag.BodyHtml as string;
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(bodyHtml))
+                                                {
+                                                    @Html.Raw(bodyHtml)
+                                                }
+                                                else
+                                                {
+                                                    @Html.Raw(Model.Title?.Replace("\n", "<br/>"))
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @{
+                                        var letterItems = ViewBag.LetterItems as System.Collections.Generic.List<tahsinERP.Services.OfficialLetterItemData>;
+                                    }
+                                    @if (letterItems != null && letterItems.Count > 0)
+                                    {
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <h5>Mahsulot va narxlar</h5>
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot nomi</th>
+                                                            <th>O'lchami</th>
+                                                            <th>Narx EXW</th>
+                                                            <th>Narx QQS bilan EXW</th>
+                                                            <th>Narx CIP</th>
+                                                            <th>Narx QQS bilan CIP</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in letterItems)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.ItemName</td>
+                                                                <td>@item.ItemSize</td>
+                                                                <td>@(item.PriceExw.HasValue ? item.PriceExw.Value.ToString("#,0.##") : "-")</td>
+                                                                <td>@(item.PriceVatExw.HasValue ? item.PriceVatExw.Value.ToString("#,0.##") : "-")</td>
+                                                                <td>@(item.PriceCip.HasValue ? item.PriceCip.Value.ToString("#,0.##") : "-")</td>
+                                                                <td>@(item.PriceVatCip.HasValue ? item.PriceVatCip.Value.ToString("#,0.##") : "-")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <h5>Yaratilgan hujjatlar</h5>
+                                            @if (files != null && files.Any())
+                                            {
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Versiya</th>
+                                                            <th>Fayl nomi</th>
+                                                            <th>Yaratilgan</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var file in files)
+                                                        {
+                                                            <tr>
+                                                                <td>@file.VersionNo</td>
+                                                                <td>@file.FileName</td>
+                                                                <td>@file.CreatedDT.ToString("dd.MM.yyyy HH:mm")</td>
+                                                                <td>
+                                                                    <a href="@Url.Action("DownloadFile", new { fileId = file.ID })" class="btn btn-sm btn-primary" style="color: white !important;">
+                                                                        <i class="bx bx-download"></i> Yuklab olish
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            }
+                                            else
+                                            {
+                                                <div class="alert alert-danger" role="alert">
+                                                    <i class="bx bx-error"></i> <strong>Fayl yo'q</strong> - Bu maktub uchun hujjat yaratilmagan.
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

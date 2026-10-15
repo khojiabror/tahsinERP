@@ -1,0 +1,128 @@
+@model tahsinERP.ViewModels.SalesByCustomerReportViewModel
+@{
+    ViewBag.Title = "Mijoz bo'yicha sotuv";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var fromDate = ViewBag.FromDate as DateTime? ?? Model.FromDate;
+    var toDate = ViewBag.ToDate as DateTime? ?? Model.ToDate;
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesReports") ||
+     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
+     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="breadcrumb-wrapper col-12">
+                        <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                            <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                            <li class="breadcrumb-item"><a href="~/SalesReports">Sotuv hisobotlari</a></li>
+                            <li class="breadcrumb-item active">Mijoz bo'yicha sotuv</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row mb-2 no-print">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("SalesByCustomer")" class="row align-items-end">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Dan</label>
+                                        <input type="date" name="fromDate" class="form-control" value="@fromDate.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Gacha</label>
+                                        <input type="date" name="toDate" class="form-control" value="@toDate.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-refresh"></i> Ko'rsatish</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 no-print">
+                    <div class="col-12 text-right">
+                        <button type="button" id="btnPrintReport" class="btn btn-primary"><i class="bx bx-printer"></i> Chop etish</button>
+                    </div>
+                </div>
+
+                <div class="card" id="printArea" data-print-target="true">
+                    <div class="card-body report-document">
+                        <div class="report-header text-center mb-4">
+                            <h5 class="mb-0 font-weight-bold">@(Model.CompanyName ?? "Tahsin ERP")</h5>
+                            <h6 class="text-uppercase mt-2 mb-0">Mijoz bo'yicha sotuv hisoboti</h6>
+                            <p class="mb-0 mt-1 text-muted">@fromDate.ToString("dd.MM.yyyy") — @toDate.ToString("dd.MM.yyyy")</p>
+                        </div>
+                        <table class="table table-bordered table-sm report-table">
+                            <thead>
+                                <tr class="table-light">
+                                    <th style="width: 3%;">№</th>
+                                    <th>Xaridor</th>
+                                    <th class="text-right" style="width: 10%;">Buyurtmalar soni</th>
+                                    <th class="text-right" style="width: 12%;">Buyurtma jami</th>
+                                    <th class="text-right" style="width: 10%;">Invoyslar soni</th>
+                                    <th class="text-right" style="width: 12%;">Sotuv jami</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int no = 1; }
+                                @if (Model.Lines != null && Model.Lines.Any())
+                                {
+                                    foreach (var line in Model.Lines)
+                                    {
+                                        <tr>
+                                            <td>@no</td>
+                                            <td>@line.CustomerName</td>
+                                            <td class="text-right">@line.OrderCount</td>
+                                            <td class="text-right">@line.TotalOrderAmount.ToString("N0")</td>
+                                            <td class="text-right">@line.InvoiceCount</td>
+                                            <td class="text-right">@line.TotalInvoiceAmount.ToString("N0")</td>
+                                        </tr>
+                                        no++;
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="6" class="text-center text-muted">Ma'lumot topilmadi.</td></tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light font-weight-bold">
+                                    <td colspan="5" class="text-right">JAMI SOTUV:</td>
+                                    <td class="text-right">@Model.TotalAmount.ToString("N0")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <p class="small text-muted mt-3 mb-0">Sana: @DateTime.Now.ToString("dd.MM.yyyy")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('btnPrintReport');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    var el = document.getElementById('printArea');
+                    if (!el) { window.print(); return; }
+                    var w = window.open('', '_blank');
+                    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Chop etish</title><style>body{font-family:Arial,sans-serif;margin:12px;background:#fff;color:#111}.report-table{font-size:10px;width:100%;border-collapse:collapse}.report-table th,.report-table td{border:1px solid #333;padding:4px 6px}.report-table thead th{background:#f5f5f5}@@media print{body{margin:0;padding:8px}}</style></head><body>' + el.innerHTML + '</body></html>');
+                    w.document.close();
+                    w.focus();
+                    setTimeout(function() { w.print(); w.close(); }, 250);
+                });
+            }
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,487 @@
+@model tahsinERP.ViewModels.ExpenseEditViewModel
+@using System.Collections.Generic
+@{
+    ViewBag.Title = "Chiqim hujjatini tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var unitsList = ViewBag.Units as SelectList;
+    var unitsData = new List<object>();
+
+    if (unitsList != null)
+    {
+        foreach (SelectListItem item in unitsList)
+        {
+            unitsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Expenses/Index">Ombor chiqimlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tahrirlash
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="form-repeater-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @if (TempData["Error"] != null)
+                                        {
+                                            <div class="alert alert-danger">
+                                                @TempData["Error"]
+                                            </div>
+                                        }
+
+                                        @using (Html.BeginForm("Edit", "Expenses", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "expenseForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.HiddenFor(model => model.ID)
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <div class="row">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="DocNo">Hujjat raqami</label>
+                                                    @Html.TextBoxFor(model => model.DocNo, new { @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.DocNo, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="IssueDateTime">Sana va vaqt</label>
+                                                    @Html.TextBoxFor(model => model.IssueDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssueDateTime, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="SenderWHID">Yuboruvchi ombor</label>
+                                                    @Html.DropDownListFor(model => model.SenderWHID, ViewBag.SenderWarehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.SenderWHID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="ReceiverWhID">Qabul qiluvchi ombor</label>
+                                                    @Html.DropDownListFor(model => model.ReceiverWhID, ViewBag.ReceiverWarehouses as SelectList, "---Tanlang---", new { @class = "form-control select2" })
+                                                    @Html.ValidationMessageFor(model => model.ReceiverWhID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CurrencyID">Valyuta</label>
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-9 col-12 form-group">
+                                                    <label for="Description">Izoh</label>
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
+                                                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-6 col-12 form-group">
+                                                    <label for="expenseFile">Yangi chiqim hujjati (PDF) - mavjud hujjat o'rniga qo'yiladi</label>
+                                                    <input type="file" name="expenseFile" id="expenseFile" class="form-control" accept=".pdf" />
+                                                </div>
+                                            </div>
+
+                                            <br />
+                                            <h5>Chiqim mahsulotlari</h5>
+                                            
+                                            <div class="table-responsive">
+                                                <table id="expenseProductsTable" class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot</th>
+                                                            <th>Mahsulot nomi</th>
+                                                            <th>Mavjud qoldiq</th>
+                                                            <th>Lot (FIFO)</th>
+                                                            <th>Chiqim miqdori</th>
+                                                            <th>Birlik</th>
+                                                            <th>Dona narxi</th>
+                                                            <th>Jami</th>
+                                                            <th>Izoh</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (Model.ExpenseProducts != null)
+                                                        {
+                                                            for (int i = 0; i < Model.ExpenseProducts.Count; i++)
+                                                            {
+                                                                var product = Model.ExpenseProducts[i];
+                                                                <tr data-row-index="@i">
+                                                                    <td>
+                                                                        <select name="ExpenseProducts[@i].ProductID" class="form-control product-select select2" required>
+                                                                            <option value="@product.ProductID" selected>@product.ProductPNo - @product.ProductName</option>
+                                                                        </select>
+                                                                        @Html.HiddenFor(m => m.ExpenseProducts[i].ProductPNo, new { @class = "product-pno" })
+                                                                        @Html.HiddenFor(m => m.ExpenseProducts[i].ID)
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" class="form-control product-name-display" value="@product.ProductName" disabled />
+                                                                        @Html.HiddenFor(m => m.ExpenseProducts[i].ProductName, new { @class = "product-name" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].AvailableStock, new { @type = "number", @class = "form-control available-stock", @readonly = "readonly" })
+                                                                    </td>
+                                                                    <td class="lot-cell">
+                                                                        <select name="ExpenseProducts[@i].IncomeID" class="form-control lot-select select2" data-current-income="@(product.IncomeID ?? 0)" title="FIFO uchun eng eski kirim">
+                                                                            <option value="">---Yuklanmoqda---</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.DropDownListFor(m => m.ExpenseProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select select2", @required = "required" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].PiecePrice, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                    </td>
+                                                                    <td>
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].Comment, new { @class = "form-control" })
+                                                                    </td>
+                                                                    <td>
+                                                                        <button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="7" class="text-right"><strong>Jami:</strong></td>
+                                                            <td id="totalAmount" class="text-right"><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
+                                                            <td colspan="2"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                        <i class="bx bx-plus"></i> Qo'shish
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "Expenses")" class="btn btn-secondary">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    @section scripts {
+        <script>
+            (function ($) {
+                $(document).ready(function () {
+                    $('.select2').select2();
+
+                    var productRowIndex = @(Model.ExpenseProducts?.Count ?? 0);
+                    var availableProducts = [];
+                    var units = @Html.Raw(Json.Encode(unitsData));
+                    var existingProducts = @Html.Raw(Json.Encode(Model.ExpenseProducts ?? new List<tahsinERP.ViewModels.ExpenseProductViewModel>()));
+
+                    function escapeHtml(text) {
+                        return String(text == null ? '' : text)
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#39;');
+                    }
+
+                    function buildProductOptions(selectedId) {
+                        var options = '<option value="">---Tanlang---</option>';
+                        availableProducts.forEach(function (product) {
+                            var selected = product.ProductID == selectedId ? 'selected' : '';
+                            options += '<option value="' + escapeHtml(product.ProductID) + '" ' + selected +
+                                ' data-pno="' + escapeHtml(product.ProductPNo) + '"' +
+                                ' data-name="' + escapeHtml(product.ProductName) + '"' +
+                                ' data-stock="' + escapeHtml(product.AvailableStock) + '"' +
+                                ' data-unitid="' + escapeHtml(product.UnitID) + '"' +
+                                ' data-unitname="' + escapeHtml(product.UnitName) + '">' +
+                                escapeHtml(product.ProductPNo + ' - ' + product.ProductName + ' (Mavjud: ' + product.AvailableStock + ')') +
+                                '</option>';
+                        });
+                        return options;
+                    }
+
+                    function buildUnitOptions(selectedId) {
+                        var options = '<option value="">---Tanlang---</option>';
+                        units.forEach(function (unit) {
+                            var selected = unit.Value == selectedId ? 'selected' : '';
+                            options += '<option value="' + escapeHtml(unit.Value) + '" ' + selected + '>' + escapeHtml(unit.Text) + '</option>';
+                        });
+                        return options;
+                    }
+
+                    function mergeExistingProducts() {
+                        existingProducts.forEach(function (product) {
+                            var exists = availableProducts.some(function (p) { return p.ProductID == product.ProductID; });
+                            if (!exists) {
+                                availableProducts.push({
+                                    ProductID: product.ProductID,
+                                    ProductPNo: product.ProductPNo || '',
+                                    ProductName: product.ProductName || '',
+                                    AvailableStock: product.AvailableStock || 0,
+                                    UnitID: product.UnitID || '',
+                                    UnitName: product.UnitName || ''
+                                });
+                            }
+                        });
+                    }
+
+                    function syncProductFields($row) {
+                        var $selected = $row.find('.product-select option:selected');
+                        var pno = $selected.data('pno') || '';
+                        var name = $selected.data('name') || '';
+                        var stock = $selected.data('stock') || 0;
+                        var unitId = $selected.data('unitid') || '';
+
+                        $row.find('.product-name-display').val(name);
+                        $row.find('.product-name').val(name);
+                        $row.find('.product-pno').val(pno);
+                        $row.find('.available-stock').val(stock);
+                        $row.find('.amount-input').attr('max', stock);
+
+                        if (unitId) {
+                            $row.find('.unit-select').val(unitId).trigger('change');
+                        }
+                    }
+
+                    function refreshProductSelects() {
+                        $('#expenseProductsTable tbody tr').each(function () {
+                            var $row = $(this);
+                            var $select = $row.find('.product-select');
+                            var selectedId = $select.val();
+
+                            if ($select.hasClass('select2-hidden-accessible')) {
+                                $select.select2('destroy');
+                            }
+
+                            $select.html(buildProductOptions(selectedId));
+
+                            if (typeof $.fn.select2 !== 'undefined') {
+                                $select.select2();
+                            }
+
+                            syncProductFields($row);
+                        });
+                    }
+
+                    function loadLotOptions($row, preserveSelection) {
+                        var warehouseId = $('#SenderWHID').val() || $('#senderWarehouseSelect').val();
+                        var productId = $row.find('.product-select').val();
+                        var $lotSelect = $row.find('.lot-select');
+                        var currentVal = preserveSelection ? $lotSelect.val() : ($row.find('.lot-select').data('current-income') || '');
+                        $lotSelect.html('<option value="">---Yuklanmoqda---</option>');
+                        if (!warehouseId || !productId) {
+                            $lotSelect.html('<option value="">---Tanlang---</option>');
+                            return;
+                        }
+                        $.post('@Url.Action("GetAvailableIncomeLots", "Expenses")', { warehouseId: warehouseId, productId: productId })
+                            .done(function(res) {
+                                var opts = '<option value="">---Tanlanmagan---</option>';
+                                var hasRealLots = false;
+                                if (res.success && res.data && res.data.length) {
+                                    res.data.forEach(function(lot) {
+                                        if (lot.IsLegacy || lot.IncomeID === 0) {
+                                            opts += '<option value="0" data-max="' + (lot.RemainingAmount || res.legacyUnassignedQty || '') + '">' +
+                                                escapeHtml(lot.DisplayText) + '</option>';
+                                        } else {
+                                            hasRealLots = true;
+                                            opts += '<option value="' + lot.IncomeID + '">' + escapeHtml(lot.DisplayText) + '</option>';
+                                        }
+                                    });
+                                }
+                                $lotSelect.html(opts);
+                                if (currentVal !== '' && currentVal !== null && res.data && res.data.some(function(l) { return String(l.IncomeID) === String(currentVal); })) {
+                                    $lotSelect.val(currentVal);
+                                } else if (res.allowLegacy && !hasRealLots) {
+                                    $lotSelect.val('0');
+                                } else if (hasRealLots) {
+                                    var first = res.data.filter(function(l) { return l.IncomeID > 0; })[0];
+                                    if (first) $lotSelect.val(first.IncomeID);
+                                }
+                                var $row = $lotSelect.closest('tr');
+                                if ($lotSelect.val() === '0') {
+                                    var maxLegacy = $lotSelect.find('option:selected').data('max');
+                                    if (maxLegacy) {
+                                        var stock = parseFloat($row.find('.available-stock').val()) || 0;
+                                        $row.find('.amount-input').attr('max', Math.min(stock, parseFloat(maxLegacy)));
+                                    }
+                                }
+                            })
+                            .fail(function() { $lotSelect.html('<option value="">---Xatolik---</option>'); });
+                    }
+
+                    function loadAvailableProducts(warehouseId) {
+                        return $.ajax({
+                            url: '@Url.Action("GetAvailableProducts", "Expenses")',
+                            type: 'POST',
+                            data: { warehouseId: warehouseId, receiverWarehouseId: $('#ReceiverWhID').val() }
+                        }).done(function (response) {
+                            if (response.success) {
+                                availableProducts = response.data || [];
+                                mergeExistingProducts();
+                                refreshProductSelects();
+                                $('#expenseProductsTable tbody tr').each(function() {
+                                    var $row = $(this);
+                                    if ($row.find('.product-select').val()) loadLotOptions($row, true);
+                                });
+                            } else {
+                                alert('Xatolik: ' + response.message);
+                            }
+                        }).fail(function () {
+                            alert('Server xatoligi yuz berdi');
+                        });
+                    }
+
+                    // Calculate totals for existing rows
+                    $('.amount-input, .price-input').each(function () {
+                        var $row = $(this).closest('tr');
+                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                        var price = parseFloat($row.find('.price-input').val()) || 0;
+                        var total = amount * price;
+                        $row.find('.total-price').val(total.toFixed(2));
+                    });
+
+                    updateTotal();
+
+                    $('#senderWarehouseSelect').on('change', function () {
+                        var warehouseId = $(this).val();
+                        if (warehouseId) {
+                            loadAvailableProducts(warehouseId);
+                        } else {
+                            availableProducts = [];
+                            refreshProductSelects();
+                        }
+                    });
+
+                    var initialWarehouseId = $('#senderWarehouseSelect').val();
+                    if (initialWarehouseId) {
+                        loadAvailableProducts(initialWarehouseId);
+                    }
+
+                    $('#addRowBtn').click(function () {
+                        if (!availableProducts || availableProducts.length === 0) {
+                            alert('Avval yuboruvchi omborni tanlang va mahsulotlarni yuklang.');
+                            return;
+                        }
+                        var row = '<tr data-row-index="' + productRowIndex + '">' +
+                            '<td>' +
+                                '<select name="ExpenseProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
+                                    buildProductOptions(null) +
+                                '</select>' +
+                                '<input type="hidden" name="ExpenseProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="" />' +
+                            '</td>' +
+                            '<td>' +
+                                '<input type="text" class="form-control product-name-display" value="" disabled />' +
+                                '<input type="hidden" name="ExpenseProducts[' + productRowIndex + '].ProductName" class="product-name" value="" />' +
+                            '</td>' +
+                            '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].AvailableStock" class="form-control available-stock" value="0" readonly /></td>' +
+                            '<td class="lot-cell"><select name="ExpenseProducts[' + productRowIndex + '].IncomeID" class="form-control lot-select select2" title="FIFO"><option value="">---Tanlang---</option></select></td>' +
+                            '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].Amount" class="form-control amount-input" step="0.01" min="0" required /></td>' +
+                            '<td>' +
+                                '<select name="ExpenseProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
+                                    buildUnitOptions(null) +
+                                '</select>' +
+                            '</td>' +
+                            '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].PiecePrice" class="form-control price-input" step="0.01" min="0" /></td>' +
+                            '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" readonly /></td>' +
+                            '<td><input type="text" name="ExpenseProducts[' + productRowIndex + '].Comment" class="form-control" /></td>' +
+                            '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                            '<input type="hidden" name="ExpenseProducts[' + productRowIndex + '].ID" value="" />' +
+                            '</tr>';
+
+                        $('#expenseProductsTable tbody').append(row);
+                        var $row = $('#expenseProductsTable tbody tr').last();
+
+                        if (typeof $.fn.select2 !== 'undefined') {
+                            $row.find('select.product-select').select2();
+                            $row.find('select.unit-select').select2();
+                        }
+
+                        syncProductFields($row);
+                        productRowIndex++;
+                    });
+
+                    $(document).on('click', '.remove-row', function () {
+                        $(this).closest('tr').remove();
+                        updateTotal();
+                    });
+
+                    $(document).on('change', '.product-select', function () {
+                        var $row = $(this).closest('tr');
+                        syncProductFields($row);
+                        loadLotOptions($row, false);
+                    });
+
+                    $(document).on('input', '.amount-input, .price-input', function () {
+                        var $row = $(this).closest('tr');
+                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
+                        var availableStock = parseFloat($row.find('.available-stock').val()) || 0;
+                        var price = parseFloat($row.find('.price-input').val()) || 0;
+
+                        if (amount > availableStock) {
+                            alert('Chiqim miqdori mavjud qoldiqdan oshib ketdi!');
+                            $row.find('.amount-input').val(availableStock);
+                            amount = availableStock;
+                        }
+
+                        var total = amount * price;
+                        $row.find('.total-price').val(total.toFixed(2));
+                        updateTotal();
+                    });
+
+                    function updateTotal() {
+                        var total = 0;
+                        $('.total-price').each(function () {
+                            total += parseFloat($(this).val()) || 0;
+                        });
+                        $('#totalAmount').text(total.toFixed(2));
+                    }
+                });
+            })(jQuery);
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,120 @@
+@{
+    ViewBag.Title = "EBITDA hisoboti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var ebitda = ViewBag.Ebitda as tahsinERP.Controllers.Finance.EbitdaData;
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">EBITDA</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">EBITDA — @(((DateTime)ViewBag.FromDate).ToString("dd.MM.yyyy")) — @(((DateTime)ViewBag.ToDate).ToString("dd.MM.yyyy"))</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("EBITDA")" class="mb-3">
+                                        <div class="row align-items-end">
+                                            <div class="col-md-3">
+                                                <label class="control-label">Boshlanish:</label>
+                                                <input type="date" name="fromDate" class="form-control" value="@(((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Tugash:</label>
+                                                <input type="date" name="toDate" class="form-control" value="@(((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <div class="card bg-success text-white">
+                                                <div class="card-body text-center">
+                                                    <h3 style="color:white;">EBITDA</h3>
+                                                    <h2 style="color:white;">@(ebitda != null ? ebitda.Ebitda.ToString("N2") : "0.00")</h2>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if (ebitda != null)
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Operatsion daromad</td>
+                                                        <td class="text-right">@ebitda.OperatingIncome.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Operatsion xarajatlar</td>
+                                                        <td class="text-right">-@ebitda.OperatingExpenses.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr class="font-weight-bold">
+                                                        <td>Operatsion foyda</td>
+                                                        <td class="text-right">@ebitda.OperatingProfit.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Qaytarib qo'shiladi: soliqlar (Taxes)</td>
+                                                        <td class="text-right">+@ebitda.TaxExpense.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Qaytarib qo'shiladi: foiz/kredit (Interest)</td>
+                                                        <td class="text-right">+@ebitda.InterestExpense.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Qaytarib qo'shiladi: amortizatsiya (Depreciation &amp; Amortization)</td>
+                                                        <td class="text-right">+@ebitda.DepreciationExpense.ToString("N2")</td>
+                                                    </tr>
+                                                    <tr class="font-weight-bold table-success">
+                                                        <td>EBITDA</td>
+                                                        <td class="text-right">@ebitda.Ebitda.ToString("N2")</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">
+                                            <small>
+                                                EBITDA — foiz, soliq va amortizatsiya xarajatlarigacha bo'lgan operatsion foyda.
+                                                Soliq, foiz/kredit va amortizatsiya xarajatlari kategoriya nomi bo'yicha aniqlanadi.
+                                                Kompaniya qiymatini EBITDA × multiplikator (Ishlab chiqarish: 3–6x) usulida hisoblash uchun
+                                                <a href="@Url.Action("ShareholderValue", new { method = "ebitda" })">Kompaniya qiymati</a> sahifasiga o'ting.
+                                            </small>
+                                        </p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

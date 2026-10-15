@@ -1,0 +1,330 @@
+@model tahsinERP.ViewModels.ForwarderStatisticsViewModel
+@{
+    ViewBag.Title = "Yuk tashuvchi tafsilotlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Forwarder/Index">Yuk tashuvchilar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Yuk tashuvchi tafsilotlari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <!-- Forwarder Information -->
+                    <div class="col-xl-12 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="text-primary">Yuk tashuvchi ma'lumotlari</h4>
+                                        @if (changePermit)
+                                        {
+                                            <a href="@Url.Action("Edit", "Forwarder", new { id = Model.Forwarder.ID })" class="btn btn-sm btn-outline-primary">
+                                                <i class="bx bx-edit"></i> Tahrirlash
+                                            </a>
+                                        }
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Yuk tashuvchi nomi:</strong> @Model.Forwarder.ForwarderName</p>
+                                            <p><strong>Direktor:</strong> @(Model.Forwarder.Director ?? "")</p>
+                                            <p><strong>Bog'lanish uchun shaxs:</strong> @(Model.Forwarder.ContactPerson ?? "")</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Qisqacha bayoni:</strong></p>
+                                            <p>@(Model.Forwarder.Description ?? "")</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="col-xl-12 col-md-12 col-12 mt-2">
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">Jami reyslar</h6>
+                                                <h3 class="mb-0">@Model.TotalTrips</h3>
+                                            </div>
+                                            <div class="avatar bg-light-primary">
+                                                <i class="bx bx-truck font-medium-5"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">Jami tonnaj</h6>
+                                                <h3 class="mb-0">@Model.TotalTonnage.ToString("N2")</h3>
+                                            </div>
+                                            <div class="avatar bg-light-success">
+                                                <i class="bx bx-package font-medium-5"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">Jami xarajat</h6>
+                                                <h3 class="mb-0">@Model.TotalCost.ToString("N2")</h3>
+                                            </div>
+                                            <div class="avatar bg-light-warning">
+                                                <i class="bx bx-dollar font-medium-5"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">Qarz</h6>
+                                                <h3 class="mb-0">@Model.UnpaidAmount.ToString("N2")</h3>
+                                            </div>
+                                            <div class="avatar bg-light-danger">
+                                                <i class="bx bx-money font-medium-5"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trip Breakdown -->
+                    <div class="col-xl-6 col-md-12 col-12 mt-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Reyslar bo'yicha</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <h4 class="text-info">@Model.InboundTrips</h4>
+                                        <p class="mb-0">Kiruvchi</p>
+                                    </div>
+                                    <div class="col-4">
+                                        <h4 class="text-success">@Model.OutboundTrips</h4>
+                                        <p class="mb-0">Chiquvchi</p>
+                                    </div>
+                                    <div class="col-4">
+                                        <h4 class="text-secondary">@Model.InternalTrips</h4>
+                                        <p class="mb-0">Ichki</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics -->
+                    <div class="col-xl-6 col-md-12 col-12 mt-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>O'rtacha ko'rsatkichlar</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>1 km uchun:</td>
+                                        <td><strong>@Model.AverageCostPerKm.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>1 ton uchun:</td>
+                                        <td><strong>@Model.AverageCostPerTon.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>1 reys uchun:</td>
+                                        <td><strong>@Model.AverageCostPerTrip.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>1 CBM uchun:</td>
+                                        <td><strong>@Model.AverageCostPerCBM.ToString("N2")</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OTIF Performance -->
+                    @if (Model.TotalDeliveries > 0)
+                    {
+                        <div class="col-xl-12 col-md-12 col-12 mt-2">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>OTIF (On Time In Full) ko'rsatkichi</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <h4 class="text-success">@Model.OnTimeDeliveries</h4>
+                                            <p class="mb-0">Vaqtida yetkazilgan</p>
+                                        </div>
+                                        <div class="col-4">
+                                            <h4 class="text-danger">@Model.LateDeliveries</h4>
+                                            <p class="mb-0">Kechikkan</p>
+                                        </div>
+                                        <div class="col-4">
+                                            <h4 class="text-primary">@Model.OTIFPercentage.ToString("N1")%</h4>
+                                            <p class="mb-0">OTIF foizi</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Top Lanes -->
+                    @if (Model.TopLanes != null && Model.TopLanes.Any())
+                    {
+                        <div class="col-xl-12 col-md-12 col-12 mt-2">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Eng ko'p ishlatilgan marshrutlar</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Qayerdan</th>
+                                                    <th>Qayerga</th>
+                                                    <th>Reyslar soni</th>
+                                                    <th>Jami tonnaj</th>
+                                                    <th>Jami xarajat</th>
+                                                    <th>1 ton uchun</th>
+                                                    <th>1 km uchun</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var lane in Model.TopLanes)
+                                                {
+                                                    <tr>
+                                                        <td>@lane.FromLocation</td>
+                                                        <td>@lane.ToLocation</td>
+                                                        <td>@lane.TripCount</td>
+                                                        <td>@lane.TotalTonnage.ToString("N2")</td>
+                                                        <td>@lane.TotalCost.ToString("N2")</td>
+                                                        <td>@lane.AverageCostPerTon.ToString("N2")</td>
+                                                        <td>@lane.AverageCostPerKm.ToString("N2")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Bog'liq hujjatlar -->
+                    <div class="col-xl-12 col-md-12 col-12 mt-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="text-primary">Bog'liq hujjatlar</h5>
+                            </div>
+                            <div class="card-body">
+                                <a href="@Url.Action("Index", "FContract", new { forwarderID = Model.Forwarder.ID })" class="btn btn-outline-primary">
+                                    <i class="bx bx-file"></i> Shartnomalar (akt-sverki shartnoma bo'yicha)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Contracts -->
+                    @if (Model.ActiveContracts != null && Model.ActiveContracts.Any())
+                    {
+                        <div class="col-xl-6 col-md-12 col-12 mt-2">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Faol shartnomalar</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group">
+                                        @foreach (var contract in Model.ActiveContracts)
+                                        {
+                                            <li class="list-group-item">
+                                                <a href="@Url.Action("Details", "FContract", new { ID = contract.ID })">
+                                                    @contract.ContractNo
+                                                </a>
+                                                <span class="float-right">@contract.DueDate.ToString("dd.MM.yyyy")</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Recent Yo'l varaqalari -->
+                    @if (Model.RecentWaybills != null && Model.RecentWaybills.Any())
+                    {
+                        <div class="col-xl-6 col-md-12 col-12 mt-2">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Oxirgi yo'l varaqalari</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group">
+                                        @foreach (var waybill in Model.RecentWaybills)
+                                        {
+                                            <li class="list-group-item">
+                                                <a href="@Url.Action("Details", "Waybill", new { ID = waybill.ID })">
+                                                    @waybill.WaybillNo
+                                                </a>
+                                                <span class="float-right">@(waybill.IssueDate?.ToString("dd.MM.yyyy") ?? "")</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

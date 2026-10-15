@@ -1,0 +1,259 @@
+@model List<tahsinERP.Services.DlocFifo.InventoryDlocStockRow>
+@{
+    ViewBag.Title = "Joylar bo'yicha qoldiq (DLOC)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="@Url.Action("Index", "Inventory")">Ombor qoldiqlari</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Joylar bo'yicha qoldiq
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <section class="invoice-list-wrapper">
+                <div class="row mb-2">
+                    <div class="col-12 d-flex flex-wrap">
+                        <a href="@Url.Action("Index", "Inventory")" class="btn btn-secondary mr-1 mb-1">
+                            <i class="bx bx-arrow-back"></i> Umumiy qoldiq
+                        </a>
+                        <a href="@Url.Action("Create", "Incomes")" class="btn btn-success mr-1 mb-1">
+                            <i class="bx bx-log-in-circle"></i> Kirimga o'tish
+                        </a>
+                        <a href="@Url.Action("Create", "Expenses")" class="btn btn-danger mr-1 mb-1">
+                            <i class="bx bx-log-out-circle"></i> Chiqimga o'tish
+                        </a>
+                        <a href="@Url.Action("AssignDloc", "Inventory")" class="btn btn-warning mr-1 mb-1">
+                            <i class="bx bx-map-pin"></i> DLOC ga joylashtirish
+                        </a>
+                        <a href="@Url.Action("Index", "WarehouseLocations")" class="btn btn-outline-primary mb-1">
+                            <i class="bx bx-grid-alt"></i> DLOC sozlamalari
+                        </a>
+                    </div>
+                </div>
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+                }
+
+                <div class="users-list-filter px-1">
+                    @using (Html.BeginForm("IndexDloc", "Inventory", FormMethod.Get, new { @class = "form" }))
+                    {
+                        <div class="row border rounded py-2 mb-2">
+                            <div class="col-12 col-sm-6 col-lg-3">
+                                <label>Ombor</label>
+                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-3">
+                                <label>Kategoriya</label>
+                                @Html.DropDownList("categoryId", ViewBag.Categories as SelectList, "Barchasi", new { @class = "form-control" })
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2">
+                                <label>Mahsulot turi</label>
+                                <select name="isFinishedGood" class="form-control">
+                                    <option value="">Barchasi</option>
+                                    <option value="true" @(ViewBag.IsFinishedGood == true ? "selected" : "")>Tayyor mahsulot</option>
+                                    <option value="false" @(ViewBag.IsFinishedGood == false ? "selected" : "")>Xom ashyo</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2">
+                                <label>Xom ashyo</label>
+                                <select name="isRawMaterial" class="form-control">
+                                    <option value="">Barchasi</option>
+                                    <option value="true" @(ViewBag.IsRawMaterial == true ? "selected" : "")>Faqat xom ashyo</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bx bx-search"></i> Qidirish
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-12 col-sm-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                @if (Model != null && Model.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table id="inventoryDlocTable" class="table table-striped table-bordered nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ombor</th>
+                                                    <th>DLOC</th>
+                                                    <th>Mahsulot kodi</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Qoldiq</th>
+                                                    <th>Birlik</th>
+                                                    <th>Min</th>
+                                                    <th>Max</th>
+                                                    <th>Sig'im %</th>
+                                                    <th>Lotlar soni</th>
+                                                    <th>Eng erta kirim</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var r in Model)
+                                                {
+                                                    var fillPct = r.MaxCapacity > 0 ? (double)(r.QtyAvailable / r.MaxCapacity * 100m) : 0;
+                                                    var rowClass = "";
+                                                    if (r.MinCapacity > 0 && r.QtyAvailable < r.MinCapacity)
+                                                    {
+                                                        rowClass = "table-warning";
+                                                    }
+                                                    else if (r.MaxCapacity > 0 && r.QtyAvailable >= r.MaxCapacity * 0.9m)
+                                                    {
+                                                        rowClass = "table-danger";
+                                                    }
+                                                    <tr class="@rowClass">
+                                                        <td>@r.WarehouseName</td>
+                                                        <td><strong>@r.LocationCode</strong></td>
+                                                        <td>@r.ProductPNo</td>
+                                                        <td>@r.ProductName</td>
+                                                        <td>@r.QtyAvailable.ToString("N2")</td>
+                                                        <td>@(r.UnitName ?? "—")</td>
+                                                        <td>@r.MinCapacity.ToString("N2")</td>
+                                                        <td>@r.MaxCapacity.ToString("N2")</td>
+                                                        <td>@(r.MaxCapacity > 0 ? fillPct.ToString("N0") + "%" : "—")</td>
+                                                        <td>@r.LotCount</td>
+                                                        <td>@(r.ReceivedDateTime.HasValue ? r.ReceivedDateTime.Value.ToString("dd.MM.yyyy HH:mm") : "—")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p class="text-muted small mt-1 mb-0">
+                                        <span class="badge badge-warning">Sariq</span> — MIN dan past;
+                                        <span class="badge badge-danger">Qizil</span> — MAX ga yaqin (90%+).
+                                    </p>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info mb-0">
+                                        DLOC bo'yicha qoldiq topilmadi.
+                                        <a href="@Url.Action("Index", "WarehouseLocations")">Joylashuvlar (DLOC)</a> yarating,
+                                        keyin kirimda har mahsulot uchun DLOC tanlang va qabul qiling.
+                                        Umumiy qoldiqni <a href="@Url.Action("Index", "Inventory")">bu yerda</a> ko'ring.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            if ($('#inventoryDlocTable').length) {
+                $('#inventoryDlocTable').DataTable({
+                    "language": {
+                        "search": "Qidirish:",
+                        "lengthMenu": "_MENU_ ta ko'rsatish",
+                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                        "infoEmpty": "Yozuvlar yo'q",
+                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "paginate": {
+                            "first": "Birinchi",
+                            "last": "Oxirgi",
+                            "next": "Keyingi",
+                            "previous": "Oldingi"
+                        },
+                        "zeroRecords": "Ma'lumot topilmadi"
+                    },
+                    "pageLength": 25,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "order": [[0, "asc"], [1, "asc"]],
+                    "scrollX": true,
+                    dom: 'lBfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: '<i class="bx bxs-file-excel"></i> Excel',
+                            titleAttr: 'Excelga yuklash',
+                            className: 'btn btn-success mr-1',
+                            filename: function () {
+                                var now = new Date();
+                                var dateStr = now.getFullYear() +
+                                    String(now.getMonth() + 1).padStart(2, '0') +
+                                    String(now.getDate()).padStart(2, '0') + '_' +
+                                    String(now.getHours()).padStart(2, '0') +
+                                    String(now.getMinutes()).padStart(2, '0') +
+                                    String(now.getSeconds()).padStart(2, '0');
+                                return 'DLOC_qoldiq_' + dateStr;
+                            },
+                            exportOptions: {
+                                columns: ':visible',
+                                format: {
+                                    body: function (data) {
+                                        return String(data).replace(/<[^>]*>/g, '').trim();
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="bx bxs-file-pdf"></i> PDF',
+                            titleAttr: 'PDFga yuklash',
+                            className: 'btn btn-danger',
+                            filename: function () {
+                                var now = new Date();
+                                var dateStr = now.getFullYear() +
+                                    String(now.getMonth() + 1).padStart(2, '0') +
+                                    String(now.getDate()).padStart(2, '0') + '_' +
+                                    String(now.getHours()).padStart(2, '0') +
+                                    String(now.getMinutes()).padStart(2, '0') +
+                                    String(now.getSeconds()).padStart(2, '0');
+                                return 'DLOC_qoldiq_' + dateStr;
+                            },
+                            exportOptions: {
+                                columns: ':visible',
+                                format: {
+                                    body: function (data) {
+                                        return String(data).replace(/<[^>]*>/g, '').trim();
+                                    }
+                                }
+                            },
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            title: 'DLOC bo\'yicha qoldiq',
+                            customize: function (doc) {
+                                doc.defaultStyle.fontSize = 9;
+                                doc.styles.tableHeader.fontSize = 10;
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    </script>
+}

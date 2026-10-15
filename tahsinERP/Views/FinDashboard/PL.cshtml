@@ -1,0 +1,112 @@
+@{
+    ViewBag.Title = "Foyda va zarar hisoboti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var plData = ViewBag.PLData as List<tahsinERP.Controllers.Finance.PLItemData> ?? new List<tahsinERP.Controllers.Finance.PLItemData>();
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">Foyda va zarar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Foyda va zarar hisoboti</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("PL")" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                @Html.DropDownList("year", ViewBag.YearList as SelectList, new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-2">
+                                                @Html.DropDownList("month", ViewBag.MonthList as SelectList, new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-primary">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Element</th>
+                                                    <th class="text-right">Haqiqiy</th>
+                                                    <th class="text-right">Reja</th>
+                                                    <th class="text-right">Farq</th>
+                                                    <th class="text-right">Farq %</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var parentItem in plData)
+                                                {
+                                                    var parentVarianceClass = parentItem.Variance >= 0 ? "text-success" : "text-danger";
+                                                    var parentVariancePercentClass = parentItem.VariancePercent >= 0 ? "text-success" : "text-danger";
+                                                    
+                                                    // Parent item row
+                                                    <tr style="background-color: #f8f9fa;">
+                                                        <td><strong>@parentItem.Item.Name</strong></td>
+                                                        <td class="text-right"><strong>@parentItem.Actual.ToString("N2")</strong></td>
+                                                        <td class="text-right"><strong>@parentItem.Plan.ToString("N2")</strong></td>
+                                                        <td class="text-right @parentVarianceClass"><strong>@parentItem.Variance.ToString("N2")</strong></td>
+                                                        <td class="text-right @parentVariancePercentClass"><strong>@parentItem.VariancePercent.ToString("N2")%</strong></td>
+                                                    </tr>
+                                                    
+                                                    // Child items rows
+                                                    if (parentItem.Children != null && parentItem.Children.Count > 0)
+                                                    {
+                                                        foreach (var childItem in parentItem.Children)
+                                                        {
+                                                            var childVarianceClass = childItem.Variance >= 0 ? "text-success" : "text-danger";
+                                                            var childVariancePercentClass = childItem.VariancePercent >= 0 ? "text-success" : "text-danger";
+                                                            
+                                                            <tr>
+                                                                <td style="padding-left: 30px;">
+                                                                    <span style="margin-right: 5px; color: #6c757d;"></span>
+                                                                    @childItem.Item.Name
+                                                                </td>
+                                                                <td class="text-right">@childItem.Actual.ToString("N2")</td>
+                                                                <td class="text-right">@childItem.Plan.ToString("N2")</td>
+                                                                <td class="text-right @childVarianceClass">@childItem.Variance.ToString("N2")</td>
+                                                                <td class="text-right @childVariancePercentClass">@childItem.VariancePercent.ToString("N2")%</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

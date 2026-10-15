@@ -1,0 +1,124 @@
+@model List<tahsinERP.ViewModels.ContractTariffIndexItemViewModel>
+@{
+    ViewBag.Title = "Tariflar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/FContract/Index">Shartnomalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">Tariflar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <form method="get" action="@Url.Action("Index", "FContractTariff")">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label>Shartnoma</label>
+                                    @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                                </div>
+                                @if (changePermit)
+                                {
+                                    <div class="col-md-6 d-flex align-items-end justify-content-end">
+                                        <a href="@Url.Action("Create", "FContractTariff")" class="btn btn-success">
+                                            <i class="bx bx-plus"></i> Yangi tarif
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Shartnoma</th>
+                                            <th>Transport turi</th>
+                                            <th>Qayerdan</th>
+                                            <th>Qayerga</th>
+                                            <th>@tahsinERP.Services.LogisticsTerms.TariffBasis</th>
+                                            <th>@tahsinERP.Services.LogisticsTerms.TariffRate</th>
+                                            <th>Valyuta</th>
+                                            <th>Faol</th>
+                                            @if (changePermit)
+                                            {
+                                                <th>Amallar</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model != null && Model.Any())
+                                        {
+                                            foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>@item.ContractNo</td>
+                                                    <td>@item.TransportType</td>
+                                                    <td>@item.FromLocation</td>
+                                                    <td>@item.ToLocation</td>
+                                                    <td>@item.FreightBasis</td>
+                                                    <td>@item.Rate.ToString("N2")</td>
+                                                    <td>@item.Currency</td>
+                                                    <td>@(item.IsActive ? "Ha" : "Yo'q")</td>
+                                                    @if (changePermit)
+                                                    {
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish"><i class="bx bx-show"></i></a>
+                                                            <a href="@Url.Action("Edit", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                            <a href="@Url.Action("Delete", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="@(changePermit ? 9 : 8)" class="text-center">Ma'lumot topilmadi</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,183 @@
+@model List<tahsinERP.Models.P_ORDERS>
+@{
+    ViewBag.Title = "Xarid buyurtmalari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    bool changePermit = ViewBag.ChangePermit as bool? ?? false;
+}
+<div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Xarid buyurtmalari
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    @if (changePermit)
+                    {
+                        <div class="invoice-create-btn mb-1">
+                            <a href="@Url.Action("Create", "POrders")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
+                                <i class="bx bx-plus"></i> Yangi buyurtma (Direct)
+                            </a>
+                            <a href="@Url.Action("Index", "PRequisitions")" class="btn btn-info bg-light invoice-create ml-1" role="button" aria-pressed="true">
+                                <i class="bx bx-plus"></i> Xarid arizasi (Indirect)
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Purchase Type Filter -->
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            @using (Html.BeginForm("Index", "POrders", FormMethod.Get))
+                            {
+                                <div class="form-group">
+                                    <label for="purchaseTypeFilter">Xarid turi</label>
+                                    @Html.DropDownList("purchaseTypeFilter", new SelectList(new[]
+                                    {
+                                        new { Value = "", Text = "Barchasi" },
+                                        new { Value = "Direct", Text = "Direct Purchase" },
+                                        new { Value = "Indirect", Text = "Indirect Purchase" }
+                                    }, "Value", "Text", Request.QueryString["purchaseTypeFilter"]), new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="pOrdersTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Buyurtma raqami</th>
+                                                    <th>Turi</th>
+                                                    <th>Sana</th>
+                                                    <th>Summa (QQS bilan)</th>
+                                                    <th>Valyuta</th>
+                                                    @if (changePermit)
+                                                    {
+                                                        <th>Amallar</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "POrders", new { id = item.ID })">@item.OrderNo</a>
+                                                            </td>
+                                                            <td>
+                                                                @{
+                                                                    var orderType = item.PurchaseType == 1 ? "Indirect" : "Direct";
+                                                                    var orderTypeClass = item.PurchaseType == 1 ? "badge-info" : "badge-primary";
+                                                                }
+                                                                <span class="badge @orderTypeClass">@orderType</span>
+                                                            </td>
+                                                            <td>@item.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                            <td>@(item.Amount?.ToString("N2") ?? "0.00")</td>
+                                                            <td>@(item.CURRENCy?.Shortname ?? "")</td>
+                                                            @if (changePermit)
+                                                            {
+                                                                <td>
+                                                                    <div class="d-flex">
+                                                                        <a href="@Url.Action("Details", "POrders", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
+                                                                            <i class="bx bx-show"></i>
+                                                                        </a>
+                                                                        <a href="@Url.Action("Edit", "POrders", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
+                                                                            <i class="bx bx-edit-alt"></i>
+                                                                        </a>
+                                                                        <a href="@Url.Action("Delete", "POrders", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu buyurtmani o\'chirishni tasdiqlaysizmi?');">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </a>
+                                                                    </div>
+                                                                </td>
+                                                            }
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for jQuery and DataTables to be loaded
+        (function() {
+            function initPOrdersTable() {
+                // Check if jQuery and DataTables are available
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn.DataTable === 'undefined') {
+                    // Retry after a short delay
+                    setTimeout(initPOrdersTable, 100);
+                    return;
+                }
+
+                // Use jQuery - $ might be conflicted, so use jQuery explicitly
+                var $ = jQuery;
+
+                $(document).ready(function () {
+                    if ($('#pOrdersTable').length > 0) {
+                        $('#pOrdersTable').DataTable({
+                            "language": {
+                                "search": "Qidirish:",
+                                "lengthMenu": "_MENU_ ta ko'rsatish",
+                                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                                "infoEmpty": "Yozuvlar yo'q",
+                                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                                "paginate": {
+                                    "first": "Birinchi",
+                                    "last": "Oxirgi",
+                                    "next": "Keyingi",
+                                    "previous": "Oldingi"
+                                },
+                                "zeroRecords": "Ma'lumot topilmadi"
+                            },
+                            "pageLength": 25,
+                            "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Hammasi"]],
+                            "order": [[3, "desc"]],
+                            dom: 'lBfrtip',
+                            buttons: [
+                                { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
+                                { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                            ]
+                        });
+                    }
+                });
+            }
+
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPOrdersTable);
+            } else {
+                initPOrdersTable();
+            }
+        })();
+    </script>

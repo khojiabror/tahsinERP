@@ -1,0 +1,233 @@
+@model List<tahsinERP.ViewModels.HR.OrgChartNodeViewModel>
+@{
+    ViewBag.Title = "Tashkiliy tuzilma - Tashkiliy sxema";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrOrgUnits"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits");
+    var orgChartData = ViewBag.OrgChartData as List<tahsinERP.ViewModels.HR.OrgChartNodeViewModel> ?? new List<tahsinERP.ViewModels.HR.OrgChartNodeViewModel>();
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/HrOrgUnits">Tashkiliy tuzilma</a></li>
+                                    <li class="breadcrumb-item active">Tashkiliy sxema</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="bx bx-list-ul"></i> Bo'limlar daraxti
+                        </a>
+                        @if (changePermit)
+                        {
+                            <a href="@Url.Action("Create")" class="btn btn-success">
+                                <i class="bx bx-plus"></i> Bo'lim qo'shish
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="org-chart-container" style="overflow-x: auto; padding: 20px;">
+                    <div class="org-chart">
+                        @foreach (var rootNode in orgChartData)
+                        {
+                            @RenderOrgChartNode(rootNode, 0, changePermit)
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @helper RenderOrgChartNode(tahsinERP.ViewModels.HR.OrgChartNodeViewModel node, int level, bool canEdit)
+    {
+        <div class="org-chart-level" data-level="@level">
+            <div class="org-chart-card">
+                <div class="org-card-header">
+                    <h6><strong>@node.Code</strong> - @node.Name</h6>
+                </div>
+                <div class="org-card-body">
+                    @if (node.Positions.Any())
+                    {
+                        <div class="org-positions">
+                            <small class="text-muted">Lavozimlar:</small>
+                            @foreach (var pos in node.Positions)
+                            {
+                                <div class="org-position-item">
+                                    <span>@pos.PositionName</span>
+                                    <span class="badge badge-info">@pos.ActualHeadcount/@pos.PlannedHeadcount</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    @if (node.Employees.Any())
+                    {
+                        <div class="org-employees mt-2">
+                            <small class="text-muted">Xodimlar:</small>
+                            @foreach (var emp in node.Employees)
+                            {
+                                <div class="org-employee-item">
+                                    <span>@emp.FullName</span>
+                                    @if (!string.IsNullOrEmpty(emp.PositionName))
+                                    {
+                                        <small class="text-muted">(@emp.PositionName)</small>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                @if (canEdit)
+                {
+                    <div class="org-card-actions">
+                        <a href="@Url.Action("Edit", new { id = node.ID })" class="btn btn-sm btn-warning" title="Tahrirlash">
+                            <i class="bx bx-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-primary" onclick="addChild(@node.ID)" title="Qo'shish">
+                            <i class="bx bx-plus"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+            @if (node.Children.Any())
+            {
+                <div class="org-chart-children">
+                    @foreach (var child in node.Children)
+                    {
+                        @RenderOrgChartNode(child, level + 1, canEdit)
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <style>
+        .org-chart-container {
+            background: #f5f5f5;
+            min-height: 500px;
+        }
+
+        .org-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .org-chart-level {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .org-chart-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            min-width: 250px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .org-chart-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .org-card-header {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .org-card-body {
+            font-size: 0.9em;
+        }
+
+        .org-positions, .org-employees {
+            margin-top: 10px;
+        }
+
+        .org-position-item, .org-employee-item {
+            padding: 4px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .org-card-actions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .org-chart-children {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .org-chart-children::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            width: 2px;
+            height: 20px;
+            background: #ccc;
+        }
+
+        .org-chart-children > .org-chart-level {
+            position: relative;
+            margin: 0 10px;
+        }
+
+        .org-chart-children > .org-chart-level::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            width: 2px;
+            height: 20px;
+            background: #ccc;
+        }
+
+        .org-chart-children > .org-chart-level:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ccc;
+        }
+    </style>
+
+    <script>
+        function addChild(parentId) {
+            window.location.href = '@Url.Action("Create")?parentId=' + parentId;
+        }
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

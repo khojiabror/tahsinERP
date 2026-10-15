@@ -1,0 +1,202 @@
+@{
+    ViewBag.Title = "Kassa oqimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">Kassa oqimi</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Kassa oqimi</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action("Cashflow")" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label class="control-label">Dan sana:</label>
+                                                <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Gacha sana:</label>
+                                                <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">Hisob:</label>
+                                                @Html.DropDownList("accountID", ViewBag.AccountList as SelectList, "Barcha hisoblar", new { @class = "form-control" })
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="control-label">&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    
+                                    <style>
+                                        .stat-card {
+                                            border-radius: 12px;
+                                            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                                            transition: transform 0.3s ease, box-shadow 0.3s ease;
+                                            border: none;
+                                            overflow: hidden;
+                                        }
+                                        .stat-card:hover {
+                                            transform: translateY(-5px);
+                                            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                                        }
+                                        .stat-card-inflow {
+                                            background: linear-gradient(135deg, #28c76f 0%, #20b85c 100%);
+                                            color: white;
+                                        }
+                                        .stat-card-outflow {
+                                            background: linear-gradient(135deg, #ea5455 0%, #d43f3f 100%);
+                                            color: white;
+                                        }
+                                        .stat-card-net {
+                                            background: linear-gradient(135deg, #00cfe8 0%, #00a8b5 100%);
+                                            color: white;
+                                        }
+                                        .stat-card-balance {
+                                            background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%);
+                                            color: white;
+                                        }
+                                        .stat-card-body {
+                                            padding: 1.5rem;
+                                            text-align: center;
+                                        }
+                                        .stat-card-title {
+                                            font-size: 0.9rem;
+                                            font-weight: 600;
+                                            margin-bottom: 0.5rem;
+                                            opacity: 0.95;
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.5px;
+                                        }
+                                        .stat-card-value {
+                                            font-size: 1.8rem;
+                                            font-weight: 700;
+                                            margin-bottom: 0.25rem;
+                                            line-height: 1.2;
+                                        }
+                                        .stat-card-currency {
+                                            font-size: 0.85rem;
+                                            font-weight: 500;
+                                            opacity: 0.9;
+                                        }
+                                    </style>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-inflow">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Kirim</div>
+                                                    <div class="stat-card-value">@ViewBag.Inflow.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-outflow">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Chiqim</div>
+                                                    <div class="stat-card-value">@ViewBag.Outflow.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-net">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Net kassa oqimi</div>
+                                                    <div class="stat-card-value">@ViewBag.NetCashflow.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card stat-card-balance">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">Joriy balans</div>
+                                                    <div class="stat-card-value">@ViewBag.CurrentBalance.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="chart-container">
+                                        <canvas id="cashflowChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var dailyData = @Html.Raw(Json.Encode(ViewBag.DailyData));
+        
+        // Dates are already formatted as strings from controller
+        var dates = dailyData.map(function(item) { return item.Date; });
+        var inflows = dailyData.map(function(item) { return item.Inflow; });
+        var outflows = dailyData.map(function(item) { return item.Outflow; });
+        
+        var ctx = document.getElementById('cashflowChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Kirim',
+                    data: inflows,
+                    borderColor: 'rgb(40, 199, 111)',
+                    backgroundColor: 'rgba(40, 199, 111, 0.1)',
+                    tension: 0.1
+                }, {
+                    label: 'Chiqim',
+                    data: outflows,
+                    borderColor: 'rgb(234, 84, 85)',
+                    backgroundColor: 'rgba(234, 84, 85, 0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

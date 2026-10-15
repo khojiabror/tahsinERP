@@ -1,0 +1,133 @@
+@model tahsinERP.ViewModels.ProductionMonthlyReportViewModel
+@{
+    ViewBag.Title = "Ishlab chiqarish oylik hisoboti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var monthNames = new[] { "", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr" };
+}
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan") || tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="breadcrumb-wrapper col-12">
+                        <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                            <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                            <li class="breadcrumb-item"><a href="~/MESDashboard/Dashboard">MES</a></li>
+                            <li class="breadcrumb-item active">Ishlab chiqarish oylik hisoboti</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row no-print">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("ProductionMonthly")" class="row align-items-end">
+                                    <div class="col-md-3 col-12 form-group">
+                                        <label>Yil</label>
+                                        <select name="year" class="form-control">
+                                            @foreach (var y in (List<int>)ViewBag.Years)
+                                            {
+                                                <option value="@y" @(Model.Year == y ? "selected" : "")>@y</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 col-12 form-group">
+                                        <label>Oy</label>
+                                        <select name="month" class="form-control">
+                                            @for (int m = 1; m <= 12; m++)
+                                            {
+                                                <option value="@m" @(Model.Month == m ? "selected" : "")>@monthNames[m]</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 col-12 form-group">
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-filter"></i> Ko'rsatish</button>
+                                    </div>
+                                    <div class="col-md-3 col-12 form-group text-right">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> Chop etish</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reportContent" class="card print-report">
+                    <div class="card-body">
+                        <div class="report-header text-center mb-4">
+                            <h4 class="text-primary mb-1">ISHLAB CHIQARISH OYLIK HISOBOTI</h4>
+                            <p class="mb-0 text-muted">@Model.StartDate.ToString("dd.MM.yyyy") - @Model.EndDate.ToString("dd.MM.yyyy") (@monthNames[Model.Month] @Model.Year)</p>
+                        </div>
+                        <table class="table table-bordered table-sm">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Mahsulot kodi</th>
+                                    <th>Mahsulot nomi</th>
+                                    <th class="text-right">Reja</th>
+                                    <th class="text-right">Fakt</th>
+                                    <th class="text-right">Farq</th>
+                                    <th class="text-right">Qoldiq (ishlab chiqarish ombori)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ var i = 0; }
+                                @foreach (var row in Model.Rows)
+                                {
+                                    i++;
+                                    <tr>
+                                        <td>@i</td>
+                                        <td>@row.ProductCode</td>
+                                        <td>@row.ProductName</td>
+                                        <td class="text-right">@row.Reja.ToString("N2")</td>
+                                        <td class="text-right">@row.Fakt.ToString("N2")</td>
+                                        <td class="text-right @(row.Farq >= 0 ? "text-success" : "text-danger")">@row.Farq.ToString("N2")</td>
+                                        <td class="text-right">@row.Qoldiq.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="font-weight-bold">
+                                <tr>
+                                    <td colspan="3" class="text-right">JAMI:</td>
+                                    <td class="text-right">@Model.TotalReja.ToString("N2")</td>
+                                    <td class="text-right">@Model.TotalFakt.ToString("N2")</td>
+                                    <td class="text-right">@Model.TotalFarq.ToString("N2")</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <div class="row mt-4 pt-3">
+                            <div class="col-6">
+                                <p class="mb-0 small text-muted">Tuzildi: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</p>
+                            </div>
+                            <div class="col-6 text-right">
+                                <p class="mb-0 small">Ishlab chiqarish boshlig'i: _________________________</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        @@media print {
+            body * { visibility: hidden; }
+            #reportContent, #reportContent * { visibility: visible; }
+            #reportContent { position: absolute; left: 0; top: 0; width: 100%; background: #fff !important; }
+            .no-print { display: none !important; }
+            .content-header, .navbar, .menu, footer, .breadcrumb { display: none !important; }
+            .app-content, .content-wrapper, .content-body { padding: 0 !important; overflow: visible !important; height: auto !important; }
+            .card-body { padding: 1rem !important; }
+            .print-report { border: none !important; box-shadow: none !important; }
+            body, html { font-size: 11px; overflow: visible !important; height: auto !important; }
+        }
+    </style>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

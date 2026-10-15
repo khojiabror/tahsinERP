@@ -1,0 +1,86 @@
+@{
+    ViewBag.Title = "Excel listni tanlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tabel</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Import")">Import</a></li>
+                                    <li class="breadcrumb-item active">Listni tanlash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            @using (Html.BeginForm("ImportFromSheet", "HrTimesheets", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="form-group">
+                                    <label>Listni tanlang <span class="text-danger">*</span></label>
+                                    @{
+                                        var sheetNamesList = ViewBag.SheetNames as System.Web.Mvc.SelectList;
+                                    }
+                                    @if (sheetNamesList != null)
+                                    {
+                                        @Html.DropDownList("sheetName", sheetNamesList, "Listni tanlang", new { @class = "form-control", required = "required" })
+                                    }
+                                    else
+                                    {
+                                        <select name="sheetName" class="form-control" required>
+                                            <option value="">Listni tanlang</option>
+                                        </select>
+                                        <div class="alert alert-warning mt-2">
+                                            <i class="bx bx-error"></i> Excel fayl yuklanmagan yoki listlar topilmadi.
+                                        </div>
+                                    }
+                                    <small class="text-muted">Excel fayldagi list nomini tanlang</small>
+                                </div>
+
+                                <input type="hidden" name="year" value="@ViewBag.Year" />
+                                <input type="hidden" name="orgUnitId" value="@ViewBag.OrgUnitId" />
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-import"></i> Import qilish
+                                    </button>
+                                    <a href="@Url.Action("Import")" class="btn btn-secondary">Orqaga</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

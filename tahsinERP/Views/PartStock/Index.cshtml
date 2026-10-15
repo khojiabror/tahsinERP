@@ -1,0 +1,105 @@
+
+@model List<tahsinERP.Models.PART_STOCKS>
+@{
+    ViewBag.Title = "Ro'yxat";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            Ombordagi qoldiq
+                                        </li>
+                                        <li class="col-md-6 col-12 form-group ms-auto">
+                                            <br /> Ombor :  <b>@ViewBag.WHName</b>
+                                        </li>
+                                    </ol>
+
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
+                                    {
+                                        <div class="invoice-create-btn mb-1">
+                                            <button type="button" class="btn btn-outline-danger mr-1 mb-1" id="exportButton" onclick="window.location.href='/PartStock/UploadWithExcel'">
+                                                <i class="bx bx-file"></i><span class="align-middle ml-25">Inventarizatsiya qoldiqlarini kiritish</span>
+                                            </button>
+                                        </div>
+                                    }
+                                    @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString()))
+                                    {
+                                        <div class="invoice-create-btn mb-1">
+                                            @Html.DropDownList("WarehouseID", (SelectList)ViewBag.warehouseList, "--omborni tanlang--", new { @class = "form-control", onchange = "refreshDataTable()" })
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <!-- users list start -->
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <!-- datatable start -->
+                                    <div class="table-responsive">
+                                        <table class="table table-striped dataex-html5-selectors" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ombor</th>
+                                                    <th>Detal raqami</th>
+                                                    <th>Nomi</th>
+                                                    <th>Miqdori</th>
+                                                    <th>Birligi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <a href="~/PartWRHS/Details/@item.WHID">@item.PART_WRHS.WHName</a>
+                                                        </td>
+                                                        <td><a href="~/Part/Details/@item.ID">@item.PART.PNo</a></td>
+                                                        <td>@item.PART.PName</td>
+                                                        <td>@item.Amount</td>
+                                                        <td>@item.UNIT.ShortName</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+<script type="text/javascript">
+function refreshDataTable() {
+    var source = document.getElementById("WarehouseID").value;
+    const warehouseID = document.getElementById("WarehouseID").value;
+    window.location.href = '@Url.Action("Index", "PartStock")?whid=' + source;
+    };
+</script>

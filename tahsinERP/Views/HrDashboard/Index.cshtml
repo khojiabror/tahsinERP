@@ -1,0 +1,418 @@
+@model tahsinERP.ViewModels.HR.HrDashboardViewModel
+@{
+    ViewBag.Title = "HR Boshqaruv paneli";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">HR Boshqaruv paneli</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <!-- Filters -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="get" action="@Url.Action("Index")" class="row">
+                                    <div class="col-md-3">
+                                        <label>Yil</label>
+                                        <input type="number" name="year" class="form-control" value="@ViewBag.Year" min="2000" max="2100" />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Oy</label>
+                                        <select name="month" class="form-control">
+                                            @for (int i = 1; i <= 12; i++)
+                                            {
+                                                <option value="@i" @(ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label>Bo'lim</label>
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label>&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary btn-block">Qo'llash</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-group primary font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalHeadcount</h3>
+                                            <span>Jami xodimlar</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-user-check success font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.PlannedHeadcount</h3>
+                                            <span>Rejalashtirilgan soni</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-money warning font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalMonthlyPayroll.ToString("N2")</h3>
+                                            <span>Oylik ish haqi fondi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-time danger font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalOvertimeHours.ToString("N1")</h3>
+                                            <span>Qo'shimcha ish soatlari</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row match-height">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-timer success font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalWorkedHours.ToString("N1")</h3>
+                                            <span>Jami ishlangan soat</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-calculator warning font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalHourlyCalculated.ToString("N2")</h3>
+                                            <span>Soatbay hisoblangan</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-package primary font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalPieceCalculated.ToString("N2")</h3>
+                                            <span>Ishbay hisoblangan</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-money success font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalSalaryPaidFromFin.ToString("N2")</h3>
+                                            <span>To'langan oylik (Fin)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row match-height">
+                    <div class="col-xl-6 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-cube primary font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalPieceQuantity.ToString("N2")</h3>
+                                            <span>Jami ishbay miqdor</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="media d-flex">
+                                        <div class="align-self-center">
+                                            <i class="bx bx-wallet danger font-large-2 float-left"></i>
+                                        </div>
+                                        <div class="media-body text-right">
+                                            <h3>@Model.TotalSalaryBalance.ToString("N2")</h3>
+                                            <span>Oylik bo'yicha qoldiq (hisoblangan - to'langan)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Bo'limlar bo'yicha shtat soni</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="headcountChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Ish haqi fondi dinamikasi</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="payrollTrendChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Headcount by OrgUnit Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Bo'limlar bo'yicha shtat soni</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered" id="headcountTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Bo'lim</th>
+                                                <th>Rejalashtirilgan</th>
+                                                <th>Faktik</th>
+                                                <th>Og'ishish</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model.HeadcountByOrgUnit)
+                                            {
+                                                var deviation = item.ActualHeadcount - item.PlannedHeadcount;
+                                                <tr>
+                                                    <td>@item.OrgUnitName</td>
+                                                    <td>@item.PlannedHeadcount</td>
+                                                    <td>@item.ActualHeadcount</td>
+                                                    <td>
+                                                        <span class="badge badge-@(deviation > 0 ? "danger" : deviation < 0 ? "warning" : "success")">
+                                                            @(deviation > 0 ? "+" : "")@deviation
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        (function() {
+            // Wait for jQuery and DOM to be ready
+            function initDashboard() {
+                if (typeof jQuery === 'undefined' || typeof Chart === 'undefined') {
+                    setTimeout(initDashboard, 100);
+                    return;
+                }
+                
+                var $ = jQuery;
+                
+                $(document).ready(function() {
+            // Headcount by OrgUnit Chart
+            var headcountCtx = document.getElementById('headcountChart');
+            if (headcountCtx) {
+                var headcountLabels = @Html.Raw(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
+                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => $"'{x.OrgUnitName.Replace("'", "\\'")}'")) + "]"
+                    : "[]");
+                var plannedData = @(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
+                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.PlannedHeadcount)) + "]"
+                    : "[]");
+                var actualData = @(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
+                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.ActualHeadcount)) + "]"
+                    : "[]");
+                
+                var headcountChart = new Chart(headcountCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: headcountLabels,
+                        datasets: [{
+                            label: 'Rejalashtirilgan',
+                            data: plannedData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                        }, {
+                            label: 'Faktik',
+                            data: actualData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Payroll Trend Chart
+            var payrollCtx = document.getElementById('payrollTrendChart');
+            if (payrollCtx) {
+                var payrollLabels = @Html.Raw(Model.PayrollTrend != null && Model.PayrollTrend.Any() 
+                    ? "[" + string.Join(",", Model.PayrollTrend.Select(x => $"'{x.Year}-{x.Month:D2}'")) + "]"
+                    : "[]");
+                var payrollData = @(Model.PayrollTrend != null && Model.PayrollTrend.Any() 
+                    ? "[" + string.Join(",", Model.PayrollTrend.Select(x => x.TotalPayroll)) + "]"
+                    : "[]");
+                
+                var payrollChart = new Chart(payrollCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: payrollLabels,
+                        datasets: [{
+                            label: 'Ish haqi fondi',
+                            data: payrollData,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // DataTable
+            $('#headcountTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                },
+                "pageLength": 25
+            });
+                });
+            }
+            
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initDashboard);
+            } else {
+                initDashboard();
+            }
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

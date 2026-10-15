@@ -1,0 +1,145 @@
+@model IEnumerable<tahsinERP.ViewModels.BOM.BomIndexViewModel>
+@{
+    ViewBag.Title = "BOM";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "BOM"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Bom">BOM</a></li>
+                                    <li class="breadcrumb-item active">Ro'yxat</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                }
+
+                <section class="invoice-list-wrapper">
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="bomTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Mahsulot raqami</th>
+                                                    <th>Mahsulot nomi</th>
+                                                    <th>Norm versiyasi</th>
+                                                    <th class="text-center">Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null && Model.Any())
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <span class="font-weight-bold text-primary">
+                                                                    @item.ProductPno
+                                                                </span>
+                                                            </td>
+                                                            <td>@item.ProductName</td>
+                                                            <td>
+                                                                <span class="badge badge-light-info">
+                                                                    @item.NormVersion
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Details", "Bom", new { productId = item.ProductId })" class="btn btn-sm btn-outline-primary" title="BOM ni ko'rish">
+                                                                    <i class="bx bx-show"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="4" class="text-center text-muted">BOM topilmadi</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Wait for document and all scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use jQuery since noConflict(true) is called in _Layout.cshtml
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery is not loaded');
+                return;
+            }
+
+            jQuery('#bomTable').DataTable({
+                "language": {
+                    "search": "Qidirish:",
+                    "lengthMenu": "_MENU_ ta ko'rsatish",
+                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                    "infoEmpty": "Yozuvlar yo'q",
+                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                    "paginate": {
+                        "first": "Birinchi",
+                        "last": "Oxirgi",
+                        "next": "Keyingi",
+                        "previous": "Oldingi"
+                    },
+                    "zeroRecords": "Ma'lumot topilmadi"
+                },
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
+                "order": [[0, "asc"]],
+                "dom": "lBfrtip",
+                "columnDefs": [
+                    { "orderable": false, "targets": -1 }
+                ],
+                buttons: [
+                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
+                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
+                ]
+            });
+        });
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

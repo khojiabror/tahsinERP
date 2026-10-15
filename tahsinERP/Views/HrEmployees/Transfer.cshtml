@@ -1,0 +1,136 @@
+@model tahsinERP.ViewModels.HR.HrEmployeeViewModel
+@{
+    ViewBag.Title = "Boshqa lavozimga o'tkazish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
+{
+    var employee = ViewBag.Employee as tahsinERP.Models.HR_EMPLOYEES;
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Xodimlar</a></li>
+                                    <li class="breadcrumb-item active">Boshqa lavozimga o'tkazish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <strong>Xodim:</strong> @employee.FullName
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Tab.№:</strong> @employee.TabNo
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <strong>Joriy bo'lim:</strong> @(employee.HR_ORG_UNITS?.Name ?? "-")
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Joriy lavozim:</strong> @(employee.HR_POSITIONS?.Name ?? "-")
+                                </div>
+                            </div>
+
+                            @using (Html.BeginForm("Transfer", "HrEmployees", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("id", employee.ID)
+
+                                <hr />
+
+                                <div class="form-group">
+                                    <label for="toOrgUnitId">Yangi bo'lim <span class="text-danger">*</span></label>
+                                    @Html.DropDownList("toOrgUnitId", ViewBag.ToOrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control", id = "toOrgUnitId", required = "required" })
+                                </div>
+
+                                <div class="form-group" id="positionGroup">
+                                    <label for="toPositionId">Yangi lavozim <span class="text-danger">*</span></label>
+                                    <select name="toPositionId" id="toPositionId" class="form-control" required disabled>
+                                        <option value="">Avval bo'limni tanlang</option>
+                                    </select>
+                                    <span class="text-muted small" id="positionHint">Bo'lim tanlangandan so'ng faqat shu bo'limdagi lavozimlar ko'rsatiladi.</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="effectiveDate">O'tkazish sanasi <span class="text-danger">*</span></label>
+                                    <input type="date" name="effectiveDate" id="effectiveDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="reason">Sabab</label>
+                                    <textarea name="reason" id="reason" class="form-control" rows="3"></textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-check"></i> Tasdiqlash
+                                    </button>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                        <i class="bx bx-x"></i> Bekor qilish
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var toOrgUnitId = document.getElementById('toOrgUnitId');
+            var toPositionId = document.getElementById('toPositionId');
+            var positionHint = document.getElementById('positionHint');
+            var url = '@Url.Action("GetPositionsByOrgUnit", "HrEmployees")';
+
+            toOrgUnitId.addEventListener('change', function() {
+                var orgId = parseInt(this.value, 10);
+                toPositionId.innerHTML = '<option value="">Lavozimni tanlang</option>';
+                toPositionId.disabled = true;
+                if (!orgId) {
+                    positionHint.textContent = 'Bo\'lim tanlangandan so\'ng faqat shu bo\'limdagi lavozimlar ko\'rsatiladi.';
+                    return;
+                }
+                positionHint.textContent = 'Yuklanmoqda...';
+                fetch(url + '?orgUnitId=' + orgId)
+                    .then(function(r) { return r.json(); })
+                    .then(function(list) {
+                        list.forEach(function(p) {
+                            var opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.name;
+                            toPositionId.appendChild(opt);
+                        });
+                        toPositionId.disabled = false;
+                        positionHint.textContent = list.length ? 'Faqat tanlangan bo\'limdagi lavozimlar.' : 'Ushbu bo\'limda reja qilingan lavozimlar topilmadi.';
+                    })
+                    .catch(function() {
+                        positionHint.textContent = 'Lavozimlarni yuklashda xatolik.';
+                    });
+            });
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

@@ -1,0 +1,163 @@
+@model List<tahsinERP.ViewModels.ProductPlanDailyViewModel>
+@{
+    var planID = Model != null && Model.Any() ? Model.FirstOrDefault()?.PlanID ?? 0 : 0;
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "ProductPlan", "UpdateDailyPlan");
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Kunlik reja ma'lumotlari mavjud emas</div>
+}
+else
+{
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover" id="dailyPlanTable">
+            <thead>
+                <tr>
+                    <th>Sana</th>
+                    <th>Kunduzgi smena (Reja)</th>
+                    <th>Tungi smena (Reja)</th>
+                    <th>Jami (Reja)</th>
+                    <th>Kunduzgi smena (Fakt)</th>
+                    <th>Tungi smena (Fakt)</th>
+                    <th>Jami (Fakt)</th>
+                    <th>Farq</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var difference = item.ActualTotal.HasValue ? (item.ActualTotal.Value - item.Total) : (double?)null;
+                    <tr data-daily-id="@item.ID">
+                        <td>@item.Day.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @if (changePermit)
+                            {
+                                <input type="number" step="0.001" min="0" class="form-control day-shift-input"
+                                       value="@item.DayShift.ToString("N3")" data-id="@item.ID" data-field="dayshift" />
+                            }
+                            else
+                            {
+                                @item.DayShift.ToString("N3")
+                            }
+                        </td>
+                        <td>
+                            @if (changePermit)
+                            {
+                                <input type="number" step="0.001" min="0" class="form-control night-shift-input"
+                                       value="@item.NightShift.ToString("N3")" data-id="@item.ID" data-field="nightshift" />
+                            }
+                            else
+                            {
+                                @item.NightShift.ToString("N3")
+                            }
+                        </td>
+                        <td>
+                            <span class="total-display">@item.Total.ToString("N3")</span>
+                        </td>
+                        <td class="@(item.ActualDayShift.HasValue ? "" : "text-muted")">
+                            @(item.ActualDayShift?.ToString("N3") ?? "-")
+                        </td>
+                        <td class="@(item.ActualNightShift.HasValue ? "" : "text-muted")">
+                            @(item.ActualNightShift?.ToString("N3") ?? "-")
+                        </td>
+                        <td class="@(item.ActualTotal.HasValue ? "" : "text-muted")">
+                            @(item.ActualTotal?.ToString("N3") ?? "-")
+                        </td>
+                        <td class="@(difference.HasValue ? (difference.Value >= 0 ? "text-success" : "text-danger") : "text-muted")">
+                            @if (difference.HasValue)
+                            {
+                                <span>@(difference.Value >= 0 ? "+" : "")@difference.Value.ToString("N3")</span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    if (changePermit)
+    {
+        <div class="mt-3">
+            <button type="button" id="saveDailyPlansBtn" class="btn btn-primary">
+                <i class="bx bx-save"></i> Kunlik rejalarni saqlash
+            </button>
+            <span id="saveStatus" class="ml-2"></span>
+        </div>
+
+        <script>
+        $(document).ready(function() {
+            var planID = @planID;
+            var changedItems = [];
+
+            // Auto-calculate total when day/night shift changes
+            $('.day-shift-input, .night-shift-input').on('input', function() {
+                var row = $(this).closest('tr');
+                var dayShift = parseFloat(row.find('.day-shift-input').val()) || 0;
+                var nightShift = parseFloat(row.find('.night-shift-input').val()) || 0;
+                var total = dayShift + nightShift;
+                row.find('.total-display').text(total.toFixed(3));
+
+                // Track changes
+                var dailyID = $(this).data('id');
+                var existingItem = changedItems.find(x => x.ID === dailyID);
+                if (existingItem) {
+                    existingItem.DayShift = dayShift;
+                    existingItem.NightShift = nightShift;
+                    existingItem.Total = total;
+                } else {
+                    changedItems.push({
+                        ID: dailyID,
+                        DayShift: dayShift,
+                        NightShift: nightShift,
+                        Total: total
+                    });
+                }
+            });
+
+            // Save daily plans
+            $('#saveDailyPlansBtn').on('click', function() {
+                if (changedItems.length === 0) {
+                    $('#saveStatus').html('<span class="text-warning">O\'zgarishlar yo\'q</span>');
+                    return;
+                }
+
+                $('#saveDailyPlansBtn').prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Saqlanmoqda...');
+                $('#saveStatus').html('');
+
+                $.ajax({
+                    url: '@Url.Action("UpdateDailyPlan", "ProductPlan")',
+                    type: 'POST',
+                    data: {
+                        planID: planID,
+                        dailyPlans: changedItems,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#saveStatus').html('<span class="text-success">' + response.message + '</span>');
+                            changedItems = [];
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            $('#saveStatus').html('<span class="text-danger">' + response.message + '</span>');
+                            $('#saveDailyPlansBtn').prop('disabled', false).html('<i class="bx bx-save"></i> Kunlik rejalarni saqlash');
+                        }
+                    },
+                    error: function() {
+                        $('#saveStatus').html('<span class="text-danger">Xatolik yuz berdi</span>');
+                        $('#saveDailyPlansBtn').prop('disabled', false).html('<i class="bx bx-save"></i> Kunlik rejalarni saqlash');
+                    }
+                });
+            });
+        });
+        </script>
+    }
+}
+

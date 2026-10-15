@@ -1,0 +1,111 @@
+@{
+    ViewBag.Title = "Ulushlarni boshqarish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var shareholder = ViewBag.Shareholder as tahsinERP.Models.SHAREHOLDER;
+    var periods = ViewBag.Periods as List<tahsinERP.Models.SHAREHOLDER_SHARE_PERIODS> ?? new List<tahsinERP.Models.SHAREHOLDER_SHARE_PERIODS>();
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Shareholder">Aksiyadorlar</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = shareholder.ID })">@shareholder.FullName</a></li>
+                                    <li class="breadcrumb-item active">Ulushlarni boshqarish</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Ulushlarni boshqarish: @shareholder.FullName</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <h5>Mavjud ulush davrlari:</h5>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Dan</th>
+                                                    <th>Gacha</th>
+                                                    <th>Ulush %</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var period in periods)
+                                                {
+                                                    <tr>
+                                                        <td>@period.FromDate.ToString("dd.MM.yyyy")</td>
+                                                        <td>@(period.ToDate?.ToString("dd.MM.yyyy") ?? "Hozirgacha")</td>
+                                                        <td><strong>@period.SharePercent%</strong></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <h5>Yangi ulush davri qo'shish:</h5>
+                                    @using (Html.BeginForm("AddSharePeriod", "Shareholder", FormMethod.Post, new { @class = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("shareholderID", shareholder.ID)
+                                        
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">Dan sana *</label>
+                                                    <input type="date" name="fromDate" class="form-control" required />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">Gacha sana</label>
+                                                    <input type="date" name="toDate" class="form-control" />
+                                                    <small class="text-muted">Bo'sh qoldirilsa, hozirgacha</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">Ulush % *</label>
+                                                    <input type="number" name="sharePercent" class="form-control" step="0.01" min="0" max="100" required />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">&nbsp;</label>
+                                                    <button type="submit" class="btn btn-primary btn-block">Qo'shish</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    
+                                    <div class="mt-3">
+                                        <a href="@Url.Action("Details", new { id = shareholder.ID })" class="btn btn-secondary">Orqaga</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

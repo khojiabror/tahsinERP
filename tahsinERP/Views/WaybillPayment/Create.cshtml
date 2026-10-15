@@ -1,0 +1,101 @@
+@model tahsinERP.Models.F_WAYBILL_PAYMENTS
+@{
+    ViewBag.Title = "Yo'l varaqasi to'lovi qo'shish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var T = new
+    {
+        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
+        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
+        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
+        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
+        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
+    };
+}
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Create", "WaybillPayment", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                        <li class="breadcrumb-item"><a href="~/Waybill/Index">@T.Waybills</a></li>
+                                        <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@T.Waybill to'lovlari</a></li>
+                                        <li class="breadcrumb-item active">Yangi to'lov</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <section class="basic-select2">
+                        <div class="row">
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <h4 class="text-primary mb-1">@T.Waybill to'lovi</h4>
+                                            <p class="text-muted small">To'lov saqlanganda moliyada avtomatik &quot;Chiqim&quot; (M.Tash / T.Tash) tranzaksiyasi yaratiladi.</p>
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                            <hr />
+                                            <div class="form-group">
+                                                <label>@T.Waybill lar *</label>
+                                                @Html.ListBox("SelectedWaybillIDs", ViewBag.waybillItems as IEnumerable<SelectListItem>, new { @class = "form-control select2", @multiple = "multiple" })
+                                                <small class="text-muted">Bitta to'lovga bir nechta yo'l varaqasi bog'lashingiz mumkin.</small>
+                                                @Html.ValidationMessage("WaybillID", "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group">
+                                                <label>@T.Forwarder *</label>
+                                                @Html.DropDownListFor(model => model.ForwarderID, (IEnumerable<SelectListItem>)ViewBag.forwarders, $"{T.Forwarder}ni tanlang:", new { @class = "form-control select2" })
+                                                @Html.ValidationMessageFor(model => model.ForwarderID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group">
+                                                <label>To'lov miqdori *</label>
+                                                @Html.TextBoxFor(model => model.Payment_Amount, new { @class = "form-control", @type = "number", @step = "0.01", @placeholder = "0" })
+                                                @Html.ValidationMessageFor(model => model.Payment_Amount, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="form-group">
+                                                <label>To'lov sanasi</label>
+                                                @Html.TextBoxFor(model => model.PaymentDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Valyuta</label>
+                                                @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
+                                            </div>
+                                            <div class="form-group">
+                                                <label>To'lov hisobi (Hisob-raqam)</label>
+                                                @Html.DropDownList("AccountID", ViewBag.accounts as SelectList, "Hisob-raqamni tanlang (ixtiyoriy)", new { @class = "form-control select2" })
+                                                <small class="text-muted">Faqat bank hisob-raqamlari ko'rsatiladi. Bo'sh qoldirilsa, valyutaga mos default hisob-raqam tanlanadi.</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Izoh</label>
+                                                @Html.TextAreaFor(model => model.Comment, new { @class = "form-control", @rows = 2, @placeholder = "Izoh (majburiy)", @required = "required" })
+                                            </div>
+                                            <hr />
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-save"></i> Saqlash
+                                            </button>
+                                            <a href="@Url.Action("Index", "WaybillPayment")" class="btn btn-outline-secondary ml-1">Bekor qilish</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

@@ -1,0 +1,407 @@
+using Newtonsoft.Json;
+using OfficeOpenXml;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+using tahsinERP.Models;
+using tahsinERP.Filters;
+
+namespace tahsinERP.Controllers
+{
+    public class CustomerController : Controller
+    {
+        
+        private string supplierName = "";
+        // Olish so'rovi: Customer
+        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string sortOrder, int? page, int? pageSize)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var query = db.CUSTOMERS.Where(x => x.IsDeleted == false);
+
+                // Search filtrlash
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    query = query.Where(c => 
+                        c.Name.Contains(searchTerm) || 
+                        (c.Email != null && c.Email.Contains(searchTerm)) || 
+                        (c.DUNS != null && c.DUNS.Contains(searchTerm)) ||
+                        (c.Type != null && c.Type.Contains(searchTerm)));
+                }
+
+                // Sorting
+                switch (sortOrder)
+                {
+                    case "name_desc":
+                        query = query.OrderByDescending(c => c.Name);
+                        break;
+                    case "name":
+                        query = query.OrderBy(c => c.Name);
+                        break;
+                    case "email":
+                        query = query.OrderBy(c => c.Email);
+                        break;
+                    case "email_desc":
+                        query = query.OrderByDescending(c => c.Email);
+                        break;
+                    default:
+                        query = query.OrderBy(c => c.Name);
+                        break;
+                }
+
+                // Pagination
+                int currentPage = page ?? 1;
+                int itemsPerPage = pageSize ?? 25;
+                int totalItems = await query.CountAsync();
+                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+
+                var customers = await query
+                    .Skip((currentPage - 1) * itemsPerPage)
+                    .Take(itemsPerPage)
+                    .ToListAsync();
+
+                ViewBag.CurrentPage = currentPage;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalItems = totalItems;
+                ViewBag.PageSize = itemsPerPage;
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.SortOrder = sortOrder;
+
+                return View(customers);
+            }
+        }
+
+        // Navigation actions
+        public ActionResult ViewOrders(int? customerId)
+        {
+            if (customerId == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index", "SOrder", new { customerID = customerId });
+        }
+
+        public ActionResult ViewContracts(int? customerId)
+        {
+            if (customerId == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index", "SContract", new { customerID = customerId });
+        }
+
+        public ActionResult ViewInvoices(int? customerId)
+        {
+            if (customerId == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index", "SalesInvoices", new { customerID = customerId });
+        }
+
+
+        public ActionResult Details(int? Id)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+
+                if (Id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                var customer = db.CUSTOMERS
+                    .Include(c => c.S_ORDERS)
+                    .Include(c => c.S_CONTRACTS)
+                    .FirstOrDefault(c => c.ID == Id);
+                if (customer == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Olish counts uchun navigation
+                ViewBag.OrdersCount = customer.S_ORDERS != null ? customer.S_ORDERS.Where(o => o.IsDeleted == false).Count() : 0;
+                ViewBag.ContractsCount = customer.S_CONTRACTS != null ? customer.S_CONTRACTS.Where(c => c.IsDeleted == false).Count() : 0;
+                
+                // Olish invoices count
+                var invoicesCount = db.SALES_INVOICES.Where(i => i.CustomerID == Id).Count();
+                ViewBag.InvoicesCount = invoicesCount;
+
+                return View(customer);
+            }
+        }
+
+
+        public ActionResult Create()
+        {
+            ViewBag.Customer = ConfigurationManager.AppSettings["Customer"]?.Split(',').ToList() ?? new List<string>();
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create([Bind(Include = "Name, Address,DUNS, Type, Country, City, Address, Telephone, Email, ContactPersonName, DirectorName, IsDeleted")] CUSTOMER customer)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                try
+                {
+                    if (ModelState.IsValid)
+                    {
+                        customer.IsDeleted = false;
+                        db.CUSTOMERS.Add(customer);
+                        db.SaveChanges();
+
+                        var userEmail = User.Identity.Name;
+                        LogHelper.LogToDatabase(userEmail, "CustomerController", $"{customer.Name} Mijozni yaratdi");
+
+                        return RedirectToAction("Index");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(ex.Message, ex);
+                }
+
+                ViewBag.Customer = ConfigurationManager.AppSettings["Customer"]?.Split(',').ToList() ?? new List<string>();
+                return View(customer);
+            }
+        }
+
+        public ActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                CUSTOMER customer = db.CUSTOMERS.Find(id);
+                if (customer == null)
+                {
+                    return HttpNotFound();
+                }
+
+                ViewBag.Customer = ConfigurationManager.AppSettings["Customer"]?.Split(',').ToList() ?? new List<string>();
+                return View(customer);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Include = "ID, Name, Address, DUNS, Type, Country, City, Telephone, Email, ContactPersonName, DirectorName, IsDeleted")] CUSTOMER customer)
+        {
+            if (ModelState.IsValid)
+            {
+                using (DBTHSNEntities db = new DBTHSNEntities())
+                {
+                    customer.IsDeleted = false;
+                    db.Entry(customer).State = EntityState.Modified;
+                    db.SaveChanges();
+
+                    var userEmail = User.Identity.Name;
+                    LogHelper.LogToDatabase(userEmail, "CustomerController", $"{customer.Name} Mijoz ni tahrirladi");
+
+                    return RedirectToAction("Index");
+                }
+            }
+
+            ViewBag.Customer = ConfigurationManager.AppSettings["Customer"]?.Split(',').ToList() ?? new List<string>();
+            return View(customer);
+        }
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                CUSTOMER customer = db.CUSTOMERS.Find(id);
+                if (customer == null)
+                {
+                    return HttpNotFound();
+                }
+
+                return View(customer);
+            }
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                CUSTOMER customer = db.CUSTOMERS.Find(id);
+                if (customer != null)
+                {
+                    customer.IsDeleted = true;
+                    db.Entry(customer).State = System.Data.Entity.EntityState.Modified;
+                    db.SaveChanges();
+                }
+
+                var userEmail = User.Identity.Name;
+                LogHelper.LogToDatabase(userEmail, "CustomerController", $"{customer.Name} Mijozni o'chirdi");
+
+                return RedirectToAction("Index");
+            }
+        }
+
+
+        public ActionResult Download()
+        {
+            using(DBTHSNEntities db = new DBTHSNEntities())
+            { 
+                SAMPLE_FILES taminotchilar = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("taminotchilar.xlsx") == 0).FirstOrDefault();
+                if (taminotchilar != null)
+                    return File(taminotchilar.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                return View();
+            }
+        }
+        public ActionResult UploadWithExcel()
+        {
+            ViewBag.IsFileUploaded = false;
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public ActionResult UploadWithExcel(HttpPostedFileBase file)
+        {
+            if (file != null && file.ContentLength > 0)
+            {
+                if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
+                {
+                    try
+                    {
+                        var dataTable = new DataTable();
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                        using (var package = new ExcelPackage(file.InputStream))
+                        {
+                            var worksheet = package.Workbook.Worksheets[0];
+                            var rowCount = worksheet.Dimension.Rows;
+                            var colCount = worksheet.Dimension.Columns;
+
+                            for (int col = 1; col <= colCount; col++)
+                            {
+                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                            }
+
+                            for (int row = 2; row <= rowCount; row++)
+                            {
+                                var dataRow = dataTable.NewRow();
+                                for (int col = 1; col <= colCount; col++)
+                                {
+                                    dataRow[col - 1] = worksheet.Cells[row, col].Text;
+                                }
+                                dataTable.Rows.Add(dataRow);
+                            }
+                        }
+
+                        ViewBag.DataTable = dataTable;
+                        ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
+                        ViewBag.IsFileUploaded = true;
+
+                        using(DBTHSNEntities db = new DBTHSNEntities())
+                        {
+                            foreach (DataRow row in dataTable.Rows)
+                            {
+                                supplierName = row["Name"].ToString();
+
+                                SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
+                                if (supplier != null)
+                                    ViewBag.ExistingRecordsCount = 1;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
+                        return View("UploadWithExcel");
+                    }
+                }
+                else
+                {
+                    ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
+                    return View("UploadWithExcel");
+                }
+            }
+            else
+            {
+                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
+                return View("UploadWithExcel");
+            }
+            return View("UploadWithExcel");
+        }
+        public ActionResult ClearDataTable()
+        {
+            // Clear the DataTable va related ViewBag properties
+            ViewBag.DataTable = null;
+            ViewBag.DataTableModel = null;
+            ViewBag.IsFileUploaded = false;
+            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
+
+            // Qaytarish the UploadWithExcel view
+            return View("UploadWithExcel");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public ActionResult Save(string dataTableModel)
+        {
+            if (!string.IsNullOrEmpty(dataTableModel))
+            {
+                var tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
+                // Saqlash ga the database
+                try
+                {
+                    using(DBTHSNEntities db = new DBTHSNEntities())
+                    {
+                        foreach (DataRow row in tableModel.Rows)
+                        {
+                            supplierName = row["Name"].ToString();
+                            SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
+
+                            if (supplier == null)
+                            {
+                                SUPPLIER new_supplier = new SUPPLIER();
+                                new_supplier.Name = supplierName;
+                                new_supplier.Address = row["Address"].ToString();
+                                new_supplier.Country = row["Country"].ToString();
+                                new_supplier.City = row["City"].ToString();
+                                new_supplier.Type = row["Type"].ToString();
+                                new_supplier.DUNS = row["DUNS"].ToString();
+                                new_supplier.Email = row["Email"].ToString();
+                                new_supplier.Telephone = row["Telephone"].ToString();
+                                new_supplier.ContactPersonName = row["ContactPersonName"].ToString();
+                                new_supplier.DirectorName = row["DirectorName"].ToString();
+                                new_supplier.IsDeleted = false;
+
+                                db.SUPPLIERS.Add(new_supplier);
+                                db.SaveChanges();
+
+                                var userEmail = User.Identity.Name;
+                                LogHelper.LogToDatabase(userEmail, "CustomerController", $"{new_supplier.Name} Mijozni Excell orqali yaratdi");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return RedirectToAction("Index");
+        }
+    }
+}

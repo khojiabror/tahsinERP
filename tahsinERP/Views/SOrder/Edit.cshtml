@@ -1,0 +1,361 @@
+@model tahsinERP.ViewModels.SOrderViewModel
+@{
+    ViewBag.Title = "Buyurtmani tahrirlash";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SOrder/Index">Buyurtmalar</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/SOrder/Details/@Model.ID">Buyurtma ma'lumotlari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Tahrirlash
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="order-edit-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @using (Html.BeginForm("Edit", "SOrder", FormMethod.Post, new { @id = "orderForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.HiddenFor(model => model.ID)
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <h4 class="mb-2">Asosiy ma'lumotlar</h4>
+                                            <div class="row">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="OrderNo">Buyurtma raqami <span class="text-danger">*</span></label>
+                                                    @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="IssuedDate">Buyurtma sanasi <span class="text-danger">*</span></label>
+                                                    @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @type = "date", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="CustomerID">Haridor <span class="text-danger">*</span></label>
+                                                    @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2", @id = "CustomerID", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="ContractID">Shartnoma raqami <span class="text-danger">*</span></label>
+                                                    @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
+                                                    <small class="form-text text-muted">Shartnoma tanlang, maxsulotlar avtomatik yuklanadi</small>
+                                                </div>
+                                                <div class="col-md-12 col-12 form-group">
+                                                    <label for="Description">Qisqacha tavsifi</label>
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
+                                                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            <hr class="my-2" />
+
+                                            <h4 class="mb-2">Shartnoma maxsulotlari</h4>
+                                            <div id="productsContainer">
+                                                <div class="alert alert-info">
+                                                    <i class="bx bx-info-circle"></i> Faqat buyurtma miqdorini kiriting. Narxlar shartnomadan avtomatik olinadi.
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table id="productsTable" class="table table-bordered table-striped">
+                                                        <thead class="thead-light">
+                                                            <tr>
+                                                                <th width="5%">№</th>
+                                                                <th width="15%">Maxsulot kodi</th>
+                                                                <th width="25%">Maxsulot nomi</th>
+                                                                <th width="10%">O'lchov birligi</th>
+                                                                <th width="12%">Shartnoma miqdori</th>
+                                                                <th width="12%">Birlik narxi (QQS bilan)</th>
+                                                                <th width="15%">Buyurtma miqdori <span class="text-danger">*</span></th>
+                                                                <th width="10%">Jami (QQS bilan)</th>
+                                                                <th width="8%">O'chirish</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="productsTableBody">
+                                                            @if (Model.ProductQuantities != null && Model.ProductQuantities.Any())
+                                                            {
+                                                                int index = 0;
+                                                                foreach (var product in Model.ProductQuantities)
+                                                                {
+                                                                    <tr>
+                                                                        <td>@(index + 1)</td>
+                                                                        <td>@product.ProductPNo</td>
+                                                                        <td>@product.ProductName</td>
+                                                                        <td>@product.UnitName</td>
+                                                                        <td class="text-right">@product.ContractAmount.ToString("N2")</td>
+                                                                        <td class="text-right">@((product.PiecePrice * (1 + product.VatRate / 100d)).ToString("N2"))</td>
+                                                                        <td>
+                                                                            <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@product.PiecePrice" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].UnitID" value="@product.UnitID" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].VatRate" value="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
+                                                                            <input type="number" 
+                                                                                   name="ProductQuantities[@index].OrderQuantity" 
+                                                                                   class="form-control order-quantity" 
+                                                                                   value="@product.OrderQuantity.ToString("N2")" 
+                                                                                   step="0.01" 
+                                                                                   min="0.01" 
+                                                                                   data-price="@product.PiecePrice"
+                                                                                   data-vat-rate="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                                                                   required />
+                                                                        </td>
+                                                                        @{
+                                                                            var lineBase = product.OrderQuantity * product.PiecePrice;
+                                                                            var lineTotal = lineBase + (lineBase * product.VatRate / 100d);
+                                                                        }
+                                                                        <td class="text-right total-price">@lineTotal.ToString("N2")</td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O'chirish">
+                                                                                <i class="bx bx-trash"></i>
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                    index++;
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                        <tfoot>
+                                                            <tr class="font-weight-bold">
+                                                                <td colspan="7" class="text-right">Jami summa:</td>
+                                                                <td class="text-right" id="grandTotal">@(Model.Amount?.ToString("N2") ?? "0.00")</td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-primary btn-lg">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-secondary btn-lg">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    @section scripts {
+    <script>
+        $j(document).ready(function () {
+                var $page = window.jQuery || $j;
+                var hasSelect2 = !!($page.fn && $page.fn.select2);
+                if (hasSelect2) {
+                    $page('#CustomerID, #ContractID').select2({ width: '100%' });
+                }
+
+                function loadContracts(customerId) {
+                    var $contractSelect = $page('#ContractID');
+                    $contractSelect.prop('disabled', true);
+                    $contractSelect.empty();
+                    $contractSelect.append($page('<option></option>').val('0').text('Yuklanmoqda...'));
+
+                    $page.ajax({
+                        url: '@Url.Action("GetContractsByCustomer", "SOrder")',
+                        type: 'GET',
+                        data: { customerId: customerId },
+                        success: function (data) {
+                            $contractSelect.empty();
+                            $contractSelect.append($page('<option></option>').val('0').text('---Tanlang---'));
+
+                            if (data && data.length > 0) {
+                                $page.each(data, function (index, contract) {
+                                    $contractSelect.append(
+                                        $page('<option></option>')
+                                            .val(contract.ID)
+                                            .text(contract.ContractNo)
+                                    );
+                                });
+                            }
+
+                            if (hasSelect2) {
+                                $contractSelect.select2('destroy');
+                                $contractSelect.select2({ width: '100%' });
+                            }
+
+                            $contractSelect.prop('disabled', false);
+                            clearProductsTable();
+                        }
+                    });
+                }
+
+                function handleCustomerChange() {
+                    var customerId = $page('#CustomerID').val();
+                    if (customerId && customerId != '0' && customerId != '') {
+                        loadContracts(customerId);
+                    } else {
+                        clearProductsTable();
+                    }
+                }
+
+                $page('#CustomerID').on('change', handleCustomerChange);
+                if (hasSelect2) {
+                    $page('#CustomerID').on('select2:select', handleCustomerChange);
+                }
+                var customerEl = document.getElementById('CustomerID');
+                if (customerEl) {
+                    customerEl.addEventListener('change', handleCustomerChange);
+                }
+
+                // Load contract products when contract changes (native + select2)
+                function handleContractChange() {
+                    var contractId = $j('#ContractID').val();
+                    if (contractId && contractId != '0' && contractId != '') {
+                        loadContractProducts(contractId);
+                    } else {
+                        clearProductsTable();
+                    }
+                }
+
+                $page('#ContractID').on('change', handleContractChange);
+                if (hasSelect2) {
+                    $page('#ContractID').on('select2:select', handleContractChange);
+                }
+                var contractEl = document.getElementById('ContractID');
+                if (contractEl) {
+                    contractEl.addEventListener('change', handleContractChange);
+                }
+
+                // Calculate totals
+                $page(document).on('input', '.order-quantity', function () {
+                    var $row = $page(this).closest('tr');
+                    var quantity = parseFloat($page(this).val()) || 0;
+                    var price = parseFloat($page(this).data('price')) || 0;
+                    var vatRate = parseFloat($page(this).data('vat-rate')) || 0;
+                    var lineBase = quantity * price;
+                    var total = lineBase + (lineBase * vatRate / 100);
+                    $row.find('.total-price').text(total.toFixed(2));
+                    calculateGrandTotal();
+                });
+                
+                // Remove product row
+                $page(document).on('click', '.remove-product', function () {
+                    $page(this).closest('tr').remove();
+                    reindexProductRows();
+                    calculateGrandTotal();
+                });
+
+                function loadContractProducts(contractId) {
+                    $page.ajax({
+                        url: '@Url.Action("GetContractProducts", "SOrder")',
+                        type: 'GET',
+                        data: { contractId: contractId },
+                        success: function (data) {
+                            var tbody = $page('#productsTableBody');
+                            if (data && data.length > 0) {
+                                tbody.empty();
+                                $page.each(data, function (index, product) {
+                                    var existingQty = 0;
+                                    var row = '<tr>' +
+                                        '<td>' + (index + 1) + '</td>' +
+                                        '<td>' + product.ProductPNo + '</td>' +
+                                        '<td>' + product.ProductName + '</td>' +
+                                        '<td>' + product.UnitName + '</td>' +
+                                        '<td class="text-right">' + parseFloat(product.ContractAmount).toFixed(2) + '</td>' +
+                                        '<td class="text-right">' + (parseFloat(product.PiecePrice || 0) * (1 + parseFloat(product.VatRate || 0) / 100)).toFixed(2) + '</td>' +
+                                        '<td>' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].ContractProductID" value="' + product.ContractProductID + '" />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].ProductID" value="' + product.ProductID + '" />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].PiecePrice" value="' + product.PiecePrice + '" />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].UnitID" value="' + product.UnitID + '" />' +
+                                        '<input type="hidden" name="ProductQuantities[' + index + '].VatRate" value="' + (product.VatRate || 0) + '" />' +
+                                        '<input type="number" name="ProductQuantities[' + index + '].OrderQuantity" class="form-control order-quantity" value="' + existingQty + '" step="0.01" min="0.01" data-price="' + product.PiecePrice + '" data-vat-rate="' + (product.VatRate || 0) + '" required />' +
+                                        '</td>' +
+                                        '<td class="text-right total-price">0.00</td>' +
+                                        '<td class="text-center">' +
+                                        '<button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O\'chirish">' +
+                                        '<i class="bx bx-trash"></i>' +
+                                        '</button>' +
+                                        '</td>' +
+                                        '</tr>';
+                                    tbody.append(row);
+                                });
+                                
+                                calculateGrandTotal();
+                            } else {
+                                clearProductsTable();
+                            }
+                        }
+                    });
+                }
+
+                function clearProductsTable() {
+                    $page('#productsTableBody').empty();
+                    calculateGrandTotal();
+                }
+
+                function calculateGrandTotal() {
+                    var total = 0;
+                    $page('.total-price').each(function () {
+                        total += parseFloat($page(this).text()) || 0;
+                    });
+                    $page('#grandTotal').text(total.toFixed(2));
+                }
+                
+                function reindexProductRows() {
+                    $page('#productsTableBody tr').each(function (rowIndex) {
+                        $page(this).find('td:first').text(rowIndex + 1);
+                        $page(this).find('input[name^="ProductQuantities["]').each(function () {
+                            var name = $page(this).attr('name');
+                            if (!name) {
+                                return;
+                            }
+                            var updated = name.replace(/ProductQuantities\[\d+\]\./, 'ProductQuantities[' + rowIndex + '].');
+                            $page(this).attr('name', updated);
+                        });
+                    });
+                }
+
+                // Initial calculation.
+                // MUHIM: Tahrirlash sahifasi yuklanganda shartnoma maxsulotlarini
+                // QAYTA yuklamaymiz — buyurtmaning mavjud maxsulotlari (miqdorlari bilan)
+                // server tomonidan allaqachon render qilingan. handleContractChange()
+                // ni bu yerda chaqirsak, jadval tozalanib, mavjud ma'lumotlar yo'qoladi.
+                // U faqat foydalanuvchi shartnomani o'zgartirganda (change event) ishlaydi.
+                calculateGrandTotal();
+        });
+    </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

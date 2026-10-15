@@ -1,0 +1,286 @@
+@model tahsinERP.ViewModels.PRequisition.PRequisitionViewModel
+@{
+    ViewBag.Title = "Yangi xarid arizasi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PRequisitions"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="~/PRequisitions/Index">Xarid arizalari</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Yangi ariza
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section id="form-repeater-wrapper">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        @using (Html.BeginForm("Create", "PRequisitions", FormMethod.Post, new { @class = "form", @id = "requisitionForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                            <!-- Requisition Header -->
+                                            <div class="row">
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="RequisitionNo">Ariza raqami</label>
+                                                    @Html.TextBoxFor(model => model.RequisitionNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                    @Html.ValidationMessageFor(model => model.RequisitionNo, "", new { @class = "text-danger" })
+                                                    <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="RequisitionDate">Ariza sanasi</label>
+                                                    @Html.TextBoxFor(model => model.RequisitionDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.RequisitionDate, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="DepartmentID">Bo'lim</label>
+                                                    @Html.DropDownListFor(model => model.DepartmentID, ViewBag.DepartmentList as SelectList, "---Tanlang---", new { @class = "form-control select2" })
+                                                    @Html.ValidationMessageFor(model => model.DepartmentID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="RequesterID">So'rovchi</label>
+                                                    @Html.DropDownListFor(model => model.RequesterID, ViewBag.RequesterList as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.RequesterID, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
+                                                    <label for="ContactPhone">Aloqa telefon</label>
+                                                    @Html.TextBoxFor(model => model.ContactPhone, new { @class = "form-control", @placeholder = "+998 90 123 45 67" })
+                                                    @Html.ValidationMessageFor(model => model.ContactPhone, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-9 col-12 form-group">
+                                                    <label for="Purpose">Xarid qilish maqsadi</label>
+                                                    @Html.TextAreaFor(model => model.Purpose, new { @class = "form-control", @rows = "3", @placeholder = "Xarid qilish maqsadini batafsil yozing..." })
+                                                    @Html.ValidationMessageFor(model => model.Purpose, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+
+                                            <br />
+                                            <h5>Xarid qilinadigan mahsulotlar</h5>
+
+                                            <!-- Products Table -->
+                                            <div class="table-responsive">
+                                                <table id="requisitionProductsTable" class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mahsulot</th>
+                                                            <th>Miqdor</th>
+                                                            <th>Birlik</th>
+                                                            <th>Tahminiy narx</th>
+                                                            <th>Summa</th>
+                                                            <th>Prioritet</th>
+                                                            <th>Kerak bo'lgan sana</th>
+                                                            <th>Izoh</th>
+                                                            <th>Amallar</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- Rows will be added dynamically -->
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="4" class="text-right"><strong>Jami:</strong></td>
+                                                            <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                            <td colspan="3"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                        <i class="bx bx-plus"></i> Mahsulot qo'shish
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="bx bx-save"></i> Saqlash
+                                                    </button>
+                                                    <a href="@Url.Action("Index", "PRequisitions")" class="btn btn-secondary">
+                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@{
+    // Prepare data for JavaScript
+    var productList = ViewBag.ProductList as SelectList;
+    var unitList = ViewBag.UnitList as SelectList;
+    var priorityList = ViewBag.PriorityList as SelectList;
+    var productsData = new List<object>();
+    var unitsData = new List<object>();
+    var prioritiesData = new List<object>();
+    
+    if (productList != null)
+    {
+        foreach (SelectListItem item in productList)
+        {
+            productsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+    
+    if (unitList != null)
+    {
+        foreach (SelectListItem item in unitList)
+        {
+            unitsData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+
+    if (priorityList != null)
+    {
+        foreach (SelectListItem item in priorityList)
+        {
+            prioritiesData.Add(new { Value = item.Value, Text = item.Text });
+        }
+    }
+}
+
+@section scripts {
+    <script>
+        (function() {
+            function initRequisitionScripts() {
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+                    setTimeout(initRequisitionScripts, 100);
+                    return;
+                }
+
+                var $ = jQuery;
+                var productRowIndex = 0;
+                var products = @Html.Raw(Json.Encode(productsData ?? new List<object>()));
+                var units = @Html.Raw(Json.Encode(unitsData ?? new List<object>()));
+                var priorities = @Html.Raw(Json.Encode(prioritiesData ?? new List<object>()));
+
+                $(document).ready(function () {
+                    $('.select2').select2();
+
+                    // Add product row
+                    function addProductRow(productId, productText, quantity, unitId, estimatedPrice, priority, requiredDate, description) {
+                        var row = '<tr data-index="' + productRowIndex + '">' +
+                            '<td><select name="RequisitionProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                            '<option value="">---Tanlang---</option>';
+                        products.forEach(function(p) {
+                            var selected = p.Value == productId ? 'selected' : '';
+                            row += '<option value="' + p.Value + '" ' + selected + '>' + p.Text + '</option>';
+                        });
+                        row += '</select></td>' +
+                            '<td><input type="number" name="RequisitionProducts[' + productRowIndex + '].Quantity" class="form-control quantity" step="0.01" min="0.01" value="' + (quantity || '') + '" required /></td>' +
+                            '<td><select name="RequisitionProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
+                            '<option value="">---Tanlang---</option>';
+                        units.forEach(function(u) {
+                            var selected = u.Value == unitId ? 'selected' : '';
+                            row += '<option value="' + u.Value + '" ' + selected + '>' + u.Text + '</option>';
+                        });
+                        row += '</select></td>' +
+                            '<td><input type="number" name="RequisitionProducts[' + productRowIndex + '].EstimatedPrice" class="form-control price" step="0.01" min="0" value="' + (estimatedPrice || '') + '" /></td>' +
+                            '<td class="amount">0.00</td>' +
+                            '<td><select name="RequisitionProducts[' + productRowIndex + '].Priority" class="form-control">' +
+                            '<option value="High"' + (priority === 'High' ? ' selected' : '') + '>High</option>' +
+                            '<option value="Medium"' + (priority === 'Medium' || !priority ? ' selected' : '') + '>Medium</option>' +
+                            '<option value="Low"' + (priority === 'Low' ? ' selected' : '') + '>Low</option>' +
+                            '</select></td>' +
+                            '<td><input type="date" name="RequisitionProducts[' + productRowIndex + '].RequiredDate" class="form-control" value="' + (requiredDate || '') + '" /></td>' +
+                            '<td><input type="text" name="RequisitionProducts[' + productRowIndex + '].Description" class="form-control" value="' + (description || '') + '" /></td>' +
+                            '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                            '</tr>';
+                        $('#requisitionProductsTable tbody').append(row);
+                        productRowIndex++;
+                        updateTotal();
+                    }
+
+                    // Calculate row amount
+                    function calculateRowAmount(row) {
+                        var quantity = parseFloat($(row).find('.quantity').val()) || 0;
+                        var price = parseFloat($(row).find('.price').val()) || 0;
+                        var amount = quantity * price;
+                        $(row).find('.amount').text(amount.toFixed(2));
+                        updateTotal();
+                    }
+
+                    // Update total
+                    function updateTotal() {
+                        var total = 0;
+                        $('#requisitionProductsTable tbody tr').each(function() {
+                            var amount = parseFloat($(this).find('.amount').text()) || 0;
+                            total += amount;
+                        });
+                        $('#totalAmount').text(total.toFixed(2));
+                    }
+
+                    // Add row button
+                    $(document).on('click', '#addRowBtn', function() {
+                        addProductRow();
+                    });
+
+                    // Remove row
+                    $(document).on('click', '.remove-row', function() {
+                        $(this).closest('tr').remove();
+                        updateTotal();
+                    });
+
+                    // Calculate on change
+                    $(document).on('change input', '.quantity, .price', function() {
+                        calculateRowAmount($(this).closest('tr'));
+                    });
+
+                    // Form submit
+                    $('#requisitionForm').on('submit', function(e) {
+                        if ($('#requisitionProductsTable tbody tr').length === 0) {
+                            e.preventDefault();
+                            alert('Kamida bitta mahsulot qo\'shish kerak');
+                            return false;
+                        }
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initRequisitionScripts);
+            } else {
+                initRequisitionScripts();
+            }
+        })();
+    </script>
+}
+

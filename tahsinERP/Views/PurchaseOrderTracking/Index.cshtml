@@ -1,0 +1,227 @@
+@model IEnumerable<tahsinERP.ViewModels.PurchaseOrderTrackingIndexItemViewModel>
+@{
+    ViewBag.Title = "Xarid buyurtmalari kuzatuv";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                    <li class="breadcrumb-item">
+                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                        Xarid buyurtmalari kuzatuv
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <section class="invoice-list-wrapper">
+                    <!-- Filters -->
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            @using (Html.BeginForm("Index", "PurchaseOrderTracking", FormMethod.Get))
+                            {
+                                <div class="form-group">
+                                    <label for="purchaseTypeFilter">Xarid turi</label>
+                                    @Html.DropDownList("purchaseTypeFilter", ViewBag.PurchaseTypeList as SelectList, new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-3">
+                            @using (Html.BeginForm("Index", "PurchaseOrderTracking", FormMethod.Get))
+                            {
+                                {
+                                    var purchaseTypeFilter = ViewBag.PurchaseTypeFilter as string;
+
+                                    if (!string.IsNullOrEmpty(purchaseTypeFilter))
+                                    {
+                                        <input type="hidden" name="purchaseTypeFilter" value="@purchaseTypeFilter" />
+                                    }
+                                    <div class="form-group">
+                                        <label for="statusFilter">Status</label>
+                                        @Html.DropDownList("statusFilter", ViewBag.StatusList as SelectList, new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="trackingTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Buyurtma raqami</th>
+                                                    <th>Ta'minotchi</th>
+                                                    <th>Sana</th>
+                                                    <th>Turi</th>
+                                                    <th>Buyurtma</th>
+                                                    <th>Shartnoma</th>
+                                                    <th>Invoys</th>
+                                                    <th>Ombor</th>
+                                                    <th>Status</th>
+                                                    <th>Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model != null)
+                                                {
+                                                    foreach (var item in Model)
+                                                    {
+                                                        var order = item.POrder;
+                                                        var tracking = item.TrackingStatus;
+                                                        
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "PurchaseOrderTracking", new { id = order.ID })">@order.OrderNo</a>
+                                                            </td>
+                                                            <td>
+                                                                @if (order.SUPPLIER != null)
+                                                                {
+                                                                    @order.SUPPLIER.Name
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
+                                                            <td>@order.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                            <td>
+                                                                @if (order.PurchaseType == 1)
+                                                                {
+                                                                    <span class="badge badge-info">Indirect</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge badge-primary">Direct</span>
+                                                                }
+                                                            </td>
+                                                            <td class="text-center">
+                                                                @if (tracking.OrderCreated)
+                                                                {
+                                                                    <i class="bx bx-check-circle text-success" style="font-size: 24px;" title="Yaratilgan: @tracking.OrderCreatedDate?.ToString("dd.MM.yyyy")"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bx bx-x-circle text-danger" style="font-size: 24px;"></i>
+                                                                }
+                                                            </td>
+                                                            <td class="text-center">
+                                                                @if (tracking.ContractCreated)
+                                                                {
+                                                                    <i class="bx bx-check-circle text-success" style="font-size: 24px;" title="Shartnoma: @tracking.ContractNo (@tracking.ContractDate?.ToString("dd.MM.yyyy"))"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bx bx-x-circle text-danger" style="font-size: 24px;" title="Shartnoma yaratilmagan"></i>
+                                                                }
+                                                            </td>
+                                                            <td class="text-center">
+                                                                @if (tracking.InvoiceCreated)
+                                                                {
+                                                                    <i class="bx bx-check-circle text-success" style="font-size: 24px;" title="Invoys: @tracking.InvoiceNo (@tracking.InvoiceDate?.ToString("dd.MM.yyyy"))"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bx bx-x-circle text-danger" style="font-size: 24px;" title="Invoys yaratilmagan"></i>
+                                                                }
+                                                            </td>
+                                                            <td class="text-center">
+                                                                @if (tracking.WarehouseReceived)
+                                                                {
+                                                                    <i class="bx bx-check-circle text-success" style="font-size: 24px;" title="Omborga keldi: @tracking.WarehouseReceiptDate?.ToString("dd.MM.yyyy")"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bx bx-x-circle text-danger" style="font-size: 24px;" title="Omborga kelmagan"></i>
+                                                                }
+                                                            </td>
+                                                            <td>
+                                                                @{
+                                                                    var statusClass = "badge-secondary";
+                                                                    switch (order.Status)
+                                                                    {
+                                                                        case "Created": statusClass = "badge-info"; break;
+                                                                        case "ContractCreated": statusClass = "badge-warning"; break;
+                                                                        case "Invoiced": statusClass = "badge-primary"; break;
+                                                                        case "Received": statusClass = "badge-success"; break;
+                                                                    }
+                                                                }
+                                                                <span class="badge @statusClass">@(order.Status ?? "Created")</span>
+                                                            </td>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "PurchaseOrderTracking", new { id = order.ID })" class="btn btn-sm btn-icon btn-outline-primary" title="Batafsil">
+                                                                    <i class="bx bx-show"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            function initTrackingTable() {
+                if (typeof jQuery === 'undefined' || typeof jQuery.fn.DataTable === 'undefined') {
+                    setTimeout(initTrackingTable, 100);
+                    return;
+                }
+
+                var $ = jQuery;
+
+                $(document).ready(function () {
+                    if ($('#trackingTable').length > 0) {
+                        $('#trackingTable').DataTable({
+                            "language": {
+                                "search": "Qidirish:",
+                                "lengthMenu": "_MENU_ ta ko'rsatish",
+                                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
+                                "infoEmpty": "Yozuvlar yo'q",
+                                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                                "paginate": {
+                                    "first": "Birinchi",
+                                    "last": "Oxirgi",
+                                    "next": "Keyingi",
+                                    "previous": "Oldingi"
+                                },
+                                "zeroRecords": "Ma'lumot topilmadi"
+                            },
+                            "pageLength": 25,
+                            "order": [[2, "desc"]]
+                        });
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTrackingTable);
+            } else {
+                initTrackingTable();
+            }
+        })();
+    </script>
+

@@ -1,0 +1,193 @@
+@model List<tahsinERP.ViewModels.HR.HrPayrollHeaderViewModel>
+@{
+    ViewBag.Title = "Ish haqi hisobi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item active">Ish haqi hisobi</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (changePermit)
+                {
+                    <div class="invoice-create-btn mb-1">
+                        <a href="@Url.Action("GenerateHourly")" class="btn btn-success">
+                            <i class="bx bx-plus"></i> Soatbay hisob yaratish
+                        </a>
+                        <a href="@Url.Action("GeneratePieceRate")" class="btn btn-warning">
+                            <i class="bx bx-plus"></i> Ishbay hisob yaratish
+                        </a>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <form method="get" action="@Url.Action("Index")" class="mb-2">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <select name="year" class="form-control">
+                                            @for (int y = DateTime.Now.Year + 5; y >= DateTime.Now.Year - 5; y--)
+                                            {
+                                                <option value="@y" @(ViewBag.Year == y ? "selected" : "")>@y</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="month" class="form-control">
+                                            <option value="">Barcha oylar</option>
+                                            @for (int i = 1; i <= 12; i++)
+                                            {
+                                                <option value="@i" @(ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="status" class="form-control">
+                                            <option value="">Barcha holatlar</option>
+                                            <option value="Draft" @(ViewBag.Status == "Draft" ? "selected" : "")>Qoralama</option>
+                                            <option value="Approved" @(ViewBag.Status == "Approved" ? "selected" : "")>Tasdiqlangan</option>
+                                            <option value="Posted" @(ViewBag.Status == "Posted" ? "selected" : "")>O'tkazilgan</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="payrollType" class="form-control">
+                                            <option value="">Barcha turlar</option>
+                                            <option value="Hourly" @(ViewBag.PayrollType == "Hourly" ? "selected" : "")>Soatbay</option>
+                                            <option value="PieceRate" @(ViewBag.PayrollType == "PieceRate" ? "selected" : "")>Ishbay</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="submit" class="btn btn-primary">Filtr</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive">
+                                <table id="payrollTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Yil</th>
+                                            <th>Oy</th>
+                                            <th>Bo'lim</th>
+                                            <th>Tur</th>
+                                            <th>Holat</th>
+                                            <th>To'lov summasi</th>
+                                            <th>Yaratilgan</th>
+                                            <th>Amallar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td>@item.Year</td>
+                                                <td>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month)</td>
+                                                <td>@(item.OrgUnitName ?? "Butun kompaniya")</td>
+                                                <td>
+                                                    <span class="badge badge-@(item.PayrollType == "PieceRate" ? "warning" : "info")">
+                                                        @(item.PayrollType == "PieceRate" ? "Ishbay" : "Soatbay")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-@(item.Status == "Approved" ? "success" : item.Status == "Posted" ? "info" : "warning")">
+                                                        @(item.Status == "Draft" ? "Qoralama" : item.Status == "Approved" ? "Tasdiqlangan" : "O'tkazilgan")
+                                                    </span>
+                                                </td>
+                                                <td>@item.TotalNetSalary.ToString("N2")</td>
+                                                <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
+                                                <td>
+                                                    <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-secondary" title="Batafsil">
+                                                        <i class="bx bx-show"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info">
+                                                        <i class="bx bx-edit"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Export", new { id = item.ID })" class="btn btn-sm btn-success">
+                                                        <i class="bx bx-export"></i>
+                                                    </a>
+                                                    @if (changePermit && item.Status == "Draft")
+                                                    {
+                                                        <a href="@Url.Action("Approve", new { id = item.ID })" class="btn btn-sm btn-primary" onclick="return confirm('Hisobni tasdiqlash?');">
+                                                            <i class="bx bx-check"></i>
+                                                        </a>
+                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Hisobni o\'chirish?');">
+                                                            <i class="bx bx-trash"></i>
+                                                        </a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            (function ($) {
+                if (!$ || !$.fn.DataTable) return;
+                $(document).ready(function () {
+                    var dtUz = {
+                        decimal: "",
+                        emptyTable: "Jadvalda ma'lumot yo'q",
+                        info: "_TOTAL_ yozuvdan _START_ - _END_ gacha ko'rsatilmoqda",
+                        infoEmpty: "0 yozuvdan 0 - 0 gacha ko'rsatilmoqda",
+                        infoFiltered: "(_MAX_ yozuvdan filtrlangan)",
+                        lengthMenu: "Ko'rsatish _MENU_ ta yozuv",
+                        loadingRecords: "Yuklanmoqda...",
+                        processing: "Qayta ishlanmoqda...",
+                        search: "Qidirish:",
+                        zeroRecords: "Mos yozuv topilmadi",
+                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" }
+                    };
+                    if ($.fn.DataTable.isDataTable('#payrollTable')) {
+                        $('#payrollTable').DataTable().destroy();
+                    }
+                    $('#payrollTable').DataTable({
+                        language: dtUz,
+                        "pageLength": 25,
+                        "order": [[0, "desc"], [1, "desc"]],
+                        dom: 'lBfrtip',
+                        buttons: [
+                            { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function (d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } },
+                            { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function (d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } }
+                        ]
+                    });
+                });
+            })(window.jQuery || window.$j);
+        </script>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

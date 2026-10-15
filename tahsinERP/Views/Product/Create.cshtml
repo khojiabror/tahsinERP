@@ -1,0 +1,173 @@
+@model tahsinERP.Models.PRODUCT
+
+@{
+    ViewBag.Title = "Yaratish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    using (Html.BeginForm("Create", "Product", FormMethod.Post, new { enctype = "multipart/form-data" }))  // Ensure enctype is set
+    {
+        <div class="app-content content">
+            <div class="content-overlay"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
+                    <div class="content-header-left col-12 mb-2 mt-1">
+                        <div class="row breadcrumbs-top">
+                            <div class="col-12">
+                                <div class="breadcrumb-wrapper col-12">
+                                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                        </li>
+                                        <li class="breadcrumb-item">
+                                            <a href="~/Product/Index">Maxsulotlar</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">
+                                            Yangi maxsulot qo'shish
+                                        </li>
+                                    </ol>
+                                    <div class="invoice-create-btn mb-1">
+                                        <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Product/UploadWithExcel'">
+                                            <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali maxsulotlar qo'shish</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <section class="basic-select2">
+                        <div class="row">
+                            <div class="col-xl-9 col-md-8 col-12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="card-body pb-0 mx-25">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-md-6 mt-25">
+                                                    @Html.AntiForgeryToken()
+                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                    <hr>
+                                                    <div class="row my-2 py-50">
+                                                        <div class="col-sm-6 col-12 order-2 order-sm-1">
+                                                            <h4 class="text-primary">Maxsulot raqami</h4>
+                                                            <fieldset class="invoice-address form-group">
+                                                                @Html.EditorFor(m => m.PNo, new { htmlAttributes = new { @class = "form-control" } })
+                                                                @Html.ValidationMessageFor(m => m.PNo, "", new { @class = "text-danger" })
+                                                            </fieldset>
+                                                            <h6 class="invoice-to">Maxsulot nomi</h6>
+                                                            <fieldset class="invoice-address form-group">
+                                                                @Html.EditorFor(m => m.Name, new { htmlAttributes = new { @class = "form-control" } })
+                                                                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                                                            </fieldset>
+                                                        </div>
+                                                        <br />
+                                                        <div class="col-sm-6 col-12 order-1 order-sm-1 d-flex justify-content-end">
+                                                            <h4 class="text-primary">Maxsulot rasmi</h4>
+                                                            <input type="file" id="productPhotoUpload" name="productPhotoUpload" />
+                                                            @Html.ValidationMessageFor(model => model.PRODUCTIMAGES, "", new { @class = "text-danger" })
+                                                        </div>
+                                                    </div>
+
+                                                    <h6 class="invoice-to">Turi</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, "-- tanlang --", new { @class = "form-control", @id = "ProductType" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Kategoriya</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.CategoryList, "Tanlang", new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Sex (ishlab chiqarish bo'limi)</h6>
+                                                    <fieldset class="form-group">
+                                                        @Html.DropDownListFor(m => m.ShopID, (SelectList)ViewBag.ShopList, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.ShopID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Og'irlik (kg da)</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.EditorFor(m => m.Weight, new { htmlAttributes = new { @class = "form-control", placeholder = "kg" } })
+                                                        @Html.ValidationMessageFor(m => m.Weight, "", new { @class = "text-danger" })
+                                                        <small class="text-muted">Maxsulot kategoriyasida "Hisob-kitoblar og'irlikka nisbatan qilinsin" belgilangan bo'lsa, bu maydon to'ldirilishi shart</small>
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">O'lchamlari, mm (UxExB)</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        <div class="input-group">
+                                                            @Html.EditorFor(m => m.Length, new { htmlAttributes = new { @class = "form-control", placeholder = "Uzunligi" } })
+                                                            <span class="input-group-addon">x</span>
+                                                            @Html.EditorFor(m => m.Width, new { htmlAttributes = new { @class = "form-control", placeholder = "Eni" } })
+                                                            <span class="input-group-addon">x</span>
+                                                            @Html.EditorFor(m => m.Height, new { htmlAttributes = new { @class = "form-control", placeholder = "Balandligi" } })
+                                                        </div>
+                                                        @Html.ValidationMessageFor(m => m.Length, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.Width, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.Height, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">O'lchov birligi</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(m => m.UnitID, (SelectList)ViewBag.UNIT, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.UnitID, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    @*<h6 class="invoice-to">HSCODES</h6>
+                                                        <fieldset class="invoice-address form-group">
+                                                            @Html.DropDownListFor(model => model.HSCodeID, (SelectList)ViewBag.HSCODESS, "", new { @class = "form-control" })
+                                                            @Html.ValidationMessageFor(model => model.HSCodeID, "", new { @class = "text-danger" })
+                                                        </fieldset>*@
+                                                    <h6 class="invoice-to">Tavsifi </h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextAreaFor(m => m.Description, 4, 80, new { @class = "form-control" })
+                                                        @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Alternativ Maxsulot raqamlari</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        <div class="row">
+                                                            <div class="col-md-4">
+                                                                @Html.EditorFor(m => m.PNo2, new { htmlAttributes = new { @class = "form-control", placeholder = "PNo2" } })
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                @Html.EditorFor(m => m.PNo3, new { htmlAttributes = new { @class = "form-control", placeholder = "PNo3" } })
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                @Html.EditorFor(m => m.PNo4, new { htmlAttributes = new { @class = "form-control", placeholder = "PNo4" } })
+                                                            </div>
+                                                        </div>
+                                                        @Html.ValidationMessageFor(m => m.PNo2, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.PNo3, "", new { @class = "text-danger" })
+                                                        @Html.ValidationMessageFor(m => m.PNo4, "", new { @class = "text-danger" })
+                                                    </fieldset>
+
+
+                                                    @*<div class="form-group">
+                                                            <div class="col-md-offset-2 col-md-10">
+                                                                <input type="submit" value="Saqlash" class="btn btn-primary btn-block subtotal-preview-btn" />
+                                                                @Html.ActionLink("Ro'yxatga qaytish", "Index", null, new { @class = "btn btn-outline-primary" })
+                                                            </div>
+                                                        </div>*@
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item border-0 pb-0">
+                                                            <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Saqlash">
+                                                                <i class='bx bx-save'></i>
+                                                                Saqlash
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+

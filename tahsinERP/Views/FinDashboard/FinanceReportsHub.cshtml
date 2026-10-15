@@ -1,0 +1,397 @@
+@model tahsinERP.ViewModels.FinanceReportsHubViewModel
+@{
+    ViewBag.Title = "Moliya hisobotlari (yadro)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
+{
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item active">Yadro hisobotlar</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body" id="financeHubExportRoot">
+                <form method="get" action="@Url.Action("FinanceReportsHub")" class="mb-2">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label>Holat sanasi (As of date)</label>
+                            <input type="date" name="asOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-2">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                        </div>
+                        <div class="col-md-3">
+                            <label>&nbsp;</label>
+                            <button type="button" id="btnExportHubPdf" class="btn btn-danger btn-block">
+                                PDF yuklab olish (butun sahifa)
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="row mb-2">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-0 text-muted">Mijozlardan haqqimiz</p>
+                                <h4 class="mb-0 text-primary">@fmtSom(Model.TotalCustomerReceivables)</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-0 text-muted">Ta'minotchilardan qarzimiz</p>
+                                <h4 class="mb-0 text-danger">@fmtSom(Model.TotalSupplierPayables)</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-0 text-muted">Oylikdan qarzimiz</p>
+                                <h4 class="mb-0 text-warning">@fmtSom(Model.TotalPayrollDebt)</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-0 text-muted">To'lanmagan doimiy harajatlar</p>
+                                <h4 class="mb-0 text-info">@fmtSom(Model.TotalRecurringObligationDebt)</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header"><h5 class="mb-0">TOP mijozlar (haqqimiz)</h5></div>
+                            <div class="card-body"><canvas id="chartReceivables"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card">
+                            <div class="card-header"><h5 class="mb-0">TOP ta'minotchilar (qarzimiz)</h5></div>
+                            <div class="card-body"><canvas id="chartPayables"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Mijozlar bo'yicha haqqimiz</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0 finance-hub-table" id="tblReceivables">
+                                        <thead>
+                                            <tr>
+                                                <th>Korxona</th>
+                                                <th class="text-right">Haqqimiz</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.CustomerReceivables.Any())
+                                            {
+                                                foreach (var item in Model.CustomerReceivables)
+                                                {
+                                                    <tr>
+                                                        <td>@item.CustomerName</td>
+                                                        <td class="text-right text-primary font-weight-bold">@fmtSom(item.Amount)</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="2" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Ta'minotchilar bo'yicha qarzimiz</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0 finance-hub-table" id="tblPayables">
+                                        <thead>
+                                            <tr>
+                                                <th>Tashkilot</th>
+                                                <th class="text-right">Qarzimiz</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.SupplierPayables.Any())
+                                            {
+                                                foreach (var item in Model.SupplierPayables)
+                                                {
+                                                    <tr>
+                                                        <td>@item.SupplierName</td>
+                                                        <td class="text-right text-danger font-weight-bold">@fmtSom(item.Amount)</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="2" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Oylikdan kimdan qancha qarzmiz (xodim kesimida)</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0 finance-hub-table" id="tblPayrollDebts">
+                                        <thead>
+                                            <tr>
+                                                <th>Xodim</th>
+                                                <th class="text-right">Hisoblangan</th>
+                                                <th class="text-right">To'langan</th>
+                                                <th class="text-right">Qarz</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.PayrollDebtsByEmployee.Any())
+                                            {
+                                                foreach (var item in Model.PayrollDebtsByEmployee)
+                                                {
+                                                    <tr>
+                                                        <td>@item.EmployeeName</td>
+                                                        <td class="text-right">@fmtSom(item.CalculatedAmount)</td>
+                                                        <td class="text-right">@fmtSom(item.PaidAmount)</td>
+                                                        <td class="text-right text-warning font-weight-bold">@fmtSom(item.DebtAmount)</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="4" class="text-center text-muted">Qarz aniqlanmadi</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Doimiy harajatlar: qaysilari to'lanmadi</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0 finance-hub-table" id="tblRecurringDebts">
+                                        <thead>
+                                            <tr>
+                                                <th>Harajat nomi</th>
+                                                <th class="text-right">Oyiga</th>
+                                                <th class="text-right">Yig'ilgan oy</th>
+                                                <th class="text-right">Yig'ilgan</th>
+                                                <th class="text-right">To'langan</th>
+                                                <th class="text-right">Qoldiq qarz</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.RecurringObligationDebts.Any())
+                                            {
+                                                foreach (var item in Model.RecurringObligationDebts)
+                                                {
+                                                    <tr>
+                                                        <td>@item.Name</td>
+                                                        <td class="text-right">@fmtSom(item.MonthlyAmount)</td>
+                                                        <td class="text-right">@item.AccruedMonths</td>
+                                                        <td class="text-right">@fmtSom(item.AccruedAmount)</td>
+                                                        <td class="text-right">@fmtSom(item.PaidAmount)</td>
+                                                        <td class="text-right text-info font-weight-bold">@fmtSom(item.DebtAmount)</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr><td colspan="6" class="text-center text-muted">To'lanmagan doimiy harajat yo'q</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            var receivables = @Html.Raw(System.Web.Helpers.Json.Encode(Model.CustomerReceivables.Take(10).ToList()));
+            var payables = @Html.Raw(System.Web.Helpers.Json.Encode(Model.SupplierPayables.Take(10).ToList()));
+
+            if (typeof Chart !== 'undefined' && receivables.length > 0) {
+                new Chart(document.getElementById('chartReceivables'), {
+                    type: 'bar',
+                    data: {
+                        labels: receivables.map(function (x) { return x.CustomerName; }),
+                        datasets: [{ label: "Haqqimiz", data: receivables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(54, 162, 235, 0.7)' }]
+                    },
+                    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+                });
+            }
+            if (typeof Chart !== 'undefined' && payables.length > 0) {
+                new Chart(document.getElementById('chartPayables'), {
+                    type: 'bar',
+                    data: {
+                        labels: payables.map(function (x) { return x.SupplierName; }),
+                        datasets: [{ label: "Qarzimiz", data: payables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(255, 99, 132, 0.7)' }]
+                    },
+                    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+                });
+            }
+
+            if (window.jQuery && $.fn && $.fn.DataTable) {
+                var options = {
+                    pageLength: 25,
+                    lengthMenu: [[25, 50, 100, -1], ["25", "50", "100", "Barchasi"]],
+                    order: [[1, "desc"]],
+                    language: {
+                        lengthMenu: "Ko'rsatish: _MENU_",
+                        info: "_TOTAL_ ta yozuvdan _START_ - _END_",
+                        infoEmpty: "Yozuv yo'q",
+                        infoFiltered: "(_MAX_ ta yozuvdan filtrlangan)",
+                        search: "Qidirish:",
+                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
+                        zeroRecords: "Hech narsa topilmadi"
+                    }
+                };
+                $('.finance-hub-table').DataTable(options);
+            }
+
+            function loadScript(src) {
+                return new Promise(function (resolve, reject) {
+                    var existing = document.querySelector('script[src="' + src + '"]');
+                    if (existing) {
+                        if (existing.dataset.loaded === '1') return resolve();
+                        existing.addEventListener('load', function () { resolve(); });
+                        existing.addEventListener('error', function () { reject(new Error('Script load failed: ' + src)); });
+                        return;
+                    }
+                    var s = document.createElement('script');
+                    s.src = src;
+                    s.async = true;
+                    s.onload = function () { s.dataset.loaded = '1'; resolve(); };
+                    s.onerror = function () { reject(new Error('Script load failed: ' + src)); };
+                    document.head.appendChild(s);
+                });
+            }
+
+            async function exportHubToPdf() {
+                var btn = document.getElementById('btnExportHubPdf');
+                var root = document.getElementById('financeHubExportRoot');
+                if (!root) return;
+
+                var originalText = btn ? btn.textContent : '';
+                try {
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = 'PDF tayyorlanmoqda...';
+                    }
+
+                    await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+                    await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+
+                    var canvas = await window.html2canvas(root, {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        scrollX: 0,
+                        scrollY: -window.scrollY
+                    });
+
+                    var jsPDF = window.jspdf.jsPDF;
+                    var pdf = new jsPDF('p', 'mm', 'a4');
+                    var pageWidth = pdf.internal.pageSize.getWidth();
+                    var pageHeight = pdf.internal.pageSize.getHeight();
+
+                    var imgWidth = pageWidth;
+                    var imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    var heightLeft = imgHeight;
+                    var position = 0;
+                    var imgData = canvas.toDataURL('image/png', 1.0);
+
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    while (heightLeft > 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    var dateInput = document.querySelector('input[name="asOfDate"]');
+                    var asOf = dateInput && dateInput.value ? dateInput.value : '';
+                    var fileName = 'FinanceReportsHub' + (asOf ? ('_' + asOf) : '') + '.pdf';
+                    pdf.save(fileName);
+                } catch (e) {
+                    alert('PDF exportda xatolik: ' + (e && e.message ? e.message : e));
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = originalText || 'PDF yuklab olish (butun sahifa)';
+                    }
+                }
+            }
+
+            var exportBtn = document.getElementById('btnExportHubPdf');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', exportHubToPdf);
+            }
+        })();
+    </script>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
