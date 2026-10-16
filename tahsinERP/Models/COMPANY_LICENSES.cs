@@ -14,10 +14,25 @@ namespace tahsinERP.Models
     
     public partial class COMPANY_LICENSES
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public COMPANY_LICENSES()
+        {
+            this.USER_LICENSES = new HashSet<USER_LICENSES>();
+        }
+    
         public int ID { get; set; }
         public int CompanyID { get; set; }
         public string LicenseKey { get; set; }
+        public int MaxUsers { get; set; }
+        public Nullable<System.DateTime> StartDate { get; set; }
+        public Nullable<System.DateTime> ExpiryDate { get; set; }
+        public string Edition { get; set; }
+        public bool IsActive { get; set; }
+        public System.DateTime CreatedAt { get; set; }
+        public string CreatedBy { get; set; }
     
         public virtual COMPANy COMPANy { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<USER_LICENSES> USER_LICENSES { get; set; }
     }
 }

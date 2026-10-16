@@ -14,7 +14,7 @@
         <EntityTypeShape EntityType="DBTHSNModel.BOM_LINES" Width="1.5" PointX="12.75" PointY="169.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.COM_OFFICIAL_LETTERS" Width="1.5" PointX="21.5" PointY="106.5" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.COMPANy" Width="1.5" PointX="0.75" PointY="132.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.COMPANY_LICENSES" Width="1.5" PointX="3" PointY="132.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.COMPANY_LICENSES" Width="1.5" PointX="2.875" PointY="131.625" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.COOKIES_CONFIRMATION" Width="1.5" PointX="8.25" PointY="129.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.CURRENCy" Width="1.5" PointX="3" PointY="119.5" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.CUSTOMER_BASE" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
@@ -118,6 +118,7 @@
         <EntityTypeShape EntityType="DBTHSNModel.TANNARX_ACTUAL_AUDIT" Width="1.5" PointX="24.75" PointY="166.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.UNIT" Width="1.5" PointX="6" PointY="179.625" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.USER_ENTRIES" Width="1.5" PointX="8.25" PointY="181.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DBTHSNModel.LICENSE_STATE" Width="1.5" PointX="9.75" PointY="7.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.USER_LICENSES" Width="1.5" PointX="7.75" PointY="7.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.USERIMAGE" Width="1.5" PointX="8.25" PointY="184.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.USERLOG" Width="1.5" PointX="8.25" PointY="187" IsExpanded="true" />
@@ -400,6 +401,8 @@
         <AssociationConnector Association="DBTHSNModel.FK_LL_IL" />
         <AssociationConnector Association="DBTHSNModel.FK_LL_WHL" />
         <AssociationConnector Association="DBTHSNModel.FK_WHL_WAREHOUSES" />
+        <AssociationConnector Association="DBTHSNModel.FK_UL_COMPANY_LICENSES" />
+        <AssociationConnector Association="DBTHSNModel.FK_UL_USERS" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

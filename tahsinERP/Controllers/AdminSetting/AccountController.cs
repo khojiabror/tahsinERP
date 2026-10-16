@@ -109,6 +109,44 @@ namespace tahsinERP.Controllers
                     db.SaveChanges();
                 }
 
+                // ==== Litsenziya tekshiruvi ====
+                // Admin/Developer litsenziyasiz ham kira oladi (birinchi kalitni
+                // faollashtirish uchun). Company muddati tugagan bo'lsa, global
+                // filter ularni License sahifasiga yo'naltiradi.
+                bool canManageLicense = RoleHelper.CanManageLicense(getUser.Uname);
+                Services.LicenseService.LicenseStatus licStatus = null;
+                try
+                {
+                    licStatus = Services.LicenseService.GetStatus(db);
+                }
+                catch (Exception ex)
+                {
+                    // Sabab logga, foydalanuvchiga umumiy xabar. Admin baribir kiradi — License sahifasida ko'radi.
+                    System.Diagnostics.Trace.TraceError("[License] Login paytida litsenziya tekshiruvi xatosi: " + ex);
+                    if (!canManageLicense)
+                    {
+                        ModelState.AddModelError("", "Litsenziyani tekshirishda xatolik yuz berdi. Administrator bilan bog'laning.");
+                        return View();
+                    }
+                }
+
+                if (!canManageLicense)
+                {
+                    // Grace (faqat o'qish) davrida kirish mumkin — yozishni global filter bloklaydi
+                    if (licStatus.Blocked)
+                    {
+                        ModelState.AddModelError("", licStatus.Message);
+                        return View();
+                    }
+
+                    // Seat muddati ham soat muhri bilan himoyalangan vaqt bo'yicha tekshiriladi
+                    var userCheck = Services.LicenseService.CheckUserLicense(db, getUser.ID, licStatus.EffectiveNow);
+                    if (!userCheck.Ok)
+                    {
+                        ModelState.AddModelError("", userCheck.Message);
+                        return View();
+                    }
+                }
 
                 // Aniqlash session timeout based on "Keep me logged in"
                 int sessionTimeout = user.KeepMeSigned ? KEEP_LOGGED_IN_TIMEOUT : DEFAULT_SESSION_TIMEOUT;
@@ -152,6 +190,10 @@ namespace tahsinERP.Controllers
 
                 // Log user entry immediately (IP will be logged, MAC might be 00:00:00:00:00:00 agar not in session yet)
                 SetUserEntry(getUser.ID);
+
+                // Litsenziya bloklangan bo'lsa admin to'g'ridan-to'g'ri License sahifasiga (kalit kiritish uchun)
+                if (canManageLicense && (licStatus == null || licStatus.Blocked))
+                    return RedirectToAction("Index", "License");
 
                 return RedirectToAction("Index", "Home");
             }

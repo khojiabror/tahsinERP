@@ -209,6 +209,7 @@
     <Compile Include="Security\DbConfigTests.cs" />
     <Compile Include="Security\LoginThrottleTests.cs" />
     <Compile Include="Security\PasswordHasherTests.cs" />
+    <Compile Include="Licensing\LicenseHelperTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

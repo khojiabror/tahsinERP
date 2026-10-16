@@ -16,5 +16,15 @@ namespace tahsinERP.Models
     {
         public int ID { get; set; }
         public string LicenseKey { get; set; }
+        public Nullable<int> CompanyLicenseID { get; set; }
+        public Nullable<int> UserID { get; set; }
+        public Nullable<System.DateTime> StartDate { get; set; }
+        public Nullable<System.DateTime> ExpiryDate { get; set; }
+        public bool IsActive { get; set; }
+        public string AssignedBy { get; set; }
+        public System.DateTime AssignedDate { get; set; }
+    
+        public virtual COMPANY_LICENSES COMPANY_LICENSES { get; set; }
+        public virtual USER USER { get; set; }
     }
 }

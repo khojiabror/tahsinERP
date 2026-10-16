@@ -1,0 +1,266 @@
+@model tahsinERP.ViewModels.LicenseIndexViewModel
+@{
+    ViewBag.Title = "Litsenziya";
+    Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
+    var today = DateTime.Today.ToString("yyyy-MM-dd");
+    var maxExpiry = Model.ExpiryDate.HasValue ? Model.ExpiryDate.Value.ToString("yyyy-MM-dd") : today;
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                            <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                            <li class="breadcrumb-item active">Litsenziya</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+
+            <!-- ==== HOLAT ==== -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Kompaniya litsenziyasi holati</h4>
+                        </div>
+                        <div class="card-body">
+                            @if (!Model.HasLicense)
+                            {
+                                <div class="alert alert-warning mb-0">@Model.StatusMessage</div>
+                            }
+                            else if (!Model.SignatureValid)
+                            {
+                                <div class="alert alert-danger mb-0"><b>Yaroqsiz kalit.</b> @Model.StatusMessage</div>
+                            }
+                            else
+                            {
+                                if (!Model.IsValid || Model.ExpiringSoon)
+                                {
+                                    <div class="alert @(Model.IsValid || Model.InGrace ? "alert-warning" : "alert-danger")">@Model.StatusMessage</div>
+                                }
+                                <div class="row">
+                                    <div class="col-md-4 mb-1">
+                                        <small class="text-muted">Holat</small><br />
+                                        @if (Model.IsValid)
+                                        {
+                                            <span class="badge @(Model.ExpiringSoon ? "badge-warning" : "badge-success")">Faol</span>
+                                        }
+                                        else if (Model.WrongInstallation)
+                                        {
+                                            <span class="badge badge-danger">Boshqa o'rnatma</span>
+                                        }
+                                        else if (Model.ClockProblem != null)
+                                        {
+                                            <span class="badge badge-danger">Bloklangan (soat)</span>
+                                        }
+                                        else if (Model.InGrace)
+                                        {
+                                            <span class="badge badge-warning">Faqat o'qish</span>
+                                        }
+                                        else if (Model.IsExpired)
+                                        {
+                                            <span class="badge badge-danger">Muddati tugagan</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">Boshlanmagan</span>
+                                        }
+                                    </div>
+                                    <div class="col-md-4 mb-1">
+                                        <small class="text-muted">Tarif</small><br /><b>@Model.Edition</b>
+                                    </div>
+                                    <div class="col-md-4 mb-1">
+                                        <small class="text-muted">Qolgan kun</small><br />
+                                        <b class="@(Model.DaysRemaining <= 15 ? "text-danger" : "")">@Model.DaysRemaining kun</b>
+                                    </div>
+                                    <div class="col-md-4 mb-1">
+                                        <small class="text-muted">Boshlanish</small><br />@(Model.StartDate.HasValue ? Model.StartDate.Value.ToString("dd.MM.yyyy") : "-")
+                                    </div>
+                                    <div class="col-md-4 mb-1">
+                                        <small class="text-muted">Tugash</small><br />@(Model.ExpiryDate.HasValue ? Model.ExpiryDate.Value.ToString("dd.MM.yyyy") : "-")
+                                    </div>
+                                    <div class="col-md-4 mb-1">
+                                        <small class="text-muted">Seat (band / jami)</small><br />
+                                        <b>@Model.UsedSeats / @(Model.Unlimited ? "∞" : Model.MaxUsers.ToString())</b>
+                                    </div>
+                                    @if (Model.InGrace && Model.GraceUntil.HasValue)
+                                    {
+                                        <div class="col-md-4 mb-1">
+                                            <small class="text-muted">Faqat o'qish rejimi</small><br /><b class="text-danger">@Model.GraceUntil.Value.ToString("dd.MM.yyyy") gacha</b>
+                                        </div>
+                                    }
+                                    <div class="col-md-4 mb-1">
+                                        <small class="text-muted">Kalit formati</small><br />
+                                        @if (Model.KeyVersion >= 2)
+                                        {
+                                            <span>@("v" + Model.KeyVersion) (o'rnatmaga bog'langan)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-warning">v1 (eski — yangilash tavsiya etiladi)</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            @if (Model.ClockProblem != null)
+                            {
+                                <div class="alert alert-danger mt-1 mb-0">
+                                    <b>Vaqt nazorati:</b> @Model.ClockProblem
+                                </div>
+                            }
+
+                            <hr />
+                            <small class="text-muted">O'rnatma ID (yangi kalit olish uchun yetkazib beruvchiga yuboring)</small>
+                            <div class="input-group input-group-sm mt-25">
+                                <input type="text" id="installationId" class="form-control" readonly value="@Model.InstallationId" style="font-family:monospace;" />
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-primary" onclick="var t=document.getElementById('installationId');t.select();try{navigator.clipboard.writeText(t.value);}catch(e){document.execCommand('copy');}this.innerText='Nusxa olindi';">Nusxa olish</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==== KALIT KIRITISH ==== -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">Kalitni faollashtirish</h4></div>
+                        <div class="card-body">
+                            @using (Html.BeginForm("Activate", "License", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <div class="form-group">
+                                    <textarea name="licenseKey" class="form-control" rows="4" placeholder="Litsenziya kalitini shu yerga joylashtiring" style="font-family:monospace;font-size:12px;"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Faollashtirish</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==== SEAT (XODIMLAR) ==== -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Xodimlar seat boshqaruvi</h4>
+                    <span class="badge badge-light">@Model.UsedSeats / @(Model.Unlimited ? "∞" : Model.MaxUsers.ToString()) band</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Xodim</th>
+                                    <th>Login</th>
+                                    <th>Seat</th>
+                                    <th>Muddat</th>
+                                    <th style="width:320px;">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var u in Model.Users)
+                                {
+                                    <tr>
+                                        <td>@u.FullName</td>
+                                        <td>@u.Uname</td>
+                                        <td>
+                                            @if (u.HasSeat && !u.SeatExpired)
+                                            {
+                                                <span class="badge badge-success">Faol</span>
+                                            }
+                                            else if (u.HasSeat && u.SeatExpired)
+                                            {
+                                                <span class="badge badge-danger">Tugagan</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-secondary">Yo'q</span>
+                                            }
+                                        </td>
+                                        <td>@(u.SeatExpiry.HasValue ? u.SeatExpiry.Value.ToString("dd.MM.yyyy") : "-")</td>
+                                        <td>
+                                            @if (!u.HasSeat)
+                                            {
+                                                using (Html.BeginForm("AssignSeat", "License", FormMethod.Post, new { @class = "form-inline" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="userId" value="@u.UserID" />
+                                                    <input type="date" name="expiryDate" class="form-control form-control-sm mr-1" value="@maxExpiry" max="@maxExpiry" />
+                                                    <button type="submit" class="btn btn-sm btn-success">Seat berish</button>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                using (Html.BeginForm("ExtendSeat", "License", FormMethod.Post, new { @class = "form-inline d-inline" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="userLicenseId" value="@u.UserLicenseID" />
+                                                    <input type="date" name="newExpiry" class="form-control form-control-sm mr-1" value="@maxExpiry" max="@maxExpiry" />
+                                                    <button type="submit" class="btn btn-sm btn-primary">Uzaytirish</button>
+                                                }
+                                                using (Html.BeginForm("RevokeSeat", "License", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Seatni olib qo\\'yamizmi?');" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="userLicenseId" value="@u.UserLicenseID" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Olib qo'yish</button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==== TARIX ==== -->
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">Litsenziyalar tarixi</h4></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>#</th><th>Max</th><th>Boshlanish</th><th>Tugash</th><th>Tarif</th><th>Faol</th><th>Yaratilgan</th><th>Kim</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var h in Model.History)
+                                {
+                                    <tr>
+                                        <td>@h.ID</td>
+                                        <td>@(h.MaxUsers == 0 ? "∞" : h.MaxUsers.ToString())</td>
+                                        <td>@(h.StartDate.HasValue ? h.StartDate.Value.ToString("dd.MM.yyyy") : "-")</td>
+                                        <td>@(h.ExpiryDate.HasValue ? h.ExpiryDate.Value.ToString("dd.MM.yyyy") : "-")</td>
+                                        <td>@h.Edition</td>
+                                        <td>@(h.IsActive ? "✅" : "")</td>
+                                        <td>@h.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                        <td>@h.CreatedBy</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
