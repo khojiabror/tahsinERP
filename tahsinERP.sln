@@ -5,6 +5,8 @@ VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP", "tahsinERP\tahsinERP.csproj", "{524032B1-5DF4-40FD-BCE8-D04FD72A79C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.LicenseGen", "tahsinERP.LicenseGen\tahsinERP.LicenseGen.csproj", "{842EBDFB-9860-4A29-A437-BBFD25C3E3A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{524032B1-5DF4-40FD-BCE8-D04FD72A79C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{524032B1-5DF4-40FD-BCE8-D04FD72A79C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{524032B1-5DF4-40FD-BCE8-D04FD72A79C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{842EBDFB-9860-4A29-A437-BBFD25C3E3A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{842EBDFB-9860-4A29-A437-BBFD25C3E3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{842EBDFB-9860-4A29-A437-BBFD25C3E3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{842EBDFB-9860-4A29-A437-BBFD25C3E3A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

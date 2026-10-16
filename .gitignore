@@ -367,8 +367,10 @@ FodyWeavers.xsd
 # Loyiha arxivlari (100 MB lik tahsinERP.rar repoda bo'lmasligi kerak)
 *.rar
 *.7z
-# Litsenziya generatori — maxfiy kalit (.pfx, license_private.dat) bor; alohida saqlanadi
-tahsinERP.LicenseGen/
+# Litsenziya generatori: manba kodi repoda, maxfiy fayllar EMAS
+# (private key, ClickOnce imzo kaliti, chiqarilgan kalitlar reestri)
+tahsinERP.LicenseGen/*.pfx
+issued_licenses.tsv
 license_private.dat
 # Serverdagi connection string fayli (DbConfig: %ProgramData%\tahsinERP\db.connection)
 db.connection
