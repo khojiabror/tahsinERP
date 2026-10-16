@@ -118,6 +118,9 @@
                     <li class="nav-item">
                         <a href="~/User"><i class="bx bx-user"></i><span class="menu-title">Foydalanuvchilar</span></a>
                     </li>
+                    <li class="nav-item">
+                        <a href="~/License"><i class="bx bx-key"></i><span class="menu-title">Litsenziyalar</span></a>
+                    </li>
 
                     <li class="navigation-header"><span>Huquqlar</span></li>
                     <li class="nav-item">
@@ -143,6 +146,7 @@
 
         <div hidden>@Html.AntiForgeryToken()</div>
         <div>@RenderBody()</div>
+        @Html.Partial("_LicenseBanner")
 
         <div class="sidenav-overlay"></div>
         <div class="drag-target"></div>

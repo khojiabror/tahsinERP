@@ -962,6 +962,12 @@
                                     <a class="dropdown-item" href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })">
                                         <i class="bx bx-user mr-50"></i> Profil sozlamalari
                                     </a>
+                                    @if (RoleHelper.CanManageLicense(User.Identity.Name))
+                                    {
+                                        <a class="dropdown-item" href="@Url.Action("Index", "License")">
+                                            <i class="bx bx-key mr-50"></i> Litsenziya
+                                        </a>
+                                    }
                                     <a class="dropdown-item" href="~/Tasks?assigneeUserID=@tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name)">
                                         <i class="bx bx-task mr-50"></i> Topshiriqlar
                                         @if (userTaskCount > 0)
@@ -1721,6 +1727,7 @@
 
         <div hidden>@Html.AntiForgeryToken()</div>
         <div>@RenderBody()</div>
+        @Html.Partial("_LicenseBanner")
 
         <div class="sidenav-overlay"></div>
         <div class="drag-target"></div>
@@ -1775,7 +1782,7 @@
 
         <!-- Repeater -->
         <script src="~/assets/js/jquery.repeater.min.js"></script>
-        <!-- CSRF token: barcha AJAX POST va formalarga -->
+        <!-- CSRF token: barcha AJAX POST va formalarga (oxirgi jQuery'dan keyin bo'lishi shart) -->
         <script src="~/Scripts/csrf.js"></script>
         <script>
             (function () {

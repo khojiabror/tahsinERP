@@ -34,6 +34,14 @@ namespace tahsinERP.Controllers
                     .OrderBy(r => r.RName)
                     .ToListAsync();
 
+                // Developer rolini faqat Developer rol egasiga ko'rsatamiz
+                if (!RoleHelper.IsDeveloper(User.Identity.Name))
+                {
+                    roles = roles
+                        .Where(r => !string.Equals(r.RName, "Developer", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+
                 // Foydalanuvchilar sonini hisoblash (navigation property orqali)
                 var userCountsDict = new Dictionary<int, int>();
                 foreach (var role in roles)
@@ -156,11 +164,11 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Developer rolini faqat developer o'zgartirishi mumkin
-                if (User.Identity.Name != "developer" && role.RName == "developer")
+                // Developer rolini faqat Developer rol egasi o'zgartira oladi
+                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    && !RoleHelper.IsDeveloper(User.Identity.Name))
                 {
-                    TempData["Error"] = "Faqat dasturchilar 'developer' rolini o'zgartira oladi";
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
                 return View(role);
@@ -193,11 +201,12 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Developer rolini faqat developer o'zgartirishi mumkin
-                    if (User.Identity.Name != "developer" && roleToUpdate.RName == "developer")
+                    // Developer rolini faqat Developer rol egasi o'zgartira oladi
+                    if ((string.Equals(roleToUpdate.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase))
+                        && !RoleHelper.IsDeveloper(User.Identity.Name))
                     {
-                        TempData["Error"] = "Faqat dasturchilar 'developer' rolini o'zgartira oladi";
-                        return RedirectToAction("Index");
+                        return RedirectToAction("Index", "ViewNotAuthorized");
                     }
 
                     // Rol nomi takrorlanmasligini tekshirish (o'zidan boshqa)
@@ -256,11 +265,11 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Developer rolini o'chirib bo'lmaydi
-                if (role.RName == "developer")
+                // Developer rolini faqat Developer rol egasi ko'ra/o'chira oladi
+                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    && !RoleHelper.IsDeveloper(User.Identity.Name))
                 {
-                    TempData["Error"] = "'developer' rolini o'chirib bo'lmaydi";
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
                 // Bu rolga ega foydalanuvchilar borligini tekshirish
@@ -294,11 +303,11 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Developer rolini o'chirib bo'lmaydi
-                    if (role.RName == "developer")
+                    // Developer rolini faqat Developer rol egasi o'chira oladi
+                    if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                        && !RoleHelper.IsDeveloper(User.Identity.Name))
                     {
-                        TempData["Error"] = "'developer' rolini o'chirib bo'lmaydi";
-                        return RedirectToAction("Index");
+                        return RedirectToAction("Index", "ViewNotAuthorized");
                     }
 
                     // Soft o'chirish + foydalanuvchi–rol bog‘lanishlarini uzish
@@ -346,6 +355,13 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                // Developer rolining tafsilotlari faqat Developer'ga
+                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    && !RoleHelper.IsDeveloper(User.Identity.Name))
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
                 return View(role);
             }
         }
@@ -372,6 +388,13 @@ namespace tahsinERP.Controllers
                 if (role == null)
                 {
                     return HttpNotFound();
+                }
+
+                // Developer rolining permissionlari faqat Developer'ga
+                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    && !RoleHelper.IsDeveloper(User.Identity.Name))
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
                 // Barcha modullarni olish va permission bor-yo'qligini tekshirish
@@ -438,6 +461,13 @@ namespace tahsinERP.Controllers
                     {
                         TempData["Error"] = "Rol topilmadi";
                         return RedirectToAction("Index", "Role");
+                    }
+
+                    // Developer rolining permissionlarini faqat Developer o'zgartira oladi
+                    if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                        && !RoleHelper.IsDeveloper(User.Identity.Name))
+                    {
+                        return RedirectToAction("Index", "ViewNotAuthorized");
                     }
 
                     // Barcha mavjud permissions ni dictionary ga olish (tezroq qidirish uchun)

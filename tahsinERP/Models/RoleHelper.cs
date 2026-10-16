@@ -165,6 +165,29 @@ namespace tahsinERP.Models
         }
 
         /// <summary>
+        /// Foydalanuvchi ma'lum bir rolga egami (nomi bo'yicha, katta-kichik harf farqsiz).
+        /// </summary>
+        public static bool IsInRole(string username, string roleName)
+        {
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(roleName))
+                return false;
+            var roles = GetUserRoles(username);
+            return Array.Exists(roles, r => string.Equals(r, roleName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>Developer roli egasimi (yashirin ma'muriy imtiyozlar uchun).</summary>
+        public static bool IsDeveloper(string username)
+        {
+            return IsInRole(username, "Developer");
+        }
+
+        /// <summary>Litsenziyani boshqara oladigan rol (Admin yoki Developer).</summary>
+        public static bool CanManageLicense(string username)
+        {
+            return IsInRole(username, "Admin") || IsInRole(username, "Developer");
+        }
+
+        /// <summary>
         /// Ko'rish huquqi borligini tekshirish (Module nomi bo'yicha)
         /// </summary>
         public static bool IsViewPermitted(string username, string moduleName)

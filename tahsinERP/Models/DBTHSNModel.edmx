@@ -126,6 +126,13 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="CompanyID" Type="int" Nullable="false" />
           <Property Name="LicenseKey" Type="varchar(max)" />
+          <Property Name="MaxUsers" Type="int" Nullable="false" />
+          <Property Name="StartDate" Type="datetime" />
+          <Property Name="ExpiryDate" Type="datetime" />
+          <Property Name="Edition" Type="nvarchar" MaxLength="50" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+          <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
         </EntityType>
         <EntityType Name="COOKIES_CONFIRMATION">
           <Key>
@@ -1025,6 +1032,14 @@
           <Property Name="HRJobDescriptionID" Type="bigint" />
           <Property Name="IsDeleted" Type="bit" />
         </EntityType>
+        <EntityType Name="LICENSE_STATE">
+          <Key>
+            <PropertyRef Name="Name" />
+          </Key>
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Value" Type="nvarchar" MaxLength="400" Nullable="false" />
+          <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="LOT_LOCATIONS">
           <Key>
             <PropertyRef Name="ID" />
@@ -1868,6 +1883,13 @@
           </Key>
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="LicenseKey" Type="varchar(max)" />
+          <Property Name="CompanyLicenseID" Type="int" />
+          <Property Name="UserID" Type="int" />
+          <Property Name="StartDate" Type="datetime" />
+          <Property Name="ExpiryDate" Type="datetime" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="AssignedBy" Type="nvarchar" MaxLength="100" />
+          <Property Name="AssignedDate" Type="datetime" Nullable="false" />
         </EntityType>
         <EntityType Name="USERIMAGES">
           <Key>
@@ -5125,6 +5147,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_UL_COMPANY_LICENSES">
+          <End Role="COMPANY_LICENSES" Type="Self.COMPANY_LICENSES" Multiplicity="0..1" />
+          <End Role="USER_LICENSES" Type="Self.USER_LICENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="COMPANY_LICENSES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="USER_LICENSES">
+              <PropertyRef Name="CompanyLicenseID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UL_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="USER_LICENSES" Type="Self.USER_LICENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="USER_LICENSES">
+              <PropertyRef Name="UserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_USER_ENTRIES_USERS">
           <End Role="USERS" Type="Self.USERS" Multiplicity="1" />
           <End Role="USER_ENTRIES" Type="Self.USER_ENTRIES" Multiplicity="*" />
@@ -5360,6 +5406,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="INCOME_PRODUCTS" EntityType="Self.INCOME_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INCOMES" EntityType="Self.INCOMES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="JOB_DESC" EntityType="Self.JOB_DESC" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="LICENSE_STATE" EntityType="Self.LICENSE_STATE" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LOT_LOCATIONS" EntityType="Self.LOT_LOCATIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NORM_INPUT_LINES" EntityType="Self.NORM_INPUT_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NORMLINES" EntityType="Self.NORMLINES" Schema="dbo" store:Type="Tables" />
@@ -6503,6 +6550,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="S_ORDERS" EntitySet="S_ORDERS" />
             <End Role="SALES_TTNK_HEADERS" EntitySet="SALES_TTNK_HEADERS" />
           </AssociationSet>
+          <AssociationSet Name="FK_UL_COMPANY_LICENSES" Association="Self.FK_UL_COMPANY_LICENSES">
+            <End Role="COMPANY_LICENSES" EntitySet="COMPANY_LICENSES" />
+            <End Role="USER_LICENSES" EntitySet="USER_LICENSES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UL_USERS" Association="Self.FK_UL_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="USER_LICENSES" EntitySet="USER_LICENSES" />
+          </AssociationSet>
           <AssociationSet Name="FK_USER_ENTRIES_USERS" Association="Self.FK_USER_ENTRIES_USERS">
             <End Role="USERS" EntitySet="USERS" />
             <End Role="USER_ENTRIES" EntitySet="USER_ENTRIES" />
@@ -6692,6 +6747,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="CompanyID" Type="Int32" Nullable="false" />
           <Property Name="LicenseKey" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_COMPANY_LICENSES_COMPANIES" FromRole="COMPANY_LICENSES" ToRole="COMPANIES" />
+          <Property Name="MaxUsers" Type="Int32" Nullable="false" />
+          <Property Name="StartDate" Type="DateTime" Precision="3" />
+          <Property Name="ExpiryDate" Type="DateTime" Precision="3" />
+          <Property Name="Edition" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedBy" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="USER_LICENSES" Relationship="DBTHSNModel.FK_UL_COMPANY_LICENSES" FromRole="COMPANY_LICENSES" ToRole="USER_LICENSES" />
         </EntityType>
         <EntityType Name="COOKIES_CONFIRMATION">
           <Key>
@@ -8779,6 +8842,15 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           </Key>
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="LicenseKey" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="CompanyLicenseID" Type="Int32" />
+          <Property Name="UserID" Type="Int32" />
+          <Property Name="StartDate" Type="DateTime" Precision="3" />
+          <Property Name="ExpiryDate" Type="DateTime" Precision="3" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="AssignedBy" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AssignedDate" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="COMPANY_LICENSES" Relationship="DBTHSNModel.FK_UL_COMPANY_LICENSES" FromRole="USER_LICENSES" ToRole="COMPANY_LICENSES" />
+          <NavigationProperty Name="USER" Relationship="DBTHSNModel.FK_UL_USERS" FromRole="USER_LICENSES" ToRole="USER" />
         </EntityType>
         <EntityType Name="USERIMAGE">
           <Key>
@@ -8849,6 +8921,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="USERLOGS" Relationship="Self.FK_USERLOGS_USERS" FromRole="USERS" ToRole="USERLOGS" />
           <NavigationProperty Name="WAREHOUSES" Relationship="Self.FK_PROD_WRHS_USERS" FromRole="USERS" ToRole="WAREHOUSES" />
           <NavigationProperty Name="ROLES" Relationship="Self.USERROLES" FromRole="USERS" ToRole="ROLES" />
+          <NavigationProperty Name="USER_LICENSES" Relationship="DBTHSNModel.FK_UL_USERS" FromRole="USER" ToRole="USER_LICENSES" />
         </EntityType>
         <EntityType Name="Warehouse">
           <Key>
@@ -13145,6 +13218,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="FIFO_POLICY" EntityType="DBTHSNModel.FIFO_POLICY" />
           <EntitySet Name="FIFO_VIOLATIONS" EntityType="DBTHSNModel.FIFO_VIOLATIONS" />
           <EntitySet Name="INCOME_LOTS" EntityType="DBTHSNModel.INCOME_LOTS" />
+          <EntitySet Name="LICENSE_STATE" EntityType="Self.LICENSE_STATE" />
           <EntitySet Name="LOT_LOCATIONS" EntityType="DBTHSNModel.LOT_LOCATIONS" />
           <EntitySet Name="WAREHOUSE_LOCATIONS" EntityType="DBTHSNModel.WAREHOUSE_LOCATIONS" />
           <AssociationSet Name="FK_EPA_EP" Association="DBTHSNModel.FK_EPA_EP">
@@ -13195,6 +13269,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <Parameter Name="LocationID" Mode="In" Type="Int32" />
             <Parameter Name="IncomingQty" Mode="In" Type="Decimal" />
           </FunctionImport>
+          <AssociationSet Name="FK_UL_COMPANY_LICENSES" Association="DBTHSNModel.FK_UL_COMPANY_LICENSES">
+            <End Role="COMPANY_LICENSES" EntitySet="COMPANY_LICENSES" />
+            <End Role="USER_LICENSES" EntitySet="USER_LICENSES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UL_USERS" Association="DBTHSNModel.FK_UL_USERS">
+            <End Role="USER" EntitySet="USERS" />
+            <End Role="USER_LICENSES" EntitySet="USER_LICENSES" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="sp_Fin_CashSummary_Result">
           <Property Type="Int32" Name="AccountID" Nullable="false" />
@@ -13281,6 +13363,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="INCOME" Relationship="DBTHSNModel.FK_IL_INCOME" FromRole="INCOME_LOTS" ToRole="INCOME" />
           <NavigationProperty Name="INCOME_PRODUCTS" Relationship="DBTHSNModel.FK_IL_INCOME_PRODUCTS" FromRole="INCOME_LOTS" ToRole="INCOME_PRODUCTS" />
           <NavigationProperty Name="LOT_LOCATIONS" Relationship="DBTHSNModel.FK_LL_IL" FromRole="INCOME_LOTS" ToRole="LOT_LOCATIONS" />
+        </EntityType>
+        <EntityType Name="LICENSE_STATE">
+          <Key>
+            <PropertyRef Name="Name" />
+          </Key>
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Value" Type="String" MaxLength="400" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="UpdatedAt" Type="DateTime" Nullable="false" Precision="3" />
         </EntityType>
         <EntityType Name="LOT_LOCATIONS">
           <Key>
@@ -13448,6 +13538,30 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_UL_COMPANY_LICENSES">
+          <End Type="DBTHSNModel.COMPANY_LICENSES" Role="COMPANY_LICENSES" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.USER_LICENSES" Role="USER_LICENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="COMPANY_LICENSES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="USER_LICENSES">
+              <PropertyRef Name="CompanyLicenseID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UL_USERS">
+          <End Type="DBTHSNModel.USER" Role="USER" Multiplicity="0..1" />
+          <End Type="DBTHSNModel.USER_LICENSES" Role="USER_LICENSES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="USER_LICENSES">
+              <PropertyRef Name="UserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -13580,6 +13694,13 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="COMPANY_LICENSES">
             <EntityTypeMapping TypeName="DBTHSNModel.COMPANY_LICENSES">
               <MappingFragment StoreEntitySet="COMPANY_LICENSES">
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Edition" ColumnName="Edition" />
+                <ScalarProperty Name="ExpiryDate" ColumnName="ExpiryDate" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="MaxUsers" ColumnName="MaxUsers" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="CompanyID" ColumnName="CompanyID" />
                 <ScalarProperty Name="LicenseKey" ColumnName="LicenseKey" />
@@ -15343,6 +15464,13 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySetMapping Name="USER_LICENSES">
             <EntityTypeMapping TypeName="DBTHSNModel.USER_LICENSES">
               <MappingFragment StoreEntitySet="USER_LICENSES">
+                <ScalarProperty Name="AssignedDate" ColumnName="AssignedDate" />
+                <ScalarProperty Name="AssignedBy" ColumnName="AssignedBy" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="ExpiryDate" ColumnName="ExpiryDate" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="UserID" ColumnName="UserID" />
+                <ScalarProperty Name="CompanyLicenseID" ColumnName="CompanyLicenseID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="LicenseKey" ColumnName="LicenseKey" />
               </MappingFragment>
@@ -15630,6 +15758,15 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="IncomeProductID" ColumnName="IncomeProductID" />
                 <ScalarProperty Name="IncomeID" ColumnName="IncomeID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="LICENSE_STATE">
+            <EntityTypeMapping TypeName="DBTHSNModel.LICENSE_STATE">
+              <MappingFragment StoreEntitySet="LICENSE_STATE">
+                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+                <ScalarProperty Name="Value" ColumnName="Value" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

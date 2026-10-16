@@ -1,3 +1,4 @@
+using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,6 +21,14 @@ namespace tahsinERP.Controllers
             {
                 var thisRole = db.ROLES.Find(roleID);
 
+                // Developer rolining ruxsatlari faqat Developer rol egasiga
+                if (thisRole != null
+                    && string.Equals(thisRole.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    && !RoleHelper.IsDeveloper(User.Identity.Name))
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
                 return View(thisRole);
             }
         }
@@ -31,6 +40,15 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var role = await db.ROLES.FindAsync(roleID);
+
+                // Developer rolining ruxsatlarini faqat Developer o'zgartira oladi
+                if (role != null
+                    && string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    && !RoleHelper.IsDeveloper(User.Identity.Name))
+                {
+                    return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
                 var permissions = await db.PERMISSIONS.Where(pr => pr.RoleID == roleID).ToListAsync();
 
                 foreach (var permission in permissions)

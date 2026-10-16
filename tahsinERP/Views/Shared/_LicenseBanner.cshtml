@@ -1,0 +1,29 @@
+@using tahsinERP.Models
+@using tahsinERP.Services
+@*
+    Litsenziya ogohlantirishi (faqat Admin/Developer uchun):
+      - muddat tugashiga 14 kun yoki kamroq qolganda,
+      - grace davrida (faqat o'qish rejimi).
+    Holat LicenseService keshidan olinadi (5 daqiqa) — DB'ga har sahifada bormaydi.
+*@
+@{
+    LicenseService.LicenseStatus licStatus = null;
+    if (User != null && User.Identity.IsAuthenticated && RoleHelper.CanManageLicense(User.Identity.Name))
+    {
+        licStatus = LicenseService.GetCachedStatus();
+    }
+}
+@if (licStatus != null && licStatus.ShowWarning)
+{
+    bool grace = licStatus.ReadOnly;
+    <div id="licenseBanner" class="alert @(grace ? "alert-danger" : "alert-warning") alert-dismissible mb-0"
+         role="alert" style="position:fixed;right:16px;bottom:16px;z-index:1060;max-width:420px;box-shadow:0 4px 16px rgba(0,0,0,.2);">
+        <button type="button" class="close" onclick="document.getElementById('licenseBanner').style.display='none';" aria-label="Yopish">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <i class="bx bx-error-circle"></i>
+        <b>@(grace ? "Litsenziya muddati tugadi" : "Litsenziya muddati tugayapti")</b><br />
+        <span>@licStatus.Message</span><br />
+        <a href="@Url.Action("Index", "License")" class="alert-link">Kalitni yangilash</a>
+    </div>
+}

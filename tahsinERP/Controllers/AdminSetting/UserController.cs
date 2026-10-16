@@ -46,6 +46,15 @@ namespace tahsinERP.Controllers
 
             var users = await usersQuery.ToListAsync();
 
+            // Developer foydalanuvchilarni faqat Developer rol egasiga ko'rsatamiz
+            bool viewerIsDev = tahsinERP.Models.RoleHelper.IsDeveloper(User.Identity.Name);
+            if (!viewerIsDev)
+            {
+                users = users
+                    .Where(u => !u.ROLES.Any(r => string.Equals(r.RName, "Developer", StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+            }
+
             var userViewModels = users.Select(u => new UserViewModel
             {
                 ID = u.ID,
@@ -56,7 +65,15 @@ namespace tahsinERP.Controllers
                 Role = u.ROLES.FirstOrDefault()?.RName ?? "Rol yo'q"
             }).ToList();
 
-            ViewBag.RoleList = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", roleID);
+            // Rol filtri ro'yxatidan ham Developer'ni yashiramiz
+            var roleListQuery = await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync();
+            if (!viewerIsDev)
+            {
+                roleListQuery = roleListQuery
+                    .Where(r => !string.Equals(r.RName, "Developer", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            ViewBag.RoleList = new SelectList(roleListQuery, "ID", "RName", roleID);
             ViewBag.RoleID = roleID;
 
             return View(userViewModels);

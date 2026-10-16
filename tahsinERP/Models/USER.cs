@@ -50,6 +50,7 @@ namespace tahsinERP.Models
             this.USERLOGS = new HashSet<USERLOG>();
             this.WAREHOUSES = new HashSet<Warehouse>();
             this.ROLES = new HashSet<ROLE>();
+            this.USER_LICENSES = new HashSet<USER_LICENSES>();
         }
     
         public int ID { get; set; }
@@ -129,5 +130,7 @@ namespace tahsinERP.Models
         public virtual ICollection<Warehouse> WAREHOUSES { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ROLE> ROLES { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<USER_LICENSES> USER_LICENSES { get; set; }
     }
 }

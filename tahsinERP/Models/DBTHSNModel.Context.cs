@@ -163,6 +163,7 @@ namespace tahsinERP.Models
         public virtual DbSet<FIFO_POLICY> FIFO_POLICY { get; set; }
         public virtual DbSet<FIFO_VIOLATIONS> FIFO_VIOLATIONS { get; set; }
         public virtual DbSet<INCOME_LOTS> INCOME_LOTS { get; set; }
+        public virtual DbSet<LICENSE_STATE> LICENSE_STATE { get; set; }
         public virtual DbSet<LOT_LOCATIONS> LOT_LOCATIONS { get; set; }
         public virtual DbSet<WAREHOUSE_LOCATIONS> WAREHOUSE_LOCATIONS { get; set; }
     

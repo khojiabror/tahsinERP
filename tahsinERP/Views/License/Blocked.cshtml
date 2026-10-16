@@ -1,0 +1,53 @@
+@{
+    ViewBag.Title = "Litsenziya cheklovi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool canManage = ViewBag.CanManage != null && (bool)ViewBag.CanManage;
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-body">
+            <div class="row justify-content-center mt-3">
+                <div class="col-md-7">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bx bx-lock-alt" style="font-size:64px;color:#ea5455;"></i>
+                            <h3 class="mt-1">Tizim vaqtincha bloklangan</h3>
+                            <p class="text-muted">@ViewBag.Message</p>
+
+                            @if (canManage)
+                            {
+                                <hr />
+                                if (ViewBag.InstallationId != null)
+                                {
+                                    <p class="mb-25"><small class="text-muted">O'rnatma ID (yetkazib beruvchiga yuboring):</small></p>
+                                    <p><code style="font-size:13px;user-select:all;">@ViewBag.InstallationId</code></p>
+                                }
+                                <p>Yangi litsenziya kalitini kiriting:</p>
+                                using (Html.BeginForm("Activate", "License", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="returnTo" value="Blocked" />
+                                    <div class="form-group">
+                                        <textarea name="licenseKey" class="form-control" rows="4" placeholder="Litsenziya kaliti" style="font-family:monospace;font-size:12px;"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Faollashtirish</button>
+                                    <a href="@Url.Action("Index", "License")" class="btn btn-outline-secondary">Litsenziya sahifasi</a>
+                                }
+                            }
+                            else
+                            {
+                                <p class="mt-2">Iltimos, administrator yoki yetkazib beruvchi bilan bog'laning.</p>
+                            }
+
+                            <div class="mt-2">
+                                <a href="@Url.Action("Logout", "Account")" class="btn btn-sm btn-outline-danger">Chiqish</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
