@@ -893,6 +893,7 @@
     <Compile Include="Services\TannarxAnalyticsService.cs" />
     <Compile Include="Services\Tannarx\TannarxActualCostEngine.cs" />
     <Compile Include="Services\Tannarx\TannarxFinanceCategoryClassifier.cs" />
+    <Compile Include="Services\Tannarx\TannarxFinanceCategoryMapStore.cs" />
     <Compile Include="Services\SoftDeleteReferenceService.cs" />
     <Compile Include="Services\TannarxService.cs" />
     <Compile Include="Services\TextSuggestionService.cs" />
@@ -3176,6 +3177,7 @@
     <Content Include="Views\Tannarx\Index.cshtml" />
     <Content Include="Views\TannarxAnalytics\Dashboard.cshtml" />
     <Content Include="Views\TannarxAnalytics\MonthSources.cshtml" />
+    <Content Include="Views\TannarxAnalytics\FinanceCategories.cshtml" />
     <Content Include="Views\TannarxAnalytics\ProductDetails.cshtml" />
     <Content Include="Views\TannarxAnalytics\Report.cshtml" />
     <Content Include="Views\TaskChangeStatus\ChangeStatus.cshtml" />
