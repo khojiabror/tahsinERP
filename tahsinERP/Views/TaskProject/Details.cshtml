@@ -124,16 +124,16 @@
                                                                     <td>@(task.Title ?? "")</td>
                                                                     <td>@(task.AssigneeFullName ?? "-")</td>
                                                                     <td>
-                                                                        @Html.TaskPriorityBadge(task.PriorityName, "")
+                                                                        @Html.TaskPriorityBadge(task.PriorityID, "")
                                                                     </td>
                                                                     <td>
-                                                                        @Html.TaskStatusBadge(task.StatusName, "")
+                                                                        @Html.TaskStatusBadge(task.StatusID, "")
                                                                     </td>
                                                                     <td>@task.CreatedDT.ToString("yyyy-MM-dd")</td>
                                                                     <td>
                                                                         @if (task.DueDate.HasValue)
                                                                         {
-                                                                            <span class="@(TaskBadges.IsOverdue(task.DueDate, task.StatusName) ? "text-danger" : "")">
+                                                                            <span class="@(TaskBadges.IsOverdue(task.DueDate, task.StatusID) ? "text-danger" : "")">
                                                                                 @task.DueDate.Value.ToString("yyyy-MM-dd")
                                                                             </span>
                                                                         }

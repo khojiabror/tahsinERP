@@ -281,9 +281,9 @@ else
         {
             statusLabels = Model.StatusStatistics.Select(x => x.StatusName + " (" + x.Count + ")"),
             statusSeries = Model.StatusStatistics.Select(x => x.Count),
-            statusColors = Model.StatusStatistics.Select(x => TaskBadges.StatusColor(x.StatusName)),
+            statusColors = Model.StatusStatistics.Select(x => TaskBadges.StatusColorByCode(x.StatusCode)),
             priorityCategories = Model.PriorityStatistics.Select(x => x.PriorityName),
-            priorityColors = Model.PriorityStatistics.Select(x => TaskBadges.PriorityColor(x.PriorityName)),
+            priorityColors = Model.PriorityStatistics.Select(x => TaskBadges.PriorityColorByCode(x.PriorityCode)),
             priorityTotal = Model.PriorityStatistics.Select(x => x.TotalCount),
             priorityDone = Model.PriorityStatistics.Select(x => x.DoneCount),
             priorityTodo = Model.PriorityStatistics.Select(x => x.TodoCount),

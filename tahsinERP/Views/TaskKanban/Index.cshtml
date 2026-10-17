@@ -82,7 +82,7 @@
                                                             <span class="kanban-item-key">@(task.KeyCode ?? task.ID.ToString())</span>
                                                             @if (task.PriorityID.HasValue)
                                                             {
-                                                                @Html.TaskPriorityBadge(task.PriorityName, "", "float-right")
+                                                                @Html.TaskPriorityBadge(task.PriorityID, "", "float-right")
                                                             }
                                                         </div>
                                                         <div class="kanban-item-title">@task.Title</div>
@@ -94,7 +94,7 @@
                                                             <div class="kanban-item-meta">
                                                                 @if (task.DueDate.HasValue)
                                                                 {
-                                                                    <span class="kanban-item-date @(TaskBadges.IsOverdue(task.DueDate, task.StatusName) ? "text-danger" : "")">
+                                                                    <span class="kanban-item-date @(TaskBadges.IsOverdue(task.DueDate, task.StatusID) ? "text-danger" : "")">
                                                                         <i class="bx bx-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
                                                                     </span>
                                                                 }
@@ -128,7 +128,7 @@
                                         <div class="kanban-board" data-board-id="@board.ID">
                                             <div class="kanban-board-header">
                                                 <h5 class="kanban-board-title">
-                                                    @Html.TaskStatusBadge(board.Title, "", "mr-2")
+                                                    @Html.TaskStatusBadge(int.Parse(board.ID), board.Title, "mr-2")
                                                 </h5>
                                                 <span class="badge badge-primary">@board.Tasks.Count</span>
                                             </div>
@@ -140,7 +140,7 @@
                                                             <span class="kanban-item-key">@(task.KeyCode ?? task.ID.ToString())</span>
                                                             @if (task.PriorityID.HasValue)
                                                             {
-                                                                @Html.TaskPriorityBadge(task.PriorityName, "", "float-right")
+                                                                @Html.TaskPriorityBadge(task.PriorityID, "", "float-right")
                                                             }
                                                         </div>
                                                         <div class="kanban-item-title">@task.Title</div>
@@ -158,7 +158,7 @@
                                                             <div class="kanban-item-meta">
                                                                 @if (task.DueDate.HasValue)
                                                                 {
-                                                                    <span class="kanban-item-date @(TaskBadges.IsOverdue(task.DueDate, task.StatusName) ? "text-danger" : "")">
+                                                                    <span class="kanban-item-date @(TaskBadges.IsOverdue(task.DueDate, task.StatusID) ? "text-danger" : "")">
                                                                         <i class="bx bx-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
                                                                     </span>
                                                                 }

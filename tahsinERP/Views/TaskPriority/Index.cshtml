@@ -81,7 +81,7 @@
                                                             <td>
                                                                 <a href="@Url.Action("Details", "TaskPriority", new { id = item.ID })">@item.Code</a>
                                                             </td>
-                                                            <td>@tahsinERP.Services.Tasks.TaskBadges.TaskPriorityBadge(Html, item.Name)</td>
+                                                            <td>@tahsinERP.Services.Tasks.TaskBadges.TaskPriorityBadge(Html, item.ID, item.Name)</td>
                                                             <td>@item.SortOrder</td>
                                                             @if (changePermit)
                                                             {

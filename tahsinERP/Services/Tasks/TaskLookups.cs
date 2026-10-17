@@ -25,12 +25,12 @@ namespace tahsinERP.Services.Tasks
         }
 
         /// <summary>
-        /// "Bajarilgan" status (Dashboard'dagi "Bajarildi" soni uchun): DONE kodi yoki nomi bo'yicha.
+        /// "Bajarilgan" status (Dashboard'dagi "Bajarildi" soni uchun) — faqat DONE kodi (nom bo'yicha qidiruv yo'q).
         /// Bekor qilingan ham yopilgan, lekin bajarilgan emas — shuning uchun IsFinal'dan alohida.
         /// </summary>
-        public static bool IsDoneStatus(string code, string name)
+        public static bool IsDoneStatus(string code)
         {
-            return code == DoneCode || TaskBadges.IsDoneName(name);
+            return code == DoneCode;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace tahsinERP.Services.Tasks
         /// <summary>SQL filtrlari uchun bajarilgan status ID'lari (keshdan; o'chirilgan statuslar ham).</summary>
         public static List<int> DoneStatusIds()
         {
-            return TaskLookups.AllStatuses().Where(st => IsDoneStatus(st.Code, st.Name)).Select(st => st.ID).ToList();
+            return TaskLookups.AllStatuses().Where(st => IsDoneStatus(st.Code)).Select(st => st.ID).ToList();
         }
 
         /// <summary>SQL filtrlari uchun yopilgan status ID'lari.</summary>
@@ -68,6 +68,7 @@ namespace tahsinERP.Services.Tasks
         private const string StatusesKey = "statuses";
         private const string AllStatusesKey = "allStatuses";
         private const string PrioritiesKey = "priorities";
+        private const string AllPrioritiesKey = "allPriorities";
         private const string ProjectsKey = "projects";
 
         public sealed class Item
@@ -105,6 +106,14 @@ namespace tahsinERP.Services.Tasks
             return Get(PrioritiesKey, db => db.APP_TASK_PRIORITY_REF.AsNoTracking()
                 .Where(p => p.IsDeleted != true)
                 .OrderBy(p => p.SortOrder)
+                .Select(p => new Item { ID = p.ID, Code = p.Code, Name = p.Name, ColorHex = p.ColorHex })
+                .ToList());
+        }
+
+        /// <summary>Barcha prioritetlar, o'chirilganlari ham (badge'lar uchun).</summary>
+        public static IReadOnlyList<Item> AllPriorities()
+        {
+            return Get(AllPrioritiesKey, db => db.APP_TASK_PRIORITY_REF.AsNoTracking()
                 .Select(p => new Item { ID = p.ID, Code = p.Code, Name = p.Name, ColorHex = p.ColorHex })
                 .ToList());
         }
@@ -166,6 +175,7 @@ namespace tahsinERP.Services.Tasks
             Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(StatusesKey));
             Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(AllStatusesKey));
             Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(PrioritiesKey));
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(AllPrioritiesKey));
             Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(ProjectsKey));
         }
 

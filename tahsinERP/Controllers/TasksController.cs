@@ -73,13 +73,13 @@ namespace tahsinERP.Controllers
                         title = r.Title ?? "",
                         assignee = r.AssigneeFullName ?? "-",
                         priority = r.PriorityName,
-                        priorityStyle = TaskBadges.PriorityColorOrNull(r.PriorityName),
+                        priorityStyle = TaskBadges.PriorityColorOrNull(r.PriorityID),
                         status = r.StatusName,
-                        statusClass = TaskBadges.StatusBadgeClass(r.StatusName),
-                        statusStyle = TaskBadges.StatusStyle(r.StatusName),
+                        statusClass = TaskBadges.StatusBadgeClass(r.StatusID),
+                        statusStyle = TaskBadges.StatusStyle(r.StatusID),
                         created = r.CreatedDT.ToString("yyyy-MM-dd"),
                         due = r.DueDate.HasValue ? r.DueDate.Value.ToString("yyyy-MM-dd") : null,
-                        overdue = TaskBadges.IsOverdue(r.DueDate, r.StatusName)
+                        overdue = TaskBadges.IsOverdue(r.DueDate, r.StatusID)
                     })
                 }, JsonRequestBehavior.AllowGet);
             }
