@@ -436,6 +436,10 @@ else
             var lineIndex = @Model.CuttingLines.Count;
             var materials = @Html.Raw(Json.Encode(ViewBag.MaterialsJson ?? new List<object>()));
             var unitsJson = @Html.Raw(Json.Encode(ViewBag.UnitsJson ?? new List<object>()));
+            // Mahsulot/birlik nomlari HTML satrga qo'shilishidan oldin ekranlanadi (stored XSS, MES-B14)
+            function escHtml(s) {
+                return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
             var isOptimized = false; // Flag to track if optimization was performed
             var loadedFromTemplateNorm = @(loadedFromTemplateNorm ? "true" : "false");
 
@@ -445,7 +449,7 @@ else
                 if (unitsJson && unitsJson.length > 0) {
                     for (var j = 0; j < unitsJson.length; j++) {
                         var sel = (selectedId && String(selectedId) === String(unitsJson[j].id)) ? ' selected' : '';
-                        html += '<option value="' + unitsJson[j].id + '"' + sel + '>' + (unitsJson[j].text || '') + '</option>';
+                        html += '<option value="' + unitsJson[j].id + '"' + sel + '>' + escHtml(unitsJson[j].text) + '</option>';
                     }
                 }
                 html += '</select>';
@@ -833,7 +837,7 @@ else
                 for (var i = 0; i < materials.length; i++) {
                     // Format: "PNo - Name"
                     var displayText = materials[i].name ? (materials[i].text + ' - ' + materials[i].name) : materials[i].text;
-                    html += '<option value="' + materials[i].id + '">' + displayText + '</option>';
+                    html += '<option value="' + materials[i].id + '">' + escHtml(displayText) + '</option>';
                 }
             }
             html += '</select>';

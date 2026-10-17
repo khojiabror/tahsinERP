@@ -79,8 +79,8 @@
 </div>
 
 <script>
-    const productOptions = `@Html.Raw(string.Join("", (ViewBag.Products as SelectList).Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
-    const salesOrderOptions = `@Html.Raw(string.Join("", (ViewBag.SalesOrders as SelectList).Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
+    const productOptions = @Html.Raw(Json.Encode(string.Join("", (ViewBag.Products as SelectList).Select(x => "<option value='" + System.Web.HttpUtility.HtmlAttributeEncode(x.Value) + "'>" + System.Web.HttpUtility.HtmlEncode(x.Text) + "</option>"))));
+    const salesOrderOptions = @Html.Raw(Json.Encode(string.Join("", (ViewBag.SalesOrders as SelectList).Select(x => "<option value='" + System.Web.HttpUtility.HtmlAttributeEncode(x.Value) + "'>" + System.Web.HttpUtility.HtmlEncode(x.Text) + "</option>"))));
 
     function reloadByMonth() {
         const y = document.getElementById('yearPick').value;
