@@ -110,6 +110,29 @@ namespace tahsinERP.Services
             return CalculateContractVatRate(products);
         }
 
+        /// <summary>
+        /// Shartnoma bo'yicha ProductID → QQS %. Bir mahsulot shartnomada takrorlansa, qatorlar
+        /// yig'iladi (avval 5 joydagi ToDictionary ArgumentException tashlardi — CRM-B13, D4).
+        /// </summary>
+        public static Dictionary<int, double> GetProductVatRates(DBTHSNEntities db, int? contractId)
+        {
+            if (!contractId.HasValue || contractId.Value <= 0)
+            {
+                return new Dictionary<int, double>();
+            }
+
+            return db.S_CONTRACT_PRODUCTS.AsNoTracking()
+                .Where(p => p.ContractID == contractId.Value)
+                .Select(p => new { p.ProductID, p.PiecePrice, p.Amount, p.vatamount })
+                .ToList()
+                .GroupBy(p => p.ProductID)
+                .ToDictionary(
+                    g => g.Key,
+                    g => GetVatPercentFromLine(
+                        g.Sum(p => GetLineBaseAmount(p.PiecePrice, p.Amount)),
+                        g.Sum(p => p.vatamount ?? 0)));
+        }
+
         public static async Task<Dictionary<int, double>> GetProductVatRatesByContractAsync(DBTHSNEntities db, int contractId)
         {
             var products = await db.S_CONTRACT_PRODUCTS

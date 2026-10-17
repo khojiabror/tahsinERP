@@ -1039,6 +1039,9 @@
     <Compile Include="Filters\PermissionAttribute.cs" />
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
+    <Compile Include="Services\Crm\SalesInvoiceService.cs" />
+    <Compile Include="Services\Crm\SalesLookups.cs" />
+    <Compile Include="ViewModels\Sales\SalesLineViewModels.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
@@ -3149,11 +3152,11 @@
     <Content Include="Views\SalesSF\GenerateFromInvoice.cshtml" />
     <Content Include="Views\SalesSF\Index.cshtml" />
     <Content Include="Views\SalesInvoices\Create.cshtml" />
-    <Content Include="Views\SalesInvoices\CreateFromOrder.cshtml" />
     <Content Include="Views\SalesInvoices\Delete.cshtml" />
     <Content Include="Views\SalesInvoices\Details.cshtml" />
     <Content Include="Views\SalesInvoices\Edit.cshtml" />
     <Content Include="Views\SalesInvoices\Index.cshtml" />
+    <Content Include="Views\SalesInvoices\_Pager.cshtml" />
     <Content Include="Views\SOrder\DeliverySchedule.cshtml" />
     <Content Include="Views\POrderPayment\Create.cshtml" />
     <Content Include="Views\POrderPayment\Delete.cshtml" />
