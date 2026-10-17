@@ -410,6 +410,10 @@ namespace tahsinERP.Controllers.HR
             }
 
             ViewBag.CurrencyItems = ReferenceDataCache.Get(ReferenceDataCache.Currencies);
+            if (viewModel.Status == Draft || viewModel.Status == Approved)
+            {
+                await PopulateFinanceChoicesAsync();
+            }
 
             logger.Log("HrPayroll", "Edit", $"Hisob: {viewModel.Year}-{viewModel.Month:D2}, Bo'lim: {viewModel.OrgUnitName ?? "Butun kompaniya"}, Tur: {TypeLabel(viewModel.PayrollType)}");
             return View(viewModel);
@@ -634,16 +638,17 @@ namespace tahsinERP.Controllers.HR
         }
 
         // POST so'rovi: HR/Payroll/Approve/5 (avval GET edi — HRM-S03)
+        // Tasdiqlash bilan birga Finance'ga chiqim tranzaksiyalari avtomatik yoziladi (alohida "Post" qadami yo'q).
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Approve(int id)
+        public async Task<ActionResult> Approve(int id, int? accountId, int? categoryId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var payroll = await db.HR_PAYROLL_HEADERS.Include(p => p.HR_ORG_UNITS).FirstOrDefaultAsync(p => p.ID == id);
+            var payroll = await db.HR_PAYROLL_HEADERS.AsNoTracking().Include(p => p.HR_ORG_UNITS).FirstOrDefaultAsync(p => p.ID == id);
             if (!IsPayrollHeaderActive(payroll))
             {
                 return HttpNotFound();
@@ -655,18 +660,11 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Edit", new { id });
             }
 
-            payroll.Status = Approved;
-            payroll.ApprovedByUserID = UserHelper.GetUserId(User.Identity.Name);
-            payroll.ApprovedDT = DateTime.Now;
-            await db.SaveChangesAsync();
-
-            var orgUnitName = payroll.HR_ORG_UNITS?.Name ?? "Butun kompaniya";
-            logger.Log("HrPayroll", "Approve", $"Hisob: {payroll.Year}-{payroll.Month:D2}, Bo'lim: {orgUnitName}, Tur: {TypeLabel(payroll.PayrollType)}");
-            TempData["Success"] = "Hisob muvaffaqiyatli tasdiqlandi";
-            return RedirectToAction("Edit", new { id });
+            return await PostToFinanceAsync(payroll, Draft, accountId, categoryId, "Approve",
+                "Hisob tasdiqlandi va moliya moduliga chiqim sifatida yozildi");
         }
 
-        // POST so'rovi: HR/Payroll/Post/5 — UI'da hali forma yo'q
+        // POST so'rovi: HR/Payroll/Post/5 — avvaldan "Tasdiqlangan" holatda qolgan (Finance'ga yozilmagan) hisoblar uchun
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Post(int id, int? accountId, int? categoryId)
@@ -674,12 +672,6 @@ namespace tahsinERP.Controllers.HR
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (!accountId.HasValue || !categoryId.HasValue)
-            {
-                TempData["Error"] = "O'tkazish uchun hisob va toifani ko'rsating";
-                return RedirectToAction("Edit", new { id });
             }
 
             var payroll = await db.HR_PAYROLL_HEADERS.AsNoTracking().Include(p => p.HR_ORG_UNITS).FirstOrDefaultAsync(p => p.ID == id);
@@ -690,8 +682,65 @@ namespace tahsinERP.Controllers.HR
 
             if (payroll.Status != Approved)
             {
-                TempData["Error"] = "Faqat tasdiqlangan hisoblarni o'tkazish mumkin";
+                TempData["Error"] = "Faqat tasdiqlangan (moliyaga yozilmagan) hisoblarni o'tkazish mumkin";
                 return RedirectToAction("Edit", new { id });
+            }
+
+            return await PostToFinanceAsync(payroll, Approved, accountId, categoryId, "Post",
+                "Hisob moliya moduliga muvaffaqiyatli o'tkazildi");
+        }
+
+        /// <summary>
+        /// Hisobni "Posted" holatiga o'tkazadi va har valyuta uchun bitta chiqim (Direction = 2) tranzaksiyasi yozadi — bitta tranzaksiyada.
+        ///  - Toifa berilmasa: nomida "oylik" yoki "ish haqi" bo'lgan faol chiqim toifasi (Type = 2).
+        ///  - Hisob: tanlangan hisob valyutasi mos kelsa — u, aks holda shu valyutadagi birinchi faol hisob (avval kassa).
+        ///  - Optimistik qulf: holat <paramref name="expectedStatus"/> bo'lsagina o'zgaradi (ikki marta bosish ikki marta yozmaydi, HRM-B10).
+        /// </summary>
+        private async Task<ActionResult> PostToFinanceAsync(HR_PAYROLL_HEADERS payroll, string expectedStatus,
+            int? accountId, int? categoryId, string logAction, string successMessage)
+        {
+            var id = payroll.ID;
+            var resolvedCategoryId = categoryId ?? await FindDefaultSalaryCategoryIdAsync();
+            if (!resolvedCategoryId.HasValue)
+            {
+                TempData["Error"] = "Ish haqi uchun moliya toifasi topilmadi. Tasdiqlashda chiqim toifasini tanlang (yoki nomida 'oylik' bo'lgan toifa yarating).";
+                return RedirectToAction("Edit", new { id });
+            }
+
+            var activeLines = await db.HR_PAYROLL_LINES.AsNoTracking()
+                .Where(l => l.PayrollID == id && (l.IsDeleted == null || l.IsDeleted == false))
+                .ToListAsync();
+            if (activeLines.Count == 0)
+            {
+                TempData["Error"] = "Hisobda satr yo'q";
+                return RedirectToAction("Edit", new { id });
+            }
+
+            var defaultCurrencyId = await GetDefaultCurrencyIdAsync();
+            var accounts = await db.FIN_ACCOUNTS.AsNoTracking()
+                .Where(a => a.IsActive && a.IsDeleted != true)
+                .OrderByDescending(a => a.IsCash).ThenBy(a => a.ID)
+                .Select(a => new { a.ID, a.CurrencyID })
+                .ToListAsync();
+
+            // Valyutalar aralashtirilmaydi: har valyuta uchun alohida chiqim (konvertatsiyasiz)
+            var groups = activeLines
+                .GroupBy(l => l.CurrencyID ?? defaultCurrencyId)
+                .Select(g => new { CurrencyID = g.Key, Amount = g.Sum(l => l.NetSalary ?? 0) })
+                .Where(g => g.Amount != 0)
+                .ToList();
+
+            var accountByCurrency = new Dictionary<int, int>();
+            foreach (var g in groups)
+            {
+                var account = accounts.FirstOrDefault(a => a.ID == accountId && a.CurrencyID == g.CurrencyID)
+                              ?? accounts.FirstOrDefault(a => a.CurrencyID == g.CurrencyID);
+                if (account == null)
+                {
+                    TempData["Error"] = $"{ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, g.CurrencyID) ?? "Valyuta"} uchun faol moliya hisobi topilmadi";
+                    return RedirectToAction("Edit", new { id });
+                }
+                accountByCurrency[g.CurrencyID] = account.ID;
             }
 
             try
@@ -700,46 +749,38 @@ namespace tahsinERP.Controllers.HR
                 var transactionIds = new List<object>();
                 using (var tx = db.Database.BeginTransaction())
                 {
-                    // Optimistik qulf: ikki marta bosish/qayta urinish ikki marta o'tkazmasin (HRM-B10)
+                    var approveFields = expectedStatus == Draft ? ", ApprovedByUserID = @p3, ApprovedDT = GETDATE()" : "";
                     var locked = await db.Database.ExecuteSqlCommandAsync(
-                        "UPDATE dbo.HR_PAYROLL_HEADERS SET Status = @p0 WHERE ID = @p1 AND Status = @p2 AND (IsDeleted IS NULL OR IsDeleted = 0)",
-                        Posted, id, Approved);
+                        "UPDATE dbo.HR_PAYROLL_HEADERS SET Status = @p0" + approveFields +
+                        " WHERE ID = @p1 AND Status = @p2 AND (IsDeleted IS NULL OR IsDeleted = 0)",
+                        Posted, id, expectedStatus, (object)userId ?? DBNull.Value);
                     if (locked != 1)
                     {
                         tx.Rollback();
-                        TempData["Error"] = "Hisob allaqachon o'tkazilgan yoki holati o'zgargan";
+                        TempData["Error"] = "Hisob holati o'zgargan (allaqachon tasdiqlangan yoki o'tkazilgan)";
                         return RedirectToAction("Edit", new { id });
                     }
 
-                    var activeLines = await db.HR_PAYROLL_LINES.AsNoTracking()
-                        .Where(l => l.PayrollID == id && (l.IsDeleted == null || l.IsDeleted == false))
-                        .ToListAsync();
-                    var defaultCurrencyId = await GetDefaultCurrencyIdAsync();
-
-                    // Valyutalar aralashtirilmaydi: har valyuta uchun alohida chiqim (konvertatsiyasiz)
-                    foreach (var group in activeLines.GroupBy(l => l.CurrencyID ?? defaultCurrencyId))
+                    foreach (var g in groups)
                     {
-                        var amount = group.Sum(l => l.NetSalary ?? 0);
-                        if (amount == 0) continue;
-
                         var newId = new System.Data.Entity.Core.Objects.ObjectParameter("newID", typeof(int));
                         db.sp_Fin_AddTransaction(
                             txnDate: DateTime.Now,
-                            accountID: accountId.Value,
-                            categoryID: categoryId.Value,
+                            accountID: accountByCurrency[g.CurrencyID],
+                            categoryID: resolvedCategoryId.Value,
                             direction: FinDirectionOutflow, // tizimda 1 = kirim, 2 = chiqim (HRM-B01)
-                            amount: amount,
-                            currencyID: group.Key,
+                            amount: g.Amount,
+                            currencyID: g.CurrencyID,
                             qty: null,
                             pricePerUnit: null,
                             counterpartyType: null,
                             counterpartyID: null,
                             counterpartyName: "Xodimlar",
-                            purpose: $"Ish haqi hisobi {payroll.Year}-{payroll.Month:D2}",
+                            purpose: $"Ish haqi hisobi {payroll.Year}-{payroll.Month:D2} ({TypeLabel(payroll.PayrollType)})",
                             sourceDocType: "HR_PAYROLL",
                             sourceDocID: id,
                             contractNo: null,
-                            comment: $"Ish haqi hisobi o'tkazildi, ID: {id}",
+                            comment: $"Ish haqi hisobi tasdiqlandi, ID: {id}",
                             createdByUserID: userId,
                             newID: newId
                         );
@@ -750,17 +791,46 @@ namespace tahsinERP.Controllers.HR
                 }
 
                 var orgUnitName = payroll.HR_ORG_UNITS?.Name ?? "Butun kompaniya";
-                logger.Log("HrPayroll", "Post", $"Hisob: {payroll.Year}-{payroll.Month:D2}, Bo'lim: {orgUnitName}, TranzaksiyaID: {string.Join(",", transactionIds)}");
-                TempData["Success"] = "Hisob moliya moduliga muvaffaqiyatli o'tkazildi";
+                logger.Log("HrPayroll", logAction, $"Hisob: {payroll.Year}-{payroll.Month:D2}, Bo'lim: {orgUnitName}, Tur: {TypeLabel(payroll.PayrollType)}, TranzaksiyaID: {string.Join(",", transactionIds)}");
+                TempData["Success"] = successMessage;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.TraceError("[HrPayroll.Post] " + ex);
-                TempData["Error"] = "O'tkazishda xatolik yuz berdi";
-                return RedirectToAction("Edit", new { id });
+                System.Diagnostics.Trace.TraceError("[HrPayroll." + logAction + "] " + ex);
+                TempData["Error"] = "Moliyaga yozishda xatolik yuz berdi — hisob o'zgarmadi";
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Edit", new { id });
+        }
+
+        private async Task<int?> FindDefaultSalaryCategoryIdAsync()
+        {
+            return await db.FIN_CATEGORIES.AsNoTracking()
+                .Where(c => c.IsActive && c.IsDeleted != true && c.Type == 2 && c.Name != null &&
+                            (c.Name.ToLower().Contains("oylik") || c.Name.ToLower().Contains("ish haqi")))
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.ID)
+                .Select(c => (int?)c.ID)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>Tasdiqlash formasi uchun: faol hisoblar va chiqim toifalari (standart tanlov bilan).</summary>
+        private async Task PopulateFinanceChoicesAsync()
+        {
+            var accounts = await db.FIN_ACCOUNTS.AsNoTracking()
+                .Where(a => a.IsActive && a.IsDeleted != true)
+                .OrderByDescending(a => a.IsCash).ThenBy(a => a.Name)
+                .Select(a => new { a.ID, a.Name, a.CurrencyID })
+                .ToListAsync();
+            var categories = await db.FIN_CATEGORIES.AsNoTracking()
+                .Where(c => c.IsActive && c.IsDeleted != true && c.Type == 2)
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .Select(c => new { c.ID, c.Name })
+                .ToListAsync();
+
+            ViewBag.FinAccountID = new SelectList(
+                accounts.Select(a => new { a.ID, Name = a.Name + " (" + (ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, a.CurrencyID) ?? "-") + ")" }),
+                "ID", "Name", accounts.FirstOrDefault()?.ID);
+            ViewBag.FinCategoryID = new SelectList(categories, "ID", "Name", await FindDefaultSalaryCategoryIdAsync());
         }
 
         // Olish so'rovi: HR/Payroll/Report/5

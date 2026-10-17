@@ -59,18 +59,40 @@
                             <a href="@Url.Action("Report", new { id = Model.ID })" class="btn btn-sm btn-info" target="_blank">
                                 <i class="bx bx-printer"></i> Chop etish
                             </a>
-                            @if (Model.Status == "Draft")
-                            {
-                                <a href="#" data-post-url="@Url.Action("Approve", new { id = Model.ID })" data-confirm="Hisobni tasdiqlash?" class="btn btn-sm btn-warning">
-                                    <i class="bx bx-check"></i> Tasdiqlash
-                                </a>
-                            }
                         </div>
                         <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Posted" ? "info" : "warning") ml-2">
-                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "O'tkazilgan")
+                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan (moliyaga yozilmagan)" : "Tasdiqlangan, moliyaga yozilgan")
                         </span>
                     </div>
                 </div>
+
+                @if (Model.Status == "Draft" || Model.Status == "Approved")
+                {
+                    bool isDraft = Model.Status == "Draft";
+                    @* Tasdiqlash bilan birga to'lovga summa Finance'ga chiqim sifatida yoziladi (har valyuta uchun alohida) *@
+                    using (Html.BeginForm(isDraft ? "Approve" : "Post", "HrPayroll", new { id = Model.ID }, FormMethod.Post, new { @class = "card mb-2", onsubmit = "return confirm(this.getAttribute('data-msg'));", data_msg = isDraft ? "Hisobni tasdiqlab, moliya moduliga chiqim sifatida yozilsinmi?" : "Hisob moliya moduliga chiqim sifatida yozilsinmi?" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="card-body py-1">
+                            <div class="form-row align-items-end">
+                                <div class="col-md-4">
+                                    <label class="mb-0">Moliya hisobi (kassa/bank)</label>
+                                    @Html.DropDownList("accountId", ViewBag.FinAccountID as SelectList, new { @class = "form-control form-control-sm" })
+                                    <small class="text-muted">Boshqa valyutadagi satrlar shu valyutaning birinchi faol hisobiga yoziladi</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="mb-0">Chiqim toifasi</label>
+                                    @Html.DropDownList("categoryId", ViewBag.FinCategoryID as SelectList, "Avtomatik (oylik)", new { @class = "form-control form-control-sm" })
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-sm btn-warning">
+                                        <i class="bx bx-check"></i> @(isDraft ? "Tasdiqlash va moliyaga yozish" : "Moliyaga yozish")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
 
                 <div class="card">
                     <div class="card-header">

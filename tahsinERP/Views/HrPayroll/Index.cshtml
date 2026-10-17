@@ -130,7 +130,7 @@
                                                     </a>
                                                     @if (changePermit && item.Status == "Draft")
                                                     {
-                                                        <a href="#" data-post-url="@Url.Action("Approve", new { id = item.ID })" data-confirm="Hisobni tasdiqlash?" class="btn btn-sm btn-primary" title="Tasdiqlash">
+                                                        <a href="#" data-post-url="@Url.Action("Approve", new { id = item.ID })" data-confirm="Hisobni tasdiqlab, moliya moduliga (standart hisob va oylik toifasi) chiqim sifatida yozilsinmi?" class="btn btn-sm btn-primary" title="Tasdiqlash va moliyaga yozish">
                                                             <i class="bx bx-check"></i>
                                                         </a>
                                                         <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Hisobni o\'chirish?');">
