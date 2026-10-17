@@ -3,9 +3,10 @@
     ViewBag.Title = "Invoys tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var vatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d;
-    var totalBase = Model.Amount ?? 0d;
-    var totalVat = totalBase * vatRate / 100d;
-    var totalWithVat = totalBase + totalVat;
+    // Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa — qatorlar yig'indisi
+    var totalWithVat = Model.Amount ?? 0d;
+    var totalBase = ViewBag.NetAmount != null ? (double)ViewBag.NetAmount : totalWithVat;
+    var totalVat = totalWithVat - totalBase;
     // Shartnoma: to'g'ridan-to'g'ri ContractID yoki buyurtma orqali (SRM-B18)
     var contractId = ViewBag.ContractID as int?;
     var contractNo = ViewBag.ContractNo as string;
@@ -109,8 +110,8 @@
                                                     <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Jami summa:</th>
-                                                    <td><strong>@(Model.Amount.HasValue ? Model.Amount.Value.ToString("N2") : "-")</strong></td>
+                                                    <th>Jami summa (QQSsiz):</th>
+                                                    <td><strong>@totalBase.ToString("N2")</strong></td>
                                                 </tr>
                                                 <tr>
                                                     <th>QQS (%):</th>

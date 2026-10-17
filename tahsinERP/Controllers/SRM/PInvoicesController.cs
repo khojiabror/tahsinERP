@@ -85,6 +85,14 @@ namespace tahsinERP.Controllers
                     .ToList();
                 ViewBag.VatRatesByContract = await PContractVatHelper.GetContractVatRatesAsync(db, contractIds);
 
+                // P_INVOICES.Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa qatorlardan
+                var invoiceIds = invoices.Select(i => i.ID).ToList();
+                ViewBag.NetByInvoice = await db.P_INVOICE_PRODUCTS
+                    .Where(ip => invoiceIds.Contains(ip.InvoiceID))
+                    .GroupBy(ip => ip.InvoiceID)
+                    .Select(g => new { InvoiceID = g.Key, Net = g.Sum(x => x.TotalPrice) })
+                    .ToDictionaryAsync(x => x.InvoiceID, x => x.Net);
+
                 ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
                 ViewBag.SupplierID = supplierID;
                 ViewBag.ContractID = contractID;
@@ -177,6 +185,7 @@ namespace tahsinERP.Controllers
                 ViewBag.ContractBalances = contractBalances;
                 ViewBag.ProductCBMInfo = productCBMInfo;
                 ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, contractId);
+                ViewBag.NetAmount = invoice.P_INVOICE_PRODUCTS.Sum(p => p.TotalPrice);
 
                 return View(invoice);
             }
@@ -299,8 +308,10 @@ namespace tahsinERP.Controllers
                                     };
                                     db.P_INVOICES.Add(invoice);
 
-                                    // Qatorlar navigatsiya orqali — EF FK'ni o'zi qo'yadi, bitta SaveChanges
-                                    invoice.Amount = await AddLinesAsync(db, invoice, model.InvoiceProducts);
+                                    // Qatorlar navigatsiya orqali — EF FK'ni o'zi qo'yadi, bitta SaveChanges.
+                                    // Amount QQS bilan saqlanadi (SRM-B25 qarori): net + shartnoma QQS stavkasi.
+                                    var net = await AddLinesAsync(db, invoice, model.InvoiceProducts);
+                                    invoice.Amount = VatMath.ApplyVat(net, await ResolveVatRateAsync(db, model.ContractID, order));
                                     AddDocument(db, invoice, invoiceFile);
 
                                     await db.SaveChangesAsync();
@@ -378,7 +389,8 @@ namespace tahsinERP.Controllers
                     CompanyID = invoice.CompanyID,
                     ContractID = invoice.ContractID,
                     CurrencyID = invoice.CurrencyID ?? 0,
-                    Amount = invoice.Amount ?? 0,
+                    // Formada "Jami" QQSsiz ko'rsatiladi (Amount bazada QQS bilan)
+                    Amount = invoice.P_INVOICE_PRODUCTS.Sum(ip => ip.TotalPrice),
                     InvoiceProducts = invoice.P_INVOICE_PRODUCTS.Select(ip => new PInvoiceProductViewModel
                     {
                         ID = ip.ID,
@@ -460,7 +472,8 @@ namespace tahsinERP.Controllers
                                 // avval Amount eski qolib, Finance'ga eski summa qayta yozilardi)
                                 var existingProducts = await db.P_INVOICE_PRODUCTS.Where(ip => ip.InvoiceID == invoice.ID).ToListAsync();
                                 db.P_INVOICE_PRODUCTS.RemoveRange(existingProducts);
-                                invoice.Amount = await AddLinesAsync(db, invoice, model.InvoiceProducts);
+                                var net = await AddLinesAsync(db, invoice, model.InvoiceProducts);
+                                invoice.Amount = VatMath.ApplyVat(net, await ResolveVatRateAsync(db, model.ContractID, order));
 
                                 if (PdfUpload.HasFile(invoiceFile))
                                 {
@@ -635,6 +648,16 @@ namespace tahsinERP.Controllers
             var products = await ProcurementLookups.GetPurchasableProductsAsync(db, purchaseType, ensureIds);
             ViewBag.PurchasableProducts = ProcurementLookups.ProductSelectList(products);
             ViewBag.Units = ProcurementLookups.Units();
+        }
+
+        /// <summary>
+        /// Invoys QQS stavkasi: shartnoma (to'g'ridan-to'g'ri yoki buyurtma orqali) qatorlaridagi stavka;
+        /// shartnoma bo'lmasa 0. QQS faqat P_CONTRACT_PRODUCTS'da saqlanadi.
+        /// </summary>
+        private static async Task<double> ResolveVatRateAsync(DBTHSNEntities db, int? contractId, P_ORDERS order)
+        {
+            int? cid = contractId > 0 ? contractId : order?.ContractID;
+            return await PContractVatHelper.CalculateContractVatRateAsync(db, cid);
         }
 
         /// <summary>Xarid turi: shartnomadan, bo'lmasa buyurtmadan (standart — bevosita).</summary>
