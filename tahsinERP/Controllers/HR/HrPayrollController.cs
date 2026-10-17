@@ -204,9 +204,9 @@ namespace tahsinERP.Controllers.HR
 
             var existing = await FindPayrollHeadersAsync(year, month, payrollOrgUnitId, Hourly);
             var activeExisting = existing.FirstOrDefault(IsPayrollHeaderActive);
-            if (activeExisting != null)
+            if (activeExisting != null && activeExisting.Status != Draft)
             {
-                // Mavjud hisob ochiladi (qo'lda kiritilgan mukofot/jarimalar saqlanib qoladi)
+                TempData["Error"] = "Mavjud soatbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.";
                 return RedirectToAction("Edit", new { id = activeExisting.ID });
             }
 
@@ -214,8 +214,21 @@ namespace tahsinERP.Controllers.HR
             GenerationResult result;
             using (var tx = db.Database.BeginTransaction())
             {
-                payroll = await ReviveOrCreateDraftHeaderAsync(existing, year, month, payrollOrgUnitId, Hourly, timesheet.ID);
+                // HRM-B09: qoralama ishbay oqimidagidek qayta quriladi, qo'lda kiritilgan mukofot/jarima/soliq saqlanadi
+                Dictionary<int, ManualAdjustment> adjustments = null;
+                if (activeExisting != null)
+                {
+                    payroll = activeExisting;
+                    payroll.TimesheetID = timesheet.ID;
+                    adjustments = await SoftDeleteLinesKeepingAdjustmentsAsync(payroll.ID);
+                }
+                else
+                {
+                    payroll = await ReviveOrCreateDraftHeaderAsync(existing, year, month, payrollOrgUnitId, Hourly, timesheet.ID);
+                }
+
                 result = await GenerateHourlyPayrollLines(payroll, timesheet);
+                ApplyAdjustments(payroll.ID, adjustments);
                 await db.SaveChangesAsync();
                 tx.Commit();
             }
@@ -339,11 +352,12 @@ namespace tahsinERP.Controllers.HR
             GenerationResult result;
             using (var tx = db.Database.BeginTransaction())
             {
+                Dictionary<int, ManualAdjustment> adjustments = null;
                 if (activeExisting != null)
                 {
                     // Qoralama: tasdiqlangan tabel holatini to'liq qayta tortish uchun satrlar yangidan quriladi
                     payroll = activeExisting;
-                    await SoftDeleteActivePayrollLinesAsync(payroll.ID);
+                    adjustments = await SoftDeleteLinesKeepingAdjustmentsAsync(payroll.ID);
                 }
                 else
                 {
@@ -351,6 +365,7 @@ namespace tahsinERP.Controllers.HR
                 }
 
                 result = await GeneratePieceRatePayrollLinesFromWorkEntries(payroll, year, month, payrollOrgUnitId, approvals);
+                ApplyAdjustments(payroll.ID, adjustments);
                 await db.SaveChangesAsync();
                 tx.Commit();
             }
@@ -969,6 +984,49 @@ namespace tahsinERP.Controllers.HR
             foreach (var line in activeLines)
             {
                 line.IsDeleted = true;
+            }
+        }
+
+        /// <summary>Qo'lda kiritiladigan qiymatlar: qayta hisoblashda xodim bo'yicha qayta qo'llanadi (HRM-B09).</summary>
+        private sealed class ManualAdjustment
+        {
+            public decimal Bonuses { get; set; }
+            public decimal Penalties { get; set; }
+            public decimal? TaxPercent { get; set; }
+        }
+
+        /// <summary>Qatorlarni o'chirilgan deb belgilaydi va ulardagi mukofot/jarima/soliq foizini qaytaradi.</summary>
+        private async Task<Dictionary<int, ManualAdjustment>> SoftDeleteLinesKeepingAdjustmentsAsync(int payrollId)
+        {
+            var activeLines = await db.HR_PAYROLL_LINES
+                .Where(l => l.PayrollID == payrollId && (l.IsDeleted == null || l.IsDeleted == false))
+                .ToListAsync();
+
+            var adjustments = new Dictionary<int, ManualAdjustment>();
+            foreach (var line in activeLines)
+            {
+                adjustments[line.EmployeeID] = new ManualAdjustment
+                {
+                    Bonuses = line.Bonuses ?? 0,
+                    Penalties = line.Penalties ?? 0,
+                    TaxPercent = HrPayrollCalculator.StoredIncomeTaxPercent(line)
+                };
+                line.IsDeleted = true;
+            }
+            return adjustments;
+        }
+
+        /// <summary>Yangi qo'shilgan (hali saqlanmagan) qatorlarga saqlab olingan qo'lda kiritilgan qiymatlarni qo'llaydi.</summary>
+        private void ApplyAdjustments(int payrollId, Dictionary<int, ManualAdjustment> adjustments)
+        {
+            if (adjustments == null || adjustments.Count == 0) return;
+            foreach (var line in db.HR_PAYROLL_LINES.Local.Where(l => l.PayrollID == payrollId && l.ID == 0))
+            {
+                if (!adjustments.TryGetValue(line.EmployeeID, out var adjustment)) continue;
+                line.Bonuses = adjustment.Bonuses;
+                line.Penalties = adjustment.Penalties;
+                line.NetSalary = HrPayrollCalculator.NetSalary(line.GrossSalary ?? 0, adjustment.Bonuses, adjustment.Penalties,
+                    adjustment.TaxPercent ?? HrPayrollCalculator.DefaultIncomeTaxPercent);
             }
         }
 

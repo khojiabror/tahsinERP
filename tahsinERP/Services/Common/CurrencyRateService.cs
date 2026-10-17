@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 
-namespace tahsinERP.Services.Crm
+namespace tahsinERP.Services.Common
 {
     /// <summary>
     /// Valyuta kursi (1 birlik = N so'm) va so'mga konvertatsiya (CRM-B18, foydalanuvchi qarori:
@@ -22,8 +22,7 @@ namespace tahsinERP.Services.Crm
     ///
     /// Jadval Database_Migrations/CRM_2026_10_CurrencyRates.sql bilan yaratiladi; yaratilmagan bo'lsa
     /// servis faqat CBU + xotira keshi bilan ishlaydi (raw SQL — EDMX o'zgarmagan).
-    /// Umumiy qatlam: Finance (FIN-B01) va Logistika (LOG-B13) ham shu servisdan foydalanishi mumkin —
-    /// Core sessiyasi uni Services/Common'ga ko'chirishi kerak.
+    /// Umumiy qatlam (Services/Common): CRM, Finance (FIN-B01) va Logistika (LOG-B13) shu servisdan foydalanadi.
     /// </summary>
     public static class CurrencyRateService
     {

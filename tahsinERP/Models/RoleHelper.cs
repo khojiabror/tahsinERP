@@ -174,10 +174,16 @@ namespace tahsinERP.Models
             return IsInRole(username, "Developer");
         }
 
+        /// <summary>Admin yoki Developer roli (modullarda 13+ joyda qo'lda yozilgan tekshiruv).</summary>
+        public static bool IsAdminOrDeveloper(string username)
+        {
+            return IsInRole(username, "Admin") || IsInRole(username, "Developer");
+        }
+
         /// <summary>Litsenziyani boshqara oladigan rol (Admin yoki Developer).</summary>
         public static bool CanManageLicense(string username)
         {
-            return IsInRole(username, "Admin") || IsInRole(username, "Developer");
+            return IsAdminOrDeveloper(username);
         }
 
         /// <summary>Ko'rish huquqi (Module nomi bo'yicha)</summary>

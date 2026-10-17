@@ -64,7 +64,7 @@ namespace tahsinERP.Services.Editions
             { ProductModule.Core, new[]
                 {
                     "Home", "Account", "License", "Error", "ViewNotAuthorized", "ComingSoon", "HelpDocs", "UserManual",
-                    "AdminPanel", "DeletedRecords", "Log", "PModule", "Permission", "Role", "User", "UserEntries",
+                    "AdminPanel", "DeletedRecords", "Log", "PModule", "Role", "User", "UserEntries",
                     "Company", "Currency", "CurrencyRates", "Unit", "Warehouse", "WarehouseLocations",
                     "Product", "ProductCategory", "Shop",
                     "Reconciliation"    // akt-sverka: xarid, sotuv va yuk tashish shartnomalari uchun umumiy
