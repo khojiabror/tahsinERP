@@ -38,7 +38,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Create", "POrders", FormMethod.Post, new { @class = "form", @id = "orderForm" }))
+                                        @using (Html.BeginForm("Create", "POrders", FormMethod.Post, new { @class = "form", @id = "orderForm", data_renumber = "OrderProducts" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.HiddenFor(model => model.RequisitionID)
@@ -216,6 +216,10 @@ else
     var isIndirecto = purchaseTypee == 1;
     var requisition = ViewBag.Requisition as tahsinERP.Models.P_REQUISITIONS;
     var requisitionId = requisition != null ? requisition.ID : (int?)null;
+    var postedRowsData = (Model != null && Model.OrderProducts != null ? Model.OrderProducts : new List<tahsinERP.ViewModels.POrder.POrderProductViewModel>())
+        .Where(p => p.ProductID > 0)
+        .Select(p => new { p.ProductID, p.ProductPNo, p.ProductName, p.Amount, p.UnitID, p.Price, p.MOQ, p.CalculationExplanation, p.CalculationSummary })
+        .ToList();
     
     if (purchasableProductsList != null)
     {
@@ -235,6 +239,7 @@ else
 }
 
 @section scripts {
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
     <script>
         // Wait for both jQuery and Select2 to be loaded
         (function() {
@@ -298,8 +303,15 @@ else
                         units = [];
                     }
 
-                    // Load products from requisition if this is an indirect purchase
-                    if (isIndirect && requisitionId) {
+                    // Validatsiya xatosidan keyin qaytgan sahifada kiritilgan qatorlarni tiklaymiz (SRM-B15);
+                    // aks holda bilvosita xaridda talabnoma mahsulotlarini yuklaymiz.
+                    var postedRows = @Html.Raw(Json.Encode(postedRowsData));
+                    if (postedRows && postedRows.length > 0) {
+                        postedRows.forEach(function (r) {
+                            addProductRow(r.ProductID, r.ProductPNo, r.ProductName, r.Amount, r.UnitID, r.Price, r.MOQ, r.CalculationExplanation, r.CalculationSummary);
+                        });
+                        updateTotal();
+                    } else if (isIndirect && requisitionId) {
                         loadRequisitionProducts(requisitionId);
                     }
 

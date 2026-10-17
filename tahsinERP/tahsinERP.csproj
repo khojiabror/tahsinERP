@@ -1040,6 +1040,8 @@
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
+    <Compile Include="Services\VatMath.cs" />
+    <Compile Include="Services\Procurement\ProcurementLookups.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
@@ -2883,6 +2885,7 @@
       <LastGenOutput>DBTHSNModel.cs</LastGenOutput>
     </Content>
     <Content Include="Scripts\404.js" />
+    <Content Include="Scripts\app\indexed-rows.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />
     <Content Include="app-assets\data\citynames.json" />

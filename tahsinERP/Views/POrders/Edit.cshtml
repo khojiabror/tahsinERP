@@ -24,7 +24,7 @@
 
     if (ViewBag.UnitsList != null)
     {
-        var uSl = new SelectList(ViewBag.UnitsList, "ID", "ShortName");
+        var uSl = new SelectList(ViewBag.UnitsList, "ID", "Text");
         foreach (SelectListItem item in uSl)
         {
             unitsData.Add(new { Value = item.Value, Text = item.Text });
@@ -65,7 +65,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Edit", "POrders", FormMethod.Post, new { @class = "form", @id = "orderForm" }))
+                                        @using (Html.BeginForm("Edit", "POrders", FormMethod.Post, new { @class = "form", @id = "orderForm", data_renumber = "OrderProducts" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.HiddenFor(model => model.ID)
@@ -160,7 +160,7 @@
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, new SelectList(ViewBag.UnitsList, "ID", "ShortName", product.UnitID), "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, new SelectList(ViewBag.UnitsList, "ID", "Text", product.UnitID), "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.OrderProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
@@ -228,6 +228,8 @@
             </div>
         </div>
     </div>
+
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
 
     <script>
         (function () {

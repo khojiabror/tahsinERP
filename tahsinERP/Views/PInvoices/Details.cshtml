@@ -6,6 +6,11 @@
     var totalBase = Model.Amount ?? 0d;
     var totalVat = totalBase * vatRate / 100d;
     var totalWithVat = totalBase + totalVat;
+    // Shartnoma: to'g'ridan-to'g'ri ContractID yoki buyurtma orqali (SRM-B18)
+    var contractId = ViewBag.ContractID as int?;
+    var contractNo = ViewBag.ContractNo as string;
+    var hasContract = contractId.HasValue;
+    var docIds = ViewBag.DocIds as System.Collections.Generic.List<int> ?? new System.Collections.Generic.List<int>();
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Details"))
@@ -122,9 +127,9 @@
                                                 <tr>
                                                     <th>Shartnoma:</th>
                                                     <td>
-                                                        @if (Model.P_ORDERS != null && Model.P_ORDERS.P_CONTRACTS != null)
+                                                        @if (hasContract)
                                                         {
-                                                            <a href="@Url.Action("Details", "PContracts", new { id = Model.P_ORDERS.ContractID })">@Model.P_ORDERS.P_CONTRACTS.ContractNo</a>
+                                                            <a href="@Url.Action("Details", "PContracts", new { id = contractId })">@contractNo</a>
                                                         }
                                                         else
                                                         {
@@ -153,7 +158,7 @@
                                                     <th>QQS summa</th>
                                                     <th>Jami</th>
                                                     <th>Jami (QQS bilan)</th>
-                                                    @if (Model.P_ORDERS?.ContractID.HasValue == true)
+                                                    @if (hasContract)
                                                     {
                                                         <th>Shartnoma balansi</th>
                                                         <th>Bajarilish %</th>
@@ -198,7 +203,7 @@
                                                             <td>@lineVat.ToString("N2")</td>
                                                             <td>@lineBase.ToString("N2")</td>
                                                             <td>@lineWithVat.ToString("N2")</td>
-                                                            @if (Model.P_ORDERS?.ContractID.HasValue == true)
+                                                            @if (hasContract)
                                                             {
                                                                 <td>
                                                                     @if (balance != null)
@@ -241,14 +246,14 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="@(Model.P_ORDERS?.ContractID.HasValue == true ? "11" : "9")" class="text-center">Mahsulotlar topilmadi</td>
+                                                        <td colspan="@(hasContract ? "11" : "9")" class="text-center">Mahsulotlar topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
                                     
-                                    @if (Model.P_ORDERS?.ContractID.HasValue == true)
+                                    @if (hasContract)
                                     {
                                         <div class="alert alert-info mt-2">
                                             <h6><i class="bx bx-info-circle"></i> Shartnoma balansi ma'lumotlari</h6>
@@ -259,16 +264,16 @@
                                         </div>
                                     }
 
-                                    @if (Model.P_INVOICE_DOCS != null && Model.P_INVOICE_DOCS.Any())
+                                    @if (docIds.Any())
                                     {
                                         <hr />
                                         <h5>Invoys hujjatlari</h5>
                                         <ul>
-                                            @foreach (var doc in Model.P_INVOICE_DOCS)
+                                            @foreach (var docId in docIds)
                                             {
                                                 <li>
-                                                    <a href="@Url.Action("DownloadDoc", "PInvoices", new { id = doc.ID })" target="_blank">
-                                                        <i class="bx bx-file"></i> Invoys hujjati #@doc.ID
+                                                    <a href="@Url.Action("DownloadDoc", "PInvoices", new { id = docId })" target="_blank">
+                                                        <i class="bx bx-file"></i> Invoys hujjati #@docId
                                                     </a>
                                                 </li>
                                             }

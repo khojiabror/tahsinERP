@@ -37,7 +37,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Create", "PRequisitions", FormMethod.Post, new { @class = "form", @id = "requisitionForm" }))
+                                        @using (Html.BeginForm("Create", "PRequisitions", FormMethod.Post, new { @class = "form", @id = "requisitionForm", data_renumber = "RequisitionProducts" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -178,6 +178,7 @@ else
 }
 
 @section scripts {
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
     <script>
         (function() {
             function initRequisitionScripts() {

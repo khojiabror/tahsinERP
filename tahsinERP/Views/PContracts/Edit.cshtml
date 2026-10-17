@@ -71,7 +71,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Edit", "PContracts", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "contractForm" }))
+                                        @using (Html.BeginForm("Edit", "PContracts", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "contractForm", data_renumber = "ContractProducts" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.HiddenFor(model => model.ID)
@@ -88,7 +88,7 @@
                                                     @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                 </div>
-                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? Model.CompanyID ?? 0 })
+                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = Model.CompanyID ?? ViewBag.DefaultCompanyID ?? 0 })
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="SupplierID">Ta'minotchi</label>
                                                     @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
@@ -175,7 +175,7 @@
                                                                         @Html.TextBoxFor(m => m.ContractProducts[i].Quantity, new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.ContractProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select select2", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.ContractProducts[i].UnitID, new SelectList(unitsList ?? Enumerable.Empty<SelectListItem>(), "Value", "Text", product.UnitID), "---Tanlang---", new { @class = "form-control unit-select select2", @required = "required" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.ContractProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
@@ -190,7 +190,7 @@
                                                                         @Html.TextBoxFor(m => m.ContractProducts[i].MOQ, new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.ContractProducts[i].HSCodeID, ViewBag.HSCodes as SelectList, "---Tanlang---", new { @class = "form-control hs-code-select select2" })
+                                                                        @Html.DropDownListFor(m => m.ContractProducts[i].HSCodeID, new SelectList(hsCodesList ?? Enumerable.Empty<SelectListItem>(), "Value", "Text", product.HSCodeID), "---Tanlang---", new { @class = "form-control hs-code-select select2" })
                                                                     </td>
                                                                     <td>
                                                                         <button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button>
@@ -237,6 +237,8 @@
             </div>
         </div>
     </div>
+
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
 
     <script>
         // Wait for jQuery to be available

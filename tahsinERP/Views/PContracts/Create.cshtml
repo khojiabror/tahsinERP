@@ -74,7 +74,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Create", "PContracts", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "contractForm" }))
+                                        @using (Html.BeginForm("Create", "PContracts", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "contractForm", data_renumber = "ContractProducts" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -197,6 +197,8 @@
             </div>
         </div>
     </div>
+
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
 
     <script>
         // Wait for jQuery to be available
