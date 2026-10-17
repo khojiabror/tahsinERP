@@ -672,30 +672,21 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var waybillToDelete = await db.F_WAYBILLS.FirstOrDefaultAsync(w => w.ID == ID && w.IsDeleted != true);
-                if (waybillToDelete == null)
+                if (await SoftDeleteAsync<F_WAYBILLS>(db, ID, null,
+                        w => $"{w.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} o'chirildi.",
+                        LogisticsTerms.Waybill + " topilmadi."))
+                    return RedirectToAction("Index");
+            }
+
+            // LOG-B09: xatoda view null model bilan ochilib yiqilmasin
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var model = await LoadForDeleteAsync(db, ID.Value);
+                if (model == null)
                 {
                     return HttpNotFound();
                 }
-
-                waybillToDelete.IsDeleted = true;
-                try
-                {
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "Delete",
-                        $"{waybillToDelete.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} o'chirildi.");
-
-                    return RedirectToAction("Index");
-                }
-                catch (RetryLimitExceededException)
-                {
-                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                }
-
-                // LOG-B09: xatoda view null model bilan ochilib yiqilmasin
-                db.Entry(waybillToDelete).State = EntityState.Detached;
-                return View(await LoadForDeleteAsync(db, ID.Value));
+                return View(model);
             }
         }
 
