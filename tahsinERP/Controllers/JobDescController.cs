@@ -9,6 +9,7 @@ using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers
 {
@@ -71,6 +72,12 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: JobDesc/GetTemplate
         public ActionResult GetTemplate()
         {
+            // Avval ruxsat tekshiruvi yo'q edi (HRM-S06)
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "JobDesc", "Index"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             var templatePath = Server.MapPath("~/App_Data/Templates/JobDescriptionTemplate.docx");
             if (System.IO.File.Exists(templatePath))
             {
@@ -116,13 +123,15 @@ namespace tahsinERP.Controllers
             try
             {
                 using (var db = new DBTHSNEntities())
+                // Hujjat + JOB_DESC + fayl — bitta tranzaksiyada (HRM-M02); kod qulf ostida (HRM-B17)
+                using (var tx = db.Database.BeginTransaction())
                 {
                     // DOC_DOCUMENTS yaratish
                     var document = new DOC_DOCUMENTS
                     {
                         DocTypeID = GetOrCreateDocumentTypeID(db, "JobDescription"),
                         StatusID = GetOrCreateStatusID(db, "Active"),
-                        Code = GenerateDocumentCode(db),
+                        Code = await GenerateDocumentCodeAsync(db),
                         Title = model.JobDescriptionCode,
                         CreatedDT = DateTime.Now,
                         IntegrationUID = Guid.NewGuid()
@@ -182,6 +191,7 @@ namespace tahsinERP.Controllers
                         await db.SaveChangesAsync();
                     }
 
+                    tx.Commit();
                     LogHelper.LogToDatabase(User.Identity.Name, "JobDesc", $"Yangi lavozim yo'riqnomasi yaratildi: {model.JobDescriptionCode}");
                     TempData["Success"] = "Lavozim yo'riqnomasi muvaffaqiyatli yaratildi";
 
@@ -539,13 +549,13 @@ namespace tahsinERP.Controllers
                 try
                 {
                     // HR_JOB_DESCRIPTIONS va HR_POSITIONS dan ma'lumotlarni olish
-                    var hrJobDescriptions = db.HR_JOB_DESCRIPTIONS
-                        .Include(h => h.HR_POSITIONS)
+                    var hrJobDescriptions = db.HR_JOB_DESCRIPTIONS.AsNoTracking()
+                        .Select(h => new { h.DocumentID, PositionName = h.HR_POSITIONS.Name })
                         .ToList()
                         .Select(h => new SelectListItem
                         {
                             Value = h.DocumentID.ToString(),
-                            Text = h.HR_POSITIONS != null ? h.HR_POSITIONS.Name : $"Lavozim #{h.DocumentID}"
+                            Text = h.PositionName ?? $"Lavozim #{h.DocumentID}"
                         })
                         .OrderBy(h => h.Text)
                         .ToList();
@@ -597,11 +607,13 @@ namespace tahsinERP.Controllers
             return status.ID;
         }
 
-        private string GenerateDocumentCode(DBTHSNEntities db)
+        /// <summary>
+        /// JD-YYYY-NNNNNN: shu prefiksli kodlarning eng kattasi + 1, tranzaksiya oxirigacha qulf ostida (HRM-B17).
+        /// Avval yilning BARCHA hujjatlari soni + 1 olinardi — o'chirishdan keyin va parallel yaratishda takrorlanardi.
+        /// </summary>
+        private static Task<string> GenerateDocumentCodeAsync(DBTHSNEntities db)
         {
-            var year = DateTime.Now.Year;
-            var count = db.DOC_DOCUMENTS.Count(d => d.CreatedDT.Year == year) + 1;
-            return $"JD-{year}-{count:D6}";
+            return DocumentNumberService.NextAsync(db, "DOC_DOCUMENTS", "Code", $"JD-{DateTime.Now.Year}-", 6);
         }
 
         // Olish so'rovi: JobDesc/DownloadFile/5

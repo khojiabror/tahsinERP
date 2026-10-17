@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using System.Collections.Generic;
 using OfficeOpenXml;
@@ -32,8 +33,8 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            IQueryable<HR_STAFFING_PLAN> query = db.HR_STAFFING_PLAN
-                .Where(sp => sp.IsDeleted == false)
+            IQueryable<HR_STAFFING_PLAN> query = db.HR_STAFFING_PLAN.AsNoTracking()
+                .Where(sp => sp.IsDeleted != true)
                 .Include(sp => sp.HR_ORG_UNITS)
                 .Include(sp => sp.HR_POSITIONS)
                 .Include(sp => sp.HR_SALARY_GRADES);
@@ -60,11 +61,12 @@ namespace tahsinERP.Controllers.HR
             var staffingPlans = await query.OrderBy(sp => sp.HR_ORG_UNITS.Name).ThenBy(sp => sp.HR_POSITIONS.Name).ToListAsync();
 
             // Olish barcha employee counts in one query ga avoid N+1 problem
-            var employeeCounts = await db.HR_EMPLOYEES
-                .Where(e => e.IsActive && e.OrgUnitID.HasValue && e.PositionID.HasValue)
+            var employeeCounts = (await db.HR_EMPLOYEES
+                .Where(e => e.IsActive && e.IsDeleted != true && e.OrgUnitID.HasValue && e.PositionID.HasValue)
                 .GroupBy(e => new { e.OrgUnitID, e.PositionID })
                 .Select(g => new { g.Key.OrgUnitID, g.Key.PositionID, Count = g.Count() })
-                .ToListAsync();
+                .ToListAsync())
+                .ToDictionary(c => Tuple.Create(c.OrgUnitID.Value, c.PositionID.Value), c => c.Count);
 
             var viewModels = staffingPlans.Select(sp =>
             {
@@ -87,20 +89,14 @@ namespace tahsinERP.Controllers.HR
                 };
 
                 // Olish actual headcount dan pre-loaded employee counts
-                var countData = employeeCounts.FirstOrDefault(c => 
-                    c.OrgUnitID == sp.OrgUnitID && c.PositionID == sp.PositionID);
-                vm.ActualHeadcount = countData?.Count ?? 0;
+                int count;
+                vm.ActualHeadcount = employeeCounts.TryGetValue(Tuple.Create(sp.OrgUnitID, sp.PositionID), out count) ? count : 0;
 
                 return vm;
             }).ToList();
 
-            ViewBag.OrgUnitID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", orgUnitId);
-
-            ViewBag.PositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name", positionId);
+            ViewBag.OrgUnitID = HrLookups.SelectList(HrLookups.OrgUnits, orgUnitId);
+            ViewBag.PositionID = HrLookups.SelectList(HrLookups.Positions, positionId);
 
             logger.Log("HrStaffingPlan", "Index");
             return View(viewModels);
@@ -119,8 +115,8 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            var staffingPlan = await db.HR_STAFFING_PLAN
-                .Where(sp => sp.ID == id && sp.IsDeleted == false)
+            var staffingPlan = await db.HR_STAFFING_PLAN.AsNoTracking()
+                .Where(sp => sp.ID == id && sp.IsDeleted != true)
                 .Include(sp => sp.HR_ORG_UNITS)
                 .Include(sp => sp.HR_POSITIONS)
                 .Include(sp => sp.HR_SALARY_GRADES)
@@ -149,8 +145,8 @@ namespace tahsinERP.Controllers.HR
                 IsActive = staffingPlan.IsActive,
                 ActualHeadcount = await db.HR_EMPLOYEES.CountAsync(e => 
                     e.OrgUnitID == staffingPlan.OrgUnitID && 
-                    e.PositionID == staffingPlan.PositionID && 
-                    e.IsActive)
+                    e.PositionID == staffingPlan.PositionID &&
+                    e.IsActive && e.IsDeleted != true)
             };
 
             logger.Log("HrStaffingPlan", "Details", $"Bo'lim: {viewModel.OrgUnitName}, Lavozim: {viewModel.PositionName}");
@@ -158,14 +154,14 @@ namespace tahsinERP.Controllers.HR
         }
 
         // Olish so'rovi: HR/StaffingPlan/yaratish
-        public async Task<ActionResult> Create(int? orgUnitId)
+        public ActionResult Create(int? orgUnitId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrStaffingPlan"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            await PopulateViewBags(null, orgUnitId);
+            PopulateViewBags(null, orgUnitId);
             return View();
         }
 
@@ -198,13 +194,13 @@ namespace tahsinERP.Controllers.HR
                 db.HR_STAFFING_PLAN.Add(staffingPlan);
                 await db.SaveChangesAsync();
 
-                var orgUnitName = (await db.HR_ORG_UNITS.FindAsync(staffingPlan.OrgUnitID))?.Name ?? "-";
-                var positionName = (await db.HR_POSITIONS.FindAsync(staffingPlan.PositionID))?.Name ?? "-";
+                var orgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, staffingPlan.OrgUnitID) ?? "-";
+                var positionName = HrLookups.NameOf(HrLookups.Positions, staffingPlan.PositionID) ?? "-";
                 logger.Log("HrStaffingPlan", "Create", $"Bo'lim: {orgUnitName}, Lavozim: {positionName}, RejaSoni: {staffingPlan.PlannedHeadcount}");
                 return RedirectToAction("Index");
             }
 
-            await PopulateViewBags(viewModel, null);
+            PopulateViewBags(viewModel, null);
             return View(viewModel);
         }
 
@@ -242,7 +238,7 @@ namespace tahsinERP.Controllers.HR
                 IsActive = staffingPlan.IsActive
             };
 
-            await PopulateViewBags(viewModel, null);
+            PopulateViewBags(viewModel, null);
             return View(viewModel);
         }
 
@@ -278,13 +274,13 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(staffingPlan).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                var orgUnitName = (await db.HR_ORG_UNITS.FindAsync(staffingPlan.OrgUnitID))?.Name ?? "-";
-                var positionName = (await db.HR_POSITIONS.FindAsync(staffingPlan.PositionID))?.Name ?? "-";
+                var orgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, staffingPlan.OrgUnitID) ?? "-";
+                var positionName = HrLookups.NameOf(HrLookups.Positions, staffingPlan.PositionID) ?? "-";
                 logger.Log("HrStaffingPlan", "Edit", $"Bo'lim: {orgUnitName}, Lavozim: {positionName}, RejaSoni: {staffingPlan.PlannedHeadcount}");
                 return RedirectToAction("Index");
             }
 
-            await PopulateViewBags(viewModel, null);
+            PopulateViewBags(viewModel, null);
             return View(viewModel);
         }
 
@@ -308,8 +304,8 @@ namespace tahsinERP.Controllers.HR
             db.Entry(staffingPlan).State = System.Data.Entity.EntityState.Modified;
             await db.SaveChangesAsync();
 
-            var orgUnitName = staffingPlan.HR_ORG_UNITS?.Name ?? "-";
-            var positionName = staffingPlan.HR_POSITIONS?.Name ?? "-";
+            var orgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, staffingPlan.OrgUnitID) ?? "-";
+            var positionName = HrLookups.NameOf(HrLookups.Positions, staffingPlan.PositionID) ?? "-";
             logger.Log("HrStaffingPlan", "Delete", $"Bo'lim: {orgUnitName}, Lavozim: {positionName}");
             return RedirectToAction("Index");
         }
@@ -322,37 +318,41 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Olish barcha faol employees
-            var employees = await db.HR_EMPLOYEES
-                .Where(e => e.IsActive && e.OrgUnitID.HasValue && e.PositionID.HasValue)
+            // Bitta so'rov: faol xodimlar (bo'lim, lavozim) bo'yicha guruhlanadi, faol reja yo'q juftliklar.
+            // Avval har xodimga 1 so'rov + 2 lazy-load, va har xodimga alohida (PlannedHeadcount = 1) taklif — saqlansa N ta dublikat reja (HRM-B13/P14)
+            var groups = await db.HR_EMPLOYEES.AsNoTracking()
+                .Where(e => e.IsActive && e.IsDeleted != true && e.OrgUnitID.HasValue && e.PositionID.HasValue)
+                .Where(e => !db.HR_STAFFING_PLAN.Any(sp => sp.OrgUnitID == e.OrgUnitID.Value &&
+                                                          sp.PositionID == e.PositionID.Value &&
+                                                          sp.IsActive && sp.IsDeleted != true))
+                .GroupBy(e => new { OrgUnitID = e.OrgUnitID.Value, PositionID = e.PositionID.Value })
+                .Select(g => new
+                {
+                    g.Key.OrgUnitID,
+                    g.Key.PositionID,
+                    OrgUnitName = g.Select(e => e.HR_ORG_UNITS.Name).FirstOrDefault(),
+                    PositionName = g.Select(e => e.HR_POSITIONS.Name).FirstOrDefault(),
+                    SalaryGradeID = g.Where(e => e.SalaryGradeID != null).Select(e => e.SalaryGradeID).FirstOrDefault(),
+                    EarliestEmployment = g.Min(e => e.EmploymentDate),
+                    Count = g.Count()
+                })
                 .ToListAsync();
 
-            var proposals = new List<HrStaffingPlanViewModel>();
-
-            foreach (var emp in employees)
-            {
-                // Tekshirish agar staffing plan already mavjud
-                var existing = await db.HR_STAFFING_PLAN
-                    .FirstOrDefaultAsync(sp => sp.OrgUnitID == emp.OrgUnitID.Value &&
-                                              sp.PositionID == emp.PositionID.Value &&
-                                              sp.IsActive);
-
-                if (existing == null)
+            var proposals = groups
+                .OrderBy(g => g.OrgUnitName).ThenBy(g => g.PositionName)
+                .Select(g => new HrStaffingPlanViewModel
                 {
-                    proposals.Add(new HrStaffingPlanViewModel
-                    {
-                        OrgUnitID = emp.OrgUnitID.Value,
-                        OrgUnitName = emp.HR_ORG_UNITS?.Name,
-                        PositionID = emp.PositionID.Value,
-                        PositionName = emp.HR_POSITIONS?.Name,
-                        SalaryGradeID = emp.SalaryGradeID,
-                        PlannedHeadcount = 1,
-                        IsFixedSalary = true,
-                        EffectiveFrom = emp.EmploymentDate ?? DateTime.Now,
-                        IsActive = true
-                    });
-                }
-            }
+                    OrgUnitID = g.OrgUnitID,
+                    OrgUnitName = g.OrgUnitName,
+                    PositionID = g.PositionID,
+                    PositionName = g.PositionName,
+                    SalaryGradeID = g.SalaryGradeID,
+                    PlannedHeadcount = g.Count,
+                    IsFixedSalary = true,
+                    EffectiveFrom = g.EarliestEmployment ?? DateTime.Now,
+                    IsActive = true
+                })
+                .ToList();
 
             ViewBag.Proposals = proposals;
             logger.Log("HrStaffingPlan", "GenerateFromEmployees");
@@ -371,8 +371,19 @@ namespace tahsinERP.Controllers.HR
 
             if (proposals != null && proposals.Any())
             {
+                var existingKeys = new HashSet<Tuple<int, int>>((await db.HR_STAFFING_PLAN.AsNoTracking()
+                    .Where(sp => sp.IsActive && sp.IsDeleted != true)
+                    .Select(sp => new { sp.OrgUnitID, sp.PositionID })
+                    .ToListAsync()).Select(x => Tuple.Create(x.OrgUnitID, x.PositionID)));
+                int created = 0;
+
                 foreach (var proposal in proposals.Where(p => p.IsActive))
                 {
+                    if (!existingKeys.Add(Tuple.Create(proposal.OrgUnitID, proposal.PositionID)))
+                    {
+                        continue;
+                    }
+
                     var staffingPlan = new HR_STAFFING_PLAN
                     {
                         OrgUnitID = proposal.OrgUnitID,
@@ -388,10 +399,11 @@ namespace tahsinERP.Controllers.HR
                     };
 
                     db.HR_STAFFING_PLAN.Add(staffingPlan);
+                    created++;
                 }
 
                 await db.SaveChangesAsync();
-                logger.Log("HrStaffingPlan", "CreateFromProposals", $"YaratilganRejaSoni: {proposals.Count(p => p.IsActive)}");
+                logger.Log("HrStaffingPlan", "CreateFromProposals", $"YaratilganRejaSoni: {created}");
             }
 
             return RedirectToAction("Index");
@@ -426,7 +438,6 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using (var package = new ExcelPackage(file.InputStream))
                 {
                     var worksheet = package.Workbook.Worksheets[0];
@@ -485,69 +496,71 @@ namespace tahsinERP.Controllers.HR
                 int successCount = 0;
                 int errorCount = 0;
 
+                var employeeByTabNo = (await db.HR_EMPLOYEES.AsNoTracking()
+                    .Where(e => e.IsActive && e.IsDeleted != true && e.TabNo != null)
+                    .Select(e => new { e.ID, e.TabNo, e.OrgUnitID })
+                    .ToListAsync())
+                    .GroupBy(e => e.TabNo)
+                    .ToDictionary(g => g.Key, g => g.First());
+                var positionByName = (await db.HR_POSITIONS.AsNoTracking()
+                    .Where(p => p.IsActive && p.IsDeleted != true)
+                    .Select(p => new { p.ID, p.Name })
+                    .ToListAsync())
+                    .GroupBy(p => p.Name)
+                    .ToDictionary(g => g.Key, g => g.First().ID);
+                var existingKeys = new HashSet<Tuple<int, int>>((await db.HR_STAFFING_PLAN.AsNoTracking()
+                    .Where(sp => sp.IsActive && sp.IsDeleted != true)
+                    .Select(sp => new { sp.OrgUnitID, sp.PositionID })
+                    .ToListAsync()).Select(x => Tuple.Create(x.OrgUnitID, x.PositionID)));
+                var newPlans = new Dictionary<Tuple<int, int>, HR_STAFFING_PLAN>();
+
                 foreach (var row in importedData)
                 {
-                    try
-                    {
-                        var tabNo = row["TabNo"]?.ToString();
-                        var fullName = row["FullName"]?.ToString();
-                        var positionName = row["Position"]?.ToString();
-                        var baseSalaryStr = row["BaseSalary"]?.ToString();
+                    var tabNo = row["TabNo"]?.ToString()?.Trim();
+                    var positionName = row["Position"]?.ToString()?.Trim();
 
-                        if (string.IsNullOrWhiteSpace(tabNo) || string.IsNullOrWhiteSpace(positionName))
-                        {
-                            errorCount++;
-                            continue;
-                        }
-
-                        // Find employee by TabNo
-                        var employee = await db.HR_EMPLOYEES
-                            .FirstOrDefaultAsync(e => e.TabNo == tabNo && e.IsActive);
-
-                        if (employee == null)
-                        {
-                            errorCount++;
-                            continue;
-                        }
-
-                        // Find position
-                        var position = await db.HR_POSITIONS
-                            .FirstOrDefaultAsync(p => p.Name == positionName && p.IsActive);
-
-                        if (position == null)
-                        {
-                            errorCount++;
-                            continue;
-                        }
-
-                        // Tekshirish agar staffing plan already mavjud
-                        var existingPlan = await db.HR_STAFFING_PLAN
-                            .FirstOrDefaultAsync(sp => sp.OrgUnitID == employee.OrgUnitID && 
-                                                       sp.PositionID == position.ID && 
-                                                       sp.IsActive);
-
-                        if (existingPlan == null)
-                        {
-                            var staffingPlan = new HR_STAFFING_PLAN
-                            {
-                                OrgUnitID = employee.OrgUnitID ?? 1,
-                                PositionID = position.ID,
-                                PlannedHeadcount = 1,
-                                IsFixedSalary = true,
-                                IsHourly = false,
-                                IsPieceRate = false,
-                                EffectiveFrom = DateTime.Now,
-                                IsActive = true
-                            };
-
-                            db.HR_STAFFING_PLAN.Add(staffingPlan);
-                            successCount++;
-                        }
-                    }
-                    catch
+                    if (string.IsNullOrWhiteSpace(tabNo) || string.IsNullOrWhiteSpace(positionName))
                     {
                         errorCount++;
+                        continue;
                     }
+
+                    var employee = employeeByTabNo.TryGetValue(tabNo, out var emp) ? emp : null;
+                    int positionId;
+                    if (employee == null || !employee.OrgUnitID.HasValue || !positionByName.TryGetValue(positionName, out positionId))
+                    {
+                        errorCount++;
+                        continue;
+                    }
+
+                    var key = Tuple.Create(employee.OrgUnitID.Value, positionId);
+                    if (existingKeys.Contains(key))
+                    {
+                        continue;
+                    }
+
+                    HR_STAFFING_PLAN plan;
+                    if (newPlans.TryGetValue(key, out plan))
+                    {
+                        // Bir (bo'lim, lavozim) uchun bitta reja, xodimlar soni bo'yicha
+                        plan.PlannedHeadcount += 1;
+                        continue;
+                    }
+
+                    plan = new HR_STAFFING_PLAN
+                    {
+                        OrgUnitID = key.Item1,
+                        PositionID = key.Item2,
+                        PlannedHeadcount = 1,
+                        IsFixedSalary = true,
+                        IsHourly = false,
+                        IsPieceRate = false,
+                        EffectiveFrom = DateTime.Now,
+                        IsActive = true
+                    };
+                    newPlans[key] = plan;
+                    db.HR_STAFFING_PLAN.Add(plan);
+                    successCount++;
                 }
 
                 await db.SaveChangesAsync();
@@ -566,24 +579,17 @@ namespace tahsinERP.Controllers.HR
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Saqlashda xatolik: {ex.Message}";
+                System.Diagnostics.Trace.TraceError("[HrStaffingPlan.ImportConfirm] " + ex);
+                TempData["Error"] = "Saqlashda xatolik yuz berdi";
                 return RedirectToAction("Import");
             }
         }
 
-        private async Task PopulateViewBags(HrStaffingPlanViewModel viewModel, int? orgUnitId)
+        private void PopulateViewBags(HrStaffingPlanViewModel viewModel, int? orgUnitId)
         {
-            ViewBag.OrgUnitID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", viewModel?.OrgUnitID ?? orgUnitId);
-
-            ViewBag.PositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name", viewModel?.PositionID);
-
-            ViewBag.SalaryGradeID = new SelectList(
-                await db.HR_SALARY_GRADES.OrderBy(sg => sg.GradeCode).ToListAsync(),
-                "ID", "Name", viewModel?.SalaryGradeID);
+            ViewBag.OrgUnitID = HrLookups.SelectList(HrLookups.OrgUnits, viewModel?.OrgUnitID ?? orgUnitId);
+            ViewBag.PositionID = HrLookups.SelectList(HrLookups.Positions, viewModel?.PositionID);
+            ViewBag.SalaryGradeID = HrLookups.SelectList(HrLookups.SalaryGrades, viewModel?.SalaryGradeID);
         }
 
         protected override void Dispose(bool disposing)

@@ -1056,7 +1056,12 @@
     <Compile Include="Services\HrTimesheetSettingsService.cs" />
     <Compile Include="Services\ReconciliationService.cs" />
     <Compile Include="Services\ReconciliationAdjustmentService.cs" />
+    <Compile Include="Services\HR\EmployeeHistoryService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
+    <Compile Include="Services\HR\HrLookups.cs" />
+    <Compile Include="Services\HR\HrPayrollCalculator.cs" />
+    <Compile Include="Services\HR\PieceRateTariffResolver.cs" />
+    <Compile Include="Services\HR\TimesheetLineAccessor.cs" />
     <Compile Include="Services\HtmlToDocxConverter.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
     <Compile Include="Services\ITextSuggestionService.cs" />
@@ -2981,6 +2986,7 @@
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\device-identifier.js" />
     <Content Include="Scripts\csrf.js" />
+    <Content Include="Scripts\hr\piece-rate-grid.js" />
     <Content Include="Scripts\flatpickr.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
     <Content Include="Scripts\jquery-3.7.1.min.js" />
@@ -3270,17 +3276,13 @@
     <Content Include="Views\HrStaffingPlan\ImportPreview.cshtml" />
     <Content Include="Views\HrStaffingPlan\Index.cshtml" />
     <Content Include="Views\HrTimesheets\Create.cshtml" />
-    <Content Include="Views\HrTimesheets\CreateSimple.cshtml" />
     <Content Include="Views\HrTimesheets\Delete.cshtml" />
     <Content Include="Views\HrTimesheets\Edit.cshtml" />
     <Content Include="Views\HrTimesheets\Import.cshtml" />
     <Content Include="Views\HrTimesheets\Index.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\Index.cshtml" />
-    <Content Include="Views\HrPieceRateTimesheets\Create.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\CreateSimple.cshtml" />
-    <Content Include="Views\HrPieceRateTimesheets\Edit.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\Details.cshtml" />
-    <Content Include="Views\HrPieceRateTimesheets\Delete.cshtml" />
     <Content Include="Views\HrPieceRateTariffs\Create.cshtml" />
     <Content Include="Views\HrPieceRateTariffs\Delete.cshtml" />
     <Content Include="Views\HrPieceRateTariffs\Details.cshtml" />
@@ -3446,6 +3448,7 @@
     <Content Include="Views\HrTimesheets\Details.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\GridCreate.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\GridEdit.cshtml" />
+    <Content Include="Views\HrPieceRateTimesheets\_PieceRateGrid.cshtml" />
     <Content Include="Views\Koreshok\Index.cshtml" />
     <Content Include="Views\Koreshok\Result.cshtml" />
     <Content Include="Views\HrPayroll\Details.cshtml" />

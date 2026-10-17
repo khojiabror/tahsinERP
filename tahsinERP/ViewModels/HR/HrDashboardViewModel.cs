@@ -19,13 +19,11 @@ namespace tahsinERP.ViewModels.HR
         
         public List<HrHeadcountByOrgUnitViewModel> HeadcountByOrgUnit { get; set; }
         public List<HrPayrollTrendViewModel> PayrollTrend { get; set; }
-        public List<HrHeadcountTrendViewModel> HeadcountTrend { get; set; }
         
         public HrDashboardViewModel()
         {
             HeadcountByOrgUnit = new List<HrHeadcountByOrgUnitViewModel>();
             PayrollTrend = new List<HrPayrollTrendViewModel>();
-            HeadcountTrend = new List<HrHeadcountTrendViewModel>();
         }
     }
     
@@ -44,11 +42,5 @@ namespace tahsinERP.ViewModels.HR
         public decimal TotalPayroll { get; set; }
     }
     
-    public class HrHeadcountTrendViewModel
-    {
-        public int Year { get; set; }
-        public int Month { get; set; }
-        public int Headcount { get; set; }
-    }
 }
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
 
@@ -105,8 +106,10 @@ namespace tahsinERP.Controllers.HR
                         openingPaid = openingRow.PaidAmount;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    // Jadval yo'q muhitda ochilish qoldig'isiz davom etiladi, lekin xato yashirilmaydi
+                    System.Diagnostics.Trace.TraceError("[Koreshok] Ochilish qoldig'ini o'qishda xato: " + ex);
                 }
             }
 
@@ -114,81 +117,65 @@ namespace tahsinERP.Controllers.HR
             int fromMonthKey = from.Year * 100 + from.Month;
             int toMonthKey = to.Year * 100 + to.Month;
 
-            var hourlyFromPayroll = await db.HR_PAYROLL_LINES
-                .Where(l => l.EmployeeID == employeeId &&
-                            (l.IsDeleted == null || l.IsDeleted == false) &&
-                            (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
-                            l.HR_PAYROLL_HEADERS.PayrollType == "Hourly" &&
-                            ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) >= fromMonthKey &&
-                            ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) <= toMonthKey)
-                .SumAsync(l => (decimal?)l.NetSalary) ?? 0m;
+            var hourlyFromPayroll = await SumPayrollNetAsync(employeeId, "Hourly", fromMonthKey, toMonthKey);
 
-            // Ishlangan kun/soat (timesheet lines bo'yicha kunma-kun kesim)
-            var timesheetLines = await db.HR_TIMESHEET_LINES
+            // Faqat davr oylaridagi tabel qatorlari, bir marta (avval xodimning butun tarixi ikki marta yuklanardi, HRM-P12)
+            var timesheetLines = await db.HR_TIMESHEET_LINES.AsNoTracking()
                 .Where(l => l.EmployeeID == employeeId &&
                             (l.IsDeleted == null || l.IsDeleted == false) &&
-                            (l.HR_TIMESHEET_HEADERS.IsDeleted == null || l.HR_TIMESHEET_HEADERS.IsDeleted == false))
-                .Select(l => new
+                            (l.HR_TIMESHEET_HEADERS.IsDeleted == null || l.HR_TIMESHEET_HEADERS.IsDeleted == false) &&
+                            (l.HR_TIMESHEET_HEADERS.Year * 100 + l.HR_TIMESHEET_HEADERS.Month) >= fromMonthKey &&
+                            (l.HR_TIMESHEET_HEADERS.Year * 100 + l.HR_TIMESHEET_HEADERS.Month) <= toMonthKey)
+                .Select(l => new TimesheetLineInPeriod
                 {
-                    l,
-                    l.HR_TIMESHEET_HEADERS.Year,
-                    l.HR_TIMESHEET_HEADERS.Month
+                    Line = l,
+                    TimesheetID = l.TimesheetID,
+                    Year = l.HR_TIMESHEET_HEADERS.Year,
+                    Month = l.HR_TIMESHEET_HEADERS.Month
                 })
                 .ToListAsync();
 
-            decimal workedHours = 0m;
-            decimal workedDays = 0m;
             foreach (var item in timesheetLines)
             {
-                int daysInMonth = DateTime.DaysInMonth(item.Year, item.Month);
-                for (int d = 1; d <= daysInMonth; d++)
-                {
-                    var date = new DateTime(item.Year, item.Month, d);
-                    if (date < from.Date || date > to.Date) continue;
-                    var prop = typeof(HR_TIMESHEET_LINES).GetProperty($"Day{d:D2}Hours");
-                    var h = prop?.GetValue(item.l) as decimal? ?? 0m;
-                    if (h > 0)
-                    {
-                        workedHours += h;
-                        workedDays += 1m;
-                    }
-                }
+                CountHoursInRange(item, from.Date, to.Date);
             }
-            result.HourlyWorkedHours = workedHours;
-            result.HourlyWorkedDays = workedDays;
+            result.HourlyWorkedHours = timesheetLines.Sum(x => x.HoursInRange);
+            result.HourlyWorkedDays = timesheetLines.Sum(x => x.DaysInRange);
 
             result.HourlyCalculated = hourlyFromPayroll;
-            if (result.HourlyCalculated == 0m && workedHours > 0)
-                result.HourlyCalculated = await EstimateHourlyGrossFromTimesheetsAsync(employee, from, to);
+            if (result.HourlyCalculated == 0m && result.HourlyWorkedHours > 0)
+                result.HourlyCalculated = await EstimateHourlyGrossFromTimesheetsAsync(employee, timesheetLines);
 
-            var pieceFromPayroll = await db.HR_PAYROLL_LINES
-                .Where(l => l.EmployeeID == employeeId &&
-                            (l.IsDeleted == null || l.IsDeleted == false) &&
-                            (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
-                            l.HR_PAYROLL_HEADERS.PayrollType == "PieceRate" &&
-                            ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) >= fromMonthKey &&
-                            ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) <= toMonthKey)
-                .SumAsync(l => (decimal?)l.NetSalary) ?? 0m;
+            var pieceFromPayroll = await SumPayrollNetAsync(employeeId, "PieceRate", fromMonthKey, toMonthKey);
 
             result.PieceCalculated = pieceFromPayroll;
             if (result.PieceCalculated == 0m)
             {
-                var pieceEntries = await db.HR_PIECE_RATE_WORK_ENTRIES
-                    .Include(e => e.HR_EMPLOYEES)
+                var pieceEntries = await db.HR_PIECE_RATE_WORK_ENTRIES.AsNoTracking()
                     .Where(e => e.EmployeeID == employeeId &&
                                 e.WorkDate >= from.Date && e.WorkDate <= to.Date &&
                                 (e.IsDeleted == null || e.IsDeleted == false))
+                    .Select(e => new { e.ProductID, e.OperationID, e.WorkDate, e.Quantity })
                     .ToListAsync();
                 if (pieceEntries.Count > 0)
-                    result.PieceCalculated = CalculatePieceRateAmountForEntries(pieceEntries);
+                {
+                    // Umumiy tarif qoidasi (avvalgi nusxada o'chirilgan tariflar ham olinardi, HRM-B12)
+                    var resolver = await PieceRateTariffResolver.LoadAsync(db, from.Date, to.Date,
+                        pieceEntries.Select(e => e.ProductID).Distinct().ToList());
+                    var gross = pieceEntries.Sum(e => resolver.Amount(e.ProductID, e.OperationID, employee.PositionID, e.WorkDate, e.Quantity));
+                    var allowancePercent = HrPayrollCalculator.AllowancePercent(allowanceService.GetByEmployeeId(employee.ID));
+                    result.PieceCalculated = Math.Round(HrPayrollCalculator.ApplyAllowance(gross, allowancePercent), 2);
+                }
             }
 
             // To'langan summa (xodimga bog'langan moliyaviy chiqimlardan)
+            var employeeFullName = (employee.FullName ?? "").Trim();
             var directPaidTotal = await db.FIN_TRANSACTIONS
                 .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
                             t.Direction != 1 && // real bazada ba'zi chiqimlar 2 dan boshqa qiymatlarda ham uchrashi mumkin
+                            // ID bo'yicha; ID'siz eski yozuvlar — faqat to'liq ism mosligi (avval Contains o'xshash ismlarni ham olardi, HRM-B12)
                             ((t.CounterpartyID.HasValue && t.CounterpartyID == employeeId) ||
-                             (!t.CounterpartyID.HasValue && t.CounterpartyName != null && t.CounterpartyName.Contains(employee.FullName))) &&
+                             (!t.CounterpartyID.HasValue && t.CounterpartyName != null && t.CounterpartyName.Trim() == employeeFullName)) &&
                             t.TxnDate >= from.Date && t.TxnDate < toExclusive)
                 .SumAsync(t => (decimal?)t.Amount) ?? 0m;
 
@@ -234,114 +221,79 @@ namespace tahsinERP.Controllers.HR
             result.HourlyBalance = result.HourlyCalculated - result.HourlyPaid;
             result.PieceBalance = result.PieceCalculated - result.PiecePaid;
 
-            result.Notes.Add("Hisoblangan: avvalo ish haqi (payroll) bo'yicha; payroll bo'lmasa soatbay tabel + shtat rejasi (HrPayroll bilan bir xil formula), ishbay esa ishbay yozuvlar va tariflar bo'yicha.");
+            result.Notes.Add("Hisoblangan: avvalo ish haqi (payroll) bo'yicha (to'lovga summa); payroll bo'lmasa soatbay tabel + shtat rejasi va ishbay yozuvlar + tariflar bo'yicha HrPayroll bilan bir xil formulada taxminiy (soliqdan oldingi) summa.");
             result.Notes.Add("Eslatma: to'langan summa FinTransactions'dagi xodimga bog'langan chiqimlar + HR_PAYROLL postlari bo'yicha xodim net summasidan olinadi.");
             result.Notes.Add("Agar oyliklar umumiy provodka bilan (xodim IDsiz) o'tkazilgan bo'lsa, to'lovlar to'liq chiqmasligi mumkin.");
 
             return View(result);
         }
 
-        /// <summary>
-        /// HrPayroll GenerateHourlyPayrollLines bilan mos: soatbay / kunlik proporsiya.
-        /// </summary>
-        private async Task<decimal> EstimateHourlyGrossFromTimesheetsAsync(HR_EMPLOYEES employee, DateTime from, DateTime to)
+        private sealed class TimesheetLineInPeriod
         {
-            var lines = await db.HR_TIMESHEET_LINES
-                .Include(l => l.HR_TIMESHEET_HEADERS)
-                .Where(l => l.EmployeeID == employee.ID && (l.IsDeleted == null || l.IsDeleted == false))
-                .ToListAsync();
+            public HR_TIMESHEET_LINES Line { get; set; }
+            public int TimesheetID { get; set; }
+            public int Year { get; set; }
+            public int Month { get; set; }
+            public decimal HoursInRange { get; set; }
+            public decimal DaysInRange { get; set; }
+        }
+
+        private static void CountHoursInRange(TimesheetLineInPeriod item, DateTime from, DateTime to)
+        {
+            int daysInMonth = DateTime.DaysInMonth(item.Year, item.Month);
+            for (int d = 1; d <= daysInMonth; d++)
+            {
+                var date = new DateTime(item.Year, item.Month, d);
+                if (date < from || date > to) continue;
+                var h = TimesheetLineAccessor.GetHours(item.Line, d) ?? 0m;
+                if (h > 0)
+                {
+                    item.HoursInRange += h;
+                    item.DaysInRange += 1m;
+                }
+            }
+        }
+
+        private async Task<decimal> SumPayrollNetAsync(int employeeId, string payrollType, int fromMonthKey, int toMonthKey)
+        {
+            return await db.HR_PAYROLL_LINES
+                .Where(l => l.EmployeeID == employeeId &&
+                            (l.IsDeleted == null || l.IsDeleted == false) &&
+                            (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
+                            l.HR_PAYROLL_HEADERS.PayrollType == payrollType &&
+                            ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) >= fromMonthKey &&
+                            ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) <= toMonthKey)
+                .SumAsync(l => (decimal?)l.NetSalary) ?? 0m;
+        }
+
+        /// <summary>
+        /// HrPayroll soatbay hisobi bilan bir xil formula (Services/HR/HrPayrollCalculator, HRM-D02):
+        /// baza (maosh, bo'lmasa shtat rejasi/tarif tarmog'i), ustama, tabel fond soati, qo'shimcha soat koeffitsienti.
+        /// Davr oy o'rtasidan boshlansa — oydagi soatlarning davrga tushgan qismi olinadi.
+        /// </summary>
+        private async Task<decimal> EstimateHourlyGrossFromTimesheetsAsync(HR_EMPLOYEES employee, List<TimesheetLineInPeriod> lines)
+        {
+            var withHours = lines.Where(l => l.HoursInRange > 0).ToList();
+            if (withHours.Count == 0) return 0m;
+
+            var periodStart = withHours.Min(l => new DateTime(l.Year, l.Month, 1));
+            var periodEnd = withHours.Max(l => new DateTime(l.Year, l.Month, 1)).AddMonths(1).AddDays(-1);
+            var staffingPlans = await HrPayrollCalculator.LoadStaffingPlansAsync(db, periodStart, periodEnd);
+            var fundHoursByTimesheet = timesheetSettingsService.GetFundHoursOrDefault(withHours.Select(l => l.TimesheetID));
+            var allowancePercent = HrPayrollCalculator.AllowancePercent(allowanceService.GetByEmployeeId(employee.ID));
 
             decimal totalGross = 0;
-            var allowanceRow = allowanceService.GetByEmployeeId(employee.ID);
-            var allowancePercent = 0m;
-            if (allowanceRow != null)
+            foreach (var item in withHours)
             {
-                allowancePercent = Math.Max(0, allowanceRow.MaterialResponsibilityPercent) +
-                                   Math.Max(0, allowanceRow.SpecialAllowancePercent);
-            }
-
-            foreach (var line in lines)
-            {
-                var h = line.HR_TIMESHEET_HEADERS;
-                if (h == null || (h.IsDeleted ?? false)) continue;
-
-                int year = h.Year;
-                int month = h.Month;
-                int daysInMonth = DateTime.DaysInMonth(year, month);
-                decimal hoursInRange = 0;
-                decimal workedDaysInRange = 0;
-                for (int d = 1; d <= daysInMonth; d++)
-                {
-                    var date = new DateTime(year, month, d);
-                    if (date < from.Date || date > to.Date) continue;
-                    var prop = typeof(HR_TIMESHEET_LINES).GetProperty($"Day{d:D2}Hours");
-                    var hh = prop?.GetValue(line) as decimal? ?? 0m;
-                    if (hh > 0)
-                    {
-                        hoursInRange += hh;
-                        workedDaysInRange += 1m;
-                    }
-                }
-                if (hoursInRange <= 0) continue;
-
-                var refDate = new DateTime(year, month, 15);
-                var staffingPlan = await db.HR_STAFFING_PLAN
-                    .FirstOrDefaultAsync(sp => sp.OrgUnitID == employee.OrgUnitID &&
-                        sp.PositionID == employee.PositionID &&
-                        sp.IsActive && (sp.IsDeleted == null || sp.IsDeleted == false) && sp.IsPieceRate == false &&
-                        sp.EffectiveFrom <= refDate && (sp.EffectiveTo == null || sp.EffectiveTo >= refDate));
-
-                decimal baseSalary = employee.BaseSalary ?? 0;
-                decimal monthlyCompensation = baseSalary + (baseSalary * allowancePercent / 100m);
-                decimal monthFundHours = timesheetSettingsService.GetFundHoursOrDefault(h.ID);
-                decimal hourlyRate = monthFundHours > 0 ? monthlyCompensation / monthFundHours : 0;
-                decimal overtimeHours = line.OvertimeHours ?? 0;
-                if (overtimeHours < 0) overtimeHours = 0;
-                if (overtimeHours > hoursInRange) overtimeHours = hoursInRange;
-                decimal normalHours = Math.Max(0m, hoursInRange - overtimeHours);
-                decimal gross = (normalHours * hourlyRate) + (overtimeHours * hourlyRate * 1.5m);
-
-                totalGross += gross;
+                var monthStart = new DateTime(item.Year, item.Month, 1);
+                var plan = HrPayrollCalculator.FindPlan(staffingPlans, employee.OrgUnitID, employee.PositionID);
+                var monthlyBase = HrPayrollCalculator.ResolveMonthlyBase(employee, plan, monthStart);
+                var hourly = HrPayrollCalculator.CalculateHourly(monthlyBase, allowancePercent,
+                    fundHoursByTimesheet[item.TimesheetID], item.HoursInRange, item.Line.OvertimeHours ?? 0);
+                totalGross += hourly.GrossSalary;
             }
 
             return Math.Round(totalGross, 2);
-        }
-
-        private decimal CalculatePieceRateAmountForEntries(List<HR_PIECE_RATE_WORK_ENTRIES> workEntries)
-        {
-            decimal totalAmount = 0;
-
-            foreach (var entry in workEntries)
-            {
-                int? positionId = entry.HR_EMPLOYEES?.PositionID;
-
-                var tariff = db.HR_PIECE_RATE_TARIFFS
-                    .Where(t => t.ProductID == entry.ProductID &&
-                               t.OperationID == entry.OperationID &&
-                               t.IsActive &&
-                               t.EffectiveFrom <= entry.WorkDate &&
-                               (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate) &&
-                               (positionId.HasValue ? t.PositionID == positionId.Value : t.PositionID == null))
-                    .OrderByDescending(t => t.PositionID)
-                    .FirstOrDefault();
-
-                if (tariff == null)
-                {
-                    tariff = db.HR_PIECE_RATE_TARIFFS
-                        .Where(t => t.ProductID == entry.ProductID &&
-                                   t.OperationID == entry.OperationID &&
-                                   t.PositionID == null &&
-                                   t.IsActive &&
-                                   t.EffectiveFrom <= entry.WorkDate &&
-                                   (t.EffectiveTo == null || t.EffectiveTo >= entry.WorkDate))
-                        .FirstOrDefault();
-                }
-
-                if (tariff != null)
-                    totalAmount += entry.Quantity * tariff.RatePerUnit;
-            }
-
-            return totalAmount;
         }
 
         protected override void Dispose(bool disposing)
