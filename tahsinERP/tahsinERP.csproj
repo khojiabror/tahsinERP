@@ -979,7 +979,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
-    <Compile Include="Helpers\LicenseHelper.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\ProductProductionPlanDateMeta.cs" />
@@ -3441,6 +3440,12 @@
   <PropertyGroup>
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\tahsinERP.Licensing\tahsinERP.Licensing.csproj">
+      <Project>{6F1C2A4E-3B8D-4E59-9A7C-2D5E8F1B0C34}</Project>
+      <Name>tahsinERP.Licensing</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />

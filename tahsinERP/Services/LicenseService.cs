@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Caching;
 using tahsinERP.Configuration.Tenancy;
-using tahsinERP.Helpers;
+using tahsinERP.Licensing;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services

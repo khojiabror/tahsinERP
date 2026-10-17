@@ -1,20 +1,28 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml.Linq;
 
-namespace tahsinERP.Helpers
+namespace tahsinERP.Licensing
 {
     /// <summary>
     /// Litsenziya kalitini RSA imzo bilan yaratish va tekshirish.
     ///
-    /// Bu fayl IKKI joyda ishlatiladi (bitta manba):
-    ///   1) ERP (tahsinERP)      — faqat PUBLIC key bilan TEKSHIRADI.
-    ///   2) tahsinERP.LicenseGen — PRIVATE key bilan YARATADI (imzolaydi).
+    /// tahsinERP.Licensing (netstandard2.0) kutubxonasi — bitta manba:
+    ///   1) ERP (tahsinERP, .NET 4.8) — faqat PUBLIC key bilan TEKSHIRADI.
+    ///   2) tahsinERP.LicenseGen     — PRIVATE key bilan YARATADI (imzolaydi).
+    ///   3) Markaziy panel (.NET 10) — AWS KMS bilan imzolaydi (k2): <see cref="BuildV2Payload"/> + <see cref="AssembleKey"/>.
     ///
-    /// Public key kod ichida (const) — Web.config'dan O'QILMAYDI. Aks holda mijoz
+    /// Imzo: RSASSA-PKCS1-v1_5 + SHA-256 (RSA.Create(), platformadan mustaqil). Eski
+    /// RSACryptoServiceProvider.SignData(.., "SHA256") bilan bir xil natija — eski kalitlar ishlayveradi.
+    /// AWS KMS'ning RSASSA_PKCS1_V1_5_SHA_256 algoritmi ham aynan shu.
+    ///
+    /// Public key'lar kod ichida (const) — Web.config'dan O'QILMAYDI. Aks holda mijoz
     /// o'z kalit juftini yaratib, config'dagi public key'ni almashtirib, o'zi
-    /// kalit yasay olardi. Private key faqat WinForms generatorda (vendorda) turadi.
+    /// kalit yasay olardi. Private key faqat WinForms generatorda (vendorda) va KMS'da turadi.
     ///
     /// Kalit formati:
     ///   v1 payload = "CompanyID|MaxUsers|StartDate|ExpiryDate|Edition"            (eski, o'tish davri)
@@ -23,7 +31,7 @@ namespace tahsinERP.Helpers
     ///
     /// v2 kalit faqat bitta o'rnatmada ishlaydi: InstallationId — ERP birinchi
     /// ishga tushganda yaratadigan GUID (License sahifasida ko'rinadi). Markaziy
-    /// SaaS paneli ham shu formatda kalit chiqaradi (InstallationId = tenant ID).
+    /// SaaS paneli ham shu formatda kalit chiqaradi (InstallationId = tenant o'rnatma ID'si).
     /// </summary>
     public static class LicenseHelper
     {
@@ -33,11 +41,33 @@ namespace tahsinERP.Helpers
         private const string V2_TAG = "v2";
 
         /// <summary>
-        /// Vendor public key (RSA 2048). Faqat tekshirish uchun — u bilan kalit yasab bo'lmaydi.
+        /// k1 — vendor public key (RSA 2048, WinForms generator / on-prem). Faqat tekshirish uchun.
         /// Kalit juftini almashtirsangiz: shu qiymatni yangilang va ERP'ni qayta yig'ing.
         /// </summary>
         public const string PublicKeyXml =
             "<RSAKeyValue><Modulus>1kFRSYc6W2dBKs8GB8YWZdJ21jCz8JNRWwwgpzT9iJKfCI8EW6YasrAhInBF0Isnr/ZOmxVeWa0ZnWEbd0yQlJL5+qEVK2C1ThrZqAcdP7numttaq9R+pJauG8rBSBUm5ugzVoNhBVpeUmlv0EpLO0wXZSeqCZaP/Lcwu6Kb9FFe6GY2bDXFTl6fPPybaG3oMQ489PLf3BroHs1cSmYaG4yyoAbbaOnvD8uYKfLGN9CL3o9UDELsoqCO3vwCI5RP+nrzWkWxeELZOat/me3MxHw6SXmSasQxCBVgcKw/OmjjmeOjNe5wBF+vNNrONEFdk7M3R3tzX60rmjNGx15RLQ==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
+
+        /// <summary>
+        /// k2 — markaziy panel kaliti (AWS KMS, RSA_2048 SIGN_VERIFY; private qism KMS'dan chiqmaydi).
+        /// Hozircha bo'sh: KMS kaliti yaratilgach uning public qismini (GetPublicKey → RSAKeyValue XML)
+        /// shu yerga qo'ying va ERP'ni qayta yig'ing.
+        /// </summary>
+        public const string K2PublicKeyXml = "";
+
+        /// <summary>Ishonchli public key'lar: tekshiruvda birortasi mos kelsa yetarli. Bo'sh qiymatlar tashlab ketiladi.</summary>
+        public static readonly IReadOnlyList<TrustedPublicKey> TrustedPublicKeys = new[]
+        {
+            new TrustedPublicKey("k1", PublicKeyXml),
+            new TrustedPublicKey("k2", K2PublicKeyXml),
+        }.Where(k => !string.IsNullOrWhiteSpace(k.Xml)).ToList().AsReadOnly();
+
+        /// <summary>Ishonchli public key. KeyId — kalit qaysi juft bilan imzolangani (panel Licenses.KeyId ham shu).</summary>
+        public sealed class TrustedPublicKey
+        {
+            public TrustedPublicKey(string keyId, string xml) { KeyId = keyId; Xml = xml; }
+            public string KeyId { get; private set; }
+            public string Xml { get; private set; }
+        }
 
         /// <summary>Muddat tugashidan necha kun oldin admin'ga ogohlantirish ko'rsatiladi.</summary>
         public const int WarningDays = 14;
@@ -82,6 +112,9 @@ namespace tahsinERP.Helpers
 
             /// <summary>Imzo to'g'ri va kalit shakli buzilmaganmi.</summary>
             public bool SignatureValid { get; set; }
+
+            /// <summary>Imzoni tasdiqlagan ishonchli kalit (k1/k2). Ochiq XML bilan tekshirilganda null.</summary>
+            public string KeyId { get; set; }
 
             /// <summary>Bugungi kunga nisbatan muddati amal qiladimi.</summary>
             public bool IsExpired
@@ -158,23 +191,17 @@ namespace tahsinERP.Helpers
         #region Generatsiya (PRIVATE key — faqat generator ishlatadi)
 
         /// <summary>
-        /// Yangi RSA kalit juftini yaratadi (bir martalik operatsiya).
+        /// Yangi RSA 2048 kalit juftini yaratadi (bir martalik operatsiya).
         /// privateXml — faqat sizda saqlanadi. publicXml — LicenseHelper.PublicKeyXml ga.
         /// </summary>
         public static void GenerateKeyPair(out string publicXml, out string privateXml)
         {
-            using (var rsa = new RSACryptoServiceProvider(2048))
+            using (var rsa = RSA.Create())
             {
-                rsa.PersistKeyInCsp = false;
-                try
-                {
-                    publicXml = rsa.ToXmlString(false);
-                    privateXml = rsa.ToXmlString(true);
-                }
-                finally
-                {
-                    rsa.PersistKeyInCsp = false;
-                }
+                rsa.KeySize = 2048;
+                RSAParameters p = rsa.ExportParameters(true);
+                publicXml = ToXml(p, false);
+                privateXml = ToXml(p, true);
             }
         }
 
@@ -183,6 +210,16 @@ namespace tahsinERP.Helpers
         /// </summary>
         public static string GenerateKey(int companyId, int maxUsers, DateTime startDate,
             DateTime expiryDate, string edition, string installationId, string privateXml)
+        {
+            return Sign(BuildV2Payload(companyId, maxUsers, startDate, expiryDate, edition, installationId), privateXml);
+        }
+
+        /// <summary>
+        /// v2 payload baytlari (imzolanadigan qism). Panel buni KMS Sign(RSASSA_PKCS1_V1_5_SHA_256,
+        /// MessageType=RAW) ga beradi va natijani <see cref="AssembleKey"/> bilan kalitga yig'adi.
+        /// </summary>
+        public static byte[] BuildV2Payload(int companyId, int maxUsers, DateTime startDate,
+            DateTime expiryDate, string edition, string installationId)
         {
             string instId = NormalizeInstallationId(installationId);
             if (instId == null)
@@ -198,7 +235,15 @@ namespace tahsinERP.Helpers
                 instId,
                 SafeEdition(edition)
             });
-            return Sign(payload, privateXml);
+            return Encoding.UTF8.GetBytes(payload);
+        }
+
+        /// <summary>Payload + imzo → kalit matni: Base64(payload) + "." + Base64(imzo).</summary>
+        public static string AssembleKey(byte[] payloadUtf8, byte[] signature)
+        {
+            if (payloadUtf8 == null) throw new ArgumentNullException(nameof(payloadUtf8));
+            if (signature == null) throw new ArgumentNullException(nameof(signature));
+            return Convert.ToBase64String(payloadUtf8) + SEPARATOR + Convert.ToBase64String(signature);
         }
 
         /// <summary>
@@ -216,21 +261,19 @@ namespace tahsinERP.Helpers
                 expiryDate.ToString(DATE_FMT, CultureInfo.InvariantCulture),
                 SafeEdition(edition)
             });
-            return Sign(payload, privateXml);
+            return Sign(Encoding.UTF8.GetBytes(payload), privateXml);
         }
 
-        private static string Sign(string payload, string privateXml)
+        private static string Sign(byte[] payloadBytes, string privateXml)
         {
             if (string.IsNullOrWhiteSpace(privateXml))
                 throw new ArgumentException("Private key berilmadi.", nameof(privateXml));
 
-            byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
-            using (var rsa = new RSACryptoServiceProvider())
+            using (var rsa = RSA.Create())
             {
-                rsa.PersistKeyInCsp = false;
-                rsa.FromXmlString(privateXml);
-                byte[] signature = rsa.SignData(payloadBytes, "SHA256");
-                return Convert.ToBase64String(payloadBytes) + SEPARATOR + Convert.ToBase64String(signature);
+                rsa.ImportParameters(FromXml(privateXml, true));
+                byte[] signature = rsa.SignData(payloadBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                return AssembleKey(payloadBytes, signature);
             }
         }
 
@@ -244,15 +287,15 @@ namespace tahsinERP.Helpers
         private static string _debugTestPublicKeyXml = null;
 #endif
 
-        /// <summary>Kalitni kod ichidagi vendor public key bilan tekshiradi.</summary>
+        /// <summary>Kalitni kod ichidagi ishonchli public key'lar (k1, k2) bilan tekshiradi.</summary>
         public static bool TryParseKey(string licenseKey, out LicenseInfo info)
         {
-            string publicXml = PublicKeyXml;
+            IEnumerable<TrustedPublicKey> keys = TrustedPublicKeys;
 #if DEBUG
             if (_debugTestPublicKeyXml != null)
-                publicXml = _debugTestPublicKeyXml;
+                keys = new[] { new TrustedPublicKey("debug", _debugTestPublicKeyXml) };
 #endif
-            return TryParseKey(licenseKey, publicXml, out info);
+            return TryParseKey(licenseKey, keys, out info);
         }
 
         /// <summary>
@@ -262,7 +305,20 @@ namespace tahsinERP.Helpers
         public static bool TryParseKey(string licenseKey, string publicXml, out LicenseInfo info)
         {
             info = null;
-            if (string.IsNullOrWhiteSpace(licenseKey) || string.IsNullOrWhiteSpace(publicXml))
+            if (string.IsNullOrWhiteSpace(publicXml))
+                return false;
+            return TryParseKey(licenseKey, new[] { new TrustedPublicKey(null, publicXml) }, out info);
+        }
+
+        /// <summary>
+        /// Kalitni bir nechta ishonchli public key bilan tekshiradi — birortasi mos kelsa yetarli
+        /// (<see cref="LicenseInfo.KeyId"/> = mos kelgan kalit). Hech biri mos kelmasa info
+        /// to'ldiriladi, lekin SignatureValid=false va natija false.
+        /// </summary>
+        public static bool TryParseKey(string licenseKey, IEnumerable<TrustedPublicKey> trustedKeys, out LicenseInfo info)
+        {
+            info = null;
+            if (string.IsNullOrWhiteSpace(licenseKey) || trustedKeys == null)
                 return false;
 
             try
@@ -278,22 +334,25 @@ namespace tahsinERP.Helpers
                 byte[] payloadBytes = Convert.FromBase64String(payloadB64);
                 byte[] signature = Convert.FromBase64String(signB64);
 
-                bool valid;
-                using (var rsa = new RSACryptoServiceProvider())
-                {
-                    rsa.PersistKeyInCsp = false;
-                    rsa.FromXmlString(publicXml);
-                    valid = rsa.VerifyData(payloadBytes, "SHA256", signature);
-                }
-
                 string payload = Encoding.UTF8.GetString(payloadBytes);
                 var parsed = ParsePayload(payload);
                 if (parsed == null)
                     return false;
 
-                parsed.SignatureValid = valid;
+                foreach (var key in trustedKeys)
+                {
+                    if (key == null || string.IsNullOrWhiteSpace(key.Xml))
+                        continue;
+                    if (Verify(payloadBytes, signature, key.Xml))
+                    {
+                        parsed.SignatureValid = true;
+                        parsed.KeyId = key.KeyId;
+                        break;
+                    }
+                }
+
                 info = parsed;
-                return valid;
+                return parsed.SignatureValid;
             }
             catch (FormatException)
             {
@@ -307,6 +366,85 @@ namespace tahsinERP.Helpers
             {
                 return false;
             }
+        }
+
+        private static bool Verify(byte[] payloadBytes, byte[] signature, string publicXml)
+        {
+            try
+            {
+                using (var rsa = RSA.Create())
+                {
+                    rsa.ImportParameters(FromXml(publicXml, false));
+                    return rsa.VerifyData(payloadBytes, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                }
+            }
+            catch (CryptographicException)
+            {
+                return false; // shu kalit bilan emas — keyingisi sinab ko'riladi
+            }
+            catch (FormatException)
+            {
+                return false; // XML ichidagi Base64 buzilgan
+            }
+        }
+
+        #endregion
+
+        #region RSA kalit XML (RSACryptoServiceProvider.ToXmlString bilan bir xil format)
+
+        // netstandard2.0 da RSA.FromXmlString/ToXmlString hamma platformada ishlamaydi (.NET Core 2.x da
+        // PlatformNotSupported) — shuning uchun o'zimiz o'qiymiz/yozamiz. Format o'zgarmagan: mavjud
+        // private key fayllari va PublicKeyXml const'i avvalgidek ishlaydi.
+
+        private static readonly string[] PrivateElements = { "P", "Q", "DP", "DQ", "InverseQ", "D" };
+
+        /// <summary>RSAKeyValue XML → RSAParameters.</summary>
+        public static RSAParameters FromXml(string xml, bool includePrivate)
+        {
+            if (string.IsNullOrWhiteSpace(xml))
+                throw new CryptographicException("RSA kaliti berilmadi.");
+
+            XElement root;
+            try { root = XElement.Parse(xml); }
+            catch (System.Xml.XmlException ex) { throw new CryptographicException("RSA kaliti XML'i buzilgan: " + ex.Message); }
+            if (root.Name.LocalName != "RSAKeyValue")
+                throw new CryptographicException("RSAKeyValue XML kutilgan edi.");
+
+            Func<string, byte[]> read = name =>
+            {
+                XElement e = root.Element(name);
+                return e == null || string.IsNullOrWhiteSpace(e.Value) ? null : Convert.FromBase64String(e.Value.Trim());
+            };
+
+            var p = new RSAParameters { Modulus = read("Modulus"), Exponent = read("Exponent") };
+            if (p.Modulus == null || p.Exponent == null)
+                throw new CryptographicException("RSA kalitida Modulus/Exponent yo'q.");
+
+            if (includePrivate)
+            {
+                p.P = read("P"); p.Q = read("Q"); p.DP = read("DP"); p.DQ = read("DQ");
+                p.InverseQ = read("InverseQ"); p.D = read("D");
+                if (p.D == null || p.P == null || p.Q == null || p.DP == null || p.DQ == null || p.InverseQ == null)
+                    throw new CryptographicException("Bu private key emas (D/P/Q/DP/DQ/InverseQ to'liq emas).");
+            }
+            return p;
+        }
+
+        /// <summary>RSAParameters → RSAKeyValue XML (ToXmlString bilan bir xil element tartibi).</summary>
+        public static string ToXml(RSAParameters p, bool includePrivate)
+        {
+            var sb = new StringBuilder("<RSAKeyValue>");
+            sb.Append("<Modulus>").Append(Convert.ToBase64String(p.Modulus)).Append("</Modulus>");
+            sb.Append("<Exponent>").Append(Convert.ToBase64String(p.Exponent)).Append("</Exponent>");
+            if (includePrivate)
+            {
+                byte[][] values = { p.P, p.Q, p.DP, p.DQ, p.InverseQ, p.D };
+                for (int i = 0; i < PrivateElements.Length; i++)
+                    sb.Append('<').Append(PrivateElements[i]).Append('>')
+                      .Append(Convert.ToBase64String(values[i]))
+                      .Append("</").Append(PrivateElements[i]).Append('>');
+            }
+            return sb.Append("</RSAKeyValue>").ToString();
         }
 
         #endregion
@@ -367,7 +505,8 @@ namespace tahsinERP.Helpers
                 return hmac.ComputeHash(Encoding.UTF8.GetBytes("clock" + FIELD_SEP + ticks));
         }
 
-        private static bool FixedTimeEquals(byte[] a, byte[] b)
+        /// <summary>Doimiy vaqtli taqqoslash (timing hujumiga qarshi).</summary>
+        public static bool FixedTimeEquals(byte[] a, byte[] b)
         {
             if (a == null || b == null || a.Length != b.Length)
                 return false;
