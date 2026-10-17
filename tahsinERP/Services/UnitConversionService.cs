@@ -234,37 +234,6 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Gets the appropriate unit ID for a product based on whether it requires cutting
-        /// </summary>
-        /// <param name="productId">Product ID</param>
-        /// <param name="forPieces">If true, returns piece unit (1), if false returns meter unit (5) for cutting products</param>
-        /// <returns>Unit ID</returns>
-        public async Task<int> GetUnitIdAsync(int productId, bool forPieces = false)
-        {
-            var product = await GetProductAsync(productId);
-
-            if (product == null)
-            {
-                return 1; // Default to dona
-            }
-
-            bool requiresCutting = product.CategoryID.HasValue && 
-                                   product.PRODUCT_CATEGORIES != null && 
-                                   product.PRODUCT_CATEGORIES.RequiresCutting;
-
-            if (requiresCutting)
-            {
-                // For cutting products: 5 = meter, 1 = piece
-                return forPieces ? 1 : 5;
-            }
-            else
-            {
-                // For non-cutting products, use product's default unit or dona
-                return product.UnitID > 0 ? product.UnitID : 1;
-            }
-        }
-
-        /// <summary>
         /// Converts piece quantity to kg using product's Weight property
         /// Formula: kg = pieces × Weight (kg per piece)
         /// </summary>
@@ -484,8 +453,6 @@ namespace tahsinERP.Services
         public Task<int?> FindKgUnitIdAsync() => FindFirstUnitIdAsync(IsKgUnit);
 
         public Task<int?> FindDonaUnitIdAsync() => FindFirstUnitIdAsync(IsDonaUnit);
-
-        public Task<int?> FindMeterUnitIdAsync() => FindFirstUnitIdAsync(IsMeterUnit);
 
         private static bool IsKgUnit(UNIT u)
         {

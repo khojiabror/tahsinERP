@@ -69,25 +69,6 @@ namespace tahsinERP.Services
         }
 
         // Har tenant bazasi uchun alohida (kalit = tenant prefiksi); faqat "bor" natijasi saqlanadi
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _incomesHaveProductionIdColumn =
-            new System.Collections.Concurrent.ConcurrentDictionary<string, bool>();
-
-        /// <summary>
-        /// INCOMES.ProductionID ustuni bormi (MES-P12 migratsiyasi). EDMX'da property bo'lmasa ham ishlashi uchun
-        /// ustunga xom SQL bilan murojaat qilinadi; faqat "bor" natijasi keshlanadi (migratsiya keyin qo'llansa ham topiladi).
-        /// </summary>
-        private static bool IncomesHaveProductionIdColumn(DBTHSNEntities db)
-        {
-            string tenantKey = tahsinERP.Configuration.Tenancy.TenantContext.CacheKeyPrefix;
-            if (_incomesHaveProductionIdColumn.ContainsKey(tenantKey))
-                return true;
-            var exists = db.Database.SqlQuery<int>(
-                "SELECT CASE WHEN COL_LENGTH('dbo.INCOMES', 'ProductionID') IS NULL THEN 0 ELSE 1 END").FirstOrDefault() == 1;
-            if (exists)
-                _incomesHaveProductionIdColumn[tenantKey] = true;
-            return exists;
-        }
-
         /// <summary>
         /// Ishlab chiqarishning (o'chirilmagan) avtomatik kirimlari: avval INCOMES.ProductionID bo'yicha (indeksli, aniq);
         /// topilmasa — zaxira sifatida izohdagi "ProductionID:x" markeri (aniq moslik bilan; backfill qilinmagan eski yozuvlar).
@@ -97,13 +78,13 @@ namespace tahsinERP.Services
             if (productionId <= 0)
                 return new List<int>();
 
-            if (IncomesHaveProductionIdColumn(db))
-            {
-                var byColumn = db.Database.SqlQuery<int>(
-                    "SELECT ID FROM dbo.INCOMES WHERE ProductionID = @p0 AND ISNULL(IsDeleted, 0) = 0", productionId).ToList();
-                if (byColumn.Count > 0)
-                    return byColumn;
-            }
+            // INCOMES.ProductionID endi EDMX'da (MES-P12) — xom SQL va COL_LENGTH tekshiruvi kerak emas (SRM-M03)
+            var byColumn = db.INCOMES
+                .Where(i => i.ProductionID == productionId && i.IsDeleted != true)
+                .Select(i => i.ID)
+                .ToList();
+            if (byColumn.Count > 0)
+                return byColumn;
 
             var marker = ProductionIncomeMarker + productionId;
             return db.INCOMES
@@ -115,18 +96,12 @@ namespace tahsinERP.Services
                 .ToList();
         }
 
-        /// <summary>Ushbu ishlab chiqarish uchun avtomatik kirim yaratilganmi.</summary>
-        public static bool HasProductionIncome(DBTHSNEntities db, int productionId)
-        {
-            return FindProductionIncomeIds(db, productionId).Count > 0;
-        }
-
         /// <summary>
-        /// Ishlab chiqarish tahrirlanganda eski kirim/DLOC lotini to'liq bekor qiladi:
-        /// LOT_LOCATIONS qatorlarini o'chiradi, lotni va kirim hujjatini "deleted" deb belgilaydi
-        /// va PRODUCT_STOCKS dan faqat hali ishlatilmagan (QtyConsumed == 0) qismini ayiradi.
-        /// Shu yo'l bilan DLOC ledger va PRODUCT_STOCKS doim mos keladi (aggregate'ni to'g'ridan-to'g'ri
-        /// tuzatib, DLOC'ni eskirgan holatda qoldirish o'rniga).
+        /// Ishlab chiqarish tahrirlanganda/o'chirilganda eski avtomatik kirimni to'liq bekor qiladi:
+        /// <see cref="StockLedger.ReverseIncomeReceipt"/> (lot joylari o'chiriladi, lot bekor qilinadi, qoldiq ayiriladi;
+        /// lotdan chiqim qilingan bo'lsa — xato) va kirim hujjati "deleted" deb belgilanadi.
+        /// SRM-M03: avval LOT_LOCATIONS/INCOME_LOTS EF orqali o'zgartirilardi, xuddi shu kontekstda xom SQL ledger
+        /// bilan aralashib, kuzatilayotgan entity'lar eskirardi.
         /// </summary>
         public static void ReverseProductionIncome(DBTHSNEntities db, int productionId, int productId,
             int warehouseId, string userEmail)
@@ -139,45 +114,24 @@ namespace tahsinERP.Services
             if (!incomeIds.Any())
                 return;
 
-            var lots = db.INCOME_LOTS
-                .Where(l => incomeIds.Contains(l.IncomeID) && l.ProductID == productId
-                    && l.WarehouseID == warehouseId && !l.IsDeleted)
-                .ToList();
-
-            foreach (var lot in lots)
-            {
-                if (lot.QtyConsumed > 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Lot {lot.LotNo} qisman ishlatilgan ({lot.QtyConsumed} dona chiqarilgan), shu sabab " +
-                        "bu ishlab chiqarish yozuvini tahrirlash mumkin emas.");
-                }
-
-                var locations = db.LOT_LOCATIONS.Where(ll => ll.LotID == lot.ID).ToList();
-                var totalAvailable = locations.Sum(ll => ll.QtyAvailable);
-
-                foreach (var loc in locations)
-                {
-                    db.LOT_LOCATIONS.Remove(loc);
-                }
-
-                lot.QtyConsumed = lot.QtyReceived;
-                lot.IsDeleted = true;
-
-                if (totalAvailable > 0)
-                {
-                    // Lot joylaridagi miqdor allaqachon qoldiq birligida (unitId = 0 — konversiyasiz)
-                    StockLedger.Adjust(db, warehouseId, productId, -(double)totalAvailable);
-                }
-            }
-
             foreach (var incomeId in incomeIds)
             {
                 var income = db.INCOMES.Find(incomeId);
-                if (income != null)
+                if (income == null)
+                    continue;
+
+                try
                 {
-                    income.IsDeleted = true;
+                    if (income.RecieveStatus == true)
+                        StockLedger.ReverseIncomeReceipt(db, income.ID, income.ReceivingWHID);
                 }
+                catch (WarehouseDlocException ex) when (ex.ErrorCode == "LOT_CONSUMED")
+                {
+                    throw new InvalidOperationException(
+                        ex.Message + " Shu sabab bu ishlab chiqarish yozuvini tahrirlash mumkin emas.", ex);
+                }
+
+                income.IsDeleted = true;
             }
 
             db.SaveChanges();
@@ -328,6 +282,7 @@ namespace tahsinERP.Services
                         CurrencyID = GetDefaultCurrencyId(db),
                         IsDeleted = false,
                         RecieveStatus = true,
+                        ProductionID = productionID.HasValue && productionID.Value > 0 ? productionID : null, // MES-P12 FK
                         Description = productionID.HasValue && productionID.Value > 0
                             ? $"Ishlab chiqarishdan kirim: {product.PNo} - {product.Name}. ProductionID:{productionID.Value}"
                             : $"Ishlab chiqarishdan kirim: {product.PNo} - {product.Name}"
@@ -344,14 +299,6 @@ namespace tahsinERP.Services
                     db.INCOMES.Add(income);
                     db.INCOME_PRODUCTS.Add(incomeProduct);
                     db.SaveChanges();
-
-                    // MES-P12: ishlab chiqarishga FK bog'lanish (izohdagi marker ham saqlanadi). EDMX'da property
-                    // qo'shilgunga qadar xom SQL bilan; ustun yo'q bo'lsa (migratsiyadan oldin) — o'tkazib yuboriladi.
-                    if (productionID.HasValue && productionID.Value > 0 && IncomesHaveProductionIdColumn(db))
-                    {
-                        db.Database.ExecuteSqlCommand(
-                            "UPDATE dbo.INCOMES SET ProductionID = @p0 WHERE ID = @p1", productionID.Value, income.ID);
-                    }
 
                     var locations = DlocFifoDataAccess.GetLocations(db, productionWH.ID, activeOnly: true);
                     StockLedger.ReceiveLine(db, productionWH.ID, income.ID, incomeProduct.ID, productID,
@@ -720,18 +667,6 @@ namespace tahsinERP.Services
                     $"Xatolik: {ex.Message}, InvoiceID: {invoiceID}");
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Get current stock in Sales Warehouse for a product
-        /// </summary>
-        public static double GetSalesStock(int productID, DBTHSNEntities db)
-        {
-            var salesWH = GetSalesWarehouse(db);
-            if (salesWH == null)
-                return 0;
-
-            return InventoryValuationService.GetQty(db, salesWH.ID, productID);
         }
 
         /// <summary>

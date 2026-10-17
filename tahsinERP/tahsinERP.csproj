@@ -951,7 +951,6 @@
     <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\ProductionLotService.cs" />
     <Compile Include="Services\WarehouseMonthlyReportService.cs" />
-    <Compile Include="Services\WasteHandlingService.cs" />
     <Compile Include="Services\WordDocumentConverterService.cs" />
     <Compile Include="Services\WordDocumentImageService.cs" />
     <Compile Include="ViewModels\BOM\BomDetailsViewModel.cs" />
