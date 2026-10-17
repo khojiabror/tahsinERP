@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Services.Stock;
 
 namespace tahsinERP.Services
 {
@@ -21,6 +22,8 @@ namespace tahsinERP.Services
             public double LedgerQty { get; set; }
             public double UnassignedQty { get; set; }
             public string Label { get; set; }
+            /// <summary>Kirim "lot"lari (qabul qilingan kirimlar) mavjud — lot bo'yicha chiqim kerak.</summary>
+            public bool HasIncomeLots { get; set; }
         }
 
         public static async Task<LegacyIssueInfo> GetLegacyIssueInfoAsync(DBTHSNEntities db, int warehouseId, int productId)
@@ -28,9 +31,12 @@ namespace tahsinERP.Services
             var info = new LegacyIssueInfo();
             var incomeLots = await LotTrackingService.GetAvailableIncomeLotsAsync(warehouseId, productId, db);
             if (incomeLots.Any())
+            {
+                info.HasIncomeLots = true;
                 return info;
+            }
 
-            info.StockQty = InventoryValuationService.GetQty(db, warehouseId, productId);
+            info.StockQty = StockLedger.GetOnHand(db, warehouseId, productId);
             if (info.StockQty <= QtyEpsilon)
                 return info;
 
@@ -63,8 +69,7 @@ namespace tahsinERP.Services
             var info = await GetLegacyIssueInfoAsync(db, warehouseId, productId);
             if (!info.CanUseLegacy)
             {
-                var incomeLots = await LotTrackingService.GetAvailableIncomeLotsAsync(warehouseId, productId, db);
-                if (incomeLots.Any())
+                if (info.HasIncomeLots)
                     return "Kirim lotini tanlang.";
                 if (info.StockQty <= QtyEpsilon)
                     return "Omborda qoldiq yo'q.";
@@ -91,7 +96,7 @@ namespace tahsinERP.Services
                 if (err != null)
                     throw new InvalidOperationException(err);
 
-                WarehouseFlowService.ApplyIncomeIssueFromStock(db, warehouseId, productId, amount, unitId);
+                StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
                 return;
             }
 
@@ -110,7 +115,7 @@ namespace tahsinERP.Services
                     var info = await GetLegacyIssueInfoAsync(db, warehouseId, productId);
                     if (info.CanUseLegacy && amount <= info.UnassignedQty + QtyEpsilon)
                     {
-                        WarehouseFlowService.ApplyIncomeIssueFromStock(db, warehouseId, productId, amount, unitId);
+                        StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
                         return;
                     }
 
@@ -120,14 +125,14 @@ namespace tahsinERP.Services
                 var legacyErr = await ValidateLegacyIssueAsync(db, warehouseId, productId, amount);
                 if (legacyErr == null)
                 {
-                    WarehouseFlowService.ApplyIncomeIssueFromStock(db, warehouseId, productId, amount, unitId);
+                    StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
                     return;
                 }
 
                 throw new InvalidOperationException(legacyErr);
             }
 
-            WarehouseFlowService.ApplyIncomeIssueFromStock(db, warehouseId, productId, amount, unitId);
+            StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
         }
 
         /// <summary>
@@ -139,7 +144,7 @@ namespace tahsinERP.Services
             if (amount <= QtyEpsilon)
                 return;
 
-            var stockQty = InventoryValuationService.GetQty(db, warehouseId, productId);
+            var stockQty = StockLedger.GetOnHand(db, warehouseId, productId);
             if (stockQty + QtyEpsilon < amount)
             {
                 throw new InvalidOperationException(
@@ -162,7 +167,7 @@ namespace tahsinERP.Services
                     var unassigned = Math.Max(0, stockQty - ledger);
                     if (amount <= unassigned + QtyEpsilon)
                     {
-                        WarehouseFlowService.ApplyIncomeIssueFromStock(db, warehouseId, productId, amount, unitId);
+                        StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
                         return;
                     }
 
@@ -174,14 +179,14 @@ namespace tahsinERP.Services
                 var legacyErr = await ValidateLegacyIssueAsync(db, warehouseId, productId, amount);
                 if (legacyErr == null)
                 {
-                    WarehouseFlowService.ApplyIncomeIssueFromStock(db, warehouseId, productId, amount, unitId);
+                    StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
                     return;
                 }
 
                 throw new InvalidOperationException(legacyErr);
             }
 
-            WarehouseFlowService.ApplyIncomeIssueFromStock(db, warehouseId, productId, amount, unitId);
+            StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
         }
 
         /// <summary>Sync oqimlar uchun (TransferProductionToSales).</summary>
@@ -239,7 +244,7 @@ WHERE ID = @p0 AND QtyConsumed >= @p1";
                 }
             }
 
-            WarehouseFlowService.ApplyIncomeReceiveToStock(db, warehouseId, productId, amount, unitId);
+            StockLedger.Increase(db, warehouseId, productId, amount, unitId);
         }
     }
 }

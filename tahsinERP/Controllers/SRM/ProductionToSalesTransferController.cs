@@ -165,35 +165,27 @@ namespace tahsinERP.Controllers.SRM
                             transferDocument.InputStream.Read(documentBytes, 0, transferDocument.ContentLength);
                         }
 
-                        // DocNo: use GetNextTransferDocNo when empty (TRNSF_ddmmyy_N format)
-                        var transferDocNo = viewModel.TransferDocNo;
-                        if (string.IsNullOrWhiteSpace(transferDocNo))
-                        {
-                            transferDocNo = WarehouseFlowService.GetNextTransferDocNo(db, viewModel.TransferDate);
-                        }
-
-                        // Process har bir transfer line
-                        foreach (var line in lines.Where(l => l.Quantity > 0))
-                        {
-                            var allocations = string.IsNullOrWhiteSpace(line.LotAllocations)
-                                ? null
-                                : ProductionLotService.ParseLotAllocations(line.LotAllocations);
-                            if (allocations == null || !allocations.Any())
+                        // Barcha qatorlar BITTA chiqim + BITTA kirim hujjatida, bitta tranzaksiyada (SRM-B10).
+                        // Hujjat raqami (bo'sh bo'lsa) tranzaksiya ichida qulf bilan beriladi.
+                        var transferLines = lines
+                            .Where(l => l.Quantity > 0)
+                            .Select(l => new WarehouseFlowService.ProductionTransferLine
                             {
-                                throw new Exception("Lot tanlanmagan. Sifat nazoratisiz o'tkazishga ruxsat yo'q.");
-                            }
-                            WarehouseFlowService.TransferProductionToSales(
-                                line.ProductID,
-                                line.Quantity,
-                                db,
-                                User.Identity.Name,
-                                transferDocNo,
-                                documentBytes,
-                                viewModel.Description,
-                                allocations,
-                                viewModel.TransferDate
-                            );
-                        }
+                                ProductID = l.ProductID,
+                                Quantity = l.Quantity,
+                                LotAllocations = ProductionLotService.ParseLotAllocations(l.LotAllocations)
+                            })
+                            .ToList();
+
+                        var expense = WarehouseFlowService.TransferProductionToSales(
+                            db,
+                            transferLines,
+                            User.Identity.Name,
+                            string.IsNullOrWhiteSpace(viewModel.TransferDocNo) ? null : viewModel.TransferDocNo.Trim(),
+                            documentBytes,
+                            viewModel.Description,
+                            viewModel.TransferDate);
+                        var transferDocNo = expense.DocNo;
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductionToSalesTransfer", "Create",
                             $"Ishlab chiqarishdan sotuv omboriga o'tkazma yaratildi. Hujjat raqami: {transferDocNo}");
@@ -281,11 +273,18 @@ namespace tahsinERP.Controllers.SRM
                 }
 
                 // Olish corresponding INCOME hujjat (INCOME with INCOME_PRODUCTS and UNIT)
-                var income = await db.INCOMES
+                // Bog'langan kirim izohdagi "EXPENS ID: n" bo'yicha aniq topiladi
+                // (avval DocNo.Contains ishlatilardi: TRNSF_..._1 → TRNSF_..._10-IN ga ham mos kelardi).
+                var expenseMarker = "EXPENS ID: " + expense.ID;
+                var incomeCandidates = await db.INCOMES
                     .Include(i => i.INCOME_PRODUCTS.Select(p => p.PRODUCT))
                     .Include(i => i.INCOME_PRODUCTS.Select(p => p.UNIT))
-                    .Include(i => i.WRHS_INCOME_DOCS)
-                    .FirstOrDefaultAsync(i => i.DocNo.Contains(expense.DocNo) && i.ReceivingWHID == expense.ReceiverWhID);
+                    .Where(i => i.ReceivingWHID == expense.ReceiverWhID && i.IsDeleted != true
+                        && (i.Description.Contains(expenseMarker) || i.DocNo == expense.DocNo + "-IN"))
+                    .ToListAsync();
+                var income = incomeCandidates.FirstOrDefault(i =>
+                                 tahsinERP.Services.Stock.DocumentMarkers.Matches(i.Description, "EXPENS ID: ", expense.ID))
+                             ?? (incomeCandidates.Count == 1 ? incomeCandidates[0] : null);
 
                 ViewBag.CorrespondingIncome = income;
 

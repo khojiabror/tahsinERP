@@ -554,7 +554,6 @@
     <Compile Include="Controllers\SRM\PRequisitionsController.cs" />
     <Compile Include="Controllers\SRM\ProductionControlController.cs" />
     <Compile Include="Controllers\SRM\ProductionToSalesTransferController.cs" />
-    <Compile Include="Controllers\SRM\ProductStockController.cs" />
     <Compile Include="Controllers\SRM\PurchaseOrderTrackingController.cs" />
     <Compile Include="Controllers\SRM\SupplierBaseController.cs" />
     <Compile Include="Controllers\SRM\TenderController.cs" />
@@ -1074,6 +1073,8 @@
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
+    <Compile Include="Services\Stock\DocumentMarkers.cs" />
+    <Compile Include="Services\Stock\StockLedger.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\ExpenseStockIssueHelper.cs" />
     <Compile Include="Services\DlocFifo\DlocFifoSchema.cs" />
@@ -1082,7 +1083,6 @@
     <Compile Include="Services\DlocFifo\DlocCapacityGuard.cs" />
     <Compile Include="Services\DlocFifo\FifoAllocatorService.cs" />
     <Compile Include="Services\DlocFifo\LocationLotStockLedger.cs" />
-    <Compile Include="Services\DlocFifo\StockLedgerRollupService.cs" />
     <Compile Include="Services\DlocFifo\InventoryValuationService.cs" />
     <Compile Include="Services\DlocFifo\DlocFifoReporting.cs" />
     <Compile Include="Services\DlocFifo\WarehouseDlocException.cs" />

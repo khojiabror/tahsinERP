@@ -10,6 +10,7 @@ using OfficeOpenXml;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Services.Stock;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -654,150 +655,151 @@ namespace tahsinERP.Controllers
                             return View(model);
                         }
 
+                        // DLOC yoqilgan omborda kirim/chiqim ledger orqali yoziladi (hisobotlar ham shundan o'qiydi).
+                        var requireDloc = StockLedger.IsDlocWarehouse(db, model.WarehouseId);
+
+                        // SRM-B09: joriy qoldiq — PRODUCT_STOCKS (ledger + joylashtirilmagan). Avval DLOC omborda faqat
+                        // ledger olinardi: joylashtirilmagan 100 ta bor omborda 100 sanalsa +100 kirim qilinib, qoldiq 200
+                        // bo'lib qolardi. Joylashtirilmagan qoldiq bor mahsulot bo'yicha inventarizatsiya rad etiladi.
+                        if (requireDloc)
+                        {
+                            var unassignedErrors = new List<string>();
+                            var onHandMap = StockLedger.GetOnHand(db, model.WarehouseId,
+                                parsedRows.Select(r => productMap[r.ProductPNo.Trim().ToUpperInvariant()].ID));
+                            foreach (var parsedRow in parsedRows)
+                            {
+                                var product = productMap[parsedRow.ProductPNo.Trim().ToUpperInvariant()];
+                                double onHand;
+                                onHandMap.TryGetValue(product.ID, out onHand);
+                                if (onHand <= StockLedger.Epsilon)
+                                    continue;
+                                var ledgerQty = (double)DlocFifoDataAccess.GetLedgerQty(db, model.WarehouseId, product.ID);
+                                var unassigned = onHand - ledgerQty;
+                                if (unassigned > StockLedger.Epsilon)
+                                {
+                                    unassignedErrors.Add($"{parsedRow.RowNumber}-qator: {product.PNo} — DLOC ga joylashtirilmagan qoldiq {unassigned:N3}. Avval «DLOC ga joylashtirish» sahifasida joylashtiring.");
+                                }
+                            }
+
+                            if (unassignedErrors.Any())
+                            {
+                                ViewBag.ErrorDetails = unassignedErrors;
+                                ModelState.AddModelError("", "Ombordagi ayrim qoldiqlar DLOC ga joylashtirilmagan. Inventarizatsiyadan oldin joylashtiring.");
+                                await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
+                                return View(model);
+                            }
+                        }
+
                         using (var transaction = db.Database.BeginTransaction())
                         {
                             try
                             {
                                 var currencyId = await GetDefaultCurrencyIdAsync(db);
                                 var now = DateTime.Now;
-                                // Kirim/chiqim hujjat nomi: INV_{oy}_{kun}_IN|OUT_{ombor}_{vaqt}_{tartib} — bir sessiyada noyob
-                                var invMonthDay = $"{now.Month:00}_{now.Day:00}";
-                                var invTimeToken = now.ToString("HHmmssfff");
-                                int incomeSeq = 1;
-                                int expenseSeq = 1;
+                                // Bitta inventarizatsiya = bitta INV kirim (ortiqcha) + bitta INV chiqim (kamomad), N qatorli
+                                // (avval har mahsulotga alohida hujjat va 2 ta SaveChanges — SRM-P06).
+                                var invToken = $"{now.Month:00}_{now.Day:00}_{{0}}_{model.WarehouseId}_{now:HHmmssfff}";
 
-                                // Merge existing duplicates first, so every product has only one stock row in this warehouse.
-                                await NormalizeWarehouseStocksAsync(db, model.WarehouseId, parsedRows.Select(r => productMap[r.ProductPNo.Trim().ToUpperInvariant()].ID));
-
-                                // DLOC yoqilgan ombor uchun kirim/chiqim ledger orqali yoziladi (hisobotlar ham shundan o'qiydi).
-                                var requireDloc = DlocFifoSchema.IsEnabled(db)
-                                    && DlocFifoDataAccess.WarehouseHasLocations(db, model.WarehouseId);
-
+                                var plusLines = new List<Tuple<InventoryAdjustmentRow, int, double, double, int>>();
+                                var minusLines = new List<Tuple<InventoryAdjustmentRow, int, double, double, int>>();
                                 foreach (var parsedRow in parsedRows)
                                 {
-                                    var key = parsedRow.ProductPNo.Trim().ToUpperInvariant();
-                                    var product = productMap[key];
-                                    var qty = parsedRow.Quantity;
+                                    var product = productMap[parsedRow.ProductPNo.Trim().ToUpperInvariant()];
                                     var unitId = product.UnitID > 0 ? product.UnitID : 1;
 
-                                    var stock = await db.PRODUCT_STOCKS
-                                        .FirstOrDefaultAsync(s => s.WHID == model.WarehouseId && s.ProductID == product.ID);
-
-                                    // DLOC omborda joriy qoldiq ledgerdan, aks holda umumiy qoldiqdan olinadi.
-                                    var oldQty = requireDloc
-                                        ? (double)DlocFifoDataAccess.GetLedgerQty(db, model.WarehouseId, product.ID)
-                                        : (stock?.Amount ?? 0);
-                                    var diff = qty - oldQty;
-
-                                    if (Math.Abs(diff) < 0.000001)
-                                    {
+                                    // Qator tranzaksiya oxirigacha qulflanadi: hisoblangan farq parallel harakat bilan buzilmaydi
+                                    var oldQty = StockLedger.GetOnHand(db, model.WarehouseId, product.ID, lockForUpdate: true);
+                                    var diff = parsedRow.Quantity - oldQty;
+                                    if (Math.Abs(diff) < StockLedger.Epsilon)
                                         continue;
-                                    }
 
                                     // Baholash: oxirgi kirim (xarid) narxi — balans hisoboti ham shu narxda baholaydi.
                                     var piecePrice = await GetLatestIncomePriceAsync(db, product.ID);
+                                    var line = Tuple.Create(parsedRow, product.ID, Math.Abs(diff), piecePrice, unitId);
+                                    if (diff > 0) plusLines.Add(line); else minusLines.Add(line);
+                                }
 
-                                    if (diff > 0)
+                                if (plusLines.Any())
+                                {
+                                    var income = new INCOME
                                     {
-                                        var lineTotal = diff * piecePrice;
-                                        var income = new INCOME
-                                        {
-                                            DocNo = $"INV_{invMonthDay}_IN_{model.WarehouseId}_{invTimeToken}_{incomeSeq++}",
-                                            ReceivingWHID = model.WarehouseId,
-                                            SenderWHID = null,
-                                            IssueDateTime = now,
-                                            CurrencyID = currencyId,
-                                            Amount = diff,
-                                            TotalPrice = lineTotal,
-                                            Description = $"Inventarizatsiya qo'shimcha kirim: {product.PNo}",
-                                            RecieveStatus = true,
-                                            IsDeleted = false
-                                        };
-                                        db.INCOMES.Add(income);
-                                        await db.SaveChangesAsync();
+                                        DocNo = "INV_" + string.Format(invToken, "IN"),
+                                        ReceivingWHID = model.WarehouseId,
+                                        SenderWHID = null,
+                                        IssueDateTime = now,
+                                        CurrencyID = currencyId,
+                                        Amount = plusLines.Sum(l => l.Item3),
+                                        TotalPrice = plusLines.Sum(l => l.Item3 * l.Item4),
+                                        Description = $"Inventarizatsiya qo'shimcha kirim: {plusLines.Count} ta mahsulot",
+                                        RecieveStatus = true,
+                                        IsDeleted = false
+                                    };
+                                    db.INCOMES.Add(income);
+                                    var incomeLines = plusLines.Select(l => new INCOME_PRODUCTS
+                                    {
+                                        INCOME = income,
+                                        ProductID = l.Item2,
+                                        Amount = l.Item3,
+                                        PiecePrice = l.Item4,
+                                        TotalPrice = l.Item3 * l.Item4,
+                                        UnitID = l.Item5,
+                                        Comment = "Inventarizatsiya"
+                                    }).ToList();
+                                    db.INCOME_PRODUCTS.AddRange(incomeLines);
+                                    await db.SaveChangesAsync();
 
-                                        var incomeProduct = new INCOME_PRODUCTS
-                                        {
-                                            IncomeID = income.ID,
-                                            ProductID = product.ID,
-                                            Amount = diff,
-                                            PiecePrice = piecePrice,
-                                            TotalPrice = lineTotal,
-                                            UnitID = unitId,
-                                            Comment = "Inventarizatsiya"
-                                        };
-                                        db.INCOME_PRODUCTS.Add(incomeProduct);
-                                        await db.SaveChangesAsync();
-
+                                    for (int i = 0; i < plusLines.Count; i++)
+                                    {
+                                        var l = plusLines[i];
+                                        int? locationId = null;
                                         if (requireDloc)
                                         {
                                             // Qo'shilgan miqdor DLOC ga avtomatik joylashtiriladi (ledger + umumiy qoldiq yangilanadi).
-                                            var locationId = ResolveAutoPutawayLocation(db, model.WarehouseId, product.ID, (decimal)diff);
+                                            locationId = ResolveAutoPutawayLocation(db, model.WarehouseId, l.Item2, (decimal)l.Item3);
                                             if (locationId <= 0)
                                             {
-                                                throw new Exception($"Mahsulot {product.PNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
+                                                throw new Exception($"Mahsulot {l.Item1.ProductPNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
                                             }
+                                        }
 
-                                            LocationLotStockLedger.TryReceive(
-                                                db, model.WarehouseId, income.ID, incomeProduct.ID, product.ID,
-                                                (decimal)diff, locationId, now, unitId, "INV");
-                                        }
-                                        else
-                                        {
-                                            if (stock == null)
-                                            {
-                                                stock = WarehouseFlowService.GetOrCreateStockRow(db, model.WarehouseId, product.ID, unitId);
-                                            }
-                                            stock.Amount = qty;
-                                        }
+                                        StockLedger.ReceiveLine(db, model.WarehouseId, income.ID, incomeLines[i].ID, l.Item2,
+                                            l.Item3, l.Item5, locationId, now, "INV");
                                     }
-                                    else
+                                }
+
+                                if (minusLines.Any())
+                                {
+                                    var expense = new EXPENS
                                     {
-                                        var outQty = Math.Abs(diff);
-                                        var lineTotal = outQty * piecePrice;
-                                        var expense = new EXPENS
-                                        {
-                                            DocNo = $"INV_{invMonthDay}_OUT_{model.WarehouseId}_{invTimeToken}_{expenseSeq++}",
-                                            SenderWHID = model.WarehouseId,
-                                            ReceiverWhID = null,
-                                            IssueDateTime = now,
-                                            CurrencyID = currencyId,
-                                            Amount = outQty,
-                                            TotalPrice = lineTotal,
-                                            Description = $"Inventarizatsiya kamaytirish chiqimi: {product.PNo}",
-                                            SendStatus = true,
-                                            IsDeleted = false
-                                        };
-                                        db.EXPENSES.Add(expense);
-                                        await db.SaveChangesAsync();
+                                        DocNo = "INV_" + string.Format(invToken, "OUT"),
+                                        SenderWHID = model.WarehouseId,
+                                        ReceiverWhID = null,
+                                        IssueDateTime = now,
+                                        CurrencyID = currencyId,
+                                        Amount = minusLines.Sum(l => l.Item3),
+                                        TotalPrice = minusLines.Sum(l => l.Item3 * l.Item4),
+                                        Description = $"Inventarizatsiya kamaytirish chiqimi: {minusLines.Count} ta mahsulot",
+                                        SendStatus = true,
+                                        IsDeleted = false
+                                    };
+                                    db.EXPENSES.Add(expense);
+                                    var expenseLines = minusLines.Select(l => new EXPENSE_PRODUCTS
+                                    {
+                                        EXPENS = expense,
+                                        ProductID = l.Item2,
+                                        Amount = l.Item3,
+                                        PiecePrice = l.Item4,
+                                        TotalPrice = l.Item3 * l.Item4,
+                                        UnitID = l.Item5,
+                                        Comment = "Inventarizatsiya"
+                                    }).ToList();
+                                    db.EXPENSE_PRODUCTS.AddRange(expenseLines);
+                                    await db.SaveChangesAsync();
 
-                                        var expenseProduct = new EXPENSE_PRODUCTS
-                                        {
-                                            ExpenseID = expense.ID,
-                                            ProductID = product.ID,
-                                            Amount = outQty,
-                                            PiecePrice = piecePrice,
-                                            TotalPrice = lineTotal,
-                                            UnitID = unitId,
-                                            Comment = "Inventarizatsiya"
-                                        };
-                                        db.EXPENSE_PRODUCTS.Add(expenseProduct);
-                                        await db.SaveChangesAsync();
-
-                                        if (requireDloc)
-                                        {
-                                            // Kamaygan miqdor DLOC dan FIFO bo'yicha chiqariladi (ledger + umumiy qoldiq yangilanadi).
-                                            await ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
-                                                db, model.WarehouseId, product.ID, outQty, unitId, expenseProduct.ID);
-                                        }
-                                        else
-                                        {
-                                            if (stock == null)
-                                            {
-                                                stock = WarehouseFlowService.GetOrCreateStockRow(db, model.WarehouseId, product.ID, unitId);
-                                            }
-                                            stock.Amount = qty;
-                                        }
+                                    // Kamomad DLOC omborda FIFO bo'yicha, oddiy omborda umumiy qoldiqdan chiqariladi.
+                                    foreach (var ep in expenseLines)
+                                    {
+                                        await StockLedger.IssueLineAsync(db, model.WarehouseId, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
                                     }
                                 }
 
@@ -1316,39 +1318,5 @@ namespace tahsinERP.Controllers
             public string UnitName { get; set; }
         }
 
-        /// <summary>
-        /// Ensures single stock row per (warehouse, product) by summing duplicates and removing extras.
-        /// </summary>
-        private async Task NormalizeWarehouseStocksAsync(DBTHSNEntities db, int warehouseId, IEnumerable<int> productIds)
-        {
-            var ids = (productIds ?? Enumerable.Empty<int>()).Distinct().ToList();
-            if (!ids.Any()) return;
-
-            var stocks = await db.PRODUCT_STOCKS
-                .Where(s => s.WHID == warehouseId && ids.Contains(s.ProductID))
-                .OrderBy(s => s.ID)
-                .ToListAsync();
-
-            var duplicateGroups = stocks
-                .GroupBy(s => s.ProductID)
-                .Where(g => g.Count() > 1)
-                .ToList();
-
-            foreach (var group in duplicateGroups)
-            {
-                var keeper = group.First();
-                keeper.Amount = group.Sum(x => x.Amount);
-
-                foreach (var duplicate in group.Skip(1))
-                {
-                    db.PRODUCT_STOCKS.Remove(duplicate);
-                }
-            }
-
-            if (duplicateGroups.Any())
-            {
-                await db.SaveChangesAsync();
-            }
-        }
     }
 }

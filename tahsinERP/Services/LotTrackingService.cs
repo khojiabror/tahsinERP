@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
+using tahsinERP.Services.Stock;
 
 namespace tahsinERP.Services
 {
@@ -14,42 +15,48 @@ namespace tahsinERP.Services
     public static class LotTrackingService
     {
         /// <summary>
-        /// Berilgan ombordagi mahsulot uchun mavjud "lot"lar (Income hujjatlar) - FIFO tartibida (eng eski birinchi).
+        /// Berilgan ombordagi mahsulot uchun mavjud "lot"lar (QABUL QILINGAN kirim hujjatlari) - FIFO tartibida (eng eski birinchi).
+        /// Avval har kirim uchun alohida <c>LIKE '%IncomeID:x%'</c> so'rovi ketardi (N+1, prefiks to'qnashuvi:
+        /// IncomeID:12 → 120, 123 ham hisoblanardi — SRM-B06/P03). Endi 2 ta so'rov va aniq ID moslik.
         /// </summary>
         public static async Task<List<IncomeLotItem>> GetAvailableIncomeLotsAsync(
             int warehouseId, int productId, DBTHSNEntities db)
         {
-            var incomeProducts = await db.INCOME_PRODUCTS
-                .Include("INCOME")
+            var receipts = await db.INCOME_PRODUCTS
+                .AsNoTracking()
                 .Where(ip => ip.ProductID == productId
                     && ip.INCOME.ReceivingWHID == warehouseId
+                    && ip.INCOME.RecieveStatus == true
                     && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false))
-                .ToListAsync();
-
-            var grouped = incomeProducts
-                .GroupBy(ip => ip.IncomeID)
+                .GroupBy(ip => new { ip.IncomeID, ip.INCOME.DocNo, ip.INCOME.IssueDateTime })
                 .Select(g => new
                 {
-                    IncomeID = g.Key,
-                    Income = g.First().INCOME,
+                    g.Key.IncomeID,
+                    g.Key.DocNo,
+                    g.Key.IssueDateTime,
                     TotalAmount = g.Sum(x => x.Amount),
-                    UnitID = g.First().UnitID
+                    UnitID = g.Min(x => x.UnitID)
                 })
-                .OrderBy(x => x.Income.IssueDateTime)
-                .ToList();
+                .ToListAsync();
+
+            if (receipts.Count == 0)
+                return new List<IncomeLotItem>();
+
+            var consumedByIncome = await GetConsumedByIncomeAsync(productId, db);
 
             var result = new List<IncomeLotItem>();
-            foreach (var g in grouped)
+            foreach (var g in receipts.OrderBy(x => x.IssueDateTime).ThenBy(x => x.IncomeID))
             {
-                var consumed = await GetConsumedFromIncomeAsync(g.IncomeID, productId, db);
+                double consumed;
+                consumedByIncome.TryGetValue(g.IncomeID, out consumed);
                 var remaining = Math.Max(0, g.TotalAmount - consumed);
                 if (remaining <= 0) continue;
 
                 result.Add(new IncomeLotItem
                 {
                     IncomeID = g.IncomeID,
-                    DocNo = g.Income.DocNo ?? "",
-                    IssueDateTime = g.Income.IssueDateTime,
+                    DocNo = g.DocNo ?? "",
+                    IssueDateTime = g.IssueDateTime,
                     OriginalAmount = g.TotalAmount,
                     RemainingAmount = remaining,
                     UnitID = g.UnitID
@@ -59,18 +66,24 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// EXPENSE_PRODUCTS.Comment dan "IncomeID:X" formatida saqlangan bo'lsa, shu Income dan chiqim qilingan miqdorni hisoblaydi.
+        /// Mahsulotning "IncomeID:X" izohli (o'chirilmagan) chiqim qatorlari — kirim ID bo'yicha jami chiqim.
         /// </summary>
-        private static async Task<double> GetConsumedFromIncomeAsync(int incomeId, int productId, DBTHSNEntities db)
+        private static async Task<Dictionary<int, double>> GetConsumedByIncomeAsync(int productId, DBTHSNEntities db)
         {
-            var prefix = "IncomeID:" + incomeId;
-            var consumed = await db.EXPENSE_PRODUCTS
+            var rows = await db.EXPENSE_PRODUCTS
+                .AsNoTracking()
                 .Where(ep => ep.ProductID == productId
                     && ep.Comment != null
-                    && ep.Comment.Contains(prefix)
-                    && (ep.EXPENS.IsDeleted == false))
-                .SumAsync(ep => (double?)ep.Amount) ?? 0;
-            return consumed;
+                    && ep.Comment.Contains(DocumentMarkers.IncomeId)
+                    && ep.EXPENS.IsDeleted == false)
+                .Select(ep => new { ep.Comment, ep.Amount })
+                .ToListAsync();
+
+            return rows
+                .Select(r => new { IncomeID = ParseIncomeIdFromComment(r.Comment), r.Amount })
+                .Where(r => r.IncomeID.HasValue)
+                .GroupBy(r => r.IncomeID.Value)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
         }
 
         /// <summary>
