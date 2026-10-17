@@ -3385,6 +3385,8 @@
     <Content Include="Views\JobDesc\Delete.cshtml" />
     <Content Include="Views\JobDesc\Details.cshtml" />
     <Content Include="Views\JobDesc\Edit.cshtml" />
+    <Content Include="Views\JobDesc\_Form.cshtml" />
+    <Content Include="Views\JobDesc\_FormScripts.cshtml" />
     <Content Include="Views\JobDesc\Index.cshtml" />
     <Content Include="Views\PRequisitions\Create.cshtml" />
     <Content Include="Views\PRequisitions\Details.cshtml" />
