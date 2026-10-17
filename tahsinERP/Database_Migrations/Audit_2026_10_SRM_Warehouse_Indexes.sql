@@ -11,6 +11,8 @@
    shu yerdagi UNIQUE indeks tavsiya etiladi — ikkalasi bir vaqtda kerak emas.
    ===================================================================== */
 SET NOCOUNT ON;
+SET QUOTED_IDENTIFIER ON;   -- INCOME_LOTS hisoblanadigan ustuni va filtrlangan indekslar uchun shart (sqlcmd standarti OFF)
+SET ANSI_NULLS ON;
 
 /* 1. PRODUCT_STOCKS: (ombor, mahsulot) bo'yicha yagona qator — SRM-B01.
       StockLedger.Adjust shu kalit bo'yicha UPDLOCK+HOLDLOCK bilan ishlaydi; unique indeks
