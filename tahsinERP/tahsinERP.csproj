@@ -1177,6 +1177,7 @@
     <Compile Include="ViewModels\Tannarx\TannarxDetailsViewModel.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxEditViewModel.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxIndexViewModel.cs" />
+    <Compile Include="ViewModels\Tannarx\TannarxMonthSourcesViewModel.cs" />
     <Compile Include="ViewModels\TaskChangeStatusViewModel.cs" />
     <Compile Include="ViewModels\TaskDashboardViewModel.cs" />
     <Compile Include="ViewModels\TaskKanbanViewModel.cs" />
@@ -3358,6 +3359,7 @@
     <Content Include="Views\Tannarx\Edit.cshtml" />
     <Content Include="Views\Tannarx\Index.cshtml" />
     <Content Include="Views\TannarxAnalytics\Dashboard.cshtml" />
+    <Content Include="Views\TannarxAnalytics\MonthSources.cshtml" />
     <Content Include="Views\TannarxAnalytics\ProductDetails.cshtml" />
     <Content Include="Views\TannarxAnalytics\Report.cshtml" />
     <Content Include="Views\TaskChangeStatus\ChangeStatus.cshtml" />

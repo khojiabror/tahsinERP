@@ -452,6 +452,166 @@ namespace tahsinERP.Services
             audit.UpdatedAt = now;
         }
 
+        // ---------------- Oy xarajatlari manbalari (reconciliation) ----------------
+
+        /// <summary>
+        /// Oy bo'yicha barcha xarajat manbalari: qancha tortildi, qancha mahsulotlarga taqsimlandi, nima chiqarildi va nima uchun.
+        /// Hech narsa yozmaydi — "Fakt xarajatlarni yangilash" bilan bir xil engine natijasini ko'rsatadi.
+        /// </summary>
+        public async Task<TannarxMonthSourcesViewModel> GetMonthSourcesAsync(int year, int month)
+        {
+            var vm = new TannarxMonthSourcesViewModel { Year = year, Month = month, MonthString = GetMonthName(month) };
+
+            var rowsInMonth = await _db.TANNARXes
+                .AsNoTracking()
+                .Include(t => t.PRODUCT)
+                .Where(t => !t.IsDeleted && t.Year == year && t.Month == month)
+                .ToListAsync();
+
+            var engine = new TannarxActualCostEngine(_db);
+            var m = await engine.CalculateMonthAsync(year, month, rowsInMonth);
+            vm.MonthProducedQty = m.MonthProducedQty;
+            vm.BaseCurrencyCode = m.Finance.BaseCurrencyCode;
+
+            var produced = m.Products.Values.Where(p => p.ProducedQty > 0).ToList();
+            decimal Allocated(Func<TannarxProductActualResult, decimal> perUnit) => produced.Sum(p => perUnit(p) * p.ProducedQty);
+
+            foreach (var row in rowsInMonth.GroupBy(r => r.ProductID).Select(g => g.First()).OrderBy(r => r.PRODUCT?.PNo))
+            {
+                var p = m.Products[row.ProductID];
+                vm.Products.Add(new TannarxProductSourceRow
+                {
+                    ProductID = row.ProductID,
+                    ProductPNo = row.PRODUCT?.PNo ?? "",
+                    ProductName = row.PRODUCT?.Name ?? "",
+                    ProducedQty = p.ProducedQty,
+                    MaterialPath = p.Material?.Path,
+                    MaterialMethod = p.Material?.MethodCode,
+                    PathAttempts = string.Join("; ", p.PathAttempts),
+                    Material = p.ProducedQty > 0 ? p.Material.UnitCost : 0m,
+                    MaterialTransport = p.MaterialTransportPerUnit,
+                    Labor = p.LaborPerUnit,
+                    TaxBank = p.TaxBankPerUnit,
+                    Admin = p.AdminPerUnit,
+                    Other = p.OtherPerUnit,
+                    FinishedTransport = p.FinishedTransportPerUnit
+                });
+            }
+
+            foreach (var g in produced.GroupBy(p => p.Material.Path).OrderBy(g => g.Key))
+            {
+                vm.MaterialPathCounts[g.Key] = g.Count();
+                vm.Elements.Add(new TannarxCostElementSourceRow
+                {
+                    Element = "Material",
+                    Source = MaterialPathTitle(g.Key),
+                    SourceTotal = g.Sum(p => p.Material.SourceAmount),
+                    AllocatedTotal = g.Sum(p => p.Material.UnitCost * p.ProducedQty),
+                    Note = $"{g.Count()} ta mahsulot"
+                });
+            }
+            vm.Elements.Add(new TannarxCostElementSourceRow
+            {
+                Element = "Material",
+                Source = "Finance 'Material' xarajatlari (PATH3 havzasi)",
+                SourceTotal = m.Finance.Material,
+                AllocatedTotal = produced.Where(p => p.Material.Path == "PATH3").Sum(p => p.Material.SourceAmount),
+                Note = "Qoldiq — boshqa algoritm (ombor/PI) bilan hisoblangan mahsulotlar ulushi; ular materialini o'z manbasidan oladi"
+            });
+            vm.Elements.Add(new TannarxCostElementSourceRow
+            {
+                Element = "Material tashuvi",
+                Source = "Yo'l varaqalari (PI ga bog'langan, shu oy)",
+                AllocatedTotal = Allocated(p => p.MaterialTransportPerUnit),
+                Note = "SO → PO → PI zanjiri bo'lgan mahsulotlar uchun"
+            });
+            vm.Elements.Add(new TannarxCostElementSourceRow
+            {
+                Element = "A — Ish haqi",
+                Source = "Ishbay ish yozuvlari × tarif",
+                SourceTotal = m.PieceRateLaborTotal,
+                AllocatedTotal = Allocated(p => p.LaborPerUnit)
+            });
+            vm.Elements.Add(new TannarxCostElementSourceRow
+            {
+                Element = "B — Soliq va bank",
+                Source = "Finance",
+                SourceTotal = m.Finance.TaxBank,
+                AllocatedTotal = Allocated(p => p.TaxBankPerUnit),
+                Note = "Oy jami / barcha ishlab chiqarilgan miqdor"
+            });
+            vm.Elements.Add(new TannarxCostElementSourceRow
+            {
+                Element = "C — Administrativ",
+                Source = "Soatbay ish haqi (HR oylik, tasdiqlangan; bo'lmasa tabel)",
+                SourceTotal = m.AdminTotal,
+                AllocatedTotal = Allocated(p => p.AdminPerUnit),
+                Note = "Oy jami / barcha ishlab chiqarilgan miqdor"
+            });
+            vm.Elements.Add(new TannarxCostElementSourceRow
+            {
+                Element = "D — Boshqa",
+                Source = "Finance (boshqa + aniqlanmagan xarajatlar)",
+                SourceTotal = m.Finance.Other,
+                AllocatedTotal = Allocated(p => p.OtherPerUnit),
+                Note = "Oy jami / barcha ishlab chiqarilgan miqdor"
+            });
+            vm.Elements.Add(new TannarxCostElementSourceRow
+            {
+                Element = "Tayyor mahsulot tashuvi (CIP)",
+                Source = "Yo'l varaqalari (sotuv invoysiga bog'langan, shu oy)",
+                AllocatedTotal = Allocated(p => p.FinishedTransportPerUnit)
+            });
+
+            vm.FinanceLines = m.Finance.Lines.Select(l => new TannarxFinanceSourceRow
+            {
+                CategoryName = l.CategoryName,
+                Bucket = l.Bucket,
+                Reason = l.Reason,
+                Amount = l.Amount,
+                TransactionCount = l.TransactionCount,
+                Included = l.Bucket != "Chiqarildi"
+            }).ToList();
+
+            if (m.ProducedWithoutTannarx.Any())
+            {
+                var ids = m.ProducedWithoutTannarx.Keys.ToList();
+                var names = await _db.PRODUCTS.Where(p => ids.Contains(p.ID)).Select(p => new { p.ID, p.PNo, p.Name }).ToListAsync();
+                vm.ProducedWithoutTannarx = names
+                    .Select(p => new TannarxProducedWithoutTannarxRow { ProductID = p.ID, ProductPNo = p.PNo, ProductName = p.Name, ProducedQty = m.ProducedWithoutTannarx[p.ID] })
+                    .OrderBy(p => p.ProductPNo)
+                    .ToList();
+                var qty = m.ProducedWithoutTannarx.Values.Sum();
+                vm.Warnings.Add($"Shu oyda {ids.Count} ta mahsulot ({qty:N2} dona) ishlab chiqarilgan, lekin ular uchun tannarx qatori yo'q — " +
+                                "B/C/D xarajatlarining ularga tegishli ulushi hech qaysi tannarxga yozilmaydi. Tannarx sahifasida shu oy uchun qator yarating.");
+            }
+            if (m.Finance.BaseCurrencyCode == null)
+                vm.Warnings.Add("CURRENCIES da 'UZS' topilmadi — Finance summalari barcha valyutalarda konvertatsiyasiz qo'shildi.");
+            if (m.Finance.SkippedForeignCount > 0)
+                vm.Warnings.Add($"Boshqa valyutadagi {m.Finance.SkippedForeignCount} ta Finance tranzaksiyasi hisobga olinmadi ({string.Join(", ", m.Finance.SkippedForeignByCurrency.Select(kv => $"{kv.Key}: {kv.Value:N2}"))}).");
+            var forced = produced.Count(p => p.Material.Path == "PLAN");
+            if (forced > 0)
+                vm.Warnings.Add($"{forced} ta mahsulotda material uchun hech bir manba topilmadi — reja narxi olindi (ombordan chiqim hujjatlari yoki PI zanjirini tekshiring).");
+            var zeroPriceIssues = produced.Where(p => p.WarehouseIssue != null && p.WarehouseIssue.ZeroPriceLineCount > 0).ToList();
+            if (zeroPriceIssues.Any())
+                vm.Warnings.Add($"{zeroPriceIssues.Count} ta mahsulotning ombordan chiqimida narxsiz (0) qatorlar bor ({zeroPriceIssues.Sum(p => p.WarehouseIssue.ZeroPriceLineCount)} qator) — kirim narxi kiritilmagan materiallar.");
+
+            return vm;
+        }
+
+        private static string MaterialPathTitle(string path)
+        {
+            switch (path)
+            {
+                case "PATH0": return "PATH0 — ombordan ishlab chiqarishga chiqim (FIFO narx)";
+                case "PATH1": return "PATH1 — SO → PO → xarid invoysi";
+                case "PATH2": return "PATH2 — SO → PO → invoys → ombor kirimi";
+                case "PATH3": return "PATH3 — Finance 'Material' (reja ulushida)";
+                case "PLAN": return "Reja narxi (manba topilmadi)";
+                default: return path;
+            }
+        }
+
         // ---------------- Hisob izohlari (faqat ProductDetails, bitta mahsulot) ----------------
 
         private async Task FillCalculationNotesAsync(TannarxAnalyticsReportViewModel report, int productId, int year, int monthNo)

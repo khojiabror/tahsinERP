@@ -64,6 +64,11 @@ namespace tahsinERP.Services.Tannarx
 
             var tannarxProductIds = rowsInMonth.Select(r => r.ProductID).Distinct().ToList();
             var producedIds = tannarxProductIds.Where(id => Qty(id) > 0).ToList();
+            // Ishlab chiqarilgan, lekin shu oy TANNARX qatori yo'q mahsulotlar: overhead ulushi ularga ham hisoblanadi,
+            // lekin hech qayerga yozilmaydi — oy manbalari sahifasida ogohlantiriladi.
+            var tannarxSet = new HashSet<int>(tannarxProductIds);
+            foreach (var kv in producedQty.Where(kv => kv.Value > 0 && !tannarxSet.Contains(kv.Key)))
+                result.ProducedWithoutTannarx[kv.Key] = kv.Value;
 
             // 2) Finance (soliq+bank, boshqa, material) — oy jami.
             result.Finance = await LoadFinanceTotalsAsync(start, end);
@@ -242,6 +247,7 @@ namespace tahsinERP.Services.Tannarx
             var laborAmountByProduct = await LoadPieceRateLaborAsync(start, end, producedIds);
             var adminTotal = await LoadAdministrativeTotalAsync(year, month);
             result.AdminTotal = adminTotal;
+            result.PieceRateLaborTotal = laborAmountByProduct.Values.Sum();
 
             // ---- Mahsulot bo'yicha zanjirlar ----
             var chains = new Dictionary<int, ProductChain>();
@@ -994,6 +1000,8 @@ namespace tahsinERP.Services.Tannarx
         public decimal AdminTotal { get; set; }
         public TannarxFinanceTotals Finance { get; set; }
         public Dictionary<int, TannarxProductActualResult> Products { get; } = new Dictionary<int, TannarxProductActualResult>();
+        public Dictionary<int, decimal> ProducedWithoutTannarx { get; } = new Dictionary<int, decimal>();
+        public decimal PieceRateLaborTotal { get; set; }
     }
 
     internal class TannarxProductActualResult
