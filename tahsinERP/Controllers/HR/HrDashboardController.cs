@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 
 namespace tahsinERP.Controllers.HR
@@ -36,11 +37,11 @@ namespace tahsinERP.Controllers.HR
             var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
             var viewModel = new HrDashboardViewModel();
-            var latestOpeningDate = db.FIN_BALANCE_SNAPSHOTS
+            var latestOpeningDate = await db.FIN_BALANCE_SNAPSHOTS
                 .Where(s => s.SourceType == "OpeningBalance" && s.SnapshotDate <= periodEnd)
                 .OrderByDescending(s => s.SnapshotDate)
                 .Select(s => (DateTime?)s.SnapshotDate)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
             var openingPayrollTotal = 0m;
             var openingPayrollPaid = 0m;
             if (latestOpeningDate.HasValue)
@@ -53,54 +54,48 @@ namespace tahsinERP.Controllers.HR
                     openingPayrollTotal = openingPayrollRows.Sum(x => x.TotalAmount);
                     openingPayrollPaid = openingPayrollRows.Sum(x => x.PaidAmount);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Trace.TraceError("[HrDashboard] Ochilish qoldig'ini o'qishda xato: " + ex);
                 }
             }
 
-            // Total headcount
-            viewModel.TotalHeadcount = await db.HR_EMPLOYEES.CountAsync(e => e.IsActive);
+            // Jami xodimlar (o'chirilganlar hisobga olinmaydi)
+            viewModel.TotalHeadcount = await db.HR_EMPLOYEES.CountAsync(e => e.IsActive && e.IsDeleted != true);
             viewModel.ActiveHeadcount = viewModel.TotalHeadcount;
 
-            // Planned headcount
             viewModel.PlannedHeadcount = (int)(await db.HR_STAFFING_PLAN
-                .Where(sp => sp.IsActive)
+                .Where(sp => sp.IsActive && sp.IsDeleted != true)
                 .SumAsync(sp => (decimal?)sp.PlannedHeadcount) ?? 0);
 
-            // Total monthly payroll
-            var payrollHeaders = await db.HR_PAYROLL_HEADERS
-                .Include(p => p.HR_PAYROLL_LINES)
-                .Where(p => p.Year == year.Value && p.Month == month.Value &&
-                    (p.IsDeleted == null || p.IsDeleted == false) &&
-                    (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value))
+            // Oylik ish haqi — SQL'da yig'iladi (avval qatorlar xotiraga yuklanardi, HRM-P09)
+            var payrollSums = await db.HR_PAYROLL_LINES.AsNoTracking()
+                .Where(l => (l.IsDeleted == null || l.IsDeleted == false) &&
+                            (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
+                            l.HR_PAYROLL_HEADERS.Year == year.Value && l.HR_PAYROLL_HEADERS.Month == month.Value &&
+                            (orgUnitId == null ? l.HR_PAYROLL_HEADERS.OrgUnitID == null : l.HR_PAYROLL_HEADERS.OrgUnitID == orgUnitId.Value))
+                .GroupBy(l => l.HR_PAYROLL_HEADERS.PayrollType)
+                .Select(g => new { PayrollType = g.Key, Net = g.Sum(l => l.NetSalary) })
                 .ToListAsync();
-            var activePayrollLines = payrollHeaders
-                .SelectMany(p => p.HR_PAYROLL_LINES)
-                .Where(l => l.IsDeleted == null || l.IsDeleted == false)
-                .ToList();
 
-            viewModel.TotalMonthlyPayroll = openingPayrollTotal + activePayrollLines.Sum(l => l.NetSalary ?? 0);
-            viewModel.TotalHourlyCalculated = payrollHeaders
-                .Where(p => p.PayrollType == "Hourly")
-                .SelectMany(p => p.HR_PAYROLL_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false))
-                .Sum(l => l.NetSalary ?? 0);
-            viewModel.TotalPieceCalculated = payrollHeaders
-                .Where(p => p.PayrollType == "PieceRate")
-                .SelectMany(p => p.HR_PAYROLL_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false))
-                .Sum(l => l.NetSalary ?? 0);
+            viewModel.TotalHourlyCalculated = payrollSums.Where(x => x.PayrollType == "Hourly").Sum(x => x.Net ?? 0);
+            viewModel.TotalPieceCalculated = payrollSums.Where(x => x.PayrollType == "PieceRate").Sum(x => x.Net ?? 0);
+            viewModel.TotalMonthlyPayroll = openingPayrollTotal + payrollSums.Sum(x => x.Net ?? 0);
 
-            // Total overtime hours
-            var timesheet = await db.HR_TIMESHEET_HEADERS
-                .Include(t => t.HR_TIMESHEET_LINES)
-                .FirstOrDefaultAsync(t => t.Year == year.Value && t.Month == month.Value &&
-                    (t.IsDeleted == null || t.IsDeleted == false) &&
-                    (orgUnitId == null ? t.OrgUnitID == null : t.OrgUnitID == orgUnitId.Value));
-
-            if (timesheet != null)
+            // Qo'shimcha va ishlangan soatlar
+            var timesheetTotals = await db.HR_TIMESHEET_LINES.AsNoTracking()
+                .Where(l => (l.IsDeleted == null || l.IsDeleted == false) &&
+                            l.HR_TIMESHEET_HEADERS.Year == year.Value && l.HR_TIMESHEET_HEADERS.Month == month.Value &&
+                            (l.HR_TIMESHEET_HEADERS.IsDeleted == null || l.HR_TIMESHEET_HEADERS.IsDeleted == false) &&
+                            (orgUnitId == null ? l.HR_TIMESHEET_HEADERS.OrgUnitID == null : l.HR_TIMESHEET_HEADERS.OrgUnitID == orgUnitId.Value))
+                .GroupBy(l => l.TimesheetID)
+                .Select(g => new { TimesheetID = g.Key, Overtime = g.Sum(l => l.OvertimeHours), Worked = g.Sum(l => l.TotalWorkedHours) })
+                .OrderBy(x => x.TimesheetID)
+                .FirstOrDefaultAsync();
+            if (timesheetTotals != null)
             {
-                var activeTimesheetLines = timesheet.HR_TIMESHEET_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false).ToList();
-                viewModel.TotalOvertimeHours = activeTimesheetLines.Sum(l => l.OvertimeHours ?? 0);
-                viewModel.TotalWorkedHours = activeTimesheetLines.Sum(l => l.TotalWorkedHours ?? 0);
+                viewModel.TotalOvertimeHours = timesheetTotals.Overtime ?? 0;
+                viewModel.TotalWorkedHours = timesheetTotals.Worked ?? 0;
             }
 
             viewModel.TotalPieceQuantity = await db.HR_PIECE_RATE_WORK_ENTRIES
@@ -111,19 +106,19 @@ namespace tahsinERP.Controllers.HR
                 .SumAsync(e => (decimal?)e.Quantity) ?? 0m;
 
             // To'langan oylik: FinTransactions (xodimga bog'langan) + HR_PAYROLL postlari
-            var salaryCategoryIds = await db.FIN_CATEGORIES
+            var salaryCategoryIds = db.FIN_CATEGORIES
                 .Where(c => c.IsActive &&
                             (c.IsDeleted == null || c.IsDeleted == false) &&
                             c.Name != null &&
                             c.Name.ToLower().Contains("oylik"))
-                .Select(c => c.ID)
-                .ToListAsync();
+                .Select(c => c.ID);
 
+            var periodEndExclusive = periodEnd.AddDays(1);
             var directSalaryPaid = await db.FIN_TRANSACTIONS
                 .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
                             t.Direction == 2 &&
-                            t.TxnDate >= periodStart && t.TxnDate <= periodEnd &&
-                            ((salaryCategoryIds.Contains(t.CategoryID)) ||
+                            t.TxnDate >= periodStart && t.TxnDate < periodEndExclusive &&
+                            (salaryCategoryIds.Contains(t.CategoryID) ||
                              (t.CounterpartyType.HasValue && t.CounterpartyType.Value == 6) ||
                              t.SourceDocType == "HR_PAYROLL"))
                 .SumAsync(t => (decimal?)t.Amount) ?? 0m;
@@ -131,69 +126,54 @@ namespace tahsinERP.Controllers.HR
             viewModel.TotalSalaryPaidFromFin = openingPayrollPaid + directSalaryPaid;
             viewModel.TotalSalaryBalance = viewModel.TotalMonthlyPayroll - viewModel.TotalSalaryPaidFromFin;
 
-            // Headcount by OrgUnit
-            var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive)
-                .OrderBy(o => o.Name)
-                .ToListAsync();
+            // Bo'limlar kesimida: ikki guruhlangan so'rov (avval har bo'limga 2 ta so'rov, HRM-P09)
+            var plannedByOrg = await db.HR_STAFFING_PLAN.AsNoTracking()
+                .Where(sp => sp.IsActive && sp.IsDeleted != true)
+                .GroupBy(sp => sp.OrgUnitID)
+                .Select(g => new { OrgUnitID = g.Key, Planned = g.Sum(sp => sp.PlannedHeadcount) })
+                .ToDictionaryAsync(x => x.OrgUnitID, x => x.Planned);
+            var actualByOrg = await db.HR_EMPLOYEES.AsNoTracking()
+                .Where(e => e.IsActive && e.IsDeleted != true && e.OrgUnitID != null)
+                .GroupBy(e => e.OrgUnitID.Value)
+                .Select(g => new { OrgUnitID = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.OrgUnitID, x => x.Count);
 
-            foreach (var orgUnit in orgUnits)
+            foreach (var orgUnit in HrLookups.Get(HrLookups.OrgUnits))
             {
-                var planned = (int)(await db.HR_STAFFING_PLAN
-                    .Where(sp => sp.OrgUnitID == orgUnit.ID && sp.IsActive)
-                    .SumAsync(sp => (decimal?)sp.PlannedHeadcount) ?? 0);
-
-                var actual = await db.HR_EMPLOYEES
-                    .CountAsync(e => e.OrgUnitID == orgUnit.ID && e.IsActive);
-
+                decimal planned;
+                int actual;
+                plannedByOrg.TryGetValue(orgUnit.ID, out planned);
+                actualByOrg.TryGetValue(orgUnit.ID, out actual);
                 viewModel.HeadcountByOrgUnit.Add(new HrHeadcountByOrgUnitViewModel
                 {
                     OrgUnitID = orgUnit.ID,
                     OrgUnitName = orgUnit.Name,
-                    PlannedHeadcount = planned,
+                    PlannedHeadcount = (int)planned,
                     ActualHeadcount = actual
                 });
             }
 
-            // Payroll trend (last 6 months)
+            // Ish haqi trendi (oxirgi 6 oy): o'chirilganlar hisobga olinmaydi, oy bo'yicha bitta nuqta (HRM-B11)
             var startDate = new DateTime(year.Value, month.Value, 1).AddMonths(-5);
-            var payrolls = await db.HR_PAYROLL_HEADERS
-                .Include(p => p.HR_PAYROLL_LINES)
-                .Where(p => p.Year * 100 + p.Month >= startDate.Year * 100 + startDate.Month &&
-                    p.Year * 100 + p.Month <= year.Value * 100 + month.Value &&
-                    (orgUnitId == null ? p.OrgUnitID == null : p.OrgUnitID == orgUnitId.Value))
-                .OrderBy(p => p.Year).ThenBy(p => p.Month)
+            int fromKey = startDate.Year * 100 + startDate.Month;
+            int toKey = year.Value * 100 + month.Value;
+            var trend = await db.HR_PAYROLL_LINES.AsNoTracking()
+                .Where(l => (l.IsDeleted == null || l.IsDeleted == false) &&
+                            (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
+                            l.HR_PAYROLL_HEADERS.Year * 100 + l.HR_PAYROLL_HEADERS.Month >= fromKey &&
+                            l.HR_PAYROLL_HEADERS.Year * 100 + l.HR_PAYROLL_HEADERS.Month <= toKey &&
+                            (orgUnitId == null ? l.HR_PAYROLL_HEADERS.OrgUnitID == null : l.HR_PAYROLL_HEADERS.OrgUnitID == orgUnitId.Value))
+                .GroupBy(l => new { l.HR_PAYROLL_HEADERS.Year, l.HR_PAYROLL_HEADERS.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(l => l.NetSalary) })
                 .ToListAsync();
 
-            foreach (var p in payrolls)
-            {
-                viewModel.PayrollTrend.Add(new HrPayrollTrendViewModel
-                {
-                    Year = p.Year,
-                    Month = p.Month,
-                    TotalPayroll = p.HR_PAYROLL_LINES.Sum(l => l.NetSalary ?? 0)
-                });
-            }
-
-            // Headcount trend (last 6 months)
-            // uchun simplicity, foydalanib current headcount uchun barcha months
-            // In a real scenario, you'd track historical headcount
-            for (int i = 5; i >= 0; i--)
-            {
-                var trendDate = new DateTime(year.Value, month.Value, 1).AddMonths(-i);
-                viewModel.HeadcountTrend.Add(new HrHeadcountTrendViewModel
-                {
-                    Year = trendDate.Year,
-                    Month = trendDate.Month,
-                    Headcount = viewModel.TotalHeadcount
-                });
-            }
+            viewModel.PayrollTrend.AddRange(trend
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .Select(x => new HrPayrollTrendViewModel { Year = x.Year, Month = x.Month, TotalPayroll = x.Total ?? 0 }));
 
             ViewBag.Year = year;
             ViewBag.Month = month;
-            ViewBag.OrgUnitID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", orgUnitId);
+            ViewBag.OrgUnitID = HrLookups.SelectList(HrLookups.OrgUnits, orgUnitId);
 
             logger.Log("HrDashboard", "Index");
             return View(viewModel);
