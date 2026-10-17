@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Litsenziya kaliti formati (v2), RSA imzo tekshiruvi va soat muhri — umumiy kutubxona.
+    ERP (.NET Framework 4.8), tahsinERP.LicenseGen (WinForms) va keyinchalik markaziy panel
+    (ASP.NET Core) shu bitta manbadan foydalanadi.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ProjectGuid>{6F1C2A4E-3B8D-4E59-9A7C-2D5E8F1B0C34}</ProjectGuid>
+    <RootNamespace>tahsinERP.Licensing</RootNamespace>
+    <AssemblyName>tahsinERP.Licensing</AssemblyName>
+    <LangVersion>7.3</LangVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="tahsinERP.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -363,9 +363,12 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                // TabNo boshqa xodimda (faol yoki nofaol) bo'lmasligi kerak — Create bilan bir xil qoida
-                var duplicate = await db.HR_EMPLOYEES
-                    .AnyAsync(e => e.TabNo == viewModel.TabNo && e.ID != viewModel.ID && e.IsDeleted != true);
+                // Bazadagi IX_HR_EMPLOYEES_TabNo (UNIQUE, IsActive = 1 filtri) bilan bir xil qoida (HRM-B17):
+                // ishlayotgan xodimlar orasida takrorlanmasin. Bo'shaganlarning raqami qayta berilgan bo'lishi mumkin —
+                // avvalgi qattiq tekshiruv shunday xodimlarni umuman tahrirlashga yo'l qo'ymasdi.
+                viewModel.TabNo = viewModel.TabNo?.Trim();
+                var duplicate = viewModel.IsActive && await db.HR_EMPLOYEES
+                    .AnyAsync(e => e.TabNo == viewModel.TabNo && e.ID != viewModel.ID && e.IsActive);
                 if (duplicate)
                 {
                     ModelState.AddModelError("TabNo", "Табельный номер уже существует");

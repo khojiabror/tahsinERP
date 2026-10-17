@@ -210,44 +210,13 @@ namespace tahsinERP.Controllers
         [ActionName("Delete")]
         public async Task<ActionResult> DeleteConfirmed(int? ID)
         {
-            if (ModelState.IsValid)
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    var contractToDelete = await db.F_CONTRACTS.FirstOrDefaultAsync(c => c.ID == ID && !c.IsDeleted);
-                    if (contractToDelete != null)
-                    {
-                        contractToDelete.IsDeleted = true;
-                        try
-                        {
-                            db.Entry(contractToDelete).State = EntityState.Modified;
-                            await SoftDeleteReferenceService.AfterFContractSoftDeletedAsync(db, contractToDelete.ID);
-                            await db.SaveChangesAsync();
-
-                            var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "FContractController", "Delete", $"{contractToDelete.ContractNo} - shartnoma o'chirildi.");
-
-                            return RedirectToAction("Index");
-                        }
-                        catch (RetryLimitExceededException)
-                        {
-                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        }
-                        catch (Exception ex)
-                        {
-                            ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
-                            LogHelper.LogToDatabase(User.Identity.Name, "FContractController", "Delete", $"Xatolik: {ex.Message}");
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "Bunday shartnoma topilmadi.");
-                    }
-                }
-            }
-            else
-            {
-                ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
+                if (await SoftDeleteAsync<F_CONTRACTS>(db, ID,
+                        (ctx, c) => SoftDeleteReferenceService.AfterFContractSoftDeletedAsync(ctx, c.ID),
+                        c => $"{c.ContractNo} - shartnoma o'chirildi.",
+                        "Bunday shartnoma topilmadi."))
+                    return RedirectToAction("Index");
             }
 
             // LOG-B09: view null model bilan ochilmasin

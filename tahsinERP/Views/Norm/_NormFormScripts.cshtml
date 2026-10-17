@@ -9,7 +9,23 @@
     {
         <script>
             var lineIndex = @Model.CuttingLines.Count;
-            var materials = @Html.Raw(Json.Encode(ViewBag.MaterialsJson ?? new List<object>()));
+            // Materiallar ro'yxati sahifaga yuklanmaydi — select2 serverdan qidiradi (MES-P15)
+            function materialSelect2Options() {
+                return {
+                    width: '100%',
+                    placeholder: 'Tanlang',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: '@Url.Action("SearchMaterials", "Norm")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) { return { q: params.term || '', page: params.page || 1 }; },
+                        processResults: function (data) { return data; },
+                        cache: true
+                    }
+                };
+            }
             var unitsJson = @Html.Raw(Json.Encode(ViewBag.UnitsJson ?? new List<object>()));
             // Mahsulot/birlik nomlari HTML satrga qo'shilishidan oldin ekranlanadi (stored XSS, MES-B14)
             function escHtml(s) {
@@ -65,11 +81,7 @@
             }
             
             // Initialize select2 for existing material dropdowns
-            $('.material-select.select2').select2({
-                width: '100%',
-                placeholder: 'Tanlang',
-                allowClear: true
-            });
+            $('.material-select.select2').select2(materialSelect2Options());
 
             function initNormUnitSelect2($ctx) {
                 ($ctx || $(document)).find('select.unit-select2').each(function () {
@@ -100,7 +112,8 @@
                 }
             });
             
-            // Load material data for existing rows
+            // Load material data for existing rows (barcha qatorlar uchun bitta so'rov, MES-P15)
+            var initialRows = [];
             $('.line-row').each(function () {
                 var row = $(this);
                 var materialId = row.find('.material-select').val();
@@ -118,12 +131,33 @@
                     }
                 }
                 if (materialId) {
-                    loadMaterialData(materialId, row, { setPrice: !loadedFromTemplateNorm && isAutoPriceEnabled() });
+                    initialRows.push({ row: row, materialId: String(materialId) });
                 } else {
                     // If no material selected, still try to recalculate with existing data
                     recalculateRow(row);
                 }
             });
+            if (initialRows.length > 0) {
+                var initialIds = initialRows.map(function (x) { return x.materialId; })
+                    .filter(function (v, i, a) { return a.indexOf(v) === i; });
+                $.ajax({
+                    url: '@Url.Action("GetMaterialDataBatch", "Norm")',
+                    type: 'GET',
+                    traditional: true,
+                    data: { ids: initialIds },
+                    success: function (response) {
+                        var byId = {};
+                        ((response && response.items) || []).forEach(function (m) { byId[String(m.materialId)] = m; });
+                        var initialOptions = { setPrice: !loadedFromTemplateNorm && isAutoPriceEnabled() };
+                        initialRows.forEach(function (x) {
+                            applyMaterialData(x.row, byId[x.materialId] || { success: false }, initialOptions);
+                        });
+                    },
+                    error: function () {
+                        initialRows.forEach(function (x) { applyMaterialData(x.row, { success: false }, {}); });
+                    }
+                });
+            }
             
             // Initialize totals on page load
             recalculateTotals();
@@ -154,11 +188,7 @@
                 $('#linesBody').append($newRow);
                 
                 // Initialize select2 for the new dropdown
-                $newRow.find('.material-select.select2').select2({
-                    width: '100%',
-                    placeholder: 'Tanlang',
-                    allowClear: true
-                });
+                $newRow.find('.material-select.select2').select2(materialSelect2Options());
                 initNormUnitSelect2($newRow);
                 updatePriceInputsState();
                 
@@ -399,17 +429,9 @@
         });
 
         function getMaterialDropdown(index) {
-            var html = '<select name="CuttingLines[' + index + '].MaterialID" class="form-control material-select select2" required>';
-            html += '<option value="">Tanlang</option>';
-            if (materials && materials.length > 0) {
-                for (var i = 0; i < materials.length; i++) {
-                    // Format: "PNo - Name"
-                    var displayText = materials[i].name ? (materials[i].text + ' - ' + materials[i].name) : materials[i].text;
-                    html += '<option value="' + materials[i].id + '">' + escHtml(displayText) + '</option>';
-                }
-            }
-            html += '</select>';
-            return html;
+            // Variantlar select2 orqali serverdan yuklanadi (MES-P15)
+            return '<select name="CuttingLines[' + index + '].MaterialID" class="form-control material-select select2" required>' +
+                '<option value="">Tanlang</option></select>';
         }
 
         function loadMaterialData(materialId, row, options) {
@@ -431,40 +453,43 @@
                 type: 'GET',
                 data: { materialId: materialId },
                 success: function (response) {
-                    if (response.success) {
-                        row.find('.material-code').text(response.materialName || response.materialCode || '-');
-                        // Store requiresCutting flag in row data
-                        row.data('requires-cutting', response.requiresCutting || false);
-                        // Store standardLengthMm in row data for waste calculation
-                        var standardLength = response.standardLengthMm || 0;
-                        row.data('standard-length-mm', standardLength);
-                        if (standardLength > 0) {
-                            row.find('.standard-length').text(standardLength.toFixed(2));
-                        } else {
-                            row.find('.standard-length').text('-');
-                        }
-                    if (setPrice && response.unitPrice) {
-                            row.find('.price-input').val(response.unitPrice);
-                        }
-                        if (setPrice && response.defaultUnitId) {
-                            row.find('.unit-select').val(String(response.defaultUnitId)).trigger('change.select2');
-                        }
-                        // Recalculate row after loading data
-                        recalculateRow(row);
-                        recalculateTotals();
-                    } else {
-                        row.find('.material-code').text('-');
-                        row.find('.standard-length').text('-');
-                        row.data('requires-cutting', false);
-                        row.data('standard-length-mm', 0);
-                    }
+                    applyMaterialData(row, response, { setPrice: setPrice });
                 },
                 error: function () {
-                    row.find('.material-code').text('-');
-                    row.find('.standard-length').text('-');
-                    row.data('requires-cutting', false);
+                    applyMaterialData(row, { success: false }, {});
                 }
             });
+        }
+
+        function applyMaterialData(row, response, options) {
+            var setPrice = !!(options && options.setPrice);
+            if (response && response.success) {
+                row.find('.material-code').text(response.materialName || response.materialCode || '-');
+                // Store requiresCutting flag in row data
+                row.data('requires-cutting', response.requiresCutting || false);
+                // Store standardLengthMm in row data for waste calculation
+                var standardLength = response.standardLengthMm || 0;
+                row.data('standard-length-mm', standardLength);
+                if (standardLength > 0) {
+                    row.find('.standard-length').text(standardLength.toFixed(2));
+                } else {
+                    row.find('.standard-length').text('-');
+                }
+                if (setPrice && response.unitPrice) {
+                    row.find('.price-input').val(response.unitPrice);
+                }
+                if (setPrice && response.defaultUnitId) {
+                    row.find('.unit-select').val(String(response.defaultUnitId)).trigger('change.select2');
+                }
+                // Recalculate row after loading data
+                recalculateRow(row);
+                recalculateTotals();
+            } else {
+                row.find('.material-code').text('-');
+                row.find('.standard-length').text('-');
+                row.data('requires-cutting', false);
+                row.data('standard-length-mm', 0);
+            }
         }
 
         function recalculateRow(row, options) {

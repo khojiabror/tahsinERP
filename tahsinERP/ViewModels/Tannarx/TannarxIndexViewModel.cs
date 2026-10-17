@@ -1,6 +1,6 @@
 namespace tahsinERP.ViewModels.Tannarx
 {
-    public class TannarxIndexViewModel
+    public class TannarxIndexViewModel : ITannarxCostFields
     {
         public int ID { get; set; }
         public int ProductID { get; set; }

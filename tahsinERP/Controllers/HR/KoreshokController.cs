@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Finance;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
@@ -85,33 +85,15 @@ namespace tahsinERP.Controllers.HR
                 DateTo = to.Date
             };
 
-            var latestOpeningDate = await db.FIN_BALANCE_SNAPSHOTS
-                .Where(s => s.SourceType == "OpeningBalance" && s.SnapshotDate <= to.Date)
-                .OrderByDescending(s => s.SnapshotDate)
-                .Select(s => (DateTime?)s.SnapshotDate)
-                .FirstOrDefaultAsync();
-            decimal openingCalculated = 0m;
-            decimal openingPaid = 0m;
-            if (latestOpeningDate.HasValue)
-            {
-                try
-                {
-                    var openingRow = db.Database.SqlQuery<OpeningPayrollEmployeeRow>(
-                        "SELECT TOP 1 TotalAmount, PaidAmount FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate = @p0 AND BalanceType = 3 AND CounterpartyID = @p1",
-                        new SqlParameter("@p0", latestOpeningDate.Value.Date),
-                        new SqlParameter("@p1", employeeId)).FirstOrDefault();
-                    if (openingRow != null)
-                    {
-                        openingCalculated = openingRow.TotalAmount;
-                        openingPaid = openingRow.PaidAmount;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Jadval yo'q muhitda ochilish qoldig'isiz davom etiladi, lekin xato yashirilmaydi
-                    System.Diagnostics.Trace.TraceError("[Koreshok] Ochilish qoldig'ini o'qishda xato: " + ex);
-                }
-            }
+            // Xodimning oylik ochilish qoldig'i — Finance qoidasi bilan (avval xom SQL + try/catch, HRM-D15)
+            var balances = new CounterpartyBalanceService(db);
+            var latestOpeningDate = balances.LatestOpeningDate(to.Date, CounterpartyBalanceService.BalanceTypePayroll);
+            var openingRow = latestOpeningDate.HasValue
+                ? balances.OpeningContractBalances(latestOpeningDate.Value, CounterpartyBalanceService.BalanceTypePayroll)
+                    .FirstOrDefault(x => x.CounterpartyID == employeeId)
+                : null;
+            decimal openingCalculated = openingRow?.TotalAmount ?? 0m;
+            decimal openingPaid = openingRow?.PaidAmount ?? 0m;
 
             // Soatbay / ishbay "Hisoblangan": avval ish haqi (HR_PAYROLL_LINES), bo'lmasa tabel + tarif bo'yicha baholash
             int fromMonthKey = from.Year * 100 + from.Month;
@@ -170,9 +152,9 @@ namespace tahsinERP.Controllers.HR
 
             // To'langan summa (xodimga bog'langan moliyaviy chiqimlardan)
             var employeeFullName = (employee.FullName ?? "").Trim();
-            var directPaidTotal = await db.FIN_TRANSACTIONS
-                .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
-                            t.Direction != 1 && // real bazada ba'zi chiqimlar 2 dan boshqa qiymatlarda ham uchrashi mumkin
+            // Chiqim — Direction == 2 (Finance va HR dashboard bilan bir xil; avval "!= 1", HRM-D16)
+            var directPaidTotal = await FinQueries.Active(db)
+                .Where(t => t.Direction == 2 &&
                             // ID bo'yicha; ID'siz eski yozuvlar — faqat to'liq ism mosligi (avval Contains o'xshash ismlarni ham olardi, HRM-B12)
                             ((t.CounterpartyID.HasValue && t.CounterpartyID == employeeId) ||
                              (!t.CounterpartyID.HasValue && t.CounterpartyName != null && t.CounterpartyName.Trim() == employeeFullName)) &&
@@ -181,9 +163,8 @@ namespace tahsinERP.Controllers.HR
 
             // Payroll postlari ko'pincha "Xodimlar" kontragenti bilan umumiy o'tadi.
             // Bunday holatda FinTransactions orqali payroll ID ni topib, xodim kesimidagi net summani olamiz.
-            var payrollTxnIds = await db.FIN_TRANSACTIONS
-                .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
-                            t.Direction != 1 &&
+            var payrollTxnIds = await FinQueries.Active(db)
+                .Where(t => t.Direction == 2 &&
                             t.SourceDocType == "HR_PAYROLL" &&
                             t.SourceDocID.HasValue &&
                             t.TxnDate >= from.Date && t.TxnDate < toExclusive)
@@ -301,11 +282,5 @@ namespace tahsinERP.Controllers.HR
             if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
-    }
-
-    internal class OpeningPayrollEmployeeRow
-    {
-        public decimal TotalAmount { get; set; }
-        public decimal PaidAmount { get; set; }
     }
 }

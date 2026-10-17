@@ -376,3 +376,8 @@ issued_licenses.tsv
 license_private.dat
 # Serverdagi connection string fayli (DbConfig: %ProgramData%\tahsinERP\db.connection)
 db.connection
+
+# ASP.NET vaqtinchalik kompilyatsiya papkasi (Git Bash yo'l konvertatsiyasidan tasodifan paydo bo'ladi)
+_program files_git/
+**/_program files_git/
+TestResults/
