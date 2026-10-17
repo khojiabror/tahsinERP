@@ -18,16 +18,12 @@ namespace tahsinERP.Controllers
     /// <summary>
     /// Korxona standartlari CRUD - STD_COMPANY_STANDARDS jadvali uchun
     /// </summary>
-    public class STDCompanyStandardsController : Controller
+    [Permission]
+    public class STDCompanyStandardsController : BaseController
     {
         // Olish so'rovi: STDCompanyStandards
         public async Task<ActionResult> Index()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var standards = await ActiveStandards(db)
@@ -51,23 +47,14 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: STDCompanyStandards/yaratish
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             return View();
         }
 
         // Olish so'rovi: STDCompanyStandards/GetTemplate (Create sahifasi muharrirga yuklaydi)
+        // Avval ruxsat tekshirilmasdi (DOC-S05) — shablon Create sahifasiniki, o'zgartirish huquqi
+        [Permission(Change = true)]
         public ActionResult GetTemplate()
         {
-            // Avval ruxsat tekshirilmasdi (DOC-S05) — shablon Create sahifasiniki
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "STDCompanyStandards", "Create"))
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
-            }
-
             var templatePath = Server.MapPath("~/App_Data/Templates/CompanyStandardTemplate.docx");
             if (System.IO.File.Exists(templatePath))
             {
@@ -82,11 +69,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(STDCompanyStandardsCreateViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (string.IsNullOrWhiteSpace(model.StandardCode))
             {
                 ModelState.AddModelError("StandardCode", "Standart kodi kiritilishi shart");
@@ -126,7 +108,7 @@ namespace tahsinERP.Controllers
                         // Avval "shu yil barcha hujjatlar soni + 1" — o'chirish/parallel yaratishda takrorlanardi (DOC-B07)
                         Code = await DocumentNumberService.NextAsync(db, "DOC_DOCUMENTS", "Code", $"STD-{year}-", 6),
                         Title = model.StandardCode,
-                        CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                        CreatedByUserID = CurrentUserId,
                         CreatedDT = DateTime.Now,
                         IntegrationUID = Guid.NewGuid()
                     };
@@ -148,7 +130,7 @@ namespace tahsinERP.Controllers
                     await db.SaveChangesAsync();
                     tx.Commit();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "STDCompanyStandards", $"Yangi standart yaratildi: {model.StandardCode}");
+                    LogHelper.LogToDatabase(CurrentUserName, "STDCompanyStandards", $"Yangi standart yaratildi: {model.StandardCode}");
                     TempData["Success"] = "Standart muvaffaqiyatli yaratildi";
 
                     return RedirectToAction("Index");
@@ -187,7 +169,7 @@ namespace tahsinERP.Controllers
         /// </summary>
         private async Task AddDocxVersionAsync(DBTHSNEntities db, long documentId, byte[] docxBytes, string fileName, int? versionNo = null)
         {
-            int? userId = UserHelper.GetUserId(User.Identity.Name);
+            int? userId = CurrentUserId;
             var file = await DocFileService.AddMainVersionAsync(db, documentId, docxBytes, fileName, ".docx",
                 DocFileService.DocxMime, userId, versionNo);
 
@@ -235,11 +217,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: STDCompanyStandards/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
@@ -279,11 +256,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(STDCompanyStandardsEditViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (string.IsNullOrWhiteSpace(model.StandardCode))
             {
                 ModelState.AddModelError("StandardCode", "Standart kodi kiritilishi shart");
@@ -338,7 +310,7 @@ namespace tahsinERP.Controllers
                     await db.SaveChangesAsync();
                     tx.Commit();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "STDCompanyStandards", $"Standart yangilandi: {model.StandardCode} (v{model.NewVersionNo:F2})");
+                    LogHelper.LogToDatabase(CurrentUserName, "STDCompanyStandards", $"Standart yangilandi: {model.StandardCode} (v{model.NewVersionNo:F2})");
                     TempData["Success"] = "Standart muvaffaqiyatli yangilandi";
 
                     return RedirectToAction("Index");
@@ -355,11 +327,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: STDCompanyStandards/Details/5
         public async Task<ActionResult> Details(long? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
@@ -432,11 +399,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: STDCompanyStandards/o'chirish/5
         public async Task<ActionResult> Delete(long? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
@@ -465,11 +427,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(long id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             try
             {
                 using (var db = new DBTHSNEntities())
@@ -487,7 +444,7 @@ namespace tahsinERP.Controllers
                     // Hujjat, standart (avval faqat DOC_DOCUMENTS — DOC-B01) va fayllar set-based (DOC-P06)
                     await DocumentService.SoftDeleteAsync(db, id);
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "STDCompanyStandards", $"Standart o'chirildi: {standardCode}");
+                    LogHelper.LogToDatabase(CurrentUserName, "STDCompanyStandards", $"Standart o'chirildi: {standardCode}");
                     TempData["Success"] = "Standart muvaffaqiyatli o'chirildi";
 
                     return RedirectToAction("Index");
@@ -500,59 +457,28 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Olish so'rovi: STDCompanyStandards/DownloadFile/5
-        public async Task<ActionResult> DownloadFile(long? fileId)
+        // Olish so'rovi: STDCompanyStandards/DownloadFile/5 (rasmlar inline, qolganlari yuklab olish)
+        public Task<ActionResult> DownloadFile(long? fileId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
-            }
-
-            if (fileId == null)
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                var file = await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.CompanyStandard);
-                if (file == null || file.FileContent == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // Rasmlar uchun ga'g'ri MIME type
-                var mimeType = file.MimeType;
-                if (string.IsNullOrEmpty(mimeType))
-                {
-                    // fayl extension dan MIME type ni aniqlash
-                    mimeType = GetMimeTypeFromExtension(file.FileExtension);
-                }
-
-                // Rasmlar uchun inline ko'rsatish, boshqa fayllar uchun download
-                var contentDisposition = file.FileExtension != null && 
-                                         (file.FileExtension.ToLower() == ".png" || 
-                                          file.FileExtension.ToLower() == ".jpg" || 
-                                          file.FileExtension.ToLower() == ".jpeg" || 
-                                          file.FileExtension.ToLower() == ".gif" || 
-                                          file.FileExtension.ToLower() == ".bmp")
-                    ? "inline" 
-                    : "attachment";
-
-                Response.AppendHeader("Content-Disposition", $"{contentDisposition}; filename=\"{file.FileName}\"");
-
-                return File(file.FileContent, mimeType ?? "application/octet-stream");
-            }
+            return ServeFileAsync(fileId, imagesOnly: false);
         }
 
         // Olish so'rovi: STDCompanyStandards/GetImage/5 - Rasmlarni ko'rsatish uchun
-        public async Task<ActionResult> GetImage(long? fileId)
+        public Task<ActionResult> GetImage(long? fileId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
-            }
+            return ServeFileAsync(fileId, imagesOnly: true);
+        }
 
+        private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
+
+        private static bool IsImage(string mimeType, string extension)
+        {
+            return (mimeType != null && mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)) ||
+                   (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()));
+        }
+
+        private async Task<ActionResult> ServeFileAsync(long? fileId, bool imagesOnly)
+        {
             if (fileId == null)
             {
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
@@ -566,45 +492,28 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Faqat rasm fayllar
-                var isImage = file.MimeType != null && file.MimeType.StartsWith("image/");
-                if (!isImage && file.FileExtension != null)
-                {
-                    var ext = file.FileExtension.ToLower();
-                    isImage = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".bmp";
-                }
-
-                if (!isImage)
+                bool isImage = IsImage(file.MimeType, file.FileExtension);
+                if (imagesOnly && !isImage)
                 {
                     return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest, "Bu fayl rasm emas");
                 }
 
-                var mimeType = file.MimeType ?? GetMimeTypeFromExtension(file.FileExtension);
-                Response.AppendHeader("Content-Disposition", $"inline; filename=\"{file.FileName}\"");
+                string mimeType = !string.IsNullOrEmpty(file.MimeType)
+                    ? file.MimeType
+                    : MimeMapping.GetMimeMapping(file.FileName ?? ("file" + file.FileExtension));
+
+                // RFC 5987 (filename*) + ASCII zaxira — avval nomdagi qo'shtirnoq/kirill harflari sarlavhani buzardi (DOC-B14)
+                string name = file.FileName ?? ("file" + file.FileExtension);
+                string asciiName = new string(name.Select(c => c < 32 || c > 126 || c == '"' || c == '\\' ? '_' : c).ToArray());
+                Response.AppendHeader("Content-Disposition",
+                    (isImage ? "inline" : "attachment") + "; filename=\"" + asciiName + "\"; filename*=UTF-8''" + Uri.EscapeDataString(name));
+
+                // DOC_FILES qatori o'zgarmaydi (yangi versiya = yangi ID) — galereya rasmlari qayta yuklanmasin (DOC-P08)
+                Response.Cache.SetCacheability(HttpCacheability.Private);
+                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
 
                 return File(file.FileContent, mimeType);
             }
-        }
-
-        private string GetMimeTypeFromExtension(string extension)
-        {
-            if (string.IsNullOrEmpty(extension))
-                return "application/octet-stream";
-
-            var ext = extension.ToLower().TrimStart('.');
-            var mimeTypes = new Dictionary<string, string>
-            {
-                { "png", "image/png" },
-                { "jpg", "image/jpeg" },
-                { "jpeg", "image/jpeg" },
-                { "gif", "image/gif" },
-                { "bmp", "image/bmp" },
-                { "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-                { "doc", "application/msword" },
-                { "pdf", "application/pdf" }
-            };
-
-            return mimeTypes.ContainsKey(ext) ? mimeTypes[ext] : "application/octet-stream";
         }
 
         // yordamchi methods
