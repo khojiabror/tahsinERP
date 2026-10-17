@@ -980,6 +980,7 @@
     </Compile>
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\DocFileAccess.cs" />
+    <Compile Include="Helpers\LayoutBadges.cs" />
     <Compile Include="Helpers\LicenseHelper.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
@@ -2845,6 +2846,7 @@
     <Content Include="assets\js\app.js" />
     <Content Include="assets\js\jquery.min.js" />
     <Content Include="assets\js\jquery.repeater.min.js" />
+    <Content Include="assets\js\lazy-pdfmake.js" />
     <Content Include="assets\js\scripts.js" />
     <Content Include="Content\404.css" />
     <Content Include="Content\bootstrap-grid.css" />
