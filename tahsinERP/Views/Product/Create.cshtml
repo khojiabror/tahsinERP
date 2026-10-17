@@ -104,6 +104,12 @@
                                                         @Html.ValidationMessageFor(m => m.Width, "", new { @class = "text-danger" })
                                                         @Html.ValidationMessageFor(m => m.Height, "", new { @class = "text-danger" })
                                                     </fieldset>
+                                                    <h6 class="invoice-to">Standart uzunlik (kesish uchun), mm</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.TextBoxFor(model => model.StandardLengthMm, new { @class = "form-control", @placeholder = "Masalan: 4000 (bo'sh bo'lsa — Uzunligi ishlatiladi)" })
+                                                        <small class="text-muted">Norma va BOM'dagi kesish/taxta soni hisobi shu qiymatdan foydalanadi.</small>
+                                                        @Html.ValidationMessageFor(model => model.StandardLengthMm, "", new { @class = "text-danger" })
+                                                    </fieldset>
                                                     <h6 class="invoice-to">O'lchov birligi</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.DropDownListFor(m => m.UnitID, (SelectList)ViewBag.UNIT, "-- tanlang --", new { @class = "form-control" })

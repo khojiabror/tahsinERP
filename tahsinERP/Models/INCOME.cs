@@ -35,6 +35,7 @@ namespace tahsinERP.Models
         public Nullable<bool> RecieveStatus { get; set; }
         public int CurrencyID { get; set; }
         public Nullable<int> InvoiceID { get; set; }
+        public Nullable<int> ProductionID { get; set; }
     
         public virtual CURRENCy CURRENCy1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

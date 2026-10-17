@@ -90,8 +90,11 @@ else
             <span id="saveStatus" class="ml-2"></span>
         </div>
 
+        @Html.AntiForgeryToken()
         <script>
-        $(document).ready(function() {
+        // _Layout jQuery'ni RenderBody'dan keyin yuklaydi — inline skript DOMContentLoaded'da ishga tushadi (MES-B15)
+        document.addEventListener('DOMContentLoaded', function () {
+            var $ = window.jQuery;
             var planID = @planID;
             var changedItems = [];
 

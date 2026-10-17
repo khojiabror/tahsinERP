@@ -330,6 +330,7 @@
           <Property Name="IssueDateTime" Type="datetime" Nullable="false" />
           <Property Name="SendStatus" Type="bit" />
           <Property Name="CurrencyID" Type="int" Nullable="false" />
+          <Property Name="ProductionID" Type="int" />
         </EntityType>
         <EntityType Name="F_CONTRACT_DOCS">
           <Key>
@@ -1018,6 +1019,7 @@
           <Property Name="RecieveStatus" Type="bit" />
           <Property Name="CurrencyID" Type="int" Nullable="false" />
           <Property Name="InvoiceID" Type="int" />
+          <Property Name="ProductionID" Type="int" />
         </EntityType>
         <EntityType Name="JOB_DESC">
           <Key>
@@ -1323,6 +1325,7 @@
           <Property Name="Total" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="Comment" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="PlanDate" Type="date" />
         </EntityType>
         <EntityType Name="PRODUCT_STOCKS">
           <Key>
@@ -6992,6 +6995,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IssueDateTime" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="SendStatus" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" Nullable="false" />
+          <Property Name="ProductionID" Type="Int32" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK__PROD_WRHS__Curre__55DFB4D9" FromRole="EXPENSES" ToRole="CURRENCIES" />
           <NavigationProperty Name="EXPENSE_PRODUCTS" Relationship="Self.FK_PROD_WRHS_EXPENSE_PRODUCTS_PROD_WRHS_EXPENSES" FromRole="EXPENSES" ToRole="EXPENSE_PRODUCTS" />
           <NavigationProperty Name="WRHS_EXPENSE_DOCS" Relationship="Self.FK_PROD_WRHS_EXPENSE_DOCS_PROD_WRHS_EXPENSES" FromRole="EXPENSES" ToRole="WRHS_EXPENSE_DOCS" />
@@ -7772,6 +7776,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="RecieveStatus" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" Nullable="false" />
           <Property Name="InvoiceID" Type="Int32" />
+          <Property Name="ProductionID" Type="Int32" />
           <NavigationProperty Name="CURRENCy1" Relationship="Self.FK__PROD_WRHS__Curre__56D3D912" FromRole="INCOMES" ToRole="CURRENCIES" />
           <NavigationProperty Name="INCOME_PRODUCTS" Relationship="Self.FK_PROD_WRHS_INCOME_PRODS_PROD_WRHS_INCOMES" FromRole="INCOMES" ToRole="INCOME_PRODUCTS" />
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_INCOMES_InvoiceID_P_INVOICES" FromRole="INCOMES" ToRole="P_INVOICES" />
@@ -8123,6 +8128,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Total" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="PlanDate" Type="DateTime" Precision="0" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_PRODUCT_PRODUCTION_PRODUCTS" FromRole="PRODUCT_PRODUCTION" ToRole="PRODUCTS" />
           <NavigationProperty Name="SHOP" Relationship="Self.FK_PRODUCT_PRODUCTION_SHOPS" FromRole="PRODUCT_PRODUCTION" ToRole="SHOPS" />
           <NavigationProperty Name="QUALITY_INSPECTION" Relationship="Self.FK_QUALITY_INSPECTION_PRODUCT_PRODUCTION" FromRole="PRODUCT_PRODUCTION" ToRole="QUALITY_INSPECTION" />
@@ -13903,6 +13909,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="IssueDateTime" ColumnName="IssueDateTime" />
                 <ScalarProperty Name="SendStatus" ColumnName="SendStatus" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="ProductionID" ColumnName="ProductionID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14566,6 +14573,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="RecieveStatus" ColumnName="RecieveStatus" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
                 <ScalarProperty Name="InvoiceID" ColumnName="InvoiceID" />
+                <ScalarProperty Name="ProductionID" ColumnName="ProductionID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14871,6 +14879,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="Total" ColumnName="Total" />
                 <ScalarProperty Name="Comment" ColumnName="Comment" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="PlanDate" ColumnName="PlanDate" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -364,17 +364,9 @@ namespace tahsinERP.Services
         /// <summary>
         /// Get month name in Uzbek
         /// </summary>
-        private string GetMonthName(int month)
+        private static string GetMonthName(int month)
         {
-            var monthNames = new Dictionary<int, string>
-            {
-                { 1, "Yanvar" }, { 2, "Fevral" }, { 3, "Mart" },
-                { 4, "Aprel" }, { 5, "May" }, { 6, "Iyun" },
-                { 7, "Iyul" }, { 8, "Avgust" }, { 9, "Sentabr" },
-                { 10, "Oktabr" }, { 11, "Noyabr" }, { 12, "Dekabr" }
-            };
-
-            return monthNames.ContainsKey(month) ? monthNames[month] : month.ToString();
+            return tahsinERP.Helpers.UzMonthNames.Get(month);
         }
 
         private async Task RecalculateActualCostsWithSingleEngineAsync(int? year, int? month)

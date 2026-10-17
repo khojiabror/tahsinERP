@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.Tannarx;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.Engineering
 {
@@ -40,36 +41,13 @@ namespace tahsinERP.Controllers.Engineering
             var years = Enumerable.Range(DateTime.Now.Year - 2, 5).ToList();
             ViewBag.Years = new SelectList(years, currentYear);
 
-            // Olish months uchun dropdown
-            var months = new System.Collections.Generic.List<SelectListItem>
-            {
-                new SelectListItem { Value = "1", Text = "Yanvar" },
-                new SelectListItem { Value = "2", Text = "Fevral" },
-                new SelectListItem { Value = "3", Text = "Mart" },
-                new SelectListItem { Value = "4", Text = "Aprel" },
-                new SelectListItem { Value = "5", Text = "May" },
-                new SelectListItem { Value = "6", Text = "Iyun" },
-                new SelectListItem { Value = "7", Text = "Iyul" },
-                new SelectListItem { Value = "8", Text = "Avgust" },
-                new SelectListItem { Value = "9", Text = "Sentabr" },
-                new SelectListItem { Value = "10", Text = "Oktabr" },
-                new SelectListItem { Value = "11", Text = "Noyabr" },
-                new SelectListItem { Value = "12", Text = "Dekabr" }
-            };
-            ViewBag.Months = new SelectList(months, "Value", "Text", currentMonth);
+            ViewBag.Months = UzMonthNames.SelectList(currentMonth);
 
-            // Olish products uchun dropdown (finished goods faqat)
-            // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
-            var products = await db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => p.IsDeleted == false 
-                    && (p.IsFinishedGood == true 
-                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
-                .OrderBy(p => p.PNo)
-                .ToListAsync();
+            // Tayyor mahsulotlar (proyeksiya, "PNo - Name")
+            var products = await MesLookups.FinishedGoodItemsAsync(db);
 
             // Qo'shish "Barchasi" option ga the product list
-            var productList = products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }).ToList();
+            var productList = products.Select(p => new { p.ID, p.Name }).ToList();
             ViewBag.Products = new SelectList(productList, "ID", "Name", productID);
 
             // Olish dashboard ma'lumot
@@ -94,36 +72,13 @@ namespace tahsinERP.Controllers.Engineering
             var years = Enumerable.Range(DateTime.Now.Year - 2, 5).ToList();
             ViewBag.Years = new SelectList(years, year);
 
-            // Olish months uchun dropdown
-            var months = new System.Collections.Generic.List<SelectListItem>
-            {
-                new SelectListItem { Value = "1", Text = "Yanvar" },
-                new SelectListItem { Value = "2", Text = "Fevral" },
-                new SelectListItem { Value = "3", Text = "Mart" },
-                new SelectListItem { Value = "4", Text = "Aprel" },
-                new SelectListItem { Value = "5", Text = "May" },
-                new SelectListItem { Value = "6", Text = "Iyun" },
-                new SelectListItem { Value = "7", Text = "Iyul" },
-                new SelectListItem { Value = "8", Text = "Avgust" },
-                new SelectListItem { Value = "9", Text = "Sentabr" },
-                new SelectListItem { Value = "10", Text = "Oktabr" },
-                new SelectListItem { Value = "11", Text = "Noyabr" },
-                new SelectListItem { Value = "12", Text = "Dekabr" }
-            };
-            ViewBag.Months = new SelectList(months, "Value", "Text", month);
+            ViewBag.Months = UzMonthNames.SelectList(month);
 
-            // Olish products uchun dropdown (finished goods faqat)
-            // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
-            var products = await db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => p.IsDeleted == false 
-                    && (p.IsFinishedGood == true 
-                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
-                .OrderBy(p => p.PNo)
-                .ToListAsync();
+            // Tayyor mahsulotlar (proyeksiya, "PNo - Name")
+            var products = await MesLookups.FinishedGoodItemsAsync(db);
 
             // Qo'shish "Barchasi" option ga the product list
-            var productList = products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }).ToList();
+            var productList = products.Select(p => new { p.ID, p.Name }).ToList();
             ViewBag.Products = new SelectList(productList, "ID", "Name", productID);
 
             // Olish report ma'lumot

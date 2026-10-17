@@ -4,8 +4,8 @@
     ViewBag.Title = "Ishlab Chiqarish Ma'lumotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var ModelProduction = Model.Production;
-    // TODO: agar kerak bo'lsa, ChangePermit ni controllerdan ViewBag orqali uzatish mumkin
-    bool changePermit = true;
+    // Controller: o'zgartirish huquqi bor va yozuv QI/lot transferiga bog'lanmagan
+    bool changePermit = ViewBag.ChangePermit == true;
 }
 
 <div class="app-content content">
@@ -70,9 +70,13 @@
                                                             <a href="@Url.Action("Edit", new { id = ModelProduction.ID })" class="btn btn-outline-success">
                                                                 <i class="bx bx-edit"></i> Tahrirlash
                                                             </a>
-                                                            <a href="@Url.Action("Delete", new { id = ModelProduction.ID })" class="btn btn-outline-danger">
-                                                                <i class="bx bx-trash"></i> O'chirish
-                                                            </a>
+                                                            using (Html.BeginForm("Delete", "ProductProduction", new { id = ModelProduction.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Ishlab chiqarishni oʻchirishni tasdiqlaysizmi? Kirim va xomashyo chiqimi bekor qilinadi.');" }))
+                                                            {
+                                                                @Html.AntiForgeryToken()
+                                                                <button type="submit" class="btn btn-outline-danger">
+                                                                    <i class="bx bx-trash"></i> O'chirish
+                                                                </button>
+                                                            }
                                                         }
                                                     </div>
                                                 </div>
