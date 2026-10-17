@@ -25,23 +25,10 @@ namespace tahsinERP.Controllers
 
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = db.F_TRANSPORT_TYPES
-                    .Where(t => t.IsDeleted == false || t.IsDeleted == null)
-                    .Include(t => t.UNIT)
+                var list = db.F_TRANSPORT_TYPES.AsNoTracking()
+                    .Where(t => t.IsDeleted != true)
                     .ToList();
-                
-                // Calculate CBM uchun har bir transport type
-                foreach (var item in list)
-                {
-                    if (item.IntLgth > 0 && item.IntWdth > 0 && item.IntHght > 0)
-                    {
-                        double lengthM = item.IntLgth / 100.0;
-                        double widthM = item.IntWdth / 100.0;
-                        double heightM = item.IntHght / 100.0;
-                        ViewData[$"CBM_{item.ID}"] = lengthM * widthM * heightM;
-                    }
-                }
-                
+
                 return View(list);
             }
         }
@@ -117,36 +104,6 @@ namespace tahsinERP.Controllers
             return View(viewModel);
         }
 
-
-        /*[HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(F_TRANSPORT_TYPES transportType)
-        {
-            if (transportType == null)
-            {
-                ModelState.AddModelError("", "Forma ma'lumotlari noto'g'ri. Iltimos, kiritilgan qiymatlarni tekshiring.");
-                return View(transportType);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                try
-                {
-                    if (ModelState.IsValid)
-                    {
-                        db.F_TRANSPORT_TYPES.Add(transportType);
-                        db.SaveChanges();
-                        return RedirectToAction("Index");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", "Xatolik: " + ex.Message);
-                }
-            }
-
-            return View(transportType);
-        }*/
         public ActionResult Details(int? id)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
@@ -167,31 +124,10 @@ namespace tahsinERP.Controllers
 
                 db.Entry(transportType).Reference(x => x.UNIT).Load();
 
-                // Calculate CBM capacity (internal dimensions in meters)
-                double? cbmCapacity = null;
-                if (transportType.IntLgth > 0 && transportType.IntWdth > 0 && transportType.IntHght > 0)
-                {
-                    // Aylantirish ga meters agar needed (assuming dimensions are in cm, adjust as needed)
-                    double lengthM = transportType.IntLgth / 100.0;
-                    double widthM = transportType.IntWdth / 100.0;
-                    double heightM = transportType.IntHght / 100.0;
-                    cbmCapacity = lengthM * widthM * heightM;
-                }
-
-                // Calculate possible pallet count (assuming standard pallet size: 120cm x 100cm)
-                int? palletCount = null;
-                if (transportType.IntLgth > 0 && transportType.IntWdth > 0)
-                {
-                    // Standard pallet: 120cm x 100cm
-                    int palletsLength = (int)(transportType.IntLgth / 120);
-                    int palletsWidth = (int)(transportType.IntWdth / 100);
-                    palletCount = palletsLength * palletsWidth;
-                }
-
-                ViewBag.CBMCapacity = cbmCapacity;
-                ViewBag.PalletCount = palletCount;
-                ViewBag.ExternalCBM = transportType.ExtLgth > 0 && transportType.ExtWdth > 0 && transportType.ExtHght > 0 ?
-                    (transportType.ExtLgth / 100.0) * (transportType.ExtWdth / 100.0) * (transportType.ExtHght / 100.0) : (double?)null;
+                // LOG-B10: o'lchamlar mm (avval sm deb ÷100 qilinardi — simulyator bilan 1000 marta farq)
+                ViewBag.CBMCapacity = TransportLoadCalculator.InternalCbm(transportType);
+                ViewBag.PalletCount = TransportLoadCalculator.Pallets(transportType);
+                ViewBag.ExternalCBM = TransportLoadCalculator.ExternalCbm(transportType);
 
                 return View(transportType);
             }
@@ -212,12 +148,11 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Retrieve existing entity
-                var transportType = db.F_TRANSPORT_TYPES.Find(id);
+                var transportType = db.F_TRANSPORT_TYPES.Include(t => t.UNIT).FirstOrDefault(t => t.ID == id && t.IsDeleted != true);
                 if (transportType == null)
                 {
                     return HttpNotFound();
                 }
-                db.Entry(transportType).Reference(x => x.UNIT).Load();
 
                 // Map entity ga view model
                 var viewModel = new TransportTypeViewModel
@@ -254,7 +189,7 @@ namespace tahsinERP.Controllers
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     // Retrieve existing entity
-                    var transportTypeToUpdate = db.F_TRANSPORT_TYPES.Find(viewModel.ID);
+                    var transportTypeToUpdate = db.F_TRANSPORT_TYPES.FirstOrDefault(t => t.ID == viewModel.ID && t.IsDeleted != true);
                     if (transportTypeToUpdate == null)
                     {
                         return HttpNotFound();
@@ -268,7 +203,7 @@ namespace tahsinERP.Controllers
                     transportTypeToUpdate.IntLgth = viewModel.IntLgth;
                     transportTypeToUpdate.IntWdth = viewModel.IntWdth;
                     transportTypeToUpdate.IntHght = viewModel.IntHght;
-                   // transportTypeToUpdate.UnitID = viewModel.UnitID;
+                    transportTypeToUpdate.UnitID = viewModel.UnitID;
                     transportTypeToUpdate.CapableOfLifting = viewModel.CapableOfLifting;
                     transportTypeToUpdate.TransportWeight = viewModel.TransportWeight;
 
@@ -314,12 +249,11 @@ namespace tahsinERP.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
-                var transportType = db.F_TRANSPORT_TYPES.Find(Id);
+                var transportType = LoadTransportTypeForDelete(db, Id.Value);
                 if (transportType == null)
                 {
                     return HttpNotFound();
                 }
-                db.Entry(transportType).Reference(x => x.UNIT).Load();
 
                 return View(transportType);
             }
@@ -337,7 +271,7 @@ namespace tahsinERP.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var  transportTypeToDelete = db.F_TRANSPORT_TYPES.Find(ID);
+                    var  transportTypeToDelete = db.F_TRANSPORT_TYPES.FirstOrDefault(t => t.ID == ID && t.IsDeleted != true);
                     if (transportTypeToDelete != null)
                     {
                         transportTypeToDelete.IsDeleted = true;
@@ -368,8 +302,20 @@ namespace tahsinERP.Controllers
                 {
                     ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
                 }
-                return View();
+
+                // LOG-B09: view null model bilan ochilmasin
+                var model = ID.HasValue ? LoadTransportTypeForDelete(db, ID.Value) : null;
+                if (model == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(model);
             }
+        }
+
+        private static F_TRANSPORT_TYPES LoadTransportTypeForDelete(DBTHSNEntities db, int id)
+        {
+            return db.F_TRANSPORT_TYPES.AsNoTracking().Include(t => t.UNIT).FirstOrDefault(t => t.ID == id && t.IsDeleted != true);
         }
     }
 }

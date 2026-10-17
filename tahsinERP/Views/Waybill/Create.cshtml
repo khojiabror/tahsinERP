@@ -309,6 +309,7 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
+@section scripts {
 <script>
     function loadTariffs() {
         var contractId = $("#contractSelect").val();
@@ -421,3 +422,4 @@ else
         $("#amountInput").data("auto", true);
     }
 </script>
+}

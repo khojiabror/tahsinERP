@@ -1055,6 +1055,8 @@
     <Compile Include="Services\IUserActionLogger.cs" />
     <Compile Include="Services\LogisticsTerms.cs" />
     <Compile Include="Services\WaybillLedgerService.cs" />
+    <Compile Include="Services\FreightCalculator.cs" />
+    <Compile Include="Services\ExcelCellReader.cs" />
     <Compile Include="Services\MaterialConsumptionService.cs" />
     <Compile Include="Services\OfficialLetterDataService.cs" />
     <Compile Include="Services\MaterialConsumptionServiceDTOs.cs" />

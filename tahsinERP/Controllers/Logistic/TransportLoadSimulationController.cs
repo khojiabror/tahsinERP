@@ -40,6 +40,7 @@ namespace tahsinERP.Controllers
 
                 // Olish transport types uchun dropdown
                 var transportTypes = db.F_TRANSPORT_TYPES
+                    .Where(t => t.IsDeleted != true)
                     .OrderBy(t => t.TransportType)
                     .Select(t => new TransportSelectItem
                     {

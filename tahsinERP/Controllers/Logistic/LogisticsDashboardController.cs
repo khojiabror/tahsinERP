@@ -15,6 +15,15 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class LogisticsDashboardController : Controller
     {
+        /// <summary>LOG-B13: davrdagi yo'l varaqalari valyutalari (bir nechta bo'lsa view ogohlantiradi).</summary>
+        private static List<string> WaybillCurrencyCodes(DBTHSNEntities db, IQueryable<F_WAYBILLS> waybills)
+        {
+            var ids = waybills.Select(w => w.CurrencyID).Distinct().ToList();
+            return ids.Select(id => id.HasValue ? (Services.Common.ReferenceDataCache.NameOf(Services.Common.ReferenceDataCache.Currencies, id) ?? "#" + id) : "valyutasiz")
+                .OrderBy(x => x)
+                .ToList();
+        }
+
         // Olish so'rovi: LogisticsDashboard
         public async Task<ActionResult> Index(DateTime? startDate, DateTime? endDate, int? forwarderId, byte? direction)
         {
@@ -34,7 +43,7 @@ namespace tahsinERP.Controllers
                 var query = db.F_WAYBILLS
                     .Include(w => w.FORWARDER)
                     .Include(w => w.CURRENCy)
-                    .Where(w => w.IsDeleted == false && 
+                    .Where(w => w.IsDeleted != true && 
                         w.IssueDate >= startDate.Value && 
                         w.IssueDate <= endDate.Value);
 
@@ -153,7 +162,7 @@ namespace tahsinERP.Controllers
 
                 ViewBag.StartDate = startDate.Value.ToString("yyyy-MM-dd");
                 ViewBag.EndDate = endDate.Value.ToString("yyyy-MM-dd");
-                ViewBag.Forwarders = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName", forwarderId);
+                ViewBag.Forwarders = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted != true).ToListAsync(), "ID", "ForwarderName", forwarderId);
                 ViewBag.Directions = new SelectList(new[]
                 {
                     new { Value = (byte?)0, Text = "Kiruvchi (Inbound)" },
@@ -161,6 +170,7 @@ namespace tahsinERP.Controllers
                     new { Value = (byte?)2, Text = "Ichki (Internal)" }
                 }, "Value", "Text", direction);
 
+                ViewBag.CurrencyCodes = WaybillCurrencyCodes(db, query);
                 ViewBag.TotalCost = totalCost;
                 ViewBag.TotalTonnage = totalTonnage;
                 ViewBag.TotalCBM = totalCBM;
@@ -188,7 +198,8 @@ namespace tahsinERP.Controllers
         /// </summary>
         public async Task<ActionResult> MonthlyReport(int? year, int? month, int? forwarderId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Waybill", "Index"))
+            // LOG-B19: o'z marshruti bo'yicha (yozuv bo'lmasa — LogisticsDashboard controller ruxsati)
+            if (!RoleHelper.IsPermittedForAction(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString(), false))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
@@ -201,6 +212,11 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var model = await LogisticsMonthlyReportService.BuildReportAsync(db, y, m, forwarderId);
+                var periodStart = new DateTime(y, m, 1);
+                var periodEnd = periodStart.AddMonths(1);
+                ViewBag.CurrencyCodes = WaybillCurrencyCodes(db, db.F_WAYBILLS.Where(w => w.IsDeleted != true
+                    && w.IssueDate >= periodStart && w.IssueDate < periodEnd
+                    && (!forwarderId.HasValue || w.ForwarderID == forwarderId.Value)));
                 return View(model);
             }
         }
@@ -224,7 +240,7 @@ namespace tahsinERP.Controllers
             {
                 var waybills = await db.F_WAYBILLS
                     .Include(w => w.FORWARDER)
-                    .Where(w => w.IsDeleted == false &&
+                    .Where(w => w.IsDeleted != true &&
                         w.IssueDate >= startDate.Value &&
                         w.IssueDate <= endDate.Value &&
                         !string.IsNullOrEmpty(w.FromLocation) &&
@@ -280,14 +296,14 @@ namespace tahsinERP.Controllers
                 var waybillsWithoutInvoices = await db.F_WAYBILLS
                     .Include(w => w.FORWARDER)
                     .Include(w => w.F_CONTRACTS.FORWARDER)
-                    .Where(w => w.IsDeleted == false &&
+                    .Where(w => w.IsDeleted != true &&
                         !w.InvoiceID.HasValue &&
                         !w.SalesInvoiceID.HasValue)
                     .ToListAsync();
 
                 // Waybills without payments (split to'lovlar ham hisobga olinadi — LOG-B04)
                 var waybillsWithoutPayments = await WaybillLedgerService
-                    .WithoutAnyPayment(db, db.F_WAYBILLS.Where(w => w.IsDeleted == false && w.Amount.HasValue))
+                    .WithoutAnyPayment(db, db.F_WAYBILLS.Where(w => w.IsDeleted != true && w.Amount.HasValue))
                     .Include(w => w.FORWARDER)
                     .Include(w => w.F_CONTRACTS.FORWARDER)
                     .ToListAsync();
@@ -295,7 +311,7 @@ namespace tahsinERP.Controllers
                 // Invoices bilan missing freight cost
                 var salesInvoices = await db.SALES_INVOICES
                     .Include(i => i.CUSTOMER)
-                    .Where(i => !db.F_WAYBILLS.Any(w => w.SalesInvoiceID == i.ID && w.IsDeleted == false))
+                    .Where(i => !db.F_WAYBILLS.Any(w => w.SalesInvoiceID == i.ID && w.IsDeleted != true))
                     .ToListAsync();
 
                 ViewBag.WaybillsWithoutInvoices = waybillsWithoutInvoices;
@@ -325,7 +341,7 @@ namespace tahsinERP.Controllers
             {
                 var query = db.F_WAYBILLS
                     .Include(w => w.FORWARDER)
-                    .Where(w => w.IsDeleted == false &&
+                    .Where(w => w.IsDeleted != true &&
                         w.IssueDate >= startDate.Value &&
                         w.IssueDate <= endDate.Value);
 

@@ -27,7 +27,7 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync();
+                var list = await db.FORWARDERS.AsNoTracking().Where(f => f.IsDeleted != true).ToListAsync();
                 return View(list);
             }
         }
@@ -97,11 +97,11 @@ namespace tahsinERP.Controllers
 
                 // Calculate statistics
                 var waybills = await db.F_WAYBILLS
-                    .Where(w => w.ForwarderID == id && w.IsDeleted == false)
+                    .Where(w => w.ForwarderID == id && w.IsDeleted != true)
                     .ToListAsync();
 
                 var payments = await db.F_WAYBILL_PAYMENTS
-                    .Where(p => p.ForwarderID == id && p.IsDeleted == false)
+                    .Where(p => p.ForwarderID == id && !p.IsDeleted)
                     .ToListAsync();
 
                 var balance = WaybillLedgerService.GetForwarderBalance(db, forwarder.ID);
@@ -197,7 +197,7 @@ namespace tahsinERP.Controllers
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var forwarder = await db.FORWARDERS.FindAsync(id);
+                var forwarder = await db.FORWARDERS.FirstOrDefaultAsync(f => f.ID == id && f.IsDeleted != true);
                 if (forwarder == null)
                 {
                     return HttpNotFound();
@@ -218,7 +218,7 @@ namespace tahsinERP.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var forwarderToUpdate = await db.FORWARDERS.FindAsync(forwarder.ID);
+                    var forwarderToUpdate = await db.FORWARDERS.FirstOrDefaultAsync(f => f.ID == forwarder.ID && f.IsDeleted != true);
                     if (forwarderToUpdate == null)
                     {
                         ModelState.AddModelError("", "Yuk tashuvchi topilmadi.");
@@ -266,7 +266,7 @@ namespace tahsinERP.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
-                var forwarder = await db.FORWARDERS.FindAsync(Id);
+                var forwarder = await db.FORWARDERS.AsNoTracking().FirstOrDefaultAsync(f => f.ID == Id && f.IsDeleted != true);
                 if (forwarder == null)
                 {
                     return HttpNotFound();
@@ -289,7 +289,7 @@ namespace tahsinERP.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    FORWARDER forwarderToDelete = await db.FORWARDERS.FindAsync(ID);
+                    FORWARDER forwarderToDelete = await db.FORWARDERS.FirstOrDefaultAsync(f => f.ID == ID && f.IsDeleted != true);
                     if (forwarderToDelete != null)
                     {
                         forwarderToDelete.IsDeleted = true;
@@ -324,7 +324,13 @@ namespace tahsinERP.Controllers
                     ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
                 }
 
-                return View();
+                // LOG-B09: view null model bilan ochilmasin
+                var model = await db.FORWARDERS.AsNoTracking().FirstOrDefaultAsync(f => f.ID == ID && f.IsDeleted != true);
+                if (model == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(model);
             }
         }
 

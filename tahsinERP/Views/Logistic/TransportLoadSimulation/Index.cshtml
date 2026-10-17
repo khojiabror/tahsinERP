@@ -217,432 +217,6 @@
         </div>
     </div>
 
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
-    <script>
-        // Global variables for Three.js
-        var scene, camera, renderer, controls;
-        var currentData = null;
-        var showingAlternative = false;
-
-        // Store AJAX URL from Razor
-        var calculateApiUrl = '@Url.Action("Calculate", "TransportLoadApi")';
-        if (!calculateApiUrl || calculateApiUrl === '') {
-            calculateApiUrl = '/TransportLoadApi/Calculate';
-        }
-
-        // Define all functions globally FIRST (before initialization)
-        window.performSimulation = function(productId, transportId) {
-            console.log('Simulation started', { productId: productId, transportId: transportId });
-            var $ = jQuery;
-            
-            $('#loadingIndicator').show();
-            $('#resultsPanel').hide();
-
-            console.log('AJAX URL:', calculateApiUrl);
-
-            $.ajax({
-                url: calculateApiUrl,
-                type: 'GET',
-                data: {
-                    productId: productId,
-                    transportId: transportId
-                },
-                success: function (response) {
-                    console.log('AJAX Success:', response);
-                    $('#loadingIndicator').hide();
-                    if (response && response.success) {
-                        currentData = response.data;
-                        showingAlternative = false;
-                        window.displayResults(response.data);
-                        window.initializeThreeJS();
-                        window.renderVisualization(response.data, false);
-                        $('#resultsPanel').show();
-                    } else {
-                        var errorMsg = response && response.error ? response.error : 'Noma\'lum xatolik';
-                        alert('Xatolik: ' + errorMsg);
-                        console.error('Response error:', response);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('AJAX Error:', { xhr: xhr, status: status, error: error, responseText: xhr.responseText });
-                    $('#loadingIndicator').hide();
-                    var errorMessage = 'Xatolik yuz berdi: ' + error;
-                    if (xhr.responseText) {
-                        errorMessage += '\n\nJavob: ' + xhr.responseText.substring(0, 200);
-                    }
-                    alert(errorMessage);
-                }
-            });
-        };
-
-        window.displayResults = function(data) {
-            var $ = jQuery;
-            
-            // Product info
-            $('#productName').text(data.ProductName || '-');
-            $('#productPNo').text(data.ProductPNo || '-');
-            $('#productDimensions').text(
-                data.ProductLengthMm.toFixed(0) + ' × ' +
-                data.ProductWidthMm.toFixed(0) + ' × ' +
-                data.ProductHeightMm.toFixed(0)
-            );
-            $('#productVolume').text(data.VolumePerUnitCbm.toFixed(6));
-
-            // Transport info
-            $('#transportName').text(data.TransportTypeName || '-');
-            $('#transportDimensions').text(
-                data.TransportLengthMm.toFixed(0) + ' × ' +
-                data.TransportWidthMm.toFixed(0) + ' × ' +
-                data.TransportHeightMm.toFixed(0)
-            );
-            $('#transportVolume').text(data.TransportVolumeCbm.toFixed(6));
-
-            // Results
-            $('#maxQuantity').text(data.MaxQuantity);
-            $('#bestOrientation').text(data.BestOrientation);
-            $('#totalCbm').text(data.TotalCbm.toFixed(6));
-            
-            const utilization = data.UtilizationPercent;
-            $('#utilizationPercent').text(utilization.toFixed(2) + '%');
-            
-            // Color code utilization
-            const utilElement = $('#utilizationPercent');
-            utilElement.removeClass('text-success text-warning text-danger');
-            if (utilization >= 80) {
-                utilElement.addClass('text-success');
-            } else if (utilization >= 50) {
-                utilElement.addClass('text-warning');
-            } else {
-                utilElement.addClass('text-danger');
-            }
-
-            // Layout info
-            $('#layoutInfo').text(
-                data.CountLength + ' × ' + data.CountWidth + ' × ' + data.CountHeight + 
-                ' (' + data.BestOrientation + ' orientatsiyada)'
-            );
-        };
-
-        window.initializeThreeJS = function() {
-            const container = document.getElementById('threejsContainer');
-            
-            // Clear previous scene if exists
-            if (renderer) {
-                renderer.dispose();
-            }
-
-            // Scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf0f0f0);
-
-            // Camera
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
-            camera.position.set(2000, 2000, 2000);
-            camera.lookAt(0, 0, 0);
-
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(width, height);
-            renderer.shadowMap.enabled = true;
-            container.innerHTML = '';
-            container.appendChild(renderer.domElement);
-
-            // Simple mouse controls
-            let isDragging = false;
-            let previousMousePosition = { x: 0, y: 0 };
-            let targetRotationX = 0, targetRotationY = 0;
-            let targetRadius = 3000;
-            
-            renderer.domElement.addEventListener('mousedown', function(e) {
-                isDragging = true;
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            });
-            
-            renderer.domElement.addEventListener('mousemove', function(e) {
-                if (isDragging) {
-                    const deltaX = e.clientX - previousMousePosition.x;
-                    const deltaY = e.clientY - previousMousePosition.y;
-                    targetRotationY += deltaX * 0.01;
-                    targetRotationX += deltaY * 0.01;
-                    previousMousePosition = { x: e.clientX, y: e.clientY };
-                }
-            });
-            
-            renderer.domElement.addEventListener('mouseup', function() {
-                isDragging = false;
-            });
-            
-            renderer.domElement.addEventListener('wheel', function(e) {
-                e.preventDefault();
-                targetRadius += e.deltaY * 10;
-                targetRadius = Math.max(500, Math.min(8000, targetRadius));
-            });
-            
-            // Simple mouse controls
-            controls = {
-                target: { x: 0, y: 0, z: 0 },
-                update: function() {
-                    const currentRadius = camera.position.length();
-                    const newRadius = currentRadius + (targetRadius - currentRadius) * 0.1;
-                    
-                    camera.position.x = Math.sin(targetRotationY) * Math.cos(targetRotationX) * newRadius;
-                    camera.position.y = Math.sin(targetRotationX) * newRadius;
-                    camera.position.z = Math.cos(targetRotationY) * Math.cos(targetRotationX) * newRadius;
-                    camera.lookAt(this.target.x, this.target.y, this.target.z);
-                }
-            };
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(1000, 2000, 1000);
-            directionalLight.castShadow = true;
-            scene.add(directionalLight);
-
-            // Grid helper
-            const gridHelper = new THREE.GridHelper(5000, 20, 0x888888, 0xcccccc);
-            scene.add(gridHelper);
-
-            // Axes helper
-            const axesHelper = new THREE.AxesHelper(1000);
-            scene.add(axesHelper);
-
-            // Handle window resize
-            window.addEventListener('resize', window.onWindowResize, false);
-        };
-
-        window.renderVisualization = function(data, useAlternative) {
-            if (!scene || !camera || !renderer) return;
-
-            // Clear existing objects (except lights, grid, axes)
-            const objectsToRemove = [];
-            scene.traverse(function (object) {
-                if (object.userData.isProduct || object.userData.isTransport) {
-                    objectsToRemove.push(object);
-                }
-            });
-            objectsToRemove.forEach(obj => {
-                scene.remove(obj);
-                if (obj.geometry) obj.geometry.dispose();
-                if (obj.material) obj.material.dispose();
-            });
-
-            const result = useAlternative ? {
-                CountLength: data.AlternativeCountLength,
-                CountWidth: data.AlternativeCountWidth,
-                CountHeight: data.CountHeight,
-                BestOrientation: data.AlternativeOrientation
-            } : {
-                CountLength: data.CountLength,
-                CountWidth: data.CountWidth,
-                CountHeight: data.CountHeight,
-                BestOrientation: data.BestOrientation
-            };
-
-            // Scale factor to fit in view
-            const maxDim = Math.max(
-                data.TransportLengthMm,
-                data.TransportWidthMm,
-                data.TransportHeightMm
-            );
-            const scale = 2000 / maxDim;
-
-            // Transport container (wireframe)
-            const transportGeometry = new THREE.BoxGeometry(
-                data.TransportLengthMm * scale,
-                data.TransportHeightMm * scale,
-                data.TransportWidthMm * scale
-            );
-            const transportMaterial = new THREE.MeshBasicMaterial({
-                color: 0x000000,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.3
-            });
-            const transport = new THREE.Mesh(transportGeometry, transportMaterial);
-            transport.userData.isTransport = true;
-            transport.position.set(
-                data.TransportLengthMm * scale / 2,
-                data.TransportHeightMm * scale / 2,
-                data.TransportWidthMm * scale / 2
-            );
-            scene.add(transport);
-
-            // Product boxes
-            const productLength = data.ProductLengthMm * scale;
-            const productWidth = data.ProductWidthMm * scale;
-            const productHeight = data.ProductHeightMm * scale;
-
-            // Determine actual product dimensions based on orientation
-            let boxLength, boxWidth;
-            if (result.BestOrientation === 'LxW') {
-                boxLength = productLength;
-                boxWidth = productWidth;
-            } else {
-                boxLength = productWidth;
-                boxWidth = productLength;
-            }
-
-            const productGeometry = new THREE.BoxGeometry(boxLength, productHeight, boxWidth);
-            const productMaterial = new THREE.MeshLambertMaterial({
-                color: 0x4CAF50,
-                transparent: true,
-                opacity: 0.7
-            });
-
-            // Create product boxes in grid
-            for (let x = 0; x < result.CountLength; x++) {
-                for (let z = 0; z < result.CountWidth; z++) {
-                    for (let y = 0; y < result.CountHeight; y++) {
-                        const productBox = new THREE.Mesh(productGeometry, productMaterial.clone());
-                        productBox.userData.isProduct = true;
-                        productBox.position.set(
-                            x * boxLength + boxLength / 2,
-                            y * productHeight + productHeight / 2,
-                            z * boxWidth + boxWidth / 2
-                        );
-                        productBox.castShadow = true;
-                        productBox.receiveShadow = true;
-                        scene.add(productBox);
-                    }
-                }
-            }
-
-            // Update camera to view the scene
-            const centerX = data.TransportLengthMm * scale / 2;
-            const centerY = data.TransportHeightMm * scale / 2;
-            const centerZ = data.TransportWidthMm * scale / 2;
-            
-            camera.position.set(
-                centerX + maxDim * scale * 1.5,
-                centerY + maxDim * scale * 1.5,
-                centerZ + maxDim * scale * 1.5
-            );
-            controls.target = { x: centerX, y: centerY, z: centerZ };
-            controls.update();
-
-            if (window.animate) window.animate();
-        };
-
-        window.animate = function() {
-            requestAnimationFrame(window.animate);
-            if (controls) {
-                controls.update();
-            }
-            if (renderer && scene && camera) {
-                renderer.render(scene, camera);
-            }
-        };
-
-        window.onWindowResize = function() {
-            const container = document.getElementById('threejsContainer');
-            if (container && camera && renderer) {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            }
-        };
-
-        // Wait for jQuery to be available
-        (function() {
-            function initTransportLoadSimulation() {
-                // Check if jQuery is available
-                if (typeof jQuery === 'undefined') {
-                    console.error('jQuery is not loaded! Retrying...');
-                    setTimeout(initTransportLoadSimulation, 100);
-                    return;
-                }
-
-                var $ = jQuery;
-                console.log('Transport Load Simulation initialized');
-                console.log('jQuery version:', $.fn.jquery);
-                console.log('API URL:', calculateApiUrl);
-
-                // Wait for DOM to be ready
-                $(document).ready(function () {
-                    console.log('Document ready - jQuery version:', $.fn.jquery);
-                    console.log('Simulate button exists:', $('#simulateBtn').length > 0);
-            
-                    // Initialize Select2 if available
-                    if (typeof $.fn.select2 !== 'undefined') {
-                        $('#productSelect, #transportSelect').select2();
-                    }
-
-                    // Simulate button click - use direct event binding
-                    $('#simulateBtn').off('click').on('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Simulate button clicked');
-                        
-                        var productId = $('#productSelect').val();
-                        var transportId = $('#transportSelect').val();
-
-                        console.log('Selected values:', { productId: productId, transportId: transportId });
-
-                        if (!productId || !transportId) {
-                            alert('Iltimos, mahsulot va transport turini tanlang');
-                            return false;
-                        }
-
-                        if (window.performSimulation) {
-                            window.performSimulation(productId, transportId);
-                        } else {
-                            console.error('performSimulation function not available');
-                        }
-                        return false;
-                    });
-
-                    // Also try direct onclick as fallback
-                    var btn = document.getElementById('simulateBtn');
-                    if (btn) {
-                        btn.onclick = function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Direct onclick handler triggered');
-                            var productId = $('#productSelect').val();
-                            var transportId = $('#transportSelect').val();
-
-                            if (!productId || !transportId) {
-                                alert('Iltimos, mahsulot va transport turini tanlang');
-                                return false;
-                            }
-
-                            if (window.performSimulation) {
-                                window.performSimulation(productId, transportId);
-                            } else {
-                                console.error('performSimulation function not available');
-                            }
-                            return false;
-                        };
-                    }
-
-                    // Toggle orientation button
-                    $('#toggleOrientationBtn').on('click', function () {
-                        if (currentData && window.renderVisualization) {
-                            showingAlternative = !showingAlternative;
-                            window.renderVisualization(currentData, showingAlternative);
-                        }
-                    });
-                });
-            }
-
-            // Start initialization when page loads
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initTransportLoadSimulation);
-            } else {
-                // DOM already loaded
-                initTransportLoadSimulation();
-            }
-        })();
-    </script>
-
     <style>
         .utilization-badge {
             font-weight: bold;
@@ -655,4 +229,227 @@
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts {
+    <!-- Three.js (OrbitControls ishlatilmasdi — olib tashlandi, LOG-P15) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        (function ($) {
+            'use strict';
+
+            var calculateApiUrl = '@Url.Action("Calculate", "TransportLoadApi")';
+            var scene, camera, renderer, controls, frameId = null;
+            var sceneObjects = [];
+            var currentData = null;
+            var showingAlternative = false;
+
+            function performSimulation(productId, transportId) {
+                $('#loadingIndicator').show();
+                $('#resultsPanel').hide();
+
+                $.ajax({ url: calculateApiUrl, type: 'GET', data: { productId: productId, transportId: transportId } })
+                    .done(function (response) {
+                        $('#loadingIndicator').hide();
+                        if (response && response.success) {
+                            currentData = response.data;
+                            showingAlternative = false;
+                            displayResults(response.data);
+                            $('#resultsPanel').show();
+                            ensureThreeJS();
+                            renderVisualization(response.data, false);
+                        } else {
+                            alert('Xatolik: ' + (response && response.error ? response.error : "Noma'lum xatolik"));
+                        }
+                    })
+                    .fail(function () {
+                        $('#loadingIndicator').hide();
+                        alert("Hisoblashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                    });
+            }
+
+            function displayResults(data) {
+                $('#productName').text(data.ProductName || '-');
+                $('#productPNo').text(data.ProductPNo || '-');
+                $('#productDimensions').text(
+                    data.ProductLengthMm.toFixed(0) + ' × ' + data.ProductWidthMm.toFixed(0) + ' × ' + data.ProductHeightMm.toFixed(0));
+                $('#productVolume').text(data.VolumePerUnitCbm.toFixed(6));
+
+                $('#transportName').text(data.TransportTypeName || '-');
+                $('#transportDimensions').text(
+                    data.TransportLengthMm.toFixed(0) + ' × ' + data.TransportWidthMm.toFixed(0) + ' × ' + data.TransportHeightMm.toFixed(0));
+                $('#transportVolume').text(data.TransportVolumeCbm.toFixed(6));
+
+                $('#maxQuantity').text(data.MaxQuantity);
+                $('#bestOrientation').text(data.BestOrientation);
+                $('#totalCbm').text(data.TotalCbm.toFixed(6));
+
+                var utilization = data.UtilizationPercent;
+                var utilElement = $('#utilizationPercent');
+                utilElement.text(utilization.toFixed(2) + '%')
+                    .removeClass('text-success text-warning text-danger')
+                    .addClass(utilization >= 80 ? 'text-success' : utilization >= 50 ? 'text-warning' : 'text-danger');
+
+                $('#layoutInfo').text(
+                    data.CountLength + ' × ' + data.CountWidth + ' × ' + data.CountHeight + ' (' + data.BestOrientation + ' orientatsiyada)');
+            }
+
+            // Sahna bir marta yaratiladi; har simulyatsiyada faqat obyektlar almashtiriladi (LOG-P12)
+            function ensureThreeJS() {
+                if (renderer) {
+                    onWindowResize();
+                    return;
+                }
+                var container = document.getElementById('threejsContainer');
+
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xf0f0f0);
+
+                camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 10000);
+                camera.position.set(2000, 2000, 2000);
+
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.innerHTML = '';
+                container.appendChild(renderer.domElement);
+
+                var isDragging = false, prev = { x: 0, y: 0 };
+                var rotX = 0.6, rotY = 0.8, radius = 3000;
+
+                renderer.domElement.addEventListener('mousedown', function (e) { isDragging = true; prev = { x: e.clientX, y: e.clientY }; });
+                renderer.domElement.addEventListener('mousemove', function (e) {
+                    if (!isDragging) return;
+                    rotY += (e.clientX - prev.x) * 0.01;
+                    rotX += (e.clientY - prev.y) * 0.01;
+                    prev = { x: e.clientX, y: e.clientY };
+                });
+                window.addEventListener('mouseup', function () { isDragging = false; });
+                renderer.domElement.addEventListener('wheel', function (e) {
+                    e.preventDefault();
+                    radius = Math.max(500, Math.min(8000, radius + e.deltaY * 10));
+                });
+
+                controls = {
+                    target: { x: 0, y: 0, z: 0 },
+                    setRadius: function (r) { radius = r; },
+                    update: function () {
+                        var current = camera.position.length();
+                        var r = current + (radius - current) * 0.1;
+                        camera.position.x = this.target.x + Math.sin(rotY) * Math.cos(rotX) * r;
+                        camera.position.y = this.target.y + Math.sin(rotX) * r;
+                        camera.position.z = this.target.z + Math.cos(rotY) * Math.cos(rotX) * r;
+                        camera.lookAt(this.target.x, this.target.y, this.target.z);
+                    }
+                };
+
+                scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1000, 2000, 1000);
+                scene.add(directionalLight);
+                scene.add(new THREE.GridHelper(5000, 20, 0x888888, 0xcccccc));
+                scene.add(new THREE.AxesHelper(1000));
+
+                window.addEventListener('resize', onWindowResize, false);
+                startAnimation();
+            }
+
+            function clearSceneObjects() {
+                sceneObjects.forEach(function (obj) {
+                    scene.remove(obj);
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) obj.material.dispose();
+                });
+                sceneObjects = [];
+            }
+
+            function renderVisualization(data, useAlternative) {
+                if (!scene) return;
+                clearSceneObjects();
+
+                var countLength = useAlternative ? data.AlternativeCountLength : data.CountLength;
+                var countWidth = useAlternative ? data.AlternativeCountWidth : data.CountWidth;
+                var countHeight = data.CountHeight;
+                var orientation = useAlternative ? data.AlternativeOrientation : data.BestOrientation;
+
+                var maxDim = Math.max(data.TransportLengthMm, data.TransportWidthMm, data.TransportHeightMm);
+                var scale = 2000 / maxDim;
+                var tl = data.TransportLengthMm * scale, th = data.TransportHeightMm * scale, tw = data.TransportWidthMm * scale;
+
+                var transport = new THREE.Mesh(
+                    new THREE.BoxGeometry(tl, th, tw),
+                    new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.3 }));
+                transport.position.set(tl / 2, th / 2, tw / 2);
+                scene.add(transport);
+                sceneObjects.push(transport);
+
+                var pl = data.ProductLengthMm * scale, pw = data.ProductWidthMm * scale, ph = data.ProductHeightMm * scale;
+                var boxLength = orientation === 'LxW' ? pl : pw;
+                var boxWidth = orientation === 'LxW' ? pw : pl;
+
+                // Bitta InstancedMesh + umumiy material (avval har quti uchun Mesh + material nusxasi — minglab obyekt)
+                var total = countLength * countWidth * countHeight;
+                if (total > 0) {
+                    var boxes = new THREE.InstancedMesh(
+                        new THREE.BoxGeometry(boxLength, ph, boxWidth),
+                        new THREE.MeshLambertMaterial({ color: 0x4CAF50, transparent: true, opacity: 0.7 }),
+                        total);
+                    var m = new THREE.Matrix4(), i = 0;
+                    for (var x = 0; x < countLength; x++) {
+                        for (var z = 0; z < countWidth; z++) {
+                            for (var y = 0; y < countHeight; y++) {
+                                m.makeTranslation(x * boxLength + boxLength / 2, y * ph + ph / 2, z * boxWidth + boxWidth / 2);
+                                boxes.setMatrixAt(i++, m);
+                            }
+                        }
+                    }
+                    boxes.instanceMatrix.needsUpdate = true;
+                    scene.add(boxes);
+                    sceneObjects.push(boxes);
+                }
+
+                controls.target = { x: tl / 2, y: th / 2, z: tw / 2 };
+                controls.setRadius(maxDim * scale * 2.6);
+            }
+
+            // Bitta animatsiya tsikli (avval har simulyatsiya yangi requestAnimationFrame tsiklini qo'shardi)
+            function startAnimation() {
+                if (frameId !== null) cancelAnimationFrame(frameId);
+                (function loop() {
+                    frameId = requestAnimationFrame(loop);
+                    if (controls) controls.update();
+                    renderer.render(scene, camera);
+                })();
+            }
+
+            function onWindowResize() {
+                var container = document.getElementById('threejsContainer');
+                if (container && camera && renderer && container.clientWidth > 0) {
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                }
+            }
+
+            $(function () {
+                // LOG-B11: bitta handler (avval jQuery click + btn.onclick — har bosishda 2 ta so'rov)
+                $('#simulateBtn').on('click', function (e) {
+                    e.preventDefault();
+                    var productId = $('#productSelect').val();
+                    var transportId = $('#transportSelect').val();
+                    if (!productId || !transportId) {
+                        alert('Iltimos, mahsulot va transport turini tanlang');
+                        return;
+                    }
+                    performSimulation(productId, transportId);
+                });
+
+                $('#toggleOrientationBtn').on('click', function () {
+                    if (currentData) {
+                        showingAlternative = !showingAlternative;
+                        renderVisualization(currentData, showingAlternative);
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
 }

@@ -143,7 +143,7 @@ namespace tahsinERP.Controllers
                 var contract = await db1.F_CONTRACTS
                     .Include(c => c.FORWARDER)
                     .Include (c => c.CURRENCy)
-                    .FirstOrDefaultAsync(c => c.ID == ID);
+                    .FirstOrDefaultAsync(c => c.ID == ID && !c.IsDeleted);
 
                 if (contract == null)
                 {
@@ -167,7 +167,8 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    var contractToUpdate = await db.F_CONTRACTS.FindAsync(contract.ID);
+                    // LOG-B16: o'chirilgan shartnoma Edit orqali tiklanmaydi
+                    var contractToUpdate = await db.F_CONTRACTS.FirstOrDefaultAsync(c => c.ID == contract.ID && !c.IsDeleted);
                     if (contractToUpdate != null)
                     {
                         contractToUpdate.ContractNo = contract.ContractNo;
@@ -177,7 +178,6 @@ namespace tahsinERP.Controllers
                         contractToUpdate.CurrencyID = contract.CurrencyID;
                         contractToUpdate.Amount = contract.Amount;
                         contractToUpdate.Description = contract.Description;
-                        contractToUpdate.IsDeleted = false;
 
                         try
                         {
@@ -224,14 +224,11 @@ namespace tahsinERP.Controllers
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var contract = await db.F_CONTRACTS.FindAsync(Id);
+                var contract = await LoadContractForDeleteAsync(db, Id.Value);
                 if (contract == null)
                 {
                     return HttpNotFound();
                 }
-
-                await db.Entry(contract).Reference(i => i.FORWARDER).LoadAsync();
-                await db.Entry(contract).Reference(i => i.CURRENCy).LoadAsync();
                 return View(contract);
             }
         }
@@ -247,7 +244,7 @@ namespace tahsinERP.Controllers
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    var contractToDelete = await db.F_CONTRACTS.FindAsync(ID);
+                    var contractToDelete = await db.F_CONTRACTS.FirstOrDefaultAsync(c => c.ID == ID && !c.IsDeleted);
                     if (contractToDelete != null)
                     {
                         contractToDelete.IsDeleted = true;
@@ -283,7 +280,24 @@ namespace tahsinERP.Controllers
                 ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
             }
 
-            return View();
+            // LOG-B09: view null model bilan ochilmasin
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var model = ID.HasValue ? await LoadContractForDeleteAsync(db, ID.Value) : null;
+                if (model == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(model);
+            }
+        }
+
+        private static Task<F_CONTRACTS> LoadContractForDeleteAsync(DBTHSNEntities db, int id)
+        {
+            return db.F_CONTRACTS.AsNoTracking()
+                .Include(c => c.FORWARDER)
+                .Include(c => c.CURRENCy)
+                .FirstOrDefaultAsync(c => c.ID == id && !c.IsDeleted);
         }
     }
 }

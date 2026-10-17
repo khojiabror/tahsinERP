@@ -19,6 +19,7 @@
     {
         @Html.AntiForgeryToken()
         @Html.HiddenFor(model => model.ID)
+        @Html.HiddenFor(model => model.OriginalTariffID)
         <div class="app-content content">
             <div class="content-overlay"></div>
             <div class="content-wrapper">
@@ -310,6 +311,7 @@ else
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 
+@section scripts {
 <script>
     var selectedTariffId = "@(Model.TariffID.HasValue ? Model.TariffID.ToString() : "")";
 
@@ -428,3 +430,4 @@ else
         $("#amountInput").data("auto", true);
     }
 </script>
+}
