@@ -214,148 +214,17 @@
 }
 
 @section scripts {
-    <script type="text/javascript">
-        $(document).ready(function() {
-            // Server bilan bir xil qoida: SaveDeliverySchedule uchun o'zgartirish huquqi
-            var changePermit = @(tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, "SOrder", "SaveDeliverySchedule", true) ? "true" : "false");
-            var orderProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.OrderProducts.Select(p => new { 
-                SOrderProductID = p.SOrderProductID, 
-                ProductPNo = p.ProductPNo, 
-                ProductName = p.ProductName,
-                OrderQuantity = p.OrderQuantity,
-                PlannedQuantity = p.PlannedQuantity
-            })));
-
-            var scheduleRowIndex = @(Model.ScheduleItems?.Count ?? 0);
-            
-            // Disable all inputs if no change permission
-            if (!changePermit) {
-                $('.delivery-date, .qty-planned, .order-product-select').prop('disabled', true);
-                $('#addScheduleRow').prop('disabled', true);
-            }
-            
-            // Add new schedule row
-            $('#addScheduleRow').on('click', function () {
-                if (!changePermit) {
-                    return false;
-                }
-                    var row = '<tr>' +
-                        '<td>' + (scheduleRowIndex + 1) + '</td>' +
-                        '<td>' +
-                        '<select name="ScheduleItems[' + scheduleRowIndex + '].OrderProductID" class="form-control order-product-select" required>' +
-                        '<option value="">---Tanlang---</option>';
-                    
-                    orderProducts.forEach(function(product) {
-                        var remaining = product.OrderQuantity - product.PlannedQuantity;
-                        if (remaining > 0) {
-                            row += '<option value="' + product.SOrderProductID + '" data-order-qty="' + product.OrderQuantity + '" data-planned="' + product.PlannedQuantity + '">' +
-                                product.ProductPNo + ' - ' + product.ProductName + ' (Qolgan: ' + remaining.toFixed(2) + ')' +
-                                '</option>';
-                        }
-                    });
-                    
-                    row += '</select>' +
-                        '</td>' +
-                        '<td>' +
-                        '<input type="date" name="ScheduleItems[' + scheduleRowIndex + '].DeliveryDate" class="form-control delivery-date" required />' +
-                        '</td>' +
-                        '<td>' +
-                        '<input type="number" name="ScheduleItems[' + scheduleRowIndex + '].QtyPlanned" class="form-control qty-planned" value="0" step="0.01" min="0.01" required />' +
-                        '</td>' +
-                        '<td>' +
-                        '<button type="button" class="btn btn-sm btn-danger remove-schedule-row">' +
-                        '<i class="bx bx-trash"></i>' +
-                        '</button>' +
-                        '</td>' +
-                        '</tr>';
-                    
-                    $('#scheduleTableBody').append(row);
-                    scheduleRowIndex++;
-                    updateRowNumbers();
-                });
-
-                // Remove schedule row
-                $(document).on('click', '.remove-schedule-row', function () {
-                    if (confirm('Ushbu qatorni o\'chirishni tasdiqlaysizmi?')) {
-                        $(this).closest('tr').remove();
-                        updateRowNumbers();
-                    }
-                });
-
-                // Update max quantity when product is selected
-                $(document).on('change', '.order-product-select', function () {
-                    var $row = $(this).closest('tr');
-                    var $option = $(this).find('option:selected');
-                    var orderQty = parseFloat($option.data('order-qty')) || 0;
-                    var planned = parseFloat($option.data('planned')) || 0;
-                    var remaining = orderQty - planned;
-                    
-                    var $qtyInput = $row.find('.qty-planned');
-                    $qtyInput.attr('max', remaining);
-                    $qtyInput.attr('data-order-qty', orderQty);
-                    $qtyInput.attr('data-planned', planned);
-                });
-
-                // Validate quantities
-                $(document).on('input', '.qty-planned', function () {
-                    var $row = $(this).closest('tr');
-                    var qty = parseFloat($(this).val()) || 0;
-                    var maxQty = parseFloat($(this).attr('max')) || 0;
-                    
-                    if (qty > maxQty) {
-                        $(this).addClass('is-invalid');
-                        alert('Miqdor qolgan miqdordan (' + maxQty.toFixed(2) + ') oshib ketdi!');
-                        $(this).val(maxQty);
-                    } else {
-                        $(this).removeClass('is-invalid');
-                    }
-                });
-
-                // Form validation
-                $('#scheduleForm').on('submit', function (e) {
-                    var hasRows = $('#scheduleTableBody tr').length > 0;
-                    if (!hasRows) {
-                        e.preventDefault();
-                        alert('Kamida bitta yetkazib berish rejasi qo\'shish kerak!');
-                        return false;
-                    }
-
-                    // Validate all quantities
-                    var isValid = true;
-                    $('#scheduleTableBody tr').each(function () {
-                        var $qtyInput = $(this).find('.qty-planned');
-                        var qty = parseFloat($qtyInput.val()) || 0;
-                        var maxQty = parseFloat($qtyInput.attr('max')) || 0;
-                        
-                        if (qty <= 0 || qty > maxQty) {
-                            isValid = false;
-                            $qtyInput.addClass('is-invalid');
-                        } else {
-                            $qtyInput.removeClass('is-invalid');
-                        }
-                    });
-
-                    if (!isValid) {
-                        e.preventDefault();
-                        alert('Barcha miqdorlar to\'g\'ri kiritilganligini tekshiring!');
-                        return false;
-                    }
-                });
-
-                // Update row numbers
-                function updateRowNumbers() {
-                    $('#scheduleTableBody tr').each(function (index) {
-                        $(this).find('td:first').text(index + 1);
-                    });
-                }
-
-                // Set today's date as default for new date inputs
-                $(document).on('focus', '.delivery-date', function () {
-                    if (!$(this).val()) {
-                        var today = new Date().toISOString().split('T')[0];
-                        $(this).val(today);
-                    }
-                });
-        });
-    </script>
+    @* changePermit: server bilan bir xil qoida — SaveDeliverySchedule uchun o'zgartirish huquqi *@
+    <script type="application/json" id="deliveryScheduleConfig">@Html.Raw(Json.Encode(new {
+        changePermit = tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, "SOrder", "SaveDeliverySchedule", true),
+        orderProducts = Model.OrderProducts.Select(p => new {
+            SOrderProductID = p.SOrderProductID,
+            ProductPNo = p.ProductPNo,
+            ProductName = p.ProductName,
+            OrderQuantity = p.OrderQuantity,
+            PlannedQuantity = p.PlannedQuantity
+        }).ToList(),
+        rowIndex = Model.ScheduleItems?.Count ?? 0
+    }))</script>
+    <script src="@Url.Content("~/Scripts/crm/delivery-schedule.js")"></script>
 }
