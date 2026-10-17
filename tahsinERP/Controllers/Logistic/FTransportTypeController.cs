@@ -3,26 +3,22 @@ using System.Net;
 using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using System.Linq;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using tahsinERP.ViewModels;
 using System.Data.Entity;
-using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers
 {
-    public class FTransportTypeController : Controller
+    /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    [Permission]
+    public class FTransportTypeController : BaseController
     {
         // Olish so'rovi: FTransportType
         public ActionResult Index()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
                 var list = db.F_TRANSPORT_TYPES.AsNoTracking()
@@ -34,11 +30,6 @@ namespace tahsinERP.Controllers
         }
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
@@ -49,11 +40,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(TransportTypeViewModel viewModel)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ModelState.IsValid)
             {
                 // Map ViewModel ga Entity Model
@@ -106,11 +92,6 @@ namespace tahsinERP.Controllers
 
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
 
@@ -135,11 +116,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: FTransportType/Edit/
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -179,11 +155,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(TransportTypeViewModel viewModel)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -237,11 +208,6 @@ namespace tahsinERP.Controllers
         }
         public ActionResult Delete(int? Id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
 
@@ -260,13 +226,9 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int? ID, FormCollection gfs)
+        [ActionName("Delete")]
+        public async Task<ActionResult> DeleteConfirmed(int? ID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)

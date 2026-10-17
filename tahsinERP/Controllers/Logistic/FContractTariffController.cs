@@ -5,19 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 
 namespace tahsinERP.Controllers
 {
-    public class FContractTariffController : Controller
+    /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    [Permission]
+    public class FContractTariffController : BaseController
     {
         public async Task<ActionResult> Index(int? contractId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.F_CONTRACT_TARIFFS
@@ -53,11 +51,6 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Create(int? contractId)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Contracts = new SelectList(await db.F_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "ContractNo", contractId);
@@ -71,11 +64,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(F_CONTRACT_TARIFFS model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -112,11 +100,6 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (!id.HasValue)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -139,11 +122,6 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (!id.HasValue)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -170,11 +148,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(F_CONTRACT_TARIFFS model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -231,11 +204,6 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (!id.HasValue)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -260,13 +228,9 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int? id, FormCollection form)
+        [ActionName("Delete")]
+        public async Task<ActionResult> DeleteConfirmed(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (!id.HasValue)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);

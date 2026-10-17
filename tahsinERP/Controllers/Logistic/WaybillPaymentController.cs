@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -11,18 +12,15 @@ using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.Logistic
 {
-    public class WaybillPaymentController : Controller
+    /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    [Permission]
+    public class WaybillPaymentController : BaseController
     {
         private const string ControllerName = "WaybillPaymentController";
 
         // Olish so'rovi: WaybillPayment
         public ActionResult Index(int? page, int? pageSize)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.F_WAYBILL_PAYMENTS.AsNoTracking().Where(x => !x.IsDeleted);
@@ -85,11 +83,6 @@ namespace tahsinERP.Controllers.Logistic
 
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 PopulateFormBags(db);
@@ -101,11 +94,6 @@ namespace tahsinERP.Controllers.Logistic
         [ValidateAntiForgeryToken]
         public ActionResult Create(F_WAYBILL_PAYMENTS model, int? AccountID, int[] SelectedWaybillIDs)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var waybillIds = ResolveWaybillIds(model.WaybillID, SelectedWaybillIDs);
@@ -137,7 +125,7 @@ namespace tahsinERP.Controllers.Logistic
                         WaybillLedgerService.ReplacePaymentSplits(db, model.ID, waybillIds, model.Payment_Amount, model.CurrencyID, model.Comment);
                         db.SaveChanges();
 
-                        FinancePostingService.PostWaybillPayment(model.ID, AccountID, db, RoleHelper.GetUserId(User.Identity.Name) ?? 0);
+                        FinancePostingService.PostWaybillPayment(model.ID, AccountID, db, CurrentUserId);
                         tx.Commit();
                     }
                     catch (Exception ex)
@@ -165,11 +153,6 @@ namespace tahsinERP.Controllers.Logistic
 
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -232,11 +215,6 @@ namespace tahsinERP.Controllers.Logistic
 
         public ActionResult Delete(int? Id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (Id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -254,13 +232,9 @@ namespace tahsinERP.Controllers.Logistic
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int? ID, FormCollection nimadir)
+        [ActionName("Delete")]
+        public ActionResult DeleteConfirmed(int? ID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ID is null)
             {
                 return HttpNotFound();
@@ -318,11 +292,6 @@ namespace tahsinERP.Controllers.Logistic
 
         public ActionResult Edit(int? Id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (Id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -353,11 +322,6 @@ namespace tahsinERP.Controllers.Logistic
         [ValidateAntiForgeryToken]
         public ActionResult Edit(F_WAYBILL_PAYMENTS waybillPayment, int? AccountID, int[] SelectedWaybillIDs)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var waybillIds = ResolveWaybillIds(waybillPayment.WaybillID, SelectedWaybillIDs);
@@ -410,7 +374,7 @@ namespace tahsinERP.Controllers.Logistic
                         if (finTransaction == null)
                         {
                             // Avval moliyaga o'tmagan bo'lsa — hozir o'tkazamiz
-                            FinancePostingService.PostWaybillPayment(waybillPaymentToUpdate.ID, AccountID, db, RoleHelper.GetUserId(User.Identity.Name) ?? 0);
+                            FinancePostingService.PostWaybillPayment(waybillPaymentToUpdate.ID, AccountID, db, CurrentUserId);
                         }
                         tx.Commit();
                     }

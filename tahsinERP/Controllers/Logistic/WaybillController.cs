@@ -12,22 +12,18 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels;
-using tahsinERP.Controllers;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
-    public class WaybillController : Controller
+    /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    [Permission]
+    public class WaybillController : BaseController
     {
         // Olish so'rovi: Waybill
         public async Task<ActionResult> Index(string searchTerm, int? direction, int? forwarderId, int? contractId,
             int? transportTypeId, DateTime? startDate, DateTime? endDate, string sortOrder, int? page, int? pageSize)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = WaybillLedgerService.ActiveWaybills(db).AsNoTracking();
@@ -152,11 +148,6 @@ namespace tahsinERP.Controllers
 
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var viewModel = BuildWaybillViewModel(db);
@@ -170,11 +161,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(WaybillCreateViewModel viewModel)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var tariff = ApplyTariff(db, viewModel, requireTariff: true, reapply: true);
@@ -230,11 +216,6 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Details(int? ID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -285,11 +266,6 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Edit(int? ID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -362,11 +338,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(WaybillCreateViewModel viewModel)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // LOG-B05: tarif faqat foydalanuvchi uni almashtirganda qayta qo'llanadi (tarixiy stavka yangi
@@ -416,11 +387,6 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Delete(int? Id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (Id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -441,11 +407,6 @@ namespace tahsinERP.Controllers
 
         public ActionResult UploadExcel()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             return View();
         }
 
@@ -466,11 +427,6 @@ namespace tahsinERP.Controllers
 
         public ActionResult DownloadTemplate()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             // LOG-B12(d): namuna qatori haqiqiy shartnoma va transport turi bilan — shablonni o'zgartirmasdan import qilsa ham o'tadi
             var sample = new Dictionary<string, object>
             {
@@ -507,11 +463,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UploadExcel(HttpPostedFileBase file)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (file == null || file.ContentLength == 0)
             {
                 ViewBag.Error = "Excel fayl yuklanmadi.";
@@ -711,13 +662,9 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int? ID, FormCollection gfs)
+        [ActionName("Delete")]
+        public async Task<ActionResult> DeleteConfirmed(int? ID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -872,60 +819,6 @@ namespace tahsinERP.Controllers
             waybill.ActualDeliveryDate = viewModel.ActualDeliveryDate;
             waybill.Description = viewModel.Description;
             waybill.ManualCorrectionReason = viewModel.ManualCorrectionReason;
-        }
-
-        /// <summary>
-        /// AJAX so'rovi: Get suggested rate dan contract tariffs
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public async Task<JsonResult> GetSuggestedRate(int? contractId, int? transportTypeId, string fromLocation, string toLocation)
-        {
-            if (!contractId.HasValue || !transportTypeId.HasValue)
-            {
-                return Json(new { success = false, message = "Shartnoma va transport turi majburiy." });
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var tariffs = await db.F_CONTRACT_TARIFFS
-                    .Include(t => t.CURRENCy)
-                    .Where(t => t.ContractID == contractId.Value && t.IsActive)
-                    .ToListAsync();
-
-                var best = tariffs
-                    .Where(t => t.TransportTypeID == transportTypeId.Value)
-                    .Select(t => new
-                    {
-                        Tariff = t,
-                        Score = MatchTariffScore(t, fromLocation, toLocation)
-                    })
-                    .Where(x => x.Score >= 0)
-                    .OrderByDescending(x => x.Score)
-                    .ThenByDescending(x => x.Tariff.CreatedDT)
-                    .FirstOrDefault();
-
-                if (best != null)
-                {
-                    return Json(new
-                    {
-                        success = true,
-                        rate = best.Tariff.Rate,
-                        basis = best.Tariff.FreightBasis,
-                        currencyId = best.Tariff.CurrencyID,
-                        minimumCharge = best.Tariff.MinimumCharge
-                    });
-                }
-
-                // Fallback ga contract base amount
-                var contract = await db.F_CONTRACTS.FindAsync(contractId.Value);
-                if (contract != null)
-                {
-                    return Json(new { success = true, rate = contract.Amount, currencyId = contract.CurrencyID });
-                }
-
-                return Json(new { success = false, message = "Tarif topilmadi" });
-            }
         }
 
         [HttpPost]
@@ -1136,47 +1029,6 @@ namespace tahsinERP.Controllers
             // select2 kutadigan nomlar
             public long id { get; set; }
             public string text { get; set; }
-        }
-
-        private static int MatchTariffScore(F_CONTRACT_TARIFFS tariff, string fromLocation, string toLocation)
-        {
-            var score = 0;
-            if (!string.IsNullOrWhiteSpace(tariff.FromCity))
-            {
-                if (string.IsNullOrWhiteSpace(fromLocation) || !fromLocation.Equals(tariff.FromCity, StringComparison.OrdinalIgnoreCase))
-                {
-                    return -1;
-                }
-                score += 4;
-            }
-            if (!string.IsNullOrWhiteSpace(tariff.ToCity))
-            {
-                if (string.IsNullOrWhiteSpace(toLocation) || !toLocation.Equals(tariff.ToCity, StringComparison.OrdinalIgnoreCase))
-                {
-                    return -1;
-                }
-                score += 4;
-            }
-            if (!string.IsNullOrWhiteSpace(tariff.FromRegion))
-            {
-                if (string.IsNullOrWhiteSpace(fromLocation) ||
-                    fromLocation.IndexOf(tariff.FromRegion, StringComparison.OrdinalIgnoreCase) < 0)
-                {
-                    return -1;
-                }
-                score += 2;
-            }
-            if (!string.IsNullOrWhiteSpace(tariff.ToRegion))
-            {
-                if (string.IsNullOrWhiteSpace(toLocation) ||
-                    toLocation.IndexOf(tariff.ToRegion, StringComparison.OrdinalIgnoreCase) < 0)
-                {
-                    return -1;
-                }
-                score += 2;
-            }
-
-            return score;
         }
 
         private static string GetCargoTypeText(long? salesInvoiceId, int? salesOrderId, long? ttnkId, int? invoiceId, int? purchaseOrderId)

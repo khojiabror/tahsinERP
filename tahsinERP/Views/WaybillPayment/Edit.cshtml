@@ -1,15 +1,8 @@
 @model tahsinERP.Models.F_WAYBILL_PAYMENTS
+@using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqasi to'lovini tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var T = new
-    {
-        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
-        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
-        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
-        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
-        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
-    };
 }
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
@@ -27,8 +20,8 @@
                                 <div class="breadcrumb-wrapper col-12">
                                     <ol class="breadcrumb rounded-pill breadcrumb-divider">
                                         <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                        <li class="breadcrumb-item"><a href="~/Waybill/Index">@T.Waybills</a></li>
-                                        <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@T.Waybill to'lovlari</a></li>
+                                        <li class="breadcrumb-item"><a href="~/Waybill/Index">@LogisticsTerms.Waybills</a></li>
+                                        <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@LogisticsTerms.Waybill to'lovlari</a></li>
                                         <li class="breadcrumb-item active">To'lovni tahrirlash</li>
                                     </ol>
                                 </div>
@@ -43,19 +36,19 @@
                                 <div class="card">
                                     <div class="card-content">
                                         <div class="card-body pb-0 mx-25">
-                                            <h4 class="text-primary mb-1">@T.Waybill to'lovi</h4>
+                                            <h4 class="text-primary mb-1">@LogisticsTerms.Waybill to'lovi</h4>
                                             <p class="text-muted small">O'zgartirilsa, moliyadagi Chiqim tranzaksiyasi (summa / sana / hisob) ham yangilanadi.</p>
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                             <hr />
                                             <div class="form-group">
-                                                <label>@T.Waybill lar *</label>
+                                                <label>@LogisticsTerms.Waybill lar *</label>
                                                 @Html.ListBox("SelectedWaybillIDs", ViewBag.waybillItems as IEnumerable<SelectListItem>, new { @class = "form-control select2", @multiple = "multiple" })
                                                 <small class="text-muted">Bitta to'lovga bir nechta yo'l varaqasi bog'lashingiz mumkin.</small>
                                                 @Html.ValidationMessage("WaybillID", "", new { @class = "text-danger" })
                                             </div>
                                             <div class="form-group">
-                                                <label>@T.Forwarder *</label>
-                                                @Html.DropDownListFor(model => model.ForwarderID, (IEnumerable<SelectListItem>)ViewBag.forwarders, $"{T.Forwarder}ni tanlang:", new { @class = "form-control select2" })
+                                                <label>@LogisticsTerms.Forwarder *</label>
+                                                @Html.DropDownListFor(model => model.ForwarderID, (IEnumerable<SelectListItem>)ViewBag.forwarders, $"{LogisticsTerms.Forwarder}ni tanlang:", new { @class = "form-control select2" })
                                                 @Html.ValidationMessageFor(model => model.ForwarderID, "", new { @class = "text-danger" })
                                             </div>
                                             <div class="form-group">

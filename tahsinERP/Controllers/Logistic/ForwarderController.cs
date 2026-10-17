@@ -1,30 +1,26 @@
-using DocumentFormat.OpenXml.Drawing.Charts;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
-    public class ForwarderController : Controller
+    /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    [Permission]
+    public class ForwarderController : BaseController
     {
         // Olish so'rovi: Forwarder
         public async Task<ActionResult> Index()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var list = await db.FORWARDERS.AsNoTracking().Where(f => f.IsDeleted != true).ToListAsync();
@@ -33,11 +29,6 @@ namespace tahsinERP.Controllers
         }
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 return View();
@@ -47,11 +38,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(FORWARDER forwarder)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 try
@@ -81,11 +67,6 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             
@@ -165,11 +146,6 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -188,11 +164,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(FORWARDER forwarder)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -234,11 +205,6 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Delete(int? Id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (Id == null)
@@ -257,13 +223,9 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int? ID, FormCollection gfs)
+        [ActionName("Delete")]
+        public async Task<ActionResult> DeleteConfirmed(int? ID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -310,42 +272,6 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
                 return View(model);
-            }
-        }
-
-        /// <summary>
-        /// Get waybills uchun a specific forwarder (uchun AJAX calls)
-        /// </summary>
-        public async Task<ActionResult> GetWaybills(int? forwarderId)
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return Json(new { error = "Unauthorized" }, JsonRequestBehavior.AllowGet);
-            }
-
-            if (forwarderId == null)
-            {
-                return Json(new { error = "Forwarder ID is required" }, JsonRequestBehavior.AllowGet);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var waybills = await db.F_WAYBILLS
-                    .Where(w => w.ForwarderID == forwarderId && w.IsDeleted == false)
-                    .Select(w => new
-                    {
-                        w.ID,
-                        w.WaybillNo,
-                        w.IssueDate,
-                        w.Direction,
-                        w.FromLocation,
-                        w.ToLocation,
-                        w.Amount,
-                        w.CurrencyID
-                    })
-                    .ToListAsync();
-
-                return Json(waybills, JsonRequestBehavior.AllowGet);
             }
         }
 
