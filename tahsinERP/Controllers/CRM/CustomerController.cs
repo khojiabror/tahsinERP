@@ -23,21 +23,9 @@ namespace tahsinERP.Controllers
             {
                 var query = BuildIndexQuery(db, searchTerm, sortOrder);
 
-                // Server tomonida sahifalash — view'da pager va qidiruv bor (CRM-B05: avval faqat 25 ta ko'rinardi)
-                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
-                int totalItems = await query.CountAsync();
-                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
-                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
+                // Server tomonida sahifalash (CRM-P05, umumiy blok — D16)
+                var customers = await query.ToPageAsync(page, pageSize, ViewData);
 
-                var customers = await query
-                    .Skip((currentPage - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToListAsync();
-
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.SortOrder = sortOrder;
 

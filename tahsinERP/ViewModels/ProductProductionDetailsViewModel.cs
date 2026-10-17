@@ -28,8 +28,6 @@ namespace tahsinERP.ViewModels
         public string MaterialPNo { get; set; }
         public string MaterialName { get; set; }
         public double RequiredQtyPieces { get; set; }
-        public double RequiredQtyMeters { get; set; }
-        public double WasteQty { get; set; }
         public double TotalConsumption { get; set; }
         public string UnitName { get; set; }
         public bool TotalConsumptionIsInKg { get; set; }

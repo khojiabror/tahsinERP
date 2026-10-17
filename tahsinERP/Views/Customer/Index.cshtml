@@ -66,7 +66,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="customerDataTable" class="table table-striped table-bordered" style="width:100%">
+                                        <table id="customerDataTable" data-crm-table data-lock-last="@(changePermit ? "true" : "false")" data-searching="false" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Haridor ismi</th>
@@ -131,26 +131,5 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function () {
-            var changePermit = @(changePermit ? "true" : "false");
-            
-            var columnDefs = [];
-            if (changePermit) {
-                columnDefs.push({ "orderable": false, "targets": -1 });
-            }
-            
-            // Sahifalash va qidiruv serverda (yuqoridagi forma + pastdagi pager) — DataTables faqat joriy sahifada saralaydi
-            $('#customerDataTable').DataTable({
-                "language": { "zeroRecords": "Ma'lumot topilmadi" },
-                "paging": false,
-                "info": false,
-                "searching": false,
-                "order": [],
-                "columnDefs": columnDefs,
-                dom: 'rt',
-                "scrollX": true
-            });
-        });
-    </script>
+    <script src="@Url.Content("~/Scripts/crm/crm-page-table.js")"></script>
 }

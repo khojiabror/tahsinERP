@@ -18,6 +18,12 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class PModuleController : Controller
     {
+        private static bool IsAdminRole(string roleName)
+        {
+            return string.Equals(roleName, "Admin", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(roleName, "Developer", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         // Olish so'rovi: PModule
         public async Task<ActionResult> Index()
         {
@@ -151,19 +157,20 @@ namespace tahsinERP.Controllers
                     db.PERMISSIONMODULES.AddRange(newModules);
                     await db.SaveChangesAsync();
 
-                    var roleIds = await db.ROLES
+                    // Yangi modul faqat Admin/Developer'ga ochiq; boshqa rollarga admin o'zi beradi (CORE-S04)
+                    var roles = await db.ROLES
                         .Where(r => r.IsDeleted != true)
-                        .Select(r => r.ID)
+                        .Select(r => new { r.ID, r.RName })
                         .ToListAsync();
 
                     var permissionsToAdd = new List<PERMISSION>();
                     foreach (var module in newModules)
                     {
-                        permissionsToAdd.AddRange(roleIds.Select(roleId => new PERMISSION
+                        permissionsToAdd.AddRange(roles.Select(role => new PERMISSION
                         {
                             PermissionModuleID = module.ID,
-                            RoleID = roleId,
-                            ViewPermit = true,
+                            RoleID = role.ID,
+                            ViewPermit = IsAdminRole(role.RName),
                             ChangePermit = false,
                             DeletePermit = false
                         }));
@@ -262,16 +269,17 @@ namespace tahsinERP.Controllers
                             await db.SaveChangesAsync();
 
                             // Barcha rollarga permission biriktirish
-                            var roleIds = await db.ROLES
+                            // Yangi modul faqat Admin/Developer'ga ochiq (CORE-S04)
+                            var roles = await db.ROLES
                                 .Where(r => r.IsDeleted != true)
-                                .Select(r => r.ID)
+                                .Select(r => new { r.ID, r.RName })
                                 .ToListAsync();
 
-                            var permissionsToAdd = roleIds.Select(roleId => new PERMISSION
+                            var permissionsToAdd = roles.Select(role => new PERMISSION
                             {
                                 PermissionModuleID = permissions.ID,
-                                RoleID = roleId,
-                                ViewPermit = true,
+                                RoleID = role.ID,
+                                ViewPermit = IsAdminRole(role.RName),
                                 ChangePermit = false,
                                 DeletePermit = false
                             }).ToList();

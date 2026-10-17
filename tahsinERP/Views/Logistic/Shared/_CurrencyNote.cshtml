@@ -1,0 +1,16 @@
+@* LOG-B13: hisobot summalari so'mda (CBU kursi, hujjat sanasi). ViewBag.CurrencyCodes — davrdagi valyutalar,
+   ViewBag.CurrencyWarning — kursi topilmagan hujjatlar (jamiga qo'shilmagan). *@
+@{
+    var codes = ViewBag.CurrencyCodes as IEnumerable<string>;
+    string warning = ViewBag.CurrencyWarning as string;
+}
+@if (codes != null && codes.Count() > 1)
+{
+    <div class="alert alert-info no-print">
+        Davrda bir nechta valyutadagi yozuvlar bor (@string.Join(", ", codes)). Summalar so'mda — har hujjat o'z sanasidagi CBU kursi bilan o'girilgan.
+    </div>
+}
+@if (!string.IsNullOrEmpty(warning))
+{
+    <div class="alert alert-warning no-print">@warning</div>
+}

@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using System.Data.Entity;
@@ -163,15 +164,7 @@ namespace tahsinERP.Controllers
             if (product == null)
                 return HttpNotFound();
 
-            // Yuklash ProductImage agar mavjud
-            var productImage = await db.PRODUCTIMAGES
-                .Where(pi => pi.ProdID == id && pi.IsDeleted == false)
-                .FirstOrDefaultAsync();
-
-            if (productImage != null && productImage.Image != null)
-            {
-                ViewBag.ProductImage = Convert.ToBase64String(productImage.Image);
-            }
+            SetProductImageUrl(id);
 
             return View(product);
         }
@@ -276,15 +269,7 @@ namespace tahsinERP.Controllers
             await PopulateFormLookupsAsync(product.UnitID, product.ShopID, product.CategoryID, currentProductType);
             ViewBag.CurrentProductType = currentProductType;
 
-            // Yuklash existing image uchun display
-            var existingImage = await db.PRODUCTIMAGES
-                .Where(pi => pi.ProdID == id && pi.IsDeleted != true)
-                .FirstOrDefaultAsync();
-
-            if (existingImage != null && existingImage.Image != null)
-            {
-                ViewBag.ProductImage = Convert.ToBase64String(existingImage.Image);
-            }
+            SetProductImageUrl(id);
 
             return View(product);
         }
@@ -354,14 +339,7 @@ namespace tahsinERP.Controllers
             if (product == null)
                 return HttpNotFound();
 
-            // Yuklash ProductImage agar mavjud
-            var productImage = await db.PRODUCTIMAGES
-                .FirstOrDefaultAsync(pi => pi.ProdID == id && pi.IsDeleted != true);
-
-            if (productImage?.Image != null)
-            {
-                ViewBag.ProductImage = Convert.ToBase64String(productImage.Image);
-            }
+            SetProductImageUrl(id);
 
             return View(product);
         }
@@ -383,6 +361,15 @@ namespace tahsinERP.Controllers
                 $"{product.PNo} - maxsulotni o'chirdi");
 
             return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Rasm sahifaga base64 bo'lib qo'shilmaydi — ProductImage/Image URL'i orqali keshlanib yuklanadi (MES-P23, dublikat #24).
+        /// </summary>
+        private void SetProductImageUrl(int? productId)
+        {
+            var imageId = productId.HasValue ? ProductImageController.CurrentImageId(db, productId.Value) : null;
+            ViewBag.ProductImageUrl = imageId.HasValue ? ProductImageController.UrlFor(productId.Value, imageId.Value, 600) : null;
         }
 
         protected override void Dispose(bool disposing)
@@ -427,25 +414,24 @@ namespace tahsinERP.Controllers
 
             try
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 var dataTable = new DataTable();
 
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    if (worksheet.Dimension == null)
+                    var worksheet = workbook.Worksheet(1);
+                    if (worksheet.LastRowNumber() == 0)
                     {
                         ViewBag.Message = "Excel fayl bo'sh!";
                         return View();
                     }
 
-                    int rowCount = worksheet.Dimension.Rows;
-                    int colCount = worksheet.Dimension.Columns;
+                    int rowCount = worksheet.LastRowNumber();
+                    int colCount = worksheet.LastColumnNumber();
 
                     // Qo'shish ustunlar dan header qator
                     for (int col = 1; col <= colCount; col++)
                     {
-                        dataTable.Columns.Add(worksheet.Cells[1, col].Text);
+                        dataTable.Columns.Add(worksheet.Cell(1, col).GetFormattedString());
                     }
 
                     // Qo'shish ma'lumot qatorlar
@@ -454,7 +440,7 @@ namespace tahsinERP.Controllers
                         var dataRow = dataTable.NewRow();
                         for (int col = 1; col <= colCount; col++)
                         {
-                            dataRow[col - 1] = worksheet.Cells[row, col].Text;
+                            dataRow[col - 1] = worksheet.Cell(row, col).GetFormattedString();
                         }
                         dataTable.Rows.Add(dataRow);
                     }
@@ -544,7 +530,7 @@ namespace tahsinERP.Controllers
 
                     // Handle product type dan Excel
                     var typeFromExcel = row.Table.Columns.Contains("Type") ? row["Type"].ToString().Trim().ToUpper() : "";
-                    SetProductTypeFlagsFromExcel(newProduct, typeFromExcel);
+                    SetProductTypeFlags(newProduct, ProductTypeFromExcel(typeFromExcel));
                     newProducts.Add(newProduct);
                 }
 
@@ -584,31 +570,16 @@ namespace tahsinERP.Controllers
             return null;
         }
 
-        // Belgilash product type flags dan Excel Type ustun
-        private void SetProductTypeFlagsFromExcel(PRODUCT product, string typeValue)
+        // Excel "Type" ustuni matni -> mahsulot turi kodi; bayroqlarni SetProductTypeFlags qo'yadi
+        // (avval bayroq/Type qo'yish ikki joyda nusxalangan edi, dublikat #25)
+        private static string ProductTypeFromExcel(string typeValue)
         {
-            // Reset barcha flags
-            product.IsFinishedGood = false;
-            product.IsComponent = false;
-            product.IsRawMaterial = false;
-
-            // Tekshirish uchun different possible values
+            typeValue = typeValue ?? "";
             if (typeValue.Contains("XOMASHYO") || typeValue.Contains("RAW") || typeValue.Contains("MATERIAL"))
-            {
-                product.IsRawMaterial = true;
-                product.Type = "XOMASHYO";
-            }
-            else if (typeValue.Contains("YARIM") || typeValue.Contains("TAYYOR") || typeValue.Contains("COMPONENT") || typeValue.Contains("PART"))
-            {
-                product.IsComponent = true;
-                product.Type = "YARIM TAYYOR MAXSULOT";
-            }
-            else
-            {
-                // standart ga finished good (MAXSULOT)
-                product.IsFinishedGood = true;
-                product.Type = "MAXSULOT";
-            }
+                return PRODUCT_TYPE_RAW_MATERIAL;
+            if (typeValue.Contains("YARIM") || typeValue.Contains("TAYYOR") || typeValue.Contains("COMPONENT") || typeValue.Contains("PART"))
+                return PRODUCT_TYPE_COMPONENT;
+            return PRODUCT_TYPE_FINISHED_GOOD;
         }
     }
 }

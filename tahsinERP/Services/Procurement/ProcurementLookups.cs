@@ -69,7 +69,7 @@ namespace tahsinERP.Services.Procurement
             string key = "Products:" + (purchaseType == IndirectPurchase ? "1" : "0");
             string stamp = await GetProductStampAsync(db);
 
-            var cached = Cache.Get(key) as ProductCacheEntry;
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key)) as ProductCacheEntry;
             if (cached != null && cached.Stamp == stamp)
             {
                 return cached.Items;
@@ -93,7 +93,7 @@ namespace tahsinERP.Services.Procurement
                 .Select(p => new ProductLookupItem { ID = p.ID, PNo = p.PNo, Name = p.Name })
                 .ToListAsync();
 
-            Cache.Set(key, new ProductCacheEntry { Stamp = stamp, Items = items }, DateTimeOffset.Now.Add(ProductTtl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key), new ProductCacheEntry { Stamp = stamp, Items = items }, DateTimeOffset.Now.Add(ProductTtl));
             return items;
         }
 
@@ -175,7 +175,7 @@ namespace tahsinERP.Services.Procurement
 
         public static List<LookupItem> HSCodeItems()
         {
-            var cached = Cache.Get(HsCodesKey) as List<LookupItem>;
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(HsCodesKey)) as List<LookupItem>;
             if (cached != null)
             {
                 return cached;
@@ -189,19 +189,19 @@ namespace tahsinERP.Services.Procurement
                     .ToList();
             }
 
-            Cache.Set(HsCodesKey, items, DateTimeOffset.Now.Add(LongTtl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(HsCodesKey), items, DateTimeOffset.Now.Add(LongTtl));
             return items;
         }
 
         public static void InvalidateHSCodes()
         {
-            Cache.Remove(HsCodesKey);
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(HsCodesKey));
         }
 
         /// <summary>Standart kompaniya — birinchi faol COMPANIES yozuvi (topilmasa 0).</summary>
         public static async Task<int> GetDefaultCompanyIdAsync(DBTHSNEntities db)
         {
-            var cached = Cache.Get(DefaultCompanyKey);
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(DefaultCompanyKey));
             if (cached is int)
             {
                 return (int)cached;
@@ -212,7 +212,7 @@ namespace tahsinERP.Services.Procurement
                 .Select(c => (int?)c.ID)
                 .FirstOrDefaultAsync() ?? 0;
 
-            Cache.Set(DefaultCompanyKey, id, DateTimeOffset.Now.Add(LongTtl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(DefaultCompanyKey), id, DateTimeOffset.Now.Add(LongTtl));
             return id;
         }
 

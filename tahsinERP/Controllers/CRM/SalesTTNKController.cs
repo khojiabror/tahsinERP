@@ -76,15 +76,8 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
-                int totalItems = await query.CountAsync();
-                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
-                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
-
-                var ttnkHeaders = await query
-                    .Skip((currentPage - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToListAsync();
+                // Server tomonida sahifalash (CRM-P05, umumiy blok — D16)
+                var ttnkHeaders = await query.ToPageAsync(page, pageSize, ViewData);
 
                 // Filtr ro'yxatlari: proyeksiya, faqat faol invoyslar (CRM-P04: avval barcha SALES_INVOICES to'liq yuklanardi)
                 ViewBag.Customers = SalesLookups.Customers(customerID);
@@ -97,10 +90,6 @@ namespace tahsinERP.Controllers
                     .OrderByDescending(o => o.IssuedDate)
                     .Select(o => new { o.ID, o.OrderNo })
                     .ToListAsync(), "ID", "OrderNo", orderID);
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.TTNKNumber = ttnkNumber;
                 ViewBag.InvoiceID = invoiceID;
@@ -189,7 +178,7 @@ namespace tahsinERP.Controllers
                     ShipperName = "",
                     ConsigneeName = firstInvoice.CUSTOMER?.Name ?? "",
                     ConsigneeINN = firstInvoice.CUSTOMER?.DUNS ?? "",
-                    CurrencyCode = firstInvoice.CurrencyCode
+                    CurrencyCode = SalesLookups.CurrencyCode(firstInvoice.CurrencyID)
                 };
 
                 PopulateCreateLookups(db, invoices, invoiceIDs);

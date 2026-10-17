@@ -231,41 +231,16 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                if (ModelState.IsValid)
-                {
-                    var  transportTypeToDelete = db.F_TRANSPORT_TYPES.FirstOrDefault(t => t.ID == ID && t.IsDeleted != true);
-                    if (transportTypeToDelete != null)
-                    {
-                        transportTypeToDelete.IsDeleted = true;
-                        db.Entry(transportTypeToDelete).State = System.Data.Entity.EntityState.Modified;
+                if (await SoftDeleteAsync<F_TRANSPORT_TYPES>(db, ID,
+                        (ctx, t) => SoftDeleteReferenceService.AfterTransportTypeSoftDeletedAsync(ctx, t.ID),
+                        t => $"{t.TransportType} - transport turi o'chirildi.",
+                        "Transport turi topilmadi."))
+                    return RedirectToAction("Index");
+            }
 
-                        try
-                        {
-                            await SoftDeleteReferenceService.AfterTransportTypeSoftDeletedAsync(db, transportTypeToDelete.ID);
-                            await db.SaveChangesAsync();
-
-                            var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "FTransportTypeController", "Delete", $"{transportTypeToDelete.TransportType} - transport turi o'chirildi.");
-
-                            return RedirectToAction("Index");
-                        }
-                        catch (RetryLimitExceededException)
-                        {
-                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        }
-                        catch (Exception ex)
-                        {
-                            ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
-                            LogHelper.LogToDatabase(User.Identity.Name, "FTransportTypeController", "Delete", $"Xatolik: {ex.Message}");
-                        }
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
-                }
-
-                // LOG-B09: view null model bilan ochilmasin
+            // LOG-B09: view null model bilan ochilmasin
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
                 var model = ID.HasValue ? LoadTransportTypeForDelete(db, ID.Value) : null;
                 if (model == null)
                 {

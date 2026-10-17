@@ -1,4 +1,4 @@
-@model tahsinERP.ViewModels.LogisticsMonthlyReportViewModel
+﻿@model tahsinERP.ViewModels.LogisticsMonthlyReportViewModel
 @{
     ViewBag.Title = "Logistika oylik hisoboti";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -37,14 +37,7 @@
         </div>
 
         <div class="content-body">
-                @if (ViewBag.CurrencyCodes != null && ((IEnumerable<string>)ViewBag.CurrencyCodes).Count() > 1)
-                {
-                    @* LOG-B13: summalar valyuta kursisiz qo'shiladi — konvertatsiya biznes qarorini kutmoqda *@
-                    <div class="alert alert-warning no-print">
-                        Diqqat: davrda bir nechta valyutadagi yozuvlar bor (@string.Join(", ", (IEnumerable<string>)ViewBag.CurrencyCodes)).
-                        Jami summalar valyuta kursisiz qo'shilgan.
-                    </div>
-                }
+                @Html.Partial("~/Views/Logistic/Shared/_CurrencyNote.cshtml")
             <div class="card no-print">
                 <div class="card-header">
                     <h4 class="card-title mb-0">Logistika oylik hisoboti</h4>

@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Security.Cryptography;
 using System.Windows.Forms;
-using tahsinERP.Helpers;
+using tahsinERP.Licensing;
 
 namespace tahsinERP.LicenseGen
 {

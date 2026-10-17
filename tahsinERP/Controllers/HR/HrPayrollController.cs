@@ -4,12 +4,13 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.HR
@@ -203,9 +204,9 @@ namespace tahsinERP.Controllers.HR
 
             var existing = await FindPayrollHeadersAsync(year, month, payrollOrgUnitId, Hourly);
             var activeExisting = existing.FirstOrDefault(IsPayrollHeaderActive);
-            if (activeExisting != null)
+            if (activeExisting != null && activeExisting.Status != Draft)
             {
-                // Mavjud hisob ochiladi (qo'lda kiritilgan mukofot/jarimalar saqlanib qoladi)
+                TempData["Error"] = "Mavjud soatbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.";
                 return RedirectToAction("Edit", new { id = activeExisting.ID });
             }
 
@@ -213,8 +214,21 @@ namespace tahsinERP.Controllers.HR
             GenerationResult result;
             using (var tx = db.Database.BeginTransaction())
             {
-                payroll = await ReviveOrCreateDraftHeaderAsync(existing, year, month, payrollOrgUnitId, Hourly, timesheet.ID);
+                // HRM-B09: qoralama ishbay oqimidagidek qayta quriladi, qo'lda kiritilgan mukofot/jarima/soliq saqlanadi
+                Dictionary<int, ManualAdjustment> adjustments = null;
+                if (activeExisting != null)
+                {
+                    payroll = activeExisting;
+                    payroll.TimesheetID = timesheet.ID;
+                    adjustments = await SoftDeleteLinesKeepingAdjustmentsAsync(payroll.ID);
+                }
+                else
+                {
+                    payroll = await ReviveOrCreateDraftHeaderAsync(existing, year, month, payrollOrgUnitId, Hourly, timesheet.ID);
+                }
+
                 result = await GenerateHourlyPayrollLines(payroll, timesheet);
+                ApplyAdjustments(payroll.ID, adjustments);
                 await db.SaveChangesAsync();
                 tx.Commit();
             }
@@ -338,11 +352,12 @@ namespace tahsinERP.Controllers.HR
             GenerationResult result;
             using (var tx = db.Database.BeginTransaction())
             {
+                Dictionary<int, ManualAdjustment> adjustments = null;
                 if (activeExisting != null)
                 {
                     // Qoralama: tasdiqlangan tabel holatini to'liq qayta tortish uchun satrlar yangidan quriladi
                     payroll = activeExisting;
-                    await SoftDeleteActivePayrollLinesAsync(payroll.ID);
+                    adjustments = await SoftDeleteLinesKeepingAdjustmentsAsync(payroll.ID);
                 }
                 else
                 {
@@ -350,6 +365,7 @@ namespace tahsinERP.Controllers.HR
                 }
 
                 result = await GeneratePieceRatePayrollLinesFromWorkEntries(payroll, year, month, payrollOrgUnitId, approvals);
+                ApplyAdjustments(payroll.ID, adjustments);
                 await db.SaveChangesAsync();
                 tx.Commit();
             }
@@ -861,42 +877,42 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var worksheet = package.Workbook.Worksheets.Add($"Hisob {vm.Year}-{vm.Month:D2}");
+                var worksheet = workbook.Worksheets.Add($"Hisob {vm.Year}-{vm.Month:D2}");
 
                 string[] headers = { "№", "Tab.№", "F.I.O.", "Lavozim", "Asosiy maosh", "Ishlangan soatlar", "Hisoblangan", "Mukofotlar", "Jarimalar", "To'lovga", "Valyuta" };
-                for (int c = 0; c < headers.Length; c++) worksheet.Cells[1, c + 1].Value = headers[c];
+                for (int c = 0; c < headers.Length; c++) worksheet.Cell(1, c + 1).Value = headers[c];
 
                 int row = 2;
                 int lineNum = 1;
                 foreach (var line in vm.Lines)
                 {
-                    worksheet.Cells[row, 1].Value = lineNum++;
-                    worksheet.Cells[row, 2].Value = line.EmployeeTabNo;
-                    worksheet.Cells[row, 3].Value = line.EmployeeFullName;
-                    worksheet.Cells[row, 4].Value = line.PositionName;
-                    worksheet.Cells[row, 5].Value = line.BaseSalary;
-                    worksheet.Cells[row, 6].Value = line.HoursWorked;
-                    worksheet.Cells[row, 7].Value = line.GrossSalary;
-                    worksheet.Cells[row, 8].Value = line.Bonuses;
-                    worksheet.Cells[row, 9].Value = line.Penalties;
-                    worksheet.Cells[row, 10].Value = line.NetSalary;
-                    worksheet.Cells[row, 11].Value = line.CurrencyCode;
+                    worksheet.Cell(row, 1).Value = lineNum++;
+                    worksheet.Cell(row, 2).Value = line.EmployeeTabNo;
+                    worksheet.Cell(row, 3).Value = line.EmployeeFullName;
+                    worksheet.Cell(row, 4).Value = line.PositionName;
+                    worksheet.Cell(row, 5).Value = line.BaseSalary;
+                    worksheet.Cell(row, 6).Value = line.HoursWorked;
+                    worksheet.Cell(row, 7).Value = line.GrossSalary;
+                    worksheet.Cell(row, 8).Value = line.Bonuses;
+                    worksheet.Cell(row, 9).Value = line.Penalties;
+                    worksheet.Cell(row, 10).Value = line.NetSalary;
+                    worksheet.Cell(row, 11).Value = line.CurrencyCode;
                     row++;
                 }
 
-                worksheet.Cells[row, 5].Value = "JAMI:";
-                worksheet.Cells[row, 7].Value = vm.TotalGrossSalary;
-                worksheet.Cells[row, 8].Value = vm.Lines.Sum(l => l.Bonuses);
-                worksheet.Cells[row, 9].Value = vm.Lines.Sum(l => l.Penalties);
-                worksheet.Cells[row, 10].Value = vm.TotalNetSalary;
+                worksheet.Cell(row, 5).Value = "JAMI:";
+                worksheet.Cell(row, 7).Value = vm.TotalGrossSalary;
+                worksheet.Cell(row, 8).Value = vm.Lines.Sum(l => l.Bonuses);
+                worksheet.Cell(row, 9).Value = vm.Lines.Sum(l => l.Penalties);
+                worksheet.Cell(row, 10).Value = vm.TotalNetSalary;
 
-                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+                worksheet.Columns().AdjustToContents();
 
                 var fileName = $"Hisob_{vm.Year}_{vm.Month:D2}.xlsx";
                 logger.Log("HrPayroll", "Export", $"Hisob: {vm.Year}-{vm.Month:D2}, Bo'lim: {vm.OrgUnitName ?? "Butun kompaniya"}, Tur: {TypeLabel(vm.PayrollType)}");
-                return File(package.GetAsByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                return File(workbook.ToByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
         }
 
@@ -968,6 +984,49 @@ namespace tahsinERP.Controllers.HR
             foreach (var line in activeLines)
             {
                 line.IsDeleted = true;
+            }
+        }
+
+        /// <summary>Qo'lda kiritiladigan qiymatlar: qayta hisoblashda xodim bo'yicha qayta qo'llanadi (HRM-B09).</summary>
+        private sealed class ManualAdjustment
+        {
+            public decimal Bonuses { get; set; }
+            public decimal Penalties { get; set; }
+            public decimal? TaxPercent { get; set; }
+        }
+
+        /// <summary>Qatorlarni o'chirilgan deb belgilaydi va ulardagi mukofot/jarima/soliq foizini qaytaradi.</summary>
+        private async Task<Dictionary<int, ManualAdjustment>> SoftDeleteLinesKeepingAdjustmentsAsync(int payrollId)
+        {
+            var activeLines = await db.HR_PAYROLL_LINES
+                .Where(l => l.PayrollID == payrollId && (l.IsDeleted == null || l.IsDeleted == false))
+                .ToListAsync();
+
+            var adjustments = new Dictionary<int, ManualAdjustment>();
+            foreach (var line in activeLines)
+            {
+                adjustments[line.EmployeeID] = new ManualAdjustment
+                {
+                    Bonuses = line.Bonuses ?? 0,
+                    Penalties = line.Penalties ?? 0,
+                    TaxPercent = HrPayrollCalculator.StoredIncomeTaxPercent(line)
+                };
+                line.IsDeleted = true;
+            }
+            return adjustments;
+        }
+
+        /// <summary>Yangi qo'shilgan (hali saqlanmagan) qatorlarga saqlab olingan qo'lda kiritilgan qiymatlarni qo'llaydi.</summary>
+        private void ApplyAdjustments(int payrollId, Dictionary<int, ManualAdjustment> adjustments)
+        {
+            if (adjustments == null || adjustments.Count == 0) return;
+            foreach (var line in db.HR_PAYROLL_LINES.Local.Where(l => l.PayrollID == payrollId && l.ID == 0))
+            {
+                if (!adjustments.TryGetValue(line.EmployeeID, out var adjustment)) continue;
+                line.Bonuses = adjustment.Bonuses;
+                line.Penalties = adjustment.Penalties;
+                line.NetSalary = HrPayrollCalculator.NetSalary(line.GrossSalary ?? 0, adjustment.Bonuses, adjustment.Penalties,
+                    adjustment.TaxPercent ?? HrPayrollCalculator.DefaultIncomeTaxPercent);
             }
         }
 

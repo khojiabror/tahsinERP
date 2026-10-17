@@ -133,7 +133,6 @@ namespace tahsinERP.Models
         public virtual DbSet<SHAREHOLDER_CONTRIBUTIONS> SHAREHOLDER_CONTRIBUTIONS { get; set; }
         public virtual DbSet<SHAREHOLDER_SHARE_PERIODS> SHAREHOLDER_SHARE_PERIODS { get; set; }
         public virtual DbSet<SHAREHOLDER> SHAREHOLDERS { get; set; }
-        public virtual DbSet<SHOP_PLANNED_DTS> SHOP_PLANNED_DTS { get; set; }
         public virtual DbSet<SHOP> SHOPS { get; set; }
         public virtual DbSet<SORDER_DELIVERY_SCHEDULE> SORDER_DELIVERY_SCHEDULE { get; set; }
         public virtual DbSet<STD_COMPANY_STANDARDS> STD_COMPANY_STANDARDS { get; set; }
@@ -154,11 +153,6 @@ namespace tahsinERP.Models
         public virtual DbSet<WRHS_INCOME_DOCS> WRHS_INCOME_DOCS { get; set; }
         public virtual DbSet<V_FIN_PL_FACT_MONTHLY> V_FIN_PL_FACT_MONTHLY { get; set; }
         public virtual DbSet<V_FIN_PL_PLAN_VS_FACT_MONTHLY> V_FIN_PL_PLAN_VS_FACT_MONTHLY { get; set; }
-        public virtual DbSet<V_TANNARX_ACTUAL_ADMIN_EXPENSES> V_TANNARX_ACTUAL_ADMIN_EXPENSES { get; set; }
-        public virtual DbSet<V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT> V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT { get; set; }
-        public virtual DbSet<V_TANNARX_ACTUAL_LABOR_COSTS> V_TANNARX_ACTUAL_LABOR_COSTS { get; set; }
-        public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_COSTS> V_TANNARX_ACTUAL_MATERIAL_COSTS { get; set; }
-        public virtual DbSet<V_TANNARX_ACTUAL_MATERIAL_TRANSPORT> V_TANNARX_ACTUAL_MATERIAL_TRANSPORT { get; set; }
         public virtual DbSet<EXPENSE_PRODUCT_ALLOCATIONS> EXPENSE_PRODUCT_ALLOCATIONS { get; set; }
         public virtual DbSet<FIFO_POLICY> FIFO_POLICY { get; set; }
         public virtual DbSet<FIFO_VIOLATIONS> FIFO_VIOLATIONS { get; set; }
@@ -265,15 +259,6 @@ namespace tahsinERP.Models
         public virtual int sp_GenerateMaterialRequirement_FromSalesOrders()
         {
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_GenerateMaterialRequirement_FromSalesOrders");
-        }
-    
-        public virtual ObjectResult<sp_Norm_PreviewCutMaterial_Result> sp_Norm_PreviewCutMaterial(Nullable<int> productID)
-        {
-            var productIDParameter = productID.HasValue ?
-                new ObjectParameter("ProductID", productID) :
-                new ObjectParameter("ProductID", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_Norm_PreviewCutMaterial_Result>("sp_Norm_PreviewCutMaterial", productIDParameter);
         }
     
         public virtual int sp_Norm_SaveCutMaterials(Nullable<int> productID, Nullable<System.DateTime> effectiveFrom, string comment)

@@ -52,7 +52,7 @@
                                     </tr>
                                     <tr>
                                         <th>Jami summa:</th>
-                                        <td>@Model.TotalAmount.ToString("N2") @(Model.CurrencyCode ?? "")</td>
+                                        <td>@Model.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</td>
                                     </tr>
                                     <tr>
                                         <th>Status:</th>

@@ -1,4 +1,4 @@
-@model tahsinERP.Models.F_CONTRACTS
+﻿@model tahsinERP.Models.F_CONTRACTS
 
 @{
     ViewBag.Title = "Shartnoma tafsilotlari";
@@ -101,7 +101,7 @@
                                                                             <td>@(tariff.F_TRANSPORT_TYPES != null ? tariff.F_TRANSPORT_TYPES.TransportType : "")</td>
                                                                             <td>@(string.IsNullOrEmpty(tariff.FromCity) ? tariff.FromRegion : tariff.FromCity)</td>
                                                                             <td>@(string.IsNullOrEmpty(tariff.ToCity) ? tariff.ToRegion : tariff.ToCity)</td>
-                                                                            <td>@tariff.FreightBasis</td>
+                                                                            <td>@tahsinERP.Services.LogisticsEnums.FreightBasisText(tariff.FreightBasis)</td>
                                                                             <td>@tariff.Rate.ToString("N2")</td>
                                                                             <td>@(tariff.CURRENCy != null ? tariff.CURRENCy.Shortname : "")</td>
                                                                             <td>@(tariff.IsActive ? "Ha" : "Yo'q")</td>

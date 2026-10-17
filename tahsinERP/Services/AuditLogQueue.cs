@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Web.Hosting;
+using tahsinERP.Configuration.Tenancy;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
@@ -14,6 +16,9 @@ namespace tahsinERP.Services
     ///
     /// Navbat har 2 soniyada yoki 100 ta yozuv yig'ilganda bazaga yoziladi. Ilova to'xtatilganda
     /// (IRegisteredObject) qolgan yozuvlar yozib bo'linadi. ASP.NET hosting bo'lmasa (testlar) — sinxron.
+    ///
+    /// Ko'p-tenant: yozish taymer/thread pool oqimida (HttpContext yo'q) bo'ladi — shuning uchun har yozuv
+    /// navbatga o'z tenant'i bilan tushadi va tenant bo'yicha guruhlab TenantContext.Use ichida yoziladi.
     /// </summary>
     public sealed class AuditLogQueue : IRegisteredObject
     {
@@ -23,7 +28,7 @@ namespace tahsinERP.Services
         private static readonly Lazy<AuditLogQueue> LazyInstance = new Lazy<AuditLogQueue>(() => new AuditLogQueue());
         public static AuditLogQueue Instance => LazyInstance.Value;
 
-        private readonly ConcurrentQueue<USERLOG> _queue = new ConcurrentQueue<USERLOG>();
+        private readonly ConcurrentQueue<KeyValuePair<TenantInfo, USERLOG>> _queue = new ConcurrentQueue<KeyValuePair<TenantInfo, USERLOG>>();
         private readonly Timer _timer;
         private readonly object _flushLock = new object();
         private readonly bool _hosted;
@@ -42,7 +47,13 @@ namespace tahsinERP.Services
         {
             if (log == null) return;
 
-            _queue.Enqueue(log);
+            var tenant = TenantContext.CurrentOrNull;
+            if (tenant == null && TenantContext.IsMultiTenant)
+            {
+                System.Diagnostics.Trace.TraceError("[AuditLog] Tenant aniqlanmagan — yozuv tashlab yuborildi.");
+                return;
+            }
+            _queue.Enqueue(new KeyValuePair<TenantInfo, USERLOG>(tenant, log));
             if (!_hosted || _queue.Count >= BatchSize)
             {
                 ThreadPool.QueueUserWorkItem(_ => Flush());
@@ -58,13 +69,17 @@ namespace tahsinERP.Services
             {
                 while (!_queue.IsEmpty)
                 {
-                    var batch = new List<USERLOG>(BatchSize);
-                    USERLOG item;
+                    var batch = new List<KeyValuePair<TenantInfo, USERLOG>>(BatchSize);
+                    KeyValuePair<TenantInfo, USERLOG> item;
                     while (batch.Count < BatchSize && _queue.TryDequeue(out item))
                         batch.Add(item);
 
                     if (batch.Count == 0) break;
-                    WriteBatch(batch);
+                    foreach (var group in batch.GroupBy(x => x.Key))
+                    {
+                        using (TenantContext.Use(group.Key))
+                            WriteBatch(group.Select(x => x.Value).ToList());
+                    }
                 }
             }
             finally

@@ -1,4 +1,4 @@
-@model List<tahsinERP.ViewModels.ContractTariffIndexItemViewModel>
+﻿@model List<tahsinERP.ViewModels.ContractTariffIndexItemViewModel>
 @{
     ViewBag.Title = "Tariflar";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -87,7 +87,7 @@
                                                     <td>@item.TransportType</td>
                                                     <td>@item.FromLocation</td>
                                                     <td>@item.ToLocation</td>
-                                                    <td>@item.FreightBasis</td>
+                                                    <td>@tahsinERP.Services.LogisticsEnums.FreightBasisText(item.FreightBasis)</td>
                                                     <td>@item.Rate.ToString("N2")</td>
                                                     <td>@item.Currency</td>
                                                     <td>@(item.IsActive ? "Ha" : "Yo'q")</td>
