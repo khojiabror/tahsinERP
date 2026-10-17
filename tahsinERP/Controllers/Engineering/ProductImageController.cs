@@ -55,7 +55,8 @@ namespace tahsinERP.Controllers
                 var etag = "\"pimg-" + imageId.Value + "-" + (width ?? 0) + "\"";
                 Response.Cache.SetCacheability(HttpCacheability.Private);
                 Response.Cache.SetMaxAge(TimeSpan.FromDays(7));
-                Response.Cache.SetETag(etag);
+                // Cache.SetETag Private keshda sarlavhani chiqarmaydi - to'g'ridan-to'g'ri yoziladi
+                Response.AppendHeader("ETag", etag);
                 if (string.Equals(Request.Headers["If-None-Match"], etag, StringComparison.Ordinal))
                     return new HttpStatusCodeResult(304);
 
@@ -99,6 +100,18 @@ namespace tahsinERP.Controllers
                         g.SmoothingMode = SmoothingMode.HighQuality;
                         g.Clear(Color.White);
                         g.DrawImage(src, 0, 0, width, height);
+                        // Fotosurat (JPEG) kichik nusxasi JPEG'da, qolganlari (shaffoflik bo'lishi mumkin) PNG'da
+                        if (DetectContentType(bytes) == "image/jpeg")
+                        {
+                            var jpeg = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
+                            using (var prms = new EncoderParameters(1))
+                            {
+                                prms.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 85L);
+                                dst.Save(output, jpeg, prms);
+                            }
+                            return Tuple.Create(output.ToArray(), "image/jpeg");
+                        }
+
                         dst.Save(output, ImageFormat.Png);
                         return Tuple.Create(output.ToArray(), "image/png");
                     }
