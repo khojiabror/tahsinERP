@@ -2,6 +2,13 @@
 
 Bitta IIS ilova, har tashkilotga alohida baza. Tenant so'rov host'idan aniqlanadi: `<slug>.<bazaviy domen>`.
 
+**Domen bitta** (qaror 2026-10-17): barcha korxonalar shu domen ostida subdomen sifatida ochiladi
+(`firma1.<domen>`, `firma2.<domen>`), markaziy panel ham shu domenda (`admin.`, `my.`, `pay.`).
+Shuning uchun DNS'da bitta wildcard `*.<domen>` + wildcard TLS sertifikat yetarli, yangi korxona = `tenants.json` ga bitta qator.
+Panel subdomenlari tenant slug bo'la olmaydi — `TenantRegistry.ReservedSlugs`
+(admin, my, pay, www, api, app, mail, smtp, static, cdn, assets, status, panel, erp); bunday slug reestrni "Broken" qiladi.
+`hosts` (mijozning o'z domeni) texnik jihatdan qo'llab-quvvatlanadi, lekin hozirgi rejada ishlatilmaydi.
+
 ## Sozlama (serverda, git'ga kirmaydi)
 
 | Nima | Qayerda |

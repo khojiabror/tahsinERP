@@ -74,6 +74,15 @@ namespace tahsinERP.Configuration.Tenancy
             "tahsinERP", "tenants.json");
 
         private static readonly Regex SlugRegex = new Regex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$", RegexOptions.Compiled);
+        /// <summary>
+        /// Domen bitta: korxonalar ham, markaziy panel ham shu domen ostida (admin./my./pay.) — bu nomlar
+        /// tenant slug bo'la olmaydi, aks holda panel subdomeni ERP tenantiga tushib qolardi.
+        /// </summary>
+        public static readonly string[] ReservedSlugs =
+        {
+            "admin", "my", "pay", "www", "api", "app", "mail", "smtp", "static", "cdn", "assets", "status", "panel", "erp"
+        };
+
         private static readonly Regex DatabaseRegex = new Regex(@"^[A-Za-z0-9_\-\.]{1,128}$", RegexOptions.Compiled);
 
         private readonly Dictionary<string, TenantInfo> _bySlug;
@@ -195,6 +204,8 @@ namespace tahsinERP.Configuration.Tenancy
                 string slug = (t.Slug ?? "").Trim().ToLowerInvariant();
                 if (!SlugRegex.IsMatch(slug))
                     return CreateBroken("Yaroqsiz slug: '" + t.Slug + "'");
+                if (Array.IndexOf(ReservedSlugs, slug) >= 0)
+                    return CreateBroken("Band (rezerv) slug: '" + slug + "' — panel subdomenlari uchun ajratilgan.");
                 if (!seen.Add(slug))
                     return CreateBroken("Takroriy slug: '" + slug + "'");
                 string db = (t.Database ?? "").Trim();

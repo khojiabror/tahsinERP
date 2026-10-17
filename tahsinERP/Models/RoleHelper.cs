@@ -198,6 +198,7 @@ namespace tahsinERP.Models
         public static bool IsViewPermitted(string username, string moduleName)
         {
             if (string.IsNullOrEmpty(username)) return false;
+            if (!tahsinERP.Services.Editions.EditionGate.IsControllerAllowed(moduleName)) return false; // paketda yo'q — menyu yashiriladi
 
             var cacheKey = GetPermissionCacheKey(username, moduleName);
             var cached = GetCache(cacheKey) as PermissionCache;
@@ -217,6 +218,7 @@ namespace tahsinERP.Models
         public static bool IsViewPermitted(string username, string controller, string action)
         {
             if (string.IsNullOrEmpty(username)) return false;
+            if (!tahsinERP.Services.Editions.EditionGate.IsControllerAllowed(controller)) return false; // paketda yo'q — menyu yashiriladi
 
             var cacheKey = GetPermissionCacheKey(username, controller, action);
             var cached = GetCache(cacheKey) as PermissionCache;
@@ -236,6 +238,7 @@ namespace tahsinERP.Models
         public static bool IsViewPermitted(string username, string controller, string action, string parameter)
         {
             if (string.IsNullOrEmpty(username)) return false;
+            if (!tahsinERP.Services.Editions.EditionGate.IsControllerAllowed(controller)) return false; // paketda yo'q — menyu yashiriladi
 
             var cacheKey = $"Permission_{T}{username}_{controller}_{action}_{parameter}";
             var cached = GetCache(cacheKey) as PermissionCache;

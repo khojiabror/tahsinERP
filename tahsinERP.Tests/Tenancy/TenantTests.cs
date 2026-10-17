@@ -92,6 +92,8 @@ namespace tahsinERP.Tests.Tenancy
             Assert.IsTrue(TenantRegistry.Parse(@"{""tenants"":[{""slug"":""a"",""database"":""D1;Password=x""}]}", "x.uz").IsBroken, "baza nomida in'ektsiya");
             Assert.IsTrue(TenantRegistry.Parse(@"{""tenants"":[{""slug"":""a.b"",""database"":""D1""}]}", "x.uz").IsBroken, "slugda nuqta");
             Assert.IsTrue(TenantRegistry.Parse(@"{""tenants"":[{""slug"":""a"",""database"":""D1""}]}", null).IsBroken, "bazaviy domen yo'q");
+            Assert.IsTrue(TenantRegistry.Parse(@"{""tenants"":[{""slug"":""admin"",""database"":""D1""}]}", "x.uz").IsBroken, "panel subdomeni");
+            Assert.IsTrue(TenantRegistry.Parse(@"{""tenants"":[{""slug"":""pay"",""database"":""D1""}]}", "x.uz").IsBroken, "to'lov subdomeni");
             var broken = TenantRegistry.Parse("{ not json", "x.uz");
             Assert.IsTrue(broken.IsActive, "buzilgan reestr bitta-baza rejimiga tushmaydi");
         }

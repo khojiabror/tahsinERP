@@ -212,6 +212,7 @@
     <Compile Include="Licensing\LicenseHelperTests.cs" />
     <Compile Include="Licensing\LicenseCompatTests.cs" />
     <Compile Include="Tenancy\TenantTests.cs" />
+    <Compile Include="Editions\EditionModulesTests.cs" />
     <Compile Include="LicenseSync\LicensePanelClientTests.cs" />
   </ItemGroup>
   <ItemGroup>

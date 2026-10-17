@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Licensing;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Editions;
 using tahsinERP.Services.LicenseSync;
 using tahsinERP.ViewModels;
 
@@ -67,6 +68,20 @@ namespace tahsinERP.Controllers
                     System.Diagnostics.Trace.TraceError("[License] InstallationId o'qilmadi: " + ex);
                 }
             }
+            return View();
+        }
+
+        // GET: /License/NotInPlan?module=Mes — paketga kirmagan modul (EditionCheckAttribute yo'naltiradi), hamma uchun
+        public ActionResult NotInPlan(string module)
+        {
+            ProductModule m;
+            if (!Enum.TryParse(module, true, out m))
+                m = ProductModule.Core;
+            string edition = EditionGate.CurrentEdition;
+            ViewBag.ModuleName = EditionModules.DisplayName(m);
+            ViewBag.EditionName = EditionModules.EditionDisplayName(edition) ?? "-";
+            ViewBag.RequiredEdition = EditionModules.EditionDisplayName(EditionModules.CheapestEditionWith(m));
+            ViewBag.CanManage = CanManage();
             return View();
         }
 

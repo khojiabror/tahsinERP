@@ -1038,6 +1038,9 @@
     <Compile Include="Services\LicenseSync\LicensePanelClient.cs" />
     <Compile Include="Services\LicenseSync\LicenseSyncService.cs" />
     <Compile Include="Filters\LicenseCheckAttribute.cs" />
+    <Compile Include="Filters\EditionCheckAttribute.cs" />
+    <Compile Include="Services\Editions\EditionGate.cs" />
+    <Compile Include="Services\Editions\EditionModules.cs" />
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
@@ -2985,6 +2988,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\License\Index.cshtml" />
     <Content Include="Views\License\Blocked.cshtml" />
+    <Content Include="Views\License\NotInPlan.cshtml" />
     <Content Include="Views\Error\Error.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
