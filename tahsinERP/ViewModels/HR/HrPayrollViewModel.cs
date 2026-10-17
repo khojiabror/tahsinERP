@@ -39,6 +39,8 @@ namespace tahsinERP.ViewModels.HR
         public decimal TotalGrossSalary { get; set; }
         public decimal TotalNetSalary { get; set; }
         public decimal IncomeTaxPercent { get; set; }
+        /// <summary>Daromad solig'i qo'llanadimi (HRM-B18: soatbay va ishbay — ikkalasiga ham).</summary>
+        public bool ApplyIncomeTax { get; set; }
         public decimal TotalIncomeTax { get; set; }
         
         public HrPayrollHeaderViewModel()

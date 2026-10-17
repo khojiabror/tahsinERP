@@ -281,6 +281,9 @@ else
     <script>
         var timesheetId = @Model.ID;
         var daysInMonth = @daysInMonth;
+        // HR sozlamalaridagi ish kalendari (HRM-B15): workingDays[d] — d-kun ish kunimi
+        var workingDays = @Html.Raw(Json.Encode(Enumerable.Range(0, daysInMonth + 1).Select(d => d > 0 && tahsinERP.Services.HR.HrSettingsService.Current.IsWorkingDay(new DateTime(Model.Year, Model.Month, d)))));
+        var dailyNorm = @(tahsinERP.Services.HR.HrSettingsService.Current.DailyNormHours.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         function saveTimesheetGrid() {
             var hours = [];
@@ -362,13 +365,16 @@ else
 
             $row.find('.day-hours').each(function() {
                 var hours = parseFloat($(this).val()) || 0;
+                var isWorking = workingDays[parseInt($(this).data('day'), 10)] === true;
                 if (hours > 0) {
                     totalHours += hours;
                     workedDays += 1;
-                    if (hours > 8) {
-                        overtimeHours += (hours - 8);
+                    if (!isWorking) {
+                        overtimeHours += hours;
+                    } else if (hours > dailyNorm) {
+                        overtimeHours += (hours - dailyNorm);
                     }
-                } else {
+                } else if (isWorking) {
                     absentDays += 1;
                 }
             });

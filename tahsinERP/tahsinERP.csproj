@@ -310,6 +310,7 @@
     <Compile Include="Controllers\HR\HrEmployeesController.cs" />
     <Compile Include="Controllers\HR\HrOrgUnitsController.cs" />
     <Compile Include="Controllers\HR\HrPayrollController.cs" />
+    <Compile Include="Controllers\HR\HrSettingsController.cs" />
     <Compile Include="Controllers\HR\HrPieceRateTimesheetsController.cs" />
     <Compile Include="Controllers\HR\HrPieceRateTariffsController.cs" />
     <Compile Include="Controllers\HR\HrPositionsController.cs" />
@@ -880,6 +881,7 @@
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
     <Compile Include="Services\HR\HrLookups.cs" />
     <Compile Include="Services\HR\HrPayrollCalculator.cs" />
+    <Compile Include="Services\HR\HrSettingsService.cs" />
     <Compile Include="Services\HR\PieceRateTariffResolver.cs" />
     <Compile Include="Services\HR\TimesheetLineAccessor.cs" />
     <Compile Include="Services\HtmlToDocxConverter.cs" />
@@ -3067,6 +3069,7 @@
     <Content Include="Views\HrOrgUnits\_OrgUnitDetails.cshtml" />
     <Content Include="Views\HrPayroll\Delete.cshtml" />
     <Content Include="Views\HrPayroll\Edit.cshtml" />
+    <Content Include="Views\HrSettings\Index.cshtml" />
     <Content Include="Views\HrPayroll\Generate.cshtml" />
     <Content Include="Views\HrPayroll\Index.cshtml" />
     <Content Include="Views\HrPositions\Create.cshtml" />
