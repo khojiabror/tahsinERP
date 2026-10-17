@@ -1,4 +1,4 @@
-@model List<tahsinERP.ViewModels.WaybillIndexItemViewModel>
+﻿@model List<tahsinERP.ViewModels.WaybillIndexItemViewModel>
 @using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqalari";
@@ -44,7 +44,7 @@
                             <a href="@Url.Action("Create", "Waybill")" class="btn btn-success bg-light invoice-create" role="button">
                                 <i class="bx bx-plus"></i> Yangi @LogisticsTerms.Waybill.ToLower()
                             </a>
-                            <a href="@Url.Action("UploadExcel", "Waybill")" class="btn btn-outline-primary ml-1" role="button">
+                            <a href="@Url.Action("UploadExcel", "WaybillImport")" class="btn btn-outline-primary ml-1" role="button">
                                 <i class="bx bx-file"></i> Excel orqali yuklash
                             </a>
                         </div>
