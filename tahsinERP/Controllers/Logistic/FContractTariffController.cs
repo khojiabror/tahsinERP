@@ -11,6 +11,7 @@ using tahsinERP.Models;
 namespace tahsinERP.Controllers
 {
     /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    // LOG-S03: POST entity binding faqat ruxsat etilgan maydonlar bilan ([Bind(Include)]) — over-posting yo'q
     [Permission]
     public class FContractTariffController : BaseController
     {
@@ -62,7 +63,7 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(F_CONTRACT_TARIFFS model)
+        public async Task<ActionResult> Create([Bind(Include = "ContractID,FromRegion,FromCity,ToRegion,ToCity,TransportTypeID,FreightBasis,Rate,MinimumCharge,CurrencyID,IsActive,Description")] F_CONTRACT_TARIFFS model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -146,7 +147,7 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(F_CONTRACT_TARIFFS model)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,ContractID,FromRegion,FromCity,ToRegion,ToCity,TransportTypeID,FreightBasis,Rate,MinimumCharge,CurrencyID,IsActive,Description")] F_CONTRACT_TARIFFS model)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {

@@ -13,6 +13,7 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Controllers.Logistic
 {
     /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    // LOG-S03: POST entity binding faqat ruxsat etilgan maydonlar bilan ([Bind(Include)]) — over-posting yo'q
     [Permission]
     public class WaybillPaymentController : BaseController
     {
@@ -92,7 +93,7 @@ namespace tahsinERP.Controllers.Logistic
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(F_WAYBILL_PAYMENTS model, int? AccountID, int[] SelectedWaybillIDs)
+        public ActionResult Create([Bind(Include = "ForwarderID,WaybillID,Payment_Amount,PaymentDate,Comment,CurrencyID")] F_WAYBILL_PAYMENTS model, int? AccountID, int[] SelectedWaybillIDs)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -320,7 +321,7 @@ namespace tahsinERP.Controllers.Logistic
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(F_WAYBILL_PAYMENTS waybillPayment, int? AccountID, int[] SelectedWaybillIDs)
+        public ActionResult Edit([Bind(Include = "ID,ForwarderID,WaybillID,Payment_Amount,PaymentDate,Comment,CurrencyID")] F_WAYBILL_PAYMENTS waybillPayment, int? AccountID, int[] SelectedWaybillIDs)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {

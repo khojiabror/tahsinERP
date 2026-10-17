@@ -15,6 +15,7 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Controllers
 {
     /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    // LOG-S03: POST entity binding faqat ruxsat etilgan maydonlar bilan ([Bind(Include)]) — over-posting yo'q
     [Permission]
     public class ForwarderController : BaseController
     {
@@ -36,7 +37,7 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(FORWARDER forwarder)
+        public async Task<ActionResult> Create([Bind(Include = "ForwarderName,Director,ContactPerson,Description")] FORWARDER forwarder)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -162,7 +163,7 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(FORWARDER forwarder)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,ForwarderName,Director,ContactPerson,Description")] FORWARDER forwarder)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {

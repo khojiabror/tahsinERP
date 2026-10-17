@@ -14,6 +14,7 @@ using tahsinERP.Services;
 namespace tahsinERP.Controllers
 {
     /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    // LOG-S03: POST entity binding faqat ruxsat etilgan maydonlar bilan ([Bind(Include)]) — over-posting yo'q
     [Permission]
     public class FContractController : BaseController
     {
@@ -48,7 +49,7 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(F_CONTRACTS contract)
+        public async Task<ActionResult> Create([Bind(Include = "ContractNo,ForwarderID,IssueDate,DueDate,Amount,CurrencyID,Description")] F_CONTRACTS contract)
         {
             try
             {
@@ -137,7 +138,7 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(F_CONTRACTS contract)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,ContractNo,ForwarderID,IssueDate,DueDate,Amount,CurrencyID,Description")] F_CONTRACTS contract)
         {
             if (ModelState.IsValid)
             {
