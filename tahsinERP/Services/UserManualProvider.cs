@@ -11,7 +11,16 @@ namespace tahsinERP.Services
     /// </summary>
     public static class UserManualProvider
     {
+        // Kontent 100% statik — avval har so'rovda (GetChapter'da ham butun qo'llanma) ~1400 qatorlik
+        // StringBuilder qayta qurilardi (MAN-P01). Natija umumiy: chaqiruvchilar uni o'zgartirmasin.
+        private static readonly Lazy<UserManualPageViewModel> Manual = new Lazy<UserManualPageViewModel>(Build);
+
         public static UserManualPageViewModel GetManual()
+        {
+            return Manual.Value;
+        }
+
+        private static UserManualPageViewModel Build()
         {
             var chapters = new List<UserManualChapterViewModel>();
 
@@ -54,9 +63,11 @@ namespace tahsinERP.Services
             // 13. Tasks / Vazifalar
             chapters.Add(CreateTasksChapter());
 
+            // Ro'yxat allaqachon kerakli tartibda; Order qiymatlari takrorlanadi (CRUD va Sotuv — ikkalasi 3),
+            // shuning uchun teng Order'da qo'shilish tartibi saqlanadi (MAN-B01)
             return new UserManualPageViewModel
             {
-                Chapters = chapters.OrderBy(c => c.Order).ToList(),
+                Chapters = chapters.Select((c, i) => new { c, i }).OrderBy(x => x.c.Order).ThenBy(x => x.i).Select(x => x.c).ToList(),
                 InitialChapterId = chapters.First().Id
             };
         }
