@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.TaskSettings
@@ -43,15 +44,12 @@ namespace tahsinERP.Controllers.TaskSettings
             }
 
             // Oddiy user uchun faqat o'z tasklarini ko'rsatish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(User.Identity.Name);
             int currentUserId = UserHelper.GetUserId(User.Identity.Name);
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var project = await db.APP_TASK_PROJECTS
+                var project = await db.APP_TASK_PROJECTS.AsNoTracking()
                     .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
                     .FirstOrDefaultAsync();
                 if (project == null)
@@ -60,7 +58,7 @@ namespace tahsinERP.Controllers.TaskSettings
                 }
 
                 // Olish tasks uchun this project
-                var tasksQuery = db.APP_TASKS
+                var tasksQuery = db.APP_TASKS.AsNoTracking()
                     .Include(t => t.APP_TASK_STATUS_REF)
                     .Include(t => t.APP_TASK_PRIORITY_REF)
                     .Where(t => t.ProjectID == id && t.IsDeleted == false);
@@ -75,7 +73,8 @@ namespace tahsinERP.Controllers.TaskSettings
                     .OrderByDescending(t => t.CreatedDT)
                     .ToListAsync();
 
-                // Aylantirish ga ViewModels
+                // Ismlar bitta so'rovda (avval har topshiriqqa 2 ta GetFullName — TSK-P01)
+                var names = await TaskLookups.UserNamesAsync(db, tasks.SelectMany(t => new[] { t.AssigneeUserID, t.ReporterUserID }));
                 var taskViewModels = tasks.Select(t => new ViewModels.TaskViewModel
                 {
                     ID = t.ID,
@@ -87,9 +86,9 @@ namespace tahsinERP.Controllers.TaskSettings
                     PriorityID = t.PriorityID,
                     PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
                     AssigneeUserID = t.AssigneeUserID,
-                    AssigneeFullName = t.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: t.AssigneeUserID.Value) : null,
+                    AssigneeFullName = TaskLookups.NameOf(names, t.AssigneeUserID),
                     ReporterUserID = t.ReporterUserID,
-                    ReporterFullName = t.ReporterUserID.HasValue ? UserHelper.GetFullName(userID: t.ReporterUserID.Value) : null,
+                    ReporterFullName = TaskLookups.NameOf(names, t.ReporterUserID),
                     CreatedDT = t.CreatedDT,
                     UpdatedDT = t.UpdatedDT,
                     DueDate = t.DueDate,
@@ -142,6 +141,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
                     db.APP_TASK_PROJECTS.Add(project);
                     await db.SaveChangesAsync();
+                    TaskLookups.Invalidate();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} yaratdi");
                     return RedirectToAction("Index");
@@ -199,6 +199,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
                     db.Entry(project).State = EntityState.Modified;
                     await db.SaveChangesAsync();
+                    TaskLookups.Invalidate();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} tahrirladi");
                     return RedirectToAction("Index");
@@ -238,6 +239,7 @@ namespace tahsinERP.Controllers.TaskSettings
                 db.Entry(project).State = System.Data.Entity.EntityState.Modified;
                 await SoftDeleteReferenceService.AfterTaskProjectSoftDeletedAsync(db, id);
                 await db.SaveChangesAsync();
+                TaskLookups.Invalidate();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} o'chirildi");
                 return RedirectToAction("Index");

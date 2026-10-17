@@ -1,3 +1,4 @@
+@using tahsinERP.Services.Tasks
 @model tahsinERP.ViewModels.TaskDashboardViewModel
 @{
     ViewBag.Title = "Task Dashboard";
@@ -66,7 +67,7 @@
                                                     }
                                                 }
                                             </select>
-                                            Html.Hidden("userId", ViewBag.CurrentUserID)
+                                            @Html.Hidden("userId", (object)ViewBag.CurrentUserID)
                                         </div>
                                     }
                                     <div class="col-md-6">
@@ -276,7 +277,25 @@ else
     <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
     <script>
         $(document).ready(function() {
-            console.log('Task Dashboard script loaded');
+            // Grafik ma'lumotlari serverda bir marta JSON qilinadi (avval Razor-in-JS: nomlardagi ' buzilardi — TSK-B08)
+            var dash = @Html.Raw(Json.Encode(new
+            {
+                statusLabels = Model.StatusStatistics.Select(x => x.StatusName + " (" + x.Count + ")"),
+                statusSeries = Model.StatusStatistics.Select(x => x.Count),
+                statusColors = Model.StatusStatistics.Select(x => TaskBadges.StatusColor(x.StatusName)),
+                priorityCategories = Model.PriorityStatistics.Select(x => x.PriorityName),
+                priorityColors = Model.PriorityStatistics.Select(x => TaskBadges.PriorityColor(x.PriorityName)),
+                priorityTotal = Model.PriorityStatistics.Select(x => x.TotalCount),
+                priorityDone = Model.PriorityStatistics.Select(x => x.DoneCount),
+                priorityTodo = Model.PriorityStatistics.Select(x => x.TodoCount),
+                priorityInProgress = Model.PriorityStatistics.Select(x => x.InProgressCount),
+                overdueProjects = Model.OverdueTasksStatistics.Select(x => x.ProjectName),
+                overdueCounts = Model.OverdueTasksStatistics.Select(x => x.OverdueCount),
+                employeeNames = Model.EmployeeRatings.Select(x => x.FullName),
+                employeeScores = Model.EmployeeRatings.Select(x => x.RatingScore),
+                employeeOnTime = Model.EmployeeRatings.Select(x => x.OnTimeCompletedCount),
+                employeeOverdue = Model.EmployeeRatings.Select(x => x.OverdueNotCompletedCount)
+            }));
             
             // Check if jQuery is loaded
             if (typeof jQuery === 'undefined') {
@@ -292,55 +311,17 @@ else
                 return;
             }
             
-            console.log('ApexCharts loaded successfully');
 
             // Status Pie Chart
             @if (Model.StatusStatistics != null && Model.StatusStatistics.Any())
             {
                 <text>
-                var statusLabels = [
-                    @foreach (var stat in Model.StatusStatistics)
-                    {
-                        var label = stat.StatusName + " (" + stat.Count + ")";
-                        <text>'@label.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
-                    }
-                ];
-                var statusSeries = [
-                    @foreach (var stat in Model.StatusStatistics)
-                    {
-                        <text>@stat.Count,</text>
-                    }
-                ];
+                var statusLabels = dash.statusLabels;
+                var statusSeries = dash.statusSeries;
                 
                 // Status ranglarini dinamik belgilash
-                var statusColors = [
-                    @foreach (var stat in Model.StatusStatistics)
-                    {
-                        var statusNameLower = stat.StatusName?.ToLower() ?? "";
-                        string color = "#6C757D"; // default grey
-                        if (statusNameLower.Contains("jarayonda") || statusNameLower.Contains("in_progress") || statusNameLower.Contains("in progress"))
-                        {
-                            color = "#FFC107"; // sariq (yellow)
-                        }
-                        else if (statusNameLower.Contains("rejada") || statusNameLower.Contains("todo") || statusNameLower.Contains("planned"))
-                        {
-                            color = "#6C757D"; // grey
-                        }
-                        else if (statusNameLower.Contains("bajarildi") || statusNameLower.Contains("done"))
-                        {
-                            color = "#28A745"; // yashil (green)
-                        }
-                        else if (statusNameLower.Contains("bekor") || statusNameLower.Contains("cancelled") || statusNameLower.Contains("cancel"))
-                        {
-                            color = "#DC3545"; // qizil (red)
-                        }
-                        <text>'@color',</text>
-                    }
-                ];
+                var statusColors = dash.statusColors;
 
-                console.log('Status Labels:', statusLabels);
-                console.log('Status Series:', statusSeries);
-                console.log('Status Colors:', statusColors);
 
                 var statusPieOptions = {
                     chart: {
@@ -369,7 +350,6 @@ else
                 try {
                     var statusPieChart = new ApexCharts(document.querySelector("#statusPieChart"), statusPieOptions);
                     statusPieChart.render();
-                    console.log('Status Pie Chart rendered');
                 } catch (e) {
                     console.error('Error rendering Status Pie Chart:', e);
                     document.querySelector("#statusPieChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
@@ -379,7 +359,6 @@ else
             else
             {
                 <text>
-                console.log('No status statistics available');
                 document.querySelector("#statusPieChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
                 </text>
             }
@@ -388,34 +367,10 @@ else
             @if (Model.PriorityStatistics != null && Model.PriorityStatistics.Any())
             {
                 <text>
-                var priorityCategories = [
-                    @foreach (var stat in Model.PriorityStatistics)
-                    {
-                        <text>'@stat.PriorityName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
-                    }
-                ];
+                var priorityCategories = dash.priorityCategories;
                 
                 // Priority ranglarini dinamik belgilash
-                var priorityColors = [
-                    @foreach (var stat in Model.PriorityStatistics)
-                    {
-                        var priorityNameLower = stat.PriorityName?.ToLower() ?? "";
-                        string color = "#DC3545"; // default to'q qizil
-                        if (priorityNameLower.Contains("juda muhim") || priorityNameLower.Contains("critical"))
-                        {
-                            color = "#DC3545"; // to'q qizil
-                        }
-                        else if (priorityNameLower.Contains("muhim") || priorityNameLower.Contains("high"))
-                        {
-                            color = "#FF6666"; // qizil
-                        }
-                        else if (priorityNameLower.Contains("normal") || priorityNameLower.Contains("medium"))
-                        {
-                            color = "#FFCCCC"; // och qizil
-                        }
-                        <text>'@color',</text>
-                    }
-                ];
+                var priorityColors = dash.priorityColors;
 
                 var priorityBarOptions = {
                     chart: {
@@ -439,20 +394,10 @@ else
                     },
                     series: [{
                         name: 'Jami',
-                        data: [
-                            @foreach (var stat in Model.PriorityStatistics)
-                            {
-                                <text>@stat.TotalCount,</text>
-                            }
-                        ]
+                        data: dash.priorityTotal
                     }, {
                         name: 'Bajarildi',
-                        data: [
-                            @foreach (var stat in Model.PriorityStatistics)
-                            {
-                                <text>@stat.DoneCount,</text>
-                            }
-                        ]
+                        data: dash.priorityDone
                     }],
                     xaxis: {
                         categories: priorityCategories,
@@ -479,7 +424,6 @@ else
                 try {
                     var priorityBarChart = new ApexCharts(document.querySelector("#priorityBarChart"), priorityBarOptions);
                     priorityBarChart.render();
-                    console.log('Priority Bar Chart rendered');
                 } catch (e) {
                     console.error('Error rendering Priority Bar Chart:', e);
                     document.querySelector("#priorityBarChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
@@ -500,28 +444,13 @@ else
                     },
                     series: [{
                         name: 'Rejada',
-                        data: [
-                            @foreach (var stat in Model.PriorityStatistics)
-                            {
-                                <text>@stat.TodoCount,</text>
-                            }
-                        ]
+                        data: dash.priorityTodo
                     }, {
                         name: 'Jarayonda',
-                        data: [
-                            @foreach (var stat in Model.PriorityStatistics)
-                            {
-                                <text>@stat.InProgressCount,</text>
-                            }
-                        ]
+                        data: dash.priorityInProgress
                     }, {
                         name: 'Bajarildi',
-                        data: [
-                            @foreach (var stat in Model.PriorityStatistics)
-                            {
-                                <text>@stat.DoneCount,</text>
-                            }
-                        ]
+                        data: dash.priorityDone
                     }],
                     xaxis: {
                         categories: priorityCategories,
@@ -543,7 +472,6 @@ else
                 try {
                     var priorityStackedChart = new ApexCharts(document.querySelector("#priorityStackedChart"), priorityStackedOptions);
                     priorityStackedChart.render();
-                    console.log('Priority Stacked Chart rendered');
                 } catch (e) {
                     console.error('Error rendering Priority Stacked Chart:', e);
                     document.querySelector("#priorityStackedChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
@@ -553,7 +481,6 @@ else
             else
             {
                 <text>
-                console.log('No priority statistics available');
                 document.querySelector("#priorityBarChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
                 document.querySelector("#priorityStackedChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot mavjud emas</p>';
                 </text>
@@ -563,18 +490,8 @@ else
             @if (Model.OverdueTasksStatistics != null && Model.OverdueTasksStatistics.Any())
             {
                 <text>
-                var overdueCategories = [
-                    @foreach (var stat in Model.OverdueTasksStatistics)
-                    {
-                        <text>'@stat.ProjectName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
-                    }
-                ];
-                var overdueSeries = [
-                    @foreach (var stat in Model.OverdueTasksStatistics)
-                    {
-                        <text>@stat.OverdueCount,</text>
-                    }
-                ];
+                var overdueCategories = dash.overdueProjects;
+                var overdueSeries = dash.overdueCounts;
 
                 var overdueChartOptions = {
                     chart: {
@@ -609,7 +526,6 @@ else
                 try {
                     var overdueChart = new ApexCharts(document.querySelector("#overdueTasksChart"), overdueChartOptions);
                     overdueChart.render();
-                    console.log('Overdue Tasks Chart rendered');
                 } catch (e) {
                     console.error('Error rendering Overdue Tasks Chart:', e);
                     document.querySelector("#overdueTasksChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
@@ -619,7 +535,6 @@ else
             else
             {
                 <text>
-                console.log('No overdue tasks statistics available');
                 document.querySelector("#overdueTasksChart").innerHTML = '<p class="text-center text-muted">Muddatidan o\'tgan vazifalar yo\'q</p>';
                 </text>
             }
@@ -628,30 +543,10 @@ else
             @if (Model.EmployeeRatings != null && Model.EmployeeRatings.Any())
             {
                 <text>
-                var employeeNames = [
-                    @foreach (var emp in Model.EmployeeRatings)
-                    {
-                        <text>'@emp.FullName.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")',</text>
-                    }
-                ];
-                var ratingScores = [
-                    @foreach (var emp in Model.EmployeeRatings)
-                    {
-                        <text>@emp.RatingScore,</text>
-                    }
-                ];
-                var onTimeCompleted = [
-                    @foreach (var emp in Model.EmployeeRatings)
-                    {
-                        <text>@emp.OnTimeCompletedCount,</text>
-                    }
-                ];
-                var overdueNotCompleted = [
-                    @foreach (var emp in Model.EmployeeRatings)
-                    {
-                        <text>@emp.OverdueNotCompletedCount,</text>
-                    }
-                ];
+                var employeeNames = dash.employeeNames;
+                var ratingScores = dash.employeeScores;
+                var onTimeCompleted = dash.employeeOnTime;
+                var overdueNotCompleted = dash.employeeOverdue;
 
                 // Determine if we should show on-time completed or overdue
                 var hasOnTimeCompleted = @(Model.EmployeeRatings.Any(r => r.OnTimeCompletedCount > 0) ? "true" : "false");
@@ -728,7 +623,6 @@ else
                 try {
                     var employeeRatingChart = new ApexCharts(document.querySelector("#employeeRatingChart"), employeeRatingOptions);
                     employeeRatingChart.render();
-                    console.log('Employee Rating Chart rendered');
                 } catch (e) {
                     console.error('Error rendering Employee Rating Chart:', e);
                     document.querySelector("#employeeRatingChart").innerHTML = '<p class="text-center text-danger">Xatolik: ' + e.message + '</p>';
@@ -738,7 +632,6 @@ else
             else
             {
                 <text>
-                console.log('No employee ratings available');
                 document.querySelector("#employeeRatingChart").innerHTML = '<p class="text-center text-muted">Xodimlar reytingi ma\'lumotlari yo\'q</p>';
                 </text>
             }

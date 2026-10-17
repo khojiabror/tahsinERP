@@ -1,3 +1,4 @@
+@using tahsinERP.Services.Tasks
 @model List<tahsinERP.ViewModels.TaskViewModel>
 @{
     ViewBag.Title = "Tasks";
@@ -12,11 +13,7 @@
         changePermit = true;
     }
     
-    // Check if user is Admin or Developer
-    var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
-    bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-        r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-        r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+    bool isAdminOrDeveloper = tahsinERP.Services.Tasks.TaskRules.IsAdminOrDeveloper(User.Identity.Name);
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -125,61 +122,16 @@
                                                             <td>@(item.Title ?? "")</td>
                                                             <td>@(item.AssigneeFullName ?? "-")</td>
                                                             <td>
-                                                                @{
-                                                                    string priorityBadgeClass = "badge-danger";
-                                                                    string priorityStyle = "";
-                                                                    string priorityNameLower = item.PriorityName?.ToLower() ?? "";
-                                                                    if (priorityNameLower.Contains("juda muhim") || priorityNameLower.Contains("critical"))
-                                                                    {
-                                                                        priorityBadgeClass = "badge-danger";
-                                                                        priorityStyle = "background-color: #DC3545 !important; border-color: #DC3545 !important;";
-                                                                    }
-                                                                    else if (priorityNameLower.Contains("muhim") || priorityNameLower.Contains("high"))
-                                                                    {
-                                                                        priorityBadgeClass = "badge-danger";
-                                                                        priorityStyle = "background-color: #FF6666 !important; border-color: #FF6666 !important;";
-                                                                    }
-                                                                    else if (priorityNameLower.Contains("normal") || priorityNameLower.Contains("medium"))
-                                                                    {
-                                                                        priorityBadgeClass = "badge-danger";
-                                                                        priorityStyle = "background-color: #FFCCCC !important; border-color: #FFCCCC !important;";
-                                                                    }
-                                                                }
-                                                                <span class="badge @priorityBadgeClass" style="@priorityStyle">@(item.PriorityName ?? "")</span>
+                                                                @Html.TaskPriorityBadge(item.PriorityName, "")
                                                             </td>
                                                             <td>
-                                                                @{
-                                                                    string statusBadgeClass = "badge-secondary";
-                                                                    string statusStyle = "";
-                                                                    string statusNameLower = item.StatusName?.ToLower() ?? "";
-                                                                    if (statusNameLower.Contains("bajarildi") || statusNameLower.Contains("done"))
-                                                                    {
-                                                                        statusBadgeClass = "badge-success";
-                                                                        statusStyle = "background-color: #28A745 !important; border-color: #28A745 !important;";
-                                                                    }
-                                                                    else if (statusNameLower.Contains("jarayonda") || statusNameLower.Contains("in_progress") || statusNameLower.Contains("in progress"))
-                                                                    {
-                                                                        statusBadgeClass = "badge-warning";
-                                                                        statusStyle = "background-color: #FFC107 !important; border-color: #FFC107 !important;";
-                                                                    }
-                                                                    else if (statusNameLower.Contains("bekor") || statusNameLower.Contains("cancelled") || statusNameLower.Contains("cancel"))
-                                                                    {
-                                                                        statusBadgeClass = "badge-danger";
-                                                                        statusStyle = "background-color: #DC3545 !important; border-color: #DC3545 !important;";
-                                                                    }
-                                                                    else if (statusNameLower.Contains("rejada") || statusNameLower.Contains("todo") || statusNameLower.Contains("planned"))
-                                                                    {
-                                                                        statusBadgeClass = "badge-secondary";
-                                                                        statusStyle = "background-color: #6C757D !important; border-color: #6C757D !important;";
-                                                                    }
-                                                                }
-                                                                <span class="badge @statusBadgeClass" style="@statusStyle">@(item.StatusName ?? "")</span>
+                                                                @Html.TaskStatusBadge(item.StatusName, "")
                                                             </td>
                                                             <td>@item.CreatedDT.ToString("yyyy-MM-dd")</td>
                                                             <td>
                                                                 @if (item.DueDate.HasValue)
                                                                 {
-                                                                    <span class="@(item.DueDate.Value < DateTime.Now && item.StatusName?.ToLower() != "done" ? "text-danger" : "")">
+                                                                    <span class="@(TaskBadges.IsOverdue(item.DueDate, item.StatusName) ? "text-danger" : "")">
                                                                         @item.DueDate.Value.ToString("yyyy-MM-dd")
                                                                     </span>
                                                                 }
@@ -233,7 +185,7 @@
                                                         @for (int i = 1; i <= ViewBag.TotalPages; i++)
                                                         {
                                                             <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                                                <a class="page-link" href="@Url.Action("Index", "Tasks", new { page = i, pageSize = ViewBag.PageSize, searchTerm = ViewBag.SearchTerm, assigneeUserID = ViewBag.AssigneeUserID_Selected, statusID = ViewBag.StatusID_Selected, priorityID = ViewBag.PriorityID_Selected, dueDateFrom = ViewBag.DueDateFrom, dueDateTo = ViewBag.DueDateTo, sortOrder = ViewBag.SortOrder })">@i</a>
+                                                                <a class="page-link" href="@Url.Action("Index", "Tasks", new { page = i, pageSize = ViewBag.PageSize, searchTerm = ViewBag.SearchTerm, assigneeUserID = ViewBag.AssigneeUserID_Selected, statusID = ViewBag.StatusID_Selected, priorityID = ViewBag.PriorityID_Selected, dueDateFrom = ViewBag.DueDateFrom, dueDateTo = ViewBag.DueDateTo, sortOrder = ViewBag.SortOrder, showOverdue = ViewBag.ShowOverdue })">@i</a>
                                                             </li>
                                                         }
                                                     </ul>
@@ -250,13 +202,6 @@
         </div>
     </div>
 
-    <!-- DataTables Buttons CSS and JS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
     <script>
         $(document).ready(function() {

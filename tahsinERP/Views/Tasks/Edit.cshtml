@@ -5,11 +5,7 @@
 }
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    // Check if user is Admin or Developer
-    var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
-    bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-        r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-        r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
+    bool isAdminOrDeveloper = tahsinERP.Services.Tasks.TaskRules.IsAdminOrDeveloper(User.Identity.Name);
     using (Html.BeginForm("Edit", "Tasks", FormMethod.Post))
     {
         @Html.AntiForgeryToken()

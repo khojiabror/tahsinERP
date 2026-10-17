@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Tasks;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
@@ -99,6 +100,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
                     db.APP_TASK_PRIORITY_REF.Add(priority);
                     await db.SaveChangesAsync();
+                    TaskLookups.Invalidate();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "TaskPriorityController", $"Priority {priority.Code} - {priority.Name} yaratdi");
                     return RedirectToAction("Index");
@@ -156,6 +158,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
                     db.Entry(priority).State = EntityState.Modified;
                     await db.SaveChangesAsync();
+                    TaskLookups.Invalidate();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "TaskPriorityController", $"Priority {priority.Code} - {priority.Name} tahrirladi");
                     return RedirectToAction("Index");
@@ -194,6 +197,7 @@ namespace tahsinERP.Controllers.TaskSettings
                 priority.IsDeleted = true;
                 db.Entry(priority).State = System.Data.Entity.EntityState.Modified;
                 await db.SaveChangesAsync();
+                TaskLookups.Invalidate();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "TaskPriorityController", $"Priority {priority.Code} - {priority.Name} o'chirildi");
                 return RedirectToAction("Index");

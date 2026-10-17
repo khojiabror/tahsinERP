@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Tasks;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
@@ -99,6 +100,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
                     db.APP_TASK_STATUS_REF.Add(status);
                     await db.SaveChangesAsync();
+                    TaskLookups.Invalidate();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "TaskStatusController", $"Status {status.Code} - {status.Name} yaratdi");
                     return RedirectToAction("Index");
@@ -156,6 +158,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
                     db.Entry(status).State = EntityState.Modified;
                     await db.SaveChangesAsync();
+                    TaskLookups.Invalidate();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "TaskStatusController", $"Status {status.Code} - {status.Name} tahrirladi");
                     return RedirectToAction("Index");
@@ -194,6 +197,7 @@ namespace tahsinERP.Controllers.TaskSettings
                 status.IsDeleted = true;
                 db.Entry(status).State = System.Data.Entity.EntityState.Modified;
                 await db.SaveChangesAsync();
+                TaskLookups.Invalidate();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "TaskStatusController", $"Status {status.Code} - {status.Name} o'chirildi");
                 return RedirectToAction("Index");

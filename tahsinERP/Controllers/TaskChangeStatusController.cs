@@ -1,22 +1,29 @@
 using System;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
-    public class TaskChangeStatusController : Controller
+    /// <summary>
+    /// Topshiriq statusini o'zgartirish. Ruxsat: shu sahifani ko'rish huquqi (POST ham) —
+    /// ijrochi o'z topshirig'i statusini Tasks tahrirlash huquqisiz ham o'zgartira oladi.
+    /// Shu sabab [Permission] (POST = o'zgartirish) emas, ko'rish tekshiruvi qoldirilgan.
+    /// </summary>
+    public class TaskChangeStatusController : BaseController
     {
+        private bool CanUsePage => RoleHelper.IsViewPermitted(CurrentUserName, "TaskChangeStatus", "ChangeStatus");
+
         // Olish so'rovi: TaskChangeStatus/ChangeStatus/5
         public async Task<ActionResult> ChangeStatus(long? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            if (!CanUsePage)
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -24,19 +31,10 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             }
 
-            // Oddiy user uchun faqat o'z tasklarini ko'rish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var task = await db.APP_TASKS
+                var task = await db.APP_TASKS.AsNoTracking()
                     .Include(t => t.APP_TASK_STATUS_REF)
-                    .Include(t => t.APP_TASK_PRIORITY_REF)
-                    .Include(t => t.APP_TASK_PROJECTS)
                     .FirstOrDefaultAsync(t => t.ID == id && t.IsDeleted == false);
 
                 if (task == null)
@@ -45,7 +43,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
-                if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
                     return RedirectToAction("Index", "Tasks");
@@ -61,10 +59,7 @@ namespace tahsinERP.Controllers
                     UserComment = null
                 };
 
-                ViewBag.StatusID = new SelectList(
-                    await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(),
-                    "ID", "Name", task.StatusID);
-
+                ViewBag.StatusID = TaskLookups.StatusList(task.StatusID);
                 return View(viewModel);
             }
         }
@@ -74,17 +69,15 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangeStatus(TaskChangeStatusViewModel viewModel)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            if (!CanUsePage)
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
-            // Oddiy user uchun faqat o'z tasklarini o'zgartirish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+            if (!TaskLookups.Statuses().Any(s => s.ID == viewModel.StatusID))
+            {
+                ModelState.AddModelError("StatusID", "Noto'g'ri status");
+            }
 
             if (ModelState.IsValid)
             {
@@ -97,7 +90,7 @@ namespace tahsinERP.Controllers
                     }
 
                     // Oddiy user boshqalarning tasklarini o'zgartirmasligi kerak
-                    if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                    if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
                     {
                         TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni o'zgartirishingiz mumkin";
                         return RedirectToAction("Index", "Tasks");
@@ -105,9 +98,6 @@ namespace tahsinERP.Controllers
 
                     try
                     {
-                        // holat o'zgarganini tekshirish
-                        bool statusChanged = task.StatusID != viewModel.StatusID;
-                        
                         task.StatusID = viewModel.StatusID;
                         task.UpdatedDT = DateTime.Now;
 
@@ -115,7 +105,7 @@ namespace tahsinERP.Controllers
                         // Entry.State = Modified + SaveChanges eski qiymatni qayta yozardi — izoh yo'qolardi (TSK-B01).
                         if (!string.IsNullOrWhiteSpace(viewModel.UserComment))
                         {
-                            string entry = "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " - " + UserHelper.GetFullName(User.Identity.Name) + "]:\n" + viewModel.UserComment;
+                            string entry = "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " - " + UserHelper.GetFullName(CurrentUserName) + "]:\n" + viewModel.UserComment;
                             task.UserComment = string.IsNullOrEmpty(task.UserComment)
                                 ? entry
                                 : task.UserComment + "\n\n" + entry;
@@ -123,27 +113,22 @@ namespace tahsinERP.Controllers
 
                         await db.SaveChangesAsync();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "TaskChangeStatusController", 
-                            $"Task {task.KeyCode} status o'zgartirildi: {task.APP_TASK_STATUS_REF?.Name}");
+                        string statusName = TaskLookups.Statuses().First(s => s.ID == task.StatusID).Name;
+                        LogHelper.LogToDatabase(CurrentUserName, "TaskChangeStatusController",
+                            $"Task {task.KeyCode} status o'zgartirildi: {statusName}");
 
                         TempData["Success"] = "Status muvaffaqiyatli o'zgartirildi";
                         return RedirectToAction("Details", "Tasks", new { id = task.ID });
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        System.Diagnostics.Trace.TraceError("TaskChangeStatus {0}: {1}", viewModel.TaskID, ex);
+                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
                     }
                 }
             }
 
-            // Reload ViewBag on xatolik
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                ViewBag.StatusID = new SelectList(
-                    await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(),
-                    "ID", "Name", viewModel.StatusID);
-            }
-
+            ViewBag.StatusID = TaskLookups.StatusList(viewModel.StatusID);
             return View(viewModel);
         }
     }
