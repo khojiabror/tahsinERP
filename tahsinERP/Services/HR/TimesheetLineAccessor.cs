@@ -14,8 +14,6 @@ namespace tahsinERP.Services.HR
     {
         public const int MaxDays = 31;
 
-        /// <summary>Kunlik me'yor (soat): undan oshgani qo'shimcha soat hisoblanadi.</summary>
-        public const decimal DailyNormHours = 8m;
 
         private static readonly PropertyInfo[] EntityHours = Load(typeof(HR_TIMESHEET_LINES), "Hours");
         private static readonly PropertyInfo[] EntityQty = Load(typeof(HR_TIMESHEET_LINES), "Quantity");
@@ -49,23 +47,31 @@ namespace tahsinERP.Services.HR
         public static decimal? GetQuantity(HrTimesheetLineViewModel line, int day) => (decimal?)VmQty[day].GetValue(line);
 
         /// <summary>
-        /// Qator jamilarini qayta hisoblaydi: ishlangan soat/kun, qo'shimcha soat (kunlik me'yordan ortig'i),
-        /// kelmagan kun (0 soatli kun — dam olish kunlari ham kiradi, HRM-B15 ga qarang) va jami miqdor.
+        /// Qator jamilarini qayta hisoblaydi (HRM-B15 — ish kalendari HR sozlamalaridan):
+        ///  - ishlangan soat/kun — soat > 0 bo'lgan kunlar;
+        ///  - kelmagan kun — faqat ISH kunida 0 soat (dam olish va bayram kunlari sanalmaydi);
+        ///  - qo'shimcha soat — ish kunida kunlik me'yordan ortig'i, dam olish/bayram kunida barcha soat;
+        ///  - jami miqdor.
         /// </summary>
-        public static void RecalculateTotals(HR_TIMESHEET_LINES line, int daysInMonth)
+        public static void RecalculateTotals(HR_TIMESHEET_LINES line, int year, int month)
         {
+            var settings = HrSettingsService.Current;
+            var norm = settings.DailyNormHours;
+            int daysInMonth = DateTime.DaysInMonth(year, month);
             decimal totalH = 0, workD = 0, absent = 0, overtime = 0, totalQ = 0;
             for (int d = 1; d <= daysInMonth; d++)
             {
+                bool workingDay = settings.IsWorkingDay(new DateTime(year, month, d));
                 var h = GetHours(line, d) ?? 0m;
                 var q = GetQuantity(line, d) ?? 0m;
                 if (h > 0)
                 {
                     totalH += h;
                     workD += 1;
-                    if (h > DailyNormHours) overtime += h - DailyNormHours;
+                    if (!workingDay) overtime += h;
+                    else if (h > norm) overtime += h - norm;
                 }
-                else
+                else if (workingDay)
                 {
                     absent += 1;
                 }
