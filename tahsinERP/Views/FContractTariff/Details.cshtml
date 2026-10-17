@@ -1,4 +1,4 @@
-@model tahsinERP.Models.F_CONTRACT_TARIFFS
+﻿@model tahsinERP.Models.F_CONTRACT_TARIFFS
 @{
     ViewBag.Title = "Tarif tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -37,7 +37,7 @@
                             <p><b>Shartnoma:</b> @Model.F_CONTRACTS?.ContractNo</p>
                             <p><b>Transport turi:</b> @Model.F_TRANSPORT_TYPES?.TransportType</p>
                             <p><b>Yo'nalish:</b> @(string.IsNullOrEmpty(Model.FromCity) ? Model.FromRegion : Model.FromCity) → @(string.IsNullOrEmpty(Model.ToCity) ? Model.ToRegion : Model.ToCity)</p>
-                            <p><b>@tahsinERP.Services.LogisticsTerms.TariffBasis:</b> @Model.FreightBasis</p>
+                            <p><b>@tahsinERP.Services.LogisticsTerms.TariffBasis:</b> @tahsinERP.Services.LogisticsEnums.FreightBasisText(Model.FreightBasis)</p>
                             <p><b>@tahsinERP.Services.LogisticsTerms.TariffRate:</b> @Model.Rate.ToString("N2") @Model.CURRENCy?.Shortname</p>
                             <p><b>Eng kam to'lov summasi:</b> @(Model.MinimumCharge?.ToString("N2") ?? "-")</p>
                             <p><b>Faol:</b> @(Model.IsActive ? "Ha" : "Yo'q")</p>
