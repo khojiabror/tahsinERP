@@ -4,8 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat controller action'ida tekshiriladi (SRM-M05). *@
+@{
     using (Html.BeginForm("Edit", "Warehouse", FormMethod.Post))
     {
         @Html.AntiForgeryToken()
@@ -66,6 +66,12 @@
                                             </div>
                                             
                                             <div class="form-group">
+                                                <label for="WarehouseType">Ombor turi</label>
+                                                @Html.DropDownListFor(model => model.WarehouseType, ViewBag.WarehouseTypes as SelectList, "--- Oddiy ombor ---", new { @class = "form-control" })
+                                                @Html.ValidationMessageFor(model => model.WarehouseType, "", new { @class = "text-danger" })
+                                                <small class="text-muted">Ishlab chiqarish, savdo va xomashyo oqimlari shu tur bo'yicha aniqlanadi (nom bo'yicha emas).</small>
+                                            </div>
+                                            <div class="form-group">
                                                 <label for="MRP">MRP (Moddiy javobgar shaxs) <span class="text-danger">*</span></label>
                                                 @Html.DropDownListFor(model => model.MRP, ViewBag.MRPUsers as SelectList, "---Tanlang---", new { @class = "form-control select2" })
                                                 @Html.ValidationMessageFor(model => model.MRP, "", new { @class = "text-danger" })
@@ -102,8 +108,4 @@
             });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

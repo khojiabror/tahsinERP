@@ -797,6 +797,9 @@
     <Compile Include="Models\V_FIN_PL_PLAN_VS_FACT_MONTHLY.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\INVENTORY_ADJUSTMENTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Warehouse.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -928,7 +931,11 @@
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
+    <Compile Include="Services\Stock\IncomeDocumentService.cs" />
+    <Compile Include="Services\Stock\StockCostService.cs" />
     <Compile Include="Services\Stock\StockLedger.cs" />
+    <Compile Include="Services\Stock\WarehouseAccess.cs" />
+    <Compile Include="Services\Stock\WarehouseRoles.cs" />
     <Compile Include="Services\WarehouseAttachments.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\ExpenseStockIssueHelper.cs" />
@@ -952,7 +959,6 @@
     <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\ProductionLotService.cs" />
     <Compile Include="Services\WarehouseMonthlyReportService.cs" />
-    <Compile Include="Services\WasteHandlingService.cs" />
     <Compile Include="Services\WordDocumentConverterService.cs" />
     <Compile Include="Services\WordDocumentImageService.cs" />
     <Compile Include="ViewModels\BOM\BomDetailsViewModel.cs" />

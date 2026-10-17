@@ -37,9 +37,5 @@ namespace tahsinERP.Services.DlocFifo
             return enabled;
         }
 
-        public static void ResetCache()
-        {
-            _isEnabled.Clear();
-        }
     }
 }

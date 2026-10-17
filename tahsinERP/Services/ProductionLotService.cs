@@ -39,15 +39,6 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Parses Comment to get transferred qty per ProductionID.
-        /// </summary>
-        public static double GetTransferredFromProduction(int productionID, int productID, DBTHSNEntities db)
-        {
-            double qty;
-            return GetTransferredByProduction(productID, db).TryGetValue(productionID, out qty) ? qty : 0d;
-        }
-
-        /// <summary>
         /// Ushbu ishlab chiqarish (lot)idan sotuvga transfer qilinganmi (o'chirilmagan transfer chiqimida
         /// "ProdID:{id}:" tokeni bor). Ishlab chiqarishni tahrirlash/o'chirishni bloklash uchun.
         /// </summary>

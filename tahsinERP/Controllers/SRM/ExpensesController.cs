@@ -435,8 +435,7 @@ namespace tahsinERP.Controllers.SRM
                                         ExpenseID = expense.ID,
                                         ProductID = product.ProductID,
                                         Amount = product.Amount,
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
+                                        PiecePrice = 0,
                                         UnitID = product.UnitID,
                                         Comment = product.Comment ?? ""
                                     };
@@ -458,8 +457,15 @@ namespace tahsinERP.Controllers.SRM
                                         throw new Exception(wex.Message);
                                     }
 
+                                    // SRM-B19: narx — FIFO tannarxi (QQSsiz); formadagi narx e'tiborga olinmaydi
+                                    var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
+                                        product.ProductID, product.Amount, product.UnitID, expenseProduct.ID);
+                                    expenseProduct.PiecePrice = unitCost;
+                                    product.PiecePrice = unitCost;
+                                    product.TotalPrice = product.Amount * unitCost;
+
                                     totalAmount += product.Amount;
-                                    totalPrice += expenseProduct.TotalPrice;
+                                    totalPrice += product.TotalPrice;
                                     // Ichki o'tkazmada qabul qiluvchi qoldig'i faqat kirim "Qabul qilish"da oshadi.
                                 }
 
@@ -477,11 +483,7 @@ namespace tahsinERP.Controllers.SRM
                             // Upload expense hujjat agar provided
                             if (expenseFile != null && expenseFile.ContentLength > 0)
                             {
-                                byte[] fileData = null;
-                                using (var binaryReader = new BinaryReader(expenseFile.InputStream))
-                                {
-                                    fileData = binaryReader.ReadBytes(expenseFile.ContentLength);
-                                }
+                                var fileData = WarehouseAccess.ReadUpload(expenseFile);
 
                                 var expenseDoc = new WRHS_EXPENSE_DOCS
                                 {
@@ -503,13 +505,7 @@ namespace tahsinERP.Controllers.SRM
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            var errorMessage = $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
+                            var errorMessage = WarehouseAccess.ErrorMessage(ex);
                             ModelState.AddModelError("", errorMessage);
                         }
                     }
@@ -644,13 +640,9 @@ namespace tahsinERP.Controllers.SRM
             return ids.Count == 0 ? (int?)null : ids[0];
         }
 
-        private async Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
+        private Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
         {
-            var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-            return await db.WAREHOUSES
-                .Where(w => w.IsDeleted != true && w.MRP == currentUserId)
-                .Select(w => w.ID)
-                .ToListAsync();
+            return WarehouseAccess.AssignedWarehouseIdsAsync(db, User.Identity.Name);
         }
 
         // Olish so'rovi: Expenses/Edit/5
@@ -831,8 +823,7 @@ namespace tahsinERP.Controllers.SRM
                                         ExpenseID = expense.ID,
                                         ProductID = product.ProductID,
                                         Amount = product.Amount,
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
+                                        PiecePrice = 0,
                                         UnitID = product.UnitID,
                                         Comment = product.Comment ?? ""
                                     };
@@ -854,8 +845,15 @@ namespace tahsinERP.Controllers.SRM
                                         throw new Exception(wex.Message);
                                     }
 
+                                    // SRM-B19: narx — FIFO tannarxi (QQSsiz); formadagi narx e'tiborga olinmaydi
+                                    var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
+                                        product.ProductID, product.Amount, product.UnitID, expenseProduct.ID);
+                                    expenseProduct.PiecePrice = unitCost;
+                                    product.PiecePrice = unitCost;
+                                    product.TotalPrice = product.Amount * unitCost;
+
                                     totalAmount += product.Amount;
-                                    totalPrice += expenseProduct.TotalPrice;
+                                    totalPrice += product.TotalPrice;
                                 }
                             }
 
@@ -873,11 +871,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
 
                                 // Qo'shish new doc
-                                byte[] fileData = null;
-                                using (var binaryReader = new BinaryReader(expenseFile.InputStream))
-                                {
-                                    fileData = binaryReader.ReadBytes(expenseFile.ContentLength);
-                                }
+                                var fileData = WarehouseAccess.ReadUpload(expenseFile);
 
                                 var expenseDoc = new WRHS_EXPENSE_DOCS
                                 {
@@ -911,13 +905,7 @@ namespace tahsinERP.Controllers.SRM
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            var errorMessage = $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
+                            var errorMessage = WarehouseAccess.ErrorMessage(ex);
                             ModelState.AddModelError("", errorMessage);
                         }
                     }

@@ -26,7 +26,6 @@ namespace tahsinERP.Models
         public string DocNo { get; set; }
         public int ReceivingWHID { get; set; }
         public Nullable<double> Amount { get; set; }
-        public string Currency { get; set; }
         public Nullable<double> TotalPrice { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string Description { get; set; }
