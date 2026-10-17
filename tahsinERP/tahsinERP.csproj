@@ -830,6 +830,10 @@
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
     <Compile Include="Services\Crm\SalesInvoiceService.cs" />
+    <Compile Include="Services\Crm\SalesOrderService.cs" />
+    <Compile Include="Services\Crm\CrmPaging.cs" />
+    <Compile Include="Services\Crm\CrmReport.cs" />
+    <Compile Include="Services\Crm\FormRows.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
     <Compile Include="Services\Crm\CrmNumber.cs" />
     <Compile Include="Services\Common\CurrencyRateService.cs" />
@@ -2717,6 +2721,15 @@
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
     <Content Include="Scripts\app\indexed-rows.js" />
+    <Content Include="Scripts\crm\contract-products.js" />
+    <Content Include="Scripts\crm\crm-dashboard.js" />
+    <Content Include="Scripts\crm\crm-page-table.js" />
+    <Content Include="Scripts\crm\customer-base-index.js" />
+    <Content Include="Scripts\crm\delivery-schedule.js" />
+    <Content Include="Scripts\crm\print-area.js" />
+    <Content Include="Scripts\crm\sales-invoice-form.js" />
+    <Content Include="Scripts\crm\sales-invoice-print.js" />
+    <Content Include="Scripts\crm\sales-order-form.js" />
     <Content Include="Scripts\app\product-select.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />

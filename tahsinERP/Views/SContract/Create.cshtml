@@ -161,142 +161,15 @@
         </div>
     </div>
 
-    <script>
-        (function () {
-            function initContractProducts() {
-                if (typeof jQuery === 'undefined') {
-                    setTimeout(initContractProducts, 100);
-                    return;
-                }
-
-                var $ = jQuery;
-
-                $(document).ready(function () {
-                    if (typeof $.fn.select2 !== 'undefined') {
-                        $('.select2').select2();
-                    }
-
-                    var productRowIndex = 0;
-                    var products = @Html.Raw(Json.Encode(productsData));
-                    var units = @Html.Raw(Json.Encode(unitsData));
-
-                    // Xato bilan qaytganda kiritilgan qatorlar tiklanadi
-                    var initialRows = @Html.Raw(Json.Encode((Model.ProductList ?? new List<tahsinERP.ViewModels.SContractProductViewModel>())
-                        .Select(p => new { p.ProductID, p.Amount, p.UnitID, p.PiecePrice, p.VatPercent })));
-                    initialRows.forEach(function (r) {
-                        addProductRow(r.ProductID, r.Amount, r.UnitID, r.PiecePrice, r.VatPercent);
-                    });
-
-                    $(document).on('click', '#addRowBtn', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addProductRow(null, 0, null, 0, null);
-                        return false;
-                    });
-
-                    function addProductRow(productId, quantity, unitId, price, vatPercent) {
-                        var row = '<tr data-row-index="' + productRowIndex + '">' +
-                            '<td>' +
-                                '<select name="ProductList[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
-                                '<option value="">---Tanlang---</option>';
-
-                        products.forEach(function (product) {
-                            var selected = product.Value == productId ? 'selected' : '';
-                            row += '<option value="' + product.Value + '" ' + selected + '>' + product.Text + '</option>';
-                        });
-
-                        row += '</select>' +
-                            '<input type="hidden" name="ProductList[' + productRowIndex + '].ID" value="0" />' +
-                            '</td>' +
-                            '<td><input type="number" name="ProductList[' + productRowIndex + '].Amount" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0.01" required /></td>' +
-                            '<td>' +
-                                '<select name="ProductList[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
-                                '<option value="">---Tanlang---</option>';
-
-                        units.forEach(function (unit) {
-                            var selected = unit.Value == unitId ? 'selected' : '';
-                            row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
-                        });
-
-                        row += '</select></td>' +
-                            '<td><input type="number" name="ProductList[' + productRowIndex + '].PiecePrice" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
-                            '<td><input type="number" name="ProductList[' + productRowIndex + '].VatPercent" class="form-control vat-input" value="' + (vatPercent == null ? 12 : vatPercent) + '" step="0.01" min="0" max="100" /></td>' +
-                            '<td><input type="number" class="form-control total-with-vat" value="0" readonly /></td>' +
-                            '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
-                            '</tr>';
-
-                        $('#contractProductsTable tbody').append(row);
-
-                        if (typeof $.fn.select2 !== 'undefined') {
-                            $('select.product-select.select2').last().select2();
-                            $('select.unit-select.select2').last().select2();
-                        }
-
-                        productRowIndex++;
-                        updateRowTotal($('#contractProductsTable tbody tr').last());
-                        updateTotal();
-                    }
-
-                    function updateRowTotal($row) {
-                        var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
-                        var price = parseFloat($row.find('.price-input').val()) || 0;
-                        var vatPercent = parseFloat($row.find('.vat-input').val()) || 0;
-                        var baseTotal = quantity * price;
-                        var totalWithVat = baseTotal + (baseTotal * vatPercent / 100);
-                        $row.find('.total-with-vat').val(totalWithVat.toFixed(2));
-                    }
-
-                    function updateTotal() {
-                        var total = 0;
-                        $('.total-with-vat').each(function () {
-                            total += parseFloat($(this).val()) || 0;
-                        });
-                        $('#totalAmount').text(total.toFixed(2));
-                        $('#Amount').val(Math.round(total));
-                    }
-
-                    function reindexRows() {
-                        $('#contractProductsTable tbody tr').each(function (index) {
-                            $(this).attr('data-row-index', index);
-                            $(this).find('select, input').each(function () {
-                                var name = $(this).attr('name');
-                                if (name) {
-                                    name = name.replace(/\[(\d+)\]/, '[' + index + ']');
-                                    $(this).attr('name', name);
-                                }
-                            });
-                        });
-                        productRowIndex = $('#contractProductsTable tbody tr').length;
-                    }
-
-                    $(document).on('click', '.remove-row', function () {
-                        $(this).closest('tr').remove();
-                        reindexRows();
-                        updateTotal();
-                    });
-
-                    $(document).on('input', '.quantity-input, .price-input, .vat-input', function () {
-                        var $row = $(this).closest('tr');
-                        updateRowTotal($row);
-                        updateTotal();
-                    });
-
-                    $('#contractForm').submit(function (e) {
-                        reindexRows();
-                        if ($('#contractProductsTable tbody tr').length === 0) {
-                            e.preventDefault();
-                            alert('Kamida bitta mahsulot qo\'shilishi kerak');
-                            return false;
-                        }
-                    });
-                });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initContractProducts);
-            } else {
-                initContractProducts();
-            }
-        })();
-    </script>
+    <script type="application/json" id="contractProductsConfig">@Html.Raw(Json.Encode(new
+    {
+        mode = "create",
+        products = productsData,
+        units = unitsData,
+        initialRows = (Model.ProductList ?? new List<tahsinERP.ViewModels.SContractProductViewModel>())
+            .Select(p => new { p.ProductID, p.Amount, p.UnitID, p.PiecePrice, p.VatPercent })
+    }))</script>
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
+    <script src="@Url.Content("~/Scripts/crm/contract-products.js")"></script>
 }

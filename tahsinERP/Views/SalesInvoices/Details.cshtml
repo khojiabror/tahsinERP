@@ -83,9 +83,9 @@
                                                         }
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <span><b>Jami summa</b>: @Model.TotalAmount.ToString("N2") @Model.CurrencyCode</span><br />
-                                                        <span><b>QQS</b>: @Model.TotalVAT.ToString("N2") @Model.CurrencyCode</span><br />
-                                                        <span><b>Jami (QQS bilan)</b>: @(Model.TotalWithVAT?.ToString("N2") ?? "0.00") @Model.CurrencyCode</span><br />
+                                                        <span><b>Jami summa</b>: @Model.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
+                                                        <span><b>QQS</b>: @Model.TotalVAT.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
+                                                        <span><b>Jami (QQS bilan)</b>: @(Model.TotalWithVAT?.ToString("N2") ?? "0.00") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
                                                     </div>
                                                 </div>
                                                 <hr />
