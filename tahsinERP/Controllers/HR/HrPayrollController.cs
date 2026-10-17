@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -17,6 +17,8 @@ namespace tahsinERP.Controllers.HR
     public class HrPayrollController : Controller
     {
         private const decimal DefaultIncomeTaxPercent = 12m;
+        /// <summary>FIN_TRANSACTIONS.Direction: 1 = kirim, 2 = chiqim. Ish haqi — chiqim.</summary>
+        private const byte FinDirectionOutflow = 2;
         private DBTHSNEntities db = new DBTHSNEntities();
         private IUserActionLogger logger;
         private readonly HrEmployeeAllowanceService allowanceService;
@@ -830,7 +832,7 @@ namespace tahsinERP.Controllers.HR
                     txnDate: DateTime.Now,
                     accountID: accountId.Value,
                     categoryID: categoryId.Value,
-                    direction: (byte)1, // 1 = xarajat
+                    direction: FinDirectionOutflow, // tizimda 1 = kirim, 2 = chiqim (HRM-B01)
                     amount: totalAmount,
                     currencyID: currencyId,
                     qty: null,
