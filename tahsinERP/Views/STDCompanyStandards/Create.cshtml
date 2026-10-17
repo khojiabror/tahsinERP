@@ -129,9 +129,22 @@
                                                         <button class="ql-clean"></button>
                                                     </span>
                                                     <span class="ql-formats">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadTemplateBtn" title="Template yuklash">
-                                                            <i class="bx bx-file"></i> Template
+                                                        @{ var stdTemplates = ViewBag.Templates as System.Collections.Generic.List<tahsinERP.Services.Documents.DocTemplateListItem>; }
+                                                        @if (stdTemplates != null && stdTemplates.Count > 1)
+                                                        {
+                                                            <select id="templateSelect" class="form-control form-control-sm d-inline-block" style="width: auto;" title="Shablon">
+                                                                @foreach (var t in stdTemplates)
+                                                                {
+                                                                    <option value="@t.ID">@t.Name</option>
+                                                                }
+                                                            </select>
+                                                        }
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadTemplateBtn" title="Shablonni muharrirga yuklash">
+                                                            <i class="bx bx-file"></i> Shablon
                                                         </button>
+                                                        <a href="@Url.Action("Index", "DocTemplates", new { docType = "COMPANYSTANDARD" })" class="btn btn-sm btn-outline-secondary" title="Shablonlar" target="_blank">
+                                                            <i class="bx bx-cog"></i>
+                                                        </a>
                                                         <button type="button" class="btn btn-sm btn-outline-success" id="loadDocxBtn" title="Word fayl yuklash">
                                                             <i class="bx bx-upload"></i> Word yuklash
                                                         </button>
@@ -239,7 +252,8 @@
 
                     function loadTemplate() {
                         $.ajax({
-                            url: '@Url.Action("GetTemplate", "STDCompanyStandards")',
+                            // Tanlangan shablon (bir nechta bo'lsa) — bazadan
+                            url: '@Url.Action("GetTemplate", "STDCompanyStandards")' + ($('#templateSelect').length ? '?templateId=' + encodeURIComponent($('#templateSelect').val()) : ''),
                             type: 'GET',
                             xhrFields: {
                                 responseType: 'blob'

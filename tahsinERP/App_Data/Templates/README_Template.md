@@ -1,31 +1,23 @@
-# Korxona Standartlari Template Fayl
+# Hujjat shablonlari endi bazada
 
-## Template fayl joylashuvi
+Xat, buyruq va korxona standarti shablonlari **DOC_TEMPLATES** jadvalida saqlanadi.
+Shablonlar shu papkadan o'qilmaydi.
 
-Template fayl quyidagi joyda bo'lishi kerak:
-```
-App_Data/Templates/CompanyStandardTemplate.docx
-```
+## Qanday ishlatiladi
 
-## Template fayl yaratish
+1. Bo'limga kiring: Rasmiy maktublar, Buyruqlar yoki Korxona standartlari.
+2. **Word shablonlar** tugmasini bosing.
+3. **Namunaviy shablonni yuklab oling.** Unda tayyor tuzilma va barcha `{{MAYDON}}` nomlari bor.
+4. Namunani Word'da korxona blankasi (logotip, rekvizitlar) bilan bezang.
+5. Faylni shu sahifadan yuklang. Fayl yuklanganda tekshiriladi va tanilmagan maydonlar ko'rsatiladi.
+6. Hujjatni yarating:
+   - **Xat yoki buyruq:** Details sahifasida shablonni tanlang va **Word hujjat yaratish** tugmasini bosing. Fayl avtomatik yuklab olinadi.
+   - **Standart:** Create sahifasida shablonni tanlang va **Shablon** tugmasini bosing. Shablon muharrirga yuklanadi.
 
-1. Microsoft Word'da yangi hujjat yarating
-2. Korxona standartlari uchun kerakli format va struktura bilan to'ldiring
-3. Faylni `CompanyStandardTemplate.docx` nomi bilan saqlang
-4. Faylni `App_Data/Templates/` papkasiga qo'ying
+## Eski fayl
 
-## Template struktura misoli
+`CompanyStandardTemplate.docx` faqat bazaga bir marta ko'chirish uchun qoldirilgan.
+Ko'chirish uchun: Shablonlar → Korxona standarti → **Papkadagi eski shablonni bazaga ko'chirish**.
+Ko'chirilgandan keyin bu faylni o'chirish mumkin.
 
-Template fayl quyidagi elementlarni o'z ichiga olishi mumkin:
-- Korxona logotipi
-- Sarlavha va subtitullar
-- Matn formatlari
-- Jadval strukturalari
-- Rasm joylari
-
-## Eslatma
-
-- Template fayl `.docx` formatida bo'lishi kerak
-- Agar template fayl mavjud bo'lmasa, bo'sh hujjat yaratiladi
-- Har bir yangi standart yaratilganda template fayl asosida yaratiladi
-
+`JobDescriptionTemplate.docx` HRM moduliga (JobDesc) tegishli va hali shu papkadan o'qiladi.

@@ -92,3 +92,23 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
   - o'chirilgan ref'ga bog'langan topshiriqlar.
 - `Database_Migrations/DataFix_Docs_02_Fix.sql` — 1–4-bo'limlarni tuzatadi. Standart holatda `ROLLBACK` bilan tugaydi. Takroriy raqamlarga tegmaydi.
 - TSK-B01 tufayli yo'qolgan izohlarni tiklab bo'lmaydi — ular bazada qolmagan.
+
+## 11-commit: Word shablonlar va generatsiya qayta ishlandi (foydalanuvchi so'rovi)
+
+- **Shablonlar bazada** (`DOC_TEMPLATES`), papkada emas. Yangi sahifa: `DocTemplates` (har bo'limda "Word shablonlar" tugmasi):
+  - yuklash (.docx tekshiruvi, tanilgan/tanilmagan maydonlar hisoboti);
+  - namunaviy shablon (tayyor tuzilma + barcha maydonlar ro'yxati);
+  - yuklab olish, arxivlash/faollashtirish, o'chirish (faqat ishlatilmagan bo'lsa);
+  - STD'ning eski papka faylini bir bosishda bazaga ko'chirish.
+- **Ruxsat:** hujjat turining o'z bo'limidan olinadi — ko'rish uchun bo'lim Index, boshqarish uchun bo'lim Create huquqi. Yangi PERMISSIONMODULES yozuvi kerak emas.
+- **Generatsiya:** Details'da shablon tanlanadi, "Word hujjat yaratish" bosiladi, fayl avtomatik yuklab olinadi. Xato va ogohlantirishlar endi ko'rinadi (avval Details xabar ko'rsatmasdi).
+  - Index'dagi tugma eng yangi faol shablonni ishlatadi.
+  - Ishlatilgan shablon `DOC_DOCUMENTS.TemplateID` ga yoziladi.
+- **Dvigatel** (`DocumentTemplateService.Fill`):
+  - maydon Word tomonidan bir necha run'ga bo'linsa ham topiladi; qaysi run'dan boshlansa, o'sha format saqlanadi;
+  - alohida qatordagi `{{LETTER_BODY}}`/`{{ORDER_BODY}}` formatlangan matn (qalin, ro'yxat, rasm) bilan, `{{ITEMS_TABLE}}` haqiqiy jadval bilan almashtiriladi;
+  - katalogdagi, lekin bo'sh maydonlar tozalanadi (masalan, ortiqcha `{{ITEM_NAME_7}}`); noma'lumlari hujjatda qoladi va ogohlantirishda ko'rsatiladi;
+  - eski nomlar (`{{Letter.No}}`, `{{Content}}`, `{ORDER NO}`...) ham ishlaydi;
+  - header/footer ham to'ldiriladi.
+- **Maydonlar katalogi:** `Services/Documents/DocPlaceholders` (yagona manba). Ma'lumot yig'ish `DocTemplateDataBuilder`'da (controllerlardan ko'chirildi).
+- **Sinov:** namunaviy shablonga xat ma'lumoti qo'yildi — OpenXmlValidator 0 xato, jadval va ro'yxat joyida, bo'lingan run va alias to'ldirilgan. **Brauzerda va jonli bazada sinalmagan.**

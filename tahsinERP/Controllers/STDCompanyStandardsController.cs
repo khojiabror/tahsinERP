@@ -45,16 +45,39 @@ namespace tahsinERP.Controllers
         }
 
         // Olish so'rovi: STDCompanyStandards/yaratish
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
+            await SetTemplatesAsync();
             return View();
         }
 
-        // Olish so'rovi: STDCompanyStandards/GetTemplate (Create sahifasi muharrirga yuklaydi)
+        /// <summary>Create sahifasidagi shablon tanlovi (shablonlar bazada — "Shablonlar" sahifasi).</summary>
+        private async Task SetTemplatesAsync()
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                ViewBag.Templates = await DocTemplateStore.ListAsync(db, DocPlaceholders.StandardType, activeOnly: true);
+            }
+        }
+
+        // Olish so'rovi: STDCompanyStandards/GetTemplate?templateId=5 (Create sahifasi muharrirga yuklaydi)
         // Avval ruxsat tekshirilmasdi (DOC-S05) — shablon Create sahifasiniki, o'zgartirish huquqi
         [Permission(Change = true)]
-        public ActionResult GetTemplate()
+        public async Task<ActionResult> GetTemplate(int? templateId)
         {
+            using (var db = new DBTHSNEntities())
+            {
+                // Shablon bazadan (DOC_TEMPLATES); tanlanmasa — eng yangi faol shablon
+                var resolved = await DocTemplateStore.ResolveActiveAsync(db, DocPlaceholders.StandardType, templateId);
+                if (resolved.HasValue)
+                {
+                    var t = await db.DOC_TEMPLATES.Where(x => x.ID == resolved.Value)
+                        .Select(x => new { x.FileName, x.FileContent }).FirstAsync();
+                    return File(t.FileContent, DocFileService.DocxMime, t.FileName ?? "CompanyStandardTemplate.docx");
+                }
+            }
+
+            // Bazada shablon hali yo'q — eski papka fayli ("Shablonlar" sahifasida bir bosishda bazaga ko'chiriladi)
             var templatePath = Server.MapPath("~/App_Data/Templates/CompanyStandardTemplate.docx");
             if (System.IO.File.Exists(templatePath))
             {
@@ -91,6 +114,7 @@ namespace tahsinERP.Controllers
 
             if (!ModelState.IsValid)
             {
+                await SetTemplatesAsync();
                 return View(model);
             }
 
@@ -140,6 +164,7 @@ namespace tahsinERP.Controllers
             {
                 System.Diagnostics.Trace.TraceError("STD Create: {0}", ex);
                 ModelState.AddModelError("", "Saqlashda xatolik yuz berdi.");
+                await SetTemplatesAsync();
                 return View(model);
             }
         }

@@ -44,7 +44,8 @@ namespace tahsinERP.Services
                     mainPart.Document = new Document();
                     var body = mainPart.Document.AppendChild(new Body());
 
-                    new Writer(mainPart, body).Write(htmlContent ?? string.Empty);
+                    foreach (var element in ConvertToElements(htmlContent, mainPart))
+                        body.AppendChild(element);
 
                     if (!body.HasChildren)
                         body.AppendChild(new Paragraph());
@@ -56,10 +57,25 @@ namespace tahsinERP.Services
             }
         }
 
+        /// <summary>
+        /// HTML'ni paragraflar ro'yxatiga aylantiradi (mavjud hujjatga qo'yish uchun — shablondagi formatlangan maydon).
+        /// Rasmlar <paramref name="mainPart"/> ga qo'shiladi. <paramref name="baseRun"/>/<paramref name="baseParagraph"/>
+        /// berilsa — shablondagi shrift, o'lcham, rang, uslub va oraliqlar saqlanadi.
+        /// </summary>
+        public static List<OpenXmlElement> ConvertToElements(string html, MainDocumentPart mainPart,
+            RunProperties baseRun = null, ParagraphProperties baseParagraph = null)
+        {
+            var output = new List<OpenXmlElement>();
+            new Writer(mainPart, output, baseRun, baseParagraph).Write(html ?? string.Empty);
+            return output;
+        }
+
         private sealed class Writer
         {
             private readonly MainDocumentPart _mainPart;
-            private readonly Body _body;
+            private readonly List<OpenXmlElement> _output;
+            private readonly RunProperties _baseRun;
+            private readonly ParagraphProperties _baseParagraph;
             private Paragraph _paragraph;
 
             private int _bold, _italic, _underline, _strike;
@@ -75,10 +91,12 @@ namespace tahsinERP.Services
                 public int Counter;
             }
 
-            public Writer(MainDocumentPart mainPart, Body body)
+            public Writer(MainDocumentPart mainPart, List<OpenXmlElement> output, RunProperties baseRun, ParagraphProperties baseParagraph)
             {
                 _mainPart = mainPart;
-                _body = body;
+                _output = output;
+                _baseRun = baseRun;
+                _baseParagraph = baseParagraph;
             }
 
             public void Write(string html)
@@ -175,8 +193,9 @@ namespace tahsinERP.Services
             {
                 EndBlock();
                 _blockTag = tag;
-                // pPr bolalari sxema tartibida: ind, keyin jc
+                // pPr bolalari sxema tartibida: pStyle, spacing, ind, jc
                 var props = new ParagraphProperties();
+                CopyBaseParagraph(props, includeLayout: tag != "li" && tag != "blockquote");
                 if (tag == "li")
                     props.AppendChild(new Indentation { Left = (360 * Math.Max(1, _lists.Count)).ToString(), Hanging = "360" });
                 else if (tag == "blockquote")
@@ -190,6 +209,8 @@ namespace tahsinERP.Services
                     else if (c.Contains("ql-align-right")) props.AppendChild(new Justification { Val = JustificationValues.Right });
                     else if (c.Contains("ql-align-justify")) props.AppendChild(new Justification { Val = JustificationValues.Both });
                 }
+                if (props.Justification == null && _baseParagraph?.Justification != null)
+                    props.AppendChild((Justification)_baseParagraph.Justification.CloneNode(true));
 
                 _paragraph = props.HasChildren ? new Paragraph(props) : new Paragraph();
 
@@ -205,7 +226,7 @@ namespace tahsinERP.Services
             {
                 if (_paragraph != null)
                 {
-                    _body.AppendChild(_paragraph);
+                    _output.Add(_paragraph);
                     _paragraph = null;
                 }
                 _blockTag = null;
@@ -214,8 +235,27 @@ namespace tahsinERP.Services
             private Paragraph EnsureParagraph()
             {
                 if (_paragraph == null)
-                    _paragraph = new Paragraph();
+                {
+                    var props = new ParagraphProperties();
+                    CopyBaseParagraph(props, includeLayout: true);
+                    if (_baseParagraph?.Justification != null)
+                        props.AppendChild((Justification)_baseParagraph.Justification.CloneNode(true));
+                    _paragraph = props.HasChildren ? new Paragraph(props) : new Paragraph();
+                }
                 return _paragraph;
+            }
+
+            /// <summary>Shablon paragrafidan uslub va oraliqni (va kerak bo'lsa chekinish/tekislashni) ko'chiradi.</summary>
+            private void CopyBaseParagraph(ParagraphProperties target, bool includeLayout)
+            {
+                if (_baseParagraph == null)
+                    return;
+                if (_baseParagraph.ParagraphStyleId != null)
+                    target.AppendChild((ParagraphStyleId)_baseParagraph.ParagraphStyleId.CloneNode(true));
+                if (_baseParagraph.SpacingBetweenLines != null)
+                    target.AppendChild((SpacingBetweenLines)_baseParagraph.SpacingBetweenLines.CloneNode(true));
+                if (includeLayout && _baseParagraph.Indentation != null)
+                    target.AppendChild((Indentation)_baseParagraph.Indentation.CloneNode(true));
             }
 
             private void AddText(string text)
@@ -234,12 +274,18 @@ namespace tahsinERP.Services
                 var run = new Run();
                 var rp = new RunProperties();
                 int heading = HeadingLevel();
+                var b = _baseRun;
 
-                if (_bold > 0 || heading > 0) rp.AppendChild(new Bold());
-                if (_italic > 0) rp.AppendChild(new Italic());
+                // rPr bolalari sxema tartibida: rFonts, b, i, strike, color, sz, szCs, u
+                if (b?.RunFonts != null) rp.AppendChild((RunFonts)b.RunFonts.CloneNode(true));
+                if (_bold > 0 || heading > 0 || b?.Bold != null) rp.AppendChild(new Bold());
+                if (_italic > 0 || b?.Italic != null) rp.AppendChild(new Italic());
                 if (_strike > 0) rp.AppendChild(new Strike());
                 if (_colors.Count > 0) rp.AppendChild(new Color { Val = _colors.Peek() });
+                else if (b?.Color != null) rp.AppendChild((Color)b.Color.CloneNode(true));
                 if (heading > 0) rp.AppendChild(new FontSize { Val = HeadingHalfPoints(heading) });
+                else if (b?.FontSize != null) rp.AppendChild((FontSize)b.FontSize.CloneNode(true));
+                if (heading == 0 && b?.FontSizeComplexScript != null) rp.AppendChild((FontSizeComplexScript)b.FontSizeComplexScript.CloneNode(true));
                 if (_underline > 0) rp.AppendChild(new Underline { Val = UnderlineValues.Single });
 
                 if (rp.HasChildren)

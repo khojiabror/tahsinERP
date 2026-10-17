@@ -36,6 +36,36 @@
                         <div class="card">
                             <div class="card-content">
                                 <div class="card-body">
+                                    @if (TempData["Success"] != null)
+                                    {
+                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                            @TempData["Success"]
+                                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                                        </div>
+                                    }
+                                    @if (TempData["Warning"] != null)
+                                    {
+                                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                            @TempData["Warning"]
+                                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                                        </div>
+                                    }
+                                    @if (TempData["ErrorMessage"] != null)
+                                    {
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            @TempData["ErrorMessage"]
+                                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                                        </div>
+                                    }
+                                    @if (TempData["DownloadFileId"] != null)
+                                    {
+                                        @* Yaratilgan Word fayl darhol yuklab beriladi *@
+                                        <script>
+                                            window.addEventListener('load', function () {
+                                                window.location.href = '@Url.Action("DownloadFile", new { fileId = TempData["DownloadFileId"] })';
+                                            });
+                                        </script>
+                                    }
                                     <div class="row mb-2">
                                         <div class="col-md-6">
                                             <h4>Buyruq: @order.OrderNo</h4>
@@ -46,12 +76,39 @@
                                                 <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
                                                     <i class="bx bx-edit"></i> Tahrirlash
                                                 </a>
-                                                <form method="post" action="@Url.Action("GenerateDoc", "CompanyOrders", new { id = Model.ID })" style="display:inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-success" style="color: white;">
-                                                        <i class="bx bx-file"></i> Hujjat yaratish
-                                                    </button>
-                                                </form>
+                                                @* Shablon tanlab Word hujjat yaratish (shablonlar bazada — "Shablonlar" sahifasi) *@
+                                                var templates = ViewBag.Templates as System.Collections.Generic.List<tahsinERP.Services.Documents.DocTemplateListItem>;
+                                                if (templates != null && templates.Any())
+                                                {
+                                                    <form method="post" action="@Url.Action("GenerateDoc", "CompanyOrders", new { id = Model.ID })" class="d-inline-flex align-items-center ml-1">
+                                                        @Html.AntiForgeryToken()
+                                                        @if (templates.Count > 1)
+                                                        {
+                                                            <select name="templateId" class="form-control mr-1" style="width: auto;" title="Shablon">
+                                                                @foreach (var t in templates)
+                                                                {
+                                                                    <option value="@t.ID">@t.Name</option>
+                                                                }
+                                                            </select>
+                                                        }
+                                                        else
+                                                        {
+                                                            <input type="hidden" name="templateId" value="@templates[0].ID" />
+                                                        }
+                                                        <button type="submit" class="btn btn-success" style="color: white;">
+                                                            <i class="bx bx-file"></i> Word hujjat yaratish
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <a href="@Url.Action("Index", "DocTemplates", new { docType = "COMP_ORDER" })" class="btn btn-outline-success ml-1">
+                                                        <i class="bx bx-upload"></i> Avval shablon yuklang
+                                                    </a>
+                                                }
+                                                <a href="@Url.Action("Index", "DocTemplates", new { docType = "COMP_ORDER" })" class="btn btn-outline-secondary ml-1" title="Shablonlar">
+                                                    <i class="bx bx-cog"></i>
+                                                </a>
                                             }
                                         </div>
                                     </div>

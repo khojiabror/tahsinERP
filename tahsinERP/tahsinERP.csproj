@@ -476,6 +476,7 @@
     <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
     <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
     <Compile Include="Controllers\CompanyOrdersController.cs" />
+    <Compile Include="Controllers\DocTemplatesController.cs" />
     <Compile Include="Controllers\CRM\CRMDashboardController.cs" />
     <Compile Include="Controllers\CRM\CustomerBaseController.cs" />
     <Compile Include="Controllers\CRM\SalesInvoicesController.cs" />
@@ -1039,6 +1040,9 @@
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\Documents\DocFileService.cs" />
+    <Compile Include="Services\Documents\DocTemplateStore.cs" />
+    <Compile Include="Services\Documents\DocTemplateDataBuilder.cs" />
+    <Compile Include="Services\Documents\DocPlaceholders.cs" />
     <Compile Include="Services\Documents\CompanySettings.cs" />
     <Compile Include="Services\Documents\DocumentService.cs" />
     <Compile Include="Services\Tasks\TaskBadges.cs" />
@@ -3319,6 +3323,7 @@
     <Content Include="Views\QualityInspection\Index.cshtml" />
     <Content Include="Views\Tender\Index.cshtml" />
     <Content Include="Views\UserManual\Index.cshtml" />
+    <Content Include="Views\DocTemplates\Index.cshtml" />
     <Content Include="Views\Tasks\Create.cshtml" />
     <Content Include="Views\Tasks\Details.cshtml" />
     <Content Include="Views\Tasks\Edit.cshtml" />
