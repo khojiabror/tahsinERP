@@ -75,7 +75,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="contractDataTable" class="table table-striped table-bordered" style="width:100%">
+                                        <table id="contractDataTable" data-crm-table data-lock-last="@(changePermit ? "true" : "false")" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Shartnoma raqami</th>
@@ -157,45 +157,5 @@
         </div>
     </div>
 
-    <script>
-        (function () {
-            function initSContractTable() {
-                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
-                    setTimeout(initSContractTable, 100);
-                    return;
-                }
-                var $ = window.jQuery;
-                if (!$('#contractDataTable').length) return;
-
-                var changePermit = @(changePermit ? "true" : "false");
-            
-                var columnDefs = [];
-                if (changePermit) {
-                    columnDefs.push({ "orderable": false, "targets": -1 });
-                }
-            
-                var $table = $('#contractDataTable');
-                if ($table.length && $.fn.DataTable.isDataTable($table)) {
-                    $table.DataTable().destroy();
-                }
-
-                $table.DataTable({
-                    // Sahifalash serverda (pastdagi pager, CRM-P05); DataTables faqat joriy sahifada qidiradi/saralaydi
-                    "language": { "search": "Sahifada qidirish:", "zeroRecords": "Ma'lumot topilmadi" },
-                    "paging": false,
-                    "info": false,
-                    "order": [],
-                    "columnDefs": columnDefs,
-                    dom: 'frt',
-                    "scrollX": true
-                });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initSContractTable);
-            } else {
-                initSContractTable();
-            }
-        })();
-    </script>
+    <script src="@Url.Content("~/Scripts/crm/crm-page-table.js")"></script>
 }

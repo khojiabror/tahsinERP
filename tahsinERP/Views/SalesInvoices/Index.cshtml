@@ -85,7 +85,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="invoiceDataTable" class="table table-striped table-bordered" style="width:100%">
+                                        <table id="invoiceDataTable" data-crm-table data-lock-last="@(changePermit ? "true" : "false")" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Invoys raqami</th>
@@ -215,44 +215,6 @@
         </div>
     </div>
 
-    <script>
-        (function () {
-            function initSalesInvoicesTable() {
-                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
-                    setTimeout(initSalesInvoicesTable, 100);
-                    return;
-                }
-                var $ = window.jQuery;
-                if (!$('#invoiceDataTable').length) return;
-
-                var changePermit = @(changePermit ? "true" : "false");
-            
-                var columnDefs = [];
-                if (changePermit) {
-                    columnDefs.push({ "orderable": false, "targets": -1 });
-                }
-            
-                // Sahifalash serverda (pager pastda) — DataTables faqat joriy sahifa ichida qidiradi/saralaydi
-                $('#invoiceDataTable').DataTable({
-                    "language": {
-                        "search": "Sahifada qidirish:",
-                        "zeroRecords": "Ma'lumot topilmadi"
-                    },
-                    "paging": false,
-                    "info": false,
-                    "order": [],
-                    "columnDefs": columnDefs,
-                    dom: 'frt',
-                    "scrollX": true
-                });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initSalesInvoicesTable);
-            } else {
-                initSalesInvoicesTable();
-            }
-        })();
-    </script>
+    <script src="@Url.Content("~/Scripts/crm/crm-page-table.js")"></script>
 }
 
