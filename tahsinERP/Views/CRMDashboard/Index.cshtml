@@ -8,11 +8,8 @@
     var totalReceivable = Model.CustomerReceivables != null ? Model.CustomerReceivables.Sum(x => x.ReceivableAmount) : 0m;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -617,8 +614,4 @@
             });
         </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
