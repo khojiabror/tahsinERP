@@ -132,15 +132,27 @@ namespace tahsinERP.Services
                     .FirstOrDefault();
             }
 
-            var bomHeaderWithVersion = bomHeaders
-                .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
-                .OrderByDescending(bh => ParseVersionNoDate(bh.VersionNo))
-                .ThenByDescending(bh => bh.CreatedAt)
-                .FirstOrDefault();
+            return PickLatestHeader(bomHeaders, bh => bh.VersionNo, bh => bh.CreatedAt, fallbackToCreatedAt: true);
+        }
 
-            return bomHeaderWithVersion ?? bomHeaders
-                .OrderByDescending(bh => bh.CreatedAt)
+        /// <summary>
+        /// Eng so'nggi BOM header: VersionNo (yyyy-MM) bo'yicha, teng bo'lsa CreatedAt bo'yicha.
+        /// <paramref name="fallbackToCreatedAt"/> = true bo'lsa VersionNo'si bor header bo'lmaganda eng yangi CreatedAt olinadi.
+        /// BOM Index, Details va pastki BOM'lar uchun yagona qoida (avval uch joyda nusxalangan, dublikat #18).
+        /// </summary>
+        public static T PickLatestHeader<T>(IEnumerable<T> headers, Func<T, string> versionNo, Func<T, DateTime?> createdAt,
+            bool fallbackToCreatedAt) where T : class
+        {
+            var list = headers as IList<T> ?? headers.ToList();
+            var withVersion = list
+                .Where(h => !string.IsNullOrEmpty(versionNo(h)))
+                .OrderByDescending(h => ParseVersionNoDate(versionNo(h)))
+                .ThenByDescending(createdAt)
                 .FirstOrDefault();
+            if (withVersion != null || !fallbackToCreatedAt)
+                return withVersion;
+
+            return list.OrderByDescending(createdAt).FirstOrDefault();
         }
 
         /// <summary>
@@ -270,11 +282,8 @@ namespace tahsinERP.Services
                 foreach (var productId in frontier)
                 {
                     // Pastki BOM: VersionNo'si bor eng so'nggi faol header (avvalgi SelectLatestChildBomHeader bilan bir xil)
-                    var latest = headers
-                        .Where(h => h.ProductID == productId && !string.IsNullOrEmpty(h.VersionNo))
-                        .OrderByDescending(h => ParseVersionNoDate(h.VersionNo))
-                        .ThenByDescending(h => h.CreatedAt)
-                        .FirstOrDefault();
+                    var latest = PickLatestHeader(headers.Where(h => h.ProductID == productId),
+                        h => h.VersionNo, h => h.CreatedAt, fallbackToCreatedAt: false);
                     _latestHeaderByProduct[productId] = latest?.ID;
                     if (latest != null && !_linesByHeader.ContainsKey(latest.ID))
                     {
@@ -426,7 +435,8 @@ namespace tahsinERP.Services
                 .ToList();
         }
 
-        private static DateTime ParseVersionNoDate(string versionNo)
+        /// <summary>BOM VersionNo ("yyyy-MM" yoki "yyyy-MM-...") → oyning 1-kuni; tushunarsiz bo'lsa DateTime.MinValue.</summary>
+        public static DateTime ParseVersionNoDate(string versionNo)
         {
             if (string.IsNullOrWhiteSpace(versionNo))
             {
