@@ -96,6 +96,14 @@ FinTransactions ro'yxati endi butun jadval o'rniga sahifama-sahifa yuklanadi (5 
 
 Kategoriya turlari tuzatilsa, DCF sof aktivi lokal bazada taxminan 1 635,5 mln bo'ladi.
 
+**Ishga tushirish tartibi (SRM xarid bilan bog'liq):** SRM-B25 (`claude/opt-srm-procurement-760fa4`, 391b2cd6) dan keyin `P_INVOICES.Amount` QQS bilan (brutto) saqlanadi. Shu sabab:
+1. Avval `DataFix_SRM_Procurement_01_InvoiceAmount_Fix.sql` ishga tushiriladi (eski invoyslar bruttoga keltiriladi).
+2. Keyin `DataFix_Finance_InvoiceMirrorAmounts_Fix.sql`.
+
+Finance kodi Amount'ga QQS qo'shmaydi (61fe60d3), shuning uchun ikki marta QQS bo'lmaydi.
+
+Ikki branch merge qilinganda `FinancePostingService.PostPurchaseInvoice` dagi `transaction.Amount` qatorida ziddiyat bo'ladi. Finance variantini (`PurchaseInvoiceAmounts`) qoldirish tavsiya etiladi.
+
 ## Tuzatilgan ID'lar
 
 - **Performance:** P01, P02, P03, P04, P05, P06, P07, P08 (DailyTrend/DailyAccountActivity olib tashlandi), P09, P10, P11, P13, P15, P17 (yangi kodda AsNoTracking).
