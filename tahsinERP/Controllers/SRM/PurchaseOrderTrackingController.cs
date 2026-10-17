@@ -9,50 +9,78 @@ using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.SRM
 {
-    public class PurchaseOrderTrackingController : Controller
+    public class PurchaseOrderTrackingController : BaseController
     {
+        private const string Module = "PurchaseOrderTracking";
+
+        /// <summary>Buyurtma bo'yicha bosqichlar ma'lumoti (SQL proyeksiyasidan).</summary>
+        public sealed class TrackingFacts
+        {
+            public string ContractNo { get; set; }
+            public DateTime? ContractDate { get; set; }
+            public string InvoiceNo { get; set; }
+            public DateTime? InvoiceDate { get; set; }
+            public DateTime? ReceiptDate { get; set; }
+        }
+
         // Olish so'rovi: PurchaseOrderTracking
         public async Task<ActionResult> Index(string purchaseTypeFilter = "", string statusFilter = "")
         {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PurchaseOrderTracking", "Index"))
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             using (var db = new DBTHSNEntities())
             {
-                var query = db.P_ORDERS
-                    .Include(o => o.SUPPLIER)
-                    .Include(o => o.COMPANy)
-                    .Include(o => o.P_CONTRACTS)
-                    .Include(o => o.P_INVOICES)
-                    .Include(o => o.P_ORDER_PRODUCTS)
-                    .Where(o => o.IsDeleted != true)
-                    .AsQueryable();
+                var query = db.P_ORDERS.AsNoTracking().Where(o => o.IsDeleted != true);
 
-                // Filtrlash bo'yicha purchase type
                 if (!string.IsNullOrEmpty(purchaseTypeFilter))
                 {
                     byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
                     query = query.Where(o => o.PurchaseType == purchaseType);
                 }
 
-                // Filtrlash bo'yicha holat
-                if (!string.IsNullOrEmpty(statusFilter))
-                {
-                    query = query.Where(o => o.Status == statusFilter);
-                }
-
-                var orders = await query
+                // Bosqichlar bitta so'rovda: shartnoma, birinchi faol invoys va omborga kirim sanasi.
+                // Avval buyurtma qatorlari/kompaniya ham Include qilinib, ombor holati doim "qizil" edi (SRM-B07).
+                var rows = await query
                     .OrderByDescending(o => o.IssuedDate)
+                    .Select(o => new
+                    {
+                        Order = o,
+                        Supplier = o.SUPPLIER,
+                        Facts = new TrackingFacts
+                        {
+                            ContractNo = o.P_CONTRACTS.ContractNo,
+                            ContractDate = (DateTime?)o.P_CONTRACTS.IssuedDate,
+                            InvoiceNo = o.P_INVOICES.Where(i => i.IsDeleted != true).OrderBy(i => i.ID).Select(i => i.InvoiceNo).FirstOrDefault(),
+                            InvoiceDate = o.P_INVOICES.Where(i => i.IsDeleted != true).OrderBy(i => i.ID).Select(i => (DateTime?)i.InvoiceDate).FirstOrDefault(),
+                            ReceiptDate = o.P_INVOICES.Where(i => i.IsDeleted != true)
+                                .SelectMany(i => i.INCOMES)
+                                .Where(inc => inc.IsDeleted != true)
+                                .Min(inc => (DateTime?)inc.IssueDateTime)
+                        }
+                    })
                     .ToListAsync();
 
-                // Calculate tracking holat uchun har bir order
-                var trackingData = orders.Select(o => new PurchaseOrderTrackingIndexItemViewModel
+                var trackingData = new List<PurchaseOrderTrackingIndexItemViewModel>();
+                foreach (var row in rows)
                 {
-                    POrder = o,
-                    TrackingStatus = CalculateTrackingStatus(o)
-                }).ToList();
+                    row.Order.SUPPLIER = row.Supplier;
+                    var status = BuildTrackingStatus(row.Order, row.Facts);
+
+                    // Filtr ko'rsatilayotgan (hisoblangan) holat bo'yicha — DB ustuni bo'yicha emas
+                    if (!string.IsNullOrEmpty(statusFilter) && row.Order.Status != statusFilter)
+                    {
+                        continue;
+                    }
+
+                    trackingData.Add(new PurchaseOrderTrackingIndexItemViewModel
+                    {
+                        POrder = row.Order,
+                        TrackingStatus = status
+                    });
+                }
 
                 ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
                 ViewBag.PurchaseTypeList = new SelectList(new[]
@@ -79,9 +107,9 @@ namespace tahsinERP.Controllers.SRM
         // Olish so'rovi: PurchaseOrderTracking/Details/5
         public async Task<ActionResult> Details(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PurchaseOrderTracking", "Details"))
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Details"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -92,11 +120,11 @@ namespace tahsinERP.Controllers.SRM
             using (var db = new DBTHSNEntities())
             {
                 var order = await db.P_ORDERS
+                    .AsNoTracking()
                     .Include(o => o.SUPPLIER)
                     .Include(o => o.COMPANy)
                     .Include(o => o.CURRENCy)
                     .Include(o => o.P_CONTRACTS)
-                    .Include(o => o.P_INVOICES)
                     .Include(o => o.P_ORDER_PRODUCTS.Select(p => p.PRODUCT))
                     .Include(o => o.P_ORDER_PRODUCTS.Select(p => p.UNIT))
                     .Include(o => o.P_REQUISITIONS)
@@ -107,133 +135,84 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                // Olish related contracts
-                var contracts = await db.P_CONTRACTS
-                    .Where(c => c.IsDeleted != true && 
-                                (order.ContractID.HasValue ? c.ID == order.ContractID.Value : true))
-                    .ToListAsync();
+                // Faqat buyurtmaga bog'langan shartnoma. Avval shartnomasiz buyurtmada BARCHA
+                // shartnomalar "bog'liq" deb ko'rsatilardi (SRM-B06).
+                var contracts = order.ContractID.HasValue
+                    ? await db.P_CONTRACTS.AsNoTracking()
+                        .Where(c => c.ID == order.ContractID.Value && c.IsDeleted != true)
+                        .ToListAsync()
+                    : new List<P_CONTRACTS>();
 
-                // Olish related invoices
-                var invoices = await db.P_INVOICES
+                var invoices = await db.P_INVOICES.AsNoTracking()
                     .Where(i => i.IsDeleted != true && i.OrderID == order.ID)
+                    .OrderBy(i => i.ID)
                     .ToListAsync();
 
-                // Olish related income hujjatlar (warehouse receipts)
+                // Omborga kirim hujjatlari (invoys bo'yicha)
                 var invoiceIds = invoices.Select(inv => inv.ID).ToList();
-                var incomes = await db.INCOMES
+                var incomes = await db.INCOMES.AsNoTracking()
                     .Where(inc => inc.InvoiceID.HasValue && invoiceIds.Contains(inc.InvoiceID.Value) && inc.IsDeleted != true)
+                    .OrderBy(inc => inc.IssueDateTime)
                     .ToListAsync();
 
-                // Calculate tracking holat
-                var trackingStatus = CalculateTrackingStatus(order);
+                var firstInvoice = invoices.FirstOrDefault();
+                var facts = new TrackingFacts
+                {
+                    ContractNo = order.P_CONTRACTS?.ContractNo,
+                    ContractDate = order.P_CONTRACTS?.IssuedDate,
+                    InvoiceNo = firstInvoice?.InvoiceNo,
+                    InvoiceDate = firstInvoice?.InvoiceDate,
+                    ReceiptDate = incomes.Count > 0 ? (DateTime?)incomes[0].IssueDateTime : null
+                };
 
-                // Yangilash tracking holat bilan warehouse information
-                if (incomes.Any())
-                {
-                    trackingStatus.WarehouseReceived = true;
-                    trackingStatus.WarehouseStatus = "green";
-                    trackingStatus.WarehouseReceiptDate = incomes.First().IssueDateTime;
-                }
-                else
-                {
-                    trackingStatus.WarehouseReceived = false;
-                    trackingStatus.WarehouseStatus = "red";
-                }
                 ViewBag.Contracts = contracts;
                 ViewBag.Invoices = invoices;
                 ViewBag.Incomes = incomes;
-                ViewBag.TrackingStatus = trackingStatus;
+                ViewBag.TrackingStatus = BuildTrackingStatus(order, facts);
 
                 return View(order);
             }
         }
 
-        // yordamchi: Calculate tracking holat uchun an order
-        private OrderTrackingStatusViewModel CalculateTrackingStatus(P_ORDERS order)
+        /// <summary>
+        /// Bosqichlar holati (yashil/qizil). Kuzatuvsiz (AsNoTracking) buyurtmaning ko'rsatish
+        /// maydonlari (Status, ContractStatus, ...) ham to'ldiriladi — bazaga yozilmaydi.
+        /// </summary>
+        private static OrderTrackingStatusViewModel BuildTrackingStatus(P_ORDERS order, TrackingFacts facts)
         {
+            bool hasInvoice = facts.InvoiceNo != null || facts.InvoiceDate.HasValue;
             var status = new OrderTrackingStatusViewModel
             {
                 OrderID = order.ID,
                 OrderNo = order.OrderNo,
                 OrderCreated = true,
                 OrderCreatedDate = order.IssuedDate,
-                OrderStatus = "green"
+                OrderStatus = "green",
+
+                ContractCreated = order.ContractID.HasValue,
+                ContractNo = order.ContractID.HasValue ? facts.ContractNo : null,
+                ContractDate = order.ContractID.HasValue ? facts.ContractDate : null,
+
+                InvoiceCreated = hasInvoice,
+                InvoiceNo = facts.InvoiceNo,
+                InvoiceDate = facts.InvoiceDate,
+
+                WarehouseReceived = facts.ReceiptDate.HasValue,
+                WarehouseReceiptDate = facts.ReceiptDate
             };
+            status.ContractStatus = status.ContractCreated ? "green" : "red";
+            status.InvoiceStatus = status.InvoiceCreated ? "green" : "red";
+            status.WarehouseStatus = status.WarehouseReceived ? "green" : "red";
 
-            // Tekshirish contract holat
-            if (order.ContractID.HasValue)
-            {
-                status.ContractCreated = true;
-                status.ContractStatus = "green";
-                if (order.P_CONTRACTS != null)
-                {
-                    status.ContractNo = order.P_CONTRACTS.ContractNo;
-                    status.ContractDate = order.P_CONTRACTS.IssuedDate;
-                }
-            }
-            else
-            {
-                status.ContractCreated = false;
-                status.ContractStatus = "red";
-            }
-
-            // Tekshirish invoice holat
-            if (order.P_INVOICES != null && order.P_INVOICES.Any(i => i.IsDeleted != true))
-            {
-                status.InvoiceCreated = true;
-                status.InvoiceStatus = "green";
-                var firstInvoice = order.P_INVOICES.First(i => i.IsDeleted != true);
-                status.InvoiceNo = firstInvoice.InvoiceNo;
-                status.InvoiceDate = firstInvoice.InvoiceDate;
-            }
-            else
-            {
-                status.InvoiceCreated = false;
-                status.InvoiceStatus = "red";
-            }
-
-            // Tekshirish warehouse receipt holat (Income)
-            // Note: This should be called within a foydalanib block in the calling method
-            // uchun now, we'll tekshirish agar invoices exist va have related incomes
-            if (order.P_INVOICES != null && order.P_INVOICES.Any(i => i.IsDeleted != true))
-            {
-                var invoiceIds = order.P_INVOICES.Where(i => i.IsDeleted != true).Select(i => i.ID).ToList();
-                // Note: INCOMES relationship needs ga be loaded yoki checked separately
-                // This is a simplified tekshirish - full implementation should query INCOMES jadval
-                status.WarehouseReceived = false; // Will be updated when INCOMES are loaded
-                status.WarehouseStatus = "red";
-            }
-            else
-            {
-                status.WarehouseReceived = false;
-                status.WarehouseStatus = "red";
-            }
-
-            // Yangilash order holat fields
             order.ContractStatus = status.ContractCreated ? "Created" : "NotCreated";
             order.InvoiceStatus = status.InvoiceCreated ? "Created" : "NotCreated";
             order.WarehouseStatus = status.WarehouseReceived ? "Received" : "NotReceived";
-
-            // Aniqlash overall holat
-            if (status.WarehouseReceived)
-            {
-                order.Status = "Received";
-            }
-            else if (status.InvoiceCreated)
-            {
-                order.Status = "Invoiced";
-            }
-            else if (status.ContractCreated)
-            {
-                order.Status = "ContractCreated";
-            }
-            else
-            {
-                order.Status = "Created";
-            }
+            order.Status = status.WarehouseReceived ? "Received"
+                : status.InvoiceCreated ? "Invoiced"
+                : status.ContractCreated ? "ContractCreated"
+                : "Created";
 
             return status;
         }
     }
 }
-

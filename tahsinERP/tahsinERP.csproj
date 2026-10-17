@@ -3026,7 +3026,6 @@
     <Content Include="Views\Product\Index.cshtml" />
     <Content Include="Views\Supplier\Edit.cshtml" />
     <Content Include="Views\Supplier\Delete.cshtml" />
-    <Content Include="Views\Supplier\UploadWithExcel.cshtml" />
     <Content Include="Views\Product\Create.cshtml" />
     <Content Include="Views\Product\Details.cshtml" />
     <Content Include="Views\Product\Delete.cshtml" />

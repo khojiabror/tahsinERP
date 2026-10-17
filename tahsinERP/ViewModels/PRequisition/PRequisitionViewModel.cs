@@ -9,7 +9,8 @@ namespace tahsinERP.ViewModels.PRequisition
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Requisition number is required")]
+        // Bo'sh qoldirilsa avtomatik beriladi (forma ham shuni aytadi). [Required] tufayli
+        // avtogeneratsiya hech qachon ishlamas edi (SRM-B03).
         [Display(Name = "Requisition No")]
         public string RequisitionNo { get; set; }
         
