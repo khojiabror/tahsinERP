@@ -1141,8 +1141,6 @@
     <Compile Include="ViewModels\OfficialLetterEditVm.cs" />
     <Compile Include="ViewModels\OfficialLetterItemVm.cs" />
     <Compile Include="ViewModels\OfficialLetterIndexVm.cs" />
-    <Compile Include="ViewModels\PContractSViewModel.cs" />
-    <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\PurchaseOrderTrackingIndexItemViewModel.cs" />
     <Compile Include="ViewModels\PRequisition\PRequisitionViewModel.cs" />
@@ -1164,9 +1162,6 @@
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
     <Compile Include="ViewModels\PartIndexViewModel.cs" />
     <Compile Include="ViewModels\PartViewModel.cs" />
-    <Compile Include="ViewModels\PContractViewModel.cs" />
-    <Compile Include="ViewModels\PInvoice\PInvoiceViewModel.cs" />
-    <Compile Include="ViewModels\POrder\POrderViewModel.cs" />
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
@@ -3157,11 +3152,6 @@
     <Content Include="Views\SalesInvoices\Edit.cshtml" />
     <Content Include="Views\SalesInvoices\Index.cshtml" />
     <Content Include="Views\SOrder\DeliverySchedule.cshtml" />
-    <Content Include="Views\POrderPayment\Create.cshtml" />
-    <Content Include="Views\POrderPayment\Delete.cshtml" />
-    <Content Include="Views\POrderPayment\Details.cshtml" />
-    <Content Include="Views\POrderPayment\Edit.cshtml" />
-    <Content Include="Views\POrderPayment\Index.cshtml" />
     <Content Include="Views\Norm\Create.cshtml" />
     <Content Include="Views\BOM\_BomTreeNode.cshtml" />
     <Content Include="Views\BOM\Details.cshtml" />
