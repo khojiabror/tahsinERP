@@ -1,13 +1,13 @@
 # tahsinERP Control Panel — reja va arxitektura
 
-Holat: 2026-10-17, asosiy qarorlar qabul qilingan (11-bo'lim); domen va narxlar ochiq. Bog'liq: `Docs/Audit-2026-10/00_PLAN.md`, litsenziya v2 (`Helpers/LicenseHelper.cs`).
+Holat: 2026-10-18, asosiy qarorlar qabul qilingan (11-bo'lim); domen va narxlar ochiq. 2026-10-18: Payme/Click integratsiyasi rejadan olib tashlandi — to'lovlar qo'lda belgilanadi. Bog'liq: `Docs/Audit-2026-10/00_PLAN.md`, litsenziya v2 (`Helpers/LicenseHelper.cs`).
 
 ## 1. Maqsad
 
 Bitta joydan boshqarish:
 - **Tashkilotlar (tenant)** — SaaS (bizning AWS serverda) va on-premise (mijoz serverida).
 - **Tariflar va obunalar** — foydalanuvchi soni, modullar, oylik/yillik.
-- **To'lovlar** — Payme, Click (karta), bank o'tkazmasi (yuridik shaxslar uchun asosiy yo'l).
+- **To'lovlar** — onlayn to'lov integratsiyasi YO'Q: xodim to'lov tushganini (bank, naqd, karta orqali qo'lda) panelda belgilaydi.
 - **Litsenziya kalitlari** — to'lov tushishi bilan avtomatik chiqadi va ERP'ga yetkaziladi.
 - **Provisioning** — yangi tashkilot uchun baza, subdomen, admin foydalanuvchi bir tugma bilan.
 - **Demo/trial** — 14 kunlik sinov tenanti, demo tenant har kecha qayta tiklanadi.
@@ -20,7 +20,6 @@ WinForms generator (`tahsinERP.LicenseGen`) zaxira/favqulodda vosita sifatida qo
                         ┌──────────────────────────────────────────┐
   Vendor xodimi ──────► │  admin.tahsinerp.uz   Control Panel      │
   Mijoz admini ───────► │  my.tahsinerp.uz      Mijoz portali      │
-  Payme / Click ──────► │  pay.tahsinerp.uz     To'lov webhooklari │
                         │  (ASP.NET Core, .NET 10, C#)              │
                         └──────┬──────────────┬─────────────┬──────┘
                                │              │             │
@@ -80,50 +79,36 @@ Asosiy qarorlar:
 | `Plans` | Id, Code (START/BIZNES/KORP/TRIAL) = Edition, Name, PriceMonthUzs, PriceYearUzs, MaxUsers, Modules (PERMISSIONMODULE ro'yxati), VatRate (12%), IsActive |
 | `Tenants` | Id, Slug (subdomen), LegalName, Inn (STIR), ContactName, Phone, Email, TelegramChatId, Deployment (SaaS/OnPrem), Status (Trial/Active/Grace/Suspended/Archived), DbName, ServerId, InstallationId, RegToken (hash), RegTokenExpires, ApiSecret (shifrlangan), CreatedAt |
 | `Servers` | Id, Name, Host, Region, SqlInstance, MaxTenants, CurrentTenants — tenantlarni serverlarga taqsimlash uchun |
-| `Subscriptions` | Id, TenantId, PlanId, Users, Period (Month/Year), StartDate, EndDate, AutoRenew, CardTokenId, Status |
-| `Invoices` | Id, Number (TE-2026-000123), TenantId, SubscriptionId, AmountUzs, Status (Draft/Issued/Paid/Cancelled), DueDate, Lines (JSON: nomi, MXIK, miqdor, narx, QQS), DidoxId (e-hisob-faktura) |
-| `Payments` | Id, InvoiceId, Provider (Payme/Click/Bank/Cash), ProviderTxnId, AmountTiyin, State, CreatedAt, PerformedAt, CancelledAt, CancelReason, Raw (JSON) |
-| `CardTokens` | Id, TenantId, Provider, Token (shifrlangan), MaskedPan, Expire, IsActive |
+| `Subscriptions` | Id, TenantId, PlanId, Users, Period (Month/Year), StartDate, EndDate, AutoRenew, Status |
+| `Invoices` | Id, Number (TE-2026-000123), TenantId, SubscriptionId, AmountUzs, Status (Draft/Issued/PartiallyPaid/Paid/Cancelled), PaidAmountTiyin, DueDate, Lines (JSON: nomi, miqdor, narx, QQS), DidoxId (e-hisob-faktura) |
+| `Payments` | Id, InvoiceId, Method (Bank/Cash/Card/Other), AmountTiyin, PaidAt, Reference (to'lov topshirig'i raqami), Note, RecordedBy (StaffUserId), RecordedAt, IsReversed, ReversedBy, ReversedAt, ReverseReason |
 | `Licenses` | Id, TenantId, InstallationId, KeyId (k1/k2), LicenseKey, MaxUsers, StartDate, ExpiryDate, Edition, IssuedBy (user/auto), IssuedAt, Reason, SupersededById |
 | `ProvisioningJobs` | Id, TenantId, Type (Create/Reset/Suspend/Archive/Delete), Status, Log, StartedAt, FinishedAt |
 | `Notifications` | Id, TenantId, Channel (Telegram/Email/SMS), Template, SentAt, Status |
 | `StaffUsers` | Id, Email, PasswordHash (PBKDF2), Role (Owner/Sales/Support), TotpSecret |
 | `AuditLog` | Id, StaffUserId, Action, Entity, EntityId, Before/After (JSON), Ip, At |
 
-Pul summasi bazada **tiyin** (`bigint`) da saqlanadi — Payme ham tiyinda ishlaydi, yaxlitlash xatosi bo'lmaydi.
+Pul summasi bazada **tiyin** (`bigint`) da saqlanadi — yaxlitlash xatosi bo'lmaydi.
 
-## 5. To'lovlar
+## 5. To'lovlar (faqat qo'lda)
 
-### 5.1 Bank o'tkazmasi (yuridik shaxslar — asosiy)
-O'zbekistonda korxonalar asosan shartnoma + hisob-faktura bo'yicha bank orqali to'laydi.
-- Panel hisob-faktura (PDF) va shartnoma shablonini chiqaradi; ixtiyoriy Didox API orqali elektron hisob-faktura (ESF).
-- To'lov tushganini xodim qo'lda belgilaydi (keyinchalik: bank ko'chirmasini import qilish). Belgilash = kalit avtomatik chiqadi.
+Onlayn to'lov tizimlari (Payme, Click va h.k.) bilan integratsiya **qilinmaydi** (2026-10-18 qarori). To'lov qayerdan kelmasin — bank, naqd, karta — panelda xodim qo'lda belgilaydi.
 
-### 5.2 Payme (Merchant API)
-- Endpoint: `POST pay.tahsinerp.uz/payme` — JSON-RPC, `Authorization: Basic Paycom:<KEY>` tekshiruvi (test va prod kalitlari alohida).
-- Metodlar: `CheckPerformTransaction`, `CreateTransaction`, `PerformTransaction`, `CancelTransaction`, `CheckTransaction`, `GetStatement`.
-- `account` maydoni: `invoice_id`. Summa tiyinda, hisob-fakturaga aynan teng bo'lishi shart.
-- Holatlar: `1` yaratildi → `2` bajarildi; `-1` bajarilmasdan bekor, `-2` bajarilgandan keyin bekor. Barcha metodlar idempotent (bir xil `id` qayta kelsa — o'sha natija), DB tranzaksiyada.
-- `PerformTransaction` → invoice `Paid` → obuna uzaytiriladi → kalit chiqariladi → ERP keyingi pull'da oladi (yoki darhol push-signal).
-- Fiskalizatsiya: chek uchun xizmatning **MXIK (IKPU) kodi** va o'lchov birligi kodi kerak bo'ladi — aniq maydonlarni Payme Business bilan shartnoma tuzishda tasdiqlash kerak.
-- Takroriy to'lov (avtomatik uzaytirish): Payme Subscribe API — `cards.create` / `cards.get_verify_code` / `cards.verify` → token; `receipts.create` / `receipts.pay`. 2-bosqichda.
-- Sinov: Payme sandbox (test.paycom.uz) — barcha holatlar ssenariylari o'tishi shart, aks holda prod kalit berilmaydi.
+### 5.1 Oqim
+1. Panel hisob-faktura (PDF) va shartnoma shablonini chiqaradi (ixtiyoriy keyinroq: Didox orqali ESF).
+2. Mijoz bank orqali (yoki boshqa yo'l bilan) to'laydi.
+3. Xodim panelda **"To'lov qabul qilindi"** ni belgilaydi: summa, sana, usul, to'lov topshirig'i raqami, izoh.
+4. Hisob-faktura summasi to'liq yopilsa → invoice `Paid` → obuna uzaytiriladi → yangi kalit chiqariladi → ERP keyingi pull'da oladi.
+5. Qisman to'lov mumkin: invoice `PartiallyPaid` bo'lib turadi, kalit chiqmaydi.
 
-### 5.3 Click (SHOP API)
-- Endpointlar: `POST pay.tahsinerp.uz/click/prepare` (action=0) va `/click/complete` (action=1).
-- Imzo: `sign_string = md5(click_trans_id + service_id + SECRET_KEY + merchant_trans_id [+ merchant_prepare_id] + amount + action + sign_time)` — har so'rovda tekshiriladi.
-- `merchant_trans_id` = invoice raqami. Xato kodlari Click spetsifikatsiyasi bo'yicha (-1 imzo, -2 summa, -4 allaqachon to'langan, -5 topilmadi, -9 bekor qilingan...).
-- Karta tokeni (avtomatik uzaytirish) — Click Merchant API `card_token`. 2-bosqichda.
+### 5.2 Qoidalar
+- Belgilangan to'lovni o'chirib bo'lmaydi — faqat **storno** (sabab bilan, `IsReversed`); storno obunani avtomatik qisqartirmaydi, xodim qaror qiladi.
+- Har bir belgilash va storno `AuditLog` ga yoziladi (kim, qachon, oldin/keyin).
+- Faqat `Owner` va `Sales` rollari to'lov belgilay oladi; storno — faqat `Owner`.
+- Kunlik/oylik hisobot: tushumlar, qarzdor tenantlar, muddati yaqinlashganlar — bank ko'chirmasi bilan qo'lda solishtirish uchun.
 
-### 5.4 Umumiy qoidalar
-- Webhook endpointlari faqat HTTPS, kalit/sir AWS SSM Parameter Store'da.
-- Har webhook so'rovi `Payments.Raw` ga to'liq yoziladi (nizolar uchun).
-- Kunlik sverka: Payme `GetStatement` va Click hisobotlari bilan solishtirish (ish).
-
-### 5.5 Biznes talablar (kod emas, lekin oldindan kerak)
-- To'lovni qabul qiluvchi yuridik shaxs (MChJ yoki YaTT) va bank hisob raqami.
-- Payme Business va Click bilan merchant shartnomasi (1–3 hafta).
-- tasnif.soliq.uz dan dasturiy ta'minot xizmati uchun MXIK kodi.
+### 5.3 Biznes talablar
+- To'lovni qabul qiluvchi yuridik shaxs (MChJ, QQS to'lovchi) va bank hisob raqami.
 - Ommaviy oferta / SaaS shartnomasi, maxfiylik siyosati.
 
 ## 6. Obuna hayot sikli
@@ -155,8 +140,8 @@ Ishlash usuli: panel `ProvisioningJobs` ga yozadi; ERP serverida kichik **agent*
 Demo tenant: `demo.tahsinerp.uz`, har kecha 03:00 da `DB_DEMO_TEMPLATE.bak` dan qayta tiklanadi; login sahifasida demo foydalanuvchi ko'rsatiladi.
 
 ## 8. Mijoz portali (`my.tahsinerp.uz`, 2-bosqich)
-- Tarif va muddat, foydalanuvchi soni, hisob-fakturalar ro'yxati, "Payme/Click bilan to'lash" tugmalari.
-- Seat qo'shish / tarifni oshirish (proporsional hisob), karta bog'lash (avto-uzaytirish).
+- Tarif va muddat, foydalanuvchi soni, hisob-fakturalar ro'yxati (PDF yuklab olish, to'lov rekvizitlari).
+- Tarifni oshirish so'rovi (xodim tasdiqlaydi va yangi hisob-faktura chiqaradi).
 - Kirish: ERP admin hisobi orqali SSO emas — alohida, telefon + SMS kod (oddiy va xavfsiz).
 - On-prem mijoz: InstallationId ni kiritib kalitni yuklab olish.
 
@@ -170,7 +155,6 @@ Demo tenant: `demo.tahsinerp.uz`, har kecha 03:00 da `DB_DEMO_TEMPLATE.bak` dan 
 
 Xavfsizlik:
 - `admin.` — faqat xodimlar, TOTP 2FA majburiy, ixtiyoriy IP allow-list.
-- `pay.` — faqat webhook endpointlari, Payme/Click IP'lari ro'yxati bilan cheklash (ular e'lon qilgan bo'lsa).
 - Har bir pul va kalit amali `AuditLog` ga.
 - Kunlik `tahsin_control` backup S3 ga (versioning yoqilgan) — bu bazani yo'qotish = kim qancha to'laganini yo'qotish.
 
@@ -181,11 +165,10 @@ Xavfsizlik:
 | 0 | Tayyorgarlik (ERP) | `DbConfig` host bo'yicha tenant DB; `LicenseHelper` → `netstandard2.0` umumiy kutubxona (`tahsinERP.Licensing`), bir nechta public key; `LicenseSyncService` (register + pull); Edition bo'yicha modul cheklovi | 2–2.5 hafta |
 | 1 | Panel MVP | Loyiha skeleti, StaffUsers + 2FA, Plans, Tenants, Subscriptions, Invoices, bank to'lovini qo'lda belgilash, KMS bilan kalit chiqarish, License API (register/pull), Telegram eslatmalar | 2–3 hafta |
 | 2 | Provisioning | Shablon baza, agent, wildcard DNS/TLS, demo tenant kechki reset, trial | 1–1.5 hafta |
-| 3 | Payme + Click | Merchant API endpointlari, sandbox ssenariylari, fiskal ma'lumotlar, kunlik sverka | 2 hafta (+ shartnoma kutish) |
-| 4 | Mijoz portali | Hisob-fakturalar, onlayn to'lov, seat qo'shish, karta tokeni / avto-uzaytirish | 2–3 hafta |
-| 5 | Qo'shimcha | Didox e-hisob-faktura, bank ko'chirmasi importi, on-prem online tekshiruv siyosati, hisobotlar (MRR, churn) | 1–2 hafta |
+| 3 | Mijoz portali | Hisob-fakturalar, rekvizitlar, tarifni oshirish so'rovi | 1–2 hafta |
+| 4 | Qo'shimcha | Didox e-hisob-faktura, bank ko'chirmasi importi, on-prem online tekshiruv siyosati, hisobotlar (MRR, churn) | 1–2 hafta |
 
-Jami: **~10–14 hafta** bitta dasturchi + AI yordamida. 0–2 bosqichdan keyin (≈5 hafta) birinchi pullik SaaS mijozni bank o'tkazmasi orqali ulash mumkin; Payme/Click shartnomasini 0-bosqich bilan parallel boshlang.
+Jami: **~7–10 hafta** bitta dasturchi + AI yordamida. 0–2 bosqichdan keyin birinchi pullik SaaS mijozni ulash mumkin (to'lov qo'lda belgilanadi).
 
 ## 11. Qarorlar (2026-10-17)
 
@@ -216,5 +199,4 @@ Modul cheklovi ERP tomonda (0-bosqichga qo'shilgan, ~1 hafta): `Edition → PERM
 ## 12. Xavflar
 - **KMS ↔ .NET imzo mosligi** — 0-bosqichning birinchi testi; mos kelmasa panel imzosini lokal (SSM'dan shifrlangan private key) bilan qilish zaxira varianti.
 - **SQL Server Express 1.4 GB bufer chegarasi** barcha tenant bazalari uchun umumiy — ~15–20 faol tenantdan keyin ikkinchi server (`Servers` jadvali shuning uchun boshidanoq bor).
-- **Payme/Click sertifikatsiyasi** kod tayyor bo'lsa ham 1–3 hafta cho'zilishi mumkin — bank o'tkazmasi yo'li buni to'smaydi.
 - **ERP multi-tenant'ga o'tish** — `HttpContext.Current` bo'lmagan joylar (fon ishlari, `Task.Run`) tenant'ni yo'qotmasligi kerak; 0-bosqichda tekshiriladi.

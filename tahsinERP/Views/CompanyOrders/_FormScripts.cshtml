@@ -1,0 +1,76 @@
+@model tahsinERP.ViewModels.CompanyOrderCreateVm
+@* CompanyOrders Create/Edit skriptlari (_Form bilan birga). *@
+@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+{
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        #order-body-toolbar { border: 1px solid #ddd; border-bottom: none; background: #f8f9fa; }
+        #order-body-editor { border: 1px solid #ddd; }
+        .ql-editor { min-height: 250px; }
+    </style>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        function initOrderEditor() {
+            if (typeof jQuery === 'undefined' || typeof window.Quill === 'undefined') {
+                setTimeout(initOrderEditor, 100);
+                return;
+            }
+            var $ = jQuery;
+            $(document).ready(function () {
+                var quill = new Quill('#order-body-editor', {
+                    modules: { toolbar: '#order-body-toolbar' },
+                    theme: 'snow',
+                    placeholder: 'Buyruq matnini kiriting...'
+                });
+
+                var initialBody = $('#BodyTextHidden').val();
+                if (initialBody && initialBody.trim() !== '') {
+                    quill.clipboard.dangerouslyPasteHTML(initialBody);
+                }
+
+                $('form.form').on('submit', function () {
+                    var html = quill.root.innerHTML;
+                    if (quill.getText().trim() === '') { html = ''; }
+                    $('#BodyTextHidden').val(html);
+                });
+
+                $('#btnSuggestText').click(function () {
+                    var $btn = $(this);
+                    var originalText = $btn.html();
+                    $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
+
+                    $.ajax({
+                        url: '@Url.Action("SuggestText", "CompanyOrders")',
+                        type: 'POST',
+                        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                        data: {
+                            orderTypeCode: $('#OrderTypeCode').val() || '',
+                            orderDate: $('#OrderDate').val() || null,
+                            orgUnitId: $('#OrgUnitId').val() || null,
+                            topic: $('#TopicInput').val() || '',
+                            employeeNames: []
+                        },
+                        success: function (response) {
+                            if (response && response.success) {
+                                quill.setText(response.text || '');
+                            } else {
+                                alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('AJAX Error:', error, xhr.responseText);
+                            var errorMsg = 'Xatolik yuz berdi';
+                            if (xhr.responseJSON && xhr.responseJSON.error) { errorMsg = xhr.responseJSON.error; }
+                            else if (xhr.responseText) { errorMsg = xhr.responseText; }
+                            alert(errorMsg);
+                        },
+                        complete: function () {
+                            $btn.prop('disabled', false).html(originalText);
+                        }
+                    });
+                });
+            });
+        }
+        initOrderEditor();
+    </script>
+}

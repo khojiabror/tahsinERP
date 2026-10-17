@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -10,6 +9,8 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
+using tahsinERP.ViewModels;
+using tahsinERP.ViewModels.PInvoice;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
@@ -18,7 +19,7 @@ namespace tahsinERP.Controllers
     {
         private const string Module = "PInvoices";
 
-        // Olish so'rovi: PInvoices
+        // Olish so'rovi: PInvoices — sahifa faqat filtr va jadval qobig'i; qatorlar IndexData orqali (SRM-P03)
         public async Task<ActionResult> Index(
             string purchaseTypeFilter = "",
             int? supplierID = null,
@@ -33,74 +34,107 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Faqat ro'yxatda ko'rsatiladigan navigatsiyalar; kuzatuvsiz (SRM-P03)
-                var query = db.P_INVOICES
-                    .AsNoTracking()
-                    .Include(i => i.SUPPLIER)
-                    .Include(i => i.P_ORDERS)
-                    .Include(i => i.P_CONTRACTS)
-                    .Where(i => i.IsDeleted != true);
-
-                if (supplierID.HasValue && supplierID.Value > 0)
-                {
-                    query = query.Where(i => i.SupplierID == supplierID.Value);
-                }
-
-                if (contractID.HasValue && contractID.Value > 0)
-                {
-                    query = query.Where(i => i.ContractID == contractID.Value);
-                }
-
-                if (!string.IsNullOrEmpty(purchaseTypeFilter))
-                {
-                    byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
-                    query = query.Where(i => i.PurchaseType == purchaseType);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    var from = fromDate.Value.Date;
-                    query = query.Where(i => i.InvoiceDate >= from);
-                }
-                if (toDate.HasValue)
-                {
-                    var toExclusive = toDate.Value.Date.AddDays(1);
-                    query = query.Where(i => i.InvoiceDate < toExclusive);
-                }
-
                 ViewBag.Suppliers = ProcurementLookups.Suppliers(supplierID);
                 ViewBag.Contracts = await ProcurementLookups.AllContractsAsync(db, contractID);
+            }
 
-                var invoices = await query
-                    .OrderByDescending(i => i.InvoiceDate)
-                    .ToListAsync();
+            ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+            ViewBag.SupplierID = supplierID;
+            ViewBag.ContractID = contractID;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.ChangePermit = CanChange(Module);
+            return View();
+        }
 
-                // QQS (VAT) faqat P_CONTRACT da saqlanadi. Har bir invoysga bog'langan
-                // shartnomaning QQS stavkasini hisoblab, viewda invoice summasiga qo'shib ko'rsatamiz.
-                var contractIds = invoices
-                    .Select(i => i.ContractID > 0 ? (int?)i.ContractID : i.P_ORDERS?.ContractID)
-                    .Where(cid => cid.HasValue && cid.Value > 0)
-                    .Select(cid => cid.Value)
+        // Olish so'rovi: PInvoices/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 6);
+            using (var db = new DBTHSNEntities())
+            {
+                var result = await ServerTablePage.LoadAsync(
+                    PInvoiceService.IndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate), page,
+                    PInvoiceService.SearchIndex, PInvoiceService.OrderIndex);
+
+                // QQS stavkalari faqat joriy sahifadagi shartnomalar uchun
+                var contractIds = result.Rows
+                    .Where(r => r.VatContractID.HasValue && r.VatContractID.Value > 0)
+                    .Select(r => r.VatContractID.Value)
                     .Distinct()
                     .ToList();
-                ViewBag.VatRatesByContract = await PContractVatHelper.GetContractVatRatesAsync(db, contractIds);
+                var vatRates = await PContractVatHelper.GetContractVatRatesAsync(db, contractIds);
 
-                // P_INVOICES.Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa qatorlardan
-                var invoiceIds = invoices.Select(i => i.ID).ToList();
-                ViewBag.NetByInvoice = await db.P_INVOICE_PRODUCTS
-                    .Where(ip => invoiceIds.Contains(ip.InvoiceID))
-                    .GroupBy(ip => ip.InvoiceID)
-                    .Select(g => new { InvoiceID = g.Key, Net = g.Sum(x => x.TotalPrice) })
-                    .ToDictionaryAsync(x => x.InvoiceID, x => x.Net);
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(r =>
+                    {
+                        double rate;
+                        if (!r.VatContractID.HasValue || !vatRates.TryGetValue(r.VatContractID.Value, out rate))
+                        {
+                            rate = 0d;
+                        }
 
-                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
-                ViewBag.SupplierID = supplierID;
-                ViewBag.ContractID = contractID;
-                ViewBag.FromDate = fromDate;
-                ViewBag.ToDate = toDate;
-                ViewBag.ChangePermit = CanChange(Module);
+                        var gross = r.Amount ?? 0d;
+                        return new
+                        {
+                            id = r.ID,
+                            invoiceNo = r.InvoiceNo,
+                            supplierId = r.SupplierID,
+                            supplier = r.SupplierName,
+                            indirect = r.PurchaseType == ProcurementLookups.IndirectPurchase,
+                            orderId = r.OrderID,
+                            orderNo = r.OrderNo,
+                            contractId = r.ContractID,
+                            contractNo = r.ContractNo,
+                            amount = gross.ToString("N2"),
+                            vatNote = rate > 0 ? $"{(r.Net ?? gross):N2} + QQS {rate:0.##}%" : null,
+                            date = r.InvoiceDate.ToString("dd.MM.yyyy")
+                        };
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
-                return View(invoices);
+        // Olish so'rovi: PInvoices/ExportExcel — filtr va qidiruv bo'yicha barcha yozuvlar
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null, string q = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return NotAuthorized();
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var query = PInvoiceService.IndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate);
+                if (!string.IsNullOrWhiteSpace(q))
+                {
+                    query = PInvoiceService.SearchIndex(query, q.Trim());
+                }
+
+                var rows = await PInvoiceService.OrderIndex(query, 6, true).ToListAsync();
+                var bytes = ExcelExport.Create("Xarid invoyslari", rows,
+                    ExcelExport.Col<PInvoiceService.IndexRow>("Invoys raqami", r => r.InvoiceNo),
+                    ExcelExport.Col<PInvoiceService.IndexRow>("Ta'minotchi", r => r.SupplierName),
+                    ExcelExport.Col<PInvoiceService.IndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<PInvoiceService.IndexRow>("Buyurtma raqami", r => r.OrderNo),
+                    ExcelExport.Col<PInvoiceService.IndexRow>("Shartnoma raqami", r => r.ContractNo),
+                    ExcelExport.Col<PInvoiceService.IndexRow>("Invoys summasi (QQS bilan)", r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<PInvoiceService.IndexRow>("Sana", r => r.InvoiceDate, "dd.MM.yyyy"));
+
+                return File(bytes, ExcelExport.ContentType, $"Xarid_invoyslari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -266,80 +300,28 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Xarid turi: buyurtmadan, bo'lmasa formadagi belgidan
-                        byte purchaseType = ProcurementLookups.DirectPurchase;
-                        P_ORDERS order = null;
-                        if (model.OrderID.HasValue)
+                        var invoice = await new PInvoiceService(db, ModelState)
+                            .CreateAsync(model, Request.Form["PurchaseType"] == "Indirect", invoiceFile);
+                        if (invoice != null)
                         {
-                            order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
-                            if (order != null)
-                            {
-                                purchaseType = order.PurchaseType;
-                            }
-                        }
-                        else if (Request.Form["PurchaseType"] == "Indirect")
-                        {
-                            purchaseType = ProcurementLookups.IndirectPurchase;
-                        }
+                            // Finance'ga kreditor qarzi sifatida yozish. Avval xato jim yutilardi (SRM-B13).
+                            PostToFinance(db, invoice.ID, "Create");
 
-                        await ValidateLinksAsync(db, order, model.SupplierID, model.ContractID, "yaratilganda");
+                            LogHelper.LogToDatabase(CurrentUserName, Module, $"Create - {invoice.InvoiceNo} invoysi yaratildi");
 
-                        if (ModelState.IsValid)
-                        {
-                            P_INVOICES invoice = null;
-
-                            // Sarlavha, qatorlar, hujjat — bitta tranzaksiyada (SRM-B12)
-                            using (var tx = db.Database.BeginTransaction())
-                            {
-                                var number = await ResolveInvoiceNoAsync(db, model.InvoiceNo, model.SupplierID, excludeId: null);
-                                if (number != null)
-                                {
-                                    invoice = new P_INVOICES
-                                    {
-                                        InvoiceNo = number,
-                                        InvoiceDate = model.InvoiceDate,
-                                        OrderID = model.OrderID,
-                                        SupplierID = model.SupplierID,
-                                        ContractID = model.ContractID ?? 0,
-                                        CompanyID = model.CompanyID ?? await ProcurementLookups.GetDefaultCompanyIdAsync(db),
-                                        CurrencyID = model.CurrencyID,
-                                        IsDeleted = false,
-                                        PurchaseType = purchaseType
-                                    };
-                                    db.P_INVOICES.Add(invoice);
-
-                                    // Qatorlar navigatsiya orqali — EF FK'ni o'zi qo'yadi, bitta SaveChanges.
-                                    // Amount QQS bilan saqlanadi (SRM-B25 qarori): net + shartnoma QQS stavkasi.
-                                    var net = await AddLinesAsync(db, invoice, model.InvoiceProducts);
-                                    invoice.Amount = VatMath.ApplyVat(net, await ResolveVatRateAsync(db, model.ContractID, order));
-                                    AddDocument(db, invoice, invoiceFile);
-
-                                    await db.SaveChangesAsync();
-                                    tx.Commit();
-                                }
-                            }
-
-                            if (invoice != null)
-                            {
-                                // Finance'ga kreditor qarzi sifatida yozish. Avval xato jim yutilardi (SRM-B13).
-                                PostToFinance(db, invoice.ID, "Create");
-
-                                LogHelper.LogToDatabase(CurrentUserName, Module, $"Create - {invoice.InvoiceNo} invoysi yaratildi");
-
-                                return RedirectToAction("Index");
-                            }
+                            return RedirectToAction("Index");
                         }
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", FormatError(ex));
+                        ModelState.AddModelError("", ProcurementErrors.Format(ex));
                     }
                 }
             }
 
             using (var db = new DBTHSNEntities())
             {
-                byte purchaseType = await ResolvePurchaseTypeAsync(db, model.ContractID, model.OrderID);
+                byte purchaseType = await new PInvoiceService(db, ModelState).ResolvePurchaseTypeAsync(model.ContractID, model.OrderID);
                 var lookupModel = new PInvoiceEditViewModel
                 {
                     SupplierID = model.SupplierID,
@@ -404,7 +386,7 @@ namespace tahsinERP.Controllers
                     }).ToList()
                 };
 
-                byte purchaseType = await ResolvePurchaseTypeAsync(db, model.ContractID, model.OrderID);
+                byte purchaseType = await new PInvoiceService(db, ModelState).ResolvePurchaseTypeAsync(model.ContractID, model.OrderID);
                 await PopulateFormLookupsAsync(db, model, purchaseType, includeContracts: true);
 
                 return View(model);
@@ -440,52 +422,8 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        P_ORDERS order = null;
-                        if (model.OrderID.HasValue && model.OrderID.Value > 0)
+                        if (await new PInvoiceService(db, ModelState).UpdateAsync(invoice, model, invoiceFile))
                         {
-                            order = await db.P_ORDERS.FindAsync(model.OrderID.Value);
-                        }
-                        byte purchaseType = await ResolvePurchaseTypeAsync(db, model.ContractID, model.OrderID);
-
-                        await ValidateLinksAsync(db, order, model.SupplierID, model.ContractID, "tahrirlashda");
-
-                        string invoiceNo = null;
-                        if (ModelState.IsValid)
-                        {
-                            invoiceNo = await ResolveInvoiceNoAsync(db, model.InvoiceNo, model.SupplierID, excludeId: invoice.ID);
-                        }
-
-                        if (ModelState.IsValid)
-                        {
-                            using (var tx = db.Database.BeginTransaction())
-                            {
-                                invoice.InvoiceNo = invoiceNo;
-                                invoice.InvoiceDate = model.InvoiceDate;
-                                invoice.OrderID = model.OrderID; // ixtiyoriy
-                                invoice.SupplierID = model.SupplierID;
-                                invoice.ContractID = model.ContractID ?? 0; // shartnoma asosidagi hisoblar uchun
-                                invoice.CompanyID = model.CompanyID ?? await ProcurementLookups.GetDefaultCompanyIdAsync(db);
-                                invoice.CurrencyID = model.CurrencyID;
-                                invoice.PurchaseType = purchaseType;
-
-                                // Qatorlarni almashtirish va summani qayta hisoblash (SRM-B01:
-                                // avval Amount eski qolib, Finance'ga eski summa qayta yozilardi)
-                                var existingProducts = await db.P_INVOICE_PRODUCTS.Where(ip => ip.InvoiceID == invoice.ID).ToListAsync();
-                                db.P_INVOICE_PRODUCTS.RemoveRange(existingProducts);
-                                var net = await AddLinesAsync(db, invoice, model.InvoiceProducts);
-                                invoice.Amount = VatMath.ApplyVat(net, await ResolveVatRateAsync(db, model.ContractID, order));
-
-                                if (PdfUpload.HasFile(invoiceFile))
-                                {
-                                    // Yangi hujjat eskisining o'rniga (eski blob'larni xotiraga yuklamasdan o'chiramiz)
-                                    await db.Database.ExecuteSqlCommandAsync("DELETE FROM P_INVOICE_DOCS WHERE InvoiceID = @p0", invoice.ID);
-                                    AddDocument(db, invoice, invoiceFile);
-                                }
-
-                                await db.SaveChangesAsync();
-                                tx.Commit();
-                            }
-
                             // Finance yozuvini yangilash (upsert) — endi to'g'ri summa bilan
                             PostToFinance(db, invoice.ID, "Edit");
 
@@ -496,14 +434,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", FormatError(ex));
+                        ModelState.AddModelError("", ProcurementErrors.Format(ex));
                     }
                 }
             }
 
             using (var db = new DBTHSNEntities())
             {
-                byte purchaseType = await ResolvePurchaseTypeAsync(db, model.ContractID, model.OrderID);
+                byte purchaseType = await new PInvoiceService(db, ModelState).ResolvePurchaseTypeAsync(model.ContractID, model.OrderID);
                 await PopulateFormLookupsAsync(db, model, purchaseType, includeContracts: true);
             }
 
@@ -555,19 +493,10 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var invoice = await db.P_INVOICES.FindAsync(id);
-                if (invoice != null && invoice.IsDeleted != true)
+                // Invoys va uning finance yozuvi birga bekor qilinadi
+                var invoice = await new PInvoiceService(db, ModelState).SoftDeleteAsync(id);
+                if (invoice != null)
                 {
-                    // Invoys va uning finance yozuvi birga bekor qilinadi
-                    using (var tx = db.Database.BeginTransaction())
-                    {
-                        invoice.IsDeleted = true;
-                        await SoftDeleteReferenceService.AfterPInvoiceSoftDeletedAsync(db, id);
-                        FinancePostingService.RemovePurchaseInvoicePosting(id, db);
-                        await db.SaveChangesAsync();
-                        tx.Commit();
-                    }
-
                     LogHelper.LogToDatabase(CurrentUserName, Module, $"Delete - {invoice.InvoiceNo} invoysi o'chirildi");
                 }
 
@@ -650,168 +579,6 @@ namespace tahsinERP.Controllers
             ViewBag.Units = ProcurementLookups.Units();
         }
 
-        /// <summary>
-        /// Invoys QQS stavkasi: shartnoma (to'g'ridan-to'g'ri yoki buyurtma orqali) qatorlaridagi stavka;
-        /// shartnoma bo'lmasa 0. QQS faqat P_CONTRACT_PRODUCTS'da saqlanadi.
-        /// </summary>
-        private static async Task<double> ResolveVatRateAsync(DBTHSNEntities db, int? contractId, P_ORDERS order)
-        {
-            int? cid = contractId > 0 ? contractId : order?.ContractID;
-            return await PContractVatHelper.CalculateContractVatRateAsync(db, cid);
-        }
-
-        /// <summary>Xarid turi: shartnomadan, bo'lmasa buyurtmadan (standart — bevosita).</summary>
-        private static async Task<byte> ResolvePurchaseTypeAsync(DBTHSNEntities db, int? contractId, int? orderId)
-        {
-            if (contractId.HasValue && contractId.Value > 0)
-            {
-                var fromContract = await db.P_CONTRACTS
-                    .Where(c => c.ID == contractId.Value)
-                    .Select(c => (byte?)c.PurchaseType)
-                    .FirstOrDefaultAsync();
-                if (fromContract.HasValue)
-                {
-                    return fromContract.Value;
-                }
-            }
-            else if (orderId.HasValue && orderId.Value > 0)
-            {
-                var fromOrder = await db.P_ORDERS
-                    .Where(o => o.ID == orderId.Value)
-                    .Select(o => (byte?)o.PurchaseType)
-                    .FirstOrDefaultAsync();
-                if (fromOrder.HasValue)
-                {
-                    return fromOrder.Value;
-                }
-            }
-
-            return ProcurementLookups.DirectPurchase;
-        }
-
-        /// <summary>Invoys — buyurtma — shartnoma — ta'minotchi mosligi (Create/Edit'da bir xil, SRM-D8).</summary>
-        private async Task ValidateLinksAsync(DBTHSNEntities db, P_ORDERS order, int supplierId, int? contractId, string actionWord)
-        {
-            if (order != null)
-            {
-                if (order.PurchaseType == ProcurementLookups.DirectPurchase)
-                {
-                    if (!order.SupplierID.HasValue && supplierId <= 0)
-                    {
-                        ModelState.AddModelError("SupplierID", $"Direct buyurtmadan invoice {actionWord} ta'minotchi tanlanishi shart.");
-                    }
-                    if (!order.ContractID.HasValue && (!contractId.HasValue || contractId.Value <= 0))
-                    {
-                        ModelState.AddModelError("ContractID", $"Direct buyurtmadan invoice {actionWord} shartnoma tanlanishi shart.");
-                    }
-                }
-
-                if (order.SupplierID.HasValue && order.SupplierID.Value > 0 && supplierId != order.SupplierID.Value)
-                {
-                    ModelState.AddModelError("SupplierID", "Tanlangan ta'minotchi buyurtmadagi ta'minotchi bilan mos emas.");
-                }
-                if (order.ContractID.HasValue && order.ContractID.Value > 0 && contractId != order.ContractID.Value)
-                {
-                    ModelState.AddModelError("ContractID", "Tanlangan shartnoma buyurtmadagi shartnoma bilan mos emas.");
-                }
-            }
-
-            if (contractId.HasValue && contractId.Value > 0)
-            {
-                var contract = await db.P_CONTRACTS
-                    .Where(c => c.ID == contractId.Value)
-                    .Select(c => new { c.SupplierID, c.IsDeleted })
-                    .FirstOrDefaultAsync();
-                if (contract == null || contract.IsDeleted == true)
-                {
-                    ModelState.AddModelError("ContractID", "Tanlangan shartnoma topilmadi.");
-                }
-                else if (supplierId > 0 && contract.SupplierID != supplierId)
-                {
-                    ModelState.AddModelError("ContractID", "Tanlangan shartnoma tanlangan ta'minotchiga tegishli emas.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Invoys raqami: bo'sh bo'lsa PI-{yil}-NNNN (qulf bilan, o'chirilganlar ham hisobga olinadi — SRM-B14);
-        /// qo'lda kiritilsa — shu ta'minotchining faol invoyslarida takrorlanmasligi tekshiriladi.
-        /// Avtomatik raqam tranzaksiya ichida chaqirilishi kerak. Xato bo'lsa null (ModelState'ga yoziladi).
-        /// </summary>
-        private async Task<string> ResolveInvoiceNoAsync(DBTHSNEntities db, string requested, int supplierId, int? excludeId)
-        {
-            var number = string.IsNullOrWhiteSpace(requested) ? null : requested.Trim();
-            if (number == null)
-            {
-                if (excludeId.HasValue)
-                {
-                    // Tahrirlashda bo'sh qoldirilsa — mavjud raqam saqlanadi
-                    return await db.P_INVOICES.Where(i => i.ID == excludeId.Value).Select(i => i.InvoiceNo).FirstOrDefaultAsync();
-                }
-
-                return await DocumentNumberService.NextAsync(db, "P_INVOICES", "InvoiceNo", $"PI-{DateTime.Now.Year}-", 4);
-            }
-
-            bool duplicate = await db.P_INVOICES.AnyAsync(i =>
-                i.IsDeleted != true &&
-                i.SupplierID == supplierId &&
-                i.InvoiceNo == number &&
-                (!excludeId.HasValue || i.ID != excludeId.Value));
-            if (duplicate)
-            {
-                ModelState.AddModelError("InvoiceNo", "Bu ta'minotchida shu raqamli invoys allaqachon mavjud.");
-                return null;
-            }
-
-            return number;
-        }
-
-        /// <summary>
-        /// Invoys qatorlarini navigatsiya orqali qo'shadi va QQSsiz jami summani qaytaradi.
-        /// Mahsulot birliklari bitta so'rovda olinadi (avval har qatorga FindAsync, SRM-P06).
-        /// </summary>
-        private static async Task<double> AddLinesAsync(DBTHSNEntities db, P_INVOICES invoice, IEnumerable<PInvoiceProductViewModel> lines)
-        {
-            var list = (lines ?? Enumerable.Empty<PInvoiceProductViewModel>()).ToList();
-            if (list.Count == 0)
-            {
-                return 0;
-            }
-
-            var productIds = list.Select(l => l.ProductID).Distinct().ToList();
-            var productUnits = await db.PRODUCTS.AsNoTracking()
-                .Where(p => productIds.Contains(p.ID))
-                .Select(p => new { p.ID, p.UnitID })
-                .ToDictionaryAsync(p => p.ID, p => p.UnitID);
-
-            double total = 0;
-            foreach (var line in list)
-            {
-                // Foydalanuvchi tanlagan birlik saqlanadi (masalan, m3/CBM). Avval kesiladigan mahsulotlar
-                // majburan donaga (UnitID=1) o'tkazilardi — m3 da kiritilgan miqdor donaga aylanib qolardi.
-                int productUnit;
-                int unitId = line.UnitID > 0
-                    ? line.UnitID
-                    : (productUnits.TryGetValue(line.ProductID, out productUnit) ? productUnit : 1);
-
-                var invoiceProduct = new P_INVOICE_PRODUCTS
-                {
-                    ProductID = line.ProductID,
-                    Quantity = line.Quantity,
-                    Price = line.Price,
-                    TotalPrice = line.Price * line.Quantity,
-                    UnitID = unitId
-                };
-
-                // FK navigatsiya orqali: yangi invoysda ID SaveChanges'da beriladi
-                invoiceProduct.P_INVOICES = invoice;
-                db.P_INVOICE_PRODUCTS.Add(invoiceProduct);
-                total += invoiceProduct.TotalPrice;
-            }
-
-            return total;
-        }
-
         /// <summary>Kreditor qarzini Finance'ga yozish (upsert). Xato invoysni bekor qilmaydi, lekin logga yoziladi.</summary>
         private void PostToFinance(DBTHSNEntities db, int invoiceId, string action)
         {
@@ -827,73 +594,5 @@ namespace tahsinERP.Controllers
             }
         }
 
-        private static void AddDocument(DBTHSNEntities db, P_INVOICES invoice, HttpPostedFileBase file)
-        {
-            if (!PdfUpload.HasFile(file))
-            {
-                return;
-            }
-
-            db.P_INVOICE_DOCS.Add(new P_INVOICE_DOCS { P_INVOICES = invoice, Doc = PdfUpload.Read(file) });
-        }
-
-        private static string FormatError(Exception ex)
-        {
-            var message = $"Xatolik: {ex.Message}";
-            for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
-            {
-                message += $" | Ichki xatolik: {inner.Message}";
-            }
-            return message;
-        }
-    }
-
-    // ViewModels
-    public class PInvoiceCreateViewModel
-    {
-        public string InvoiceNo { get; set; }
-        public DateTime InvoiceDate { get; set; } = DateTime.Now;
-        public int? OrderID { get; set; }
-        public int SupplierID { get; set; }
-        public int? CompanyID { get; set; }
-        public int? ContractID { get; set; }
-        public int CurrencyID { get; set; }
-        public List<PInvoiceProductViewModel> InvoiceProducts { get; set; }
-
-        public PInvoiceCreateViewModel()
-        {
-            InvoiceProducts = new List<PInvoiceProductViewModel>();
-        }
-    }
-
-    public class PInvoiceEditViewModel
-    {
-        public int ID { get; set; }
-        public string InvoiceNo { get; set; }
-        public DateTime InvoiceDate { get; set; }
-        public int? OrderID { get; set; }
-        public int SupplierID { get; set; }
-        public int? CompanyID { get; set; }
-        public int? ContractID { get; set; }
-        public int CurrencyID { get; set; }
-        public double Amount { get; set; }
-        public List<PInvoiceProductViewModel> InvoiceProducts { get; set; }
-
-        public PInvoiceEditViewModel()
-        {
-            InvoiceProducts = new List<PInvoiceProductViewModel>();
-        }
-    }
-
-    public class PInvoiceProductViewModel
-    {
-        public int? ID { get; set; }
-        public int ProductID { get; set; }
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public double Quantity { get; set; }
-        public double Price { get; set; }
-        public double TotalPrice { get; set; }
-        public int UnitID { get; set; }
     }
 }

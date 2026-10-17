@@ -26,6 +26,7 @@
           <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="ColorHex" Type="nvarchar" MaxLength="7" />
         </EntityType>
         <EntityType Name="APP_TASK_PROJECTS">
           <Key>
@@ -48,6 +49,8 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="IsFinal" Type="bit" Nullable="false" />
+          <Property Name="ColorHex" Type="nvarchar" MaxLength="7" />
         </EntityType>
         <EntityType Name="APP_TASKS">
           <Key>
@@ -1511,7 +1514,6 @@
           <Property Name="CustomerID" Type="int" Nullable="false" />
           <Property Name="ContractID" Type="int" Nullable="false" />
           <Property Name="Amount" Type="float" />
-          <Property Name="Currency" Type="varchar" MaxLength="15" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="CurrencyID" Type="int" Nullable="false" />
@@ -1543,7 +1545,6 @@
           <Property Name="CustomerID" Type="int" Nullable="false" />
           <Property Name="ContractID" Type="int" />
           <Property Name="OrderID" Type="int" />
-          <Property Name="CurrencyCode" Type="char" MaxLength="3" Nullable="false" />
           <Property Name="TotalAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="TotalVAT" Type="decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="TotalWithVAT" Type="decimal" Precision="19" Scale="2" StoreGeneratedPattern="Computed" />
@@ -6495,6 +6496,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="ColorHex" Type="String" MaxLength="7" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="APP_TASKS" Relationship="Self.FK_APP_TASKS_PRIORITY" FromRole="APP_TASK_PRIORITY_REF" ToRole="APP_TASKS" />
         </EntityType>
         <EntityType Name="APP_TASK_PROJECTS">
@@ -6519,6 +6521,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="IsFinal" Type="Boolean" Nullable="false" />
+          <Property Name="ColorHex" Type="String" MaxLength="7" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="APP_TASKS" Relationship="Self.FK_APP_TASKS_STATUS" FromRole="APP_TASK_STATUS_REF" ToRole="APP_TASKS" />
         </EntityType>
         <EntityType Name="APP_TASKS">
@@ -8249,7 +8253,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="CustomerID" Type="Int32" Nullable="false" />
           <Property Name="ContractID" Type="Int32" Nullable="false" />
           <Property Name="Amount" Type="Double" />
-          <Property Name="Currency" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" Nullable="false" />
@@ -8296,7 +8299,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="CustomerID" Type="Int32" Nullable="false" />
           <Property Name="ContractID" Type="Int32" />
           <Property Name="OrderID" Type="Int32" />
-          <Property Name="CurrencyCode" Type="String" MaxLength="3" FixedLength="true" Unicode="false" Nullable="false" />
           <Property Name="TotalAmount" Type="Decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="TotalVAT" Type="Decimal" Precision="18" Scale="2" Nullable="false" />
           <Property Name="TotalWithVAT" Type="Decimal" Precision="19" Scale="2" annotation:StoreGeneratedPattern="Computed" />
@@ -13362,6 +13364,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="ColorHex" ColumnName="ColorHex" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13386,6 +13389,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="IsFinal" ColumnName="IsFinal" />
+                <ScalarProperty Name="ColorHex" ColumnName="ColorHex" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14845,7 +14850,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
                 <ScalarProperty Name="ContractID" ColumnName="ContractID" />
                 <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="Currency" ColumnName="Currency" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
@@ -14879,7 +14883,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
                 <ScalarProperty Name="ContractID" ColumnName="ContractID" />
                 <ScalarProperty Name="OrderID" ColumnName="OrderID" />
-                <ScalarProperty Name="CurrencyCode" ColumnName="CurrencyCode" />
                 <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
                 <ScalarProperty Name="TotalVAT" ColumnName="TotalVAT" />
                 <ScalarProperty Name="TotalWithVAT" ColumnName="TotalWithVAT" />

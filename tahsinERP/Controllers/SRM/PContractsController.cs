@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -10,6 +9,8 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
+using tahsinERP.ViewModels;
+using tahsinERP.ViewModels.PContract;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
@@ -18,10 +19,7 @@ namespace tahsinERP.Controllers
     {
         private const string Module = "PContracts";
 
-        /// <summary>UNITS.ID: m3 — kesiladigan mahsulotlar shartnomada CBM'da yuritiladi.</summary>
-        private const int CubicMeterUnitId = 11;
-
-        // Olish so'rovi: PContracts
+        // Olish so'rovi: PContracts — sahifa faqat filtr va jadval qobig'i; qatorlar IndexData orqali (SRM-P03)
         public async Task<ActionResult> Index(
             string purchaseTypeFilter = "",
             int? supplierID = null,
@@ -36,54 +34,84 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Ro'yxat faqat SUPPLIER navigatsiyasini ishlatadi; kuzatuvsiz (SRM-P03)
-                var query = db.P_CONTRACTS
-                    .AsNoTracking()
-                    .Include(c => c.SUPPLIER)
-                    .Where(c => c.IsDeleted != true);
-
-                if (supplierID.HasValue && supplierID.Value > 0)
-                {
-                    query = query.Where(c => c.SupplierID == supplierID.Value);
-                }
-
-                if (contractID.HasValue && contractID.Value > 0)
-                {
-                    query = query.Where(c => c.ID == contractID.Value);
-                }
-
-                if (!string.IsNullOrEmpty(purchaseTypeFilter))
-                {
-                    byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
-                    query = query.Where(c => c.PurchaseType == purchaseType);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    var from = fromDate.Value.Date;
-                    query = query.Where(c => c.IssuedDate >= from);
-                }
-                if (toDate.HasValue)
-                {
-                    var toExclusive = toDate.Value.Date.AddDays(1);
-                    query = query.Where(c => c.IssuedDate < toExclusive);
-                }
-
                 ViewBag.Suppliers = ProcurementLookups.Suppliers(supplierID);
                 ViewBag.Contracts = await ProcurementLookups.AllContractsAsync(db, contractID);
+            }
 
-                var contracts = await query
-                    .OrderByDescending(c => c.IssuedDate)
-                    .ToListAsync();
+            ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+            ViewBag.SupplierID = supplierID;
+            ViewBag.ContractID = contractID;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.ChangePermit = CanChange(Module);
+            return View();
+        }
 
-                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
-                ViewBag.SupplierID = supplierID;
-                ViewBag.ContractID = contractID;
-                ViewBag.FromDate = fromDate;
-                ViewBag.ToDate = toDate;
-                ViewBag.ChangePermit = CanChange(Module);
+        // Olish so'rovi: PContracts/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
 
-                return View(contracts);
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 5);
+            using (var db = new DBTHSNEntities())
+            {
+                var result = await ServerTablePage.LoadAsync(
+                    PContractService.IndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate), page,
+                    PContractService.SearchIndex, PContractService.OrderIndex);
+
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(r => new
+                    {
+                        id = r.ID,
+                        contractNo = r.ContractNo,
+                        supplierId = r.SupplierID,
+                        supplier = r.SupplierName,
+                        indirect = r.PurchaseType == ProcurementLookups.IndirectPurchase,
+                        amount = (r.Amount ?? 0).ToString("N2"),
+                        paymentTerms = r.PaymentTerms,
+                        date = r.IssuedDate.ToString("dd.MM.yyyy")
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Olish so'rovi: PContracts/ExportExcel — filtr va qidiruv bo'yicha barcha yozuvlar
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null, string q = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return NotAuthorized();
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var query = PContractService.IndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate);
+                if (!string.IsNullOrWhiteSpace(q))
+                {
+                    query = PContractService.SearchIndex(query, q.Trim());
+                }
+
+                var rows = await PContractService.OrderIndex(query, 5, true).ToListAsync();
+                var bytes = ExcelExport.Create("Xarid shartnomalari", rows,
+                    ExcelExport.Col<PContractService.IndexRow>("Shartnoma raqami", r => r.ContractNo),
+                    ExcelExport.Col<PContractService.IndexRow>("Ta'minotchi", r => r.SupplierName),
+                    ExcelExport.Col<PContractService.IndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<PContractService.IndexRow>("Shartnoma summasi", r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<PContractService.IndexRow>("To'lov shartlari", r => r.PaymentTerms),
+                    ExcelExport.Col<PContractService.IndexRow>("Sana", r => r.IssuedDate, "dd.MM.yyyy"));
+
+                return File(bytes, ExcelExport.ContentType, $"Xarid_shartnomalari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -180,39 +208,8 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        P_CONTRACTS contract = null;
-
-                        // Sarlavha, qatorlar, hujjat — bitta tranzaksiyada (SRM-B12)
-                        using (var tx = db.Database.BeginTransaction())
-                        {
-                            var number = await ResolveContractNoAsync(db, model.ContractNo, model.SupplierID, excludeId: null);
-                            if (number != null)
-                            {
-                                contract = new P_CONTRACTS
-                                {
-                                    ContractNo = number,
-                                    IssuedDate = model.IssuedDate,
-                                    CompanyID = model.CompanyID ?? await ProcurementLookups.GetDefaultCompanyIdAsync(db),
-                                    SupplierID = model.SupplierID,
-                                    CurrencyID = model.CurrencyID,
-                                    Incoterms = model.Incoterms,
-                                    PaymentTerms = model.PaymentTerms,
-                                    DueDate = model.DueDate,
-                                    IDN = model.IDN,
-                                    IsDeleted = false,
-                                    PurchaseType = ResolveRequestedPurchaseType()
-                                };
-                                db.P_CONTRACTS.Add(contract);
-
-                                // Jami (QQS bilan) — bog'langan model qatorlaridan (avval Request.Form qayta o'qilardi, SRM-D10)
-                                contract.Amount = await AddLinesAsync(db, contract, model.ContractProducts);
-                                AddDocument(db, contract, contractFile);
-
-                                await db.SaveChangesAsync();
-                                tx.Commit();
-                            }
-                        }
-
+                        var contract = await new PContractService(db, ModelState)
+                            .CreateAsync(model, ResolveRequestedPurchaseType(), contractFile);
                         if (contract != null)
                         {
                             LogHelper.LogToDatabase(CurrentUserName, Module, $"Create - {contract.ContractNo} shartnomasi yaratildi");
@@ -221,7 +218,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", FormatError(ex));
+                        ModelState.AddModelError("", ProcurementErrors.Format(ex));
                     }
                 }
             }
@@ -356,37 +353,8 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        var number = await ResolveContractNoAsync(db, model.ContractNo, model.SupplierID, excludeId: contract.ID);
-                        if (number != null)
+                        if (await new PContractService(db, ModelState).UpdateAsync(contract, model, contractFile))
                         {
-                            using (var tx = db.Database.BeginTransaction())
-                            {
-                                contract.ContractNo = number;
-                                contract.IssuedDate = model.IssuedDate;
-                                contract.CompanyID = model.CompanyID ?? await ProcurementLookups.GetDefaultCompanyIdAsync(db);
-                                contract.SupplierID = model.SupplierID;
-                                contract.CurrencyID = model.CurrencyID;
-                                contract.Incoterms = model.Incoterms;
-                                contract.PaymentTerms = model.PaymentTerms;
-                                contract.DueDate = model.DueDate;
-                                contract.IDN = model.IDN;
-
-                                var existingProducts = await db.P_CONTRACT_PRODUCTS.Where(cp => cp.ContractID == contract.ID).ToListAsync();
-                                db.P_CONTRACT_PRODUCTS.RemoveRange(existingProducts);
-
-                                contract.Amount = await AddLinesAsync(db, contract, model.ContractProducts);
-
-                                if (PdfUpload.HasFile(contractFile))
-                                {
-                                    // Yangi hujjat eskisining o'rniga (eski blob'lar xotiraga yuklanmaydi)
-                                    await db.Database.ExecuteSqlCommandAsync("DELETE FROM P_CONTRACT_DOCS WHERE ContractID = @p0", contract.ID);
-                                    AddDocument(db, contract, contractFile);
-                                }
-
-                                await db.SaveChangesAsync();
-                                tx.Commit();
-                            }
-
                             LogHelper.LogToDatabase(CurrentUserName, Module, $"Edit - {contract.ContractNo} shartnomasi tahrirlandi");
 
                             return RedirectToAction("Index");
@@ -394,7 +362,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", FormatError(ex));
+                        ModelState.AddModelError("", ProcurementErrors.Format(ex));
                     }
                 }
             }
@@ -458,13 +426,9 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var contract = await db.P_CONTRACTS.FindAsync(id);
-                if (contract != null && contract.IsDeleted != true)
+                var contract = await new PContractService(db, ModelState).SoftDeleteAsync(id);
+                if (contract != null)
                 {
-                    contract.IsDeleted = true;
-                    await SoftDeleteReferenceService.AfterPContractSoftDeletedAsync(db, id);
-                    await db.SaveChangesAsync();
-
                     LogHelper.LogToDatabase(CurrentUserName, Module, $"Delete - {contract.ContractNo} shartnomasi o'chirildi");
                 }
 
@@ -520,177 +484,5 @@ namespace tahsinERP.Controllers
                 ? ProcurementLookups.IndirectPurchase
                 : ProcurementLookups.DirectPurchase;
         }
-
-        /// <summary>
-        /// Shartnoma raqami: bo'sh bo'lsa PC-{yil}-NNNN (qulf bilan, o'chirilganlar ham hisobga olinadi — SRM-B14);
-        /// qo'lda kiritilsa — shu ta'minotchining faol shartnomalarida takrorlanmasligi tekshiriladi.
-        /// Avtomatik raqam tranzaksiya ichida chaqirilishi kerak. Xato bo'lsa null (ModelState'ga yoziladi).
-        /// </summary>
-        private async Task<string> ResolveContractNoAsync(DBTHSNEntities db, string requested, int supplierId, int? excludeId)
-        {
-            var number = string.IsNullOrWhiteSpace(requested) ? null : requested.Trim();
-            if (number == null)
-            {
-                if (excludeId.HasValue)
-                {
-                    // Tahrirlashda bo'sh qoldirilsa — mavjud raqam saqlanadi
-                    return await db.P_CONTRACTS.Where(c => c.ID == excludeId.Value).Select(c => c.ContractNo).FirstOrDefaultAsync();
-                }
-
-                return await DocumentNumberService.NextAsync(db, "P_CONTRACTS", "ContractNo", $"PC-{DateTime.Now.Year}-", 4);
-            }
-
-            bool duplicate = await db.P_CONTRACTS.AnyAsync(c =>
-                c.IsDeleted != true &&
-                c.SupplierID == supplierId &&
-                c.ContractNo == number &&
-                (!excludeId.HasValue || c.ID != excludeId.Value));
-            if (duplicate)
-            {
-                ModelState.AddModelError("ContractNo", "Bu ta'minotchida shu raqamli shartnoma allaqachon mavjud.");
-                return null;
-            }
-
-            return number;
-        }
-
-        /// <summary>
-        /// Shartnoma qatorlarini qo'shadi va QQS bilan jami summani qaytaradi.
-        /// Mahsulot birligi va "kesiladimi" belgisi bitta so'rovda olinadi (avval har qatorga 2 so'rov, SRM-P06).
-        /// </summary>
-        private static async Task<double> AddLinesAsync(DBTHSNEntities db, P_CONTRACTS contract, IEnumerable<PContractProductViewModel> lines)
-        {
-            var list = (lines ?? Enumerable.Empty<PContractProductViewModel>()).ToList();
-            if (list.Count == 0)
-            {
-                return 0;
-            }
-
-            var productIds = list.Select(l => l.ProductID).Distinct().ToList();
-            var products = await db.PRODUCTS.AsNoTracking()
-                .Where(p => productIds.Contains(p.ID))
-                .Select(p => new
-                {
-                    p.ID,
-                    p.UnitID,
-                    RequiresCutting = p.CategoryID.HasValue && p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting
-                })
-                .ToDictionaryAsync(p => p.ID);
-
-            double total = 0;
-            foreach (var line in list)
-            {
-                var vatPercent = VatMath.ClampPercent(line.VatPercent);
-                var lineAmount = line.Price * line.Quantity;
-                var vatAmount = VatMath.AmountFromPercent(lineAmount, vatPercent);
-
-                // Kesiladigan mahsulotlar CBM'da (m3), qolganlari — tanlangan birlikda yoki mahsulot birligida
-                var product = products.ContainsKey(line.ProductID) ? products[line.ProductID] : null;
-                int unitId = product != null && product.RequiresCutting
-                    ? CubicMeterUnitId
-                    : line.UnitID ?? (product?.UnitID ?? 1);
-
-                db.P_CONTRACT_PRODUCTS.Add(new P_CONTRACT_PRODUCTS
-                {
-                    P_CONTRACTS = contract,
-                    ProductID = line.ProductID,
-                    Price = line.Price,
-                    Quantity = line.Quantity, // kesiladiganlarda allaqachon CBM'da
-                    UnitID = unitId,
-                    MOQ = line.MOQ,
-                    HSCodeID = line.HSCodeID,
-                    ActivePart = true,
-                    VATAmount = vatAmount
-                });
-
-                // Avvalgi qoida saqlandi: jamiga faqat mahsuloti tanlangan, narx va miqdori musbat qatorlar kiradi
-                if (line.ProductID > 0 && line.Price > 0 && line.Quantity > 0)
-                {
-                    total += lineAmount + vatAmount;
-                }
-            }
-
-            return total;
-        }
-
-        private static void AddDocument(DBTHSNEntities db, P_CONTRACTS contract, HttpPostedFileBase file)
-        {
-            if (!PdfUpload.HasFile(file))
-            {
-                return;
-            }
-
-            db.P_CONTRACT_DOCS.Add(new P_CONTRACT_DOCS { P_CONTRACTS = contract, Doc = PdfUpload.Read(file) });
-        }
-
-        private static string FormatError(Exception ex)
-        {
-            var message = $"Xatolik: {ex.Message}";
-            for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
-            {
-                message += $" | Ichki xatolik: {inner.Message}";
-            }
-            return message;
-        }
-    }
-
-    // ViewModels
-    public class PContractCreateViewModel
-    {
-        public string ContractNo { get; set; }
-        public DateTime IssuedDate { get; set; } = DateTime.Now;
-        public int? CompanyID { get; set; }
-        public int SupplierID { get; set; }
-        public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
-        public string Incoterms { get; set; }
-        public string PaymentTerms { get; set; }
-        public DateTime DueDate { get; set; }
-        public string IDN { get; set; }
-        public List<PContractProductViewModel> ContractProducts { get; set; }
-
-        public PContractCreateViewModel()
-        {
-            ContractProducts = new List<PContractProductViewModel>();
-        }
-    }
-
-    public class PContractEditViewModel
-    {
-        public int ID { get; set; }
-        public string ContractNo { get; set; }
-        public DateTime IssuedDate { get; set; }
-        public int? CompanyID { get; set; }
-        public int SupplierID { get; set; }
-        public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
-        public string Incoterms { get; set; }
-        public string PaymentTerms { get; set; }
-        public DateTime DueDate { get; set; }
-        public string IDN { get; set; }
-        public List<PContractProductViewModel> ContractProducts { get; set; }
-
-        public PContractEditViewModel()
-        {
-            ContractProducts = new List<PContractProductViewModel>();
-        }
-    }
-
-    public class PContractProductViewModel
-    {
-        public int? ID { get; set; }
-        public int ProductID { get; set; }
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public double Price { get; set; }
-        public double Quantity { get; set; }
-        public double Amount { get; set; }
-        public int? UnitID { get; set; }
-        public double? MOQ { get; set; }
-        public int? HSCodeID { get; set; }
-        public double VatPercent { get; set; }
-        
-        // uchun display: indicates agar product requires cutting (uses CBM)
-        public bool RequiresCutting { get; set; }
     }
 }

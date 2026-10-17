@@ -134,7 +134,8 @@
     </div>
 
     <script>
-        $(document).ready(function () {
+        // _Layout jQuery'ni RenderBody'dan keyin yuklaydi - DOMContentLoaded'da ishga tushadi
+        document.addEventListener('DOMContentLoaded', function () {
             $('#normTable').DataTable({
                 "language": {
                     "search": "Qidirish:",

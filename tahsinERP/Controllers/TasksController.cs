@@ -16,128 +16,115 @@ namespace tahsinERP.Controllers
     [Permission]
     public class TasksController : BaseController
     {
-        // Olish so'rovi: Tasks
-        public async Task<ActionResult> Index(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string searchTerm, string sortOrder, int? page, int? pageSize, bool? showOverdue)
+        // Olish so'rovi: Tasks — faqat filtr va jadval "qobig'i"; qatorlar IndexData orqali server-side (TSK-P10).
+        // Avval 25 qatorli server sahifasi ustida mijoz DataTables ishlardi: qidiruv/saralash/eksport faqat joriy sahifaga ta'sir qilardi.
+        public async Task<ActionResult> Index(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string searchTerm, bool? showOverdue)
         {
             bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
-            int currentUserId = CurrentUserId;
             if (!isAdminOrDeveloper)
             {
-                // Oddiy user - faqat o'z tasklarini ko'rsatish
-                assigneeUserID = currentUserId;
+                // Oddiy user - faqat o'z tasklari
+                assigneeUserID = CurrentUserId;
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.APP_TASKS.AsNoTracking()
-                    .Include(t => t.APP_TASK_STATUS_REF)
-                    .Include(t => t.APP_TASK_PRIORITY_REF)
-                    .Include(t => t.APP_TASK_PROJECTS)
-                    .Where(t => t.IsDeleted == false);
-
-                // Filters
-                if (assigneeUserID.HasValue)
-                {
-                    query = query.Where(t => t.AssigneeUserID == assigneeUserID.Value);
-                }
-
-                if (statusID.HasValue)
-                {
-                    query = query.Where(t => t.StatusID == statusID.Value);
-                }
-
-                if (priorityID.HasValue)
-                {
-                    query = query.Where(t => t.PriorityID == priorityID.Value);
-                }
-
-                if (dueDateFrom.HasValue)
-                {
-                    query = query.Where(t => t.DueDate.HasValue && t.DueDate >= dueDateFrom.Value);
-                }
-
-                if (dueDateTo.HasValue)
-                {
-                    query = query.Where(t => t.DueDate.HasValue && t.DueDate <= dueDateTo.Value);
-                }
-
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    query = query.Where(t =>
-                        t.Title.Contains(searchTerm) ||
-                        (t.Description != null && t.Description.Contains(searchTerm)) ||
-                        (t.KeyCode != null && t.KeyCode.Contains(searchTerm)));
-                }
-
-                // Muddatidan o'tgan tasklar filtr
-                if (showOverdue == true)
-                {
-                    var today = DateTime.Now.Date;
-                    query = query.Where(t =>
-                        t.DueDate.HasValue &&
-                        t.DueDate.Value < today &&
-                        t.APP_TASK_STATUS_REF.Code != TaskRules.DoneCode &&
-                        !t.APP_TASK_STATUS_REF.Name.Contains("bajarildi"));
-                }
-
-                // Sorting
-                switch (sortOrder)
-                {
-                    case "created":
-                        query = query.OrderBy(t => t.CreatedDT);
-                        break;
-                    case "dueDate_desc":
-                        query = query.OrderByDescending(t => t.DueDate);
-                        break;
-                    case "dueDate":
-                        query = query.OrderBy(t => t.DueDate);
-                        break;
-                    case "priority_desc":
-                        query = query.OrderByDescending(t => t.APP_TASK_PRIORITY_REF.SortOrder);
-                        break;
-                    case "priority":
-                        query = query.OrderBy(t => t.APP_TASK_PRIORITY_REF.SortOrder);
-                        break;
-                    default: // created_desc
-                        query = query.OrderByDescending(t => t.CreatedDT);
-                        break;
-                }
-
-                // Pagination
-                int itemsPerPage = Math.Max(1, Math.Min(pageSize ?? 25, 500));
-                int totalItems = await query.CountAsync();
-                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
-                int currentPage = Math.Max(1, page ?? 1);
-
-                var tasks = await query
-                    .Skip((currentPage - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToListAsync();
-
-                // Bitta so'rov bilan ismlar (avval har qatorga 2 ta GetFullName — TSK-P01)
-                var names = await TaskLookups.UserNamesAsync(db, tasks.SelectMany(t => new[] { t.AssigneeUserID, t.ReporterUserID }));
-                var taskViewModels = tasks.Select(t => ToViewModel(t, names)).ToList();
-
-                // ViewBag uchun filters
                 ViewBag.AssigneeUserID = await TaskLookups.UserListAsync(db, assigneeUserID);
-                ViewBag.StatusID = TaskLookups.StatusList(statusID);
-                ViewBag.PriorityID = TaskLookups.PriorityList(priorityID);
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
-                ViewBag.SearchTerm = searchTerm;
-                ViewBag.AssigneeUserID_Selected = assigneeUserID;
-                ViewBag.StatusID_Selected = statusID;
-                ViewBag.PriorityID_Selected = priorityID;
-                ViewBag.DueDateFrom = dueDateFrom;
-                ViewBag.DueDateTo = dueDateTo;
-                ViewBag.SortOrder = sortOrder;
-                ViewBag.ShowOverdue = showOverdue == true;
-                ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
-
-                return View(taskViewModels);
             }
+            ViewBag.StatusID = TaskLookups.StatusList(statusID);
+            ViewBag.PriorityID = TaskLookups.PriorityList(priorityID);
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.DueDateFrom = dueDateFrom;
+            ViewBag.DueDateTo = dueDateTo;
+            ViewBag.ShowOverdue = showOverdue == true;
+            ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
+            return View();
+        }
+
+        // Olish so'rovi: Tasks/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, bool? showOverdue)
+        {
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 5);
+            var filter = BuildFilter(assigneeUserID, statusID, priorityID, dueDateFrom, dueDateTo, page.Search, showOverdue);
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var visible = TaskQueries.Visible(db, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName));
+                int total = await visible.CountAsync();
+                var filtered = TaskQueries.Apply(visible, filter);
+                int filteredCount = await filtered.CountAsync();
+
+                var rows = await TaskQueries.WithNamesAsync(db, await TaskQueries.Order(filtered, page.OrderColumn, page.OrderDescending)
+                    .Skip(page.Start)
+                    .Take(page.Length)
+                    .Select(TaskQueries.Projection)
+                    .ToListAsync());
+
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = total,
+                    recordsFiltered = filteredCount,
+                    data = rows.Select(r => new
+                    {
+                        id = r.ID,
+                        code = r.KeyCode ?? r.ID.ToString(),
+                        title = r.Title ?? "",
+                        assignee = r.AssigneeFullName ?? "-",
+                        priority = r.PriorityName,
+                        priorityStyle = TaskBadges.PriorityColorOrNull(r.PriorityName),
+                        status = r.StatusName,
+                        statusClass = TaskBadges.StatusBadgeClass(r.StatusName),
+                        statusStyle = TaskBadges.StatusStyle(r.StatusName),
+                        created = r.CreatedDT.ToString("yyyy-MM-dd"),
+                        due = r.DueDate.HasValue ? r.DueDate.Value.ToString("yyyy-MM-dd") : null,
+                        overdue = TaskBadges.IsOverdue(r.DueDate, r.StatusName)
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Olish so'rovi: Tasks/ExportExcel — filtr bo'yicha BARCHA topshiriqlar (avval faqat joriy 25 qator eksport qilinardi)
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, bool? showOverdue, string q)
+        {
+            var filter = BuildFilter(assigneeUserID, statusID, priorityID, dueDateFrom, dueDateTo, q, showOverdue);
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var visible = TaskQueries.Visible(db, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName));
+                var rows = await TaskQueries.WithNamesAsync(db, await TaskQueries.Order(TaskQueries.Apply(visible, filter), 5, true)
+                    .Select(TaskQueries.Projection)
+                    .ToListAsync());
+
+                var bytes = ExcelExport.Create("Vazifalar", rows,
+                    ExcelExport.Col<TaskViewModel>("Kod", r => r.KeyCode ?? r.ID.ToString()),
+                    ExcelExport.Col<TaskViewModel>("Sarlavha", r => r.Title),
+                    ExcelExport.Col<TaskViewModel>("Loyiha", r => r.ProjectName),
+                    ExcelExport.Col<TaskViewModel>("Mas'ul", r => r.AssigneeFullName),
+                    ExcelExport.Col<TaskViewModel>("Muallif", r => r.ReporterFullName),
+                    ExcelExport.Col<TaskViewModel>("Prioritet", r => r.PriorityName),
+                    ExcelExport.Col<TaskViewModel>("Status", r => r.StatusName),
+                    ExcelExport.Col<TaskViewModel>("Yaratilgan", r => r.CreatedDT, "dd.MM.yyyy"),
+                    ExcelExport.Col<TaskViewModel>("Muddati", r => r.DueDate, "dd.MM.yyyy"));
+
+                return File(bytes, ExcelExport.ContentType, $"Vazifalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+            }
+        }
+
+        private TaskFilter BuildFilter(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string search, bool? showOverdue)
+        {
+            return new TaskFilter
+            {
+                // Oddiy foydalanuvchi uchun Visible() allaqachon o'ziniki bilan cheklaydi
+                AssigneeUserID = assigneeUserID,
+                StatusID = statusID,
+                PriorityID = priorityID,
+                DueDateFrom = dueDateFrom,
+                DueDateTo = dueDateTo,
+                Search = search,
+                ShowOverdue = showOverdue == true
+            };
         }
 
         // Olish so'rovi: Tasks/Details/5
@@ -150,27 +137,30 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var task = await db.APP_TASKS.AsNoTracking()
-                    .Include(t => t.APP_TASK_STATUS_REF)
-                    .Include(t => t.APP_TASK_PRIORITY_REF)
-                    .Include(t => t.APP_TASK_PROJECTS)
-                    .FirstOrDefaultAsync(t => t.ID == id && t.IsDeleted == false);
+                var viewModel = await db.APP_TASKS.AsNoTracking()
+                    .Where(t => t.ID == id && t.IsDeleted == false)
+                    .Select(TaskQueries.Projection)
+                    .FirstOrDefaultAsync();
 
-                if (task == null)
+                if (viewModel == null)
                 {
                     return HttpNotFound();
                 }
 
                 // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
-                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
+                if (!TaskRules.CanAccess(viewModel.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
                     return RedirectToAction("Index");
                 }
 
-                var names = await TaskLookups.UserNamesAsync(db, new[] { task.AssigneeUserID, task.ReporterUserID });
-                var viewModel = ToViewModel(task, names);
-                viewModel.UserComment = task.UserComment;
+                var text = await db.APP_TASKS.AsNoTracking()
+                    .Where(t => t.ID == viewModel.ID)
+                    .Select(t => new { t.Description, t.UserComment })
+                    .FirstAsync();
+                viewModel.Description = text.Description;
+                viewModel.UserComment = text.UserComment;
+                await TaskQueries.WithNamesAsync(db, new List<TaskViewModel> { viewModel });
 
                 return View(viewModel);
             }
@@ -403,30 +393,6 @@ namespace tahsinERP.Controllers
 
                 return RedirectToAction("Index");
             }
-        }
-
-        private static TaskViewModel ToViewModel(APP_TASKS t, Dictionary<int, string> names)
-        {
-            return new TaskViewModel
-            {
-                ID = t.ID,
-                KeyCode = t.KeyCode,
-                Title = t.Title,
-                Description = t.Description,
-                StatusID = t.StatusID,
-                StatusName = t.APP_TASK_STATUS_REF?.Name,
-                PriorityID = t.PriorityID,
-                PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
-                AssigneeUserID = t.AssigneeUserID,
-                AssigneeFullName = TaskLookups.NameOf(names, t.AssigneeUserID),
-                ReporterUserID = t.ReporterUserID,
-                ReporterFullName = TaskLookups.NameOf(names, t.ReporterUserID),
-                CreatedDT = t.CreatedDT,
-                UpdatedDT = t.UpdatedDT,
-                DueDate = t.DueDate,
-                ProjectID = t.ProjectID,
-                ProjectName = t.APP_TASK_PROJECTS?.Name
-            };
         }
 
         /// <summary>Create/Edit dropdownlari (avval 5 joyda 4 tadan so'rov — TSK-P07).</summary>

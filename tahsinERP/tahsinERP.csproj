@@ -344,6 +344,7 @@
     <Compile Include="Controllers\Logistic\TransportLoadSimulationController.cs" />
     <Compile Include="Controllers\Settings\WarehouseController.cs" />
     <Compile Include="Controllers\SRM\ExpensesController.cs" />
+    <Compile Include="Controllers\SRM\ActionViewPermissionAttribute.cs" />
     <Compile Include="Controllers\SRM\HSCodeController.cs" />
     <Compile Include="Controllers\AdminSetting\LogHelper.cs" />
     <Compile Include="Controllers\AdminSetting\NetworkHelper.cs" />
@@ -830,6 +831,10 @@
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
     <Compile Include="Services\Crm\SalesInvoiceService.cs" />
+    <Compile Include="Services\Crm\SalesOrderService.cs" />
+    <Compile Include="Services\Crm\CrmPaging.cs" />
+    <Compile Include="Services\Crm\CrmReport.cs" />
+    <Compile Include="Services\Crm\FormRows.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
     <Compile Include="Services\Crm\CrmNumber.cs" />
     <Compile Include="Services\Common\CurrencyRateService.cs" />
@@ -837,12 +842,20 @@
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\VatMath.cs" />
     <Compile Include="Services\Procurement\ProcurementLookups.cs" />
+    <Compile Include="Services\Procurement\ServerTablePage.cs" />
+    <Compile Include="Services\Procurement\POrderService.cs" />
+    <Compile Include="ViewModels\PInvoice\PInvoiceFormViewModels.cs" />
+    <Compile Include="Services\Procurement\PInvoiceService.cs" />
+    <Compile Include="ViewModels\PContract\PContractFormViewModels.cs" />
+    <Compile Include="Services\Procurement\ProcurementErrors.cs" />
+    <Compile Include="Services\Procurement\PContractService.cs" />
     <Compile Include="Services\Procurement\PdfUpload.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\Norm\NormLineMath.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\Documents\DocFileService.cs" />
+    <Compile Include="Services\Documents\DocFileResult.cs" />
     <Compile Include="Services\Documents\DocTemplateStore.cs" />
     <Compile Include="Services\Documents\DocTemplateDataBuilder.cs" />
     <Compile Include="Services\Documents\DocPlaceholders.cs" />
@@ -850,6 +863,7 @@
     <Compile Include="Services\Documents\DocumentService.cs" />
     <Compile Include="Services\Tasks\TaskBadges.cs" />
     <Compile Include="Services\Tasks\TaskLookups.cs" />
+    <Compile Include="Services\Tasks\TaskQueries.cs" />
     <Compile Include="Services\Tasks\TaskRefEntity.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\Finance\BalanceInventoryValuation.cs" />
@@ -888,6 +902,7 @@
     <Compile Include="Services\WaybillImportService.cs" />
     <Compile Include="Services\FreightCalculator.cs" />
     <Compile Include="Services\LogisticsAnalyticsService.cs" />
+    <Compile Include="Services\LogisticsMoney.cs" />
     <Compile Include="Services\LogisticsLookups.cs" />
     <Compile Include="Services\LogisticsEnums.cs" />
     <Compile Include="Services\Common\ExcelCellReader.cs" />
@@ -2723,8 +2738,20 @@
     </Content>
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
+    <Content Include="Scripts\app\contract-picker.js" />
     <Content Include="Scripts\app\indexed-rows.js" />
+    <Content Include="Scripts\crm\contract-products.js" />
+    <Content Include="Scripts\crm\crm-dashboard.js" />
+    <Content Include="Scripts\crm\crm-page-table.js" />
+    <Content Include="Scripts\crm\customer-base-index.js" />
+    <Content Include="Scripts\crm\delivery-schedule.js" />
+    <Content Include="Scripts\crm\print-area.js" />
+    <Content Include="Scripts\crm\sales-invoice-form.js" />
+    <Content Include="Scripts\crm\sales-invoice-print.js" />
+    <Content Include="Scripts\crm\sales-order-form.js" />
     <Content Include="Scripts\app\product-select.js" />
+    <Content Include="Scripts\app\task-dashboard.js" />
+    <Content Include="Scripts\app\docx-editor.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />
     <Content Include="app-assets\data\citynames.json" />
@@ -2919,6 +2946,7 @@
     <Content Include="Scripts\app\waybill-form.js" />
     <Content Include="Views\Logistic\Shared\_Pager.cshtml" />
     <Content Include="Views\Logistic\Shared\_Alerts.cshtml" />
+    <Content Include="Views\Logistic\Shared\_CurrencyNote.cshtml" />
     <Content Include="Views\Waybill\Create.cshtml" />
     <Content Include="Views\Waybill\Details.cshtml" />
     <Content Include="Views\Waybill\Edit.cshtml" />
@@ -3003,6 +3031,8 @@
     <Content Include="Views\CompanyOrders\Create.cshtml" />
     <Content Include="Views\CompanyOrders\Details.cshtml" />
     <Content Include="Views\CompanyOrders\Edit.cshtml" />
+    <Content Include="Views\CompanyOrders\_FormScripts.cshtml" />
+    <Content Include="Views\CompanyOrders\_Form.cshtml" />
     <Content Include="Views\CompanyOrders\Index.cshtml" />
     <Content Include="Views\Expenses\Create.cshtml" />
     <Content Include="Views\Expenses\Delete.cshtml" />
@@ -3135,6 +3165,7 @@
     <Content Include="Views\OfficialLetters\Create.cshtml" />
     <Content Include="Views\OfficialLetters\Details.cshtml" />
     <Content Include="Views\OfficialLetters\Edit.cshtml" />
+    <Content Include="Views\OfficialLetters\_Form.cshtml" />
     <Content Include="Views\OfficialLetters\Index.cshtml" />
     <Content Include="Views\PContracts\Create.cshtml" />
     <Content Include="Views\PContracts\Delete.cshtml" />
@@ -3161,6 +3192,7 @@
     <Content Include="Views\Tender\Index.cshtml" />
     <Content Include="Views\UserManual\Index.cshtml" />
     <Content Include="Views\DocTemplates\Index.cshtml" />
+    <Content Include="Views\DocTemplates\_QuillToolbar.cshtml" />
     <Content Include="Views\Tasks\Create.cshtml" />
     <Content Include="Views\Tasks\Details.cshtml" />
     <Content Include="Views\Tasks\Edit.cshtml" />
@@ -3227,6 +3259,8 @@
     <Content Include="Views\STDCompanyStandards\Delete.cshtml" />
     <Content Include="Views\STDCompanyStandards\Details.cshtml" />
     <Content Include="Views\STDCompanyStandards\Edit.cshtml" />
+    <Content Include="Views\STDCompanyStandards\_FormScripts.cshtml" />
+    <Content Include="Views\STDCompanyStandards\_Form.cshtml" />
     <Content Include="Views\STDCompanyStandards\Index.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Index.cshtml" />
     <Content Include="Views\FinDashboard\AccountAnalytics.cshtml" />

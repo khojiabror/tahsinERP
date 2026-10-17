@@ -14,273 +14,270 @@
     var docIds = ViewBag.DocIds as System.Collections.Generic.List<int> ?? new System.Collections.Generic.List<int>();
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PInvoices", "Details"))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/PInvoices/Index">Xarid invoyslari</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Tafsilotlar
-                                    </li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="~/PInvoices/Index">Xarid invoyslari</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Tafsilotlar
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Invoys ma'lumotlari</h4>
-                                <div class="heading-elements">
-                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
-                                    {
-                                        <a href="@Url.Action("Edit", "PInvoices", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                                            <i class="bx bx-edit-alt"></i> Tahrirlash
-                                        </a>
-                                    }
-                                    <a href="@Url.Action("Index", "PInvoices")" class="btn btn-sm btn-secondary">
-                                        <i class="bx bx-arrow-back"></i> Orqaga
+        </div>
+        <div class="content-body">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Invoys ma'lumotlari</h4>
+                            <div class="heading-elements">
+                                @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
+                                {
+                                    <a href="@Url.Action("Edit", "PInvoices", new { id = Model.ID })" class="btn btn-sm btn-warning">
+                                        <i class="bx bx-edit-alt"></i> Tahrirlash
                                     </a>
-                                </div>
+                                }
+                                <a href="@Url.Action("Index", "PInvoices")" class="btn btn-sm btn-secondary">
+                                    <i class="bx bx-arrow-back"></i> Orqaga
+                                </a>
                             </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <table class="table table-borderless">
-                                                <tr>
-                                                    <th width="40%">Invoys raqami:</th>
-                                                    <td>@Model.InvoiceNo</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Sana:</th>
-                                                    <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Korxona:</th>
-                                                    <td>@(Model.COMPANy?.Name ?? "-")</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Ta'minotchi:</th>
-                                                    <td>
-                                                        @if (Model.SUPPLIER != null)
-                                                        {
-                                                            <a href="@Url.Action("Details", "Supplier", new { id = Model.SupplierID })">@Model.SUPPLIER.Name</a>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span>-</span>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Buyurtma:</th>
-                                                    <td>
-                                                        @if (Model.P_ORDERS != null)
-                                                        {
-                                                            <a href="@Url.Action("Details", "POrders", new { id = Model.OrderID })">@Model.P_ORDERS.OrderNo</a>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span>-</span>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <table class="table table-borderless">
-                                                <tr>
-                                                    <th width="40%">Valyuta:</th>
-                                                    <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Jami summa (QQSsiz):</th>
-                                                    <td><strong>@totalBase.ToString("N2")</strong></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>QQS (%):</th>
-                                                    <td>@vatRate.ToString("N2")</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Jami QQS:</th>
-                                                    <td>@totalVat.ToString("N2")</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Jami (QQS bilan):</th>
-                                                    <td><strong>@totalWithVat.ToString("N2")</strong></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Shartnoma:</th>
-                                                    <td>
-                                                        @if (hasContract)
-                                                        {
-                                                            <a href="@Url.Action("Details", "PContracts", new { id = contractId })">@contractNo</a>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span>-</span>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <th width="40%">Invoys raqami:</th>
+                                                <td>@Model.InvoiceNo</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Sana:</th>
+                                                <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Korxona:</th>
+                                                <td>@(Model.COMPANy?.Name ?? "-")</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Ta'minotchi:</th>
+                                                <td>
+                                                    @if (Model.SUPPLIER != null)
+                                                    {
+                                                        <a href="@Url.Action("Details", "Supplier", new { id = Model.SupplierID })">@Model.SUPPLIER.Name</a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>-</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Buyurtma:</th>
+                                                <td>
+                                                    @if (Model.P_ORDERS != null)
+                                                    {
+                                                        <a href="@Url.Action("Details", "POrders", new { id = Model.OrderID })">@Model.P_ORDERS.OrderNo</a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>-</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </div>
-
-                                    <hr />
-
-                                    <h5>Invoys mahsulotlari</h5>
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Mahsulot kodi</th>
-                                                    <th>Mahsulot nomi</th>
-                                                    <th>Miqdor (Invoys)</th>
-                                                    <th>Birlik</th>
-                                                    <th>CBM (ekvivalent)</th>
-                                                    <th>Narx</th>
-                                                    <th>Narx (QQS bilan)</th>
-                                                    <th>QQS summa</th>
-                                                    <th>Jami</th>
-                                                    <th>Jami (QQS bilan)</th>
+                                    <div class="col-md-6">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <th width="40%">Valyuta:</th>
+                                                <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Jami summa (QQSsiz):</th>
+                                                <td><strong>@totalBase.ToString("N2")</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <th>QQS (%):</th>
+                                                <td>@vatRate.ToString("N2")</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Jami QQS:</th>
+                                                <td>@totalVat.ToString("N2")</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Jami (QQS bilan):</th>
+                                                <td><strong>@totalWithVat.ToString("N2")</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shartnoma:</th>
+                                                <td>
                                                     @if (hasContract)
                                                     {
-                                                        <th>Shartnoma balansi</th>
-                                                        <th>Bajarilish %</th>
+                                                        <a href="@Url.Action("Details", "PContracts", new { id = contractId })">@contractNo</a>
                                                     }
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @if (Model.P_INVOICE_PRODUCTS != null && Model.P_INVOICE_PRODUCTS.Any())
-                                                {
-                                                    var contractBalances = ViewBag.ContractBalances as Dictionary<int, tahsinERP.Services.ContractBalanceInfo>;
-                                                    var productCBMInfo = ViewBag.ProductCBMInfo as Dictionary<int, decimal>;
-                                                    
-                                                    foreach (var product in Model.P_INVOICE_PRODUCTS)
+                                                    else
                                                     {
-                                                        var productId = product.ProductID;
-                                                        var requiresCutting = product.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                                                        var cbm = productCBMInfo != null && productCBMInfo.ContainsKey(productId) ? productCBMInfo[productId] : (decimal?)null;
-                                                        var balance = contractBalances != null && contractBalances.ContainsKey(productId) ? contractBalances[productId] : null;
-                                                        var lineBase = product.TotalPrice;
-                                                        var unitVat = product.Price * vatRate / 100d;
-                                                        var lineVat = lineBase * vatRate / 100d;
-                                                        var lineWithVat = lineBase + lineVat;
-                                                        var unitWithVat = product.Price + unitVat;
-                                                        
-                                                        <tr>
-                                                            <td>@(product.PRODUCT?.PNo ?? "-")</td>
-                                                            <td>@(product.PRODUCT?.Name ?? "-")</td>
-                                                            <td>@product.Quantity.ToString("N2")</td>
-                                                            <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                        <span>-</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr />
+
+                                <h5>Invoys mahsulotlari</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Mahsulot kodi</th>
+                                                <th>Mahsulot nomi</th>
+                                                <th>Miqdor (Invoys)</th>
+                                                <th>Birlik</th>
+                                                <th>CBM (ekvivalent)</th>
+                                                <th>Narx</th>
+                                                <th>Narx (QQS bilan)</th>
+                                                <th>QQS summa</th>
+                                                <th>Jami</th>
+                                                <th>Jami (QQS bilan)</th>
+                                                @if (hasContract)
+                                                {
+                                                    <th>Shartnoma balansi</th>
+                                                    <th>Bajarilish %</th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.P_INVOICE_PRODUCTS != null && Model.P_INVOICE_PRODUCTS.Any())
+                                            {
+                                                var contractBalances = ViewBag.ContractBalances as Dictionary<int, tahsinERP.Services.ContractBalanceInfo>;
+                                                var productCBMInfo = ViewBag.ProductCBMInfo as Dictionary<int, decimal>;
+                                                
+                                                foreach (var product in Model.P_INVOICE_PRODUCTS)
+                                                {
+                                                    var productId = product.ProductID;
+                                                    var requiresCutting = product.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+                                                    var cbm = productCBMInfo != null && productCBMInfo.ContainsKey(productId) ? productCBMInfo[productId] : (decimal?)null;
+                                                    var balance = contractBalances != null && contractBalances.ContainsKey(productId) ? contractBalances[productId] : null;
+                                                    var lineBase = product.TotalPrice;
+                                                    var unitVat = product.Price * vatRate / 100d;
+                                                    var lineVat = lineBase * vatRate / 100d;
+                                                    var lineWithVat = lineBase + lineVat;
+                                                    var unitWithVat = product.Price + unitVat;
+                                                    
+                                                    <tr>
+                                                        <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                                                        <td>@(product.PRODUCT?.Name ?? "-")</td>
+                                                        <td>@product.Quantity.ToString("N2")</td>
+                                                        <td>@(product.UNIT?.ShortName ?? "-")</td>
+                                                        <td>
+                                                            @if (requiresCutting && cbm.HasValue)
+                                                            {
+                                                                <span class="badge badge-info">@cbm.Value.ToString("N3") m³</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">-</span>
+                                                            }
+                                                        </td>
+                                                        <td>@product.Price.ToString("N2")</td>
+                                                        <td>@unitWithVat.ToString("N2")</td>
+                                                        <td>@lineVat.ToString("N2")</td>
+                                                        <td>@lineBase.ToString("N2")</td>
+                                                        <td>@lineWithVat.ToString("N2")</td>
+                                                        @if (hasContract)
+                                                        {
                                                             <td>
-                                                                @if (requiresCutting && cbm.HasValue)
+                                                                @if (balance != null)
                                                                 {
-                                                                    <span class="badge badge-info">@cbm.Value.ToString("N3") m³</span>
+                                                                    <div>
+                                                                        <small class="text-muted">Qoldiq:</small>
+                                                                        <strong class="text-@(balance.RemainingQuantityCBM >= 0 ? "success" : "danger")">
+                                                                            @balance.RemainingQuantityCBM.ToString("N3") m³
+                                                                        </strong>
+                                                                    </div>
                                                                 }
                                                                 else
                                                                 {
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
-                                                            <td>@product.Price.ToString("N2")</td>
-                                                            <td>@unitWithVat.ToString("N2")</td>
-                                                            <td>@lineVat.ToString("N2")</td>
-                                                            <td>@lineBase.ToString("N2")</td>
-                                                            <td>@lineWithVat.ToString("N2")</td>
-                                                            @if (hasContract)
-                                                            {
-                                                                <td>
-                                                                    @if (balance != null)
-                                                                    {
-                                                                        <div>
-                                                                            <small class="text-muted">Qoldiq:</small>
-                                                                            <strong class="text-@(balance.RemainingQuantityCBM >= 0 ? "success" : "danger")">
-                                                                                @balance.RemainingQuantityCBM.ToString("N3") m³
-                                                                            </strong>
+                                                            <td>
+                                                                @if (balance != null)
+                                                                {
+                                                                    <div class="progress" style="height: 20px;">
+                                                                        <div class="progress-bar @(balance.FulfillmentPercentage >= 100 ? "bg-success" : balance.FulfillmentPercentage >= 50 ? "bg-warning" : "bg-info")" 
+                                                                             role="progressbar" 
+                                                                             style="width: @(Math.Min(100, balance.FulfillmentPercentage))%"
+                                                                             aria-valuenow="@balance.FulfillmentPercentage" 
+                                                                             aria-valuemin="0" 
+                                                                             aria-valuemax="100">
+                                                                            @balance.FulfillmentPercentage.ToString("N1")%
                                                                         </div>
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        <span class="text-muted">-</span>
-                                                                    }
-                                                                </td>
-                                                                <td>
-                                                                    @if (balance != null)
-                                                                    {
-                                                                        <div class="progress" style="height: 20px;">
-                                                                            <div class="progress-bar @(balance.FulfillmentPercentage >= 100 ? "bg-success" : balance.FulfillmentPercentage >= 50 ? "bg-warning" : "bg-info")" 
-                                                                                 role="progressbar" 
-                                                                                 style="width: @(Math.Min(100, balance.FulfillmentPercentage))%"
-                                                                                 aria-valuenow="@balance.FulfillmentPercentage" 
-                                                                                 aria-valuemin="0" 
-                                                                                 aria-valuemax="100">
-                                                                                @balance.FulfillmentPercentage.ToString("N1")%
-                                                                            </div>
-                                                                        </div>
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        <span class="text-muted">-</span>
-                                                                    }
-                                                                </td>
-                                                            }
-                                                        </tr>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <tr>
-                                                        <td colspan="@(hasContract ? "11" : "9")" class="text-center">Mahsulotlar topilmadi</td>
+                                                                    </div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
+                                                        }
                                                     </tr>
                                                 }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    
-                                    @if (hasContract)
-                                    {
-                                        <div class="alert alert-info mt-2">
-                                            <h6><i class="bx bx-info-circle"></i> Shartnoma balansi ma'lumotlari</h6>
-                                            <small>
-                                                CBM (kubik metr) ekvivalentlari faqat kesish talab qilinadigan mahsulotlar uchun ko'rsatiladi.
-                                                Shartnoma balansi dinamik ravishda hisoblanadi va barcha invoyslar asosida yangilanadi.
-                                            </small>
-                                        </div>
-                                    }
-
-                                    @if (docIds.Any())
-                                    {
-                                        <hr />
-                                        <h5>Invoys hujjatlari</h5>
-                                        <ul>
-                                            @foreach (var docId in docIds)
-                                            {
-                                                <li>
-                                                    <a href="@Url.Action("DownloadDoc", "PInvoices", new { id = docId })" target="_blank">
-                                                        <i class="bx bx-file"></i> Invoys hujjati #@docId
-                                                    </a>
-                                                </li>
                                             }
-                                        </ul>
-                                    }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td colspan="@(hasContract ? "11" : "9")" class="text-center">Mahsulotlar topilmadi</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
+                                
+                                @if (hasContract)
+                                {
+                                    <div class="alert alert-info mt-2">
+                                        <h6><i class="bx bx-info-circle"></i> Shartnoma balansi ma'lumotlari</h6>
+                                        <small>
+                                            CBM (kubik metr) ekvivalentlari faqat kesish talab qilinadigan mahsulotlar uchun ko'rsatiladi.
+                                            Shartnoma balansi dinamik ravishda hisoblanadi va barcha invoyslar asosida yangilanadi.
+                                        </small>
+                                    </div>
+                                }
+
+                                @if (docIds.Any())
+                                {
+                                    <hr />
+                                    <h5>Invoys hujjatlari</h5>
+                                    <ul>
+                                        @foreach (var docId in docIds)
+                                        {
+                                            <li>
+                                                <a href="@Url.Action("DownloadDoc", "PInvoices", new { id = docId })" target="_blank">
+                                                    <i class="bx bx-file"></i> Invoys hujjati #@docId
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
                             </div>
                         </div>
                     </div>
@@ -288,8 +285,4 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>

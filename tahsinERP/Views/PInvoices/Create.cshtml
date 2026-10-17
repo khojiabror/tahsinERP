@@ -1,4 +1,4 @@
-@model tahsinERP.Controllers.PInvoiceCreateViewModel
+@model tahsinERP.ViewModels.PInvoice.PInvoiceCreateViewModel
 @using System.Collections.Generic
 @{
     ViewBag.Title = "Yangi xarid invoysi";
@@ -27,396 +27,335 @@
     }
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PInvoices"))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/PInvoices/Index">Xarid invoyslari</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Yangi invoys
-                                    </li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="~/PInvoices/Index">Xarid invoyslari</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Yangi invoys
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <section id="form-repeater-wrapper">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        @using (Html.BeginForm("Create", "PInvoices", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "invoiceForm", data_renumber = "InvoiceProducts" }))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+        <div class="content-body">
+            <section id="form-repeater-wrapper">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Create", "PInvoices", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "invoiceForm", data_renumber = "InvoiceProducts" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <div class="row">
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="InvoiceNo">Invoys raqami</label>
-                                                    @Html.TextBoxFor(model => model.InvoiceNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
-                                                    @Html.ValidationMessageFor(model => model.InvoiceNo, "", new { @class = "text-danger" })
-                                                    <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="InvoiceDate">Sana</label>
-                                                    @Html.TextBoxFor(model => model.InvoiceDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.InvoiceDate, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="OrderID">Buyurtma</label>
-                                                    @Html.DropDownListFor(model => model.OrderID, ViewBag.POrders as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "orderSelect" })
-                                                    @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
-                                                    <small class="text-muted">Ixtiyoriy</small>
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <button type="button" class="btn btn-outline-primary mt-2" id="loadOrderBtn" style="display:none;">
-                                                        <i class="bx bx-refresh"></i> Buyurtma mahsulotlarini yuklash
-                                                    </button>
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="SupplierID">Ta'minotchi</label>
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="ContractID">Shartnoma</label>
-                                                    @Html.DropDownListFor(model => model.ContractID, new SelectList(new List<SelectListItem>(), "Value", "Text"), "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
-                                                    @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                </div>
-                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? 0 })
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="CurrencyID">Valyuta</label>
-                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="vatRateInput">QQS % (ko'rinish uchun)</label>
-                                                    <input type="number" id="vatRateInput" class="form-control" value="0" step="0.01" min="0" max="100" />
-                                                </div>
-                                                <div class="col-md-9 col-12 form-group">
-                                                    <label for="invoiceFile">Invoys hujjati (PDF)</label>
-                                                    <input type="file" name="invoiceFile" id="invoiceFile" class="form-control" accept=".pdf" />
-                                                </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="InvoiceNo">Invoys raqami</label>
+                                                @Html.TextBoxFor(model => model.InvoiceNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                @Html.ValidationMessageFor(model => model.InvoiceNo, "", new { @class = "text-danger" })
+                                                <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
                                             </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="InvoiceDate">Sana</label>
+                                                @Html.TextBoxFor(model => model.InvoiceDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.InvoiceDate, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="OrderID">Buyurtma</label>
+                                                @Html.DropDownListFor(model => model.OrderID, ViewBag.POrders as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "orderSelect" })
+                                                @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
+                                                <small class="text-muted">Ixtiyoriy</small>
+                                            </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <button type="button" class="btn btn-outline-primary mt-2" id="loadOrderBtn" style="display:none;">
+                                                    <i class="bx bx-refresh"></i> Buyurtma mahsulotlarini yuklash
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="SupplierID">Ta'minotchi</label>
+                                                @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="ContractID">Shartnoma</label>
+                                                @Html.DropDownListFor(model => model.ContractID, new SelectList(new List<SelectListItem>(), "Value", "Text"), "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
+                                                @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
+                                            </div>
+                                            @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? 0 })
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="CurrencyID">Valyuta</label>
+                                                @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="vatRateInput">QQS % (ko'rinish uchun)</label>
+                                                <input type="number" id="vatRateInput" class="form-control" value="0" step="0.01" min="0" max="100" />
+                                            </div>
+                                            <div class="col-md-9 col-12 form-group">
+                                                <label for="invoiceFile">Invoys hujjati (PDF)</label>
+                                                <input type="file" name="invoiceFile" id="invoiceFile" class="form-control" accept=".pdf" />
+                                            </div>
+                                        </div>
 
-                                            <br />
-                                            <h5>Invoys mahsulotlari</h5>
-                                            
-                                            <div class="table-responsive">
-                                                <table id="invoiceProductsTable" class="table table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Mahsulot</th>
-                                                            <th>Miqdor</th>
-                                                            <th>Birlik</th>
-                                                            <th>Narx</th>
-                                                            <th>Jami</th>
-                                                            <th>Amallar</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody></tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <td colspan="4" class="text-right"><strong>Jami:</strong></td>
-                                                            <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
-                                                            <td></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td colspan="4" class="text-right"><strong>Jami (QQS bilan):</strong></td>
-                                                            <td id="totalAmountWithVat" class="text-right"><strong>0.00</strong></td>
-                                                            <td></td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
+                                        <br />
+                                        <h5>Invoys mahsulotlari</h5>
+                                        
+                                        <div class="table-responsive">
+                                            <table id="invoiceProductsTable" class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot</th>
+                                                        <th>Miqdor</th>
+                                                        <th>Birlik</th>
+                                                        <th>Narx</th>
+                                                        <th>Jami</th>
+                                                        <th>Amallar</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td colspan="4" class="text-right"><strong>Jami:</strong></td>
+                                                        <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                        <td></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4" class="text-right"><strong>Jami (QQS bilan):</strong></td>
+                                                        <td id="totalAmountWithVat" class="text-right"><strong>0.00</strong></td>
+                                                        <td></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
 
-                                            <div class="row mt-2">
-                                                <div class="col-12">
-                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                        <i class="bx bx-plus"></i> Qo'shish
-                                                    </button>
-                                                </div>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                    <i class="bx bx-plus"></i> Qo'shish
+                                                </button>
                                             </div>
+                                        </div>
 
-                                            <div class="row mt-3">
-                                                <div class="col-12">
-                                                    <button type="submit" class="btn btn-success">
-                                                        <i class="bx bx-save"></i> Saqlash
-                                                    </button>
-                                                    <a href="@Url.Action("Index", "PInvoices")" class="btn btn-secondary">
-                                                        <i class="bx bx-x"></i> Bekor qilish
-                                                    </a>
-                                                </div>
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="bx bx-save"></i> Saqlash
+                                                </button>
+                                                <a href="@Url.Action("Index", "PInvoices")" class="btn btn-secondary">
+                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                </a>
                                             </div>
-                                        }
-                                    </div>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
     </div>
+</div>
 
-    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
-    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
+<script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+<script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
+<script src="@Url.Content("~/Scripts/app/contract-picker.js")"></script>
 
-    <script>
-        // Wait for jQuery to be available
-        (function() {
-            function initInvoiceScripts() {
-                if (typeof jQuery === 'undefined') {
-                    setTimeout(initInvoiceScripts, 100);
-                    return;
+<script>
+    // Wait for jQuery to be available
+    (function() {
+        function initInvoiceScripts() {
+            if (typeof jQuery === 'undefined') {
+                setTimeout(initInvoiceScripts, 100);
+                return;
+            }
+
+            var $ = jQuery;
+
+            $(document).ready(function () {
+                if (typeof $.fn.select2 !== 'undefined') {
+                    $('.select2').select2();
                 }
 
-                var $ = jQuery;
+                var productRowIndex = 0;
+                var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData));
+                var units = @Html.Raw(Json.Encode(unitsData));
+                var $vatRateInput = $('#vatRateInput');
+                var selectedContractId = '@(Model != null && Model.ContractID.HasValue ? Model.ContractID.Value.ToString() : "")';
 
-                $(document).ready(function () {
-                    if (typeof $.fn.select2 !== 'undefined') {
-                        $('.select2').select2();
-                    }
+                function getVatRate() {
+                    var vatRate = parseFloat($vatRateInput.val());
+                    return isNaN(vatRate) || vatRate < 0 ? 0 : vatRate;
+                }
 
-                    var productRowIndex = 0;
-                    var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData));
-                    var units = @Html.Raw(Json.Encode(unitsData));
-                    var $vatRateInput = $('#vatRateInput');
-                    var selectedContractId = '@(Model != null && Model.ContractID.HasValue ? Model.ContractID.Value.ToString() : "")';
+                function toVatAmount(baseAmount) {
+                    return baseAmount * (1 + (getVatRate() / 100));
+                }
 
-                    function getVatRate() {
-                        var vatRate = parseFloat($vatRateInput.val());
-                        return isNaN(vatRate) || vatRate < 0 ? 0 : vatRate;
-                    }
+                function updateRowDisplayWithVat($row, quantity, price) {
+                    var vatPrice = toVatAmount(price);
+                    var vatTotal = toVatAmount(quantity * price);
+                    $row.find('.price-with-vat').text(vatPrice.toFixed(2));
+                    $row.find('.line-total-with-vat').text(vatTotal.toFixed(2));
+                }
 
-                    function toVatAmount(baseAmount) {
-                        return baseAmount * (1 + (getVatRate() / 100));
-                    }
+                function loadContractsBySupplier(supplierId, selectedId) {
+                    ContractPicker.load($('#contractSelect'), '@Url.Action("GetContractsBySupplier", "PInvoices")', supplierId, selectedId, { disableWithoutSupplier: true, alertOnError: true });
+                }
 
-                    function updateRowDisplayWithVat($row, quantity, price) {
-                        var vatPrice = toVatAmount(price);
-                        var vatTotal = toVatAmount(quantity * price);
-                        $row.find('.price-with-vat').text(vatPrice.toFixed(2));
-                        $row.find('.line-total-with-vat').text(vatTotal.toFixed(2));
-                    }
+                // Load contracts when supplier changes
+                $('#supplierSelect').on('change', function () {
+                    loadContractsBySupplier($(this).val(), null);
+                });
 
-                    function loadContractsBySupplier(supplierId, selectedId) {
-                        var $contractSelect = $('#contractSelect');
-                        
-                        // Clear and disable contract dropdown
-                        $contractSelect.empty().append('<option value="">---Tanlang---</option>');
-                        $contractSelect.prop('disabled', true);
-                        
-                        if (supplierId) {
-                            // Load contracts for selected supplier
-                            $.ajax({
-                                url: '@Url.Action("GetContractsBySupplier", "PInvoices")',
-                                type: 'POST',
-                                data: { supplierId: supplierId },
-                                success: function (response) {
-                                    if (response && response.success) {
-                                        $contractSelect.empty().append('<option value="">---Tanlang---</option>');
-                                        
-                                        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                                            response.data.forEach(function (contract) {
-                                                var $option = $('<option>')
-                                                    .attr('value', contract.ID)
-                                                    .attr('data-vat-rate', contract.VatRate != null ? contract.VatRate : 0)
-                                                    .text(contract.ContractNo);
-                                                if (selectedId && String(contract.ID) === String(selectedId)) {
-                                                    $option.attr('selected', 'selected');
-                                                }
-                                                $contractSelect.append($option);
-                                            });
-                                        }
-                                        
-                                        $contractSelect.prop('disabled', false);
-                                        
-                                        // Reinitialize Select2
-                                        if (typeof $.fn.select2 !== 'undefined') {
-                                            $contractSelect.select2();
-                                        }
-                                        $contractSelect.trigger('change');
-                                    } else {
-                                        // No contracts found or error in response
-                                        $contractSelect.prop('disabled', false);
-                                        if (typeof $.fn.select2 !== 'undefined') {
-                                            $contractSelect.select2();
-                                        }
-                                    }
-                                },
-                                error: function (xhr, status, error) {
-                                    console.error('Contract loading error:', status, error, xhr);
-                                    var errorMsg = 'Shartnomalarni yuklashda xatolik yuz berdi';
-                                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                                        errorMsg = xhr.responseJSON.message;
-                                    }
-                                    alert(errorMsg);
-                                    // Enable dropdown even on error
-                                    $contractSelect.prop('disabled', false);
-                                }
-                            });
-                        }
-                    }
-
-                    // Load contracts when supplier changes
-                    $('#supplierSelect').on('change', function () {
-                        loadContractsBySupplier($(this).val(), null);
-                    });
-
-                    $('#contractSelect').on('change', function () {
-                        var selected = $(this).find('option:selected');
-                        var vatRate = parseFloat(selected.attr('data-vat-rate'));
-                        if (!isNaN(vatRate)) {
-                            $vatRateInput.val(vatRate.toFixed(2));
-                            updateTotal();
-                            $('.quantity-input, .price-input').trigger('input');
-                        }
-                    });
-
-                    $vatRateInput.on('input', function () {
+                $('#contractSelect').on('change', function () {
+                    var selected = $(this).find('option:selected');
+                    var vatRate = parseFloat(selected.attr('data-vat-rate'));
+                    if (!isNaN(vatRate)) {
+                        $vatRateInput.val(vatRate.toFixed(2));
                         updateTotal();
                         $('.quantity-input, .price-input').trigger('input');
-                    });
-                    loadContractsBySupplier($('#supplierSelect').val(), selectedContractId);
+                    }
+                });
 
-                    $('#orderSelect').on('change', function () {
-                        if ($(this).val()) {
-                            $('#loadOrderBtn').show();
-                        } else {
-                            $('#loadOrderBtn').hide();
-                        }
-                    });
+                $vatRateInput.on('input', function () {
+                    updateTotal();
+                    $('.quantity-input, .price-input').trigger('input');
+                });
+                loadContractsBySupplier($('#supplierSelect').val(), selectedContractId);
 
-                    $('#loadOrderBtn').click(function () {
-                        var orderId = $('#orderSelect').val();
-                        if (!orderId) {
-                            alert('Buyurtmani tanlang');
-                            return;
-                        }
+                $('#orderSelect').on('change', function () {
+                    if ($(this).val()) {
+                        $('#loadOrderBtn').show();
+                    } else {
+                        $('#loadOrderBtn').hide();
+                    }
+                });
 
-                        $.ajax({
-                            url: '@Url.Action("LoadOrderProducts", "PInvoices")',
-                            type: 'POST',
-                            data: { orderId: orderId },
-                            success: function (response) {
-                                if (response.success) {
-                                    $('#invoiceProductsTable tbody').empty();
-                                    productRowIndex = 0;
+                $('#loadOrderBtn').click(function () {
+                    var orderId = $('#orderSelect').val();
+                    if (!orderId) {
+                        alert('Buyurtmani tanlang');
+                        return;
+                    }
 
-                                    response.data.forEach(function (item) {
-                                        addProductRow(item.ProductID, item.ProductPNo, item.ProductName, 
-                                                     item.Quantity, item.UnitID, item.Price);
-                                    });
+                    $.ajax({
+                        url: '@Url.Action("LoadOrderProducts", "PInvoices")',
+                        type: 'POST',
+                        data: { orderId: orderId },
+                        success: function (response) {
+                            if (response.success) {
+                                $('#invoiceProductsTable tbody').empty();
+                                productRowIndex = 0;
 
-                                    updateTotal();
-                                    alert('Buyurtma mahsulotlari muvaffaqiyatli yuklandi');
-                                } else {
-                                    alert('Xatolik: ' + response.message);
-                                }
-                            },
-                            error: function () {
-                                alert('Server xatoligi yuz berdi');
+                                response.data.forEach(function (item) {
+                                    addProductRow(item.ProductID, item.ProductPNo, item.ProductName, 
+                                                 item.Quantity, item.UnitID, item.Price);
+                                });
+
+                                updateTotal();
+                                alert('Buyurtma mahsulotlari muvaffaqiyatli yuklandi');
+                            } else {
+                                alert('Xatolik: ' + response.message);
                             }
-                        });
-                    });
-
-                    $(document).on('click', '#addRowBtn', function () {
-                        addProductRow(null, '', '', 0, null, 0);
-                    });
-
-                    function addProductRow(productId, productPNo, productName, quantity, unitId, price) {
-                var row = '<tr data-row-index="' + productRowIndex + '">' +
-                    '<td>' +
-                        '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
-                        ProductSelect.optionsHtml(purchasableProducts, productId, (productPNo ? productPNo + ' - ' + (productName || '') : null));
-                
-                row += '</select></td>' +
-                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
-                    '<td>' +
-                        '<select name="InvoiceProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
-                        '<option value="">---Tanlang---</option>';
-                
-                units.forEach(function (unit) {
-                    var selected = unit.Value == unitId ? 'selected' : '';
-                    row += '<option value="' + unit.Value + '" ' + selected + '>' + htmlEscape(unit.Text) + '</option>';
-                });
-                
-                row += '</select></td>' +
-                    '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
-                    '<td><small class="text-muted d-block">QQS bilan: <span class="price-with-vat">0.00</span></small><input type="number" name="InvoiceProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /><small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small></td>' +
-                    '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
-                    '</tr>';
-
-                        $('#invoiceProductsTable tbody').append(row);
-                        
-                        if (typeof $.fn.select2 !== 'undefined') {
-                            ProductSelect.attach($('select.product-select').last(), purchasableProducts);
-                            $('select.unit-select').last().select2();
-                        }
-
-                        productRowIndex++;
-                    }
-
-                    $(document).on('click', '.remove-row', function () {
-                        $(this).closest('tr').remove();
-                        updateTotal();
-                    });
-
-                    $(document).on('input', '.quantity-input, .price-input', function () {
-                        var $row = $(this).closest('tr');
-                        var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
-                        var price = parseFloat($row.find('.price-input').val()) || 0;
-                        var total = quantity * price;
-                        $row.find('.total-price').val(total.toFixed(2));
-                        updateRowDisplayWithVat($row, quantity, price);
-                        updateTotal();
-                    });
-
-                    function updateTotal() {
-                        var total = 0;
-                        $('.total-price').each(function () {
-                            total += parseFloat($(this).val()) || 0;
-                        });
-                        $('#totalAmount').text(total.toFixed(2));
-                        $('#totalAmountWithVat').text(toVatAmount(total).toFixed(2));
-                    }
-
-                    $('#invoiceForm').submit(function (e) {
-                        if ($('#invoiceProductsTable tbody tr').length === 0) {
-                            e.preventDefault();
-                            alert('Kamida bitta mahsulot qo\'shilishi kerak');
-                            return false;
+                        },
+                        error: function () {
+                            alert('Server xatoligi yuz berdi');
                         }
                     });
                 });
-            }
+
+                $(document).on('click', '#addRowBtn', function () {
+                    addProductRow(null, '', '', 0, null, 0);
+                });
+
+                function addProductRow(productId, productPNo, productName, quantity, unitId, price) {
+            var row = '<tr data-row-index="' + productRowIndex + '">' +
+                '<td>' +
+                    '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                    ProductSelect.optionsHtml(purchasableProducts, productId, (productPNo ? productPNo + ' - ' + (productName || '') : null));
             
-            // Start initialization
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initInvoiceScripts);
-            } else {
-                initInvoiceScripts();
-            }
-        })();
-    </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+            row += '</select></td>' +
+                '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
+                '<td>' +
+                    '<select name="InvoiceProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
+                    '<option value="">---Tanlang---</option>';
+            
+            units.forEach(function (unit) {
+                var selected = unit.Value == unitId ? 'selected' : '';
+                row += '<option value="' + unit.Value + '" ' + selected + '>' + htmlEscape(unit.Text) + '</option>';
+            });
+            
+            row += '</select></td>' +
+                '<td><input type="number" name="InvoiceProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
+                '<td><small class="text-muted d-block">QQS bilan: <span class="price-with-vat">0.00</span></small><input type="number" name="InvoiceProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /><small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small></td>' +
+                '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
+                '</tr>';
+
+                    $('#invoiceProductsTable tbody').append(row);
+                    
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        ProductSelect.attach($('select.product-select').last(), purchasableProducts);
+                        $('select.unit-select').last().select2();
+                    }
+
+                    productRowIndex++;
+                }
+
+                $(document).on('click', '.remove-row', function () {
+                    $(this).closest('tr').remove();
+                    updateTotal();
+                });
+
+                $(document).on('input', '.quantity-input, .price-input', function () {
+                    var $row = $(this).closest('tr');
+                    var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
+                    var price = parseFloat($row.find('.price-input').val()) || 0;
+                    var total = quantity * price;
+                    $row.find('.total-price').val(total.toFixed(2));
+                    updateRowDisplayWithVat($row, quantity, price);
+                    updateTotal();
+                });
+
+                function updateTotal() {
+                    var total = 0;
+                    $('.total-price').each(function () {
+                        total += parseFloat($(this).val()) || 0;
+                    });
+                    $('#totalAmount').text(total.toFixed(2));
+                    $('#totalAmountWithVat').text(toVatAmount(total).toFixed(2));
+                }
+
+                $('#invoiceForm').submit(function (e) {
+                    if ($('#invoiceProductsTable tbody tr').length === 0) {
+                        e.preventDefault();
+                        alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                        return false;
+                    }
+                });
+            });
+        }
+        
+        // Start initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initInvoiceScripts);
+        } else {
+            initInvoiceScripts();
+        }
+    })();
+</script>

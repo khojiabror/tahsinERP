@@ -60,6 +60,16 @@
                                                         @Html.TextBoxFor(model => model.SortOrder, new { @class = "form-control round", @type = "number" })
                                                         @Html.ValidationMessageFor(model => model.SortOrder, "", new { @class = "text-danger" })
                                                     </fieldset>
+                                                    <h6 class="invoice-to">Rang</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        <input type="color" name="ColorHex" class="form-control round" style="height: 40px; max-width: 120px;" value="@(string.IsNullOrEmpty(Model?.ColorHex) ? "#6C757D" : Model.ColorHex)" />
+                                                        <small class="text-muted">Badge va grafiklardagi rang</small>
+                                                    </fieldset>
+                                                    <h6 class="invoice-to">Yopilgan holat</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.CheckBoxFor(model => model.IsFinal)
+                                                        @Html.LabelFor(model => model.IsFinal, "Yopilgan (bajarilgan yoki bekor) — muddati o'tgan hisoblanmaydi")
+                                                    </fieldset>
                                                     <h6 class="invoice-to">Faol</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.CheckBoxFor(model => model.IsActive)
