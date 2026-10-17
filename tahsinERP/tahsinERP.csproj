@@ -851,6 +851,7 @@
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\VatMath.cs" />
     <Compile Include="Services\Procurement\ProcurementLookups.cs" />
+    <Compile Include="Services\Procurement\ServerTablePage.cs" />
     <Compile Include="Services\Procurement\PdfUpload.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />

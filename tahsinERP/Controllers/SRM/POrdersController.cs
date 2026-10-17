@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.POrder;
 using tahsinERP.Filters;
 using tahsinERP.Services.Common;
@@ -20,8 +21,117 @@ namespace tahsinERP.Controllers
     {
         private const string Module = "POrders";
 
-        // Olish so'rovi: POrders
-        public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
+        // Olish so'rovi: POrders — sahifa faqat filtr va jadval qobig'i; qatorlar IndexData orqali (SRM-P03)
+        public ActionResult Index(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return NotAuthorized();
+            }
+
+            ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+            ViewBag.SupplierID = supplierID;
+            ViewBag.ContractID = contractID;
+            ViewBag.ChangePermit = CanChange(Module);
+            return View();
+        }
+
+        /// <summary>Buyurtmalar ro'yxati qatori (proyeksiya).</summary>
+        public sealed class POrderIndexRow
+        {
+            public int ID { get; set; }
+            public string OrderNo { get; set; }
+            public byte PurchaseType { get; set; }
+            public DateTime IssuedDate { get; set; }
+            public double? Amount { get; set; }
+            public string Currency { get; set; }
+        }
+
+        private static IQueryable<POrderIndexRow> BuildIndexQuery(DBTHSNEntities db, string purchaseTypeFilter, int? supplierID, int? contractID)
+        {
+            var query = db.P_ORDERS.AsNoTracking().Where(o => o.IsDeleted != true);
+
+            if (supplierID.HasValue && supplierID.Value > 0)
+            {
+                query = query.Where(o => o.SupplierID == supplierID.Value);
+            }
+
+            if (contractID.HasValue && contractID.Value > 0)
+            {
+                query = query.Where(o => o.ContractID == contractID.Value);
+            }
+
+            if (!string.IsNullOrEmpty(purchaseTypeFilter))
+            {
+                byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
+                query = query.Where(o => o.PurchaseType == purchaseType);
+            }
+
+            return query.Select(o => new POrderIndexRow
+            {
+                ID = o.ID,
+                OrderNo = o.OrderNo,
+                PurchaseType = o.PurchaseType,
+                IssuedDate = o.IssuedDate,
+                Amount = o.Amount,
+                Currency = o.CURRENCy.Shortname
+            });
+        }
+
+        private static IQueryable<POrderIndexRow> SearchIndex(IQueryable<POrderIndexRow> query, string s)
+        {
+            return query.Where(r => r.OrderNo.Contains(s) || r.Currency.Contains(s));
+        }
+
+        private static IOrderedQueryable<POrderIndexRow> OrderIndex(IQueryable<POrderIndexRow> query, int column, bool desc)
+        {
+            switch (column)
+            {
+                case 0: return ServerTablePage.By(query, r => r.OrderNo, desc).ThenByDescending(r => r.ID);
+                case 1: return ServerTablePage.By(query, r => r.PurchaseType, desc).ThenByDescending(r => r.ID);
+                case 3: return ServerTablePage.By(query, r => r.Amount, desc).ThenByDescending(r => r.ID);
+                case 4: return ServerTablePage.By(query, r => r.Currency, desc).ThenByDescending(r => r.ID);
+                default: return desc ? query.OrderByDescending(r => r.IssuedDate).ThenByDescending(r => r.ID)
+                                     : query.OrderBy(r => r.IssuedDate).ThenBy(r => r.ID);
+            }
+        }
+
+        // Olish so'rovi: POrders/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 2);
+            using (var db = new DBTHSNEntities())
+            {
+                var result = await ServerTablePage.LoadAsync(
+                    BuildIndexQuery(db, purchaseTypeFilter, supplierID, contractID), page, SearchIndex, OrderIndex);
+
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(r => new
+                    {
+                        id = r.ID,
+                        orderNo = r.OrderNo,
+                        indirect = r.PurchaseType == ProcurementLookups.IndirectPurchase,
+                        date = r.IssuedDate.ToString("dd.MM.yyyy"),
+                        amount = (r.Amount ?? 0).ToString("N2"),
+                        currency = r.Currency ?? ""
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Olish so'rovi: POrders/ExportExcel — filtr va qidiruv bo'yicha barcha yozuvlar
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null, string q = null)
         {
             if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
             {
@@ -30,38 +140,21 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Ro'yxat faqat CURRENCy navigatsiyasini ishlatadi; kuzatuvsiz (SRM-P03)
-                var query = db.P_ORDERS
-                    .AsNoTracking()
-                    .Include(o => o.CURRENCy)
-                    .Where(o => o.IsDeleted != true);
-
-                if (supplierID.HasValue && supplierID.Value > 0)
+                var query = BuildIndexQuery(db, purchaseTypeFilter, supplierID, contractID);
+                if (!string.IsNullOrWhiteSpace(q))
                 {
-                    query = query.Where(o => o.SupplierID == supplierID.Value);
+                    query = SearchIndex(query, q.Trim());
                 }
 
-                if (contractID.HasValue && contractID.Value > 0)
-                {
-                    query = query.Where(o => o.ContractID == contractID.Value);
-                }
+                var rows = await OrderIndex(query, 2, true).ToListAsync();
+                var bytes = ExcelExport.Create("Xarid buyurtmalari", rows,
+                    ExcelExport.Col<POrderIndexRow>("Buyurtma raqami", r => r.OrderNo),
+                    ExcelExport.Col<POrderIndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<POrderIndexRow>("Sana", r => r.IssuedDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<POrderIndexRow>("Summa (QQS bilan)", r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<POrderIndexRow>("Valyuta", r => r.Currency));
 
-                if (!string.IsNullOrEmpty(purchaseTypeFilter))
-                {
-                    byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
-                    query = query.Where(o => o.PurchaseType == purchaseType);
-                }
-
-                var orders = await query
-                    .OrderByDescending(o => o.IssuedDate)
-                    .ToListAsync();
-
-                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
-                ViewBag.SupplierID = supplierID;
-                ViewBag.ContractID = contractID;
-                ViewBag.ChangePermit = CanChange(Module);
-
-                return View(orders);
+                return File(bytes, ExcelExport.ContentType, $"Xarid_buyurtmalari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 

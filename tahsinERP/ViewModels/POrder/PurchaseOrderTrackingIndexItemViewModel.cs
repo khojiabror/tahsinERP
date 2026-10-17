@@ -1,13 +1,5 @@
-using tahsinERP.Models;
-
 namespace tahsinERP.ViewModels
 {
-    public class PurchaseOrderTrackingIndexItemViewModel
-    {
-        public P_ORDERS POrder { get; set; }
-        public OrderTrackingStatusViewModel TrackingStatus { get; set; }
-    }
-
     public class OrderTrackingStatusViewModel
     {
         public int OrderID { get; set; }

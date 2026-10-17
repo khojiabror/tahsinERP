@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
+using tahsinERP.ViewModels;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
@@ -18,7 +19,7 @@ namespace tahsinERP.Controllers
     {
         private const string Module = "PInvoices";
 
-        // Olish so'rovi: PInvoices
+        // Olish so'rovi: PInvoices — sahifa faqat filtr va jadval qobig'i; qatorlar IndexData orqali (SRM-P03)
         public async Task<ActionResult> Index(
             string purchaseTypeFilter = "",
             int? supplierID = null,
@@ -33,74 +34,197 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Faqat ro'yxatda ko'rsatiladigan navigatsiyalar; kuzatuvsiz (SRM-P03)
-                var query = db.P_INVOICES
-                    .AsNoTracking()
-                    .Include(i => i.SUPPLIER)
-                    .Include(i => i.P_ORDERS)
-                    .Include(i => i.P_CONTRACTS)
-                    .Where(i => i.IsDeleted != true);
-
-                if (supplierID.HasValue && supplierID.Value > 0)
-                {
-                    query = query.Where(i => i.SupplierID == supplierID.Value);
-                }
-
-                if (contractID.HasValue && contractID.Value > 0)
-                {
-                    query = query.Where(i => i.ContractID == contractID.Value);
-                }
-
-                if (!string.IsNullOrEmpty(purchaseTypeFilter))
-                {
-                    byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
-                    query = query.Where(i => i.PurchaseType == purchaseType);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    var from = fromDate.Value.Date;
-                    query = query.Where(i => i.InvoiceDate >= from);
-                }
-                if (toDate.HasValue)
-                {
-                    var toExclusive = toDate.Value.Date.AddDays(1);
-                    query = query.Where(i => i.InvoiceDate < toExclusive);
-                }
-
                 ViewBag.Suppliers = ProcurementLookups.Suppliers(supplierID);
                 ViewBag.Contracts = await ProcurementLookups.AllContractsAsync(db, contractID);
+            }
 
-                var invoices = await query
-                    .OrderByDescending(i => i.InvoiceDate)
-                    .ToListAsync();
+            ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+            ViewBag.SupplierID = supplierID;
+            ViewBag.ContractID = contractID;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.ChangePermit = CanChange(Module);
+            return View();
+        }
 
-                // QQS (VAT) faqat P_CONTRACT da saqlanadi. Har bir invoysga bog'langan
-                // shartnomaning QQS stavkasini hisoblab, viewda invoice summasiga qo'shib ko'rsatamiz.
-                var contractIds = invoices
-                    .Select(i => i.ContractID > 0 ? (int?)i.ContractID : i.P_ORDERS?.ContractID)
-                    .Where(cid => cid.HasValue && cid.Value > 0)
-                    .Select(cid => cid.Value)
+        /// <summary>Invoyslar ro'yxati qatori (proyeksiya).</summary>
+        public sealed class PInvoiceIndexRow
+        {
+            public int ID { get; set; }
+            public string InvoiceNo { get; set; }
+            public int SupplierID { get; set; }
+            public string SupplierName { get; set; }
+            public byte PurchaseType { get; set; }
+            public int? OrderID { get; set; }
+            public string OrderNo { get; set; }
+            public int ContractID { get; set; }
+            public string ContractNo { get; set; }
+            public int? VatContractID { get; set; }
+            public double? Amount { get; set; }
+            public double? Net { get; set; }
+            public DateTime InvoiceDate { get; set; }
+        }
+
+        private static IQueryable<PInvoiceIndexRow> BuildIndexQuery(DBTHSNEntities db, string purchaseTypeFilter,
+            int? supplierID, int? contractID, DateTime? fromDate, DateTime? toDate)
+        {
+            var query = db.P_INVOICES.AsNoTracking().Where(i => i.IsDeleted != true);
+
+            if (supplierID.HasValue && supplierID.Value > 0)
+            {
+                query = query.Where(i => i.SupplierID == supplierID.Value);
+            }
+
+            if (contractID.HasValue && contractID.Value > 0)
+            {
+                query = query.Where(i => i.ContractID == contractID.Value);
+            }
+
+            if (!string.IsNullOrEmpty(purchaseTypeFilter))
+            {
+                byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
+                query = query.Where(i => i.PurchaseType == purchaseType);
+            }
+
+            if (fromDate.HasValue)
+            {
+                var from = fromDate.Value.Date;
+                query = query.Where(i => i.InvoiceDate >= from);
+            }
+            if (toDate.HasValue)
+            {
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(i => i.InvoiceDate < toExclusive);
+            }
+
+            return query.Select(i => new PInvoiceIndexRow
+            {
+                ID = i.ID,
+                InvoiceNo = i.InvoiceNo,
+                SupplierID = i.SupplierID,
+                SupplierName = i.SUPPLIER.Name,
+                PurchaseType = i.PurchaseType,
+                OrderID = i.OrderID,
+                OrderNo = i.P_ORDERS.OrderNo,
+                ContractID = i.ContractID,
+                ContractNo = i.P_CONTRACTS.ContractNo,
+                // QQS stavkasi shartnomadan: invoysning o'zi yoki buyurtmasi orqali (SRM-B18)
+                VatContractID = i.ContractID > 0 ? (int?)i.ContractID : i.P_ORDERS.ContractID,
+                Amount = i.Amount,
+                // Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa — qatorlar yig'indisi
+                Net = i.P_INVOICE_PRODUCTS.Sum(x => (double?)x.TotalPrice),
+                InvoiceDate = i.InvoiceDate
+            });
+        }
+
+        private static IQueryable<PInvoiceIndexRow> SearchIndex(IQueryable<PInvoiceIndexRow> query, string s)
+        {
+            return query.Where(r => r.InvoiceNo.Contains(s) || r.SupplierName.Contains(s)
+                || r.OrderNo.Contains(s) || r.ContractNo.Contains(s));
+        }
+
+        private static IOrderedQueryable<PInvoiceIndexRow> OrderIndex(IQueryable<PInvoiceIndexRow> query, int column, bool desc)
+        {
+            switch (column)
+            {
+                case 0: return ServerTablePage.By(query, r => r.InvoiceNo, desc).ThenByDescending(r => r.ID);
+                case 1: return ServerTablePage.By(query, r => r.SupplierName, desc).ThenByDescending(r => r.ID);
+                case 2: return ServerTablePage.By(query, r => r.PurchaseType, desc).ThenByDescending(r => r.ID);
+                case 3: return ServerTablePage.By(query, r => r.OrderNo, desc).ThenByDescending(r => r.ID);
+                case 4: return ServerTablePage.By(query, r => r.ContractNo, desc).ThenByDescending(r => r.ID);
+                case 5: return ServerTablePage.By(query, r => r.Amount, desc).ThenByDescending(r => r.ID);
+                default: return desc ? query.OrderByDescending(r => r.InvoiceDate).ThenByDescending(r => r.ID)
+                                     : query.OrderBy(r => r.InvoiceDate).ThenBy(r => r.ID);
+            }
+        }
+
+        // Olish so'rovi: PInvoices/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 6);
+            using (var db = new DBTHSNEntities())
+            {
+                var result = await ServerTablePage.LoadAsync(
+                    BuildIndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate), page, SearchIndex, OrderIndex);
+
+                // QQS stavkalari faqat joriy sahifadagi shartnomalar uchun
+                var contractIds = result.Rows
+                    .Where(r => r.VatContractID.HasValue && r.VatContractID.Value > 0)
+                    .Select(r => r.VatContractID.Value)
                     .Distinct()
                     .ToList();
-                ViewBag.VatRatesByContract = await PContractVatHelper.GetContractVatRatesAsync(db, contractIds);
+                var vatRates = await PContractVatHelper.GetContractVatRatesAsync(db, contractIds);
 
-                // P_INVOICES.Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa qatorlardan
-                var invoiceIds = invoices.Select(i => i.ID).ToList();
-                ViewBag.NetByInvoice = await db.P_INVOICE_PRODUCTS
-                    .Where(ip => invoiceIds.Contains(ip.InvoiceID))
-                    .GroupBy(ip => ip.InvoiceID)
-                    .Select(g => new { InvoiceID = g.Key, Net = g.Sum(x => x.TotalPrice) })
-                    .ToDictionaryAsync(x => x.InvoiceID, x => x.Net);
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(r =>
+                    {
+                        double rate;
+                        if (!r.VatContractID.HasValue || !vatRates.TryGetValue(r.VatContractID.Value, out rate))
+                        {
+                            rate = 0d;
+                        }
 
-                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
-                ViewBag.SupplierID = supplierID;
-                ViewBag.ContractID = contractID;
-                ViewBag.FromDate = fromDate;
-                ViewBag.ToDate = toDate;
-                ViewBag.ChangePermit = CanChange(Module);
+                        var gross = r.Amount ?? 0d;
+                        return new
+                        {
+                            id = r.ID,
+                            invoiceNo = r.InvoiceNo,
+                            supplierId = r.SupplierID,
+                            supplier = r.SupplierName,
+                            indirect = r.PurchaseType == ProcurementLookups.IndirectPurchase,
+                            orderId = r.OrderID,
+                            orderNo = r.OrderNo,
+                            contractId = r.ContractID,
+                            contractNo = r.ContractNo,
+                            amount = gross.ToString("N2"),
+                            vatNote = rate > 0 ? $"{(r.Net ?? gross):N2} + QQS {rate:0.##}%" : null,
+                            date = r.InvoiceDate.ToString("dd.MM.yyyy")
+                        };
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
-                return View(invoices);
+        // Olish so'rovi: PInvoices/ExportExcel — filtr va qidiruv bo'yicha barcha yozuvlar
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null, string q = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return NotAuthorized();
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var query = BuildIndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate);
+                if (!string.IsNullOrWhiteSpace(q))
+                {
+                    query = SearchIndex(query, q.Trim());
+                }
+
+                var rows = await OrderIndex(query, 6, true).ToListAsync();
+                var bytes = ExcelExport.Create("Xarid invoyslari", rows,
+                    ExcelExport.Col<PInvoiceIndexRow>("Invoys raqami", r => r.InvoiceNo),
+                    ExcelExport.Col<PInvoiceIndexRow>("Ta'minotchi", r => r.SupplierName),
+                    ExcelExport.Col<PInvoiceIndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<PInvoiceIndexRow>("Buyurtma raqami", r => r.OrderNo),
+                    ExcelExport.Col<PInvoiceIndexRow>("Shartnoma raqami", r => r.ContractNo),
+                    ExcelExport.Col<PInvoiceIndexRow>("Invoys summasi (QQS bilan)", r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<PInvoiceIndexRow>("Sana", r => r.InvoiceDate, "dd.MM.yyyy"));
+
+                return File(bytes, ExcelExport.ContentType, $"Xarid_invoyslari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 

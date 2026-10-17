@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
+using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.PRequisition;
 
 namespace tahsinERP.Controllers.SRM
@@ -15,8 +16,122 @@ namespace tahsinERP.Controllers.SRM
     {
         private const string Module = "PRequisitions";
 
-        // Olish so'rovi: PRequisitions
-        public async Task<ActionResult> Index(string statusFilter = "")
+        // Olish so'rovi: PRequisitions — sahifa faqat filtr va jadval qobig'i; qatorlar IndexData orqali (SRM-P03)
+        public ActionResult Index(string statusFilter = "")
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return NotAuthorized();
+            }
+
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.ChangePermit = CanChange(Module);
+            ViewBag.StatusList = new SelectList(new[]
+            {
+                new { Value = "", Text = "All" },
+                new { Value = "Draft", Text = "Draft" },
+                new { Value = "Submitted", Text = "Submitted" },
+                new { Value = "Approved", Text = "Approved" },
+                new { Value = "Rejected", Text = "Rejected" },
+                new { Value = "ConvertedToOrder", Text = "Converted to Order" }
+            }, "Value", "Text", statusFilter);
+            return View();
+        }
+
+        /// <summary>Talabnomalar ro'yxati qatori (proyeksiya; qatorlar soni va summasi SQL'da).</summary>
+        public sealed class PRequisitionIndexRow
+        {
+            public int ID { get; set; }
+            public string RequisitionNo { get; set; }
+            public DateTime RequisitionDate { get; set; }
+            public string DepartmentName { get; set; }
+            public string RequesterName { get; set; }
+            public string Status { get; set; }
+            public int LineCount { get; set; }
+            public double? Total { get; set; }
+        }
+
+        private static IQueryable<PRequisitionIndexRow> BuildIndexQuery(DBTHSNEntities db, string statusFilter)
+        {
+            var query = db.P_REQUISITIONS.AsNoTracking().Where(r => r.IsDeleted != true);
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                query = query.Where(r => r.Status == statusFilter);
+            }
+
+            // Bo'lim va so'rovchi nomi — navigatsiya yo'q, korrelyatsiyalangan so'rov (SRM-B19)
+            return query.Select(r => new PRequisitionIndexRow
+            {
+                ID = r.ID,
+                RequisitionNo = r.RequisitionNo,
+                RequisitionDate = r.RequisitionDate,
+                DepartmentName = db.HR_ORG_UNITS.Where(d => d.ID == r.DepartmentID).Select(d => d.Name).FirstOrDefault(),
+                RequesterName = db.HR_EMPLOYEES.Where(e => e.ID == r.RequesterID).Select(e => e.FullName).FirstOrDefault(),
+                Status = r.Status,
+                LineCount = r.P_REQUISITION_PRODUCTS.Count(),
+                Total = r.P_REQUISITION_PRODUCTS.Sum(p => p.Amount)
+            });
+        }
+
+        private static IQueryable<PRequisitionIndexRow> SearchIndex(IQueryable<PRequisitionIndexRow> query, string s)
+        {
+            return query.Where(r => r.RequisitionNo.Contains(s) || r.DepartmentName.Contains(s)
+                || r.RequesterName.Contains(s) || r.Status.Contains(s));
+        }
+
+        private static IOrderedQueryable<PRequisitionIndexRow> OrderIndex(IQueryable<PRequisitionIndexRow> query, int column, bool desc)
+        {
+            switch (column)
+            {
+                case 0: return ServerTablePage.By(query, r => r.RequisitionNo, desc).ThenByDescending(r => r.ID);
+                case 2: return ServerTablePage.By(query, r => r.DepartmentName, desc).ThenByDescending(r => r.ID);
+                case 3: return ServerTablePage.By(query, r => r.RequesterName, desc).ThenByDescending(r => r.ID);
+                case 4: return ServerTablePage.By(query, r => r.Status, desc).ThenByDescending(r => r.ID);
+                case 5: return ServerTablePage.By(query, r => r.LineCount, desc).ThenByDescending(r => r.ID);
+                case 6: return ServerTablePage.By(query, r => r.Total, desc).ThenByDescending(r => r.ID);
+                default: return desc ? query.OrderByDescending(r => r.RequisitionDate).ThenByDescending(r => r.ID)
+                                     : query.OrderBy(r => r.RequisitionDate).ThenBy(r => r.ID);
+            }
+        }
+
+        // Olish so'rovi: PRequisitions/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(string statusFilter = "")
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 1);
+            using (var db = new DBTHSNEntities())
+            {
+                var result = await ServerTablePage.LoadAsync(BuildIndexQuery(db, statusFilter), page, SearchIndex, OrderIndex);
+
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(r => new
+                    {
+                        id = r.ID,
+                        requisitionNo = r.RequisitionNo,
+                        date = r.RequisitionDate.ToString("dd.MM.yyyy"),
+                        department = r.DepartmentName,
+                        requester = r.RequesterName,
+                        status = r.Status,
+                        lineCount = r.LineCount,
+                        total = (r.Total ?? 0).ToString("N2")
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Olish so'rovi: PRequisitions/ExportExcel — filtr va qidiruv bo'yicha barcha yozuvlar
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(string statusFilter = "", string q = null)
         {
             if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
             {
@@ -25,44 +140,23 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
-                var query = db.P_REQUISITIONS
-                    .AsNoTracking()
-                    .Include(r => r.P_REQUISITION_PRODUCTS)
-                    .Where(r => r.IsDeleted != true);
-
-                if (!string.IsNullOrEmpty(statusFilter))
+                var query = BuildIndexQuery(db, statusFilter);
+                if (!string.IsNullOrWhiteSpace(q))
                 {
-                    query = query.Where(r => r.Status == statusFilter);
+                    query = SearchIndex(query, q.Trim());
                 }
 
-                var requisitions = await query
-                    .OrderByDescending(r => r.RequisitionDate)
-                    .ToListAsync();
+                var rows = await OrderIndex(query, 1, true).ToListAsync();
+                var bytes = ExcelExport.Create("Xarid arizalari", rows,
+                    ExcelExport.Col<PRequisitionIndexRow>("Ariza raqami", r => r.RequisitionNo),
+                    ExcelExport.Col<PRequisitionIndexRow>("Sana", r => r.RequisitionDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<PRequisitionIndexRow>("Bo'lim", r => r.DepartmentName),
+                    ExcelExport.Col<PRequisitionIndexRow>("So'rovchi", r => r.RequesterName),
+                    ExcelExport.Col<PRequisitionIndexRow>("Status", r => r.Status),
+                    ExcelExport.Col<PRequisitionIndexRow>("Mahsulotlar soni", r => r.LineCount),
+                    ExcelExport.Col<PRequisitionIndexRow>("Jami summa", r => r.Total ?? 0, "#,##0.00"));
 
-                // Bo'lim va so'rovchi nomlari — faqat sahifadagi ID'lar bo'yicha. View ularni kutardi,
-                // lekin controller hech qachon bermagani uchun ustunlar doim bo'sh edi (SRM-B19).
-                var departmentIds = requisitions.Where(r => r.DepartmentID.HasValue).Select(r => r.DepartmentID.Value).Distinct().ToList();
-                var requesterIds = requisitions.Select(r => r.RequesterID).Distinct().ToList();
-                ViewBag.DepartmentsDict = await db.HR_ORG_UNITS.AsNoTracking()
-                    .Where(d => departmentIds.Contains(d.ID))
-                    .ToDictionaryAsync(d => d.ID, d => d.Name);
-                ViewBag.EmployeesDict = await db.HR_EMPLOYEES.AsNoTracking()
-                    .Where(e => requesterIds.Contains(e.ID))
-                    .ToDictionaryAsync(e => e.ID, e => e.FullName);
-
-                ViewBag.StatusFilter = statusFilter;
-                ViewBag.ChangePermit = CanChange(Module);
-                ViewBag.StatusList = new SelectList(new[]
-                {
-                    new { Value = "", Text = "All" },
-                    new { Value = "Draft", Text = "Draft" },
-                    new { Value = "Submitted", Text = "Submitted" },
-                    new { Value = "Approved", Text = "Approved" },
-                    new { Value = "Rejected", Text = "Rejected" },
-                    new { Value = "ConvertedToOrder", Text = "Converted to Order" }
-                }, "Value", "Text", statusFilter);
-
-                return View(requisitions);
+                return File(bytes, ExcelExport.ContentType, $"Xarid_arizalari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 

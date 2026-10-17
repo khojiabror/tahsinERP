@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
+using tahsinERP.ViewModels;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
@@ -21,7 +22,7 @@ namespace tahsinERP.Controllers
         /// <summary>UNITS.ID: m3 — kesiladigan mahsulotlar shartnomada CBM'da yuritiladi.</summary>
         private const int CubicMeterUnitId = 11;
 
-        // Olish so'rovi: PContracts
+        // Olish so'rovi: PContracts — sahifa faqat filtr va jadval qobig'i; qatorlar IndexData orqali (SRM-P03)
         public async Task<ActionResult> Index(
             string purchaseTypeFilter = "",
             int? supplierID = null,
@@ -36,54 +37,160 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                // Ro'yxat faqat SUPPLIER navigatsiyasini ishlatadi; kuzatuvsiz (SRM-P03)
-                var query = db.P_CONTRACTS
-                    .AsNoTracking()
-                    .Include(c => c.SUPPLIER)
-                    .Where(c => c.IsDeleted != true);
-
-                if (supplierID.HasValue && supplierID.Value > 0)
-                {
-                    query = query.Where(c => c.SupplierID == supplierID.Value);
-                }
-
-                if (contractID.HasValue && contractID.Value > 0)
-                {
-                    query = query.Where(c => c.ID == contractID.Value);
-                }
-
-                if (!string.IsNullOrEmpty(purchaseTypeFilter))
-                {
-                    byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
-                    query = query.Where(c => c.PurchaseType == purchaseType);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    var from = fromDate.Value.Date;
-                    query = query.Where(c => c.IssuedDate >= from);
-                }
-                if (toDate.HasValue)
-                {
-                    var toExclusive = toDate.Value.Date.AddDays(1);
-                    query = query.Where(c => c.IssuedDate < toExclusive);
-                }
-
                 ViewBag.Suppliers = ProcurementLookups.Suppliers(supplierID);
                 ViewBag.Contracts = await ProcurementLookups.AllContractsAsync(db, contractID);
+            }
 
-                var contracts = await query
-                    .OrderByDescending(c => c.IssuedDate)
-                    .ToListAsync();
+            ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+            ViewBag.SupplierID = supplierID;
+            ViewBag.ContractID = contractID;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.ChangePermit = CanChange(Module);
+            return View();
+        }
 
-                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
-                ViewBag.SupplierID = supplierID;
-                ViewBag.ContractID = contractID;
-                ViewBag.FromDate = fromDate;
-                ViewBag.ToDate = toDate;
-                ViewBag.ChangePermit = CanChange(Module);
+        /// <summary>Shartnomalar ro'yxati qatori (proyeksiya).</summary>
+        public sealed class PContractIndexRow
+        {
+            public int ID { get; set; }
+            public string ContractNo { get; set; }
+            public int SupplierID { get; set; }
+            public string SupplierName { get; set; }
+            public byte PurchaseType { get; set; }
+            public double? Amount { get; set; }
+            public string PaymentTerms { get; set; }
+            public DateTime IssuedDate { get; set; }
+        }
 
-                return View(contracts);
+        private static IQueryable<PContractIndexRow> BuildIndexQuery(DBTHSNEntities db, string purchaseTypeFilter,
+            int? supplierID, int? contractID, DateTime? fromDate, DateTime? toDate)
+        {
+            var query = db.P_CONTRACTS.AsNoTracking().Where(c => c.IsDeleted != true);
+
+            if (supplierID.HasValue && supplierID.Value > 0)
+            {
+                query = query.Where(c => c.SupplierID == supplierID.Value);
+            }
+
+            if (contractID.HasValue && contractID.Value > 0)
+            {
+                query = query.Where(c => c.ID == contractID.Value);
+            }
+
+            if (!string.IsNullOrEmpty(purchaseTypeFilter))
+            {
+                byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
+                query = query.Where(c => c.PurchaseType == purchaseType);
+            }
+
+            if (fromDate.HasValue)
+            {
+                var from = fromDate.Value.Date;
+                query = query.Where(c => c.IssuedDate >= from);
+            }
+            if (toDate.HasValue)
+            {
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(c => c.IssuedDate < toExclusive);
+            }
+
+            return query.Select(c => new PContractIndexRow
+            {
+                ID = c.ID,
+                ContractNo = c.ContractNo,
+                SupplierID = c.SupplierID,
+                SupplierName = c.SUPPLIER.Name,
+                PurchaseType = c.PurchaseType,
+                Amount = c.Amount,
+                PaymentTerms = c.PaymentTerms,
+                IssuedDate = c.IssuedDate
+            });
+        }
+
+        private static IQueryable<PContractIndexRow> SearchIndex(IQueryable<PContractIndexRow> query, string s)
+        {
+            return query.Where(r => r.ContractNo.Contains(s) || r.SupplierName.Contains(s) || r.PaymentTerms.Contains(s));
+        }
+
+        private static IOrderedQueryable<PContractIndexRow> OrderIndex(IQueryable<PContractIndexRow> query, int column, bool desc)
+        {
+            switch (column)
+            {
+                case 0: return ServerTablePage.By(query, r => r.ContractNo, desc).ThenByDescending(r => r.ID);
+                case 1: return ServerTablePage.By(query, r => r.SupplierName, desc).ThenByDescending(r => r.ID);
+                case 2: return ServerTablePage.By(query, r => r.PurchaseType, desc).ThenByDescending(r => r.ID);
+                case 3: return ServerTablePage.By(query, r => r.Amount, desc).ThenByDescending(r => r.ID);
+                case 4: return ServerTablePage.By(query, r => r.PaymentTerms, desc).ThenByDescending(r => r.ID);
+                default: return desc ? query.OrderByDescending(r => r.IssuedDate).ThenByDescending(r => r.ID)
+                                     : query.OrderBy(r => r.IssuedDate).ThenBy(r => r.ID);
+            }
+        }
+
+        // Olish so'rovi: PContracts/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 5);
+            using (var db = new DBTHSNEntities())
+            {
+                var result = await ServerTablePage.LoadAsync(
+                    BuildIndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate), page, SearchIndex, OrderIndex);
+
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(r => new
+                    {
+                        id = r.ID,
+                        contractNo = r.ContractNo,
+                        supplierId = r.SupplierID,
+                        supplier = r.SupplierName,
+                        indirect = r.PurchaseType == ProcurementLookups.IndirectPurchase,
+                        amount = (r.Amount ?? 0).ToString("N2"),
+                        paymentTerms = r.PaymentTerms,
+                        date = r.IssuedDate.ToString("dd.MM.yyyy")
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Olish so'rovi: PContracts/ExportExcel — filtr va qidiruv bo'yicha barcha yozuvlar
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null,
+            DateTime? fromDate = null, DateTime? toDate = null, string q = null)
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return NotAuthorized();
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var query = BuildIndexQuery(db, purchaseTypeFilter, supplierID, contractID, fromDate, toDate);
+                if (!string.IsNullOrWhiteSpace(q))
+                {
+                    query = SearchIndex(query, q.Trim());
+                }
+
+                var rows = await OrderIndex(query, 5, true).ToListAsync();
+                var bytes = ExcelExport.Create("Xarid shartnomalari", rows,
+                    ExcelExport.Col<PContractIndexRow>("Shartnoma raqami", r => r.ContractNo),
+                    ExcelExport.Col<PContractIndexRow>("Ta'minotchi", r => r.SupplierName),
+                    ExcelExport.Col<PContractIndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<PContractIndexRow>("Shartnoma summasi", r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<PContractIndexRow>("To'lov shartlari", r => r.PaymentTerms),
+                    ExcelExport.Col<PContractIndexRow>("Sana", r => r.IssuedDate, "dd.MM.yyyy"));
+
+                return File(bytes, ExcelExport.ContentType, $"Xarid_shartnomalari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
