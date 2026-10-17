@@ -15,6 +15,7 @@ namespace tahsinERP.Controllers
     public class HSCodeController : Controller
     {
         // Olish so'rovi: HSCode
+        [ActionViewPermission(change: false)]
         public async Task<ActionResult> Index()
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -24,11 +25,13 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         public ActionResult Create()
         {
             return View();
         }
 
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(HSCODE hsCode)
@@ -58,6 +61,7 @@ namespace tahsinERP.Controllers
             return View(hsCode);
         }
 
+        [ActionViewPermission(change: false)]
         public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
@@ -73,6 +77,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null)
@@ -88,6 +93,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int? id, FormCollection gfs)
@@ -131,6 +137,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         public async Task<ActionResult> Edit(int? id)
         {
             if (id == null)
@@ -146,6 +153,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(HSCODE hsCode)

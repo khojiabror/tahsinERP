@@ -345,6 +345,7 @@
     <Compile Include="Controllers\Logistic\TransportLoadSimulationController.cs" />
     <Compile Include="Controllers\Settings\WarehouseController.cs" />
     <Compile Include="Controllers\SRM\ExpensesController.cs" />
+    <Compile Include="Controllers\SRM\ActionViewPermissionAttribute.cs" />
     <Compile Include="Controllers\SRM\HSCodeController.cs" />
     <Compile Include="Controllers\AdminSetting\LogHelper.cs" />
     <Compile Include="Controllers\AdminSetting\NetworkHelper.cs" />
