@@ -51,7 +51,7 @@
                                             <div class="alert alert-info">
                                                 <strong>Invoys:</strong> @invoice.InvoiceNo | 
                                                 <strong>Sana:</strong> @invoice.InvoiceDate.ToString("dd.MM.yyyy") | 
-                                                <strong>Summa:</strong> @invoice.TotalAmount.ToString("N2") @invoice.CurrencyCode
+                                                <strong>Summa:</strong> @invoice.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(invoice.CurrencyID)
                                             </div>
                                         }
 

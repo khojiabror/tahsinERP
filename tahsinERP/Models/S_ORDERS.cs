@@ -33,7 +33,6 @@ namespace tahsinERP.Models
         public int CustomerID { get; set; }
         public int ContractID { get; set; }
         public Nullable<double> Amount { get; set; }
-        public string Currency { get; set; }
         public string Description { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public int CurrencyID { get; set; }

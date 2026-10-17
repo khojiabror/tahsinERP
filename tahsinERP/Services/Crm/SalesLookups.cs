@@ -60,10 +60,19 @@ namespace tahsinERP.Services.Crm
             return new SelectList(items, "Value", "Text", selected?.ToString() ?? "");
         }
 
-        /// <summary>Valyutalar (qiymat = qisqa kod, masalan "UZS").</summary>
-        public static SelectList CurrencyCodes(string selected)
+        /// <summary>Valyutalar (qiymat = CURRENCIES.ID, matn = qisqa kod, masalan "UZS").</summary>
+        public static SelectList Currencies(int? selectedId)
         {
-            return new SelectList(ReferenceDataCache.Get(ReferenceDataCache.Currencies), "Name", "Name", selected);
+            return new SelectList(ReferenceDataCache.Get(ReferenceDataCache.Currencies), "ID", "Name", selectedId);
+        }
+
+        /// <summary>
+        /// Valyuta qisqa kodi (keshdan). SALES_INVOICES.CurrencyCode va S_ORDERS.Currency ustunlari
+        /// olib tashlandi (CRM-M02) — yagona manba CurrencyID.
+        /// </summary>
+        public static string CurrencyCode(int? currencyId)
+        {
+            return ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, currencyId) ?? "";
         }
 
         /// <summary>
