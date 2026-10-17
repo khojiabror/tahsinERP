@@ -432,7 +432,8 @@ namespace tahsinERP.Controllers.HR
             }
 
             var payrollType = payroll.PayrollType ?? Hourly;
-            bool isHourly = payrollType == Hourly;
+            // Daromad solig'i soatbay va ishbay hisoblarga ham qo'llanadi (HRM-B18 — foydalanuvchi qarori)
+            bool isHourly = true;
 
             var lineEntities = await db.HR_PAYROLL_LINES.AsNoTracking()
                 .Include(l => l.HR_EMPLOYEES.HR_POSITIONS)
@@ -493,6 +494,7 @@ namespace tahsinERP.Controllers.HR
                     .FirstOrDefault() ?? HrPayrollCalculator.DefaultIncomeTaxPercent
                 : 0m;
 
+            viewModel.ApplyIncomeTax = isHourly;
             viewModel.TotalGrossSalary = viewModel.Lines.Sum(l => l.GrossSalary);
             viewModel.TotalIncomeTax = viewModel.Lines.Sum(l => l.IncomeTaxAmount);
             viewModel.TotalNetSalary = viewModel.Lines.Sum(l => l.NetSalary);
@@ -568,7 +570,7 @@ namespace tahsinERP.Controllers.HR
                     line.CurrencyID = currencyId.Value;
                 }
 
-                var applyIncomeTax = (line.HR_PAYROLL_HEADERS.PayrollType ?? Hourly) == Hourly;
+                var applyIncomeTax = true; // HRM-B18: ishbayga ham
                 // Foiz berilmasa — shu qatorning amaldagi foizi saqlanadi (avval birinchi qatordan teskari hisoblanardi)
                 var taxPercent = applyIncomeTax
                     ? HrPayrollCalculator.NormalizeTaxPercent(incomeTaxPercent ?? HrPayrollCalculator.StoredIncomeTaxPercent(line) ?? HrPayrollCalculator.DefaultIncomeTaxPercent)
@@ -618,11 +620,6 @@ namespace tahsinERP.Controllers.HR
             {
                 return Json(new { success = false, message = "Faqat qoralama hisobda soliqni o'zgartirish mumkin" });
             }
-            if ((payroll.PayrollType ?? Hourly) != Hourly)
-            {
-                return Json(new { success = false, message = "Ishbay hisobda daromad solig'i qo'llanmaydi" });
-            }
-
             var taxPercent = HrPayrollCalculator.NormalizeTaxPercent(incomeTaxPercent);
             var lines = await db.HR_PAYROLL_LINES
                 .Where(l => l.PayrollID == payrollId && (l.IsDeleted == null || l.IsDeleted == false))
@@ -1221,7 +1218,7 @@ namespace tahsinERP.Controllers.HR
                     GrossSalary = grossSalary,
                     Bonuses = 0,
                     Penalties = 0,
-                    NetSalary = grossSalary, // ishbayda daromad solig'i qo'llanmaydi (HRM-B18 — biznes qarori kutilmoqda)
+                    NetSalary = HrPayrollCalculator.NetSalary(grossSalary, 0, 0, HrPayrollCalculator.DefaultIncomeTaxPercent), // HRM-B18: ishbayga ham soliq
                     CurrencyID = defaultCurrencyId,
                     Notes = allowancePercent > 0 ? $"Ustama: {allowancePercent:0.##}% (moddiy+maxsus)" : null,
                     IsDeleted = false

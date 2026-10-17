@@ -100,7 +100,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            @if (Model.PayrollType == "Hourly")
+                            @if (Model.ApplyIncomeTax)
                             {
                                 <div class="col-md-3 mb-1">
                                     <label class="mb-0"><strong>Daromad solig'i (%)</strong></label>
@@ -117,7 +117,7 @@
                             <div class="col-md-3">
                                 <strong>Jami hisoblangan:</strong> @Model.TotalGrossSalary.ToString("N2")
                             </div>
-                            @if (Model.PayrollType == "Hourly")
+                            @if (Model.ApplyIncomeTax)
                             {
                                 <div class="col-md-3">
                                     <strong>Jami daromad solig'i:</strong> <span id="summaryIncomeTax">@Model.TotalIncomeTax.ToString("N2")</span>
@@ -150,7 +150,7 @@
                                             <th>Asosiy maosh</th>
                                             <th>Ishlangan soatlar</th>
                                             <th>Hisoblangan</th>
-                                            @if (Model.PayrollType == "Hourly")
+                                            @if (Model.ApplyIncomeTax)
                                             {
                                                 <th>Daromad solig'i</th>
                                             }
@@ -172,7 +172,7 @@
                                                 <td>@line.BaseSalary.ToString("N2")</td>
                                                 <td>@line.HoursWorked.ToString("F2")</td>
                                                 <td>@line.GrossSalary.ToString("N2")</td>
-                                                @if (Model.PayrollType == "Hourly")
+                                                @if (Model.ApplyIncomeTax)
                                                 {
                                                     <td class="income-tax">@line.IncomeTaxAmount.ToString("N2")</td>
                                                 }
@@ -222,7 +222,7 @@
                                         <tr class="font-weight-bold">
                                             <td colspan="6" class="text-right">JAMI:</td>
                                             <td>@Model.TotalGrossSalary.ToString("N2")</td>
-                                            @if (Model.PayrollType == "Hourly")
+                                            @if (Model.ApplyIncomeTax)
                                             {
                                                 <td id="totalIncomeTax">@Model.TotalIncomeTax.ToString("N2")</td>
                                             }
@@ -246,7 +246,7 @@
             (function ($) {
                 if (!$) return;
                 $(document).ready(function () {
-                    var isHourlyPayroll = '@Model.PayrollType' === 'Hourly';
+                    var isHourlyPayroll = @(Model.ApplyIncomeTax ? "true" : "false"); // soliq ustunlari ko'rinadimi
                     function getIncomeTaxPercent() {
                         if (!isHourlyPayroll) return 0;
                         var taxPercent = parseFloat($('#incomeTaxPercent').val());

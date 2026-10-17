@@ -17,8 +17,11 @@ namespace tahsinERP.Services.HR
     /// </summary>
     public static class HrPayrollCalculator
     {
-        public const decimal DefaultIncomeTaxPercent = 12m;
-        public const decimal OvertimeMultiplier = 1.5m;
+        /// <summary>Standart daromad solig'i foizi — HR sozlamalaridan (/HrSettings).</summary>
+        public static decimal DefaultIncomeTaxPercent => HrSettingsService.Current.DefaultIncomeTaxPercent;
+
+        /// <summary>Qo'shimcha soat koeffitsienti — HR sozlamalaridan (/HrSettings, HRM-B15).</summary>
+        public static decimal OvertimeMultiplier => HrSettingsService.Current.OvertimeMultiplier;
 
         public sealed class HourlyResult
         {

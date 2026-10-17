@@ -119,7 +119,8 @@ namespace tahsinERP.Controllers.HR
                 Year = year.Value,
                 Month = month.Value,
                 OrgUnitID = orgUnitId,
-                FundHours = HrTimesheetSettingsService.DefaultFundHours
+                // Standart fond soati — HR ish kalendaridan: ish kunlari × kunlik me'yor (HRM-B15)
+                FundHours = HrSettingsService.Current.FundHoursForMonth(year.Value, month.Value)
             });
         }
 
@@ -291,7 +292,7 @@ namespace tahsinERP.Controllers.HR
 
             foreach (var lineId in touchedLineIds)
             {
-                TimesheetLineAccessor.RecalculateTotals(linesDict[lineId], daysInMonth);
+                TimesheetLineAccessor.RecalculateTotals(linesDict[lineId], header.Year, header.Month);
             }
 
             if (fundHours.HasValue)
@@ -326,7 +327,7 @@ namespace tahsinERP.Controllers.HR
             if (day < 1 || day > daysInMonth) return Json(new { success = false, message = "Kun noto'g'ri" });
 
             TimesheetLineAccessor.SetHours(line, day, ClampHours(hours));
-            TimesheetLineAccessor.RecalculateTotals(line, daysInMonth);
+            TimesheetLineAccessor.RecalculateTotals(line, header.Year, header.Month);
             await db.SaveChangesAsync();
             return Json(new { success = true });
         }
@@ -656,7 +657,7 @@ namespace tahsinERP.Controllers.HR
                             decimal? h = decimal.TryParse(val, NumberStyles.Any, CultureInfo.InvariantCulture, out parsed) ? (decimal?)parsed : null;
                             TimesheetLineAccessor.SetHours(line, d, ClampHours(h));
                         }
-                        TimesheetLineAccessor.RecalculateTotals(line, daysInMonth);
+                        TimesheetLineAccessor.RecalculateTotals(line, sheetYear, month);
                     }
 
                     await db.SaveChangesAsync();
