@@ -46,6 +46,7 @@ ORDER BY RowCnt DESC;
     FROM dbo.INCOME_PRODUCTS ip
     JOIN dbo.INCOMES i ON i.ID = ip.IncomeID
     WHERE ISNULL(i.IsDeleted, 0) = 0 AND ISNULL(i.RecieveStatus, 0) = 1
+      AND ISNULL(i.DocNo, '') NOT LIKE 'DLOC-ASN-%'   -- mavjud qoldiqni joyga bog'lash, qoldiqni oshirmaydi
     GROUP BY i.ReceivingWHID, ip.ProductID
 ), Outs AS (
     SELECT e.SenderWHID AS WHID, ep.ProductID, SUM(ep.Amount) AS Qty

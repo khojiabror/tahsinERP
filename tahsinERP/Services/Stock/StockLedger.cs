@@ -266,6 +266,12 @@ WHERE il.IncomeID = @p0 AND il.IsDeleted = 0";
                 }
             }
 
+            // "DLOC-ASN-..." kirimi mavjud qoldiqni faqat joyga bog'lagan (PRODUCT_STOCKS oshmagan) —
+            // uni bekor qilishda faqat ledger qaytariladi, umumiy qoldiq ayirilmaydi.
+            var docNo = db.Database.SqlQuery<string>("SELECT DocNo FROM dbo.INCOMES WHERE ID = @p0", incomeId).FirstOrDefault();
+            if (LegacyDlocAssignmentService.IsAssignmentIncome(docNo))
+                return;
+
             var lines = db.Database.SqlQuery<IncomeLineRow>(
                 "SELECT ProductID, Amount, UnitID FROM dbo.INCOME_PRODUCTS WHERE IncomeID = @p0", incomeId).ToList();
 
