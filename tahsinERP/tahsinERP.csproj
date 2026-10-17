@@ -871,6 +871,8 @@
     <Compile Include="Services\Finance\FinAnalyticsService.cs" />
     <Compile Include="Services\Finance\FinLiabilities.cs" />
     <Compile Include="Services\Finance\FinQueries.cs" />
+    <Compile Include="Services\Finance\FinSelectLists.cs" />
+    <Compile Include="Services\Finance\FinTransactionImportService.cs" />
     <Compile Include="Services\Finance\LiabilityReportsService.cs" />
     <Compile Include="Services\Finance\ValuationService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
