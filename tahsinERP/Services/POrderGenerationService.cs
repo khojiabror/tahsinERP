@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
@@ -58,6 +58,19 @@ namespace tahsinERP.Services
             var componentRequirements = new Dictionary<int, RawMaterialRequirement>();
             var bomVersionCache = new Dictionary<int, string>();
 
+            // BOM sarlavhalari barcha tayyor mahsulotlar uchun bitta so'rovda, qatorlarsiz (SRM-P08)
+            var fgIds = salesOrders
+                .SelectMany(o => o.S_ORDER_PRODUCTS ?? Enumerable.Empty<S_ORDER_PRODUCTS>())
+                .Where(l => l.PRODUCT != null)
+                .Select(l => l.PRODUCT.ID)
+                .Distinct()
+                .ToList();
+            var bomHeadersByProduct = (await _db.BOM_HEADERS.AsNoTracking()
+                    .Where(b => b.ProductID.HasValue && fgIds.Contains(b.ProductID.Value) && (b.IsActive == true || b.IsActive == null))
+                    .Select(b => new BomHeaderInfo { ID = b.ID, ProductID = b.ProductID.Value, VersionNo = b.VersionNo, CreatedAt = b.CreatedAt })
+                    .ToListAsync())
+                .ToLookup(b => b.ProductID);
+
             foreach (var sOrder in salesOrders)
             {
                 var lines = (sOrder.S_ORDER_PRODUCTS ?? Enumerable.Empty<S_ORDER_PRODUCTS>())
@@ -86,7 +99,7 @@ namespace tahsinERP.Services
 
                     if (!bomVersionCache.TryGetValue(fgId, out var bomVersionText))
                     {
-                        var bomHeader = await GetLatestActiveBOMAsync(fgId, asOfDate);
+                        var bomHeader = PickBomHeader(bomHeadersByProduct[fgId].ToList(), asOfDate);
                         bomVersionText = FormatBomVersionForUz(bomHeader);
                         bomVersionCache[fgId] = bomVersionText;
                     }
@@ -126,7 +139,6 @@ namespace tahsinERP.Services
                         }
                         else
                         {
-                            var estimatedPrice = await GetEstimatedPriceAsync(r.MaterialID, finalUnitId);
                             componentRequirements[r.MaterialID] = new RawMaterialRequirement
                             {
                                 ComponentID = r.MaterialID,
@@ -134,7 +146,6 @@ namespace tahsinERP.Services
                                 ComponentName = r.MaterialName,
                                 UnitID = finalUnitId,
                                 RequiredQty = finalQuantity,
-                                EstimatedPrice = estimatedPrice,
                                 CalculationExplanation = compactLine,
                                 CalculationSummary = compactLine
                             };
@@ -142,6 +153,8 @@ namespace tahsinERP.Services
                     }
                 }
             }
+
+            await FillEstimatedPricesAsync(componentRequirements.Values.ToList());
 
             return componentRequirements.Values
                 .OrderBy(x => x.ComponentName ?? "", StringComparer.OrdinalIgnoreCase)
@@ -505,7 +518,7 @@ namespace tahsinERP.Services
             return end < 0 ? tail.Trim() : tail.Substring(0, end).Trim();
         }
 
-        private static string FormatBomVersionForUz(BOM_HEADERS bomHeader)
+        private static string FormatBomVersionForUz(BomHeaderInfo bomHeader)
         {
             if (bomHeader == null)
             {
@@ -553,17 +566,11 @@ namespace tahsinERP.Services
         /// <summary>
         /// Eng mos BOM: barcha faol yozuvlar ichidan VersionNo (oy/yil) va CreatedAt bo'yicha eng yangisi.
         /// VersionNo bo'sh bo'lsa ham CreatedAt bilan tanlanadi (oldingi logikada faqat VersionNo bo'lganlar tanlanib, yangi yozuv e'tiborsiz qolardi).
+        /// Sarlavhalar oldindan, qatorlarsiz yuklanadi (SRM-P08).
         /// </summary>
-        private async Task<BOM_HEADERS> GetLatestActiveBOMAsync(int productId, DateTime? asOfDate = null)
+        private static BomHeaderInfo PickBomHeader(List<BomHeaderInfo> bomHeaders, DateTime? asOfDate)
         {
-            var bomHeaders = await _db.BOM_HEADERS
-                .Include(b => b.BOM_LINES)
-                .Include(b => b.BOM_LINES.Select(bl => bl.PRODUCT))
-                .Include(b => b.BOM_LINES.Select(bl => bl.UNIT))
-                .Where(b => b.ProductID == productId && (b.IsActive == true || b.IsActive == null))
-                .ToListAsync();
-
-            if (!bomHeaders.Any())
+            if (bomHeaders == null || bomHeaders.Count == 0)
             {
                 return null;
             }
@@ -599,7 +606,7 @@ namespace tahsinERP.Services
                 .FirstOrDefault();
         }
 
-        private static DateTime GetBomSortKey(BOM_HEADERS bh)
+        private static DateTime GetBomSortKey(BomHeaderInfo bh)
         {
             var fromVersion = TryParseBomVersionDate(bh?.VersionNo);
             if (fromVersion.HasValue)
@@ -646,99 +653,91 @@ namespace tahsinERP.Services
         /// <summary>
         /// Narx: avvalo eng so'nggi qabul qilingan ombor kirimi (1 qator birligi bo'yicha o'rtacha narx, masalan 1 kg),
         /// keyin norma (NORM_INPUT_LINES). Metizlar kg da kirganda PiecePrice dona uchun bo'lishi mumkin — TotalPrice/Amount ustun.
+        /// Barcha xomashyolar uchun manbalar 3 ta so'rovda olinadi (avval har material uchun 2-4 so'rov — SRM-P08);
+        /// birlik konvertatsiyasi faqat birliklar farq qilganda.
         /// </summary>
-        private async Task<decimal?> GetEstimatedPriceAsync(int materialId, int targetUnitId)
+        private async Task FillEstimatedPricesAsync(List<RawMaterialRequirement> requirements)
         {
-            var fromIncome = await TryGetEstimatedPriceFromLatestIncomeAsync(materialId, targetUnitId);
-            if (fromIncome.HasValue)
+            if (requirements.Count == 0)
             {
-                return fromIncome;
+                return;
             }
 
-            var normLine = await _db.NORM_INPUT_LINES
-                .AsNoTracking()
-                .Where(n => n.MaterialID == materialId && n.Price > 0)
-                .OrderByDescending(n => n.CreatedDT)
-                .FirstOrDefaultAsync();
+            var materialIds = requirements.Select(r => r.ComponentID).Distinct().ToList();
 
-            if (normLine == null)
+            var latestIncomes = (await _db.INCOME_PRODUCTS.AsNoTracking()
+                    .Where(ip => materialIds.Contains(ip.ProductID)
+                        && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false)
+                        && ip.INCOME.RecieveStatus == true
+                        && ip.Amount > 0)
+                    .GroupBy(ip => ip.ProductID)
+                    .Select(g => g
+                        .OrderByDescending(ip => ip.INCOME.IssueDateTime)
+                        .ThenByDescending(ip => ip.ID)
+                        .Select(ip => new { ip.ProductID, ip.Amount, ip.TotalPrice, ip.PiecePrice, ip.UnitID })
+                        .FirstOrDefault())
+                    .ToListAsync())
+                .ToDictionary(x => x.ProductID);
+
+            var latestNorms = (await _db.NORM_INPUT_LINES.AsNoTracking()
+                    .Where(n => materialIds.Contains(n.MaterialID) && n.Price > 0)
+                    .GroupBy(n => n.MaterialID)
+                    .Select(g => g
+                        .OrderByDescending(n => n.CreatedDT)
+                        .ThenByDescending(n => n.ID)
+                        .Select(n => new { n.MaterialID, n.Price, n.UnitID })
+                        .FirstOrDefault())
+                    .ToListAsync())
+                .ToDictionary(x => x.MaterialID);
+
+            var productUnits = await _db.PRODUCTS.AsNoTracking()
+                .Where(p => materialIds.Contains(p.ID))
+                .Select(p => new { p.ID, p.UnitID })
+                .ToDictionaryAsync(p => p.ID, p => p.UnitID);
+
+            foreach (var req in requirements)
             {
-                return null;
-            }
+                int materialId = req.ComponentID;
+                int targetUnitId = req.UnitID;
 
-            var normPrice = normLine.Price;
-            var normUnitId = normLine.UnitID ?? 0;
-            if (normUnitId <= 0)
-            {
-                var product = await _db.PRODUCTS.AsNoTracking().FirstOrDefaultAsync(p => p.ID == materialId);
-                normUnitId = product != null && product.UnitID > 0 ? product.UnitID : targetUnitId;
-            }
-
-            if (normUnitId == targetUnitId)
-            {
-                return normPrice;
-            }
-
-            try
-            {
-                var normQtyPerOneTarget = await _conversionService.ConvertToUnitAsync(
-                    materialId,
-                    1m,
-                    targetUnitId,
-                    normUnitId);
-
-                if (normQtyPerOneTarget > 0)
+                if (latestIncomes.TryGetValue(materialId, out var income))
                 {
-                    return normPrice * normQtyPerOneTarget;
+                    decimal sourcePrice = 0m;
+                    if (income.TotalPrice.HasValue && income.TotalPrice.Value > 0)
+                    {
+                        sourcePrice = (decimal)(income.TotalPrice.Value / income.Amount);
+                    }
+                    else if (income.PiecePrice.HasValue && income.PiecePrice.Value > 0)
+                    {
+                        sourcePrice = (decimal)income.PiecePrice.Value;
+                    }
+
+                    if (sourcePrice > 0)
+                    {
+                        req.EstimatedPrice = await ConvertPriceAsync(materialId, sourcePrice, income.UnitID, targetUnitId);
+                        continue;
+                    }
+                }
+
+                if (latestNorms.TryGetValue(materialId, out var norm))
+                {
+                    var normUnitId = norm.UnitID ?? 0;
+                    if (normUnitId <= 0)
+                    {
+                        normUnitId = productUnits.TryGetValue(materialId, out var pu) && pu > 0 ? pu : targetUnitId;
+                    }
+
+                    req.EstimatedPrice = await ConvertPriceAsync(materialId, norm.Price, normUnitId, targetUnitId);
                 }
             }
-            catch
-            {
-                // ignore
-            }
-
-            return normPrice;
         }
 
         /// <summary>
-        /// Kirim qatoridagi <b>birlik narxi</b>: asosan TotalPrice/Amount (masalan kg bo'lsa — so'm/kg).
+        /// Manba birligidagi narxni maqsad birligiga o'tkazadi (1 maqsad birligi = N manba birligi).
+        /// Konvertatsiya bo'lmasa — manba narxi o'zgarishsiz.
         /// </summary>
-        private async Task<decimal?> TryGetEstimatedPriceFromLatestIncomeAsync(int materialId, int targetUnitId)
+        private async Task<decimal> ConvertPriceAsync(int materialId, decimal sourcePrice, int sourceUnitId, int targetUnitId)
         {
-            var latestIncomeProduct = await _db.INCOME_PRODUCTS
-                .Include(ip => ip.INCOME)
-                .Where(ip => ip.ProductID == materialId
-                    && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false)
-                    && ip.INCOME.RecieveStatus == true
-                    && ip.Amount > 0)
-                .OrderByDescending(ip => ip.INCOME.IssueDateTime)
-                .FirstOrDefaultAsync();
-
-            if (latestIncomeProduct == null)
-            {
-                return null;
-            }
-
-            decimal sourcePrice = 0m;
-            if (latestIncomeProduct.TotalPrice.HasValue && latestIncomeProduct.TotalPrice.Value > 0)
-            {
-                sourcePrice = (decimal)(latestIncomeProduct.TotalPrice.Value / latestIncomeProduct.Amount);
-            }
-            else if (latestIncomeProduct.PiecePrice.HasValue && latestIncomeProduct.PiecePrice.Value > 0)
-            {
-                sourcePrice = (decimal)latestIncomeProduct.PiecePrice.Value;
-            }
-            else
-            {
-                return null;
-            }
-
-            if (sourcePrice <= 0)
-            {
-                return null;
-            }
-
-            var sourceUnitId = latestIncomeProduct.UnitID;
             if (sourceUnitId == targetUnitId)
             {
                 return sourcePrice;
@@ -763,6 +762,15 @@ namespace tahsinERP.Services
             }
 
             return sourcePrice;
+        }
+
+        /// <summary>BOM sarlavhasining versiya tanlash uchun kerakli ustunlari.</summary>
+        private sealed class BomHeaderInfo
+        {
+            public int ID { get; set; }
+            public int ProductID { get; set; }
+            public string VersionNo { get; set; }
+            public DateTime? CreatedAt { get; set; }
         }
     }
 
