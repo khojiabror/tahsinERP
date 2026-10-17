@@ -275,7 +275,9 @@ namespace tahsinERP.Controllers.Engineering
                     db.NORMLINES.RemoveRange(normVersion.NORMLINES.ToList());
 
                     // BOM ↔ norm bog'lanishi: avval BOMS_AND_NORMS qatorlari qolib ketardi (FK xatosi yoki yetim yozuv, MES-B08)
-                    await db.Database.ExecuteSqlCommandAsync("DELETE FROM BOMS_AND_NORMS WHERE NormID = {0}", normVersion.ID);
+                    // Jadval hamma bazada bo'lmasligi mumkin (lokal bazada yo'q) — mavjudligi tekshiriladi
+                    await db.Database.ExecuteSqlCommandAsync(
+                        "IF OBJECT_ID('dbo.BOMS_AND_NORMS', 'U') IS NOT NULL DELETE FROM dbo.BOMS_AND_NORMS WHERE NormID = {0}", normVersion.ID);
 
                     // Hard o'chirish NORMVERSION (entry.remove)
                     db.NORMVERSIONS.Remove(normVersion);
@@ -1144,7 +1146,8 @@ namespace tahsinERP.Controllers.Engineering
                 if (bomHeader != null && bomHeader.IsActive == true)
                 {
                     bomHeader.IsActive = false;
-                    await db.Database.ExecuteSqlCommandAsync("UPDATE BOMS_AND_NORMS SET IsActive = 0 WHERE BOMID = {0}", bomHeader.ID);
+                    await db.Database.ExecuteSqlCommandAsync(
+                        "IF OBJECT_ID('dbo.BOMS_AND_NORMS', 'U') IS NOT NULL UPDATE dbo.BOMS_AND_NORMS SET IsActive = 0 WHERE BOMID = {0}", bomHeader.ID);
                     return "Mahsulotda norma qolmadi — BOM faolsizlantirildi.";
                 }
                 return null;

@@ -23,10 +23,9 @@ WHERE NOT EXISTS (
 GROUP BY il.ProductID, pr.PNo, il.Month
 ORDER BY pr.PNo, il.Month;
 
--- B) Yetim BOM ↔ norma bog'lanishlari
-SELECT bn.*
-FROM dbo.BOMS_AND_NORMS bn
-WHERE NOT EXISTS (SELECT 1 FROM dbo.NORMVERSIONS nv WHERE nv.ID = bn.NormID);
+-- B) Yetim BOM ↔ norma bog'lanishlari (jadval hamma bazada yo'q)
+IF OBJECT_ID('dbo.BOMS_AND_NORMS', 'U') IS NOT NULL
+    EXEC('SELECT bn.* FROM dbo.BOMS_AND_NORMS bn WHERE NOT EXISTS (SELECT 1 FROM dbo.NORMVERSIONS nv WHERE nv.ID = bn.NormID)');
 
 -- C) BOM eng so'nggi normada emas
 ;WITH LatestNorm AS (
