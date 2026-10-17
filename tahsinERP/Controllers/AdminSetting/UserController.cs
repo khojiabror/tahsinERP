@@ -111,86 +111,98 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            try
+            // Avval hamma tekshiruvlar, keyin bitta tranzaksiyada yozish (CORE-B03): avval USER saqlanib,
+            // keyin rol yoki rasm xatosida rolsiz foydalanuvchi qolardi va qayta urinish "nom band" berardi.
+            bool invalid = false;
+            var existingUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == userVM.UName && u.IsDeleted != true);
+            if (existingUser != null)
             {
-                // Tekshirish agar username already mavjud
-                var existingUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == userVM.UName && u.IsDeleted != true);
-                if (existingUser != null)
+                invalid = true;
+                ModelState.AddModelError("UName", "Bu foydalanuvchi nomi allaqachon mavjud.");
+            }
+            if (string.IsNullOrWhiteSpace(userVM.Password))
+            {
+                invalid = true;
+                ModelState.AddModelError("Password", "Kalit so'zni kiriting");
+            }
+
+            ROLE selectedRole = null;
+            if (userVM.RoleID > 0)
+            {
+                selectedRole = await db.ROLES.FindAsync(userVM.RoleID);
+                if (selectedRole == null || IsDeveloperRole(selectedRole))
                 {
-                    ModelState.AddModelError("UName", "Bu foydalanuvchi nomi allaqachon mavjud.");
-                    ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userVM.RoleID);
-                    return View(userVM);
+                    invalid = true;
+                    ModelState.AddModelError("", "Birinchi martada 'Developer' role biriktirish mumkin emas.");
                 }
+            }
 
-                USER user = new USER();
-                user.Uname = userVM.UName;
-                string keyNew;
-                user.Password = PasswordHasher.Hash(userVM.Password, out keyNew);
-                user.HashCode = keyNew;
-                user.FullName = userVM.FullName;
-                user.Email = userVM.Email;
-                user.IsActive = userVM.IsActive;
-                user.IsDeleted = false;
-                user.CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]);
-
-                db.USERS.Add(user);
-                await db.SaveChangesAsync();
-
-                LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimga qo'shdi");
-
-                // Assign role foydalanib raw SQL (USERROLES is read-faqat in EF)
-                if (userVM.RoleID > 0)
+            byte[] avatar = null;
+            var photo = Request.Files["userPhotoUpload"];
+            if (photo != null && photo.ContentLength > 0)
+            {
+                if (photo.InputStream.Length < userPhotoMaxLength)
                 {
-                    var selectedRole = await db.ROLES.FindAsync(userVM.RoleID);
-                    if (selectedRole != null && !IsDeveloperRole(selectedRole))
+                    avatar = new byte[photo.InputStream.Length];
+                    photo.InputStream.Read(avatar, 0, avatar.Length);
+                }
+                else
+                {
+                    invalid = true;
+                    ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                }
+            }
+
+            if (invalid)
+            {
+                ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userVM.RoleID);
+                return View(userVM);
+            }
+
+            using (var tx = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    USER user = new USER();
+                    user.Uname = userVM.UName;
+                    string keyNew;
+                    user.Password = PasswordHasher.Hash(userVM.Password, out keyNew);
+                    user.HashCode = keyNew;
+                    user.FullName = userVM.FullName;
+                    user.Email = userVM.Email;
+                    user.IsActive = userVM.IsActive;
+                    user.IsDeleted = false;
+                    user.CompanyID = Convert.ToInt32(ConfigurationManager.AppSettings["companyID"]);
+
+                    db.USERS.Add(user);
+                    await db.SaveChangesAsync();
+
+                    // Rol raw SQL bilan (USERROLES EF'da faqat o'qish uchun)
+                    if (selectedRole != null)
                     {
-                        // Insert user role foydalanib raw SQL
                         await db.Database.ExecuteSqlCommandAsync(
                             "INSERT INTO USERROLES (UserID, RoleID) VALUES (@p0, @p1)",
-                            user.ID, userVM.RoleID);
+                            user.ID, selectedRole.ID);
                     }
-                    else
+
+                    if (avatar != null)
                     {
-                        ModelState.AddModelError("", "Birinchi martada 'Developer' role biriktirish mumkin emas.");
-                        ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userVM.RoleID);
-                        return View(userVM);
-                    }
-                }
-
-                // Handle image upload
-                if (Request.Files["userPhotoUpload"] != null && Request.Files["userPhotoUpload"].ContentLength > 0)
-                {
-                    var file = Request.Files["userPhotoUpload"];
-                    if (file.InputStream.Length < userPhotoMaxLength)
-                    {
-                        byte[] avatar = new byte[file.InputStream.Length];
-                        file.InputStream.Read(avatar, 0, avatar.Length);
-
-                        USERIMAGE userImage = new USERIMAGE
-                        {
-                            UserID = user.ID,
-                            Image = avatar
-                        };
-
-                        db.USERIMAGES.Add(userImage);
+                        db.USERIMAGES.Add(new USERIMAGE { UserID = user.ID, Image = avatar });
                         await db.SaveChangesAsync();
+                    }
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} uchun Foydalanuvchini-Rasmini biriktirdi");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userVM.RoleID);
-                        return View(userVM);
-                    }
+                    tx.Commit();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimga qo'shdi");
+                    TempData["Success"] = "Foydalanuvchi muvaffaqiyatli qo'shildi.";
+                    return RedirectToAction("Index");
                 }
-
-                TempData["Success"] = "Foydalanuvchi muvaffaqiyatli qo'shildi.";
-                return RedirectToAction("Index");
-            }
-            catch
-            {
-                ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                catch (Exception ex)
+                {
+                    tx.Rollback();
+                    System.Diagnostics.Trace.TraceError("[User.Create] " + ex);
+                    ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                }
             }
 
             ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userVM.RoleID);

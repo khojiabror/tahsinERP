@@ -236,9 +236,11 @@ namespace tahsinERP.Services
 
         public static async Task AfterDocDocumentSoftDeletedAsync(DBTHSNEntities db, long documentId)
         {
-            var files = await db.DOC_FILES.Where(x => x.DocumentID == documentId && x.IsDeleted != true).ToListAsync();
-            foreach (var f in files)
-                f.IsDeleted = true;
+            // Set-based: avval har versiyaning fayl blob'i (FileContent) xotiraga yuklanardi.
+            // Chaqiruvchi tranzaksiyasi bo'lsa, shu tranzaksiyada bajariladi.
+            await db.Database.ExecuteSqlCommandAsync(
+                "UPDATE DOC_FILES SET IsDeleted = 1 WHERE DocumentID = @p0 AND (IsDeleted IS NULL OR IsDeleted = 0)",
+                documentId);
         }
 
         public static async Task AfterProductProductionSoftDeletedAsync(DBTHSNEntities db, int productionId)
