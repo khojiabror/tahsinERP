@@ -51,7 +51,10 @@ namespace tahsinERP.ViewModels
 
     public class DocumentImageItem
     {
+        /// <summary>Rasm joylashgan .docx faylining ID'si.</summary>
         public long FileID { get; set; }
+        /// <summary>.docx ichidagi rasm tartib raqami (WordDocumentImageService.GetImage).</summary>
+        public int Index { get; set; }
         public string FileName { get; set; }
         public string MimeType { get; set; }
         public long FileSizeBytes { get; set; }

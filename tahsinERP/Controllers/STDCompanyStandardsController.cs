@@ -189,39 +189,13 @@ namespace tahsinERP.Controllers
         }
 
         /// <summary>
-        /// Yangi asosiy .docx versiyasini va undan ajratilgan rasmlarni qo'shadi (SaveChanges chaqiruvchida).
-        /// Rasmlar — Details'dagi galereya uchun nusxa; ularni ajratib bo'lmasa ham asosiy fayl saqlanadi.
+        /// Yangi asosiy .docx versiyasini qo'shadi (SaveChanges chaqiruvchida). Rasmlar endi alohida DOC_FILES
+        /// qatori sifatida saqlanmaydi: Details ularni joriy .docx ichidan ko'rsatadi (DOC-P08).
         /// </summary>
-        private async Task AddDocxVersionAsync(DBTHSNEntities db, long documentId, byte[] docxBytes, string fileName, int? versionNo = null)
+        private Task AddDocxVersionAsync(DBTHSNEntities db, long documentId, byte[] docxBytes, string fileName, int? versionNo = null)
         {
-            int? userId = CurrentUserId;
-            var file = await DocFileService.AddMainVersionAsync(db, documentId, docxBytes, fileName, ".docx",
-                DocFileService.DocxMime, userId, versionNo);
-
-            try
-            {
-                var images = WordDocumentImageService.ExtractImagesFromWord(docxBytes);
-                foreach (var imageInfo in WordDocumentImageService.PrepareImagesForStorage(images, documentId, file.VersionNo))
-                {
-                    db.DOC_FILES.Add(new DOC_FILES
-                    {
-                        DocumentID = documentId,
-                        VersionNo = imageInfo.VersionNo,
-                        FileName = imageInfo.FileName,
-                        FileExtension = "." + imageInfo.FileExtension,
-                        MimeType = imageInfo.MimeType,
-                        FileSizeBytes = imageInfo.FileSizeBytes,
-                        FileContent = imageInfo.FileContent,
-                        IsMain = false,
-                        CreatedByUserID = userId,
-                        CreatedDT = imageInfo.CreatedDT
-                    });
-                }
-            }
-            catch (Exception imgEx)
-            {
-                System.Diagnostics.Trace.TraceWarning("STD {0}: rasmlarni ajratib bo'lmadi: {1}", documentId, imgEx.Message);
-            }
+            return DocFileService.AddMainVersionAsync(db, documentId, docxBytes, fileName, ".docx",
+                DocFileService.DocxMime, CurrentUserId, versionNo);
         }
 
         /// <summary>O'chirilmagan standartlar (avval soft delete faqat DOC_DOCUMENTS'ni belgilardi, Index filtrsiz edi — DOC-B01).</summary>
@@ -375,32 +349,37 @@ namespace tahsinERP.Controllers
                 var versionHistory = docxFiles.Select((f, index) => new VersionHistoryItem
                 {
                     VersionNo = f.VersionNo,
-                    VersionDecimal = standard.VersionNo - (docxFiles.Count - 1 - index) * 0.01m, // Taxminiy versiya
+                    VersionDecimal = standard.VersionNo - index * 0.01m, // Taxminiy versiya; ro'yxat yangisidan boshlanadi (avval eng yangisiga eng kichik raqam chiqardi)
                     CreatedDT = f.CreatedDT,
                     FileName = f.FileName,
                     FileID = f.ID
                 }).ToList();
 
-                // Rasmlarni olish (faqat rasm fayllar)
-                var imageFiles = await db.DOC_FILES
-                    .Where(f => f.DocumentID == id && 
-                                f.FileExtension != ".docx" && 
-                                (f.MimeType.StartsWith("image/") || 
-                                 f.FileExtension == ".png" || 
-                                 f.FileExtension == ".jpg" || 
-                                 f.FileExtension == ".jpeg" || 
-                                 f.FileExtension == ".gif" || 
-                                 f.FileExtension == ".bmp"))
-                    .OrderBy(f => f.CreatedDT)
-                    .Select(f => new DocumentImageItem
+                // Rasmlar joriy .docx ichidan (avval har versiya rasmlari alohida DOC_FILES qatorlari edi va
+                // galereyada barcha versiyalarniki ko'rinardi — DOC-P08). Faqat metadata; baytlarni GetImage beradi.
+                var imageFiles = new List<DocumentImageItem>();
+                var currentDocx = docxFiles.FirstOrDefault(f => f.IsMain) ?? docxFiles.FirstOrDefault(); // ro'yxat VersionNo DESC
+                if (currentDocx != null)
+                {
+                    var docxBytes = await db.DOC_FILES.AsNoTracking()
+                        .Where(f => f.ID == currentDocx.ID)
+                        .Select(f => f.FileContent)
+                        .FirstOrDefaultAsync();
+                    if (docxBytes != null)
                     {
-                        FileID = f.ID,
-                        FileName = f.FileName,
-                        MimeType = f.MimeType,
-                        FileSizeBytes = f.FileSizeBytes ?? 0,
-                        VersionNo = f.VersionNo
-                    })
-                    .ToListAsync();
+                        imageFiles = WordDocumentImageService.ListImages(docxBytes)
+                            .Select(im => new DocumentImageItem
+                            {
+                                FileID = currentDocx.ID,
+                                Index = im.Index,
+                                FileName = im.FileName,
+                                MimeType = im.MimeType,
+                                FileSizeBytes = im.SizeBytes,
+                                VersionNo = currentDocx.VersionNo
+                            })
+                            .ToList();
+                    }
+                }
 
                 var viewModel = new STDCompanyStandardsDetailsViewModel
                 {
@@ -488,10 +467,40 @@ namespace tahsinERP.Controllers
             return ServeFileAsync(fileId, imagesOnly: false);
         }
 
-        // Olish so'rovi: STDCompanyStandards/GetImage/5 - Rasmlarni ko'rsatish uchun
-        public Task<ActionResult> GetImage(long? fileId)
+        // Olish so'rovi: STDCompanyStandards/GetImage?fileId=5&index=0 - .docx ichidagi rasm.
+        // index'siz — eski (DOC-P08 gacha alohida saqlangan) rasm qatorlari uchun.
+        public Task<ActionResult> GetImage(long? fileId, int? index)
         {
-            return ServeFileAsync(fileId, imagesOnly: true);
+            return index.HasValue ? ServeDocxImageAsync(fileId, index.Value) : ServeFileAsync(fileId, imagesOnly: true);
+        }
+
+        private async Task<ActionResult> ServeDocxImageAsync(long? fileId, int index)
+        {
+            if (fileId == null)
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var file = await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.CompanyStandard);
+                if (file == null || file.FileContent == null || !string.Equals(file.FileExtension, ".docx", StringComparison.OrdinalIgnoreCase))
+                {
+                    return HttpNotFound();
+                }
+
+                var image = WordDocumentImageService.GetImage(file.FileContent, index);
+                if (image == null)
+                {
+                    return HttpNotFound();
+                }
+
+                Response.AppendHeader("Content-Disposition", "inline; filename=\"" + image.FileName + "\"");
+                // .docx qatori o'zgarmaydi (yangi versiya = yangi ID) — rasm keshlansa bo'ladi
+                Response.Cache.SetCacheability(HttpCacheability.Private);
+                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
+                return File(image.ImageBytes, image.MimeType);
+            }
         }
 
         private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };

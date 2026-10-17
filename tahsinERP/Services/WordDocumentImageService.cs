@@ -74,32 +74,49 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Word hujjatidan rasmlarni DOC_FILES jadvaliga saqlash uchun formatlash
+        /// Rasmlar ro'yxati (faqat metadata, baytlar o'qilmaydi). Indeks <see cref="GetImage"/> bilan bir xil tartibda.
+        /// Rasmlar endi DOC_FILES'ga alohida saqlanmaydi — ular .docx ichida bor, har versiyada takror saqlanardi (DOC-P08).
         /// </summary>
-        public static List<DocumentImageInfo> PrepareImagesForStorage(List<WordImage> images, long documentID, int versionNo)
+        public static List<WordImageInfo> ListImages(byte[] docxBytes)
         {
-            var result = new List<DocumentImageInfo>();
-            int imageIndex = 1;
-
-            foreach (var image in images)
+            var result = new List<WordImageInfo>();
+            try
             {
-                result.Add(new DocumentImageInfo
+                using (var stream = new MemoryStream(docxBytes))
+                using (var wordDocument = WordprocessingDocument.Open(stream, false))
                 {
-                    DocumentID = documentID,
-                    VersionNo = versionNo,
-                    FileName = image.FileName ?? $"image_{imageIndex}.{GetFileExtension(image.MimeType)}",
-                    FileExtension = GetFileExtension(image.MimeType),
-                    MimeType = image.MimeType,
-                    FileSizeBytes = image.ImageBytes.Length,
-                    FileContent = image.ImageBytes,
-                    IsMain = false, // Rasmlar asosiy fayl emas
-                    CreatedDT = DateTime.Now
-                });
+                    var mainPart = wordDocument?.MainDocumentPart;
+                    if (mainPart == null)
+                        return result;
 
-                imageIndex++;
+                    int index = 0;
+                    foreach (var imagePart in mainPart.ImageParts)
+                    {
+                        long size;
+                        using (var s = imagePart.GetStream())
+                            size = s.Length;
+                        result.Add(new WordImageInfo
+                        {
+                            Index = index++,
+                            FileName = GetImageFileName(mainPart.GetIdOfPart(imagePart), imagePart.ContentType),
+                            MimeType = GetMimeType(imagePart.ContentType),
+                            SizeBytes = size
+                        });
+                    }
+                }
             }
-
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceWarning("Word rasmlarini o'qib bo'lmadi: {0}", ex.Message);
+            }
             return result;
+        }
+
+        /// <summary>Hujjatdagi <paramref name="index"/>-rasm; topilmasa null.</summary>
+        public static WordImage GetImage(byte[] docxBytes, int index)
+        {
+            var images = ExtractImagesFromWord(docxBytes);
+            return index >= 0 && index < images.Count ? images[index] : null;
         }
 
         private static string GetImageFileName(string relationshipId, string contentType)
@@ -164,20 +181,12 @@ namespace tahsinERP.Services
         public string ContentType { get; set; }
     }
 
-    /// <summary>
-    /// DOC_FILES jadvaliga saqlash uchun rasm ma'lumotlari
-    /// </summary>
-    public class DocumentImageInfo
+    /// <summary>Hujjatdagi rasm metadata'si (galereya uchun).</summary>
+    public class WordImageInfo
     {
-        public long DocumentID { get; set; }
-        public int VersionNo { get; set; }
+        public int Index { get; set; }
         public string FileName { get; set; }
-        public string FileExtension { get; set; }
         public string MimeType { get; set; }
-        public long FileSizeBytes { get; set; }
-        public byte[] FileContent { get; set; }
-        public bool IsMain { get; set; }
-        public DateTime CreatedDT { get; set; }
+        public long SizeBytes { get; set; }
     }
 }
-
