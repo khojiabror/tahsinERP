@@ -271,7 +271,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                var viewModel = WaybillService.ToViewModel(waybill, WaybillService.GuessTariffId(db, waybill));
+                var viewModel = WaybillService.ToViewModel(waybill, WaybillService.ResolveTariffId(db, waybill));
                 viewModel = WaybillService.BuildViewModel(db, viewModel);
 
                 return View(viewModel);
