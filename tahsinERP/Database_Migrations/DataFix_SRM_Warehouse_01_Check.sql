@@ -17,6 +17,8 @@
      8. Bir DocNo'li bir nechta TRNSF chiqimi                         — SRM-B10
    ===================================================================== */
 SET NOCOUNT ON;
+SET QUOTED_IDENTIFIER ON;   -- INCOME_LOTS hisoblanadigan ustuni va filtrlangan indekslar uchun shart (sqlcmd standarti OFF)
+SET ANSI_NULLS ON;
 
 /* ---------------------------------------------------------------------
    1. PRODUCT_STOCKS dublikatlari: bitta (ombor, mahsulot) uchun bir nechta qator.

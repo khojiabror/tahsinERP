@@ -28,6 +28,8 @@
        tarixiy hujjat raqamlari o'zgartirilmaydi.
    ===================================================================== */
 SET NOCOUNT ON;
+SET QUOTED_IDENTIFIER ON;   -- INCOME_LOTS hisoblanadigan ustuni va filtrlangan indekslar uchun shart (sqlcmd standarti OFF)
+SET ANSI_NULLS ON;
 SET XACT_ABORT ON;
 
 DECLARE @Commit BIT = 0;   -- 1 = saqlash, 0 = faqat sinov (ROLLBACK)
