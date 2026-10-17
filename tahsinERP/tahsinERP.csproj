@@ -1038,6 +1038,9 @@
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
+    <Compile Include="Services\VatMath.cs" />
+    <Compile Include="Services\Procurement\ProcurementLookups.cs" />
+    <Compile Include="Services\Procurement\PdfUpload.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
@@ -1142,8 +1145,6 @@
     <Compile Include="ViewModels\OfficialLetterEditVm.cs" />
     <Compile Include="ViewModels\OfficialLetterItemVm.cs" />
     <Compile Include="ViewModels\OfficialLetterIndexVm.cs" />
-    <Compile Include="ViewModels\PContractSViewModel.cs" />
-    <Compile Include="ViewModels\PInvoice\PInvoiceCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\POrderCreateViewModel.cs" />
     <Compile Include="ViewModels\POrder\PurchaseOrderTrackingIndexItemViewModel.cs" />
     <Compile Include="ViewModels\PRequisition\PRequisitionViewModel.cs" />
@@ -1165,9 +1166,6 @@
     <Compile Include="ViewModels\ContractsOfPartsViewModel.cs" />
     <Compile Include="ViewModels\PartIndexViewModel.cs" />
     <Compile Include="ViewModels\PartViewModel.cs" />
-    <Compile Include="ViewModels\PContractViewModel.cs" />
-    <Compile Include="ViewModels\PInvoice\PInvoiceViewModel.cs" />
-    <Compile Include="ViewModels\POrder\POrderViewModel.cs" />
     <Compile Include="ViewModels\RolePermissionsViewModel.cs" />
     <Compile Include="ViewModels\PermissionModuleViewModel.cs" />
     <Compile Include="ViewModels\SContractViewModel.cs" />
@@ -2887,6 +2885,8 @@
     </Content>
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
+    <Content Include="Scripts\app\indexed-rows.js" />
+    <Content Include="Scripts\app\product-select.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />
     <Content Include="app-assets\data\citynames.json" />
@@ -3027,7 +3027,6 @@
     <Content Include="Views\Product\Index.cshtml" />
     <Content Include="Views\Supplier\Edit.cshtml" />
     <Content Include="Views\Supplier\Delete.cshtml" />
-    <Content Include="Views\Supplier\UploadWithExcel.cshtml" />
     <Content Include="Views\Product\Create.cshtml" />
     <Content Include="Views\Product\Details.cshtml" />
     <Content Include="Views\Product\Delete.cshtml" />
@@ -3152,11 +3151,6 @@
     <Content Include="Views\SalesInvoices\Edit.cshtml" />
     <Content Include="Views\SalesInvoices\Index.cshtml" />
     <Content Include="Views\SOrder\DeliverySchedule.cshtml" />
-    <Content Include="Views\POrderPayment\Create.cshtml" />
-    <Content Include="Views\POrderPayment\Delete.cshtml" />
-    <Content Include="Views\POrderPayment\Details.cshtml" />
-    <Content Include="Views\POrderPayment\Edit.cshtml" />
-    <Content Include="Views\POrderPayment\Index.cshtml" />
     <Content Include="Views\Norm\Create.cshtml" />
     <Content Include="Views\BOM\_BomTreeNode.cshtml" />
     <Content Include="Views\BOM\Details.cshtml" />

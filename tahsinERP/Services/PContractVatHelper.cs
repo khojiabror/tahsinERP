@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -7,26 +6,20 @@ using tahsinERP.Models;
 
 namespace tahsinERP.Services
 {
+    /// <summary>
+    /// Xarid shartnomasi (P_CONTRACT_PRODUCTS) QQS adapteri. Hisob-kitob <see cref="VatMath"/>da;
+    /// bu yerda faqat qator bazasi = P_CONTRACT_PRODUCTS.Amount (DB'da Price*Quantity).
+    /// </summary>
     public static class PContractVatHelper
     {
         public static double GetVatPercentFromLine(double amount, double? vatAmount)
         {
-            if (amount <= 0 || !vatAmount.HasValue || vatAmount.Value <= 0)
-            {
-                return 0;
-            }
-
-            return Math.Round(vatAmount.Value / amount * 100d, 2);
+            return VatMath.PercentFromLine(amount, vatAmount);
         }
 
         public static double CalculateVatAmount(double lineAmount, double vatPercent)
         {
-            if (lineAmount <= 0 || vatPercent <= 0)
-            {
-                return 0;
-            }
-
-            return lineAmount * vatPercent / 100d;
+            return VatMath.AmountFromPercent(lineAmount, vatPercent);
         }
 
         public static double CalculateLineTotalWithVat(double lineAmount, double? vatAmount)
@@ -41,20 +34,7 @@ namespace tahsinERP.Services
                 return 0;
             }
 
-            var list = products.ToList();
-            var baseAmount = list.Sum(p => p.Amount);
-            if (baseAmount <= 0)
-            {
-                return 0;
-            }
-
-            var vatAmount = list.Sum(p => p.VATAmount ?? 0);
-            if (vatAmount <= 0)
-            {
-                return 0;
-            }
-
-            return Math.Round(vatAmount / baseAmount * 100d, 2);
+            return VatMath.RateFromLines(products.Select(p => new VatLine(p.ContractID, p.Amount, p.VATAmount)));
         }
 
         public static async Task<double> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
@@ -64,11 +44,19 @@ namespace tahsinERP.Services
                 return 0;
             }
 
-            var products = await db.P_CONTRACT_PRODUCTS
+            // Faqat ikki ustun kerak — butun entity'ni kuzatuv bilan yuklash shart emas (SRM-P10)
+            var lines = await db.P_CONTRACT_PRODUCTS
+                .AsNoTracking()
                 .Where(p => p.ContractID == contractId.Value)
+                .Select(p => new ContractProductVatLine
+                {
+                    ContractID = p.ContractID,
+                    Amount = p.Amount,
+                    VATAmount = p.VATAmount
+                })
                 .ToListAsync();
 
-            return CalculateContractVatRate(products);
+            return CalculateContractVatRateFromLines(lines);
         }
 
         public static async Task<Dictionary<int, double>> GetProductVatRatesByContractAsync(DBTHSNEntities db, int contractId)
@@ -80,7 +68,7 @@ namespace tahsinERP.Services
 
             return products.ToDictionary(
                 p => p.ProductID,
-                p => GetVatPercentFromLine(p.Amount, p.VATAmount));
+                p => VatMath.PercentFromLine(p.Amount, p.VATAmount));
         }
 
         public static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
@@ -90,29 +78,39 @@ namespace tahsinERP.Services
                 return 0;
             }
 
-            var list = products.ToList();
-            var baseAmount = list.Sum(x => x.Amount);
-            if (baseAmount <= 0)
-            {
-                return 0;
-            }
-
-            var vatAmount = list.Sum(x => x.VATAmount ?? 0);
-            if (vatAmount <= 0)
-            {
-                return 0;
-            }
-
-            return Math.Round(vatAmount / baseAmount * 100d, 2);
+            return VatMath.RateFromLines(products.Select(ToVatLine));
         }
 
         public static Dictionary<int, double> BuildContractVatRates(IEnumerable<ContractProductVatLine> contractProducts)
         {
-            return contractProducts
-                .GroupBy(p => p.ContractID)
-                .ToDictionary(
-                    g => g.Key,
-                    g => CalculateContractVatRateFromLines(g));
+            return VatMath.RatesByContract(contractProducts.Select(ToVatLine));
+        }
+
+        /// <summary>Bir nechta shartnomaning QQS stavkalari (bitta so'rov).</summary>
+        public static async Task<Dictionary<int, double>> GetContractVatRatesAsync(DBTHSNEntities db, ICollection<int> contractIds)
+        {
+            if (contractIds == null || contractIds.Count == 0)
+            {
+                return new Dictionary<int, double>();
+            }
+
+            var lines = await db.P_CONTRACT_PRODUCTS
+                .AsNoTracking()
+                .Where(p => contractIds.Contains(p.ContractID))
+                .Select(p => new ContractProductVatLine
+                {
+                    ContractID = p.ContractID,
+                    Amount = p.Amount,
+                    VATAmount = p.VATAmount
+                })
+                .ToListAsync();
+
+            return BuildContractVatRates(lines);
+        }
+
+        private static VatLine ToVatLine(ContractProductVatLine p)
+        {
+            return new VatLine(p.ContractID, p.Amount, p.VATAmount);
         }
 
         public class ContractProductVatLine
@@ -120,22 +118,6 @@ namespace tahsinERP.Services
             public int ContractID { get; set; }
             public double Amount { get; set; }
             public double? VATAmount { get; set; }
-        }
-
-        public static double ParseVatPercentFromForm(System.Collections.Specialized.NameValueCollection form, int index)
-        {
-            var raw = form[$"ContractProducts[{index}].VatPercent"];
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-                return 0;
-            }
-
-            if (!double.TryParse(raw, out var vatPercent))
-            {
-                return 0;
-            }
-
-            return Math.Max(0, Math.Min(100, vatPercent));
         }
     }
 }

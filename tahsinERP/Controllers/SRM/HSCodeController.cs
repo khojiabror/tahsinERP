@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
+using tahsinERP.Services.Procurement;
 
 namespace tahsinERP.Controllers
 {
@@ -19,38 +19,40 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var list = await db.HSCODES.ToListAsync();
+                var list = await db.HSCODES.AsNoTracking().ToListAsync();
                 return View(list);
             }
         }
 
         public ActionResult Create()
         {
-            return  View();
+            return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(HSCODE hsCode)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            if (ModelState.IsValid)
             {
-                try
+                using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    if (ModelState.IsValid)
+                    try
                     {
                         db.HSCODES.Add(hsCode);
-
                         await db.SaveChangesAsync();
+                        ProcurementLookups.InvalidateHSCodes();
 
-                        var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "ТНВЭД kodlar", $"{hsCode.HSCODE1} - ТНВЭД ni biriktirdi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "ТНВЭД kodlar", $"{hsCode.HSCODE1} - ТНВЭД ni biriktirdi");
 
                         return RedirectToAction("Index");
                     }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(string.Empty, ex);
+                    catch (Exception ex)
+                    {
+                        // Ichki istisno sahifaga chiqarilmaydi (SRM-B09)
+                        System.Diagnostics.Trace.TraceError("HSCode Create: {0}", ex);
+                        ModelState.AddModelError(string.Empty, SaveFailedMessage);
+                    }
                 }
             }
             return View(hsCode);
@@ -58,10 +60,10 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Details(int? id)
         {
-            if(id == null)
+            if (id == null)
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
 
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var hscode = await db.HSCODES.FindAsync(id);
                 if (hscode == null)
@@ -79,38 +81,56 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var hscode = await db.HSCODES.FindAsync(id);
+                if (hscode == null)
+                    return HttpNotFound();
+
                 return View(hscode);
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int? id, FormCollection gfs)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var hscodeToDelete = await db.HSCODES.FindAsync(id);
-                if(hscodeToDelete != null)
+                if (hscodeToDelete == null)
                 {
-                    try
-                    {
-                        await db.SaveChangesAsync();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "ТНВЭД kodlar", $"{hscodeToDelete.HSCODE1} - HSCodeni o'chirdi");
-
-                        return RedirectToAction("Index");
-                    }
-                    catch (RetryLimitExceededException)
-                    {
-                        ModelState.AddModelError(string.Empty, "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                    }
+                    return HttpNotFound();
                 }
-                else
+
+                // HSCODES'da IsDeleted yo'q — faqat hech qayerda ishlatilmagan kod o'chiriladi
+                // (avval SaveChanges Remove'siz chaqirilib, "o'chirildi" deb log yozilardi, SRM-B09)
+                bool inUse = await db.P_CONTRACT_PRODUCTS.AnyAsync(p => p.HSCodeID == hscodeToDelete.ID)
+                             || await db.PRODUCTS.AnyAsync(p => p.HSCodeID == hscodeToDelete.ID)
+                             || await db.SALES_TTNK_LINES.AnyAsync(l => l.HsCodeID == hscodeToDelete.ID);
+                if (inUse)
                 {
-                    ModelState.AddModelError("", "Bunday ТНВЭД kod topilmadi.");
+                    ModelState.AddModelError(string.Empty, "Bu ТНВЭД kod mahsulot yoki hujjatlarda ishlatilgan, o'chirib bo'lmaydi.");
+                    return View(hscodeToDelete);
                 }
+
+                try
+                {
+                    db.HSCODES.Remove(hscodeToDelete);
+                    await db.SaveChangesAsync();
+                    ProcurementLookups.InvalidateHSCodes();
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "ТНВЭД kodlar", $"{hscodeToDelete.HSCODE1} - HSCodeni o'chirdi");
+
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.TraceError("HSCode Delete: {0}", ex);
+                    ModelState.AddModelError(string.Empty, SaveFailedMessage);
+                }
+
+                return View(hscodeToDelete);
             }
-            return View();
         }
+
         public async Task<ActionResult> Edit(int? id)
         {
             if (id == null)
@@ -119,16 +139,24 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var hscode = await db.HSCODES.FindAsync(id);
+                if (hscode == null)
+                    return HttpNotFound();
+
                 return View(hscode);
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(HSCODE hsCode)
         {
-            using(DBTHSNEntities db = new DBTHSNEntities())
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var hscodeToUpdate = await db.HSCODES.FindAsync(hsCode.ID);
+                if (hscodeToUpdate == null)
+                {
+                    return HttpNotFound();
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -138,20 +166,24 @@ namespace tahsinERP.Controllers
                     try
                     {
                         await db.SaveChangesAsync();
+                        ProcurementLookups.InvalidateHSCodes();
 
-                        var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "ТНВЭД kodlar", $"{hsCode.HSCODE1} - HSCodeni tahrirladi");
+                        LogHelper.LogToDatabase(User.Identity.Name, "ТНВЭД kodlar", $"{hsCode.HSCODE1} - HSCodeni tahrirladi");
 
                         return RedirectToAction("Index");
                     }
-                    catch (RetryLimitExceededException)
+                    catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        System.Diagnostics.Trace.TraceError("HSCode Edit: {0}", ex);
+                        ModelState.AddModelError("", SaveFailedMessage);
                     }
                 }
-                
+
                 return View(hscodeToUpdate);
             }
         }
+
+        private const string SaveFailedMessage =
+            "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.";
     }
 }

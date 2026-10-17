@@ -26,12 +26,14 @@ namespace tahsinERP.Controllers
 
                 fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
                 toDate = toDate ?? DateTime.Now;
+                // Foydalanuvchi tanlagan oxirgi kun to'liq kiradi (sana 00:00 bo'lgani uchun <= oxirgi kunni tashlab yuborardi, SRM-B24)
+                var toExclusive = toDate.Value.Date.AddDays(1);
 
                 using (var db = new DBTHSNEntities())
                 {
                     // 1. Spend by Supplier - Xarajat ta'minotchi bo'yicha (guruhlash xotirada - decimal cast xatoligini oldini olish)
                     var invoiceData = await db.P_INVOICES
-                        .Where(i => i.InvoiceDate >= fromDate.Value && i.InvoiceDate <= toDate.Value &&
+                        .Where(i => i.InvoiceDate >= fromDate.Value && i.InvoiceDate < toExclusive &&
                             (i.IsDeleted == null || i.IsDeleted == false))
                         .Select(i => new { i.SupplierID, i.Amount })
                         .ToListAsync();
@@ -67,7 +69,7 @@ namespace tahsinERP.Controllers
                 // 3. On-time delivery (F_WAYBILLS - rejalashtirilgan vs faktik yetkazib berish)
                 var waybillsWithDelivery = await db.F_WAYBILLS
                     .Where(w => w.PlannedDeliveryDate.HasValue && w.ActualDeliveryDate.HasValue &&
-                        w.PlannedDeliveryDate >= fromDate.Value && w.PlannedDeliveryDate <= toDate.Value &&
+                        w.PlannedDeliveryDate >= fromDate.Value && w.PlannedDeliveryDate < toExclusive &&
                         (w.IsDeleted == null || w.IsDeleted == false))
                     .Select(w => new { w.PlannedDeliveryDate, w.ActualDeliveryDate })
                     .ToListAsync();
@@ -78,14 +80,12 @@ namespace tahsinERP.Controllers
 
                 // 4. Summary KPIs
                 var totalSuppliers = await db.SUPPLIERS.Where(s => s.IsDeleted != true).CountAsync();
-                var totalSpend = spendBySupplier.Sum(x => x.TotalSpend);
-                var totalInvoices = await db.P_INVOICES
-                    .Where(i => i.InvoiceDate >= fromDate.Value && i.InvoiceDate <= toDate.Value &&
-                        (i.IsDeleted == null || i.IsDeleted == false))
-                    .CountAsync();
+                // Jami xarajat barcha ta'minotchilar bo'yicha (avval faqat top-15 yig'ilardi, SRM-B08)
+                var totalSpend = Convert.ToDecimal(invoiceData.Sum(x => x.Amount ?? 0));
+                var totalInvoices = invoiceData.Count;
                 var totalContracts = await db.P_CONTRACTS.Where(c => c.IsDeleted != true).CountAsync();
                 var totalOrders = await db.P_ORDERS
-                    .Where(o => o.IssuedDate >= fromDate.Value && o.IssuedDate <= toDate.Value &&
+                    .Where(o => o.IssuedDate >= fromDate.Value && o.IssuedDate < toExclusive &&
                         (o.IsDeleted == null || o.IsDeleted == false))
                     .CountAsync();
 

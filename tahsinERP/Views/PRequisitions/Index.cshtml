@@ -57,7 +57,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="requisitionsTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                        <table id="requisitionsTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Ariza raqami</th>
@@ -82,7 +82,7 @@
                                                             <td>
                                                                 <a href="@Url.Action("Details", "PRequisitions", new { id = item.ID })">@item.RequisitionNo</a>
                                                             </td>
-                                                            <td>@item.RequisitionDate.ToString("dd.MM.yyyy")</td>
+                                                            <td data-order="@item.RequisitionDate.ToString("yyyyMMdd")">@item.RequisitionDate.ToString("dd.MM.yyyy")</td>
                                                             <td>
                                                                 @{
                                                                     var departmentsDict = ViewBag.DepartmentsDict as Dictionary<int, string>;

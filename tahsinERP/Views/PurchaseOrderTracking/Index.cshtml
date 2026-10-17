@@ -62,7 +62,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="trackingTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                        <table id="trackingTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Buyurtma raqami</th>
@@ -99,7 +99,7 @@
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
-                                                            <td>@order.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                            <td data-order="@order.IssuedDate.ToString("yyyyMMdd")">@order.IssuedDate.ToString("dd.MM.yyyy")</td>
                                                             <td>
                                                                 @if (order.PurchaseType == 1)
                                                                 {

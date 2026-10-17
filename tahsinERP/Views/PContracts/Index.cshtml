@@ -88,7 +88,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="pContractsTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                        <table id="pContractsTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Shartnoma raqami</th>
@@ -131,7 +131,7 @@
                                                             </td>
                                                             <td>@(item.Amount?.ToString("N2") ?? "0.00")</td>
                                                             <td>@(item.PaymentTerms ?? "-")</td>
-                                                            <td>@item.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                            <td data-order="@item.IssuedDate.ToString("yyyyMMdd")">@item.IssuedDate.ToString("dd.MM.yyyy")</td>
                                                             @if (changePermit)
                                                             {
                                                                 <td>
@@ -189,7 +189,7 @@
                     "zeroRecords": "Ma'lumot topilmadi"
                 },
                 "pageLength": 25,
-                "order": [[4, "desc"]],
+                "order": [[5, "desc"]],
                 dom: 'lBfrtip',
                 buttons: [
                     { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },

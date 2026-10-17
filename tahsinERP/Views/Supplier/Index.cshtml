@@ -63,7 +63,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="suppliersTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                        <table id="suppliersTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Nomi</th>
@@ -130,7 +130,7 @@
             var token = $('input[name="__RequestVerificationToken"]').val();
 
             $.ajax({
-                url: '@Url.Action("Delete", "Supplier")',
+                url: '@Url.Action("DeleteAjax", "Supplier")',
                 type: 'POST',
                 data: { id: id, __RequestVerificationToken: token },
                 success: function (response) {
