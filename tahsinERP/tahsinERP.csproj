@@ -532,6 +532,7 @@
     <Compile Include="Controllers\AdminSetting\CookieHelper.cs" />
     <Compile Include="Controllers\CRM\CustomerController.cs" />
     <Compile Include="Controllers\DefectTypeController.cs" />
+    <Compile Include="Controllers\LookupCrudController.cs" />
     <Compile Include="Controllers\DamagedProductController.cs" />
     <Compile Include="Controllers\Logistic\FContractController.cs" />
     <Compile Include="Controllers\Logistic\ForwarderController.cs" />

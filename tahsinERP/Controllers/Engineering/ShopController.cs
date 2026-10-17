@@ -1,9 +1,4 @@
-using DocumentFormat.OpenXml.Office2010.Excel;
-using System;
-using System.Data.Entity.Infrastructure;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
+using System.Data.Entity;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Filters;
@@ -11,167 +6,27 @@ using tahsinERP.Filters;
 namespace tahsinERP.Controllers
 {
     [Permission]
-    public class ShopController : Controller
+    public class ShopController : LookupCrudController<SHOP>
     {
-        // Olish so'rovi: Shop
-        public ActionResult Index()
+        protected override DbSet<SHOP> Set(DBTHSNEntities db) => db.SHOPS;
+
+        // CompanyID formadan olinmaydi (avval Edit'da formadan o'zgartirish mumkin edi, MES-B17)
+        protected override string[] EditableFields => new[] { "ShopName", "Description" };
+
+        protected override string LogName => "ShopController";
+
+        protected override string LogLabel => "Shop";
+
+        protected override string DisplayName(SHOP entity) => entity.ShopName;
+
+        protected override void BeforeCreate(SHOP entity)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var prod_shop = db.SHOPS.Where(x => x.IsDeleted == false).ToList();
-
-                return View(prod_shop);
-            }
-        }
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult Create([Bind(Include = "ShopName,CompanyID,Description,Isdeleted")] SHOP prod_shop)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                try
-                {
-                    if (ModelState.IsValid)
-                    {
-                        prod_shop.IsDeleted = false;
-                        prod_shop.CompanyID = 1;
-                        db.SHOPS.Add(prod_shop);
-                        db.SaveChanges();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "ShopController", $"{prod_shop.ShopName} - Shopni yaratdi");
-
-                        return RedirectToAction("Index");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(ex.Message, "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                }
-                return View(prod_shop);
-            }
+            entity.CompanyID = 1;
         }
 
-        public ActionResult Delete(int? id)
+        protected override void AfterSoftDelete(DBTHSNEntities db, int id)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (id == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-                var prod_shop = db.SHOPS.Find(id);
-                if (prod_shop == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(prod_shop);
-            }
-        }
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult Delete(SHOP prod_shop)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (ModelState.IsValid)
-                {
-                    var prod_shop_deleted = db.SHOPS.Find(prod_shop.ID);
-                    if (prod_shop_deleted != null)
-                    {
-                        prod_shop_deleted.IsDeleted = true;
-                        if (TryUpdateModel(prod_shop_deleted, "", new string[] { "IsDeleted" }))
-                        {
-                            try
-                            {
-                                SoftDeleteReferenceService.AfterShopSoftDeleted(db, prod_shop_deleted.ID);
-                                db.SaveChanges();
-
-                                LogHelper.LogToDatabase(User.Identity.Name, "ShopController", $"{prod_shop_deleted.ShopName} - Shopni o'chirdi");
-
-                                return RedirectToAction("Index");
-                            }
-                            catch (RetryLimitExceededException)
-                            {
-                                ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                            }
-                        }
-                    }
-                    return View(prod_shop_deleted);
-                }
-            }
-
-            return View();
-        }
-
-        public ActionResult Edit(int? id)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (id == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-                var prod_shop = db.SHOPS.Find(id);
-                if (prod_shop == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(prod_shop);
-            }
-        }
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult Edit(SHOP prod_shop)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (ModelState.IsValid)
-                {
-                    var prod_shop_Update = db.SHOPS.Find(prod_shop.ID);
-                    if (prod_shop_Update != null)
-                    {
-                        prod_shop_Update.IsDeleted = false;
-                        if (TryUpdateModel(prod_shop_Update, "", new string[] { "ShopName", "Description", "CompanyID", "IsDeleted" }))
-                        {
-                            try
-                            {
-                                db.SaveChanges();
-
-                                LogHelper.LogToDatabase(User.Identity.Name, "ShopController", $"{prod_shop_Update.ShopName} - Shopni tahrirladi");
-
-                                return RedirectToAction("Index");
-                            }
-                            catch (RetryLimitExceededException)
-                            {
-                                ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                            }
-                        }
-                    }
-                    return View(prod_shop_Update);
-                }
-            }
-            return View();
-        }
-        public ActionResult Details(int? id)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (id == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-                var prod_shop = db.SHOPS.Find(id);
-                if (prod_shop == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(prod_shop); 
-            }
+            SoftDeleteReferenceService.AfterShopSoftDeleted(db, id);
         }
     }
 }

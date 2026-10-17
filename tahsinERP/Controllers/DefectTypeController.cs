@@ -1,8 +1,4 @@
-using System;
-using System.Data.Entity.Infrastructure;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
+using System.Data.Entity;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Filters;
@@ -10,166 +6,21 @@ using tahsinERP.Filters;
 namespace tahsinERP.Controllers
 {
     [Permission]
-    public class DefectTypeController : Controller
+    public class DefectTypeController : LookupCrudController<DEFECT_TYPES>
     {
-        public ActionResult Index()
+        protected override DbSet<DEFECT_TYPES> Set(DBTHSNEntities db) => db.DEFECT_TYPES;
+
+        protected override string[] EditableFields => new[] { "DefectType", "Description" };
+
+        protected override string LogName => "DefectTypeController";
+
+        protected override string LogLabel => "Nuqson Turi";
+
+        protected override string DisplayName(DEFECT_TYPES entity) => entity.DefectType;
+
+        protected override void AfterSoftDelete(DBTHSNEntities db, int id)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var defecttype = db.DEFECT_TYPES.Where(x => x.IsDeleted == false).ToList();
-                return View(defecttype);
-            }
-        }
-
-        public ActionResult Details(int? ID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (ID == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-                var defect_type = db.DEFECT_TYPES.Find(ID);
-                if (defect_type == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(defect_type);
-            }
-        }
-        public ActionResult Edit(int? id)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (id == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-                var defect_type = db.DEFECT_TYPES.Find(id);
-                if (defect_type == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(defect_type);
-            }
-        }
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult Edit(DEFECT_TYPES model)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (ModelState.IsValid)
-                {
-                    var defect_type = db.DEFECT_TYPES.Find(model.ID);
-                    if (defect_type != null)
-                    {
-                        defect_type.IsDeleted = false;
-                        if (TryUpdateModel(defect_type, "", new string[] { "DefectType", "Description", "IsDeleted" }))
-                        {
-                            try
-                            {
-                                db.SaveChanges();
-
-                                var userEmail = User.Identity.Name;
-                                LogHelper.LogToDatabase(userEmail, "DefectTypeController", $"{model.DefectType} - Nuqson Turini tahrirladi");
-
-                                return RedirectToAction("Index");
-                            }
-                            catch (RetryLimitExceededException)
-                            {
-                                ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                            }
-                        }
-                    }
-                    return View(defect_type);
-                }
-            }
-            return View();
-        }
-        public ActionResult Create()
-        {
-            return View();
-        }
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult Create(DEFECT_TYPES model)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                try
-                {
-                    if (ModelState.IsValid)
-                    {
-                        model.IsDeleted = false;
-                        db.DEFECT_TYPES.Add(model);
-                        db.SaveChanges();
-
-                        var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "DefectTypeController", $"{model.DefectType} - Nuqson Turini yaratdi");
-
-                        return RedirectToAction("Index");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(ex.Message, "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                }
-                return View(model);
-            }
-        }
-        public ActionResult Delete(int? ID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (ID == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-                var defecttype = db.DEFECT_TYPES.Find(ID);
-                if (defecttype == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(defecttype);
-            }
-        }
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult Delete(DEFECT_TYPES model)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                if (ModelState.IsValid)
-                {
-                    var Defect_type_delete = db.DEFECT_TYPES.Find(model.ID);
-                    if (Defect_type_delete != null)
-                    {
-                        Defect_type_delete.IsDeleted = true;
-
-                        if (TryUpdateModel(Defect_type_delete, "", new string[] { "IsDeleted" }))
-                        {
-                            try
-                            {
-                                SoftDeleteReferenceService.AfterDefectTypeSoftDeleted(db, Defect_type_delete.ID);
-                                db.SaveChanges();
-
-                                var userEmail = User.Identity.Name;
-                                LogHelper.LogToDatabase(userEmail, "DefectTypeController", $"{model.DefectType} - Nuqson Turini o'chirdi");
-
-                                return RedirectToAction("Index");
-                            }
-                            catch (RetryLimitExceededException)
-                            {
-                                ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                            }
-                        }
-                    }
-                    return View(Defect_type_delete);
-                }
-            }
-
-            return View();
+            SoftDeleteReferenceService.AfterDefectTypeSoftDeleted(db, id);
         }
     }
 }
