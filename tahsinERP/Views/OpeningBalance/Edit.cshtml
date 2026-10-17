@@ -412,6 +412,42 @@
                                         </table>
                                     </div>
 
+                                    <h5 class="mb-1 mt-2">Hisoblar bo'yicha opening (kassa, bank)</h5>
+                                    <p class="text-muted small mb-2">
+                                        Har hisobning opening qoldig'i. Kiritilsa, shu hisoblar kategoriyasining opening'i ularning
+                                        <strong>yig'indisiga</strong> teng saqlanadi (yuqoridagi summa o'rniga). Bo'sh qoldirilgan hisob uchun yozuv saqlanmaydi.
+                                    </p>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-sm" id="tblOpeningAccounts">
+                                            <thead>
+                                                <tr>
+                                                    <th>Hisob</th>
+                                                    <th>Kategoriya</th>
+                                                    <th class="text-right" style="min-width:170px;">Opening qoldig'i</th>
+                                                    <th>Valyuta</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.AccountItems.Count; i++)
+                                                {
+                                                    <tr>
+                                                        @Html.HiddenFor(m => m.AccountItems[i].AccountID)
+                                                        <td>@Model.AccountItems[i].AccountName</td>
+                                                        <td>@Model.AccountItems[i].CategoryName</td>
+                                                        <td class="text-right">
+                                                            @Html.TextBoxFor(m => m.AccountItems[i].Amount, new { @class = "form-control text-right", type = "number", step = "0.01" })
+                                                        </td>
+                                                        <td>@Model.AccountItems[i].CurrencyShortname</td>
+                                                    </tr>
+                                                }
+                                                @if (Model.AccountItems.Count == 0)
+                                                {
+                                                    <tr><td colspan="4" class="text-center text-muted">Balans kategoriyasiga bog'langan faol hisob yo'q</td></tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
                                     <div class="form-actions mt-2">
                                         <button type="submit" class="btn btn-primary">Saqlash</button>
                                         <a href="@Url.Action("Edit", new { snapshotDate = Model.SnapshotDate.ToString("yyyy-MM-dd") })" class="btn btn-secondary">Yangilash</a>
@@ -447,6 +483,34 @@
                                                     <td>@item.CurrencyShortname</td>
                                                     <td class="text-center">@(item.LeaveEmpty ? "Ha" : "Yo'q")</td>
                                                 </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <h5 class="mb-1">Hisoblar bo'yicha opening</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Hisob</th>
+                                                <th>Kategoriya</th>
+                                                <th class="text-right">Opening qoldig'i</th>
+                                                <th>Valyuta</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var a in Model.AccountItems.Where(x => x.Amount.HasValue))
+                                            {
+                                                <tr>
+                                                    <td>@a.AccountName</td>
+                                                    <td>@a.CategoryName</td>
+                                                    <td class="text-right">@a.Amount.Value.ToString("N2")</td>
+                                                    <td>@a.CurrencyShortname</td>
+                                                </tr>
+                                            }
+                                            @if (!Model.AccountItems.Any(x => x.Amount.HasValue))
+                                            {
+                                                <tr><td colspan="4" class="text-center text-muted">Kiritilmagan</td></tr>
                                             }
                                         </tbody>
                                     </table>

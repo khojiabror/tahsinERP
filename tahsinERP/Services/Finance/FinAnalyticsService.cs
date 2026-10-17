@@ -307,8 +307,8 @@ namespace tahsinERP.Services.Finance
         }
 
         /// <summary>
-        /// Hisoblar qoldig'i: kategoriya opening snapshot'i bo'lsa — (snapshot / shu kategoriyadagi hisoblar soni)
-        /// + snapshot sanasidan boshlab harakatlar; aks holda toDate gacha barcha harakatlar.
+        /// Hisoblar qoldig'i: opening bo'lsa — hisob opening'i (hisob kesimida kiritilmagan bo'lsa kategoriya / hisoblar soni)
+        /// + opening sanasidan keyingi harakatlar (balans kabi); aks holda toDate gacha barcha harakatlar.
         /// Avval barcha hisoblar tarixi to'liq entity sifatida xotiraga olinardi (FIN-P07).
         /// </summary>
         public static List<AccountBalanceData> AccountBalances(DBTHSNEntities db, DateTime fromDate, DateTime toDate, int? accountType)
@@ -342,6 +342,16 @@ namespace tahsinERP.Services.Finance
                 .GroupBy(a => a.BalanceCategoryID.Value)
                 .ToDictionary(g => g.Key, g => g.Count());
 
+            // FIN-B16: hisob kesimidagi opening'lar (SourceID = AccountID), sana bo'yicha
+            var accountOpenings = db.FIN_BALANCE_SNAPSHOTS.AsNoTracking()
+                .Where(s => s.SnapshotDate <= toDate && s.SourceType == OpeningBalanceService.AccountOpeningSourceType && s.SourceID.HasValue)
+                .Select(s => new { s.ID, AccountID = s.SourceID.Value, s.CategoryID, s.SnapshotDate, s.Amount })
+                .ToList();
+            var accountOpeningByKey = accountOpenings
+                .GroupBy(s => new { s.AccountID, Date = s.SnapshotDate.Date })
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.ID).First().Amount);
+            var categoryDatesWithAccounts = new HashSet<string>(accountOpenings.Select(s => s.CategoryID + "|" + s.SnapshotDate.Date.ToString("yyyyMMdd")));
+
             var result = new List<AccountBalanceData>();
             foreach (var account in accounts)
             {
@@ -349,13 +359,26 @@ namespace tahsinERP.Services.Finance
 
                 decimal qoldiq;
                 var usesOpening = false;
+                var approximate = false;
                 if (account.BalanceCategoryID.HasValue &&
                     openingSnapshots.TryGetValue(account.BalanceCategoryID.Value, out var snapRow))
                 {
-                    // FIN-B16: snapshot hisoblar soniga teng bo'linadi va opening kuni ham (>=) qo'shiladi — eski xatti-harakat.
                     var snapDate = snapRow.SnapshotDate.Date;
-                    var cnt = accountCountByCategory.TryGetValue(account.BalanceCategoryID.Value, out var c) ? Math.Max(1, c) : 1;
-                    qoldiq = snapRow.Amount / cnt + days.Where(x => x.TxnDate >= snapDate).Sum(x => x.Net);
+                    decimal opening;
+                    if (categoryDatesWithAccounts.Contains(account.BalanceCategoryID.Value + "|" + snapDate.ToString("yyyyMMdd")))
+                    {
+                        // Shu opening'da hisoblar bo'yicha qoldiq kiritilgan — hisobniki (kiritilmagan hisob — 0)
+                        opening = accountOpeningByKey.TryGetValue(new { AccountID = account.ID, Date = snapDate }, out var a) ? a : 0m;
+                    }
+                    else
+                    {
+                        // Eski opening (faqat kategoriya summasi): hisoblar soniga teng bo'linadi — taxminiy
+                        var cnt = accountCountByCategory.TryGetValue(account.BalanceCategoryID.Value, out var c) ? Math.Max(1, c) : 1;
+                        opening = snapRow.Amount / cnt;
+                        approximate = cnt > 1;
+                    }
+                    // FIN-B16: balans kabi opening sanasidan KEYINGI harakatlar (avval >= — opening kuni ikki marta)
+                    qoldiq = opening + days.Where(x => x.TxnDate > snapDate).Sum(x => x.Net);
                     usesOpening = true;
                 }
                 else
@@ -374,7 +397,8 @@ namespace tahsinERP.Services.Finance
                     Kirim = period.Sum(x => x.In),
                     Chiqim = period.Sum(x => x.Out),
                     Qoldiq = qoldiq,
-                    IncludesOpeningBalance = usesOpening
+                    IncludesOpeningBalance = usesOpening,
+                    IsOpeningApproximate = approximate
                 });
             }
 
