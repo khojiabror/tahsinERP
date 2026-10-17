@@ -28,7 +28,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            IQueryable<HR_POSITIONS> query = db.HR_POSITIONS
+            IQueryable<HR_POSITIONS> query = db.HR_POSITIONS.AsNoTracking()
                 .Where(p => p.IsDeleted != true);
 
             if (isActive.HasValue)
