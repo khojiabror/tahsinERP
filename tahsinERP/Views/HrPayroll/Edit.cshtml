@@ -1,10 +1,11 @@
 @model tahsinERP.ViewModels.HR.HrPayrollHeaderViewModel
 @using System.Collections.Generic
 @using tahsinERP.Models
+@using tahsinERP.Services.Common
 @{
     ViewBag.Title = "Ish haqi hisobini tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var currencyItems = ViewBag.CurrencyItems as List<CURRENCy> ?? new List<CURRENCy>();
+    var currencyItems = ViewBag.CurrencyItems as IReadOnlyList<RefItem> ?? new List<RefItem>();
 }
 
 @if (RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
@@ -58,18 +59,40 @@
                             <a href="@Url.Action("Report", new { id = Model.ID })" class="btn btn-sm btn-info" target="_blank">
                                 <i class="bx bx-printer"></i> Chop etish
                             </a>
-                            @if (Model.Status == "Draft")
-                            {
-                                <a href="@Url.Action("Approve", new { id = Model.ID })" class="btn btn-sm btn-warning" onclick="return confirm('Hisobni tasdiqlash?');">
-                                    <i class="bx bx-check"></i> Tasdiqlash
-                                </a>
-                            }
                         </div>
                         <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Posted" ? "info" : "warning") ml-2">
-                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "O'tkazilgan")
+                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan (moliyaga yozilmagan)" : "Tasdiqlangan, moliyaga yozilgan")
                         </span>
                     </div>
                 </div>
+
+                @if (Model.Status == "Draft" || Model.Status == "Approved")
+                {
+                    bool isDraft = Model.Status == "Draft";
+                    @* Tasdiqlash bilan birga to'lovga summa Finance'ga chiqim sifatida yoziladi (har valyuta uchun alohida) *@
+                    using (Html.BeginForm(isDraft ? "Approve" : "Post", "HrPayroll", new { id = Model.ID }, FormMethod.Post, new { @class = "card mb-2", onsubmit = "return confirm(this.getAttribute('data-msg'));", data_msg = isDraft ? "Hisobni tasdiqlab, moliya moduliga chiqim sifatida yozilsinmi?" : "Hisob moliya moduliga chiqim sifatida yozilsinmi?" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="card-body py-1">
+                            <div class="form-row align-items-end">
+                                <div class="col-md-4">
+                                    <label class="mb-0">Moliya hisobi (kassa/bank)</label>
+                                    @Html.DropDownList("accountId", ViewBag.FinAccountID as SelectList, new { @class = "form-control form-control-sm" })
+                                    <small class="text-muted">Boshqa valyutadagi satrlar shu valyutaning birinchi faol hisobiga yoziladi</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="mb-0">Chiqim toifasi</label>
+                                    @Html.DropDownList("categoryId", ViewBag.FinCategoryID as SelectList, "Avtomatik (oylik)", new { @class = "form-control form-control-sm" })
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-sm btn-warning">
+                                        <i class="bx bx-check"></i> @(isDraft ? "Tasdiqlash va moliyaga yozish" : "Moliyaga yozish")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
 
                 <div class="card">
                     <div class="card-header">
@@ -87,7 +110,8 @@
                                            value="@Model.IncomeTaxPercent.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
                                            min="0"
                                            max="100"
-                                           step="0.01" />
+                                           step="0.01"
+                                           @(Model.Status != "Draft" ? "readonly" : "") />
                                 </div>
                             }
                             <div class="col-md-3">
@@ -100,13 +124,13 @@
                                 </div>
                             }
                             <div class="col-md-3">
-                                <strong>Mukofotlar:</strong> @Model.Lines.Sum(l => l.Bonuses).ToString("N2")
+                                <strong>Mukofotlar:</strong> <span id="summaryBonuses">@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</span>
                             </div>
                             <div class="col-md-3">
-                                <strong>Jarimalar:</strong> @Model.Lines.Sum(l => l.Penalties).ToString("N2")
+                                <strong>Jarimalar:</strong> <span id="summaryPenalties">@Model.Lines.Sum(l => l.Penalties).ToString("N2")</span>
                             </div>
                             <div class="col-md-3">
-                                <strong>To'lovga:</strong> <span class="text-success font-weight-bold">@Model.TotalNetSalary.ToString("N2")</span>
+                                <strong>To'lovga:</strong> <span id="summaryNet" class="text-success font-weight-bold">@Model.TotalNetSalary.ToString("N2")</span>
                             </div>
                         </div>
                     </div>
@@ -181,7 +205,7 @@
                                                                 style="min-width: 90px;">
                                                             @foreach (var c in currencyItems)
                                                             {
-                                                                <option value="@c.ID" @(line.CurrencyID == c.ID ? "selected" : "")>@c.Shortname</option>
+                                                                <option value="@c.ID" @(line.CurrencyID == c.ID ? "selected" : "")>@c.Name</option>
                                                             }
                                                         </select>
                                                     }
@@ -202,9 +226,9 @@
                                             {
                                                 <td id="totalIncomeTax">@Model.TotalIncomeTax.ToString("N2")</td>
                                             }
-                                            <td>@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</td>
-                                            <td>@Model.Lines.Sum(l => l.Penalties).ToString("N2")</td>
-                                            <td class="text-success">@Model.TotalNetSalary.ToString("N2")</td>
+                                            <td id="totalBonuses">@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</td>
+                                            <td id="totalPenalties">@Model.Lines.Sum(l => l.Penalties).ToString("N2")</td>
+                                            <td id="totalNet" class="text-success">@Model.TotalNetSalary.ToString("N2")</td>
                                             <td></td>
                                         </tr>
                                     </tfoot>
@@ -255,7 +279,19 @@
                         });
                     }
 
-                    $('.bonuses-input, .penalties-input').on('change blur', function () {
+                    function fmt(v) {
+                        return (parseFloat(v) || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
+                    function applyTotals(t) {
+                        if (!t) return;
+                        $('#summaryIncomeTax, #totalIncomeTax').text(fmt(t.tax));
+                        $('#summaryBonuses, #totalBonuses').text(fmt(t.bonuses));
+                        $('#summaryPenalties, #totalPenalties').text(fmt(t.penalties));
+                        $('#summaryNet, #totalNet').text(fmt(t.net));
+                    }
+
+                    // Faqat 'change': avval 'change blur' ikki marta POST va har katakdan keyin sahifani qayta yuklardi (HRM-P05)
+                    $('.bonuses-input, .penalties-input').on('change', function () {
                         var $input = $(this);
                         var lineId = $input.data('line-id');
                         var bonuses = parseFloat($('.bonuses-input[data-line-id="' + lineId + '"]').val()) || 0;
@@ -268,21 +304,30 @@
                             incomeTaxPercent: getIncomeTaxPercent()
                         }, function (result) {
                             if (result.success) {
-                                $('tr[data-line-id="' + lineId + '"] .net-salary').text(parseFloat(result.netSalary).toFixed(2));
+                                $('tr[data-line-id="' + lineId + '"] .net-salary').text(fmt(result.netSalary));
                                 if (isHourlyPayroll) {
-                                    $('tr[data-line-id="' + lineId + '"] .income-tax').text(parseFloat(result.incomeTaxAmount || 0).toFixed(2));
+                                    $('tr[data-line-id="' + lineId + '"] .income-tax').text(fmt(result.incomeTaxAmount));
                                 }
-                                location.reload();
+                                applyTotals(result.totals);
                             } else {
                                 alert('Xatolik: ' + result.message);
                             }
                         });
                     });
 
-                    $('#incomeTaxPercent').on('change blur', function () {
+                    // Foiz o'zgarsa — barcha qatorlar serverda bir martada qayta hisoblanadi (HRM-B04)
+                    $('#incomeTaxPercent').on('change', function () {
                         if (!isHourlyPayroll) return;
-                        var taxPercent = getIncomeTaxPercent();
-                        $('.bonuses-input').first().trigger('change');
+                        $.post('@Url.Action("RecalculateTax")', {
+                            payrollId: @Model.ID,
+                            incomeTaxPercent: getIncomeTaxPercent()
+                        }, function (result) {
+                            if (result.success) {
+                                location.reload();
+                            } else {
+                                alert('Xatolik: ' + result.message);
+                            }
+                        });
                     });
 
                     $('.currency-select').on('change', function () {

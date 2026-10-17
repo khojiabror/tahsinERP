@@ -1,14 +1,7 @@
+@using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqasi Excel yuklash";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var T = new
-    {
-        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
-        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
-        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
-        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
-        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
-    };
 }
 
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -26,7 +19,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Waybill/Index">@T.Waybills</a>
+                                        <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
                                     </li>
                                     <li class="breadcrumb-item active">Excel orqali yuklash</li>
                                 </ol>
@@ -44,7 +37,7 @@
                                 <div class="card-body">
                                     <h4 class="card-title">Excel fayl yuklash</h4>
                                     <p class="text-muted">
-                                        Birinchi satrda ustun nomlari bo'lishi kerak. Majburiy ustunlar: <b>@T.Waybill raqami (WaybillNo)</b>, <b>Sana (IssueDate)</b>, <b>Shartnoma (ContractID/ContractNo)</b>, <b>Transport turi (TransportTypeID/TransportType)</b>.
+                                        Birinchi satrda ustun nomlari bo'lishi kerak. Majburiy ustunlar: <b>@LogisticsTerms.Waybill raqami (WaybillNo)</b>, <b>Sana (IssueDate)</b>, <b>Shartnoma (ContractID/ContractNo)</b>, <b>Transport turi (TransportTypeID/TransportType)</b>.
                                     </p>
 
                                     @if (ViewBag.Error != null)
@@ -100,10 +93,10 @@
                                     <h5>Excel ustunlari</h5>
                                     <p class="text-muted">Quyidagi ustun nomlarini birinchi qatorga yozing.</p>
                                     <ul class="mb-0">
-                                        <li>@T.Waybill raqami (WaybillNo) *</li>
+                                        <li>@LogisticsTerms.Waybill raqami (WaybillNo) *</li>
                                         <li>Sana (IssueDate) *</li>
                                         <li>Yo'nalish (Direction: 0/1/2 yoki Kiruvchi/Chiquvchi/Ichki)</li>
-                                        <li>@T.Forwarder (ForwarderID yoki ForwarderName)</li>
+                                        <li>@LogisticsTerms.Forwarder (ForwarderID yoki ForwarderName)</li>
                                         <li>Shartnoma (ContractID yoki ContractNo)</li>
                                         <li>Transport turi (TransportTypeID yoki TransportType)</li>
                                         <li>Qayerdan, Qayerga, Masofa (FromLocation, ToLocation, DistanceKm)</li>

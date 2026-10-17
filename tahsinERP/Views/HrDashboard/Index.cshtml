@@ -322,16 +322,11 @@
             // Headcount by OrgUnit Chart
             var headcountCtx = document.getElementById('headcountChart');
             if (headcountCtx) {
-                var headcountLabels = @Html.Raw(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
-                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => $"'{x.OrgUnitName.Replace("'", "\\'")}'")) + "]"
-                    : "[]");
-                var plannedData = @(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
-                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.PlannedHeadcount)) + "]"
-                    : "[]");
-                var actualData = @(Model.HeadcountByOrgUnit != null && Model.HeadcountByOrgUnit.Any() 
-                    ? "[" + string.Join(",", Model.HeadcountByOrgUnit.Select(x => x.ActualHeadcount)) + "]"
-                    : "[]");
-                
+                // HTML-xavfsiz JSON (avval nomlar qo'lda ' bilan o'ralardi — XSS, HRM-S04)
+                var headcountLabels = @Html.Raw(Json.Encode(Model.HeadcountByOrgUnit.Select(x => x.OrgUnitName)));
+                var plannedData = @Html.Raw(Json.Encode(Model.HeadcountByOrgUnit.Select(x => x.PlannedHeadcount)));
+                var actualData = @Html.Raw(Json.Encode(Model.HeadcountByOrgUnit.Select(x => x.ActualHeadcount)));
+
                 var headcountChart = new Chart(headcountCtx.getContext('2d'), {
                     type: 'bar',
                     data: {
@@ -361,13 +356,10 @@
             // Payroll Trend Chart
             var payrollCtx = document.getElementById('payrollTrendChart');
             if (payrollCtx) {
-                var payrollLabels = @Html.Raw(Model.PayrollTrend != null && Model.PayrollTrend.Any() 
-                    ? "[" + string.Join(",", Model.PayrollTrend.Select(x => $"'{x.Year}-{x.Month:D2}'")) + "]"
-                    : "[]");
-                var payrollData = @(Model.PayrollTrend != null && Model.PayrollTrend.Any() 
-                    ? "[" + string.Join(",", Model.PayrollTrend.Select(x => x.TotalPayroll)) + "]"
-                    : "[]");
-                
+                // Invariant format (avval server madaniyatida 1234,56 chiqib, grafik buzilardi, HRM-B11)
+                var payrollLabels = @Html.Raw(Json.Encode(Model.PayrollTrend.Select(x => x.Year + "-" + x.Month.ToString("D2"))));
+                var payrollData = @Html.Raw(Json.Encode(Model.PayrollTrend.Select(x => x.TotalPayroll)));
+
                 var payrollChart = new Chart(payrollCtx.getContext('2d'), {
                     type: 'line',
                     data: {

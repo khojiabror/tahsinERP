@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
 
@@ -30,14 +31,14 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive && o.IsDeleted == false)
+            var orgUnits = await db.HR_ORG_UNITS.AsNoTracking()
+                .Where(o => o.IsActive && o.IsDeleted != true)
                 .OrderBy(o => o.LevelNo)
                 .ThenBy(o => o.SortOrder)
                 .ToListAsync();
 
-            var tree = BuildOrgTree(orgUnits, null);
-            
+            var tree = BuildOrgTree(orgUnits, null, await LoadPlannedByOrgAsync(), await LoadActualByOrgAsync());
+
             logger.Log("HrOrgUnits", "Index");
             return View(tree);
         }
@@ -55,10 +56,8 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            var orgUnit = await db.HR_ORG_UNITS
-                .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_POSITIONS))
-                .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_SALARY_GRADES))
-                .Where(o => o.ID == id && o.IsDeleted == false)
+            var orgUnit = await db.HR_ORG_UNITS.AsNoTracking()
+                .Where(o => o.ID == id && o.IsDeleted != true)
                 .FirstOrDefaultAsync();
 
             if (orgUnit == null)
@@ -67,15 +66,15 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Olish staffing plans uchun this org unit
-            var staffingPlans = await db.HR_STAFFING_PLAN
+            var staffingPlans = await db.HR_STAFFING_PLAN.AsNoTracking()
                 .Include(sp => sp.HR_POSITIONS)
-                .Where(sp => sp.OrgUnitID == id && sp.IsActive)
+                .Where(sp => sp.OrgUnitID == id && sp.IsActive && sp.IsDeleted != true)
                 .ToListAsync();
 
             // Olish employees uchun this org unit
-            var employees = await db.HR_EMPLOYEES
-                .Include(e => e.HR_POSITIONS)
-                .Where(e => e.OrgUnitID == id && e.IsActive && e.DismissalDate == null)
+            var employees = await db.HR_EMPLOYEES.AsNoTracking()
+                .Where(e => e.OrgUnitID == id && e.IsActive && e.IsDeleted != true && e.DismissalDate == null)
+                .Select(e => new { e.FullName, e.PositionID })
                 .ToListAsync();
 
             // Yaratish staffing plan view models bilan employee assignments
@@ -108,8 +107,8 @@ namespace tahsinERP.Controllers.HR
 
             if (orgUnit.ParentID.HasValue)
             {
-                var parent = await db.HR_ORG_UNITS.FindAsync(orgUnit.ParentID.Value);
-                viewModel.ParentName = parent?.Name;
+                viewModel.ParentName = await db.HR_ORG_UNITS.AsNoTracking()
+                    .Where(o => o.ID == orgUnit.ParentID.Value).Select(o => o.Name).FirstOrDefaultAsync();
             }
 
             logger.Log("HrOrgUnits", "Details", $"Bo'lim: {viewModel.Name}");
@@ -123,18 +122,28 @@ namespace tahsinERP.Controllers.HR
         }
 
         // Olish so'rovi: HR/OrgUnits/yaratish
-        public async Task<ActionResult> Create(int? parentId)
+        public ActionResult Create(int? parentId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ViewBag.ParentID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", parentId);
-
+            PopulateParents(parentId, null);
             return View();
+        }
+
+        private void PopulateParents(int? selectedParentId, int? excludeId)
+        {
+            ViewBag.ParentID = new SelectList(
+                HrLookups.Get(HrLookups.OrgUnits).Where(o => o.ID != excludeId),
+                "ID", "Name", selectedParentId);
+        }
+
+        private async Task<string> ParentNameAsync(int? parentId)
+        {
+            if (!parentId.HasValue) return "-";
+            return await db.HR_ORG_UNITS.AsNoTracking().Where(o => o.ID == parentId.Value).Select(o => o.Name).FirstOrDefaultAsync() ?? "-";
         }
 
         // POST so'rovi: HR/OrgUnits/yaratish
@@ -153,9 +162,7 @@ namespace tahsinERP.Controllers.HR
                 if (orgUnit.ParentID.HasValue && await HasCircularReference(orgUnit.ParentID.Value, null))
                 {
                     ModelState.AddModelError("ParentID", "Циклическая ссылка не допускается");
-                    ViewBag.ParentID = new SelectList(
-                        await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                        "ID", "Name", orgUnit.ParentID);
+                    PopulateParents(orgUnit.ParentID, null);
                     return View(orgUnit);
                 }
 
@@ -183,19 +190,13 @@ namespace tahsinERP.Controllers.HR
 
                 db.HR_ORG_UNITS.Add(orgUnit);
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.OrgUnits);
 
-                var parentName = "-";
-                if (orgUnit.ParentID.HasValue)
-                {
-                    parentName = (await db.HR_ORG_UNITS.FindAsync(orgUnit.ParentID.Value))?.Name ?? "-";
-                }
-                logger.Log("HrOrgUnits", "Create", $"Bo'lim: {orgUnit.Name}, OtaBo'lim: {parentName}");
+                logger.Log("HrOrgUnits", "Create", $"Bo'lim: {orgUnit.Name}, OtaBo'lim: {await ParentNameAsync(orgUnit.ParentID)}");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.ParentID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", orgUnit.ParentID);
+            PopulateParents(orgUnit.ParentID, null);
             return View(orgUnit);
         }
 
@@ -218,9 +219,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            ViewBag.ParentID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive && o.ID != id).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", orgUnit.ParentID);
+            PopulateParents(orgUnit.ParentID, orgUnit.ID);
 
             return View(orgUnit);
         }
@@ -241,9 +240,7 @@ namespace tahsinERP.Controllers.HR
                 if (orgUnit.ParentID.HasValue && await HasCircularReference(orgUnit.ParentID.Value, orgUnit.ID))
                 {
                     ModelState.AddModelError("ParentID", "Циклическая ссылка не допускается");
-                    ViewBag.ParentID = new SelectList(
-                        await db.HR_ORG_UNITS.Where(o => o.IsActive && o.ID != orgUnit.ID).OrderBy(o => o.Name).ToListAsync(),
-                        "ID", "Name", orgUnit.ParentID);
+                    PopulateParents(orgUnit.ParentID, orgUnit.ID);
                     return View(orgUnit);
                 }
 
@@ -272,24 +269,20 @@ namespace tahsinERP.Controllers.HR
 
                 // Yangilash existing entity bilan values dan orgUnit
                 existing.Name = orgUnit.Name;
+                existing.Code = orgUnit.Code; // avval forma yuborsa ham saqlanmasdi (HRM-B19)
+                existing.SortOrder = orgUnit.SortOrder;
                 existing.ParentID = orgUnit.ParentID;
                 existing.LevelNo = orgUnit.LevelNo;
                 existing.IsActive = orgUnit.IsActive;
 
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.OrgUnits);
 
-                var parentName = "-";
-                if (orgUnit.ParentID.HasValue)
-                {
-                    parentName = (await db.HR_ORG_UNITS.FindAsync(orgUnit.ParentID.Value))?.Name ?? "-";
-                }
-                logger.Log("HrOrgUnits", "Edit", $"Bo'lim: {orgUnit.Name}, OtaBo'lim: {parentName}");
+                logger.Log("HrOrgUnits", "Edit", $"Bo'lim: {orgUnit.Name}, OtaBo'lim: {await ParentNameAsync(orgUnit.ParentID)}");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.ParentID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive && o.ID != orgUnit.ID).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", orgUnit.ParentID);
+            PopulateParents(orgUnit.ParentID, orgUnit.ID);
             return View(orgUnit);
         }
 
@@ -313,7 +306,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Tekshirish agar has children
-            var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id);
+            var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id && o.IsDeleted != true);
             if (hasChildren)
             {
                 TempData["Error"] = "Bo'limda quyi bo'limlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
@@ -321,7 +314,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Tekshirish agar has employees
-            var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive);
+            var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive && e.IsDeleted != true);
             if (hasEmployees)
             {
                 TempData["Error"] = "Bo'limda xodimlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
@@ -349,7 +342,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Tekshirish agar has children
-            var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id);
+            var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id && o.IsDeleted != true);
             if (hasChildren)
             {
                 TempData["Error"] = "Bo'limda quyi bo'limlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
@@ -357,7 +350,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Tekshirish agar has employees
-            var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive);
+            var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive && e.IsDeleted != true);
             if (hasEmployees)
             {
                 TempData["Error"] = "Bo'limda xodimlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
@@ -368,6 +361,7 @@ namespace tahsinERP.Controllers.HR
             db.Entry(orgUnit).State = System.Data.Entity.EntityState.Modified;
             await SoftDeleteReferenceService.AfterOrgUnitSoftDeletedAsync(db, id);
             await db.SaveChangesAsync();
+            HrLookups.Invalidate(HrLookups.OrgUnits);
 
             logger.Log("HrOrgUnits", "Delete", $"Bo'lim: {orgUnit.Name}");
             return RedirectToAction("Index");
@@ -412,34 +406,16 @@ namespace tahsinERP.Controllers.HR
                 await UpdateChildrenLevels(id, orgUnit.LevelNo);
 
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.OrgUnits);
 
-                var unitName = orgUnit.Name ?? "-";
-                var parentName = "-";
-                if (newParentId.HasValue)
-                {
-                    parentName = (await db.HR_ORG_UNITS.FindAsync(newParentId.Value))?.Name ?? "-";
-                }
-                logger.Log("HrOrgUnits", "UpdateParent", $"Bo'lim: {unitName}, YangiOtaBo'lim: {parentName}");
+                logger.Log("HrOrgUnits", "UpdateParent", $"Bo'lim: {orgUnit.Name ?? "-"}, YangiOtaBo'lim: {await ParentNameAsync(newParentId)}");
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                System.Diagnostics.Trace.TraceError("[HrOrgUnits.UpdateParent] " + ex);
+                return Json(new { success = false, message = "Saqlashda xatolik yuz berdi" });
             }
-        }
-
-        // AJAX so'rovi: Get tree ma'lumot
-        [HttpGet]
-        public async Task<JsonResult> GetTreeData()
-        {
-            var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive && o.IsDeleted == false)
-                .OrderBy(o => o.LevelNo)
-                .ThenBy(o => o.SortOrder)
-                .ToListAsync();
-
-            var tree = BuildOrgTree(orgUnits, null);
-            return Json(tree, JsonRequestBehavior.AllowGet);
         }
 
         // Olish so'rovi: HR/OrgUnits/OrgChart - Visual org chart
@@ -450,61 +426,90 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var orgUnits = await db.HR_ORG_UNITS
-                .Where(o => o.IsActive && o.IsDeleted == false)
-                .Include(o => o.HR_EMPLOYEES)
-                .Include(o => o.HR_STAFFING_PLAN.Select(sp => sp.HR_POSITIONS))
+            var orgUnits = await db.HR_ORG_UNITS.AsNoTracking()
+                .Where(o => o.IsActive && o.IsDeleted != true)
                 .OrderBy(o => o.LevelNo)
                 .ThenBy(o => o.SortOrder)
+                .Select(o => new OrgChartUnitRow { ID = o.ID, ParentID = o.ParentID, Code = o.Code, Name = o.Name, LevelNo = o.LevelNo })
                 .ToListAsync();
 
-            // Build org chart ma'lumot bilan positions va employees
-            var rootUnits = orgUnits.Where(o => !o.ParentID.HasValue).ToList();
-            var orgChartData = new List<OrgChartNodeViewModel>();
+            // Xodimlar va shtat rejasi bitta so'rovdan, lavozim nomi bilan (avval har xodimga lazy-load, HRM-P10)
+            var employees = (await db.HR_EMPLOYEES.AsNoTracking()
+                .Where(e => e.IsActive && e.IsDeleted != true && e.OrgUnitID != null)
+                .Select(e => new { OrgUnitID = e.OrgUnitID.Value, e.FullName, e.TabNo, e.PositionID, PositionName = e.HR_POSITIONS.Name })
+                .ToListAsync())
+                .ToLookup(e => e.OrgUnitID);
+            var plans = (await db.HR_STAFFING_PLAN.AsNoTracking()
+                .Where(sp => sp.IsActive && sp.IsDeleted != true)
+                .Select(sp => new { sp.OrgUnitID, sp.PositionID, sp.PlannedHeadcount, PositionName = sp.HR_POSITIONS.Name })
+                .ToListAsync())
+                .ToLookup(sp => sp.OrgUnitID);
 
-            foreach (var unit in rootUnits)
+            var childrenByParent = orgUnits.ToLookup(o => o.ParentID);
+            Func<OrgChartUnitRow, OrgChartNodeViewModel> build = null;
+            build = unit =>
             {
-                orgChartData.Add(BuildOrgChartNode(unit, orgUnits));
-            }
+                var unitEmployees = employees[unit.ID].ToList();
+                var node = new OrgChartNodeViewModel
+                {
+                    ID = unit.ID,
+                    Code = unit.Code,
+                    Name = unit.Name,
+                    LevelNo = unit.LevelNo,
+                    Employees = unitEmployees.Select(e => new OrgChartEmployeeViewModel
+                    {
+                        FullName = e.FullName,
+                        PositionName = e.PositionName ?? "",
+                        TabNo = e.TabNo
+                    }).ToList(),
+                    Positions = plans[unit.ID].Select(sp => new OrgChartPositionViewModel
+                    {
+                        PositionName = sp.PositionName ?? "",
+                        PlannedHeadcount = (int)sp.PlannedHeadcount,
+                        ActualHeadcount = unitEmployees.Count(e => e.PositionID == sp.PositionID)
+                    }).ToList()
+                };
+                foreach (var child in childrenByParent[unit.ID])
+                {
+                    node.Children.Add(build(child));
+                }
+                return node;
+            };
 
-            ViewBag.OrgChartData = orgChartData;
+            ViewBag.OrgChartData = childrenByParent[null].Select(build).ToList();
             logger.Log("HrOrgUnits", "OrgChart");
             return View();
         }
 
-        private OrgChartNodeViewModel BuildOrgChartNode(HR_ORG_UNITS unit, List<HR_ORG_UNITS> allUnits)
+        private sealed class OrgChartUnitRow
         {
-            var node = new OrgChartNodeViewModel
-            {
-                ID = unit.ID,
-                Code = unit.Code,
-                Name = unit.Name,
-                LevelNo = unit.LevelNo,
-                Employees = unit.HR_EMPLOYEES.Where(e => e.IsActive).Select(e => new OrgChartEmployeeViewModel
-                {
-                    FullName = e.FullName,
-                    PositionName = e.HR_POSITIONS?.Name ?? "",
-                    TabNo = e.TabNo
-                }).ToList(),
-                Positions = unit.HR_STAFFING_PLAN.Where(sp => sp.IsActive).Select(sp => new OrgChartPositionViewModel
-                {
-                    PositionName = sp.HR_POSITIONS?.Name ?? "",
-                    PlannedHeadcount = (int)sp.PlannedHeadcount,
-                    ActualHeadcount = unit.HR_EMPLOYEES.Count(e => e.IsActive && e.PositionID == sp.PositionID)
-                }).ToList()
-            };
-
-            // Qo'shish children
-            var children = allUnits.Where(o => o.ParentID == unit.ID).ToList();
-            foreach (var child in children)
-            {
-                node.Children.Add(BuildOrgChartNode(child, allUnits));
-            }
-
-            return node;
+            public int ID { get; set; }
+            public int? ParentID { get; set; }
+            public string Code { get; set; }
+            public string Name { get; set; }
+            public int LevelNo { get; set; }
         }
 
-        private List<HrOrgUnitViewModel> BuildOrgTree(List<HR_ORG_UNITS> allUnits, int? parentId)
+        private Task<Dictionary<int, decimal>> LoadPlannedByOrgAsync()
+        {
+            return db.HR_STAFFING_PLAN.AsNoTracking()
+                .Where(sp => sp.IsActive && sp.IsDeleted != true)
+                .GroupBy(sp => sp.OrgUnitID)
+                .Select(g => new { g.Key, Planned = g.Sum(sp => sp.PlannedHeadcount) })
+                .ToDictionaryAsync(x => x.Key, x => x.Planned);
+        }
+
+        private Task<Dictionary<int, int>> LoadActualByOrgAsync()
+        {
+            return db.HR_EMPLOYEES.AsNoTracking()
+                .Where(e => e.IsActive && e.IsDeleted != true && e.OrgUnitID != null)
+                .GroupBy(e => e.OrgUnitID.Value)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count);
+        }
+
+        private static List<HrOrgUnitViewModel> BuildOrgTree(List<HR_ORG_UNITS> allUnits, int? parentId,
+            Dictionary<int, decimal> plannedByOrg, Dictionary<int, int> actualByOrg)
         {
             var result = new List<HrOrgUnitViewModel>();
 
@@ -523,14 +528,14 @@ namespace tahsinERP.Controllers.HR
                     CreatedDT = unit.CreatedDT
                 };
 
-                // Olish headcount
-                viewModel.PlannedHeadcount = (int)(db.HR_STAFFING_PLAN
-                    .Where(sp => sp.OrgUnitID == unit.ID && sp.IsActive)
-                    .Sum(sp => (decimal?)sp.PlannedHeadcount) ?? 0);
-                viewModel.ActualHeadcount = db.HR_EMPLOYEES
-                    .Count(e => e.OrgUnitID == unit.ID && e.IsActive);
+                decimal planned;
+                int actual;
+                plannedByOrg.TryGetValue(unit.ID, out planned);
+                actualByOrg.TryGetValue(unit.ID, out actual);
+                viewModel.PlannedHeadcount = (int)planned;
+                viewModel.ActualHeadcount = actual;
 
-                viewModel.Children = BuildOrgTree(allUnits, unit.ID);
+                viewModel.Children = BuildOrgTree(allUnits, unit.ID, plannedByOrg, actualByOrg);
                 result.Add(viewModel);
             }
 
