@@ -3048,6 +3048,7 @@
     <Content Include="Views\FinTransactions\Details.cshtml" />
     <Content Include="Views\FinTransactions\Edit.cshtml" />
     <Content Include="Views\FinTransactions\Index.cshtml" />
+    <Content Include="Views\Shareholder\_Form.cshtml" />
     <Content Include="Views\Shareholder\AddContribution.cshtml" />
     <Content Include="Views\Shareholder\Create.cshtml" />
     <Content Include="Views\Shareholder\Delete.cshtml" />
@@ -3263,6 +3264,7 @@
     <Content Include="Views\OpeningBalance\Delete.cshtml" />
     <Content Include="Views\OpeningBalance\Edit.cshtml" />
     <Content Include="Views\OpeningBalance\Index.cshtml" />
+    <Content Include="Views\FinRecurringObligations\_Form.cshtml" />
     <Content Include="Views\FinRecurringObligations\Create.cshtml" />
     <Content Include="Views\FinRecurringObligations\Edit.cshtml" />
     <Content Include="Views\FinRecurringObligations\Index.cshtml" />
