@@ -1260,7 +1260,7 @@ namespace tahsinERP.Controllers.HR
                     await db.SaveChangesAsync();
                     await EnsurePieceRateDraftApprovalsForEmployeesAsync(WorkDate.Year, WorkDate.Month, new List<int> { EmployeeID });
                     TempData["Success"] = "Yozuv yangilandi";
-                    if (!string.IsNullOrWhiteSpace(returnUrl))
+                    if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
                         return Redirect(returnUrl);
                     }

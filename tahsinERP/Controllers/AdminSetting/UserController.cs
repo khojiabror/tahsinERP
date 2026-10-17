@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
@@ -17,6 +17,18 @@ namespace tahsinERP.Controllers
     {
         private DBTHSNEntities db = new DBTHSNEntities();
         private int userPhotoMaxLength = Convert.ToInt32(ConfigurationManager.AppSettings["photoMaxSize"]);
+
+        private static bool IsDeveloperRole(ROLE role)
+        {
+            return role != null && string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Developer foydalanuvchini faqat Developer o'zgartira/ko'ra oladi
+        private bool CanManageTarget(USER target)
+        {
+            if (target == null || !target.ROLES.Any(IsDeveloperRole)) return true;
+            return RoleHelper.IsDeveloper(User.Identity.Name);
+        }
 
         // Olish so'rovi: Users
         public async Task<ActionResult> Index(int? roleID, string status)
@@ -130,7 +142,7 @@ namespace tahsinERP.Controllers
                 if (userVM.RoleID > 0)
                 {
                     var selectedRole = await db.ROLES.FindAsync(userVM.RoleID);
-                    if (selectedRole != null && (selectedRole.RName != "Developer" || selectedRole.ID != 1))
+                    if (selectedRole != null && !IsDeveloperRole(selectedRole))
                     {
                         // Insert user role foydalanib raw SQL
                         await db.Database.ExecuteSqlCommandAsync(
@@ -201,7 +213,7 @@ namespace tahsinERP.Controllers
                 .Include(u => u.ROLES)
                 .FirstOrDefaultAsync(u => u.ID == ID);
 
-            if (user == null)
+            if (user == null || !CanManageTarget(user))
             {
                 return HttpNotFound();
             }
@@ -240,11 +252,12 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             }
 
-            var userToUpdate = await db.USERS.FindAsync(ID);
-            if (userToUpdate == null)
+            var userToUpdate = await db.USERS.Include(u => u.ROLES).FirstOrDefaultAsync(u => u.ID == ID);
+            if (userToUpdate == null || !CanManageTarget(userToUpdate))
             {
                 return HttpNotFound();
             }
+            string oldUname = userToUpdate.Uname;
 
             // Tekshirish agar username already mavjud (excluding current user)
             var existingUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == uvm.UName && u.ID != ID && u.IsDeleted != true);
@@ -285,7 +298,7 @@ namespace tahsinERP.Controllers
                         if (uvm.RoleID > 0)
                         {
                             var selectedRole = await db.ROLES.FindAsync(uvm.RoleID);
-                            if (selectedRole != null && (selectedRole.RName != "Developer" || selectedRole.ID != 1))
+                            if (selectedRole != null && (!IsDeveloperRole(selectedRole) || RoleHelper.IsDeveloper(User.Identity.Name)))
                             {
                                 // O'chirish existing user roles foydalanib raw SQL
                                 if (currentRole != null)
@@ -353,6 +366,10 @@ namespace tahsinERP.Controllers
 
                 await db.SaveChangesAsync();
 
+                // Rol/faollik o'zgargan bo'lishi mumkin — ruxsat keshini darhol yangilash
+                RoleHelper.ClearUserCache(oldUname);
+                RoleHelper.ClearUserCache(userToUpdate.Uname);
+
                 LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{userToUpdate.Uname} - Foydalanuvchini ma'lumotlarini tahrirladi");
 
                 TempData["Success"] = "Foydalanuvchi ma'lumotlari muvaffaqiyatli yangilandi.";
@@ -390,13 +407,19 @@ namespace tahsinERP.Controllers
 
             USER user = await db.USERS
                 .Include(u => u.ROLES)
-                .Include(u => u.USERLOGS)
                 .FirstOrDefaultAsync(u => u.ID == ID);
 
-            if (user == null)
+            if (user == null || !CanManageTarget(user))
             {
                 return HttpNotFound();
             }
+
+            // Butun log tarixini emas, faqat oxirgi 100 tasini bazadan olamiz
+            var recentLogs = await db.USERLOGS.AsNoTracking()
+                .Where(l => l.UserID == user.ID)
+                .OrderByDescending(l => l.DateTime)
+                .Take(100)
+                .ToListAsync();
 
             UserViewModel userviewmodel = new UserViewModel
             {
@@ -406,7 +429,7 @@ namespace tahsinERP.Controllers
                 FullName = user.FullName,
                 IsActive = user.IsActive,
                 Role = user.ROLES.FirstOrDefault()?.RName ?? "Rol yo'q",
-                logs = user.USERLOGS.OrderByDescending(l => l.DateTime).Take(100).ToList()
+                logs = recentLogs
             };
 
             USERIMAGE userimage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == user.ID);
@@ -434,7 +457,7 @@ namespace tahsinERP.Controllers
                 .Include(u => u.ROLES)
                 .FirstOrDefaultAsync(u => u.ID == ID);
 
-            if (user == null)
+            if (user == null || !CanManageTarget(user))
             {
                 return HttpNotFound();
             }
@@ -472,8 +495,8 @@ namespace tahsinERP.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             }
 
-            USER user = await db.USERS.FindAsync(ID);
-            if (user == null)
+            USER user = await db.USERS.Include(u => u.ROLES).FirstOrDefaultAsync(u => u.ID == ID);
+            if (user == null || !CanManageTarget(user))
             {
                 return HttpNotFound();
             }
@@ -483,6 +506,7 @@ namespace tahsinERP.Controllers
                 user.IsDeleted = true;
                 await SoftDeleteReferenceService.AfterUserSoftDeletedAsync(db, user.ID);
                 await db.SaveChangesAsync();
+                RoleHelper.ClearUserCache(user.Uname);
 
                 LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimdan o'chirdi");
 

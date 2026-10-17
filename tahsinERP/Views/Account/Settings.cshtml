@@ -1,4 +1,4 @@
-@model tahsinERP.ViewModels.UserViewModel
+﻿@model tahsinERP.ViewModels.UserViewModel
 @{
     ViewBag.Title = "AccountSettings";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -54,6 +54,7 @@
                                                 <hr>
 
                                                 @Html.AntiForgeryToken()
+                                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                 <div class="row">
                                                     <div class="col-12">
                                                         <div class="form-group">
@@ -88,7 +89,7 @@
                                                         <div class="form-group">
                                                             <div class="controls">
                                                                 <label>Amaldagi kalit so'zi</label>
-                                                                <input type="password" class="form-control" required placeholder="Kalit so'zi">
+                                                                @Html.PasswordFor(model => model.CurrentPassword, new { @class = "form-control", @placeholder = "Kalit so'zi", @required = "required", autocomplete = "current-password" })
                                                             </div>
                                                         </div>
                                                     </div>
@@ -96,7 +97,7 @@
                                                         <div class="form-group">
                                                             <div class="controls">
                                                                 <label>Yangi kalit so'zi</label>
-                                                                @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Kalit so'zi", @required = "required" })
+                                                                @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "O'zgartirmaslik uchun bo'sh qoldiring", autocomplete = "new-password" })
                                                                 @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
                                                             </div>
                                                         </div>
@@ -105,8 +106,7 @@
                                                         <div class="form-group">
                                                             <div class="controls">
                                                                 <label>Yangi kalit so'zini qayta kiriting</label>
-                                                                @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Kalit so'zi", @required="required"})
-                                                                @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                                                                @Html.PasswordFor(model => model.ConfirmPassword, new { @class = "form-control", @placeholder = "Kalit so'zi", autocomplete = "new-password" })
                                                             </div>
                                                         </div>
                                                     </div>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SqlClient;
@@ -11,6 +11,7 @@ using tahsinERP.ViewModels.HR;
 
 namespace tahsinERP.Controllers.HR
 {
+    // Xodimlar maoshi ko'rsatiladi — login va ruxsat talab qilinadi (avval anonim edi)
     public class KoreshokController : Controller
     {
         private readonly DBTHSNEntities db = new DBTHSNEntities();
@@ -23,7 +24,6 @@ namespace tahsinERP.Controllers.HR
             timesheetSettingsService = new HrTimesheetSettingsService(db);
         }
 
-        [AllowAnonymous]
         public async Task<ActionResult> Index()
         {
             var vm = new KoreshokFilterViewModel
@@ -43,7 +43,6 @@ namespace tahsinERP.Controllers.HR
             return View(vm);
         }
 
-        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Calculate(KoreshokFilterViewModel vm)
@@ -66,7 +65,6 @@ namespace tahsinERP.Controllers.HR
             });
         }
 
-        [AllowAnonymous]
         public async Task<ActionResult> Result(int employeeId, DateTime from, DateTime to)
         {
             if (to < from) return RedirectToAction("Index");

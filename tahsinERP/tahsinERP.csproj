@@ -979,6 +979,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
+    <Compile Include="Helpers\DocFileAccess.cs" />
     <Compile Include="Helpers\LicenseHelper.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
@@ -3050,6 +3051,7 @@
     <Content Include="Views\PartWRHS\Delete.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_LicenseBanner.cshtml" />
+    <Content Include="Views\Shared\_SafeHtml.cshtml" />
     <Content Include="Views\Forwarder\Create.cshtml" />
     <Content Include="Views\Forwarder\Details.cshtml" />
     <Content Include="Views\Forwarder\Edit.cshtml" />

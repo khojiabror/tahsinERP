@@ -78,5 +78,21 @@
         return nativeSubmit.apply(this, arguments);
     };
 
+    // O'chirish kabi amallar uchun GET havola o'rniga: <a href="#" data-post-url="/X/Delete/5" data-confirm="...">
+    // Bosilganda POST forma (CSRF token bilan) yaratib yuboradi.
+    document.addEventListener('click', function (e) {
+        var link = e.target && e.target.closest ? e.target.closest('[data-post-url]') : null;
+        if (!link) return;
+        e.preventDefault();
+        var msg = link.getAttribute('data-confirm');
+        if (msg && !window.confirm(msg)) return;
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = link.getAttribute('data-post-url');
+        form.style.display = 'none';
+        document.body.appendChild(form);
+        form.submit();
+    }, false);
+
     window.tahsinCsrf = { token: getToken, header: HEADER, field: FIELD };
 })();
