@@ -523,9 +523,10 @@ namespace tahsinERP.Services
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
                 Element = "Material tashuvi",
-                Source = "Yo'l varaqalari (PI ga bog'langan, shu oy)",
+                Source = $"Kirim yo'l varaqalari (shu oy, sotuvga bog'lanmagan): {m.MaterialWaybillNos.Count} ta",
+                SourceTotal = m.MaterialTransportPool,
                 AllocatedTotal = Allocated(p => p.MaterialTransportPerUnit),
-                Note = "SO → PO → PI zanjiri bo'lgan mahsulotlar uchun"
+                Note = m.MaterialTransportByQtyShare ? "Miqdor ulushida (material summasi yo'q)" : "Material summasi ulushida"
             });
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
@@ -819,17 +820,14 @@ namespace tahsinERP.Services
             {
                 PeriodLine(month.Year, month.Month),
                 $"Ishlab chiqarilgan maxsulot(shu product) soni: {r.ProducedQty:N2} ta",
-                "Hisoblanish qoidasi: PATH1 (BOM materiallari -> PI -> Waybill, V1/V2/V3)",
-                $"BOM komponentlar soni: {r.BomComponentCount}",
-                $"Savdo buyurtmasi: {JoinOrDash(r.SalesOrderNos)}",
-                $"Bog'langan Xarid buyurtmasi: {JoinOrDash(r.PurchaseOrderNos)}",
-                $"Bog'langan Xarid invoice: {JoinOrDash(r.PurchaseInvoiceNos)}",
-                $"Bog'langan Waybill (shu oyda berilgan): {JoinOrDash(r.MaterialWaybillNos)}",
-                $"PI line jami qty: {r.PiTotalQty:N2}, BOMga mos qty: {r.PiMatchedQty:N2}",
-                $"PI line jami summa: {r.PiLinesAmount:N2}, BOMga mos summa: {r.PiMatchedAmount:N2}",
-                $"Waybill jami summasi: {r.MaterialWaybillAmount:N2} so'm",
-                $"Shu mahsulotga ajratilgan: {r.MaterialTransportAllocated:N2} so'm",
-                $"Formula: Fakt material tashuvi (1 dona) = ajratilgan tashuv summasi / {r.ProducedQty:N2}",
+                "Hisoblanish qoidasi: shu oyda berilgan barcha kirim yo'l varaqalari (sotuvga bog'lanmagan, ichki emas) jami ->",
+                month.MaterialTransportByQtyShare
+                    ? "    ishlab chiqarilgan mahsulotlarga miqdor ulushida (material summasi yo'q)"
+                    : "    ishlab chiqarilgan mahsulotlarga material summasi (1 dona material × miqdor) ulushida",
+                $"Yo'l varaqalari: {JoinOrDash(month.MaterialWaybillNos)}",
+                $"Oy jami kirim tashuvi: {month.MaterialTransportPool:N2} so'm",
+                $"Shu mahsulot ulushi: {r.MaterialTransportShare:P2}; ajratilgan: {r.MaterialTransportAllocated:N2} so'm",
+                $"Formula: Fakt material tashuvi (1 dona) = {r.MaterialTransportAllocated:N2} / {r.ProducedQty:N2}",
                 $"Natija: {r.MaterialTransportPerUnit:N2} so'm"
             });
         }

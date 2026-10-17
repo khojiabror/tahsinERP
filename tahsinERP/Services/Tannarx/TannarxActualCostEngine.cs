@@ -161,19 +161,22 @@ namespace tahsinERP.Services.Tannarx
                 : new List<DocLine>();
             var incomeLinesByIncome = incomeLines.ToLookup(l => l.DocID);
 
-            // 7) Material tashuvi: shu oydagi PI larga bog'langan, shu oyda berilgan yo'l varaqalari.
-            var materialWaybills = piInMonthIds.Any()
-                ? await _db.F_WAYBILLS
-                    .Where(w => w.IsDeleted != true
-                        && w.InvoiceID.HasValue
-                        && piInMonthIds.Contains(w.InvoiceID.Value)
-                        && w.IssueDate.HasValue
-                        && w.IssueDate.Value >= start
-                        && w.IssueDate.Value < end)
-                    .Select(w => new WaybillRow { DocID = w.InvoiceID.Value, WaybillNo = w.WaybillNo, Amount = w.Amount })
-                    .ToListAsync()
-                : new List<WaybillRow>();
-            var materialWaybillsByInvoice = materialWaybills.ToLookup(w => w.DocID);
+            // 7) Material (kirim) tashuvi: shu oyda berilgan, sotuvga bog'lanmagan barcha yo'l varaqalari (ichki — Direction 2 — emas).
+            //    Amalda kirim yo'l varaqalari xarid invoysiga bog'lanmaydi, shuning uchun SO→PO→PI zanjiri bo'yicha emas,
+            //    oy jami ishlab chiqarilgan mahsulotlarga material summasi ulushida taqsimlanadi (pastda).
+            var materialWaybills = await _db.F_WAYBILLS
+                .Where(w => w.IsDeleted != true
+                    && !w.SalesInvoiceID.HasValue
+                    && !w.SalesOrderID.HasValue
+                    && !w.TTNKID.HasValue
+                    && (w.Direction == null || w.Direction != 2)
+                    && w.IssueDate.HasValue
+                    && w.IssueDate.Value >= start
+                    && w.IssueDate.Value < end)
+                .Select(w => new { w.WaybillNo, w.Amount })
+                .ToListAsync();
+            result.MaterialTransportPool = materialWaybills.Sum(w => Convert.ToDecimal(w.Amount ?? 0d));
+            result.MaterialWaybillNos = materialWaybills.Select(w => w.WaybillNo).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
 
             // 8) Tayyor mahsulot tashuvi: sotuv invoyslari → yo'l varaqalari.
             var salesLineInvoices = producedIds.Any()
@@ -344,14 +347,8 @@ namespace tahsinERP.Services.Tannarx
                         : MaterialDecision.Pass("PLAN", "FORCED_ZERO", 0m, 0m, qty, 0m, 0m);
                 }
 
-                // Material tashuvi
-                var (mtAmount, mtWaybillNos, mtWaybillTotal) = AllocateMaterialTransport(chain, piLinesByInvoice, materialWaybillsByInvoice, piLineClaimQty);
-                r.MaterialTransportAllocated = mtAmount;
-                r.MaterialWaybillNos = mtWaybillNos;
-                r.MaterialWaybillAmount = mtWaybillTotal;
                 r.PiTotalQty = chain.PiInMonth.SelectMany(h => piLinesByInvoice[h.ID]).Sum(l => Convert.ToDecimal(l.Qty));
                 r.PiMatchedQty = chain.PiMatchedLines.Sum(l => Convert.ToDecimal(l.Qty));
-                r.MaterialTransportPerUnit = mtAmount > 0 ? mtAmount / qty : 0m;
 
                 // Tayyor mahsulot tashuvi
                 if (salesInvoiceIdsByProduct.TryGetValue(productId, out var invoiceIds))
@@ -398,6 +395,25 @@ namespace tahsinERP.Services.Tannarx
                 r.AdminPerUnit = adminPerUnit;
                 r.TaxBankPerUnit = taxBankPerUnit;
                 r.OtherPerUnit = otherPerUnit;
+            }
+
+            // Material tashuvi: oy jami kirim yo'l varaqalari → ishlab chiqarilgan mahsulotlarga material summasi
+            // (1 dona material × miqdor) ulushida; material summasi umuman bo'lmasa — miqdor ulushida.
+            var producedResults = result.Products.Values.Where(p => p.ProducedQty > 0).ToList();
+            if (result.MaterialTransportPool > 0 && producedResults.Any())
+            {
+                var materialTotal = producedResults.Sum(p => p.Material.UnitCost * p.ProducedQty);
+                var qtyTotal = producedResults.Sum(p => p.ProducedQty);
+                foreach (var p in producedResults)
+                {
+                    var share = materialTotal > 0
+                        ? p.Material.UnitCost * p.ProducedQty / materialTotal
+                        : p.ProducedQty / qtyTotal;
+                    p.MaterialTransportShare = share;
+                    p.MaterialTransportAllocated = result.MaterialTransportPool * share;
+                    p.MaterialTransportPerUnit = p.MaterialTransportAllocated / p.ProducedQty;
+                }
+                result.MaterialTransportByQtyShare = materialTotal <= 0;
             }
 
             return result;
@@ -515,54 +531,6 @@ namespace tahsinERP.Services.Tannarx
                 total += Convert.ToDecimal(line.Amount ?? 0d) * (producedQty / claim);
             }
             return total;
-        }
-
-        /// <summary>
-        /// Yo'l varaqasi summasi (faqat shu oyda berilganlari) PI qatorlariga miqdor (V1), bo'lmasa qiymat (V2),
-        /// bo'lmasa qatorlar soni (V3) ulushida bo'linadi; BOM ga mos qator ulushi da'vogar mahsulotlar orasida bo'linadi.
-        /// </summary>
-        private static (decimal Amount, List<string> WaybillNos, decimal WaybillTotal) AllocateMaterialTransport(
-            ProductChain chain,
-            ILookup<int, DocLine> piLinesByInvoice,
-            ILookup<int, WaybillRow> waybillsByInvoice,
-            Dictionary<int, decimal> claimQty)
-        {
-            decimal allocated = 0m;
-            decimal waybillTotal = 0m;
-            var waybillNos = new List<string>();
-            if (!chain.BomComponents.Any())
-                return (0m, waybillNos, 0m);
-
-            foreach (var invoice in chain.PiInMonth)
-            {
-                var wbSum = waybillsByInvoice[invoice.ID].Sum(w => Convert.ToDecimal(w.Amount ?? 0d));
-                if (wbSum <= 0)
-                    continue;
-                waybillTotal += wbSum;
-                waybillNos.AddRange(waybillsByInvoice[invoice.ID].Select(w => w.WaybillNo));
-
-                var lines = piLinesByInvoice[invoice.ID].ToList();
-                if (!lines.Any())
-                    continue;
-
-                var totalQty = lines.Sum(x => Convert.ToDecimal(x.Qty));
-                var totalAmount = lines.Sum(x => Convert.ToDecimal(x.Amount ?? 0d));
-                foreach (var line in lines.Where(l => chain.BomComponents.Contains(l.ProductID)))
-                {
-                    decimal lineShare;
-                    if (totalQty > 0)
-                        lineShare = Convert.ToDecimal(line.Qty) / totalQty;
-                    else if (totalAmount > 0)
-                        lineShare = Convert.ToDecimal(line.Amount ?? 0d) / totalAmount;
-                    else
-                        lineShare = 1m / lines.Count;
-
-                    var claim = claimQty.TryGetValue(line.ID, out var c) && c > 0 ? c : chain.ProducedQty;
-                    allocated += wbSum * lineShare * (chain.ProducedQty / claim);
-                }
-            }
-
-            return (allocated, waybillNos.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList(), waybillTotal);
         }
 
         // ---------------- Yuklovchilar ----------------
@@ -940,13 +908,6 @@ namespace tahsinERP.Services.Tannarx
             public double? Amount { get; set; }
         }
 
-        private class WaybillRow
-        {
-            public int DocID { get; set; }
-            public string WaybillNo { get; set; }
-            public double? Amount { get; set; }
-        }
-
         private class ProductChain
         {
             public int ProductID { get; set; }
@@ -1009,6 +970,9 @@ namespace tahsinERP.Services.Tannarx
         public Dictionary<int, TannarxProductActualResult> Products { get; } = new Dictionary<int, TannarxProductActualResult>();
         public Dictionary<int, decimal> ProducedWithoutTannarx { get; } = new Dictionary<int, decimal>();
         public decimal PieceRateLaborTotal { get; set; }
+        public decimal MaterialTransportPool { get; set; }
+        public List<string> MaterialWaybillNos { get; set; } = new List<string>();
+        public bool MaterialTransportByQtyShare { get; set; }
     }
 
     internal class TannarxProductActualResult
@@ -1038,8 +1002,7 @@ namespace tahsinERP.Services.Tannarx
         public int PiSharedLineCount { get; set; }
         public decimal PiTotalQty { get; set; }
         public decimal PiMatchedQty { get; set; }
-        public List<string> MaterialWaybillNos { get; set; } = new List<string>();
-        public decimal MaterialWaybillAmount { get; set; }
+        public decimal MaterialTransportShare { get; set; }
         public decimal MaterialTransportAllocated { get; set; }
         public List<string> SalesInvoiceNos { get; set; } = new List<string>();
         public List<string> FinishedWaybillNos { get; set; } = new List<string>();

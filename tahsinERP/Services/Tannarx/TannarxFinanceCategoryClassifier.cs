@@ -28,7 +28,7 @@ namespace tahsinERP.Services.Tannarx
     /// - kredit / o'tkazma / naqd yechish / qarz — xarajat emas;
     /// - dividend, aksiyador — foydani taqsimlash;
     /// - QQS — tannarx emas (qaytariladigan soliq);
-    /// - asosiy vosita / uskuna / investitsiya — kapital xarajat;
+    /// - asosiy vosita / uskuna / jihoz / qurilish / investitsiya — kapital xarajat;
     /// - xarid / ta'minotchi — material PATH0/1/2 (ombor, PI) orqali;
     /// - transport (tash, logist, yuk) — yo'l varaqalari (F_WAYBILLS) orqali;
     /// - oylik / ish haqi — HR ish haqi (ishbay va soatbay) orqali.
@@ -41,10 +41,10 @@ namespace tahsinERP.Services.Tannarx
 
         private static readonly (string[] Keywords, string Reason)[] ExclusionRules =
         {
-            (new[] { "kredit", "o'tkazma", "otkazma", "naqd", "transfer", "qarz" }, "Moliyaviy harakat (kredit/o'tkazma/naqd/qarz)"),
-            (new[] { "dividend", "aksiyador" }, "Foydani taqsimlash (dividend/aksiyador)"),
+            (new[] { "kredit", "o'tkazma", "otkazma", "naqd", "transfer", "qarz", "hisob raqam", "hisobraqam" }, "Moliyaviy harakat (kredit/o'tkazma/naqd/qarz)"),
+            (new[] { "divid", "aksiyador" }, "Foydani taqsimlash (dividend/aksiyador)"),
             (new[] { "qqs", "nds", "vat" }, "QQS — tannarx emas"),
-            (new[] { "asosiy vosita", "uskuna", "investitsiya", "kapital" }, "Kapital xarajat (asosiy vosita/uskuna)"),
+            (new[] { "asosiy vosita", "uskuna", "jihoz", "jixoz", "qurilish", "investitsiya", "kapital" }, "Kapital xarajat (asosiy vosita/uskuna/qurilish)"),
             (new[] { "tash", "transport", "logist", "yuk" }, "Transport — yo'l varaqalari orqali hisoblanadi"),
             (new[] { "oylik", "ish haqi", "ish xaqi", "maosh", "salary", "avans" }, "Ish haqi — HR ish haqi orqali hisoblanadi"),
             (new[] { "xarid", "ta'minotchi", "taminotchi", "supplier" }, "Xarid — material ombor/PI orqali hisoblanadi")
