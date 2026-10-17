@@ -30,6 +30,7 @@ namespace tahsinERP.Controllers
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
 
                 var query = db.PRODUCT_STOCKS
+                    .AsNoTracking()
                     .Include(s => s.Warehouse)
                     .Include(s => s.PRODUCT)
                     .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
@@ -328,80 +329,6 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Olish so'rovi: Inventory/ExportExcel
-        public async Task<ActionResult> ExportExcel(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                var rows = await GetInventoryExportRowsAsync(db, warehouseId, categoryId, isFinishedGood, isRawMaterial);
-
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage())
-                {
-                    var ws = package.Workbook.Worksheets.Add("Inventory");
-                    ws.Cells[1, 1].Value = "Ombor";
-                    ws.Cells[1, 2].Value = "Mahsulot kodi";
-                    ws.Cells[1, 3].Value = "Mahsulot nomi";
-                    ws.Cells[1, 4].Value = "Kategoriya";
-                    ws.Cells[1, 5].Value = "Miqdor";
-                    ws.Cells[1, 6].Value = "Birlik";
-                    ws.Cells[1, 1, 1, 6].Style.Font.Bold = true;
-
-                    int row = 2;
-                    foreach (var item in rows)
-                    {
-                        ws.Cells[row, 1].Value = item.WarehouseName;
-                        ws.Cells[row, 2].Value = item.ProductPNo;
-                        ws.Cells[row, 3].Value = item.ProductName;
-                        ws.Cells[row, 4].Value = item.CategoryName;
-                        ws.Cells[row, 5].Value = item.Amount;
-                        ws.Cells[row, 6].Value = item.UnitName;
-                        row++;
-                    }
-
-                    ws.Cells.AutoFitColumns();
-                    var bytes = package.GetAsByteArray();
-                    var fileName = $"Ombor_qoldiqlari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-                    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-                }
-            }
-        }
-
-        // Olish so'rovi: Inventory/ExportPdf
-        public async Task<ActionResult> ExportPdf(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                var rows = await GetInventoryExportRowsAsync(db, warehouseId, categoryId, isFinishedGood, isRawMaterial);
-                var lines = new List<string>
-                {
-                    "Ombor qoldiqlari",
-                    $"Sana: {DateTime.Now:dd.MM.yyyy HH:mm}",
-                    ""
-                };
-
-                lines.Add("Ombor | Mahsulot kodi | Mahsulot nomi | Kategoriya | Miqdor | Birlik");
-                foreach (var item in rows)
-                {
-                    lines.Add($"{item.WarehouseName} | {item.ProductPNo} | {item.ProductName} | {item.CategoryName} | {item.Amount:N2} | {item.UnitName}");
-                }
-
-                var bytes = BuildSimplePdf(lines);
-                var fileName = $"Ombor_qoldiqlari_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                return File(bytes, "application/pdf", fileName);
-            }
-        }
-
         // Olish so'rovi: Inventory/Adjust
         public async Task<ActionResult> Adjust()
         {
@@ -440,50 +367,6 @@ namespace tahsinERP.Controllers
 
                 return View(new ViewModels.InventoryAdjustmentViewModel());
             }
-        }
-
-        // Olish so'rovi: Inventory/AdjustResult
-        public ActionResult AdjustResult(string key)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Inventory"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (!IsValidLogKey(key))
-            {
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.LogKey = key;
-            return View();
-        }
-
-        // Olish so'rovi: Inventory/DownloadAdjustmentLog
-        public ActionResult DownloadAdjustmentLog(string key, string type)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (!IsValidLogKey(key))
-            {
-                return RedirectToAction("Index");
-            }
-
-            var extension = string.Equals(type, "pdf", StringComparison.OrdinalIgnoreCase) ? ".pdf" : ".xlsx";
-            var path = GetAdjustmentLogPath(key, extension);
-            if (!System.IO.File.Exists(path))
-            {
-                return HttpNotFound();
-            }
-
-            var contentType = extension == ".pdf"
-                ? "application/pdf"
-                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            var downloadName = $"{key}{extension}";
-            return File(path, contentType, downloadName);
         }
 
         // Olish so'rovi: Inventory/DownloadTemplate
@@ -865,24 +748,6 @@ namespace tahsinERP.Controllers
                 .ToListAsync();
         }
 
-        private async Task<bool> HasWarehouseMovementAsync(int warehouseId, int productId, DBTHSNEntities db)
-        {
-            var hasIncome = await db.INCOME_PRODUCTS
-                .AnyAsync(ip => ip.ProductID == productId && ip.INCOME.ReceivingWHID == warehouseId);
-
-            if (hasIncome)
-            {
-                return true;
-            }
-
-            var hasExpense = await db.EXPENSE_PRODUCTS
-                .AnyAsync(ep =>
-                    ep.ProductID == productId &&
-                    (ep.EXPENS.SenderWHID == warehouseId || ep.EXPENS.ReceiverWhID == warehouseId));
-
-            return hasExpense;
-        }
-
         private async Task<bool> HasAdjustmentThisMonthAsync(int userId, int warehouseId, DBTHSNEntities db)
         {
             if (userId <= 0)
@@ -954,257 +819,11 @@ namespace tahsinERP.Controllers
             return (worksheet.Cells[row, col].Text ?? string.Empty).Trim();
         }
 
-        private async Task<List<InventoryExportRow>> GetInventoryExportRowsAsync(
-            DBTHSNEntities db,
-            int? warehouseId,
-            int? categoryId,
-            bool? isFinishedGood,
-            bool? isRawMaterial)
-        {
-            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-            var query = db.PRODUCT_STOCKS
-                .Include(s => s.Warehouse)
-                .Include(s => s.PRODUCT)
-                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                .Include(s => s.UNIT)
-                .Where(s => s.Amount > 0);
-
-            if (assignedWarehouseIds.Any())
-            {
-                query = query.Where(s => assignedWarehouseIds.Contains(s.WHID));
-                if (warehouseId.HasValue && !assignedWarehouseIds.Contains(warehouseId.Value))
-                {
-                    warehouseId = null;
-                }
-            }
-
-            if (warehouseId.HasValue)
-            {
-                query = query.Where(s => s.WHID == warehouseId.Value);
-            }
-
-            if (categoryId.HasValue)
-            {
-                query = query.Where(s => s.PRODUCT.CategoryID == categoryId.Value);
-            }
-
-            if (isFinishedGood.HasValue)
-            {
-                if (isFinishedGood.Value)
-                {
-                    query = query.Where(s => s.PRODUCT.PRODUCT_CATEGORIES != null &&
-                                              s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood == true);
-                }
-                else
-                {
-                    query = query.Where(s => s.PRODUCT.PRODUCT_CATEGORIES == null ||
-                                              s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood != true);
-                }
-            }
-
-            if (isRawMaterial.HasValue && isRawMaterial.Value)
-            {
-                query = query.Where(s => s.PRODUCT.IsRawMaterial == true ||
-                                          (s.PRODUCT.PRODUCT_CATEGORIES != null &&
-                                           s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial == true));
-            }
-
-            var rawStocks = await query
-                .OrderBy(s => s.Warehouse.WHName)
-                .ThenBy(s => s.PRODUCT.PNo)
-                .ToListAsync();
-
-            var stocks = rawStocks
-                .GroupBy(s => new { s.WHID, s.ProductID })
-                .Select(g =>
-                {
-                    var first = g.First();
-                    first.Amount = g.Sum(x => x.Amount);
-                    return first;
-                })
-                .Where(s => s.Amount > 0)
-                .OrderBy(s => s.Warehouse?.WHName)
-                .ThenBy(s => s.PRODUCT?.PNo)
-                .ToList();
-
-            return stocks.Select(s => new InventoryExportRow
-            {
-                WarehouseName = s.Warehouse?.WHName ?? "-",
-                ProductPNo = s.PRODUCT?.PNo ?? "-",
-                ProductName = s.PRODUCT?.Name ?? "-",
-                CategoryName = s.PRODUCT?.PRODUCT_CATEGORIES?.Name ?? "-",
-                Amount = s.Amount,
-                UnitName = s.UNIT?.ShortName ?? "-"
-            }).ToList();
-        }
-
-        private async Task<string> SaveAdjustmentLogsAsync(int warehouseId, int userId, List<InventoryAdjustmentLogRow> logRows)
-        {
-            var logKey = $"InvAdj_{warehouseId}_{DateTime.Now:yyyyMMddHHmmss}_{userId}";
-            var excelPath = GetAdjustmentLogPath(logKey, ".xlsx");
-            var pdfPath = GetAdjustmentLogPath(logKey, ".pdf");
-
-            Directory.CreateDirectory(Path.GetDirectoryName(excelPath));
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
-            {
-                var ws = package.Workbook.Worksheets.Add("Log");
-                ws.Cells[1, 1].Value = "ProductPNo";
-                ws.Cells[1, 2].Value = "ProductName";
-                ws.Cells[1, 3].Value = "OldQty";
-                ws.Cells[1, 4].Value = "NewQty";
-                ws.Cells[1, 5].Value = "Diff";
-                ws.Cells[1, 6].Value = "Unit";
-
-                int row = 2;
-                foreach (var item in logRows)
-                {
-                    ws.Cells[row, 1].Value = item.ProductPNo;
-                    ws.Cells[row, 2].Value = item.ProductName;
-                    ws.Cells[row, 3].Value = item.OldQuantity;
-                    ws.Cells[row, 4].Value = item.NewQuantity;
-                    ws.Cells[row, 5].Value = item.NewQuantity - item.OldQuantity;
-                    ws.Cells[row, 6].Value = item.UnitName;
-                    row++;
-                }
-
-                ws.Cells[1, 1, 1, 6].Style.Font.Bold = true;
-                ws.Cells.AutoFitColumns();
-
-                var bytes = package.GetAsByteArray();
-                await Task.Run(() => System.IO.File.WriteAllBytes(excelPath, bytes));
-            }
-
-            var pdfBytes = BuildPdfLogBytes(logRows, warehouseId, userId);
-            await Task.Run(() => System.IO.File.WriteAllBytes(pdfPath, pdfBytes));
-
-            return logKey;
-        }
-
-        private string GetAdjustmentLogPath(string logKey, string extension)
-        {
-            var folder = Server.MapPath("~/App_Data/InventoryAdjustments");
-            return Path.Combine(folder, $"{logKey}{extension}");
-        }
-
-        private bool IsValidLogKey(string logKey)
-        {
-            if (string.IsNullOrWhiteSpace(logKey))
-            {
-                return false;
-            }
-
-            return logKey.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-');
-        }
-
-        private byte[] BuildPdfLogBytes(List<InventoryAdjustmentLogRow> logRows, int warehouseId, int userId)
-        {
-            var lines = new List<string>
-            {
-                "Inventarizatsiya log",
-                $"Ombor ID: {warehouseId}",
-                $"Foydalanuvchi ID: {userId}",
-                $"Sana: {DateTime.Now:dd.MM.yyyy HH:mm}",
-                ""
-            };
-
-            lines.Add("ProductPNo | ProductName | OldQty | NewQty | Diff | Unit");
-            foreach (var item in logRows)
-            {
-                var diff = item.NewQuantity - item.OldQuantity;
-                lines.Add($"{item.ProductPNo} | {item.ProductName} | {item.OldQuantity:N2} | {item.NewQuantity:N2} | {diff:N2} | {item.UnitName}");
-            }
-
-            return BuildSimplePdf(lines);
-        }
-
-        private byte[] BuildSimplePdf(List<string> lines)
-        {
-            var contentBuilder = new StringBuilder();
-            contentBuilder.AppendLine("BT");
-            contentBuilder.AppendLine("/F1 10 Tf");
-            contentBuilder.AppendLine("50 760 Td");
-
-            foreach (var line in lines)
-            {
-                var safeLine = EscapePdfText(line);
-                contentBuilder.AppendLine($"({safeLine}) Tj");
-                contentBuilder.AppendLine("0 -14 Td");
-            }
-
-            contentBuilder.AppendLine("ET");
-
-            var contentBytes = Encoding.ASCII.GetBytes(contentBuilder.ToString());
-            using (var ms = new MemoryStream())
-            {
-                void Write(string text)
-                {
-                    var bytes = Encoding.ASCII.GetBytes(text);
-                    ms.Write(bytes, 0, bytes.Length);
-                }
-
-                var offsets = new List<long>();
-                Write("%PDF-1.4\n");
-
-                offsets.Add(ms.Position);
-                Write("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write($"4 0 obj\n<< /Length {contentBytes.Length} >>\nstream\n");
-                ms.Write(contentBytes, 0, contentBytes.Length);
-                Write("\nendstream\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write("5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n");
-
-                var xrefStart = ms.Position;
-                Write("xref\n0 6\n0000000000 65535 f \n");
-                foreach (var offset in offsets)
-                {
-                    Write($"{offset:0000000000} 00000 n \n");
-                }
-
-                Write("trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n");
-                Write($"{xrefStart}\n%%EOF");
-
-                return ms.ToArray();
-            }
-        }
-
-        private string EscapePdfText(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return string.Empty;
-            }
-
-            return text
-                .Replace("\\", "\\\\")
-                .Replace("(", "\\(")
-                .Replace(")", "\\)");
-        }
-
         private class InventoryAdjustmentRow
         {
             public string ProductPNo { get; set; }
             public double Quantity { get; set; }
             public int RowNumber { get; set; }
-        }
-
-        private class InventoryAdjustmentLogRow
-        {
-            public string ProductPNo { get; set; }
-            public string ProductName { get; set; }
-            public double OldQuantity { get; set; }
-            public double NewQuantity { get; set; }
-            public string UnitName { get; set; }
         }
 
         private bool TryParseQuantity(string input, out double value)
@@ -1306,16 +925,6 @@ namespace tahsinERP.Controllers
             }
 
             return fallbackLocationId;
-        }
-
-        private class InventoryExportRow
-        {
-            public string WarehouseName { get; set; }
-            public string ProductPNo { get; set; }
-            public string ProductName { get; set; }
-            public string CategoryName { get; set; }
-            public double Amount { get; set; }
-            public string UnitName { get; set; }
         }
 
     }

@@ -3283,7 +3283,6 @@
     <Content Include="Views\WarehouseLocations\Create.cshtml" />
     <Content Include="Views\WarehouseLocations\Edit.cshtml" />
     <Content Include="Views\Inventory\Adjust.cshtml" />
-    <Content Include="Views\Inventory\AdjustResult.cshtml" />
     <Content Include="Views\InventoryReports\Dashboard.cshtml" />
     <Content Include="Views\LogisticsDashboard\Index.cshtml" />
     <Content Include="Views\LogisticsDashboard\MonthlyReport.cshtml" />
