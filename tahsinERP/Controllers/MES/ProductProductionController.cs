@@ -257,7 +257,7 @@ namespace tahsinERP.Controllers.MES
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        var errorMessage = BuildErrorMessage(ex);
+                        var errorMessage = MesErrorMessage.From(ex);
                         ModelState.AddModelError("", errorMessage);
                         TempData["Error"] = errorMessage;
                     }
@@ -418,7 +418,7 @@ namespace tahsinERP.Controllers.MES
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            ModelState.AddModelError("", BuildErrorMessage(ex));
+                            ModelState.AddModelError("", MesErrorMessage.From(ex));
                             PopulateEditLookups(db, viewModel);
                             return View(viewModel);
                         }
@@ -644,7 +644,7 @@ namespace tahsinERP.Controllers.MES
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        TempData["ErrorMessage"] = BuildErrorMessage(ex);
+                        TempData["ErrorMessage"] = MesErrorMessage.From(ex);
                         return RedirectToAction("Index");
                     }
                 }
@@ -790,8 +790,7 @@ namespace tahsinERP.Controllers.MES
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        var msg = ex.InnerException != null ? $"{ex.Message} | {ex.InnerException.Message}" : ex.Message;
-                        errors.Add($"#{pid}: {msg}");
+                        errors.Add($"#{pid}: {MesErrorMessage.From(ex)}");
                     }
                 }
             }
@@ -923,16 +922,6 @@ namespace tahsinERP.Controllers.MES
                 .OrderBy(p => p.PNo)
                 .Select(p => new { p.ID, p.PNo })
                 .ToList(), "ID", "PNo", viewModel.ProductID);
-        }
-
-        private static string BuildErrorMessage(Exception ex)
-        {
-            if (ex is WarehouseDlocException)
-                return ex.Message;
-            var errorMessage = $"Xatolik: {ex.Message}";
-            for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
-                errorMessage += $" | Ichki xatolik: {inner.Message}";
-            return errorMessage;
         }
     }
 }

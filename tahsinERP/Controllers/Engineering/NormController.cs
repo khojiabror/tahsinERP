@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Helpers;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using Newtonsoft.Json;
@@ -306,7 +307,7 @@ namespace tahsinERP.Controllers.Engineering
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = BuildDetailedErrorMessage(ex);
+                    TempData["Error"] = MesErrorMessage.From(ex);
                     return RedirectToAction("Index");
                 }
             }
@@ -1005,7 +1006,7 @@ namespace tahsinERP.Controllers.Engineering
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = BuildDetailedErrorMessage(ex);
+                    TempData["Error"] = MesErrorMessage.From(ex);
                     if (viewModel.NormVersionID.HasValue)
                     {
                         return RedirectToAction("Edit", new { normVersionId = viewModel.NormVersionID.Value });
@@ -1317,27 +1318,6 @@ namespace tahsinERP.Controllers.Engineering
         }
 
         /// <summary>
-        /// UI uchun xatolikni to'liqroq ko'rsatish: inner exception zanjiri bilan.
-        /// </summary>
-        private static string BuildDetailedErrorMessage(Exception ex)
-        {
-            if (ex == null)
-                return "Xatolik yuz berdi.";
-
-            var messages = new List<string>();
-            var current = ex;
-            while (current != null)
-            {
-                if (!string.IsNullOrWhiteSpace(current.Message))
-                    messages.Add(current.Message.Trim());
-                current = current.InnerException;
-            }
-
-            var merged = string.Join(" | Inner: ", messages.Distinct());
-            return $"Xatolik yuz berdi: {merged}";
-        }
-
-        /// <summary>
         /// BOM ↔ norm bog‘lanishi (ProductionConsumptionService: BOMS_AND_NORMS, IsActive = 1).
         /// Bu qadam xato bersa ham NORM save operatsiyasini yiqitmaydi.
         /// </summary>
@@ -1371,7 +1351,7 @@ namespace tahsinERP.Controllers.Engineering
                 LogHelper.LogToDatabase(
                     userName,
                     "Norm",
-                    $"BOMS_AND_NORMS bog'lash xatosi. Product: {productPNo}, BOMID: {bomId}, NormID: {normId}. Tafsilot: {BuildDetailedErrorMessage(ex)}");
+                    $"BOMS_AND_NORMS bog'lash xatosi. Product: {productPNo}, BOMID: {bomId}, NormID: {normId}. Tafsilot: {MesErrorMessage.From(ex)}");
             }
         }
 
