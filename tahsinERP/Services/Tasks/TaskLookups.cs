@@ -30,6 +30,34 @@ namespace tahsinERP.Services.Tasks
             return isAdminOrDeveloper || assigneeUserId == currentUserId;
         }
 
+        /// <summary>
+        /// "Bajarilgan" status: DONE kodi yoki nomi bo'yicha (badge rangi bilan bir xil qoida). Avval SQL filtrlari
+        /// faqat Code/"bajarildi"ni, ekran esa "done"/"tugallangan"ni ham tekshirardi — natija mos kelmasdi (#6, TSK-B09).
+        /// Ref jadvalga IsFinal qo'shilsa, faqat shu yer almashtiriladi.
+        /// </summary>
+        public static bool IsDoneStatus(string code, string name)
+        {
+            return code == DoneCode || TaskBadges.IsDoneName(name);
+        }
+
+        /// <summary>Yopilgan (bajarilgan yoki bekor qilingan) status.</summary>
+        public static bool IsClosedStatus(string code, string name)
+        {
+            return IsDoneStatus(code, name) || code == CancelledCode;
+        }
+
+        /// <summary>SQL filtrlari uchun bajarilgan status ID'lari (keshdan; o'chirilgan statuslar ham).</summary>
+        public static List<int> DoneStatusIds()
+        {
+            return TaskLookups.AllStatuses().Where(st => IsDoneStatus(st.Code, st.Name)).Select(st => st.ID).ToList();
+        }
+
+        /// <summary>SQL filtrlari uchun yopilgan status ID'lari.</summary>
+        public static List<int> ClosedStatusIds()
+        {
+            return TaskLookups.AllStatuses().Where(st => IsClosedStatus(st.Code, st.Name)).Select(st => st.ID).ToList();
+        }
+
     }
 
     /// <summary>
@@ -42,6 +70,7 @@ namespace tahsinERP.Services.Tasks
         private static readonly MemoryCache Cache = new MemoryCache("tahsinERP.TaskLookups");
         private static readonly TimeSpan Ttl = TimeSpan.FromMinutes(10);
         private const string StatusesKey = "statuses";
+        private const string AllStatusesKey = "allStatuses";
         private const string PrioritiesKey = "priorities";
         private const string ProjectsKey = "projects";
 
@@ -58,6 +87,14 @@ namespace tahsinERP.Services.Tasks
             return Get(StatusesKey, db => db.APP_TASK_STATUS_REF.AsNoTracking()
                 .Where(s => s.IsActive && s.IsDeleted != true)
                 .OrderBy(s => s.SortOrder)
+                .Select(s => new Item { ID = s.ID, Code = s.Code, Name = s.Name })
+                .ToList());
+        }
+
+        /// <summary>Barcha statuslar, nofaol va o'chirilganlari ham (eski topshiriqlar ularga bog'langan bo'lishi mumkin).</summary>
+        public static IReadOnlyList<Item> AllStatuses()
+        {
+            return Get(AllStatusesKey, db => db.APP_TASK_STATUS_REF.AsNoTracking()
                 .Select(s => new Item { ID = s.ID, Code = s.Code, Name = s.Name })
                 .ToList());
         }
@@ -127,6 +164,7 @@ namespace tahsinERP.Services.Tasks
         public static void Invalidate()
         {
             Cache.Remove(StatusesKey);
+            Cache.Remove(AllStatusesKey);
             Cache.Remove(PrioritiesKey);
             Cache.Remove(ProjectsKey);
         }

@@ -31,10 +31,10 @@ namespace tahsinERP.Services.Tasks
         /// <summary>Status nomi "bajarilgan"ni bildiradimi (muddati o'tganini belgilashda — TSK-B09).</summary>
         public static bool IsDoneName(string statusName) => Kind(statusName) == StatusKind.Done;
 
-        /// <summary>Muddati o'tgan va bajarilmagan.</summary>
+        /// <summary>Muddati o'tgan va bajarilmagan (muddat kuni o'tmaguncha — "Muddatidan o'tgan" filtri bilan bir xil).</summary>
         public static bool IsOverdue(DateTime? dueDate, string statusName)
         {
-            return dueDate.HasValue && dueDate.Value < DateTime.Now && !IsDoneName(statusName);
+            return dueDate.HasValue && dueDate.Value < DateTime.Today && !IsDoneName(statusName);
         }
 
         /// <summary>Status rangi (grafik uchun; noma'lum — kulrang).</summary>

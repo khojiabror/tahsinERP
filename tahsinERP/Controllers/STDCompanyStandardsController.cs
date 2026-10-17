@@ -125,18 +125,13 @@ namespace tahsinERP.Controllers
                 {
                     // Hujjat, standart va fayllar bitta tranzaksiyada — xato bo'lsa yetim DOC_DOCUMENTS qolmaydi (DOC-B05)
                     int year = DateTime.Now.Year;
-                    var document = new DOC_DOCUMENTS
-                    {
-                        DocTypeID = GetOrCreateDocumentTypeID(db, "CompanyStandard"),
-                        StatusID = GetOrCreateStatusID(db, "Active"),
-                        // Avval "shu yil barcha hujjatlar soni + 1" — o'chirish/parallel yaratishda takrorlanardi (DOC-B07)
-                        Code = await DocumentNumberService.NextAsync(db, "DOC_DOCUMENTS", "Code", $"STD-{year}-", 6),
-                        Title = model.StandardCode,
-                        CreatedByUserID = CurrentUserId,
-                        CreatedDT = DateTime.Now,
-                        IntegrationUID = Guid.NewGuid()
-                    };
+                    // Tur/holat kod bo'yicha (avval nom bo'yicha qidirilib, nom o'zgarsa yangi tur yaratilardi)
+                    int typeId = await DocTemplateStore.EnsureDocTypeIdAsync(db, DocPlaceholders.StandardType);
+                    int statusId = await DocumentService.EnsureStatusIdAsync(db, ActiveStatusCode);
+                    // Avval "shu yil barcha hujjatlar soni + 1" — o'chirish/parallel yaratishda takrorlanardi (DOC-B07)
+                    string code = await DocumentNumberService.NextAsync(db, "DOC_DOCUMENTS", "Code", $"STD-{year}-", 6);
 
+                    var document = DocumentService.NewHeader(typeId, statusId, code, model.StandardCode, CurrentUserId);
                     db.DOC_DOCUMENTS.Add(document);
                     await db.SaveChangesAsync();
 
@@ -495,20 +490,8 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                Response.AppendHeader("Content-Disposition", "inline; filename=\"" + image.FileName + "\"");
-                // .docx qatori o'zgarmaydi (yangi versiya = yangi ID) — rasm keshlansa bo'ladi
-                Response.Cache.SetCacheability(HttpCacheability.Private);
-                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
-                return File(image.ImageBytes, image.MimeType);
+                return new DocFileResult(image.ImageBytes, image.MimeType, image.FileName, inline: true);
             }
-        }
-
-        private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
-
-        private static bool IsImage(string mimeType, string extension)
-        {
-            return (mimeType != null && mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)) ||
-                   (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()));
         }
 
         private async Task<ActionResult> ServeFileAsync(long? fileId, bool imagesOnly)
@@ -526,66 +509,17 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                bool isImage = IsImage(file.MimeType, file.FileExtension);
-                if (imagesOnly && !isImage)
+                if (imagesOnly && !DocFileResult.IsImage(file.MimeType, file.FileExtension))
                 {
                     return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest, "Bu fayl rasm emas");
                 }
 
-                string mimeType = !string.IsNullOrEmpty(file.MimeType)
-                    ? file.MimeType
-                    : MimeMapping.GetMimeMapping(file.FileName ?? ("file" + file.FileExtension));
-
-                // RFC 5987 (filename*) + ASCII zaxira — avval nomdagi qo'shtirnoq/kirill harflari sarlavhani buzardi (DOC-B14)
-                string name = file.FileName ?? ("file" + file.FileExtension);
-                string asciiName = new string(name.Select(c => c < 32 || c > 126 || c == '"' || c == '\\' ? '_' : c).ToArray());
-                Response.AppendHeader("Content-Disposition",
-                    (isImage ? "inline" : "attachment") + "; filename=\"" + asciiName + "\"; filename*=UTF-8''" + Uri.EscapeDataString(name));
-
-                // DOC_FILES qatori o'zgarmaydi (yangi versiya = yangi ID) — galereya rasmlari qayta yuklanmasin (DOC-P08)
-                Response.Cache.SetCacheability(HttpCacheability.Private);
-                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
-
-                return File(file.FileContent, mimeType);
+                return DocFileResult.For(file);
             }
         }
 
-        // yordamchi methods
-        private int GetOrCreateDocumentTypeID(DBTHSNEntities db, string typeName)
-        {
-            var docType = db.DOC_DOCUMENT_TYPES.FirstOrDefault(dt => dt.Name == typeName);
-            if (docType == null)
-            {
-                docType = new DOC_DOCUMENT_TYPES
-                {
-                    Code = typeName.ToUpper().Replace(" ", "_"),
-                    Name = typeName,
-                    IsActive = true,
-                    SortOrder = 0
-                };
-                db.DOC_DOCUMENT_TYPES.Add(docType);
-                db.SaveChanges();
-            }
-            return docType.ID;
-        }
-
-        private int GetOrCreateStatusID(DBTHSNEntities db, string statusName)
-        {
-            var status = db.DOC_DOCUMENT_STATUS_REF.FirstOrDefault(s => s.Name == statusName);
-            if (status == null)
-            {
-                status = new DOC_DOCUMENT_STATUS_REF
-                {
-                    Code = statusName.ToUpper().Replace(" ", "_"),
-                    Name = statusName,
-                    IsActive = true,
-                    SortOrder = 0
-                };
-                db.DOC_DOCUMENT_STATUS_REF.Add(status);
-                db.SaveChanges();
-            }
-            return status.ID;
-        }
+        /// <summary>Standartlar "Active" holatida yaratiladi (ish jarayoni yo'q).</summary>
+        private const string ActiveStatusCode = "Active";
     }
 }
 

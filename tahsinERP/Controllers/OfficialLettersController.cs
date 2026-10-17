@@ -140,28 +140,19 @@ namespace tahsinERP.Controllers
                         int userId = CurrentUserId;
 
                         // Hujjat va xat bitta tranzaksiyada — xato bo'lsa yetim DOC_DOCUMENTS qolmaydi (DOC-B05)
-                        var document = new DOC_DOCUMENTS
+                        var document = DocumentService.NewHeader(ids.Item1, ids.Item2, letterNo, vm.Topic, userId);
+                        document.COM_OFFICIAL_LETTERS = new COM_OFFICIAL_LETTERS
                         {
-                            DocTypeID = ids.Item1,
-                            StatusID = ids.Item2,
-                            Code = letterNo,
-                            Title = vm.Topic,
-                            CreatedByUserID = userId,
-                            CreatedDT = DateTime.Now,
-                            IntegrationUID = Guid.NewGuid(),
-                            COM_OFFICIAL_LETTERS = new COM_OFFICIAL_LETTERS
-                            {
-                                DirectionCode = vm.DirectionCode,
-                                LetterNo = letterNo,
-                                LetterDate = vm.LetterDate,
-                                ExternalCompanyName = vm.ExternalCompanyName,
-                                ExternalContactName = vm.ExternalContactName,
-                                ExternalContactPosition = vm.ExternalContactPosition,
-                                OurRefNo = vm.OurRefNo,
-                                TheirRefNo = vm.TheirRefNo,
-                                ChannelCode = vm.ChannelCode,
-                                Topic = vm.Topic
-                            }
+                            DirectionCode = vm.DirectionCode,
+                            LetterNo = letterNo,
+                            LetterDate = vm.LetterDate,
+                            ExternalCompanyName = vm.ExternalCompanyName,
+                            ExternalContactName = vm.ExternalContactName,
+                            ExternalContactPosition = vm.ExternalContactPosition,
+                            OurRefNo = vm.OurRefNo,
+                            TheirRefNo = vm.TheirRefNo,
+                            ChannelCode = vm.ChannelCode,
+                            Topic = vm.Topic
                         };
 
                         db.DOC_DOCUMENTS.Add(document);
@@ -477,16 +468,7 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                var file = await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.OfficialLetter);
-                if (file == null || file.FileContent == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // DOC_FILES qatori o'zgarmaydi (yangi versiya = yangi ID) — brauzer keshlay oladi
-                Response.Cache.SetCacheability(HttpCacheability.Private);
-                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
-                return File(file.FileContent, file.MimeType ?? "application/octet-stream", file.FileName);
+                return DocFileResult.For(await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.OfficialLetter));
             }
         }
 
@@ -631,42 +613,25 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var docTypeId = await db.DOC_DOCUMENT_TYPES
-                    .Where(dt => dt.Code == DocumentService.OfficialLetterType)
-                    .Select(dt => (int?)dt.ID)
-                    .FirstOrDefaultAsync();
-                var statusDraftId = await db.DOC_DOCUMENT_STATUS_REF
-                    .Where(s => s.Code == DocumentService.Draft && s.IsActive)
-                    .Select(s => (int?)s.ID)
-                    .FirstOrDefaultAsync();
-
-                if (docTypeId == null || statusDraftId == null)
+                var ids = await DocumentService.DraftHeaderIdsAsync(db, DocumentService.OfficialLetterType);
+                if (ids == null)
                 {
-                    TempData["ErrorMessage"] = docTypeId == null ? "Hujjat turi topilmadi" : "Holat topilmadi";
+                    TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi";
                     return View(vm);
                 }
 
                 int userId = CurrentUserId;
 
                 // Kiruvchi xat raqami tashqi (jo'natuvchiniki) — chiquvchi ketma-ketlikka qo'shilmaydi
-                var doc = new DOC_DOCUMENTS
+                string title = $"Kiruvchi xat: {vm.CompanyOrPersonName}";
+                var doc = DocumentService.NewHeader(ids.Item1, ids.Item2, $"IN-{vm.LetterNo}", title, userId);
+                doc.COM_OFFICIAL_LETTERS = new COM_OFFICIAL_LETTERS
                 {
-                    DocTypeID = docTypeId.Value,
-                    StatusID = statusDraftId.Value,
-                    Code = $"IN-{vm.LetterNo}",
-                    Title = $"Kiruvchi xat: {vm.CompanyOrPersonName}",
-                    CreatedDT = DateTime.Now,
-                    IntegrationUID = Guid.NewGuid(),
-                    CreatedByUserID = userId,
-                    COM_OFFICIAL_LETTERS = new COM_OFFICIAL_LETTERS
-                    {
-                        DirectionCode = "IN",
-                        LetterNo = vm.LetterNo,
-                        LetterDate = vm.LetterDate ?? DateTime.Now,
-                        ExternalCompanyName = vm.CompanyOrPersonName,
-                        ExternalContactName = null,
-                        Topic = $"Kiruvchi xat: {vm.CompanyOrPersonName}"
-                    }
+                    DirectionCode = "IN",
+                    LetterNo = vm.LetterNo,
+                    LetterDate = vm.LetterDate ?? DateTime.Now,
+                    ExternalCompanyName = vm.CompanyOrPersonName,
+                    Topic = title
                 };
 
                 if (hasFile)

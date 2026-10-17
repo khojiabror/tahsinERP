@@ -856,6 +856,7 @@
     <Compile Include="Services\Norm\NormLineMath.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\Documents\DocFileService.cs" />
+    <Compile Include="Services\Documents\DocFileResult.cs" />
     <Compile Include="Services\Documents\DocTemplateStore.cs" />
     <Compile Include="Services\Documents\DocTemplateDataBuilder.cs" />
     <Compile Include="Services\Documents\DocPlaceholders.cs" />

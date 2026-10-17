@@ -346,7 +346,7 @@ namespace tahsinERP.Services
                 if (_data.Values.TryGetValue(key, out value))
                     return value ?? "";
                 if (_data.Html.TryGetValue(key, out value))
-                    return OfficialLetterDataService.HtmlToPlainText(value);
+                    return HtmlToDocxConverter.HtmlToPlainText(value);
                 DocTable table;
                 if (_data.Tables.TryGetValue(key, out table))
                     return table.ToPlainText();

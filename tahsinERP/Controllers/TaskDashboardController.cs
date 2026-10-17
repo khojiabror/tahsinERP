@@ -59,6 +59,7 @@ namespace tahsinERP.Controllers
                 var now = DateTime.Now;
                 var today = now.Date;
                 var sevenDaysAgo = now.AddDays(-7);
+                var doneIds = TaskRules.DoneStatusIds();
 
                 var groups = await query
                     .Select(t => new
@@ -72,7 +73,7 @@ namespace tahsinERP.Controllers
                         t.DueDate,
                         t.UpdatedDT,
                         t.CreatedDT,
-                        IsDone = t.APP_TASK_STATUS_REF.Code == TaskRules.DoneCode || t.APP_TASK_STATUS_REF.Name.Contains("bajarildi")
+                        IsDone = doneIds.Contains(t.StatusID)
                     })
                     .GroupBy(t => new
                     {
@@ -129,7 +130,7 @@ namespace tahsinERP.Controllers
                         PriorityCode = p.Key,
                         PriorityName = p.First().PriorityName ?? "Noma'lum",
                         TotalCount = p.Sum(g => g.Count),
-                        DoneCount = p.Where(g => g.StatusCode == TaskRules.DoneCode).Sum(g => g.Count),
+                        DoneCount = p.Where(g => g.IsDone).Sum(g => g.Count),
                         InProgressCount = p.Where(g => g.StatusCode == "IN_PROGRESS").Sum(g => g.Count),
                         TodoCount = p.Where(g => g.StatusCode == "TODO").Sum(g => g.Count)
                     })
@@ -138,7 +139,7 @@ namespace tahsinERP.Controllers
 
                 // Umumiy (yoki tanlangan foydalanuvchi) ko'rsatkichlari — query allaqachon userId bo'yicha filtrlangan
                 viewModel.UserTaskCount = total;
-                viewModel.UserDoneCount = groups.Where(g => g.StatusCode == TaskRules.DoneCode).Sum(g => g.Count);
+                viewModel.UserDoneCount = groups.Where(g => g.IsDone).Sum(g => g.Count);
                 viewModel.UserInProgressCount = groups.Where(g => g.StatusCode == "IN_PROGRESS").Sum(g => g.Count);
                 viewModel.UserTodoCount = groups.Where(g => g.StatusCode == "TODO").Sum(g => g.Count);
                 viewModel.OverdueCount = groups.Where(g => g.IsOverdue).Sum(g => g.Count);
