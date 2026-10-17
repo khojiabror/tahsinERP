@@ -5,8 +5,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "ProductionToSalesTransfer", "Create"))
-{
+@* Ruxsat controller action'ida tekshiriladi (SRM-M05). *@
+@{
     using (Html.BeginForm("Create", "ProductionToSalesTransfer", FormMethod.Post, new { enctype = "multipart/form-data", @id = "transferForm" }))
     {
         @Html.AntiForgeryToken()
@@ -372,8 +372,4 @@
         })();
     </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

@@ -221,91 +221,6 @@ namespace tahsinERP.Services
             return await FindStockShortageAsync(requirements, warehouseId, credit);
         }
 
-        private class IncomeLayer
-        {
-            public int ProductID { get; set; }
-            public double Amount { get; set; }
-            public double? PiecePrice { get; set; }
-            public double? TotalPrice { get; set; }
-        }
-
-        /// <summary>
-        /// FIFO narx (MES-B11): ombordagi joriy qoldiq eng so'nggi kirimlardan iborat deb olinadi, shuning uchun
-        /// (jami kirim - qoldiq) miqdordagi eng eski qatlamlar allaqachon sarflangan hisoblanib o'tkazib yuboriladi va
-        /// talab qilingan miqdor keyingi qatlamlar narxida baholanadi. Avval doim eng eski kirimlar narxi olinardi
-        /// (sarflangan miqdor hisobga olinmasdan). Barcha materiallar bitta so'rovda (avval material boshiga, MES-P11).
-        /// Qoldiq kamayishidan (chiqimdan) OLDIN chaqirilishi kerak.
-        /// </summary>
-        private async Task<Dictionary<int, double>> GetFifoPiecePricesAsync(
-            int warehouseId, IList<ProductionRawMaterialRequirement> requirements)
-        {
-            var result = new Dictionary<int, double>();
-            var materialIds = requirements.Select(r => r.MaterialID).Distinct().ToList();
-            if (materialIds.Count == 0)
-                return result;
-
-            var layers = (await _db.INCOME_PRODUCTS.AsNoTracking()
-                    .Where(ip => materialIds.Contains(ip.ProductID)
-                        && ip.INCOME.ReceivingWHID == warehouseId
-                        && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false)
-                        && ip.Amount > 0)
-                    .OrderBy(ip => ip.INCOME.IssueDateTime).ThenBy(ip => ip.ID)
-                    .Select(ip => new IncomeLayer { ProductID = ip.ProductID, Amount = ip.Amount, PiecePrice = ip.PiecePrice, TotalPrice = ip.TotalPrice })
-                    .ToListAsync())
-                .ToLookup(l => l.ProductID);
-            var onHand = StockLedger.GetOnHand(_db, warehouseId, materialIds);
-
-            foreach (var group in requirements.GroupBy(r => r.MaterialID))
-            {
-                var requiredQty = group.Sum(r => r.TotalConsumption);
-                var materialLayers = layers[group.Key].ToList();
-                if (materialLayers.Count == 0 || requiredQty <= 0)
-                {
-                    result[group.Key] = 0;
-                    continue;
-                }
-
-                double stock;
-                onHand.TryGetValue(group.Key, out stock);
-                var alreadyConsumed = Math.Max(0, materialLayers.Sum(l => l.Amount) - Math.Max(0, stock));
-
-                double remaining = requiredQty, priceSum = 0, qtyTaken = 0, lastPrice = 0;
-                foreach (var layer in materialLayers)
-                {
-                    var price = layer.PiecePrice ?? 0;
-                    if (price <= 0 && layer.TotalPrice.HasValue)
-                        price = layer.TotalPrice.Value / layer.Amount;
-                    lastPrice = price;
-
-                    var available = layer.Amount;
-                    if (alreadyConsumed > 0)
-                    {
-                        var skip = Math.Min(available, alreadyConsumed);
-                        alreadyConsumed -= skip;
-                        available -= skip;
-                    }
-                    if (available <= 0 || remaining <= 0)
-                        continue;
-
-                    var take = Math.Min(available, remaining);
-                    priceSum += take * price;
-                    qtyTaken += take;
-                    remaining -= take;
-                }
-
-                // Qatlamlar yetmasa (kirimsiz qoldiq) - qolgan miqdor eng so'nggi kirim narxida
-                if (remaining > 0)
-                {
-                    priceSum += remaining * lastPrice;
-                    qtyTaken += remaining;
-                }
-
-                result[group.Key] = qtyTaken > 0 ? priceSum / qtyTaken : 0;
-            }
-
-            return result;
-        }
-
         /// <summary>
         /// Consumes materials from the given warehouse when production is confirmed.
         /// Og'irlik bo'yicha (kg) va kesish (m → dona) uchun UnitConversionService ishlatiladi.
@@ -359,17 +274,11 @@ namespace tahsinERP.Services
                 ProductionID = productionProcessId.HasValue && productionProcessId.Value > 0 ? productionProcessId : null
             };
 
-            // Narxlar qoldiq kamayishidan oldin, bitta so'rovda (MES-B11/P11)
-            var piecePrices = await GetFifoPiecePricesAsync(warehouseId, requirements);
             var lines = new List<EXPENSE_PRODUCTS>();
             double totalAmount = 0;
-            double totalExpensePrice = 0;
 
             foreach (var req in requirements)
             {
-                var piecePrice = piecePrices[req.MaterialID];
-                var totalPrice = piecePrice * req.TotalConsumption;
-
                 var displayUnitId = GetDisplayUnitFromIncome(req.MaterialID);
                 if (!displayUnitId.HasValue || displayUnitId.Value <= 0)
                 {
@@ -381,31 +290,35 @@ namespace tahsinERP.Services
                 {
                     ProductID = req.MaterialID,
                     Amount = req.TotalConsumption,
-                    PiecePrice = piecePrice,
-                    TotalPrice = totalPrice,
                     UnitID = displayUnitId.Value,
                     Comment = "BOM/NORM sarfi"
                 };
                 expense.EXPENSE_PRODUCTS.Add(line);
                 lines.Add(line);
-
                 totalAmount += req.TotalConsumption;
-                totalExpensePrice += totalPrice;
             }
 
             expense.Amount = totalAmount;
-            expense.TotalPrice = totalExpensePrice;
 
             // Hujjat + barcha qatorlar bitta SaveChanges'da (avval har qatorga alohida, MES-P11);
             // chiqim (lot ajratmasi) qator ID'sini talab qiladi - shuning uchun undan keyin
             _db.EXPENSES.Add(expense);
             await _db.SaveChangesAsync();
 
+            // Chiqim va tannarx: StockLedger (DLOC FIFO / umumiy qoldiq), keyin StockCostService —
+            // lot ajratmalari bo'yicha aniq tannarx, qolgani FIFO qatlamlari, QQSsiz (MES-B11, SRM-B19 bilan yagona hisob).
+            // TotalPrice bazada hisoblanadigan ustun (Amount x PiecePrice).
+            double totalExpensePrice = 0;
             foreach (var line in lines)
             {
-                await ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
-                    _db, warehouseId, line.ProductID, line.Amount, line.UnitID, line.ID);
+                await StockLedger.IssueLineAsync(_db, warehouseId, line.ProductID, line.Amount, line.UnitID, line.ID);
+                line.PiecePrice = StockCostService.IssuedLineUnitCost(_db, warehouseId, line.ProductID,
+                    line.Amount, line.UnitID, line.ID);
+                totalExpensePrice += line.Amount * line.PiecePrice;
             }
+
+            expense.TotalPrice = totalExpensePrice;
+            await _db.SaveChangesAsync();
 
             LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",
                 $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Mahsulot ID: {productId}, Miqdor: {producedQty}");
@@ -413,7 +326,7 @@ namespace tahsinERP.Services
 
         /// <summary>
         /// Ushbu ishlab chiqarish uchun avtomatik yaratilgan xomashyo chiqimini to'liq bekor qiladi:
-        /// har bir chiqim qatori bo'yicha DLOC lot + umumiy qoldiqni qaytaradi (ExpenseStockIssueHelper)
+        /// har bir chiqim qatori bo'yicha DLOC lot + umumiy qoldiqni qaytaradi (StockLedger.ReverseIssueLine)
         /// va EXPENSE/EXPENSE_PRODUCTS/WRHS_EXPENSE_DOCS yozuvlarini fizik o'chiradi.
         /// Faqat ichki sarf chiqimlari (ReceiverWhID == null) tegiladi; ishlab chiqarish→sotuv
         /// o'tkazmalari (ReceiverWhID mavjud) tegilmaydi.
@@ -444,7 +357,7 @@ namespace tahsinERP.Services
                 foreach (var line in lines)
                 {
                     var unitId = line.UnitID > 0 ? line.UnitID : 1;
-                    ExpenseStockIssueHelper.ReverseExpenseProductIssue(
+                    StockLedger.ReverseIssueLine(
                         _db, expense.SenderWHID, line.ProductID, line.Amount, unitId, line.ID);
                 }
 

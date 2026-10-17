@@ -21,8 +21,8 @@
     var dlocLocationsJson = ViewBag.DlocLocationsJson as string ?? "[]";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
-{
+@* Ruxsat controller action'ida tekshiriladi (SRM-M05). *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -101,7 +101,7 @@
 
                                             <br />
                                             <h5>Kirim mahsulotlari</h5>
-                                            <p class="text-muted small mb-2">QQS % (0–100). Jami = miqdor × dona narx × (1 + QQS/100). Izohga <code>QQS %: …%</code> qo‘shiladi.</p>
+                                            <p class="text-muted small mb-2">QQS % (0–100). Jami = miqdor × dona narx × (1 + QQS/100).</p>
                                             
                                             <div class="table-responsive">
                                                 <table id="incomeProductsTable" class="table table-bordered">
@@ -293,23 +293,6 @@
                         $row.find('.product-pno').val(pno);
                     }
 
-                    function stripQqsFromComment(text) {
-                        if (!text) return '';
-                        return String(text)
-                            .replace(/\s*\|\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
-                            .replace(/\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
-                            .trim();
-                    }
-
-                    function mergeIncomeComment(userPart, vatRate) {
-                        var u = stripQqsFromComment(userPart || '');
-                        var v = isNaN(vatRate) ? 0 : Number(vatRate);
-                        var pct = (Math.round(v * 100) / 100).toString();
-                        var qqs = 'QQS %: ' + pct + '%';
-                        if (!u) return qqs;
-                        return u + ' | ' + qqs;
-                    }
-
                     function recalcRow($row) {
                         var amount = parseFloat($row.find('.amount-input').val()) || 0;
                         var price = parseFloat($row.find('.price-input').val()) || 0;
@@ -319,19 +302,10 @@
                         var base = amount * price;
                         var total = base * (1 + vat / 100);
                         $row.find('.total-price').val(total.toFixed(2));
-                        var $comm = $row.find('.comment-input');
-                        var user = $comm.data('userComment');
-                        if (user === undefined) user = stripQqsFromComment($comm.val());
-                        $comm.val(mergeIncomeComment(user, vat));
-                        $comm.data('userComment', user);
                     }
 
                     $('#incomeProductsTable tbody tr').each(function () {
                         var $r = $(this);
-                        $r.find('.comment-input').each(function () {
-                            var $c = $(this);
-                            $c.data('userComment', stripQqsFromComment($c.val()));
-                        });
                         syncProductFields($r);
                         recalcRow($r);
                     });
@@ -383,7 +357,6 @@
                             }
                         }
 
-                        $row.find('.comment-input').data('userComment', '');
                         syncProductFields($row);
                         recalcRow($row);
                         productRowIndex++;
@@ -404,11 +377,6 @@
                         updateTotal();
                     });
 
-                    $(document).on('input', '.comment-input', function () {
-                        var $c = $(this);
-                        $c.data('userComment', stripQqsFromComment($c.val()));
-                    });
-
                     function updateTotal() {
                         var total = 0;
                         $('.total-price').each(function () {
@@ -420,8 +388,4 @@
             })(jQuery);
         </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

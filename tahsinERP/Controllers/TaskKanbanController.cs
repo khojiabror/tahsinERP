@@ -19,7 +19,7 @@ namespace tahsinERP.Controllers
         [Permission]
         public async Task<ActionResult> Index(string viewType = "project", bool showClosed = false)
         {
-            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            bool isAdminOrDeveloper = RoleHelper.IsAdminOrDeveloper(CurrentUserName);
             int currentUserId = CurrentUserId;
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -138,7 +138,7 @@ namespace tahsinERP.Controllers
                 return Json(new { success = false, message = "Ruxsat yo'q" });
             }
 
-            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            bool isAdminOrDeveloper = RoleHelper.IsAdminOrDeveloper(CurrentUserName);
             int currentUserId = CurrentUserId;
 
             if (!TaskLookups.Statuses().Any(s => s.ID == newStatusId))

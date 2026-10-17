@@ -111,34 +111,6 @@ ORDER BY w.WHName, loc.LocationCode";
             return string.Join(",", names);
         }
 
-        /// <summary>FIFO buzilishini jurnalga yozadi (FIFO_VIOLATIONS).</summary>
-        public static void LogFifoViolation(
-            DBTHSNEntities db,
-            int expenseProductId,
-            int productId,
-            int warehouseId,
-            int? expectedLotId,
-            int? selectedLotId,
-            DateTime? expectedReceivedAt,
-            DateTime? selectedReceivedAt,
-            string reasonCode,
-            string createdBy)
-        {
-            if (!DlocFifoSchema.IsEnabled(db) || !DlocFifoDataAccess.TableExists(db, "FIFO_VIOLATIONS"))
-                return;
-
-            const string sql = @"
-INSERT INTO dbo.FIFO_VIOLATIONS
-    (ExpenseProductID, ProductID, WarehouseID, ExpectedLotID, SelectedLotID,
-     ExpectedReceivedAt, SelectedReceivedAt, ReasonCode, CreatedBy, CreatedAt)
-VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, GETDATE())";
-
-            db.Database.ExecuteSqlCommand(sql,
-                expenseProductId, productId, warehouseId,
-                expectedLotId, selectedLotId, expectedReceivedAt, selectedReceivedAt,
-                reasonCode, createdBy);
-        }
-
         public class IncomePutawayRow
         {
             public int IncomeProductID { get; set; }

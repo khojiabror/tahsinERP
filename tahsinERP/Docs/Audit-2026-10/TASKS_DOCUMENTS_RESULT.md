@@ -1,6 +1,6 @@
 # Tasks + Documents — bajarilgan ishlar (2026-10-17)
 
-Branch: `claude/opt-tasks-docs-9aa641`, 19 ta commit (2-tur — pastda), `origin` (khojiabror/tahsinERP) ga push va master'ga merge qilingan.
+Branch: `claude/opt-tasks-docs-9aa641`, 22 ta commit (2-tur — pastda), `origin` (khojiabror/tahsinERP) ga push va master'ga merge qilingan.
 
 **SQL:** barcha skriptlar 2026-10-17 da lokal `DBTHSN-IPACK` bazasida zaxiradan keyin ishga tushirildi — tafsilotlar oxirgi bo'limda.
 
@@ -70,12 +70,12 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 - **Sxema (foydalanuvchi qarori, 2026-10-18):**
   - MNT-01/TSK-B09 — BAJARILDI (19-commit): `IsFinal`/`ColorHex` lokal bazada qo'shildi, EDMX yangilandi.
   - DOC-P02 (table splitting) va DOC-P10 (xat JSON'i ustunlarga) — foydalanuvchi qilmaslikni tanladi; taklif `Database_Migrations/Tasks_Docs_Indexes.sql` oxirida.
-- **Kod (HRM bilan kelishuv kutilmoqda):**
-  - JobDesc'ni umumiy `docx-editor.js`, `_QuillToolbar`, `DocFileResult`, `DocumentService.NewHeader` ga ulash (#15 JobDesc qismi, #20). HRM sessiyasiga taklif yuborildi.
+- **Kod:**
+  - JobDesc umumiy qismlarga ulandi (21-commit). To'liq `VersionedDocController` bazasi (#20) qilinmadi — STD va JobDesc endi umumiy servislar orqali ishlaydi, qolgan farq faqat o'z maydonlari.
   - TaskPriority/TaskStatus view'larini umumlashtirish (kichik, qilinmadi).
 - **Core uchun:**
-  - `SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync` (`:237`) barcha DOC_FILES'ni blob bilan yuklaydi. Bu modul uni endi chaqirmaydi; JobDesc chaqirsa, set-based UPDATE'ga o'tkazish kerak.
-  - `RoleHelper.IsAdminOrDeveloper` umumiy qatlamda bo'lishi kerak (hozir modulda `TaskRules`) — core tayyorlagach nusxa olib tashlanadi.
+  - `SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync` — core blob'siz set-based UPDATE'ga o'tkazdi.
+  - `RoleHelper.IsAdminOrDeveloper` — core qo'shdi, modul nusxasi olib tashlandi (20-commit).
   - #16 DataTables eksport JS: Tasks hozircha `Scripts/srm/srm-server-table.js` dan foydalanadi (yangi nusxa yaratilmadi).
 
 ## 2-tur (2026-10-18): 13–19-commitlar
@@ -89,6 +89,9 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 | 17 | #6 yagona "bajarilgan/yopilgan" qoidasi, #9 `DocFileResult`, #13 `DocumentService.NewHeader`, STD turi kod bo'yicha, `HtmlToPlainText` → `HtmlToDocxConverter` |
 | 18 | #15: letters/orders/STD Create+Edit → `_Form`/`_FormScripts`; `Scripts/app/docx-editor.js`, `Views/DocTemplates/_QuillToolbar.cshtml` |
 | 19 | MNT-01/TSK-B09: ref jadvallarda `IsFinal`, `ColorHex` (sxema + EDMX + sozlamalar formasi) |
+| 20 | `TaskRules.IsAdminOrDeveloper` olib tashlandi — core `RoleHelper.IsAdminOrDeveloper` |
+| 21 | JobDesc (HRM roziligi bilan): `docx-editor.js`, `_QuillToolbar`, `NewHeader`, `AddMainVersionAsync`, `DocFileResult`, tur/holat kod bo'yicha |
+| 22 | Status/prioritet badge'lari faqat ID/Code/IsFinal/ColorHex bo'yicha — nom bo'yicha qidiruv qolmadi (db-foundation so'rovi) |
 
 Xulq-atvor o'zgarishlari:
 - Tasks ro'yxatida qidiruv/saralash/eksport endi butun natijaga ishlaydi; "Muddati (gacha)" shu kunni ham oladi.
