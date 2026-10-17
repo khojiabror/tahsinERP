@@ -39,6 +39,50 @@ namespace tahsinERP.Services.Finance
             return string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
         }
 
+        #region Yagona summa qoidasi (FIN-B08)
+
+        /// <summary>Sotuv invoysi summasi — QQS bilan (TotalWithVAT), bo'lmasa TotalAmount.</summary>
+        public static decimal SalesInvoiceAmount(SALES_INVOICES invoice)
+        {
+            return invoice.TotalWithVAT ?? invoice.TotalAmount;
+        }
+
+        /// <summary>
+        /// Xarid invoyslari summasi: invoysga bog'langan kirim hujjatlari (INCOMES.TotalPrice, odatda QQS bilan)
+        /// bo'lsa — ularning yig'indisi (asOf gacha), aks holda P_INVOICES.Amount.
+        /// Dashboard, balans, Akt-sverki, opening AutoFill va FIN "mirror" yozuvi shu qoidadan foydalanadi.
+        /// </summary>
+        public static Dictionary<int, decimal> PurchaseInvoiceAmounts(DBTHSNEntities db, IQueryable<P_INVOICES> invoices, DateTime? asOf = null)
+        {
+            var baseAmounts = invoices
+                .Select(i => new { i.ID, i.Amount })
+                .ToList();
+            if (baseAmounts.Count == 0)
+                return new Dictionary<int, decimal>();
+
+            var incomeQuery = db.INCOMES.AsNoTracking()
+                .Where(inc => inc.InvoiceID.HasValue &&
+                              inc.IsDeleted != true &&
+                              inc.TotalPrice.HasValue &&
+                              invoices.Any(i => i.ID == inc.InvoiceID.Value));
+            if (asOf.HasValue)
+            {
+                var to = asOf.Value;
+                incomeQuery = incomeQuery.Where(inc => inc.IssueDateTime <= to);
+            }
+            var incomeTotals = incomeQuery
+                .GroupBy(inc => inc.InvoiceID.Value)
+                .Select(g => new { InvoiceID = g.Key, Total = g.Sum(x => x.TotalPrice.Value) })
+                .ToList()
+                .ToDictionary(x => x.InvoiceID, x => Convert.ToDecimal(x.Total));
+
+            return baseAmounts.ToDictionary(
+                i => i.ID,
+                i => incomeTotals.TryGetValue(i.ID, out var total) ? total : (i.Amount.HasValue ? Convert.ToDecimal(i.Amount.Value) : 0m));
+        }
+
+        #endregion
+
         #region Opening
 
         /// <summary>

@@ -12,6 +12,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Helpers;
 using tahsinERP.Services;
+using tahsinERP.Services.Finance;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -397,33 +398,17 @@ namespace tahsinERP.Controllers.Finance
                     .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
                 // 2) Supplier payables by contract.
-                // QQS faqat P_CONTRACT da saqlanadi: invoice summasini bog'langan shartnomaning
-                // QQS stavkasi bo'yicha QQS bilan hisoblaymiz (QQS bo'lmasa, stavka 0 va summa o'zgarmaydi).
-                var pInvoicesRaw = db.P_INVOICES
-                    .Where(i => i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false))
-                    .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.Amount })
+                // Xarid summasi — dashboard/balans/Akt-sverki bilan bir xil qoida (FIN-B08):
+                // invoysga bog'langan kirimlar (INCOMES.TotalPrice) bo'lsa shu, aks holda P_INVOICES.Amount.
+                var pInvoiceQuery = db.P_INVOICES
+                    .Where(i => i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false));
+                var pAmountById = CounterpartyBalanceService.PurchaseInvoiceAmounts(db, pInvoiceQuery, date);
+                var pInvoices = pInvoiceQuery
+                    .Select(i => new { i.ID, i.SupplierID, i.ContractID })
+                    .ToList()
+                    .Select(i => new { i.ID, i.SupplierID, i.ContractID, Amount = pAmountById.TryGetValue(i.ID, out var a) ? a : 0m })
                     .ToList();
-                var pContractIds = pInvoicesRaw.Where(i => i.ContractID > 0).Select(i => i.ContractID).Distinct().ToList();
-                var pVatRateByContract = pContractIds.Count == 0
-                    ? new Dictionary<int, double>()
-                    : PContractVatHelper.BuildContractVatRates(
-                        db.P_CONTRACT_PRODUCTS
-                            .Where(p => pContractIds.Contains(p.ContractID))
-                            .Select(p => new PContractVatHelper.ContractProductVatLine
-                            {
-                                ContractID = p.ContractID,
-                                Amount = p.Amount,
-                                VATAmount = p.VATAmount
-                            })
-                            .ToList());
-                var pInvoices = pInvoicesRaw
-                    .Select(i =>
-                    {
-                        var baseAmt = Convert.ToDecimal(i.Amount);
-                        var rate = pVatRateByContract.ContainsKey(i.ContractID) ? pVatRateByContract[i.ContractID] : 0d;
-                        return new { i.ID, i.SupplierID, i.ContractID, Amount = baseAmt + baseAmt * (decimal)rate / 100m };
-                    })
-                    .ToList();
+                var pContractIds = pInvoices.Where(i => i.ContractID > 0).Select(i => i.ContractID).Distinct().ToList();
                 var pContractNoById = pContractIds.Count == 0
                     ? new Dictionary<int, string>()
                     : db.P_CONTRACTS.Where(c => pContractIds.Contains(c.ID))
@@ -749,15 +734,11 @@ namespace tahsinERP.Controllers.Finance
             {
                 Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
 
-                // QQS faqat P_CONTRACT da: invoice bazasini shartnoma QQS stavkasi bilan QQS bilan olamiz.
-                var vatRate = PContractVatHelper.CalculateContractVatRate(
-                    db.P_CONTRACT_PRODUCTS.Where(p => p.ContractID == contractId.Value).ToList());
-                var vatMultiplier = 1m + (decimal)vatRate / 100m;
-                var invoices = db.P_INVOICES
-                    .Where(i => i.SupplierID == supplierId && i.ContractID == contractId.Value && i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false))
-                    .Select(i => new { i.ID, i.Amount })
-                    .ToList()
-                    .Select(i => new { i.ID, Amount = Convert.ToDecimal(i.Amount) * vatMultiplier })
+                // Xarid summasi — yagona qoida (FIN-B08): kirim (INCOMES.TotalPrice) yoki invoys summasi.
+                var invoiceQuery = db.P_INVOICES
+                    .Where(i => i.SupplierID == supplierId && i.ContractID == contractId.Value && i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false));
+                var invoices = CounterpartyBalanceService.PurchaseInvoiceAmounts(db, invoiceQuery, date)
+                    .Select(kv => new { ID = kv.Key, Amount = kv.Value })
                     .ToList();
 
                 var contractNo = db.P_CONTRACTS
@@ -985,14 +966,10 @@ namespace tahsinERP.Controllers.Finance
                 };
                 Func<int, int, decimal> calcSupplierTotal = (supplierId, contractId) =>
                 {
-                    var baseTotal = db.P_INVOICES
-                        .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= snapshotDate && (i.IsDeleted == null || i.IsDeleted == false))
-                        .Select(i => (decimal?)i.Amount)
-                        .DefaultIfEmpty(0m).Sum() ?? 0m;
-                    // QQS faqat P_CONTRACT da: shartnoma QQS stavkasi bilan QQS bilan olamiz.
-                    var vatRate = PContractVatHelper.CalculateContractVatRate(
-                        db.P_CONTRACT_PRODUCTS.Where(p => p.ContractID == contractId).ToList());
-                    return baseTotal + baseTotal * (decimal)vatRate / 100m;
+                    // Yagona qoida (FIN-B08): kirim (INCOMES.TotalPrice) yoki invoys summasi.
+                    var invoiceQuery = db.P_INVOICES
+                        .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= snapshotDate && (i.IsDeleted == null || i.IsDeleted == false));
+                    return CounterpartyBalanceService.PurchaseInvoiceAmounts(db, invoiceQuery, snapshotDate).Values.Sum();
                 };
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
