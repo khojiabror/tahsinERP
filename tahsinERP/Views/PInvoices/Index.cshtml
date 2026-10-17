@@ -85,7 +85,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="pInvoicesTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                        <table id="pInvoicesTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Invoys raqami</th>
@@ -105,12 +105,14 @@
                                                 @if (Model != null && Model.Any())
                                                 {
                                                     var vatRates = ViewBag.VatRatesByContract as Dictionary<int, double>;
+                                                    var netByInvoice = ViewBag.NetByInvoice as Dictionary<int, double> ?? new Dictionary<int, double>();
                                                     foreach (var item in Model)
                                                     {
                                                         var contractIdForVat = item.ContractID > 0 ? item.ContractID : (item.P_ORDERS != null && item.P_ORDERS.ContractID.HasValue ? item.P_ORDERS.ContractID.Value : 0);
                                                         var vatRate = (vatRates != null && contractIdForVat > 0 && vatRates.ContainsKey(contractIdForVat)) ? vatRates[contractIdForVat] : 0d;
-                                                        var baseAmount = item.Amount ?? 0d;
-                                                        var amountWithVat = baseAmount + baseAmount * vatRate / 100d;
+                                                        // Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa — qatorlar yig'indisi
+                                                        var amountWithVat = item.Amount ?? 0d;
+                                                        var baseAmount = netByInvoice.ContainsKey(item.ID) ? netByInvoice[item.ID] : amountWithVat;
                                                         <tr>
                                                             <td>
                                                                 <a href="@Url.Action("Details", "PInvoices", new { id = item.ID })">@item.InvoiceNo</a>

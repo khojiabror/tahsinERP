@@ -8,8 +8,8 @@
     var unlinkedOrders = ViewBag.UnlinkedOrders as List<tahsinERP.Models.S_ORDERS>;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -47,6 +47,10 @@
                                         <h4 class="text-primary">Shartnoma: @Model.ContractNo</h4>
                                         <p class="text-muted">Mijoz: @(Model.CUSTOMER?.Name ?? "")</p>
                                         <hr />
+                                        @if (TempData["ErrorMessage"] != null)
+                                        {
+                                            <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
+                                        }
 
                                         <!-- Linked Orders -->
                                         <div class="row">
@@ -76,15 +80,10 @@
                                                                         <td>@(order.Amount?.ToString("N2") ?? "0.00")</td>
                                                                         <td>@(order.CURRENCy1?.Shortname ?? "")</td>
                                                                         <td>
-                                                                            @using (Html.BeginForm("UnlinkOrder", "SContract", FormMethod.Post, new { @class = "d-inline" }))
-                                                                            {
-                                                                                @Html.AntiForgeryToken()
-                                                                                @Html.Hidden("contractID", Model.ID)
-                                                                                @Html.Hidden("orderID", order.ID)
-                                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bu buyurtmani shartnomadan ajratishni tasdiqlaysizmi?');">
-                                                                                    <i class="bx bx-unlink"></i> Ajratish
-                                                                                </button>
-                                                                            }
+                                                                            @* Shartnoma majburiy (FK) — ajratish o'rniga buyurtmani tahrirlab boshqa shartnoma tanlanadi (CRM-B12) *@
+                                                                            <a href="@Url.Action("Edit", "SOrder", new { id = order.ID })" class="btn btn-sm btn-outline-primary">
+                                                                                <i class="bx bx-edit"></i> Buyurtmani tahrirlash
+                                                                            </a>
                                                                         </td>
                                                                     </tr>
                                                                 }
@@ -172,9 +171,5 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 

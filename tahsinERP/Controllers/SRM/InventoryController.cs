@@ -10,7 +10,9 @@ using OfficeOpenXml;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Services.Stock;
 using tahsinERP.ViewModels;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers
 {
@@ -29,6 +31,7 @@ namespace tahsinERP.Controllers
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
 
                 var query = db.PRODUCT_STOCKS
+                    .AsNoTracking()
                     .Include(s => s.Warehouse)
                     .Include(s => s.PRODUCT)
                     .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
@@ -327,80 +330,6 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Olish so'rovi: Inventory/ExportExcel
-        public async Task<ActionResult> ExportExcel(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                var rows = await GetInventoryExportRowsAsync(db, warehouseId, categoryId, isFinishedGood, isRawMaterial);
-
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage())
-                {
-                    var ws = package.Workbook.Worksheets.Add("Inventory");
-                    ws.Cells[1, 1].Value = "Ombor";
-                    ws.Cells[1, 2].Value = "Mahsulot kodi";
-                    ws.Cells[1, 3].Value = "Mahsulot nomi";
-                    ws.Cells[1, 4].Value = "Kategoriya";
-                    ws.Cells[1, 5].Value = "Miqdor";
-                    ws.Cells[1, 6].Value = "Birlik";
-                    ws.Cells[1, 1, 1, 6].Style.Font.Bold = true;
-
-                    int row = 2;
-                    foreach (var item in rows)
-                    {
-                        ws.Cells[row, 1].Value = item.WarehouseName;
-                        ws.Cells[row, 2].Value = item.ProductPNo;
-                        ws.Cells[row, 3].Value = item.ProductName;
-                        ws.Cells[row, 4].Value = item.CategoryName;
-                        ws.Cells[row, 5].Value = item.Amount;
-                        ws.Cells[row, 6].Value = item.UnitName;
-                        row++;
-                    }
-
-                    ws.Cells.AutoFitColumns();
-                    var bytes = package.GetAsByteArray();
-                    var fileName = $"Ombor_qoldiqlari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-                    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-                }
-            }
-        }
-
-        // Olish so'rovi: Inventory/ExportPdf
-        public async Task<ActionResult> ExportPdf(int? warehouseId, int? categoryId, bool? isFinishedGood, bool? isRawMaterial)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                var rows = await GetInventoryExportRowsAsync(db, warehouseId, categoryId, isFinishedGood, isRawMaterial);
-                var lines = new List<string>
-                {
-                    "Ombor qoldiqlari",
-                    $"Sana: {DateTime.Now:dd.MM.yyyy HH:mm}",
-                    ""
-                };
-
-                lines.Add("Ombor | Mahsulot kodi | Mahsulot nomi | Kategoriya | Miqdor | Birlik");
-                foreach (var item in rows)
-                {
-                    lines.Add($"{item.WarehouseName} | {item.ProductPNo} | {item.ProductName} | {item.CategoryName} | {item.Amount:N2} | {item.UnitName}");
-                }
-
-                var bytes = BuildSimplePdf(lines);
-                var fileName = $"Ombor_qoldiqlari_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                return File(bytes, "application/pdf", fileName);
-            }
-        }
-
         // Olish so'rovi: Inventory/Adjust
         public async Task<ActionResult> Adjust()
         {
@@ -439,50 +368,6 @@ namespace tahsinERP.Controllers
 
                 return View(new ViewModels.InventoryAdjustmentViewModel());
             }
-        }
-
-        // Olish so'rovi: Inventory/AdjustResult
-        public ActionResult AdjustResult(string key)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Inventory"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (!IsValidLogKey(key))
-            {
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.LogKey = key;
-            return View();
-        }
-
-        // Olish so'rovi: Inventory/DownloadAdjustmentLog
-        public ActionResult DownloadAdjustmentLog(string key, string type)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Inventory", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (!IsValidLogKey(key))
-            {
-                return RedirectToAction("Index");
-            }
-
-            var extension = string.Equals(type, "pdf", StringComparison.OrdinalIgnoreCase) ? ".pdf" : ".xlsx";
-            var path = GetAdjustmentLogPath(key, extension);
-            if (!System.IO.File.Exists(path))
-            {
-                return HttpNotFound();
-            }
-
-            var contentType = extension == ".pdf"
-                ? "application/pdf"
-                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            var downloadName = $"{key}{extension}";
-            return File(path, contentType, downloadName);
         }
 
         // Olish so'rovi: Inventory/DownloadTemplate
@@ -576,8 +461,10 @@ namespace tahsinERP.Controllers
                             return View(model);
                         }
 
-                        var headerMap = BuildHeaderMap(worksheet);
-                        if (!headerMap.ContainsKey("productpno") || !headerMap.ContainsKey("quantity"))
+                        var cells = new ExcelCellReader(worksheet)
+                            .Alias("productpno", "productpno", "pno", "mahsulot")
+                            .Alias("quantity", "quantity", "qty", "miqdor", "qoldiq");
+                        if (!cells.Has("productpno") || !cells.Has("quantity"))
                         {
                             ModelState.AddModelError("", "Excel format xato. Majburiy ustunlar: ProductPNo va Quantity.");
                             await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
@@ -592,16 +479,14 @@ namespace tahsinERP.Controllers
                                 p => p.PNo.Trim().ToUpperInvariant(),
                                 p => new { p.ID, p.PNo, p.Name, p.UnitID });
 
-                        var qtyCol = headerMap["quantity"];
-                        var pnoCol = headerMap["productpno"];
                         var parsedRows = new List<InventoryAdjustmentRow>();
                         var errorDetails = new List<string>();
                         var seenProducts = new HashSet<int>();
 
                         for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
                         {
-                            var pno = GetCellString(worksheet, row, pnoCol);
-                            var qtyValue = GetCellString(worksheet, row, qtyCol);
+                            var pno = cells.String(row, "productpno") ?? string.Empty;
+                            var qtyValue = cells.String(row, "quantity") ?? string.Empty;
 
                             if (string.IsNullOrWhiteSpace(pno))
                             {
@@ -654,150 +539,151 @@ namespace tahsinERP.Controllers
                             return View(model);
                         }
 
+                        // DLOC yoqilgan omborda kirim/chiqim ledger orqali yoziladi (hisobotlar ham shundan o'qiydi).
+                        var requireDloc = StockLedger.IsDlocWarehouse(db, model.WarehouseId);
+
+                        // SRM-B09: joriy qoldiq — PRODUCT_STOCKS (ledger + joylashtirilmagan). Avval DLOC omborda faqat
+                        // ledger olinardi: joylashtirilmagan 100 ta bor omborda 100 sanalsa +100 kirim qilinib, qoldiq 200
+                        // bo'lib qolardi. Joylashtirilmagan qoldiq bor mahsulot bo'yicha inventarizatsiya rad etiladi.
+                        if (requireDloc)
+                        {
+                            var unassignedErrors = new List<string>();
+                            var onHandMap = StockLedger.GetOnHand(db, model.WarehouseId,
+                                parsedRows.Select(r => productMap[r.ProductPNo.Trim().ToUpperInvariant()].ID));
+                            foreach (var parsedRow in parsedRows)
+                            {
+                                var product = productMap[parsedRow.ProductPNo.Trim().ToUpperInvariant()];
+                                double onHand;
+                                onHandMap.TryGetValue(product.ID, out onHand);
+                                if (onHand <= StockLedger.Epsilon)
+                                    continue;
+                                var ledgerQty = (double)DlocFifoDataAccess.GetLedgerQty(db, model.WarehouseId, product.ID);
+                                var unassigned = onHand - ledgerQty;
+                                if (unassigned > StockLedger.Epsilon)
+                                {
+                                    unassignedErrors.Add($"{parsedRow.RowNumber}-qator: {product.PNo} — DLOC ga joylashtirilmagan qoldiq {unassigned:N3}. Avval «DLOC ga joylashtirish» sahifasida joylashtiring.");
+                                }
+                            }
+
+                            if (unassignedErrors.Any())
+                            {
+                                ViewBag.ErrorDetails = unassignedErrors;
+                                ModelState.AddModelError("", "Ombordagi ayrim qoldiqlar DLOC ga joylashtirilmagan. Inventarizatsiyadan oldin joylashtiring.");
+                                await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
+                                return View(model);
+                            }
+                        }
+
                         using (var transaction = db.Database.BeginTransaction())
                         {
                             try
                             {
                                 var currencyId = await GetDefaultCurrencyIdAsync(db);
                                 var now = DateTime.Now;
-                                // Kirim/chiqim hujjat nomi: INV_{oy}_{kun}_IN|OUT_{ombor}_{vaqt}_{tartib} — bir sessiyada noyob
-                                var invMonthDay = $"{now.Month:00}_{now.Day:00}";
-                                var invTimeToken = now.ToString("HHmmssfff");
-                                int incomeSeq = 1;
-                                int expenseSeq = 1;
+                                // Bitta inventarizatsiya = bitta INV kirim (ortiqcha) + bitta INV chiqim (kamomad), N qatorli
+                                // (avval har mahsulotga alohida hujjat va 2 ta SaveChanges — SRM-P06).
+                                var invToken = $"{now.Month:00}_{now.Day:00}_{{0}}_{model.WarehouseId}_{now:HHmmssfff}";
 
-                                // Merge existing duplicates first, so every product has only one stock row in this warehouse.
-                                await NormalizeWarehouseStocksAsync(db, model.WarehouseId, parsedRows.Select(r => productMap[r.ProductPNo.Trim().ToUpperInvariant()].ID));
-
-                                // DLOC yoqilgan ombor uchun kirim/chiqim ledger orqali yoziladi (hisobotlar ham shundan o'qiydi).
-                                var requireDloc = DlocFifoSchema.IsEnabled(db)
-                                    && DlocFifoDataAccess.WarehouseHasLocations(db, model.WarehouseId);
-
+                                var plusLines = new List<Tuple<InventoryAdjustmentRow, int, double, double, int>>();
+                                var minusLines = new List<Tuple<InventoryAdjustmentRow, int, double, double, int>>();
                                 foreach (var parsedRow in parsedRows)
                                 {
-                                    var key = parsedRow.ProductPNo.Trim().ToUpperInvariant();
-                                    var product = productMap[key];
-                                    var qty = parsedRow.Quantity;
+                                    var product = productMap[parsedRow.ProductPNo.Trim().ToUpperInvariant()];
                                     var unitId = product.UnitID > 0 ? product.UnitID : 1;
 
-                                    var stock = await db.PRODUCT_STOCKS
-                                        .FirstOrDefaultAsync(s => s.WHID == model.WarehouseId && s.ProductID == product.ID);
-
-                                    // DLOC omborda joriy qoldiq ledgerdan, aks holda umumiy qoldiqdan olinadi.
-                                    var oldQty = requireDloc
-                                        ? (double)DlocFifoDataAccess.GetLedgerQty(db, model.WarehouseId, product.ID)
-                                        : (stock?.Amount ?? 0);
-                                    var diff = qty - oldQty;
-
-                                    if (Math.Abs(diff) < 0.000001)
-                                    {
+                                    // Qator tranzaksiya oxirigacha qulflanadi: hisoblangan farq parallel harakat bilan buzilmaydi
+                                    var oldQty = StockLedger.GetOnHand(db, model.WarehouseId, product.ID, lockForUpdate: true);
+                                    var diff = parsedRow.Quantity - oldQty;
+                                    if (Math.Abs(diff) < StockLedger.Epsilon)
                                         continue;
-                                    }
 
                                     // Baholash: oxirgi kirim (xarid) narxi — balans hisoboti ham shu narxda baholaydi.
                                     var piecePrice = await GetLatestIncomePriceAsync(db, product.ID);
+                                    var line = Tuple.Create(parsedRow, product.ID, Math.Abs(diff), piecePrice, unitId);
+                                    if (diff > 0) plusLines.Add(line); else minusLines.Add(line);
+                                }
 
-                                    if (diff > 0)
+                                if (plusLines.Any())
+                                {
+                                    var income = new INCOME
                                     {
-                                        var lineTotal = diff * piecePrice;
-                                        var income = new INCOME
-                                        {
-                                            DocNo = $"INV_{invMonthDay}_IN_{model.WarehouseId}_{invTimeToken}_{incomeSeq++}",
-                                            ReceivingWHID = model.WarehouseId,
-                                            SenderWHID = null,
-                                            IssueDateTime = now,
-                                            CurrencyID = currencyId,
-                                            Amount = diff,
-                                            TotalPrice = lineTotal,
-                                            Description = $"Inventarizatsiya qo'shimcha kirim: {product.PNo}",
-                                            RecieveStatus = true,
-                                            IsDeleted = false
-                                        };
-                                        db.INCOMES.Add(income);
-                                        await db.SaveChangesAsync();
+                                        DocNo = "INV_" + string.Format(invToken, "IN"),
+                                        ReceivingWHID = model.WarehouseId,
+                                        SenderWHID = null,
+                                        IssueDateTime = now,
+                                        CurrencyID = currencyId,
+                                        Amount = plusLines.Sum(l => l.Item3),
+                                        TotalPrice = plusLines.Sum(l => l.Item3 * l.Item4),
+                                        Description = $"Inventarizatsiya qo'shimcha kirim: {plusLines.Count} ta mahsulot",
+                                        RecieveStatus = true,
+                                        IsDeleted = false
+                                    };
+                                    db.INCOMES.Add(income);
+                                    var incomeLines = plusLines.Select(l => new INCOME_PRODUCTS
+                                    {
+                                        INCOME = income,
+                                        ProductID = l.Item2,
+                                        Amount = l.Item3,
+                                        PiecePrice = l.Item4,
+                                        TotalPrice = l.Item3 * l.Item4,
+                                        UnitID = l.Item5,
+                                        Comment = "Inventarizatsiya"
+                                    }).ToList();
+                                    db.INCOME_PRODUCTS.AddRange(incomeLines);
+                                    await db.SaveChangesAsync();
 
-                                        var incomeProduct = new INCOME_PRODUCTS
-                                        {
-                                            IncomeID = income.ID,
-                                            ProductID = product.ID,
-                                            Amount = diff,
-                                            PiecePrice = piecePrice,
-                                            TotalPrice = lineTotal,
-                                            UnitID = unitId,
-                                            Comment = "Inventarizatsiya"
-                                        };
-                                        db.INCOME_PRODUCTS.Add(incomeProduct);
-                                        await db.SaveChangesAsync();
-
+                                    for (int i = 0; i < plusLines.Count; i++)
+                                    {
+                                        var l = plusLines[i];
+                                        int? locationId = null;
                                         if (requireDloc)
                                         {
                                             // Qo'shilgan miqdor DLOC ga avtomatik joylashtiriladi (ledger + umumiy qoldiq yangilanadi).
-                                            var locationId = ResolveAutoPutawayLocation(db, model.WarehouseId, product.ID, (decimal)diff);
+                                            locationId = ResolveAutoPutawayLocation(db, model.WarehouseId, l.Item2, (decimal)l.Item3);
                                             if (locationId <= 0)
                                             {
-                                                throw new Exception($"Mahsulot {product.PNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
+                                                throw new Exception($"Mahsulot {l.Item1.ProductPNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
                                             }
+                                        }
 
-                                            LocationLotStockLedger.TryReceive(
-                                                db, model.WarehouseId, income.ID, incomeProduct.ID, product.ID,
-                                                (decimal)diff, locationId, now, unitId, "INV");
-                                        }
-                                        else
-                                        {
-                                            if (stock == null)
-                                            {
-                                                stock = WarehouseFlowService.GetOrCreateStockRow(db, model.WarehouseId, product.ID, unitId);
-                                            }
-                                            stock.Amount = qty;
-                                        }
+                                        StockLedger.ReceiveLine(db, model.WarehouseId, income.ID, incomeLines[i].ID, l.Item2,
+                                            l.Item3, l.Item5, locationId, now, "INV");
                                     }
-                                    else
+                                }
+
+                                if (minusLines.Any())
+                                {
+                                    var expense = new EXPENS
                                     {
-                                        var outQty = Math.Abs(diff);
-                                        var lineTotal = outQty * piecePrice;
-                                        var expense = new EXPENS
-                                        {
-                                            DocNo = $"INV_{invMonthDay}_OUT_{model.WarehouseId}_{invTimeToken}_{expenseSeq++}",
-                                            SenderWHID = model.WarehouseId,
-                                            ReceiverWhID = null,
-                                            IssueDateTime = now,
-                                            CurrencyID = currencyId,
-                                            Amount = outQty,
-                                            TotalPrice = lineTotal,
-                                            Description = $"Inventarizatsiya kamaytirish chiqimi: {product.PNo}",
-                                            SendStatus = true,
-                                            IsDeleted = false
-                                        };
-                                        db.EXPENSES.Add(expense);
-                                        await db.SaveChangesAsync();
+                                        DocNo = "INV_" + string.Format(invToken, "OUT"),
+                                        SenderWHID = model.WarehouseId,
+                                        ReceiverWhID = null,
+                                        IssueDateTime = now,
+                                        CurrencyID = currencyId,
+                                        Amount = minusLines.Sum(l => l.Item3),
+                                        TotalPrice = minusLines.Sum(l => l.Item3 * l.Item4),
+                                        Description = $"Inventarizatsiya kamaytirish chiqimi: {minusLines.Count} ta mahsulot",
+                                        SendStatus = true,
+                                        IsDeleted = false
+                                    };
+                                    db.EXPENSES.Add(expense);
+                                    var expenseLines = minusLines.Select(l => new EXPENSE_PRODUCTS
+                                    {
+                                        EXPENS = expense,
+                                        ProductID = l.Item2,
+                                        Amount = l.Item3,
+                                        PiecePrice = l.Item4,
+                                        TotalPrice = l.Item3 * l.Item4,
+                                        UnitID = l.Item5,
+                                        Comment = "Inventarizatsiya"
+                                    }).ToList();
+                                    db.EXPENSE_PRODUCTS.AddRange(expenseLines);
+                                    await db.SaveChangesAsync();
 
-                                        var expenseProduct = new EXPENSE_PRODUCTS
-                                        {
-                                            ExpenseID = expense.ID,
-                                            ProductID = product.ID,
-                                            Amount = outQty,
-                                            PiecePrice = piecePrice,
-                                            TotalPrice = lineTotal,
-                                            UnitID = unitId,
-                                            Comment = "Inventarizatsiya"
-                                        };
-                                        db.EXPENSE_PRODUCTS.Add(expenseProduct);
-                                        await db.SaveChangesAsync();
-
-                                        if (requireDloc)
-                                        {
-                                            // Kamaygan miqdor DLOC dan FIFO bo'yicha chiqariladi (ledger + umumiy qoldiq yangilanadi).
-                                            await ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
-                                                db, model.WarehouseId, product.ID, outQty, unitId, expenseProduct.ID);
-                                        }
-                                        else
-                                        {
-                                            if (stock == null)
-                                            {
-                                                stock = WarehouseFlowService.GetOrCreateStockRow(db, model.WarehouseId, product.ID, unitId);
-                                            }
-                                            stock.Amount = qty;
-                                        }
+                                    // Kamomad DLOC omborda FIFO bo'yicha, oddiy omborda umumiy qoldiqdan chiqariladi.
+                                    foreach (var ep in expenseLines)
+                                    {
+                                        await StockLedger.IssueLineAsync(db, model.WarehouseId, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
                                     }
                                 }
 
@@ -863,24 +749,6 @@ namespace tahsinERP.Controllers
                 .ToListAsync();
         }
 
-        private async Task<bool> HasWarehouseMovementAsync(int warehouseId, int productId, DBTHSNEntities db)
-        {
-            var hasIncome = await db.INCOME_PRODUCTS
-                .AnyAsync(ip => ip.ProductID == productId && ip.INCOME.ReceivingWHID == warehouseId);
-
-            if (hasIncome)
-            {
-                return true;
-            }
-
-            var hasExpense = await db.EXPENSE_PRODUCTS
-                .AnyAsync(ep =>
-                    ep.ProductID == productId &&
-                    (ep.EXPENS.SenderWHID == warehouseId || ep.EXPENS.ReceiverWhID == warehouseId));
-
-            return hasExpense;
-        }
-
         private async Task<bool> HasAdjustmentThisMonthAsync(int userId, int warehouseId, DBTHSNEntities db)
         {
             if (userId <= 0)
@@ -914,295 +782,11 @@ namespace tahsinERP.Controllers
             );
         }
 
-        private static Dictionary<string, int> BuildHeaderMap(ExcelWorksheet worksheet)
-        {
-            var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            int endColumn = worksheet.Dimension.End.Column;
-
-            for (int col = 1; col <= endColumn; col++)
-            {
-                var header = (worksheet.Cells[1, col].Text ?? string.Empty).Trim().ToLowerInvariant();
-                if (string.IsNullOrEmpty(header))
-                {
-                    continue;
-                }
-
-                if (header.Contains("productpno") || header.Contains("pno") || header.Contains("mahsulot"))
-                {
-                    if (!map.ContainsKey("productpno"))
-                    {
-                        map["productpno"] = col;
-                    }
-                }
-
-                if (header.Contains("quantity") || header.Contains("qty") || header.Contains("miqdor") || header.Contains("qoldiq"))
-                {
-                    if (!map.ContainsKey("quantity"))
-                    {
-                        map["quantity"] = col;
-                    }
-                }
-            }
-
-            return map;
-        }
-
-        private static string GetCellString(ExcelWorksheet worksheet, int row, int col)
-        {
-            return (worksheet.Cells[row, col].Text ?? string.Empty).Trim();
-        }
-
-        private async Task<List<InventoryExportRow>> GetInventoryExportRowsAsync(
-            DBTHSNEntities db,
-            int? warehouseId,
-            int? categoryId,
-            bool? isFinishedGood,
-            bool? isRawMaterial)
-        {
-            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-            var query = db.PRODUCT_STOCKS
-                .Include(s => s.Warehouse)
-                .Include(s => s.PRODUCT)
-                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                .Include(s => s.UNIT)
-                .Where(s => s.Amount > 0);
-
-            if (assignedWarehouseIds.Any())
-            {
-                query = query.Where(s => assignedWarehouseIds.Contains(s.WHID));
-                if (warehouseId.HasValue && !assignedWarehouseIds.Contains(warehouseId.Value))
-                {
-                    warehouseId = null;
-                }
-            }
-
-            if (warehouseId.HasValue)
-            {
-                query = query.Where(s => s.WHID == warehouseId.Value);
-            }
-
-            if (categoryId.HasValue)
-            {
-                query = query.Where(s => s.PRODUCT.CategoryID == categoryId.Value);
-            }
-
-            if (isFinishedGood.HasValue)
-            {
-                if (isFinishedGood.Value)
-                {
-                    query = query.Where(s => s.PRODUCT.PRODUCT_CATEGORIES != null &&
-                                              s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood == true);
-                }
-                else
-                {
-                    query = query.Where(s => s.PRODUCT.PRODUCT_CATEGORIES == null ||
-                                              s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood != true);
-                }
-            }
-
-            if (isRawMaterial.HasValue && isRawMaterial.Value)
-            {
-                query = query.Where(s => s.PRODUCT.IsRawMaterial == true ||
-                                          (s.PRODUCT.PRODUCT_CATEGORIES != null &&
-                                           s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial == true));
-            }
-
-            var rawStocks = await query
-                .OrderBy(s => s.Warehouse.WHName)
-                .ThenBy(s => s.PRODUCT.PNo)
-                .ToListAsync();
-
-            var stocks = rawStocks
-                .GroupBy(s => new { s.WHID, s.ProductID })
-                .Select(g =>
-                {
-                    var first = g.First();
-                    first.Amount = g.Sum(x => x.Amount);
-                    return first;
-                })
-                .Where(s => s.Amount > 0)
-                .OrderBy(s => s.Warehouse?.WHName)
-                .ThenBy(s => s.PRODUCT?.PNo)
-                .ToList();
-
-            return stocks.Select(s => new InventoryExportRow
-            {
-                WarehouseName = s.Warehouse?.WHName ?? "-",
-                ProductPNo = s.PRODUCT?.PNo ?? "-",
-                ProductName = s.PRODUCT?.Name ?? "-",
-                CategoryName = s.PRODUCT?.PRODUCT_CATEGORIES?.Name ?? "-",
-                Amount = s.Amount,
-                UnitName = s.UNIT?.ShortName ?? "-"
-            }).ToList();
-        }
-
-        private async Task<string> SaveAdjustmentLogsAsync(int warehouseId, int userId, List<InventoryAdjustmentLogRow> logRows)
-        {
-            var logKey = $"InvAdj_{warehouseId}_{DateTime.Now:yyyyMMddHHmmss}_{userId}";
-            var excelPath = GetAdjustmentLogPath(logKey, ".xlsx");
-            var pdfPath = GetAdjustmentLogPath(logKey, ".pdf");
-
-            Directory.CreateDirectory(Path.GetDirectoryName(excelPath));
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
-            {
-                var ws = package.Workbook.Worksheets.Add("Log");
-                ws.Cells[1, 1].Value = "ProductPNo";
-                ws.Cells[1, 2].Value = "ProductName";
-                ws.Cells[1, 3].Value = "OldQty";
-                ws.Cells[1, 4].Value = "NewQty";
-                ws.Cells[1, 5].Value = "Diff";
-                ws.Cells[1, 6].Value = "Unit";
-
-                int row = 2;
-                foreach (var item in logRows)
-                {
-                    ws.Cells[row, 1].Value = item.ProductPNo;
-                    ws.Cells[row, 2].Value = item.ProductName;
-                    ws.Cells[row, 3].Value = item.OldQuantity;
-                    ws.Cells[row, 4].Value = item.NewQuantity;
-                    ws.Cells[row, 5].Value = item.NewQuantity - item.OldQuantity;
-                    ws.Cells[row, 6].Value = item.UnitName;
-                    row++;
-                }
-
-                ws.Cells[1, 1, 1, 6].Style.Font.Bold = true;
-                ws.Cells.AutoFitColumns();
-
-                var bytes = package.GetAsByteArray();
-                await Task.Run(() => System.IO.File.WriteAllBytes(excelPath, bytes));
-            }
-
-            var pdfBytes = BuildPdfLogBytes(logRows, warehouseId, userId);
-            await Task.Run(() => System.IO.File.WriteAllBytes(pdfPath, pdfBytes));
-
-            return logKey;
-        }
-
-        private string GetAdjustmentLogPath(string logKey, string extension)
-        {
-            var folder = Server.MapPath("~/App_Data/InventoryAdjustments");
-            return Path.Combine(folder, $"{logKey}{extension}");
-        }
-
-        private bool IsValidLogKey(string logKey)
-        {
-            if (string.IsNullOrWhiteSpace(logKey))
-            {
-                return false;
-            }
-
-            return logKey.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-');
-        }
-
-        private byte[] BuildPdfLogBytes(List<InventoryAdjustmentLogRow> logRows, int warehouseId, int userId)
-        {
-            var lines = new List<string>
-            {
-                "Inventarizatsiya log",
-                $"Ombor ID: {warehouseId}",
-                $"Foydalanuvchi ID: {userId}",
-                $"Sana: {DateTime.Now:dd.MM.yyyy HH:mm}",
-                ""
-            };
-
-            lines.Add("ProductPNo | ProductName | OldQty | NewQty | Diff | Unit");
-            foreach (var item in logRows)
-            {
-                var diff = item.NewQuantity - item.OldQuantity;
-                lines.Add($"{item.ProductPNo} | {item.ProductName} | {item.OldQuantity:N2} | {item.NewQuantity:N2} | {diff:N2} | {item.UnitName}");
-            }
-
-            return BuildSimplePdf(lines);
-        }
-
-        private byte[] BuildSimplePdf(List<string> lines)
-        {
-            var contentBuilder = new StringBuilder();
-            contentBuilder.AppendLine("BT");
-            contentBuilder.AppendLine("/F1 10 Tf");
-            contentBuilder.AppendLine("50 760 Td");
-
-            foreach (var line in lines)
-            {
-                var safeLine = EscapePdfText(line);
-                contentBuilder.AppendLine($"({safeLine}) Tj");
-                contentBuilder.AppendLine("0 -14 Td");
-            }
-
-            contentBuilder.AppendLine("ET");
-
-            var contentBytes = Encoding.ASCII.GetBytes(contentBuilder.ToString());
-            using (var ms = new MemoryStream())
-            {
-                void Write(string text)
-                {
-                    var bytes = Encoding.ASCII.GetBytes(text);
-                    ms.Write(bytes, 0, bytes.Length);
-                }
-
-                var offsets = new List<long>();
-                Write("%PDF-1.4\n");
-
-                offsets.Add(ms.Position);
-                Write("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write($"4 0 obj\n<< /Length {contentBytes.Length} >>\nstream\n");
-                ms.Write(contentBytes, 0, contentBytes.Length);
-                Write("\nendstream\nendobj\n");
-
-                offsets.Add(ms.Position);
-                Write("5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n");
-
-                var xrefStart = ms.Position;
-                Write("xref\n0 6\n0000000000 65535 f \n");
-                foreach (var offset in offsets)
-                {
-                    Write($"{offset:0000000000} 00000 n \n");
-                }
-
-                Write("trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n");
-                Write($"{xrefStart}\n%%EOF");
-
-                return ms.ToArray();
-            }
-        }
-
-        private string EscapePdfText(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return string.Empty;
-            }
-
-            return text
-                .Replace("\\", "\\\\")
-                .Replace("(", "\\(")
-                .Replace(")", "\\)");
-        }
-
         private class InventoryAdjustmentRow
         {
             public string ProductPNo { get; set; }
             public double Quantity { get; set; }
             public int RowNumber { get; set; }
-        }
-
-        private class InventoryAdjustmentLogRow
-        {
-            public string ProductPNo { get; set; }
-            public string ProductName { get; set; }
-            public double OldQuantity { get; set; }
-            public double NewQuantity { get; set; }
-            public string UnitName { get; set; }
         }
 
         private bool TryParseQuantity(string input, out double value)
@@ -1306,49 +890,5 @@ namespace tahsinERP.Controllers
             return fallbackLocationId;
         }
 
-        private class InventoryExportRow
-        {
-            public string WarehouseName { get; set; }
-            public string ProductPNo { get; set; }
-            public string ProductName { get; set; }
-            public string CategoryName { get; set; }
-            public double Amount { get; set; }
-            public string UnitName { get; set; }
-        }
-
-        /// <summary>
-        /// Ensures single stock row per (warehouse, product) by summing duplicates and removing extras.
-        /// </summary>
-        private async Task NormalizeWarehouseStocksAsync(DBTHSNEntities db, int warehouseId, IEnumerable<int> productIds)
-        {
-            var ids = (productIds ?? Enumerable.Empty<int>()).Distinct().ToList();
-            if (!ids.Any()) return;
-
-            var stocks = await db.PRODUCT_STOCKS
-                .Where(s => s.WHID == warehouseId && ids.Contains(s.ProductID))
-                .OrderBy(s => s.ID)
-                .ToListAsync();
-
-            var duplicateGroups = stocks
-                .GroupBy(s => s.ProductID)
-                .Where(g => g.Count() > 1)
-                .ToList();
-
-            foreach (var group in duplicateGroups)
-            {
-                var keeper = group.First();
-                keeper.Amount = group.Sum(x => x.Amount);
-
-                foreach (var duplicate in group.Skip(1))
-                {
-                    db.PRODUCT_STOCKS.Remove(duplicate);
-                }
-            }
-
-            if (duplicateGroups.Any())
-            {
-                await db.SaveChangesAsync();
-            }
-        }
     }
 }

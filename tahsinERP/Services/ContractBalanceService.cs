@@ -8,10 +8,13 @@ using tahsinERP.Models;
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Service for tracking contract balances and fulfillment
+    /// Xarid shartnomasi bo'yicha qoldiq: shartnomadagi miqdor vs invoys qilingan miqdor.
     /// </summary>
     public class ContractBalanceService
     {
+        /// <summary>UNITS.ID: dona (kesiladigan mahsulotda faqat shu birlik CBM'ga aylantiriladi).</summary>
+        private const int PieceUnitId = 1;
+
         private readonly DBTHSNEntities _db;
         private readonly UnitConversionService _conversionService;
 
@@ -21,119 +24,112 @@ namespace tahsinERP.Services
             _conversionService = new UnitConversionService(db);
         }
 
-        /// <summary>
-        /// Gets contract balance information for a product
-        /// </summary>
-        /// <param name="contractId">Contract ID</param>
-        /// <param name="productId">Product ID</param>
-        /// <returns>Contract balance information</returns>
+        /// <summary>Bitta mahsulot bo'yicha shartnoma qoldig'i.</summary>
         public async Task<ContractBalanceInfo> GetContractBalanceAsync(int contractId, int productId)
         {
-            // Get contract product
-            var contractProduct = await _db.P_CONTRACT_PRODUCTS
-                .Include(cp => cp.PRODUCT)
-                .Include(cp => cp.PRODUCT.PRODUCT_CATEGORIES)
-                .Include(cp => cp.UNIT)
-                .FirstOrDefaultAsync(cp => cp.ContractID == contractId && cp.ProductID == productId);
+            var balances = await GetContractBalancesAsync(contractId, new[] { productId });
+            return balances[productId];
+        }
 
-            if (contractProduct == null)
+        /// <summary>
+        /// Bir nechta mahsulot bo'yicha shartnoma qoldig'i — invoys qatorlari bitta so'rovda olinadi
+        /// (avval har invoys qatori uchun 4-5 ta so'rov ketardi, SRM-P05).
+        ///
+        /// Invoys qilingan miqdorga kiradi (SRM-B17): o'chirilmagan invoyslar, ular shartnomaga
+        /// to'g'ridan-to'g'ri (P_INVOICES.ContractID) yoki o'chirilmagan buyurtma orqali
+        /// (P_ORDERS.ContractID) bog'langan bo'lsa. Kesiladigan mahsulotda faqat donada (UnitID=1)
+        /// kiritilgan qatorlar CBM'ga aylantiriladi; m3 da kiritilgani o'zgarishsiz qo'shiladi
+        /// (PInvoices/Details bilan bir xil qoida).
+        /// </summary>
+        public async Task<Dictionary<int, ContractBalanceInfo>> GetContractBalancesAsync(int contractId, IEnumerable<int> productIds)
+        {
+            var ids = (productIds ?? Enumerable.Empty<int>()).Distinct().ToList();
+            var result = new Dictionary<int, ContractBalanceInfo>();
+            if (ids.Count == 0)
             {
-                return new ContractBalanceInfo
-                {
-                    ContractQuantity = 0,
-                    ContractQuantityCBM = 0,
-                    InvoicedQuantity = 0,
-                    InvoicedQuantityCBM = 0,
-                    RemainingQuantity = 0,
-                    RemainingQuantityCBM = 0,
-                    FulfillmentPercentage = 0
-                };
+                return result;
             }
 
-            // Check if product requires cutting
-            bool requiresCutting = await _conversionService.RequiresCuttingAsync(productId);
-            
-            // Check if product should use weight-based calculations
-            bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(productId);
+            // Shartnoma qatorlari (bir mahsulot bir necha marta bo'lsa — avvalgidek birinchisi)
+            var contractLines = (await _db.P_CONTRACT_PRODUCTS.AsNoTracking()
+                    .Where(cp => cp.ContractID == contractId && ids.Contains(cp.ProductID))
+                    .Select(cp => new { cp.ID, cp.ProductID, cp.Quantity })
+                    .ToListAsync())
+                .GroupBy(cp => cp.ProductID)
+                .ToDictionary(g => g.Key, g => g.OrderBy(x => x.ID).First().Quantity);
 
-            // Contract quantity (already in CBM for cutting products, or in contract unit for others, or kg for weight-based)
-            decimal contractQty = (decimal)contractProduct.Quantity;
-            decimal contractQtyCBM = contractQty;
-
-            // If product uses weight-based calculations, contract is in kg
-            if (calculateByWeight)
-            {
-                // Contract quantity is already in kg
-                contractQtyCBM = contractQty; // Use same value for consistency
-            }
-            // If contract is in CBM and product requires cutting, contractQty is already in CBM
-            // Kesiladigan mahsulotlar uchun shartnoma miqdori CBM'da deb olinadi (UnitID = 11, m3).
-
-            // Get all invoices linked to orders that are linked to this contract
-            // FIN-B28: o'chirilgan invoyslar hisobga olinmaydi; buyurtmasiz (to'g'ridan-to'g'ri shartnomaga) invoyslar ham kiradi.
-            var allInvoiceProducts = await _db.P_INVOICES
-                .Where(pi => pi.IsDeleted != true &&
-                             (pi.ContractID == contractId || (pi.P_ORDERS != null && pi.P_ORDERS.ContractID == contractId)))
-                .SelectMany(pi => pi.P_INVOICE_PRODUCTS)
-                .Where(pp => pp.ProductID == productId)
+            var invoiceLines = await _db.P_INVOICE_PRODUCTS.AsNoTracking()
+                .Where(ip => ids.Contains(ip.ProductID)
+                    && ip.P_INVOICES.IsDeleted != true
+                    && (ip.P_INVOICES.ContractID == contractId
+                        || (ip.P_INVOICES.P_ORDERS != null
+                            && ip.P_INVOICES.P_ORDERS.IsDeleted != true
+                            && ip.P_INVOICES.P_ORDERS.ContractID == contractId)))
+                .Select(ip => new { ip.ProductID, ip.Quantity, ip.UnitID })
                 .ToListAsync();
+            var linesByProduct = invoiceLines.ToLookup(l => l.ProductID);
 
-            // Calculate invoiced quantities
-            decimal invoicedQty = 0;
-            decimal invoicedQtyCBM = 0;
-
-            foreach (var invoiceProduct in allInvoiceProducts)
+            foreach (var productId in ids)
             {
-                decimal qty = (decimal)invoiceProduct.Quantity;
-                invoicedQty += qty;
-
-                // Convert based on calculation type
-                if (calculateByWeight)
+                double contractQuantity;
+                if (!contractLines.TryGetValue(productId, out contractQuantity))
                 {
-                    // Invoice quantity should already be in kg for weight-based products
-                    invoicedQtyCBM += qty; // kg
+                    result[productId] = new ContractBalanceInfo();
+                    continue;
                 }
-                else if (requiresCutting)
+
+                // Vazn bo'yicha hisoblanadigan mahsulotda shartnoma ham, invoys ham kg da — konversiya yo'q
+                bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(productId);
+                bool requiresCutting = !calculateByWeight && await _conversionService.RequiresCuttingAsync(productId);
+
+                decimal contractQty = (decimal)contractQuantity;
+                decimal invoicedQty = 0;
+                decimal piecesToConvert = 0;
+                decimal invoicedQtyCBM = 0;
+
+                foreach (var line in linesByProduct[productId])
                 {
-                    // Invoice quantity is in pieces, convert to CBM
-                    try
+                    decimal qty = (decimal)line.Quantity;
+                    invoicedQty += qty;
+
+                    if (requiresCutting && line.UnitID == PieceUnitId)
                     {
-                        decimal cbm = await _conversionService.ConvertPieceToCBMAsync(productId, qty);
-                        invoicedQtyCBM += cbm;
+                        piecesToConvert += qty;
                     }
-                    catch
+                    else
                     {
-                        // If conversion fails, use quantity as-is
                         invoicedQtyCBM += qty;
                     }
                 }
-                else
+
+                if (piecesToConvert > 0)
                 {
-                    invoicedQtyCBM += qty; // For non-cutting products, no conversion needed
+                    try
+                    {
+                        // dona -> CBM chiziqli (qty × L×W×H), shuning uchun yig'indini bir marta aylantiramiz
+                        invoicedQtyCBM += await _conversionService.ConvertPieceToCBMAsync(productId, piecesToConvert);
+                    }
+                    catch
+                    {
+                        // O'lcham kiritilmagan bo'lsa — avvalgidek miqdorni o'zgarishsiz olamiz
+                        invoicedQtyCBM += piecesToConvert;
+                    }
                 }
+
+                result[productId] = new ContractBalanceInfo
+                {
+                    ContractQuantity = contractQty,
+                    ContractQuantityCBM = contractQty,
+                    InvoicedQuantity = invoicedQty,
+                    InvoicedQuantityCBM = invoicedQtyCBM,
+                    RemainingQuantity = contractQty - invoicedQty,
+                    RemainingQuantityCBM = contractQty - invoicedQtyCBM,
+                    FulfillmentPercentage = contractQty > 0 ? invoicedQtyCBM / contractQty * 100 : 0
+                };
             }
 
-            // Calculate remaining quantities
-            decimal remainingQty = contractQty - invoicedQty;
-            decimal remainingQtyCBM = contractQtyCBM - invoicedQtyCBM;
-
-            // Calculate fulfillment percentage
-            decimal fulfillmentPercentage = contractQtyCBM > 0
-                ? (invoicedQtyCBM / contractQtyCBM) * 100
-                : 0;
-
-            return new ContractBalanceInfo
-            {
-                ContractQuantity = contractQty,
-                ContractQuantityCBM = contractQtyCBM,
-                InvoicedQuantity = invoicedQty,
-                InvoicedQuantityCBM = invoicedQtyCBM,
-                RemainingQuantity = remainingQty,
-                RemainingQuantityCBM = remainingQtyCBM,
-                FulfillmentPercentage = fulfillmentPercentage
-            };
+            return result;
         }
-
     }
 
     /// <summary>

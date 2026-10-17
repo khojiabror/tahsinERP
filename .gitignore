@@ -31,6 +31,8 @@ bld/
 [Oo]bj/
 [Oo]ut/
 [Ll]og/
+# Views/Log (LogController sahifasi) — build log emas, repoda bo'lishi kerak
+!tahsinERP/Views/Log/
 [Ll]ogs/
 
 # Visual Studio 2015/2017 cache/options directory

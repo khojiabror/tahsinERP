@@ -8,10 +8,8 @@
     var years = ViewBag.Years as IEnumerable<SelectListItem>;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesReports") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -27,6 +25,11 @@
                 </div>
             </div>
             <div class="content-body">
+                <div class="alert alert-light border mb-1 py-50 no-print">Summalar so'mda — har hujjat o'z sanasidagi CBU kursi bilan.</div>
+                @if (ViewBag.CurrencyWarning != null)
+                {
+                    <div class="alert alert-warning mb-1 no-print">@ViewBag.CurrencyWarning</div>
+                }
                 <div class="row mb-2 no-print">
                     <div class="col-12">
                         <div class="card">
@@ -167,8 +170,4 @@
             }
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

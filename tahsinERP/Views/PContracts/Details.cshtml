@@ -3,6 +3,7 @@
 @{
     ViewBag.Title = "Shartnoma tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var docIds = ViewBag.DocIds as System.Collections.Generic.List<int> ?? new System.Collections.Generic.List<int>();
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PContracts", "Details"))
@@ -350,16 +351,16 @@
                                         </div>
                                     </div>
 
-                                    @if (Model.P_CONTRACT_DOCS != null && Model.P_CONTRACT_DOCS.Any())
+                                    @if (docIds.Any())
                                     {
                                         <hr />
                                         <h5>Shartnoma hujjatlari</h5>
                                         <ul>
-                                            @foreach (var doc in Model.P_CONTRACT_DOCS)
+                                            @foreach (var docId in docIds)
                                             {
                                                 <li>
-                                                    <a href="@Url.Action("DownloadDoc", "PContracts", new { id = doc.ID })" target="_blank">
-                                                        <i class="bx bx-file"></i> Shartnoma hujjati #@doc.ID
+                                                    <a href="@Url.Action("DownloadDoc", "PContracts", new { id = docId })" target="_blank">
+                                                        <i class="bx bx-file"></i> Shartnoma hujjati #@docId
                                                     </a>
                                                 </li>
                                             }

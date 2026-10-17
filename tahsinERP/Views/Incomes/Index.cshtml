@@ -1,4 +1,3 @@
-@model List<tahsinERP.Models.INCOME>
 @using System.Linq
 @{
     ViewBag.Title = "Ombor kirimlari";
@@ -9,6 +8,8 @@
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
     var assignedWarehouseIds = ViewBag.AssignedWarehouseIds as List<int> ?? new List<int>();
     bool canCreate = changePermit && (ViewBag.CanCreateManualIncome as bool? ?? false);
+    var fromDate = ViewBag.FromDate as DateTime?;
+    var toDate = ViewBag.ToDate as DateTime?;
 }
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -57,20 +58,28 @@
                 }
 
                 <div class="users-list-filter px-1">
-                    @using (Html.BeginForm("Index", "Incomes", FormMethod.Get, new { @class = "form" }))
+                    @using (Html.BeginForm("Index", "Incomes", FormMethod.Get, new { @class = "form", id = "incomesFilter" }))
                     {
                         <div class="row border rounded py-2 mb-2">
-                            <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="col-12 col-sm-6 col-lg-2">
                                 <label>Ombor</label>
                                 @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
                             </div>
-                            <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="col-12 col-sm-6 col-lg-2">
                                 <label>Status</label>
                                 <select name="status" class="form-control">
                                     <option value="">Barchasi</option>
                                     <option value="1" @(ViewBag.Status != null && (int)ViewBag.Status == 1 ? "selected" : "")>Qabul qilingan</option>
                                     <option value="0" @(ViewBag.Status != null && (int)ViewBag.Status == 0 ? "selected" : "")>Kutilmoqda</option>
                                 </select>
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2">
+                                <label>Sanadan</label>
+                                <input type="date" name="fromDate" class="form-control" value="@(fromDate.HasValue ? fromDate.Value.ToString("yyyy-MM-dd") : "")" />
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2">
+                                <label>Sanagacha</label>
+                                <input type="date" name="toDate" class="form-control" value="@(toDate.HasValue ? toDate.Value.ToString("yyyy-MM-dd") : "")" />
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary w-100">
@@ -101,65 +110,7 @@
                                                 }
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            @if (Model != null && Model.Any())
-                                            {
-                                                foreach (var item in Model)
-                                                {
-                                                    <tr>
-                                                        <td>
-                                                            <a href="@Url.Action("Details", "Incomes", new { id = item.ID })">@item.DocNo</a>
-                                                        </td>
-                                                        <td>
-                                                            @if (item.P_INVOICES != null)
-                                                            {
-                                                                <a href="@Url.Action("Details", "PInvoices", new { id = item.InvoiceID })">@item.P_INVOICES.InvoiceNo</a>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="text-muted">-</span>
-                                                            }
-                                                        </td>
-                                                        <td>@(item.Warehouse?.WHName ?? "-")</td>
-                                                        <td>@(item.TotalPrice?.ToString("N2") ?? "0.00")</td>
-                                                        <td>
-                                                            @if (item.RecieveStatus == true)
-                                                            {
-                                                                <span class="badge badge-success">Qabul qilingan</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge badge-warning">Kutilmoqda</span>
-                                                            }
-                                                        </td>
-                                                        <td>@item.IssueDateTime.ToString("dd.MM.yyyy")</td>
-                                                        @if (changePermit)
-                                                        {
-                                                            bool canModify = assignedWarehouseIds.Contains(item.ReceivingWHID);
-                                                            <td>
-                                                                <div class="d-flex">
-                                                                    <a href="@Url.Action("Details", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
-                                                                        <i class="bx bx-show"></i>
-                                                                    </a>
-                                                                    @if (canModify && item.RecieveStatus != true)
-                                                                    {
-                                                                        <a href="@Url.Action("Edit", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
-                                                                            <i class="bx bx-edit-alt"></i>
-                                                                        </a>
-                                                                    }
-                                                                    @if (canModify)
-                                                                    {
-                                                                        <a href="@Url.Action("Delete", "Incomes", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu kirim hujjatini o\'chirishni tasdiqlaysizmi?');">
-                                                                            <i class="bx bx-trash"></i>
-                                                                        </a>
-                                                                    }
-                                                                </div>
-                                                            </td>
-                                                        }
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
+                                        <tbody></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -171,89 +122,45 @@
     </div>
 </div>
 @section Scripts {
+    <script src="~/Scripts/srm/srm-server-table.js"></script>
     <script>
         $(document).ready(function () {
-            $('#incomesTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                "order": [[3, "desc"]],
-                "columnDefs": [
-                    { "type": "date", "targets": 3 }
-                ],
-                "scrollX": true,
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() +
-                                String(now.getMonth() + 1).padStart(2, '0') +
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') +
-                                String(now.getMinutes()).padStart(2, '0') +
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Ombor_kirimlari_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
+            var detailsUrl = '@Url.Action("Details", "Incomes")/';
+            var editUrl = '@Url.Action("Edit", "Incomes")/';
+            var deleteUrl = '@Url.Action("Delete", "Incomes")/';
+            var invoiceUrl = '@Url.Action("Details", "PInvoices")/';
+            var columns = [
+                { data: 'docNo', render: function (v, t, r) { return '<a href="' + detailsUrl + r.id + '">' + srmEsc(v) + '</a>'; } },
+                { data: 'invoiceNo', render: function (v, t, r) { return r.invoiceId ? '<a href="' + invoiceUrl + r.invoiceId + '">' + srmEsc(v) + '</a>' : '<span class="text-muted">-</span>'; } },
+                { data: 'warehouse', render: function (v) { return srmEsc(v || '-'); } },
+                { data: 'total' },
+                { data: 'received', render: function (v) { return v ? '<span class="badge badge-success">Qabul qilingan</span>' : '<span class="badge badge-warning">Kutilmoqda</span>'; } },
+                { data: 'date' }
+            ];
+            @if (changePermit)
+            {
+                <text>
+                columns.push({
+                    data: null, orderable: false, render: function (v, t, r) {
+                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>';
+                        if (r.canModify && !r.received) {
+                            html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>';
                         }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        titleAttr: 'PDFga yuklash',
-                        className: 'btn btn-danger',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() +
-                                String(now.getMonth() + 1).padStart(2, '0') +
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') +
-                                String(now.getMinutes()).padStart(2, '0') +
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Ombor_kirimlari_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        },
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        title: 'Ombor kirimlari',
-                        customize: function (doc) {
-                            doc.defaultStyle.fontSize = 9;
-                            doc.styles.tableHeader.fontSize = 10;
+                        if (r.canModify) {
+                            html += '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish"><i class="bx bx-trash"></i></a>';
                         }
+                        return html + '</div>';
                     }
-                ]
+                });
+                </text>
+            }
+            srmServerTable('#incomesTable', {
+                dataUrl: '@Url.Action("IndexData", "Incomes")',
+                exportUrl: '@Url.Action("ExportExcel", "Incomes")',
+                filterForm: '#incomesFilter',
+                order: [[5, 'desc']],
+                columns: columns
             });
         });
     </script>
-    }
+}

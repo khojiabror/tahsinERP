@@ -5,10 +5,10 @@
 }
 
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+    if (tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString(), true))
     {
         changePermit = true;
     }
@@ -45,6 +45,20 @@
                                 Yangi
                                 Haridor qo'shish
                             </a>
+                        </div>
+                    }
+                    @using (Html.BeginForm("Index", "Customer", FormMethod.Get, new { @class = "form" }))
+                    {
+                        <div class="row border rounded py-2 mb-2 mx-0">
+                            <div class="col-12 col-md-6">
+                                <input type="text" name="searchTerm" class="form-control" placeholder="Nomi, e-mail, DUNS yoki turi..." value="@ViewBag.SearchTerm" />
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="submit" class="btn btn-primary w-100"><i class="bx bx-search"></i> Qidirish</button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a class="btn btn-success w-100" href="@(Url.Action("ExportExcel", "Customer") + Request.Url.Query)"><i class="bx bxs-file-excel"></i> Excel (barchasi)</a>
+                            </div>
                         </div>
                     }
                     <div class="col-md-12 col-sm-12">
@@ -107,6 +121,7 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    @Html.Partial("~/Views/SalesInvoices/_Pager.cshtml")
                                 </div>
                             </div>
                         </div>
@@ -125,88 +140,17 @@
                 columnDefs.push({ "orderable": false, "targets": -1 });
             }
             
+            // Sahifalash va qidiruv serverda (yuqoridagi forma + pastdagi pager) — DataTables faqat joriy sahifada saralaydi
             $('#customerDataTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "order": [[0, "asc"]],
+                "language": { "zeroRecords": "Ma'lumot topilmadi" },
+                "paging": false,
+                "info": false,
+                "searching": false,
+                "order": [],
                 "columnDefs": columnDefs,
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Haridorlar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: changePermit ? ':not(:last-child)' : ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        titleAttr: 'PDFga yuklash',
-                        className: 'btn btn-danger',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Haridorlar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: changePermit ? ':not(:last-child)' : ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        },
-                        title: 'Haridorlar ro\'yxati',
-                        customize: function (doc) {
-                            doc.defaultStyle.fontSize = 9;
-                            doc.styles.tableHeader.fontSize = 10;
-                        }
-                    }
-                ],
+                dom: 'rt',
                 "scrollX": true
             });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

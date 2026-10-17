@@ -4,9 +4,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString(), true);
     
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -91,6 +91,12 @@
                                         <hr />
 
                                         <h5 class="mb-2">Yetkazib berish rejasi</h5>
+                                        @if (TempData["ErrorMessage"] != null)
+                                        {
+                                            <div class="alert alert-danger" role="alert">
+                                                <i class="bx bx-error"></i> @TempData["ErrorMessage"]
+                                            </div>
+                                        }
                                         @using (Html.BeginForm("SaveDeliverySchedule", "SOrder", FormMethod.Post, new { @id = "scheduleForm" }))
                                         {
                                             @Html.AntiForgeryToken()
@@ -120,6 +126,7 @@
                                                                         <td>
                                                                             @(orderProduct?.ProductPNo ?? "") - @(orderProduct?.ProductName ?? "")
                                                                             <input type="hidden" name="ScheduleItems[@idx].OrderProductID" value="@item.SOrderProductID" />
+                                                                            <input type="hidden" name="ScheduleItems[@idx].ID" value="@item.ID" />
                                                                         </td>
                                                                         <td>
                                                                             <input type="date" 
@@ -133,12 +140,12 @@
                                                                             <input type="number" 
                                                                                    name="ScheduleItems[@idx].QtyPlanned" 
                                                                                    class="form-control qty-planned" 
-                                                                                   value="@item.QtyPlanned.ToString("N2")" 
+                                                                                   value="@tahsinERP.Services.Crm.CrmNumber.ForInput(item.QtyPlanned)" 
                                                                                    step="0.01" 
                                                                                    min="0.01" 
-                                                                                   max="@(orderProduct != null ? orderProduct.OrderQuantity.ToString("N2") : "")"
-                                                                                   data-order-qty="@(orderProduct?.OrderQuantity ?? 0)"
-                                                                                   data-planned="@(orderProduct?.PlannedQuantity ?? 0)"
+                                                                                   max="@(orderProduct != null ? tahsinERP.Services.Crm.CrmNumber.ForInput(orderProduct.OrderQuantity) : "")"
+                                                                                   data-order-qty="@tahsinERP.Services.Crm.CrmNumber.ForInput(orderProduct?.OrderQuantity ?? 0)"
+                                                                                   data-planned="@tahsinERP.Services.Crm.CrmNumber.ForInput(orderProduct?.PlannedQuantity ?? 0)"
                                                                                    @(changePermit ? "" : "disabled") 
                                                                                    required />
                                                                         </td>
@@ -205,15 +212,12 @@
         </div>
     </div>
 }
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
 
 @section scripts {
     <script type="text/javascript">
         $(document).ready(function() {
-            var changePermit = (changePermit ? "true" : "false");
+            // Server bilan bir xil qoida: SaveDeliverySchedule uchun o'zgartirish huquqi
+            var changePermit = @(tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, "SOrder", "SaveDeliverySchedule", true) ? "true" : "false");
             var orderProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.OrderProducts.Select(p => new { 
                 SOrderProductID = p.SOrderProductID, 
                 ProductPNo = p.ProductPNo, 

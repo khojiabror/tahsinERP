@@ -75,8 +75,48 @@
                                                     <i class="bx bx-cart"></i> Buyurtmaga aylantirish
                                                 </a>
                                             }
+                                            @if (changePermit && Model.Status == "Draft")
+                                            {
+                                                using (Html.BeginForm("Submit", "PRequisitions", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-primary" onclick="return confirm('Talabnomani tasdiqlashga yuborasizmi?');">
+                                                        <i class="bx bx-send"></i> Tasdiqlashga yuborish
+                                                    </button>
+                                                }
+                                            }
+                                            @if (changePermit && Model.Status == "Submitted")
+                                            {
+                                                using (Html.BeginForm("Approve", "PRequisitions", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-success mb-1" onclick="return confirm('Talabnomani tasdiqlaysizmi?');">
+                                                        <i class="bx bx-check"></i> Tasdiqlash
+                                                    </button>
+                                                }
+                                                using (Html.BeginForm("Reject", "PRequisitions", new { id = Model.ID }, FormMethod.Post))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <textarea name="reason" class="form-control mb-1" rows="2" placeholder="Rad etish sababi" required></textarea>
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="bx bx-x"></i> Rad etish
+                                                    </button>
+                                                }
+                                            }
                                         </div>
                                     </div>
+                                    @if (TempData["SuccessMessage"] != null)
+                                    {
+                                        <div class="alert alert-success mt-1">@TempData["SuccessMessage"]</div>
+                                    }
+                                    @if (TempData["ErrorMessage"] != null)
+                                    {
+                                        <div class="alert alert-danger mt-1">@TempData["ErrorMessage"]</div>
+                                    }
+                                    @if (Model.Status == "Rejected" && !string.IsNullOrWhiteSpace(Model.RejectionReason))
+                                    {
+                                        <div class="alert alert-warning mt-1"><strong>Rad etish sababi:</strong> @Model.RejectionReason</div>
+                                    }
 
                                     <hr />
 

@@ -56,7 +56,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Edit", "PInvoices", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "invoiceForm" }))
+                                        @using (Html.BeginForm("Edit", "PInvoices", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form", @id = "invoiceForm", data_renumber = "InvoiceProducts" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.HiddenFor(model => model.ID)
@@ -89,7 +89,7 @@
                                                     @Html.ValidationMessageFor(model => model.OrderID, "", new { @class = "text-danger" })
                                                     <small class="text-muted">Ixtiyoriy</small>
                                                 </div>
-                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? Model.CompanyID })
+                                                @Html.HiddenFor(model => model.CompanyID, new { @Value = Model.CompanyID ?? ViewBag.DefaultCompanyID })
                                                 <div class="col-md-3 col-12 form-group">
                                                     <label for="CurrencyID">Valyuta</label>
                                                     @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
@@ -128,7 +128,19 @@
                                                                 var product = Model.InvoiceProducts[i];
                                                                 <tr data-row-index="@i">
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.InvoiceProducts[i].ProductID, new SelectList(purchasableProductsList, "Value", "Text", product.ProductID), "---Tanlang---", new { @class = "form-control select2 product-select", @required = "required" })
+                                                                        @{
+                                                                            // Faqat tanlangan mahsulot; ro'yxat select2 qidiruvidan (SRM-P02)
+                                                                            var productIdStr = product.ProductID.ToString();
+                                                                            var productItem = purchasableProductsList.FirstOrDefault(x => x.Value == productIdStr);
+                                                                            var productText = productItem != null ? productItem.Text : (product.ProductPNo + " - " + product.ProductName);
+                                                                        }
+                                                                        <select name="InvoiceProducts[@i].ProductID" class="form-control product-select" required>
+                                                                            <option value="">---Tanlang---</option>
+                                                                            @if (product.ProductID > 0)
+                                                                            {
+                                                                                <option value="@productIdStr" selected>@productText</option>
+                                                                            }
+                                                                        </select>
                                                                         @Html.HiddenFor(m => m.InvoiceProducts[i].ID)
                                                                     </td>
                                                                     <td>
@@ -196,6 +208,9 @@
         </div>
     </div>
 
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
+
     <script>
         (function () {
             function initInvoiceScripts() {
@@ -216,7 +231,8 @@
 
                     var purchasableProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(purchasableProductsData));
                     var units = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(unitsData));
-                    var $vatRateInput = $('#vatRateInput');
+                    ProductSelect.attach($('#invoiceProductsTable select.product-select'), purchasableProducts);
+var $vatRateInput = $('#vatRateInput');
                     var selectedContractId = '@(Model.ContractID.HasValue ? Model.ContractID.Value.ToString() : "")';
 
                     function getVatRate() {
@@ -331,13 +347,8 @@
                     function addProductRow(productId, quantity, unitId, price) {
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
-                            '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control select2" required>' +
-                            '<option value="">---Tanlang---</option>';
-
-                        purchasableProducts.forEach(function (product) {
-                            var selected = product.Value == productId ? 'selected' : '';
-                            row += '<option value="' + product.Value + '" ' + selected + '>' + product.Text + '</option>';
-                        });
+                            '<select name="InvoiceProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                            ProductSelect.optionsHtml(purchasableProducts, productId);
 
                         row += '</select>' +
                             '<input type="hidden" name="InvoiceProducts[' + productRowIndex + '].ID" value="" />' +
@@ -349,7 +360,7 @@
 
                         units.forEach(function (unit) {
                             var selected = unit.Value == unitId ? 'selected' : '';
-                            row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
+                            row += '<option value="' + unit.Value + '" ' + selected + '>' + htmlEscape(unit.Text) + '</option>';
                         });
 
                         row += '</select></td>' +
@@ -360,7 +371,7 @@
 
                         $('#invoiceProductsTable tbody').append(row);
 
-                        $('select[name="InvoiceProducts[' + productRowIndex + '].ProductID"]').select2();
+                        ProductSelect.attach($('select[name="InvoiceProducts[' + productRowIndex + '].ProductID"]'), purchasableProducts);
                         $('select[name="InvoiceProducts[' + productRowIndex + '].UnitID"]').select2();
 
                         productRowIndex++;

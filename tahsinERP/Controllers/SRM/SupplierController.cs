@@ -7,11 +7,10 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
-using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
-    public class SupplierController : Controller
+    public class SupplierController : BaseController
     {
         // Olish so'rovi: Supplier
         public async Task<ActionResult> Index(string type)
@@ -38,14 +37,14 @@ namespace tahsinERP.Controllers
                 List<SUPPLIER> list;
                 if (!string.IsNullOrEmpty(type))
                 {
-                    list = await db.SUPPLIERS
+                    list = await db.SUPPLIERS.AsNoTracking()
                         .Where(s => s.IsDeleted != true && s.Type == type)
                         .OrderBy(s => s.Name)
                         .ToListAsync();
                 }
                 else
                 {
-                    list = await db.SUPPLIERS
+                    list = await db.SUPPLIERS.AsNoTracking()
                         .Where(s => s.IsDeleted != true)
                         .OrderBy(s => s.Name)
                         .ToListAsync();
@@ -55,72 +54,30 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Olish so'rovi: Supplier/GetSupplier/5 (uchun modal)
-        [HttpGet]
-        public async Task<JsonResult> GetSupplier(int id)
-        {
-            using (var db = new DBTHSNEntities())
-            {
-                var supplier = await db.SUPPLIERS.FindAsync(id);
-                if (supplier == null || supplier.IsDeleted == true)
-                {
-                    return Json(new { success = false, message = "Ta'minotchi topilmadi" }, JsonRequestBehavior.AllowGet);
-                }
-
-                return Json(new
-                {
-                    success = true,
-                    data = new
-                    {
-                        ID = supplier.ID,
-                        Name = supplier.Name,
-                        Address = supplier.Address,
-                        Country = supplier.Country,
-                        City = supplier.City,
-                        Telephone = supplier.Telephone,
-                        Email = supplier.Email,
-                        ContactPersonName = supplier.ContactPersonName,
-                        DirectorName = supplier.DirectorName,
-                        DUNS = supplier.DUNS,
-                        Type = supplier.Type
-                    }
-                }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-
-        // POST so'rovi: Supplier/o'chirish (AJAX)
+        // POST so'rovi: Supplier/DeleteAjax (Index sahifasidagi AJAX o'chirish).
+        // Avval "Delete" nomli ikkinchi POST bilan to'qnashib AmbiguousMatchException berardi (SRM-B02).
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Delete(int id)
+        public async Task<JsonResult> DeleteAjax(int id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            if (!CanChange("Supplier"))
             {
                 return Json(new { success = false, message = "Ruxsat yo'q" });
             }
 
-            using (var db = new DBTHSNEntities())
+            try
             {
-                try
+                var name = await SoftDeleteAsync(id);
+                if (name == null)
                 {
-                    var supplier = await db.SUPPLIERS.FindAsync(id);
-                    if (supplier == null || supplier.IsDeleted == true)
-                    {
-                        return Json(new { success = false, message = "Ta'minotchi topilmadi" });
-                    }
-
-                    supplier.IsDeleted = true;
-                    await SoftDeleteReferenceService.AfterSupplierSoftDeletedAsync(db, id);
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "Supplier", $"Delete - {supplier.Name} ta'minotchi o'chirildi");
-
-                    return Json(new { success = true, message = "Ta'minotchi muvaffaqiyatli o'chirildi" });
+                    return Json(new { success = false, message = "Ta'minotchi topilmadi" });
                 }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
-                }
+
+                return Json(new { success = true, message = "Ta'minotchi muvaffaqiyatli o'chirildi" });
+            }
+            catch (Exception ex)
+            {
+                return JsonError(ex);
             }
         }
 
@@ -168,9 +125,9 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: Supplier/yaratish
         public ActionResult Create()
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            if (!CanChange("Supplier"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
             return View();
         }
@@ -180,9 +137,9 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(SUPPLIER supplier, FormCollection collection)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            if (!CanChange("Supplier"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (ModelState.IsValid)
@@ -221,9 +178,9 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Edit(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            if (!CanChange("Supplier"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -248,9 +205,9 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(SUPPLIER supplier, FormCollection collection)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            if (!CanChange("Supplier"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (ModelState.IsValid)
@@ -308,9 +265,9 @@ namespace tahsinERP.Controllers
 
         public async Task<ActionResult> Delete(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Supplier"))
+            if (!CanChange("Supplier"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -332,26 +289,35 @@ namespace tahsinERP.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmed(int id, FormCollection collection)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            var result = await Delete(id);
+            if (!CanChange("Supplier"))
+            {
+                return NotAuthorized();
+            }
+
+            await SoftDeleteAsync(id);
             return RedirectToAction("Index");
         }
 
-        // Excel upload actions (keeping existing functionality)
-        public ActionResult UploadWithExcel()
+        /// <summary>Ta'minotchini soft-delete qiladi; topilmasa null, aks holda nomini qaytaradi.</summary>
+        private async Task<string> SoftDeleteAsync(int id)
         {
-            ViewBag.IsFileUploaded = false;
-            return View();
-        }
+            using (var db = new DBTHSNEntities())
+            {
+                var supplier = await db.SUPPLIERS.FindAsync(id);
+                if (supplier == null || supplier.IsDeleted == true)
+                {
+                    return null;
+                }
 
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult UploadWithExcel(HttpPostedFileBase file)
-        {
-            // Keep existing Excel upload logic
-            // This can be enhanced later bilan modal support
-            return View();
+                supplier.IsDeleted = true;
+                await SoftDeleteReferenceService.AfterSupplierSoftDeletedAsync(db, id);
+                await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(CurrentUserName, "Supplier", $"Delete - {supplier.Name} ta'minotchi o'chirildi");
+                return supplier.Name;
+            }
         }
     }
 }

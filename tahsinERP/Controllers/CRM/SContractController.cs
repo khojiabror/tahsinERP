@@ -2,84 +2,47 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels;
-using System.Web.Security;
-using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
-    public class SContractController : Controller
+    /// <summary>
+    /// Sotuv shartnomalari. Server tomonidagi ruxsat — [Permission] (CRM-S01: avval faqat Delete'da bor edi).
+    /// </summary>
+    [Permission]
+    public class SContractController : BaseController
     {
+        private static readonly Regex IndexPattern = new Regex(@"^ProductList\[(\d+)\]\.ProductID$", RegexOptions.Compiled);
+
         // Olish so'rovi: SContract | Index
-        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        public async Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.S_CONTRACTS
-                    .Include(sc => sc.CUSTOMER)
-                    .Include(sc => sc.CURRENCy)
-                    .Where(sc => sc.IsDeleted == false);
+                var query = BuildIndexQuery(db, searchTerm, contractNo, customerID, fromDate, toDate, sortOrder);
 
-                // Filters
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    query = query.Where(c => 
-                        c.ContractNo.Contains(searchTerm) || 
-                        (c.Incoterms != null && c.Incoterms.Contains(searchTerm)) ||
-                        (c.PaymentTerms != null && c.PaymentTerms.Contains(searchTerm)));
-                }
+                // Server tomonida sahifalash (CRM-P05: avval butun jadval Include bilan yuklanardi)
+                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
+                int totalItems = await query.CountAsync();
+                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
+                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
+                var contracts = await query.Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage).ToListAsync();
+                ViewBag.CurrentPage = currentPage;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalItems = totalItems;
+                ViewBag.PageSize = itemsPerPage;
 
-                if (!string.IsNullOrEmpty(contractNo))
-                {
-                    query = query.Where(c => c.ContractNo.Contains(contractNo));
-                }
-
-                if (customerID.HasValue)
-                {
-                    query = query.Where(c => c.CustomerID == customerID.Value);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    query = query.Where(c => c.IssuedDate >= fromDate.Value);
-                }
-
-                if (toDate.HasValue)
-                {
-                    query = query.Where(c => c.IssuedDate <= toDate.Value);
-                }
-
-                // Sorting
-                switch (sortOrder)
-                {
-                    case "contractNo_desc":
-                        query = query.OrderByDescending(c => c.ContractNo);
-                        break;
-                    case "contractNo":
-                        query = query.OrderBy(c => c.ContractNo);
-                        break;
-                    case "date_desc":
-                        query = query.OrderByDescending(c => c.IssuedDate);
-                        break;
-                    case "date":
-                        query = query.OrderBy(c => c.IssuedDate);
-                        break;
-                    default:
-                        query = query.OrderByDescending(c => c.IssuedDate);
-                        break;
-                }
-
-                var contracts = await query.ToListAsync();
-
-                // ViewBag uchun filters
-                ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
+                ViewBag.Customers = SalesLookups.Customers(customerID);
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.ContractNo = contractNo;
                 ViewBag.CustomerID = customerID;
@@ -89,6 +52,79 @@ namespace tahsinERP.Controllers
 
                 return View(contracts);
             }
+        }
+
+        /// <summary>Filtrlangan barcha shartnomalar Excel'da.</summary>
+        public ActionResult ExportExcel(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var rows = BuildIndexQuery(db, searchTerm, contractNo, customerID, fromDate, toDate, sortOrder).ToList();
+                var bytes = ExcelExport.Create("Shartnomalar", rows,
+                    ExcelExport.Col<S_CONTRACTS>("Shartnoma raqami", c => c.ContractNo),
+                    ExcelExport.Col<S_CONTRACTS>("Mijoz", c => c.CUSTOMER?.Name),
+                    ExcelExport.Col<S_CONTRACTS>("Sana", c => c.IssuedDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_CONTRACTS>("Muddat", c => c.DueDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_CONTRACTS>("Summa", c => c.Amount, "#,##0.00"),
+                    ExcelExport.Col<S_CONTRACTS>("Valyuta", c => c.CURRENCy?.Shortname));
+                return File(bytes, ExcelExport.ContentType, $"Shartnomalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+            }
+        }
+
+        private static IQueryable<S_CONTRACTS> BuildIndexQuery(DBTHSNEntities db, string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        {
+            var query = db.S_CONTRACTS.AsNoTracking()
+                .Include(sc => sc.CUSTOMER)
+                .Include(sc => sc.CURRENCy)
+                .Where(sc => sc.IsDeleted == false);
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(c =>
+                    c.ContractNo.Contains(searchTerm) ||
+                    (c.Incoterms != null && c.Incoterms.Contains(searchTerm)) ||
+                    (c.PaymentTerms != null && c.PaymentTerms.Contains(searchTerm)));
+            }
+
+            if (!string.IsNullOrEmpty(contractNo))
+            {
+                query = query.Where(c => c.ContractNo.Contains(contractNo));
+            }
+
+            if (customerID.HasValue)
+            {
+                query = query.Where(c => c.CustomerID == customerID.Value);
+            }
+
+            if (fromDate.HasValue)
+            {
+                var from = fromDate.Value.Date;
+                query = query.Where(c => c.IssuedDate >= from);
+            }
+
+            if (toDate.HasValue)
+            {
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(c => c.IssuedDate < toExclusive);
+            }
+
+            switch (sortOrder)
+            {
+                case "contractNo_desc":
+                    query = query.OrderByDescending(c => c.ContractNo);
+                    break;
+                case "contractNo":
+                    query = query.OrderBy(c => c.ContractNo);
+                    break;
+                case "date":
+                    query = query.OrderBy(c => c.IssuedDate);
+                    break;
+                default:
+                    query = query.OrderByDescending(c => c.IssuedDate);
+                    break;
+            }
+
+            return query;
         }
 
         // Olish so'rovi: yaratish
@@ -103,11 +139,7 @@ namespace tahsinERP.Controllers
                     IssuedDate = DateTime.Now
                 };
 
-                ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name");
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
-
+                PopulateContractLookups(db, model, "CustomerID");
                 return View(model);
             }
         }
@@ -119,61 +151,21 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Tahlil qilish products dan form repeater
-                if (model.ProductList == null || !model.ProductList.Any())
-                {
-                    model.ProductList = new List<SContractProductViewModel>();
-                    int index = 0;
-                    while (form[$"ProductList[{index}].ProductID"] != null)
-                    {
-                        var productIDStr = form[$"ProductList[{index}].ProductID"];
-                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
-                        {
-                            var productID = int.Parse(productIDStr);
-                            var piecePrice = double.Parse(form[$"ProductList[{index}].PiecePrice"] ?? "0");
-                            var amount = int.Parse(form[$"ProductList[{index}].Amount"] ?? "0");
-                            var unitID = int.Parse(form[$"ProductList[{index}].UnitID"] ?? "0");
+                model.ProductList = ParseProductList(form);
 
-                            if (productID > 0 && amount > 0 && piecePrice > 0)
-                            {
-                                model.ProductList.Add(new SContractProductViewModel
-                                {
-                                    ProductID = productID,
-                                    PiecePrice = piecePrice,
-                                    Amount = amount,
-                                    UnitID = unitID
-                                });
-                            }
-                        }
-                        index++;
-                    }
-                }
-
-                // Validation
-                if (model.ProductList == null || !model.ProductList.Any())
+                if (!model.ProductList.Any())
                 {
-                    ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
                     ModelState.AddModelError("", "Kamida bitta maxsulot qo'shish kerak");
-                    return View(model);
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
+                    PopulateContractLookups(db, model, "CustomerID");
                     return View(model);
                 }
 
                 try
                 {
-                    var totalAmount = SContractVatHelper.CalculateContractTotalWithVatFromForm(form);
-
-                    // Yaratish contract
                     var newContract = new S_CONTRACTS
                     {
                         ContractNo = model.ContractNo,
@@ -183,54 +175,31 @@ namespace tahsinERP.Controllers
                         Incoterms = model.Incoterms,
                         PaymentTerms = model.PaymentTerms,
                         CurrencyID = model.CurrencyID,
-                        Amount = totalAmount,
                         CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
                         IsDeleted = false
                     };
 
+                    foreach (var product in model.ProductList)
+                    {
+                        var line = new S_CONTRACT_PRODUCTS();
+                        ApplyLine(line, product);
+                        newContract.S_CONTRACT_PRODUCTS.Add(line);
+                    }
+
+                    // Summa saqlangan qatorlardan (avval formadagi indekslar bo'yicha qayta o'qilardi)
+                    newContract.Amount = SContractVatHelper.CalculateContractTotalWithVat(newContract.S_CONTRACT_PRODUCTS);
+
                     db.S_CONTRACTS.Add(newContract);
                     db.SaveChanges();
 
-                    // Qo'shish products
-                    for (int i = 0; i < model.ProductList.Count; i++)
-                    {
-                        var product = model.ProductList[i];
-                        var vatPercent = SContractVatHelper.ParseVatPercentFromForm(form, i);
-                        var lineBase = SContractVatHelper.GetLineBaseAmount(product.PiecePrice, product.Amount);
-                        var vatAmount = SContractVatHelper.CalculateVatAmount(lineBase, vatPercent);
-
-                        var contractProduct = new S_CONTRACT_PRODUCTS
-                        {
-                            ContractID = newContract.ID,
-                            ProductID = product.ProductID,
-                            PiecePrice = product.PiecePrice,
-                            Amount = product.Amount,
-                            UnitID = product.UnitID,
-                            vatamount = vatAmount
-                        };
-                        db.S_CONTRACT_PRODUCTS.Add(contractProduct);
-                    }
-
-                    db.SaveChanges();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"{newContract.ContractNo} - SContractni yaratdi");
+                    LogHelper.LogToDatabase(CurrentUserName, "SContractController", $"{newContract.ContractNo} - SContractni yaratdi");
 
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
-                    ViewBag.CustomerID = new SelectList(db.CUSTOMERS.Where(c => c.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
-                    var errorMessage = $"Xatolik: {ex.Message}";
-                    var innerEx = ex.InnerException;
-                    while (innerEx != null)
-                    {
-                        errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                        innerEx = innerEx.InnerException;
-                    }
-                    ModelState.AddModelError("", errorMessage);
+                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    PopulateContractLookups(db, model, "CustomerID");
                     return View(model);
                 }
             }
@@ -265,52 +234,41 @@ namespace tahsinERP.Controllers
 
                 ViewBag.ProductList = productList;
 
+                // CURRENCy1 view'da ishlatiladi — kontekst yopilgandan keyin lazy-load yiqilmasligi uchun (CRM-B14)
                 var linkedOrders = db.S_ORDERS
+                    .Include(o => o.CURRENCy1)
                     .Where(o => o.ContractID == contract.ID && (o.IsDeleted == false || o.IsDeleted == null))
                     .ToList();
                 ViewBag.LinkedOrders = linkedOrders;
                 ViewBag.OrdersCount = linkedOrders.Count;
 
-                var activeInvoicesQuery = db.SALES_INVOICES
-                    .Where(i => i.ContractID == id
-                        && (i.StatusCode == null || (i.StatusCode != "CANCELED" && i.StatusCode != "CANCELLED")));
+                var activeInvoicesQuery = db.SALES_INVOICES.Active().Where(i => i.ContractID == id);
 
                 ViewBag.InvoicesCount = activeInvoicesQuery.Count();
 
-                // Use total (QQS bilan) from contract products stored in DB
                 var contractedTotal = SContractVatHelper.CalculateContractTotalWithVat(productList);
                 if (contractedTotal <= 0 && contract.Amount.HasValue)
                 {
                     contractedTotal = contract.Amount.Value;
                 }
-                var contractedBase = productList.Sum(p => SContractVatHelper.GetLineBaseAmount(p));
-                var contractedVat = productList.Sum(p => p.vatamount ?? 0);
-                var contractedVatRate = SContractVatHelper.CalculateContractVatRate(productList);
-                var contractedQty = productList.Sum(p => p.Amount);
-                var orderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
                 var orderIds = linkedOrders.Select(o => o.ID).ToList();
-                var orderedQty = orderIds.Count == 0
+
+                ViewBag.ContractedTotal = contractedTotal;
+                ViewBag.ContractedBase = productList.Sum(p => SContractVatHelper.GetLineBaseAmount(p));
+                ViewBag.ContractedVat = productList.Sum(p => p.vatamount ?? 0);
+                ViewBag.ContractedVatRate = SContractVatHelper.CalculateContractVatRate(productList);
+                ViewBag.ContractedQty = productList.Sum(p => p.Amount);
+                ViewBag.OrderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
+                ViewBag.OrderedQty = orderIds.Count == 0
                     ? 0d
                     : db.S_ORDER_PRODUCTS
                         .Where(op => orderIds.Contains(op.OrderID))
                         .Sum(op => (double?)op.Amount) ?? 0d;
-                var invoicedTotal = activeInvoicesQuery
+                ViewBag.InvoicedTotal = activeInvoicesQuery
                     .Sum(i => (decimal?)(i.TotalWithVAT ?? i.TotalAmount)) ?? 0;
-                var invoicedQty = db.SALES_INVOICE_LINES
-                    .Where(l => l.SALES_INVOICES.ContractID == id
-                        && (l.SALES_INVOICES.StatusCode == null
-                            || (l.SALES_INVOICES.StatusCode != "CANCELED" && l.SALES_INVOICES.StatusCode != "CANCELLED")))
+                ViewBag.InvoicedQty = db.SALES_INVOICE_LINES.Active()
+                    .Where(l => l.SALES_INVOICES.ContractID == id)
                     .Sum(l => (decimal?)l.Qty) ?? 0m;
-
-                ViewBag.ContractedTotal = contractedTotal;
-                ViewBag.ContractedBase = contractedBase;
-                ViewBag.ContractedVat = contractedVat;
-                ViewBag.ContractedVatRate = contractedVatRate;
-                ViewBag.ContractedQty = contractedQty;
-                ViewBag.OrderedTotal = orderedTotal;
-                ViewBag.OrderedQty = orderedQty;
-                ViewBag.InvoicedTotal = invoicedTotal;
-                ViewBag.InvoicedQty = invoicedQty;
 
                 return View(contract);
             }
@@ -335,12 +293,12 @@ namespace tahsinERP.Controllers
                 {
                     ID = contract.ID,
                     ContractNo = contract.ContractNo,
-                    CustomerID = (int)contract.CustomerID,
+                    CustomerID = contract.CustomerID,
                     IssuedDate = contract.IssuedDate,
                     DueDate = contract.DueDate,
                     Incoterms = contract.Incoterms,
                     PaymentTerms = contract.PaymentTerms,
-                    CurrencyID = (int)contract.CurrencyID,
+                    CurrencyID = contract.CurrencyID,
                     Amount = (decimal)SContractVatHelper.CalculateContractTotalWithVat(contract.S_CONTRACT_PRODUCTS),
                     ProductList = contract.S_CONTRACT_PRODUCTS.Select(p => new SContractProductViewModel
                     {
@@ -350,7 +308,7 @@ namespace tahsinERP.Controllers
                         ProductPNo = p.PRODUCT.PNo,
                         PiecePrice = p.PiecePrice,
                         UnitID = p.UnitID,
-                        Amount = (int)p.Amount,
+                        Amount = p.Amount,
                         VatPercent = SContractVatHelper.GetVatPercentFromLine(
                             SContractVatHelper.GetLineBaseAmount(p), p.vatamount),
                         PRODUCT = new ProductViewModel
@@ -362,11 +320,7 @@ namespace tahsinERP.Controllers
                     }).ToList()
                 };
 
-                ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", contract.CustomerID);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", contract.CurrencyID);
-
+                PopulateContractLookups(db, model, "Customers");
                 return View(model);
             }
         }
@@ -378,72 +332,46 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Tahlil qilish products dan form
-                if (model.ProductList == null || !model.ProductList.Any())
-                {
-                    model.ProductList = new List<SContractProductViewModel>();
-                    int index = 0;
-                    while (form[$"ProductList[{index}].ProductID"] != null)
-                    {
-                        var productIDStr = form[$"ProductList[{index}].ProductID"];
-                        var idStr = form[$"ProductList[{index}].ID"];
-                        
-                        if (!string.IsNullOrEmpty(productIDStr) && productIDStr != "0")
-                        {
-                            var productID = int.Parse(productIDStr);
-                            var piecePrice = double.Parse(form[$"ProductList[{index}].PiecePrice"] ?? "0");
-                            var amount = int.Parse(form[$"ProductList[{index}].Amount"] ?? "0");
-                            var unitID = int.Parse(form[$"ProductList[{index}].UnitID"] ?? "0");
-                            var id = !string.IsNullOrEmpty(idStr) ? int.Parse(idStr) : 0;
+                model.ProductList = ParseProductList(form);
 
-                            if (productID > 0 && amount > 0 && piecePrice > 0)
-                            {
-                                model.ProductList.Add(new SContractProductViewModel
-                                {
-                                    ID = id,
-                                    ProductID = productID,
-                                    PiecePrice = piecePrice,
-                                    Amount = amount,
-                                    UnitID = unitID
-                                });
-                            }
-                        }
-                        index++;
-                    }
-                }
-
-                // Validation
-                if (model.ProductList == null || !model.ProductList.Any())
+                if (!model.ProductList.Any())
                 {
-                    ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
                     ModelState.AddModelError("", "Kamida bitta mahsulot kerak");
-                    return View(model);
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
-                    return View(model);
+                    return EditError(db, model);
                 }
 
                 try
                 {
                     var contractToUpdate = db.S_CONTRACTS
                         .Include(c => c.S_CONTRACT_PRODUCTS)
-                        .FirstOrDefault(c => c.ID == model.ID);
+                        .FirstOrDefault(c => c.ID == model.ID && c.IsDeleted == false);
 
                     if (contractToUpdate == null)
                     {
                         return HttpNotFound();
                     }
 
-                    // Yangilash contract basic info
+                    // Formada yo'q qatorlar o'chiriladi — lekin buyurtma/invoysda ishlatilgan mahsulot bo'lsa rad etiladi
+                    var postedIds = model.ProductList.Where(p => p.ID > 0).Select(p => p.ID).ToList();
+                    var productsToRemove = contractToUpdate.S_CONTRACT_PRODUCTS
+                        .Where(p => !postedIds.Contains(p.ID))
+                        .ToList();
+
+                    var keptProductIds = new HashSet<int>(model.ProductList.Select(p => p.ProductID));
+                    foreach (var removed in productsToRemove.Where(p => !keptProductIds.Contains(p.ProductID)))
+                    {
+                        var usage = ProductUsage(db, contractToUpdate.ID, removed.ProductID);
+                        if (usage != null)
+                        {
+                            ModelState.AddModelError("", usage);
+                            return EditError(db, model);
+                        }
+                    }
+
                     contractToUpdate.ContractNo = model.ContractNo;
                     contractToUpdate.CustomerID = model.CustomerID;
                     contractToUpdate.IssuedDate = model.IssuedDate;
@@ -452,79 +380,38 @@ namespace tahsinERP.Controllers
                     contractToUpdate.PaymentTerms = model.PaymentTerms;
                     contractToUpdate.CurrencyID = model.CurrencyID;
 
-                    // O'chirish products not in model
-                    var modelProductIDs = model.ProductList.Where(p => p.ID > 0).Select(p => p.ID).ToList();
-                    var productsToRemove = contractToUpdate.S_CONTRACT_PRODUCTS
-                        .Where(p => !modelProductIDs.Contains(p.ID))
+                    db.S_CONTRACT_PRODUCTS.RemoveRange(productsToRemove);
+
+                    var existingById = contractToUpdate.S_CONTRACT_PRODUCTS.ToDictionary(p => p.ID);
+                    foreach (var product in model.ProductList)
+                    {
+                        S_CONTRACT_PRODUCTS line;
+                        if (product.ID <= 0 || !existingById.TryGetValue(product.ID, out line))
+                        {
+                            line = new S_CONTRACT_PRODUCTS { ContractID = contractToUpdate.ID };
+                            db.S_CONTRACT_PRODUCTS.Add(line);
+                        }
+                        ApplyLine(line, product);
+                    }
+
+                    // Summa saqlanadigan qatorlardan hisoblanadi
+                    var finalLines = contractToUpdate.S_CONTRACT_PRODUCTS.Where(p => !productsToRemove.Contains(p))
+                        .Concat(db.ChangeTracker.Entries<S_CONTRACT_PRODUCTS>()
+                            .Where(e => e.State == EntityState.Added)
+                            .Select(e => e.Entity))
+                        .Distinct()
                         .ToList();
-
-                    foreach (var productToRemove in productsToRemove)
-                    {
-                        db.S_CONTRACT_PRODUCTS.Remove(productToRemove);
-                    }
-
-                    // Yangilash/add products
-                    for (int i = 0; i < model.ProductList.Count; i++)
-                    {
-                        var product = model.ProductList[i];
-                        var vatPercent = SContractVatHelper.ParseVatPercentFromForm(form, i);
-                        var lineBase = SContractVatHelper.GetLineBaseAmount(product.PiecePrice, product.Amount);
-                        var vatAmount = SContractVatHelper.CalculateVatAmount(lineBase, vatPercent);
-
-                        if (product.ID > 0)
-                        {
-                            var existing = db.S_CONTRACT_PRODUCTS.Find(product.ID);
-                            if (existing != null)
-                            {
-                                existing.ProductID = product.ProductID;
-                                existing.PiecePrice = product.PiecePrice;
-                                existing.UnitID = product.UnitID;
-                                existing.Amount = product.Amount;
-                                existing.vatamount = vatAmount;
-                                db.Entry(existing).State = EntityState.Modified;
-                            }
-                        }
-                        else
-                        {
-                            var newProduct = new S_CONTRACT_PRODUCTS
-                            {
-                                ContractID = contractToUpdate.ID,
-                                ProductID = product.ProductID,
-                                PiecePrice = product.PiecePrice,
-                                UnitID = product.UnitID,
-                                Amount = product.Amount,
-                                vatamount = vatAmount
-                            };
-                            db.S_CONTRACT_PRODUCTS.Add(newProduct);
-                        }
-                    }
-
-                    var totalAmount = SContractVatHelper.CalculateContractTotalWithVatFromForm(form);
-
-                    // Yangilash contract amount
-                    contractToUpdate.Amount = totalAmount;
-                    db.Entry(contractToUpdate).State = EntityState.Modified;
+                    contractToUpdate.Amount = SContractVatHelper.CalculateContractTotalWithVat(finalLines);
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"{contractToUpdate.ContractNo} - SContractni tahrirladi");
+                    LogHelper.LogToDatabase(CurrentUserName, "SContractController", $"{contractToUpdate.ContractNo} - SContractni tahrirladi");
 
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
-                    ViewBag.Customers = new SelectList(db.CUSTOMERS.Where(x => x.IsDeleted == false).ToList(), "ID", "Name", model.CustomerID);
-                    ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(), "ID", "PNo");
-                    ViewBag.Units = new SelectList(db.UNITS.ToList(), "ID", "ShortName");
-                    ViewBag.currencies = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", model.CurrencyID);
-                    var errorMessage = $"Xatolik: {ex.Message}";
-                    var innerEx = ex.InnerException;
-                    while (innerEx != null)
-                    {
-                        errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                        innerEx = innerEx.InnerException;
-                    }
-                    ModelState.AddModelError("", errorMessage);
-                    return View(model);
+                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    return EditError(db, model);
                 }
             }
         }
@@ -533,11 +420,6 @@ namespace tahsinERP.Controllers
         [HttpGet]
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "SContract", "Delete"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -570,79 +452,63 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "SContract", "Delete"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var contract = await db.S_CONTRACTS.FirstOrDefaultAsync(c => c.ID == id && c.IsDeleted == false);
                 if (contract != null)
                 {
                     contract.IsDeleted = true;
-                    db.Entry(contract).State = EntityState.Modified;
                     await SoftDeleteReferenceService.AfterSContractSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"{contract.ContractNo} - SContractni o'chirdi");
+                    LogHelper.LogToDatabase(CurrentUserName, "SContractController", $"{contract.ContractNo} - SContractni o'chirdi");
                 }
 
                 return RedirectToAction("Index");
             }
         }
 
-        // POST: DeleteProduct (avval GET edi — CSRF orqali o'chirish mumkin edi)
+        // POST: DeleteProduct (CRM-S02: POST + CSRF; buyurtma/invoysda ishlatilgan mahsulot o'chirilmaydi)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteProduct(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "SContract", "Edit"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var contractProduct = db.S_CONTRACT_PRODUCTS
-                    .Include(cp => cp.S_CONTRACTS)
-                    .Include(cp => cp.PRODUCT)
-                    .FirstOrDefault(cp => cp.ID == id);
-
-                if (contractProduct != null)
+                var contractProduct = db.S_CONTRACT_PRODUCTS.FirstOrDefault(cp => cp.ID == id);
+                if (contractProduct == null)
                 {
-                    int contractID = contractProduct.ContractID;
-                    db.S_CONTRACT_PRODUCTS.Remove(contractProduct);
-                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
 
-                    // Recalculate contract amount
-                    var remainingProducts = db.S_CONTRACT_PRODUCTS
-                        .Where(cp => cp.ContractID == contractID)
-                        .ToList();
-
-                    decimal totalAmount = 0;
-                    foreach (var product in remainingProducts)
-                    {
-                        totalAmount += (decimal)SContractVatHelper.GetLineTotalWithVat(product);
-                    }
-
-                    var contract = db.S_CONTRACTS.Find(contractID);
-                    if (contract != null)
-                    {
-                        contract.Amount = (double)Math.Round(totalAmount, MidpointRounding.AwayFromZero);
-                        db.SaveChanges();
-                    }
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"SContractProductni o'chirdi va shartnoma summasini yangiladi");
-
+                int contractID = contractProduct.ContractID;
+                bool duplicateExists = db.S_CONTRACT_PRODUCTS.Any(cp => cp.ContractID == contractID && cp.ProductID == contractProduct.ProductID && cp.ID != id);
+                var usage = duplicateExists ? null : ProductUsage(db, contractID, contractProduct.ProductID);
+                if (usage != null)
+                {
+                    TempData["ErrorMessage"] = usage;
                     return RedirectToAction("Edit", new { id = contractID });
                 }
 
-                return RedirectToAction("Index");
+                db.S_CONTRACT_PRODUCTS.Remove(contractProduct);
+                db.SaveChanges();
+
+                var remainingProducts = db.S_CONTRACT_PRODUCTS.Where(cp => cp.ContractID == contractID).ToList();
+                var contract = db.S_CONTRACTS.Find(contractID);
+                if (contract != null)
+                {
+                    contract.Amount = SContractVatHelper.CalculateContractTotalWithVat(remainingProducts);
+                    db.SaveChanges();
+                }
+
+                LogHelper.LogToDatabase(CurrentUserName, "SContractController", "SContractProductni o'chirdi va shartnoma summasini yangiladi");
+
+                return RedirectToAction("Edit", new { id = contractID });
             }
         }
 
-        // Link/Unlink Orders
+        // Buyurtmalarni ko'rish/bog'lash (view o'zgartirish huquqini talab qiladi)
+        [Permission(Change = true)]
         public ActionResult ManageOrders(int? contractID)
         {
             if (contractID == null)
@@ -653,7 +519,7 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var contract = db.S_CONTRACTS
-                    .Include(c => c.S_ORDERS)
+                    .Include(c => c.CUSTOMER)
                     .FirstOrDefault(c => c.ID == contractID && c.IsDeleted == false);
 
                 if (contract == null)
@@ -661,16 +527,21 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                var unlinkedOrders = db.S_ORDERS
-                    .Include(o => o.CUSTOMER)
-                    .Where(o => o.CustomerID == contract.CustomerID && 
-                                o.IsDeleted == false && 
-                                (o.ContractID == 0 || o.ContractID != contractID))
-                    .ToList();
-
                 ViewBag.Contract = contract;
-                ViewBag.LinkedOrders = contract.S_ORDERS.Where(o => o.IsDeleted == false).ToList();
-                ViewBag.UnlinkedOrders = unlinkedOrders;
+                ViewBag.LinkedOrders = db.S_ORDERS
+                    .Include(o => o.CURRENCy1)
+                    .Where(o => o.ContractID == contract.ID && o.IsDeleted == false)
+                    .ToList();
+                // Faqat shartnomasiz (yoki shartnomasi o'chirilgan) buyurtmalar — boshqa faol shartnomadagini
+                // "o'g'irlab" bo'lmaydi (CRM-B12)
+                ViewBag.UnlinkedOrders = db.S_ORDERS
+                    .Include(o => o.CUSTOMER)
+                    .Include(o => o.CURRENCy1)
+                    .Where(o => o.CustomerID == contract.CustomerID &&
+                                o.IsDeleted == false &&
+                                o.ContractID != contract.ID &&
+                                (o.ContractID == 0 || o.S_CONTRACTS == null || o.S_CONTRACTS.IsDeleted == true))
+                    .ToList();
 
                 return View(contract);
             }
@@ -683,33 +554,142 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var order = db.S_ORDERS.Find(orderID);
-                if (order != null && order.CustomerID == db.S_CONTRACTS.Find(contractID)?.CustomerID)
+                var order = db.S_ORDERS.Include(o => o.S_CONTRACTS).FirstOrDefault(o => o.ID == orderID);
+                var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == contractID && c.IsDeleted == false);
+                bool orderIsFree = order != null && (order.ContractID == 0 || order.S_CONTRACTS == null || order.S_CONTRACTS.IsDeleted == true);
+                if (order != null && contract != null && order.CustomerID == contract.CustomerID && orderIsFree)
                 {
                     order.ContractID = contractID;
                     db.SaveChanges();
-                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"Buyurtma {order.OrderNo} ni shartnomaga bog'ladi");
+                    LogHelper.LogToDatabase(CurrentUserName, "SContractController", $"Buyurtma {order.OrderNo} ni shartnomaga bog'ladi");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Faqat shu mijozning shartnomasiz buyurtmasini bog'lash mumkin.";
                 }
                 return RedirectToAction("ManageOrders", new { contractID = contractID });
             }
         }
 
-        // POST so'rovi: Unlink Order dan Contract
+        /// <summary>
+        /// S_ORDERS.ContractID majburiy FK — buyurtmani shartnomadan "ajratish" (ContractID = 0) FK xatosiga
+        /// olib kelardi (CRM-B12). Endi rad etiladi: buyurtmani o'chiring yoki tahrirda boshqa shartnoma tanlang.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]
         public ActionResult UnlinkOrder(int contractID, int orderID)
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            TempData["ErrorMessage"] = "Buyurtmani shartnomasiz qoldirib bo'lmaydi (shartnoma majburiy). Buyurtmani tahrirlab boshqa shartnoma tanlang yoki o'chiring.";
+            return RedirectToAction("ManageOrders", new { contractID = contractID });
+        }
+
+        // ───────────────────────────── yordamchi metodlar ─────────────────────────────
+
+        /// <summary>
+        /// Formadagi "ProductList[i].*" qatorlari. Indekslarda bo'shliq bo'lsa ham hammasi o'qiladi
+        /// (CRM-B08: avval model binder bo'shliqdan keyingi qatorlarni tashlab yuborar, Edit esa ularni
+        /// bazadan O'CHIRARDI). Sonlar madaniyatdan qat'i nazar o'qiladi (CRM-B19: int.Parse/double.Parse yiqilardi),
+        /// QQS % shu qatorning o'zidan olinadi (avval qisqargan ro'yxat indeksi bo'yicha — boshqa qatorniki).
+        /// </summary>
+        private List<SContractProductViewModel> ParseProductList(FormCollection form)
+        {
+            // Bog'langan ro'yxatdagi madaniyat xatolari ("12.5" uz-UZ'da) — qo'lda o'qilgani uchun e'tiborsiz
+            foreach (var key in ModelState.Keys.Where(k => k.StartsWith("ProductList")).ToList())
+                ModelState.Remove(key);
+
+            var result = new List<SContractProductViewModel>();
+            var indexes = form.AllKeys
+                .Where(k => k != null)
+                .Select(k => IndexPattern.Match(k))
+                .Where(m => m.Success)
+                .Select(m => int.Parse(m.Groups[1].Value))
+                .OrderBy(i => i);
+
+            foreach (var i in indexes)
             {
-                var order = db.S_ORDERS.Find(orderID);
-                if (order != null && order.ContractID == contractID)
+                int productId, unitId, lineId;
+                if (!int.TryParse(form[$"ProductList[{i}].ProductID"], out productId) || productId <= 0)
+                    continue;
+                int.TryParse(form[$"ProductList[{i}].UnitID"], out unitId);
+                int.TryParse(form[$"ProductList[{i}].ID"], out lineId);
+                var piecePrice = CrmNumber.Double(form[$"ProductList[{i}].PiecePrice"]);
+                var amount = CrmNumber.Double(form[$"ProductList[{i}].Amount"]);
+                var vatPercent = Math.Max(0, Math.Min(100, CrmNumber.Double(form[$"ProductList[{i}].VatPercent"])));
+
+                if (amount <= 0 || piecePrice <= 0)
                 {
-                    order.ContractID = 0;
-                    db.SaveChanges();
-                    LogHelper.LogToDatabase(User.Identity.Name, "SContractController", $"Buyurtma {order.OrderNo} ni shartnomadan ajratdi");
+                    ModelState.AddModelError("", "Har bir mahsulot uchun miqdor va narx 0 dan katta bo'lishi kerak.");
+                    continue;
                 }
-                return RedirectToAction("ManageOrders", new { contractID = contractID });
+
+                result.Add(new SContractProductViewModel
+                {
+                    ID = lineId,
+                    ProductID = productId,
+                    PiecePrice = piecePrice,
+                    Amount = amount,
+                    UnitID = unitId,
+                    VatPercent = vatPercent
+                });
             }
+            return result;
+        }
+
+        private static void ApplyLine(S_CONTRACT_PRODUCTS line, SContractProductViewModel product)
+        {
+            var lineBase = SContractVatHelper.GetLineBaseAmount(product.PiecePrice, product.Amount);
+            var vatAmount = SContractVatHelper.CalculateVatAmount(lineBase, product.VatPercent);
+            line.ProductID = product.ProductID;
+            line.PiecePrice = product.PiecePrice;
+            line.Amount = product.Amount;
+            line.UnitID = product.UnitID;
+            line.vatamount = vatAmount;
+            // totalamount GetLineTotalWithVat'da ustun turadi — eskirib qolmasligi uchun yangilanadi
+            line.totalamount = lineBase + vatAmount;
+        }
+
+        /// <summary>Mahsulot shu shartnoma bo'yicha buyurtma yoki faol invoysda ishlatilgan bo'lsa — xabar, aks holda null.</summary>
+        private static string ProductUsage(DBTHSNEntities db, int contractId, int productId)
+        {
+            bool ordered = db.S_ORDER_PRODUCTS.Any(op => op.ProductID == productId
+                && op.S_ORDERS.ContractID == contractId
+                && (op.S_ORDERS.IsDeleted == false || op.S_ORDERS.IsDeleted == null));
+            bool invoiced = db.SALES_INVOICE_LINES.Active().Any(l => l.ProductID == productId && l.SALES_INVOICES.ContractID == contractId);
+            if (!ordered && !invoiced)
+                return null;
+
+            var pno = db.PRODUCTS.Where(p => p.ID == productId).Select(p => p.PNo).FirstOrDefault() ?? productId.ToString();
+            return $"{pno} mahsuloti shu shartnoma bo'yicha {(ordered ? "buyurtmada" : "invoysda")} ishlatilgan — uni shartnomadan o'chirib bo'lmaydi.";
+        }
+
+        private ActionResult EditError(DBTHSNEntities db, SContractViewModel model)
+        {
+            // Mavjud qatorlarning mahsulot kodi (view ko'rsatadi)
+            var ids = model.ProductList.Select(p => p.ProductID).Distinct().ToList();
+            var pnos = db.PRODUCTS.AsNoTracking().Where(p => ids.Contains(p.ID)).Select(p => new { p.ID, p.PNo, p.Name }).ToList().ToDictionary(p => p.ID);
+            foreach (var p in model.ProductList)
+            {
+                if (pnos.TryGetValue(p.ProductID, out var info))
+                {
+                    p.ProductPNo = info.PNo;
+                    p.PRODUCT = new ProductViewModel { ID = info.ID, PNo = info.PNo, Name = info.Name };
+                }
+            }
+            PopulateContractLookups(db, model, "Customers");
+            return View(model);
+        }
+
+        /// <summary>Shartnoma formasi ro'yxatlari (8 nusxa o'rniga — D13). Mijoz/birlik/valyuta keshdan.</summary>
+        private void PopulateContractLookups(DBTHSNEntities db, SContractViewModel model, string customersKey)
+        {
+            ViewData[customersKey] = SalesLookups.Customers(model.CustomerID > 0 ? (int?)model.CustomerID : null);
+            ViewBag.Products = new SelectList(db.PRODUCTS.AsNoTracking()
+                .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
+                .OrderBy(p => p.PNo)
+                .Select(p => new { p.ID, p.PNo })
+                .ToList(), "ID", "PNo");
+            ViewBag.Units = new SelectList(ReferenceDataCache.Get(ReferenceDataCache.Units), "ID", "Extra");
+            ViewBag.currencies = new SelectList(ReferenceDataCache.Get(ReferenceDataCache.Currencies), "ID", "Name", model.CurrencyID > 0 ? (object)model.CurrencyID : null);
         }
     }
 }

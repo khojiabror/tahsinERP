@@ -140,19 +140,6 @@
 
                                     <hr />
 
-                                    @{
-                                        var bomVersionNotes = ViewBag.BomVersionNotes as List<string>;
-                                    }
-                                    @if (bomVersionNotes != null && bomVersionNotes.Any())
-                                    {
-                                        <div class="alert alert-info mb-2">
-                                            @foreach (var note in bomVersionNotes)
-                                            {
-                                                <div>@note</div>
-                                            }
-                                        </div>
-                                    }
-
                                     <h5>Buyurtma mahsulotlari</h5>
                                     <div class="table-responsive">
                                         <table class="table table-striped">

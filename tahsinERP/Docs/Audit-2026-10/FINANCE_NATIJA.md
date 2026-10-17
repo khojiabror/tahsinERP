@@ -85,7 +85,14 @@ FinTransactions ro'yxati endi butun jadval o'rniga sahifama-sahifa yuklanadi (5 
 | B08 | Dashboard qoidasi hamma joyda: xarid = INCOMES.TotalPrice, bo'lmasa P_INVOICES.Amount; sotuv = TotalWithVAT ?? TotalAmount |
 | B07/B09 | Akt-sverki: opening sanasi shartnoma opening jadvalidan, so'ng faqat keyingi harakatlar |
 
-## Data-fix skriptlari (`Database_Migrations/`, hech biri ishga tushirilmagan)
+## Data-fix skriptlari (`Database_Migrations/`)
+
+Baza faqat lokal (localhost / DBTHSN-IPACK); boshqa server yo'q. 2026-10-17 da lokal bazada bajarildi:
+- `Finance_OpeningContractBalances_Schema.sql`;
+- `DataFix_Finance_OpeningContractTotals_Fix.sql` (0 qator);
+- `DataFix_Finance_BalanceCategoryTypes_Fix.sql` (4 kategoriya Type=1 ga o'tdi; DCF sof aktivi endi 1 635,5 mln).
+
+`DataFix_Finance_InvoiceMirrorAmounts_Fix.sql` hali bajarilmagan — SRM skriptidan keyin bajariladi (pastga qarang).
 
 | Skript | Lokal natija |
 |---|---|

@@ -115,7 +115,6 @@
                                                                 <th>Mahsulot</th>
                                                                 <th>Mahsulot nomi</th>
                                                                 <th>Mavjud qoldiq</th>
-                                                                <th>Lot (FIFO)</th>
                                                                 <th>Chiqim miqdori</th>
                                                                 <th>Birlik</th>
                                                                 <th>Dona narxi</th>
@@ -127,7 +126,7 @@
                                                         <tbody></tbody>
                                                         <tfoot>
                                                             <tr>
-                                                                <td colspan="7" class="text-right"><strong>Jami:</strong></td>
+                                                                <td colspan="6" class="text-right"><strong>Jami:</strong></td>
                                                                 <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
                                                                 <td colspan="2"></td>
                                                             </tr>
@@ -257,10 +256,6 @@
                             if (response.success) {
                                 availableProducts = response.data || [];
                                 refreshProductSelects();
-                                $('#expenseProductsTable tbody tr').each(function() {
-                                    var $row = $(this);
-                                    if ($row.find('.product-select').val()) loadLotOptions($row);
-                                });
                             } else {
                                 alert('Xatolik: ' + response.message);
                             }
@@ -295,15 +290,11 @@
                             alert('Avval yuboruvchi omborni tanlang va mahsulotlarni yuklang.');
                             return;
                         }
-                        addProductRow(null, '', '', 0, null, 0, 0, '', null);
+                        addProductRow(null, '', '', 0, null, 0, 0, '');
                     });
 
-                    function addProductRow(productId, productPNo, productName, availableStock, unitId, piecePrice, totalPrice, comment, incomeId) {
-                        var lotCell = '<td class="lot-cell">' +
-                            '<select name="ExpenseProducts[' + productRowIndex + '].IncomeID" class="form-control lot-select select2" data-placeholder="Kirim (FIFO)" title="FIFO uchun eng eski kirim avval tanlanadi">' +
-                                '<option value="">---Tanlanmagan---</option>' +
-                            '</select>' +
-                            '</td>';
+                    // Lot tanlanmaydi: chiqim har doim sof FIFO (eng eski partiyadan) — serverda avtomatik (SRM-B13)
+                    function addProductRow(productId, productPNo, productName, availableStock, unitId, piecePrice, totalPrice, comment) {
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
                                 '<select name="ExpenseProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
@@ -316,7 +307,6 @@
                                 '<input type="hidden" name="ExpenseProducts[' + productRowIndex + '].ProductName" class="product-name" value="' + escapeHtml(productName || '') + '" />' +
                             '</td>' +
                             '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].AvailableStock" class="form-control available-stock" value="' + (availableStock || 0) + '" readonly /></td>' +
-                            lotCell +
                             '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="0" step="0.01" min="0" max="' + (availableStock || 0) + '" required /></td>' +
                             '<td>' +
                                 '<select name="ExpenseProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
@@ -346,62 +336,9 @@
                         updateTotal();
                     });
 
-                    function loadLotOptions($row) {
-                        var warehouseId = $('#senderWarehouseSelect').val();
-                        var productId = $row.find('.product-select').val();
-                        var $lotSelect = $row.find('.lot-select');
-                        $lotSelect.html('<option value="">---Yuklanmoqda---</option>');
-                        if (!warehouseId || !productId) {
-                            $lotSelect.html('<option value="">---Tanlang---</option>');
-                            return;
-                        }
-                        $.post('@Url.Action("GetAvailableIncomeLots", "Expenses")', { warehouseId: warehouseId, productId: productId })
-                            .done(function(res) {
-                                var opts = '<option value="">---Tanlanmagan---</option>';
-                                var hasRealLots = false;
-                                if (res.success && res.data && res.data.length) {
-                                    res.data.forEach(function(lot) {
-                                        if (lot.IsLegacy || lot.IncomeID === 0) {
-                                            opts += '<option value="0" data-max="' + (lot.RemainingAmount || res.legacyUnassignedQty || '') + '">' +
-                                                escapeHtml(lot.DisplayText) + '</option>';
-                                        } else {
-                                            hasRealLots = true;
-                                            opts += '<option value="' + lot.IncomeID + '">' + escapeHtml(lot.DisplayText) + '</option>';
-                                        }
-                                    });
-                                }
-                                $lotSelect.html(opts);
-                                if (res.allowLegacy && !hasRealLots) {
-                                    $lotSelect.val('0');
-                                    var maxLegacy = res.legacyUnassignedQty;
-                                    if (maxLegacy) {
-                                        $row.find('.amount-input').attr('max', maxLegacy);
-                                    }
-                                } else if (hasRealLots) {
-                                    var first = res.data.filter(function(l) { return l.IncomeID > 0; })[0];
-                                    if (first) $lotSelect.val(first.IncomeID);
-                                }
-                                if (typeof $lotSelect.data('select2')) $lotSelect.trigger('change.select2');
-                            })
-                            .fail(function() { $lotSelect.html('<option value="">---Xatolik---</option>'); });
-                    }
-
                     $(document).on('change', '.product-select', function () {
                         var $row = $(this).closest('tr');
                         syncProductFields($row);
-                        loadLotOptions($row);
-                    });
-
-                    $(document).on('change', '.lot-select', function () {
-                        var $row = $(this).closest('tr');
-                        var $opt = $(this).find('option:selected');
-                        var maxLegacy = $opt.data('max');
-                        var stock = parseFloat($row.find('.available-stock').val()) || 0;
-                        if ($(this).val() === '0' && maxLegacy) {
-                            $row.find('.amount-input').attr('max', Math.min(stock, parseFloat(maxLegacy)));
-                        } else {
-                            $row.find('.amount-input').attr('max', stock);
-                        }
                     });
 
                     $(document).on('input', '.amount-input, .price-input', function () {

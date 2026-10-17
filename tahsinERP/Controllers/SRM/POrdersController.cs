@@ -11,44 +11,44 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.POrder;
 using tahsinERP.Filters;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Procurement;
 
 namespace tahsinERP.Controllers
 {
-    public class POrdersController : Controller
+    public class POrdersController : BaseController
     {
+        private const string Module = "POrders";
+
         // Olish so'rovi: POrders
         public async Task<ActionResult> Index(string purchaseTypeFilter = "", int? supplierID = null, int? contractID = null)
         {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "POrders", "Index"))
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             using (var db = new DBTHSNEntities())
             {
+                // Ro'yxat faqat CURRENCy navigatsiyasini ishlatadi; kuzatuvsiz (SRM-P03)
                 var query = db.P_ORDERS
-                    .Include(o => o.SUPPLIER)
-                    .Include(o => o.COMPANy)
+                    .AsNoTracking()
                     .Include(o => o.CURRENCy)
-                    .Where(o => o.IsDeleted != true)
-                    .AsQueryable();
+                    .Where(o => o.IsDeleted != true);
 
-                // Ta'minotchi bo'yicha filtrlash
                 if (supplierID.HasValue && supplierID.Value > 0)
                 {
                     query = query.Where(o => o.SupplierID == supplierID.Value);
                 }
 
-                // Shartnoma bo'yicha filtrlash
                 if (contractID.HasValue && contractID.Value > 0)
                 {
                     query = query.Where(o => o.ContractID == contractID.Value);
                 }
 
-                // Xarid turi bo'yicha filtrlash
                 if (!string.IsNullOrEmpty(purchaseTypeFilter))
                 {
-                    byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
+                    byte purchaseType = purchaseTypeFilter == "Indirect" ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase;
                     query = query.Where(o => o.PurchaseType == purchaseType);
                 }
 
@@ -59,7 +59,7 @@ namespace tahsinERP.Controllers
                 ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
                 ViewBag.SupplierID = supplierID;
                 ViewBag.ContractID = contractID;
-                ViewBag.ChangePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders");
+                ViewBag.ChangePermit = CanChange(Module);
 
                 return View(orders);
             }
@@ -68,9 +68,9 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: POrders/Details/5
         public async Task<ActionResult> Details(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "POrders", "Details"))
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Details"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -81,6 +81,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var order = await db.P_ORDERS
+                    .AsNoTracking()
                     .Include(o => o.SUPPLIER)
                     .Include(o => o.COMPANy)
                     .Include(o => o.CURRENCy)
@@ -94,64 +95,21 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, order.ContractID);
-                ViewBag.BomVersionNotes = BuildBomVersionNotes(order);
+                // Stavka saqlangan net/brutto summadan olinadi; shartnoma stavkasi faqat qatorlar bo'lmasa kerak (SRM-P10)
+                if (!order.P_ORDER_PRODUCTS.Any())
+                {
+                    ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, order.ContractID);
+                }
                 return View(order);
             }
-        }
-
-        private static List<string> BuildBomVersionNotes(P_ORDERS order)
-        {
-            var notes = new List<string>();
-            if (order?.P_ORDER_PRODUCTS == null)
-            {
-                return notes;
-            }
-
-            var pattern = new Regex(
-                @"BOM qaysi mahsulot uchun:\s*(?<owner>.+?)\r?\n.*?BOM versiyasi:\s*(?<version>.+?)\r?\n",
-                RegexOptions.Singleline | RegexOptions.IgnoreCase);
-
-            foreach (var row in order.P_ORDER_PRODUCTS)
-            {
-                if (string.IsNullOrWhiteSpace(row.Priority))
-                {
-                    continue;
-                }
-
-                foreach (Match m in pattern.Matches(row.Priority))
-                {
-                    var ownerRaw = (m.Groups["owner"].Value ?? "").Trim();
-                    var versionRaw = (m.Groups["version"].Value ?? "").Trim();
-                    if (string.IsNullOrWhiteSpace(ownerRaw) || string.IsNullOrWhiteSpace(versionRaw))
-                    {
-                        continue;
-                    }
-
-                    var ownerName = ownerRaw;
-                    var dashIndex = ownerRaw.IndexOf("—");
-                    if (dashIndex >= 0 && dashIndex < ownerRaw.Length - 1)
-                    {
-                        ownerName = ownerRaw.Substring(dashIndex + 1).Trim();
-                    }
-
-                    var line = ownerName + " maxsuloti uchun BOM " + versionRaw + " oyidagi versiyasi dan olindi";
-                    if (!notes.Contains(line))
-                    {
-                        notes.Add(line);
-                    }
-                }
-            }
-
-            return notes;
         }
 
         // Olish so'rovi: POrders/yaratish
         public async Task<ActionResult> Create(int? requisitionId = null)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+            if (!CanChange(Module))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             using (var db = new DBTHSNEntities())
@@ -161,8 +119,7 @@ namespace tahsinERP.Controllers
                 if (requisitionId.HasValue)
                 {
                     requisition = await db.P_REQUISITIONS
-                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.PRODUCT))
-                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.UNIT))
+                        .AsNoTracking()
                         .FirstOrDefaultAsync(r => r.ID == requisitionId.Value && r.IsDeleted != true);
 
                     if (requisition == null)
@@ -176,127 +133,54 @@ namespace tahsinERP.Controllers
                         TempData["ErrorMessage"] = "Faqat tasdiqlangan talabnomani xarid buyurtmasiga aylantirish mumkin.";
                         return RedirectToAction("Details", "PRequisitions", new { id = requisitionId });
                     }
-
-                    ViewBag.Requisition = requisition;
-                    ViewBag.PurchaseType = 1; // Bilvosita
-                }
-                else
-                {
-                    ViewBag.PurchaseType = 0; // Bevosita
                 }
 
-                // Ko'p tanlov uchun sotuv buyurtmalarini olish (S_ORDER orqali yaratish uchun) - faqat bevosita xaridlar
-                if (requisition == null)
-                {
-                    var salesOrders = await db.S_ORDERS
-                        .Include(o => o.CUSTOMER)
-                        .Where(o => o.IsDeleted != true)
-                        .OrderByDescending(o => o.IssuedDate)
-                        .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name })
-                        .ToListAsync();
-
-                    ViewBag.SalesOrders = new MultiSelectList(
-                        salesOrders.Select(so => new { 
-                            ID = so.ID, 
-                            DisplayText = $"{so.OrderNo} - {so.CustomerName}" 
-                        }),
-                        "ID",
-                        "DisplayText"
-                    );
-                }
-
-                // Ta'minotchilarni olish
-                ViewBag.Suppliers = new SelectList(
-                    await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
-                    "ID", "Name"
-                );
-                ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
-
-                // Standart kompaniyani olish (birinchi faol kompaniya)
-                var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
-                ViewBag.DefaultCompanyID = defaultCompany?.ID ?? 0;
-
-                // Valyutalarni olish
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname"
-                );
-
-                // Xarid qilinadigan mahsulotlarni olish
-                // Bilvosita xarid uchun: uskuna, asbob, sarf materiallari, yordamchi tovarlar
-                // Bevosita xarid uchun: xomashyo (BOM)
-                var purchasableProducts = await db.PRODUCTS
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true)
-                    .Where(p => requisition != null 
-                        ? (p.PRODUCT_CATEGORIES == null || 
-                           (p.PRODUCT_CATEGORIES.IsFinishedGood == false && 
-                            (p.PRODUCT_CATEGORIES.IsConsumable == true || 
-                             p.PRODUCT_CATEGORIES.AllowPurchase == true)))
-                        : (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
-                    .OrderBy(p => p.PNo)
-                    .Select(p => new { p.ID, p.PNo, p.Name })
-                    .ToListAsync();
-
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
-
-                // O'lchov birliklarini olish
-                ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
-                    "ID", "ShortName"
-                );
-
-                // Bilvosita xaridlar uchun bo'lim va xodimlarni olish
-                if (requisition != null)
-                {
-                    var departments = await db.HR_ORG_UNITS
-                        .Where(d => d.IsActive == true)
-                        .OrderBy(d => d.Name)
-                        .ToListAsync();
-                    ViewBag.Departments = new SelectList(departments, "ID", "Name", requisition.DepartmentID);
-
-                    var employees = await db.HR_EMPLOYEES
-                        .Where(e => e.IsActive == true)
-                        .OrderBy(e => e.FullName)
-                        .ToListAsync();
-                    ViewBag.Employees = new SelectList(employees, "ID", "FullName", requisition.RequesterID);
-                }
-
-                return View(new POrderCreateViewModel
-                {
-                    RequisitionID = requisition?.ID
-                });
+                var model = new POrderCreateViewModel { RequisitionID = requisition?.ID };
+                await PopulateCreateLookupsAsync(db, model, requisition);
+                return View(model);
             }
         }
 
         // POST so'rovi: POrders/LoadRequisitionProducts - talabnomadagi mahsulotlarni yuklash
         [HttpPost]
         [ValidateAntiForgeryHeader]
+        [Permission(Module)]
         public async Task<JsonResult> LoadRequisitionProducts(int requisitionId)
         {
             using (var db = new DBTHSNEntities())
             {
                 try
                 {
-                    var requisition = await db.P_REQUISITIONS
-                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.PRODUCT))
-                        .Include(r => r.P_REQUISITION_PRODUCTS.Select(p => p.UNIT))
-                        .FirstOrDefaultAsync(r => r.ID == requisitionId && r.IsDeleted != true);
-
-                    if (requisition == null)
+                    bool exists = await db.P_REQUISITIONS.AnyAsync(r => r.ID == requisitionId && r.IsDeleted != true);
+                    if (!exists)
                     {
                         return Json(new { success = false, message = "Talabnoma topilmadi." });
                     }
 
-                    var products = requisition.P_REQUISITION_PRODUCTS.Select(rp => new
+                    var rows = await db.P_REQUISITION_PRODUCTS
+                        .Where(rp => rp.RequisitionID == requisitionId)
+                        .Select(rp => new
+                        {
+                            rp.ProductID,
+                            ProductPNo = rp.PRODUCT.PNo,
+                            ProductName = rp.PRODUCT.Name,
+                            rp.Quantity,
+                            rp.UnitID,
+                            rp.EstimatedPrice,
+                            rp.Priority,
+                            rp.RequiredDate
+                        })
+                        .ToListAsync();
+
+                    var products = rows.Select(rp => new
                     {
-                        ProductID = rp.ProductID,
-                        ProductPNo = rp.PRODUCT.PNo,
-                        ProductName = rp.PRODUCT.Name,
-                        Quantity = rp.Quantity,
-                        UnitID = rp.UnitID,
-                        EstimatedPrice = rp.EstimatedPrice,
-                        Priority = rp.Priority,
+                        rp.ProductID,
+                        rp.ProductPNo,
+                        rp.ProductName,
+                        rp.Quantity,
+                        rp.UnitID,
+                        rp.EstimatedPrice,
+                        rp.Priority,
                         RequiredDate = rp.RequiredDate.HasValue ? rp.RequiredDate.Value.ToString("yyyy-MM-dd") : null
                     }).ToList();
 
@@ -304,7 +188,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = ex.Message });
+                    return JsonError(ex);
                 }
             }
         }
@@ -312,6 +196,7 @@ namespace tahsinERP.Controllers
         // POST so'rovi: POrders/GenerateFromSalesOrders - S_ORDERS asosida BOM yechimini hisoblash
         [HttpPost]
         [ValidateAntiForgeryHeader]
+        [Permission(Module)]
         public async Task<JsonResult> GenerateFromSalesOrders(int[] salesOrderIds, DateTime? issuedDate = null)
         {
             if (salesOrderIds == null || salesOrderIds.Length == 0)
@@ -324,19 +209,17 @@ namespace tahsinERP.Controllers
                 try
                 {
                     // Sotuv buyurtmalari mavjudligi va ularda mahsulot borligini tekshirish
-                    var salesOrders = await db.S_ORDERS
-                        .Include(o => o.S_ORDER_PRODUCTS)
+                    var orderStats = await db.S_ORDERS
                         .Where(o => salesOrderIds.Contains(o.ID) && o.IsDeleted != true)
+                        .Select(o => new { o.ID, HasProducts = o.S_ORDER_PRODUCTS.Any() })
                         .ToListAsync();
 
-                    if (!salesOrders.Any())
+                    if (!orderStats.Any())
                     {
                         return Json(new { success = false, message = "Tanlangan sotuv buyurtmalari topilmadi." });
                     }
 
-                    // Sotuv buyurtmalarida mahsulot borligini tekshirish
-                    var hasProducts = salesOrders.Any(o => o.S_ORDER_PRODUCTS != null && o.S_ORDER_PRODUCTS.Any());
-                    if (!hasProducts)
+                    if (!orderStats.Any(o => o.HasProducts))
                     {
                         return Json(new { success = false, message = "Tanlangan sotuv buyurtmalarida mahsulotlar topilmadi." });
                     }
@@ -350,7 +233,6 @@ namespace tahsinERP.Controllers
                         return Json(new { success = false, message = "BOM asosida xom ashyo ehtiyojlari topilmadi. Mahsulotlar uchun faol BOM mavjud emas yoki BOM'da xom ashyo yo'q." });
                     }
 
-                    // JSON javobi uchun ro'yxatga aylantirish
                     var result = requirements.Select(cr => new
                     {
                         ComponentID = cr.ComponentID,
@@ -369,12 +251,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    var errorMessage = $"Xatolik: {ex.Message}";
-                    if (ex.InnerException != null)
-                    {
-                        errorMessage += $" | Ichki xatolik: {ex.InnerException.Message}";
-                    }
-                    return Json(new { success = false, message = errorMessage });
+                    return JsonError(ex, "BOM asosida ehtiyojlarni hisoblashda xatolik.");
                 }
             }
         }
@@ -384,9 +261,9 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(POrderCreateViewModel model)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+            if (!CanChange(Module))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (ModelState.IsValid)
@@ -397,18 +274,14 @@ namespace tahsinERP.Controllers
                     {
                         try
                         {
-                            // OrderNo berilmagan bo'lsa, avtomatik yaratish
-                            if (string.IsNullOrEmpty(model.OrderNo))
+                            // OrderNo berilmagan bo'lsa — qulf bilan avtomatik (SRM-B14)
+                            if (string.IsNullOrWhiteSpace(model.OrderNo))
                             {
-                                model.OrderNo = await GenerateOrderNo(db);
+                                model.OrderNo = await GenerateOrderNoAsync(db);
                             }
                             else
                             {
                                 model.OrderNo = model.OrderNo.Trim();
-                            }
-
-                            if (!string.IsNullOrEmpty(model.OrderNo))
-                            {
                                 if (await ActiveOrderNoExistsAsync(db, model.OrderNo, excludeOrderId: null))
                                 {
                                     ModelState.AddModelError("OrderNo", "Bu buyurtma raqami allaqachon mavjud (faol buyurtma).");
@@ -425,175 +298,151 @@ namespace tahsinERP.Controllers
                             }
                             else
                             {
-                            // Kompaniya berilmagan bo'lsa, standart kompaniyani olish
-                            var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
-                            var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
+                                var companyId = model.CompanyID ?? await ProcurementLookups.GetDefaultCompanyIdAsync(db);
 
-                            // Xarid turini aniqlash
-                            byte purchaseType = 0; // Standart: Bevosita
-                            int? requisitionId = null;
-                            int? departmentId = null;
-                            int? requesterId = null;
-                            string contactPhone = null;
-                            string purpose = null;
+                                // Xarid turi: talabnoma asosida bo'lsa bilvosita
+                                byte purchaseType = ProcurementLookups.DirectPurchase;
+                                P_REQUISITIONS requisition = null;
+                                if (model.RequisitionID.HasValue)
+                                {
+                                    requisition = await db.P_REQUISITIONS.FindAsync(model.RequisitionID.Value);
+                                    if (requisition != null)
+                                    {
+                                        purchaseType = ProcurementLookups.IndirectPurchase;
+                                    }
+                                }
 
-                            // Buyurtma talabnoma asosida yaratilganini tekshirish
-                            if (model.RequisitionID.HasValue)
-                            {
-                                var requisition = await db.P_REQUISITIONS.FindAsync(model.RequisitionID.Value);
+                                var supplierId = model.SupplierID;
+                                if (purchaseType == ProcurementLookups.DirectPurchase || !supplierId.HasValue || supplierId.Value <= 0)
+                                {
+                                    supplierId = null;
+                                }
+
+                                int? contractId = model.ContractID;
+                                if (purchaseType == ProcurementLookups.DirectPurchase || !contractId.HasValue || contractId.Value <= 0)
+                                {
+                                    contractId = null;
+                                }
+
+                                var order = new P_ORDERS
+                                {
+                                    OrderNo = model.OrderNo,
+                                    IssuedDate = model.IssuedDate,
+                                    CompanyID = companyId,
+                                    SupplierID = supplierId,
+                                    ContractID = contractId,
+                                    CurrencyID = model.CurrencyID ?? 0,
+                                    Description = model.Description,
+                                    IsDeleted = false,
+                                    Amount = 0,
+                                    PurchaseType = purchaseType,
+                                    RequisitionID = requisition?.ID,
+                                    DepartmentID = requisition?.DepartmentID,
+                                    RequesterID = requisition?.RequesterID,
+                                    ContactPhone = requisition?.ContactPhone,
+                                    Purpose = requisition?.Purpose,
+                                    Status = "Created",
+                                    ContractStatus = "NotCreated",
+                                    InvoiceStatus = "NotCreated",
+                                    WarehouseStatus = "NotReceived"
+                                };
+                                db.P_ORDERS.Add(order);
+
+                                // Buyurtma mahsulotlari: mahsulotlar va talabnoma qatorlari oldindan bitta so'rovda (SRM-P06)
+                                var lines = (model.OrderProducts ?? new List<POrderProductViewModel>()).Where(l => l.ProductID > 0).ToList();
+                                var productIds = lines.Select(l => l.ProductID).Distinct().ToList();
+                                var products = await db.PRODUCTS.AsNoTracking()
+                                    .Where(p => productIds.Contains(p.ID) && p.IsDeleted != true)
+                                    .Select(p => new { p.ID, p.UnitID })
+                                    .ToDictionaryAsync(p => p.ID, p => p.UnitID);
+
+                                var requisitionLines = new Dictionary<int, P_REQUISITION_PRODUCTS>();
                                 if (requisition != null)
                                 {
-                                    purchaseType = 1; // Bilvosita
-                                    requisitionId = requisition.ID;
-                                    departmentId = requisition.DepartmentID;
-                                    requesterId = requisition.RequesterID;
-                                    contactPhone = requisition.ContactPhone;
-                                    purpose = requisition.Purpose;
+                                    requisitionLines = (await db.P_REQUISITION_PRODUCTS.AsNoTracking()
+                                            .Where(rp => rp.RequisitionID == requisition.ID && productIds.Contains(rp.ProductID))
+                                            .ToListAsync())
+                                        .GroupBy(rp => rp.ProductID)
+                                        .ToDictionary(g => g.Key, g => g.First());
                                 }
-                            }
 
-                            var supplierId = model.SupplierID;
-                            if (purchaseType == 0 || !supplierId.HasValue || supplierId.Value <= 0)
-                            {
-                                supplierId = null;
-                            }
-
-                            int? contractId = model.ContractID;
-                            if (purchaseType == 0 || !contractId.HasValue || contractId.Value <= 0)
-                            {
-                                contractId = null;
-                            }
-
-                            // Buyurtma sarlavhasini yaratish
-                            var order = new P_ORDERS
-                            {
-                                OrderNo = model.OrderNo,
-                                IssuedDate = model.IssuedDate,
-                                CompanyID = companyId,
-                                SupplierID = supplierId,
-                                ContractID = contractId,
-                                CurrencyID = model.CurrencyID ?? 0,
-                                Description = model.Description,
-                                IsDeleted = false,
-                                Amount = 0,
-                                PurchaseType = purchaseType,
-                                RequisitionID = requisitionId,
-                                DepartmentID = departmentId,
-                                RequesterID = requesterId,
-                                ContactPhone = contactPhone,
-                                Purpose = purpose,
-                                Status = "Created",
-                                ContractStatus = "NotCreated",
-                                InvoiceStatus = "NotCreated",
-                                WarehouseStatus = "NotReceived"
-                            };
-
-                            db.P_ORDERS.Add(order);
-                            await db.SaveChangesAsync();
-
-                            // Buyurtma mahsulotlarini qo'shish
-                            double totalAmount = 0;
-                            if (model.OrderProducts != null && model.OrderProducts.Any())
-                            {
-                                foreach (var orderProduct in model.OrderProducts)
+                                double totalAmount = 0;
+                                foreach (var orderProduct in lines)
                                 {
-                                    if (orderProduct.ProductID <= 0)
+                                    if (!products.ContainsKey(orderProduct.ProductID))
                                     {
-                                        continue; // Noto'g'ri mahsulotlarni o'tkazib yuborish
+                                        continue; // o'chirilgan yoki topilmagan mahsulot
+                                    }
+                                    var productUnitId = products[orderProduct.ProductID];
+
+                                    // Talabnomadan ustuvorlik va kerakli sana (mavjud bo'lsa).
+                                    // Hisob tushuntirish (sotuv/BOM generatsiyasi) bo'lsa — Priority maydonida saqlanadi.
+                                    string priority = null;
+                                    DateTime? requiredDate = null;
+                                    P_REQUISITION_PRODUCTS reqProduct;
+                                    if (requisitionLines.TryGetValue(orderProduct.ProductID, out reqProduct))
+                                    {
+                                        priority = reqProduct.Priority;
+                                        requiredDate = reqProduct.RequiredDate;
                                     }
 
-                                    var product = await db.PRODUCTS.FindAsync(orderProduct.ProductID);
-                                    if (product == null || product.IsDeleted == true)
+                                    if (!string.IsNullOrWhiteSpace(orderProduct.CalculationSummary))
                                     {
-                                        continue; // O'chirilgan yoki topilmagan mahsulotlarni o'tkazib yuborish
+                                        priority = orderProduct.CalculationSummary.Trim();
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(orderProduct.CalculationExplanation))
+                                    {
+                                        priority = orderProduct.CalculationExplanation.Trim();
                                     }
 
-                                        // Talabnomadan ustuvorlik va kerakli sanani olish (mavjud bo'lsa).
-                                        // Hisob tushuntirish (sotuv/BOM generatsiyasi) bo'lsa — P_ORDER_PRODUCTS.Priority maydonida saqlanadi.
-                                        string priority = null;
-                                        DateTime? requiredDate = null;
-                                        if (requisitionId.HasValue)
-                                        {
-                                            var reqProduct = await db.P_REQUISITION_PRODUCTS
-                                                .FirstOrDefaultAsync(rp => rp.RequisitionID == requisitionId.Value &&
-                                                                          rp.ProductID == orderProduct.ProductID);
-                                            if (reqProduct != null)
-                                            {
-                                                priority = reqProduct.Priority;
-                                                requiredDate = reqProduct.RequiredDate;
-                                            }
-                                        }
-
-                                        if (!string.IsNullOrWhiteSpace(orderProduct.CalculationSummary))
-                                        {
-                                            priority = orderProduct.CalculationSummary.Trim();
-                                        }
-                                        else if (!string.IsNullOrWhiteSpace(orderProduct.CalculationExplanation))
-                                        {
-                                            priority = orderProduct.CalculationExplanation.Trim();
-                                        }
-
-                                        priority = TruncateToPOrderProductPriority(priority);
-
-                                        var pOrderProduct = new P_ORDER_PRODUCTS
-                                        {
-                                            OrderID = order.ID,
-                                            ProductID = orderProduct.ProductID,
-                                            Price = orderProduct.Price,
-                                            Amount = orderProduct.Amount,
-                                            UnitID = orderProduct.UnitID ?? (product.UnitID > 0 ? product.UnitID : 1),
-                                            TotalPrice = orderProduct.Price * orderProduct.Amount,
-                                            MOQ = orderProduct.MOQ,
-                                            Priority = priority,
-                                            RequiredDate = requiredDate
-                                        };
+                                    var pOrderProduct = new P_ORDER_PRODUCTS
+                                    {
+                                        P_ORDERS = order,
+                                        ProductID = orderProduct.ProductID,
+                                        Price = orderProduct.Price,
+                                        Amount = orderProduct.Amount,
+                                        UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : 1),
+                                        TotalPrice = orderProduct.Price * orderProduct.Amount,
+                                        MOQ = orderProduct.MOQ,
+                                        Priority = TruncateToPOrderProductPriority(priority),
+                                        RequiredDate = requiredDate
+                                    };
 
                                     db.P_ORDER_PRODUCTS.Add(pOrderProduct);
                                     totalAmount += pOrderProduct.TotalPrice;
                                 }
 
                                 // Buyurtmaning umumiy summasi QQS bilan: Amount = net summa + QQS.
-                                order.Amount = ApplyVat(totalAmount, model.VatRate);
-                                await db.SaveChangesAsync();
-                            }
+                                order.Amount = VatMath.ApplyVat(totalAmount, model.VatRate);
 
-                            // Agar buyurtma talabnomadan yaratilgan bo'lsa, talabnoma holatini yangilash
-                            if (requisitionId.HasValue)
-                            {
-                                var requisition = await db.P_REQUISITIONS.FindAsync(requisitionId.Value);
+                                await db.SaveChangesAsync();
+
+                                // Talabnomadan yaratilgan bo'lsa — talabnoma holati (o'sha tranzaksiyada)
                                 if (requisition != null)
                                 {
                                     requisition.Status = "ConvertedToOrder";
                                     requisition.ConvertedToOrderID = order.ID;
                                     requisition.ModifiedDT = DateTime.Now;
-                                    requisition.ModifiedByUserID = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
+                                    requisition.ModifiedByUserID = CurrentUserId;
+                                    await db.SaveChangesAsync();
                                 }
-                            }
 
-                            // Barcha jarayon muvaffaqiyatli tugagandan keyin tranzaksiyani tasdiqlash
-                            transaction.Commit();
+                                transaction.Commit();
 
-                            // Amalni logga yozish
-                            LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Create - {order.OrderNo} buyurtmasi yaratildi (Xarid turi: {(purchaseType == 1 ? "Bilvosita" : "Bevosita")})");
+                                LogHelper.LogToDatabase(CurrentUserName, Module, $"Create - {order.OrderNo} buyurtmasi yaratildi (Xarid turi: {(purchaseType == ProcurementLookups.IndirectPurchase ? "Bilvosita" : "Bevosita")})");
 
-                            return RedirectToAction("Index");
+                                return RedirectToAction("Index");
                             }
                         }
                         catch (Exception ex)
                         {
-                            // Tranzaksiyani xavfsiz bekor qilish - SaveChanges paytida xatolik bo'lsa ulanish nul bo'lishi mumkin
+                            // SaveChanges xatosidan keyin ulanish yopilgan bo'lishi mumkin — bekor qilish xatosi e'tiborsiz
                             try
                             {
-                                var dbTransaction = transaction as DbContextTransaction;
-                                if (dbTransaction != null)
-                                {
-                                    dbTransaction.Rollback();
-                                }
+                                transaction.Rollback();
                             }
                             catch (Exception)
                             {
-                                // Bekor qilish xatolarini e'tiborsiz qoldiramiz - tranzaksiya allaqachon yaroqsiz holatda bo'lishi mumkin
-                                // Bu SaveChangesAsync xatoga uchrab ulanish yopilganida yuz berishi mumkin
                             }
 
                             AppendDatabaseErrorsToModelState(ModelState, ex);
@@ -602,106 +451,27 @@ namespace tahsinERP.Controllers
                 }
             }
 
-
-            // Xatolikda ViewBag qiymatlarini qayta ga'ldirish
+            // Xato: GET bilan bir xil spravochniklar va kiritilgan qatorlar qayta ko'rsatiladi (SRM-B15)
             using (var db = new DBTHSNEntities())
             {
-                bool isIndirect = model.RequisitionID.HasValue;
-                ViewBag.PurchaseType = isIndirect ? 1 : 0;
-
-                var salesOrders = await db.S_ORDERS
-                    .Include(o => o.CUSTOMER)
-                    .Where(o => o.IsDeleted != true)
-                    .OrderByDescending(o => o.IssuedDate)
-                    .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name })
-                    .ToListAsync();
-
-                ViewBag.SalesOrders = new MultiSelectList(
-                    salesOrders.Select(so => new { ID = so.ID, DisplayText = $"{so.OrderNo} - {so.CustomerName}" }),
-                    "ID", "DisplayText",
-                    model.SelectedSalesOrderIds
-                );
-
-                ViewBag.Suppliers = new SelectList(
-                    await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
-                    "ID", "Name", isIndirect ? model.SupplierID : null
-                );
-                if (isIndirect && model.SupplierID.HasValue)
+                P_REQUISITIONS requisition = null;
+                if (model.RequisitionID.HasValue)
                 {
-                    var createContracts = await db.P_CONTRACTS
-                        .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
-                        .OrderByDescending(c => c.IssuedDate)
-                        .Select(c => new { c.ID, c.ContractNo })
-                        .ToListAsync();
-                    ViewBag.Contracts = new SelectList(createContracts, "ID", "ContractNo", model.ContractID);
+                    requisition = await db.P_REQUISITIONS.AsNoTracking()
+                        .FirstOrDefaultAsync(r => r.ID == model.RequisitionID.Value && r.IsDeleted != true);
                 }
-                else
-                {
-                    ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
-                    model.SupplierID = null;
-                    model.ContractID = null;
-                }
-
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name", model.CompanyID
-                );
-
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname", model.CurrencyID
-                );
-
-                var purchasableProducts = await db.PRODUCTS
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
-                    .OrderBy(p => p.PNo)
-                    .Select(p => new { p.ID, p.PNo, p.Name })
-                    .ToListAsync();
-
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
-
-                ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
-                    "ID", "ShortName"
-                );
+                await PopulateCreateLookupsAsync(db, model, requisition);
             }
 
             return View(model);
         }
 
-        // OrderNo yaratish
-        private async Task<string> GenerateOrderNo(DBTHSNEntities db)
-        {
-            var year = DateTime.Now.Year;
-            var month = DateTime.Now.Month;
-            var prefix = $"PO-{year}-{month:D2}-";
-
-            var lastOrder = await db.P_ORDERS
-                .Where(o => o.IsDeleted != true && o.OrderNo != null && o.OrderNo.StartsWith(prefix))
-                .OrderByDescending(o => o.OrderNo)
-                .FirstOrDefaultAsync();
-
-            int nextNumber = 1;
-            if (lastOrder != null)
-            {
-                var lastNumberStr = lastOrder.OrderNo.Substring(prefix.Length);
-                if (int.TryParse(lastNumberStr, out int lastNumber))
-                {
-                    nextNumber = lastNumber + 1;
-                }
-            }
-
-            return $"{prefix}{nextNumber:D4}";
-        }
-
         // Olish so'rovi: POrders/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+            if (!CanChange(Module))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -712,6 +482,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var order = await db.P_ORDERS
+                    .AsNoTracking()
                     .Include(o => o.P_ORDER_PRODUCTS.Select(p => p.PRODUCT))
                     .FirstOrDefaultAsync(o => o.ID == id && o.IsDeleted != true);
 
@@ -746,63 +517,15 @@ namespace tahsinERP.Controllers
                     }).ToList()
                 };
 
-                bool isDirectOrder = order.PurchaseType == 0;
-                ViewBag.IsDirectOrder = isDirectOrder;
-                ViewBag.Suppliers = new SelectList(
-                    await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
-                    "ID", "Name", isDirectOrder ? null : model.SupplierID
-                );
-                if (!isDirectOrder && model.SupplierID.HasValue)
-                {
-                    var editContracts = await db.P_CONTRACTS
-                        .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
-                        .OrderByDescending(c => c.IssuedDate)
-                        .Select(c => new { c.ID, c.ContractNo })
-                        .ToListAsync();
-                    ViewBag.Contracts = new SelectList(editContracts, "ID", "ContractNo", model.ContractID);
-                }
-                else
-                {
-                    ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
-                    model.SupplierID = null;
-                    model.ContractID = null;
-                }
-
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name", model.CompanyID
-                );
-
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname", model.CurrencyID
-                );
-
-                var purchasableProducts = await db.PRODUCTS
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
-                    .OrderBy(p => p.PNo)
-                    .Select(p => new { p.ID, p.PNo, p.Name })
-                    .ToListAsync();
-
-                ViewBag.PurchasableProductsList = purchasableProducts;
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
-
-                var units = await db.UNITS.ToListAsync();
-                ViewBag.UnitsList = units;
-                ViewBag.Units = new SelectList(units, "ID", "ShortName");
-                ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, model.ContractID);
+                await PopulateEditLookupsAsync(db, model, order.PurchaseType == ProcurementLookups.DirectPurchase);
 
                 // Buyurtmaga avval qo'llangan QQS stavkasini saqlangan ma'lumotdan ajratamiz
                 // (Amount = net + QQS). Tahrirlashda input shartnoma stavkasi bilan emas, haqiqiy
-                // qo'llangan stavka bilan to'ldiriladi — aks holda qayta saqlashda QQS yo'qoladi.
+                // qo'llangan stavka bilan to'ldiriladi — aks holda qayta saqlashda QQS yo'qoladi (SRM-D12).
                 double editNetTotal = order.P_ORDER_PRODUCTS.Sum(p => p.TotalPrice);
-                double editGrossTotal = order.Amount ?? editNetTotal;
                 model.VatRate = editNetTotal > 0
-                    ? Math.Round((editGrossTotal / editNetTotal - 1d) * 100d, 2, MidpointRounding.AwayFromZero)
-                    : (ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d);
-                if (model.VatRate < 0) { model.VatRate = 0; }
+                    ? VatMath.RateFromGrossNet(editNetTotal, order.Amount ?? editNetTotal)
+                    : (double)ViewBag.ContractVatRate;
                 ViewBag.AppliedVatRate = model.VatRate;
 
                 return View(model);
@@ -814,9 +537,9 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(POrderEditViewModel model)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+            if (!CanChange(Module))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (ModelState.IsValid)
@@ -844,61 +567,59 @@ namespace tahsinERP.Controllers
                             }
                         }
 
-                        if (!ModelState.IsValid)
+                        if (ModelState.IsValid)
                         {
-                            // ViewBag qayta to'ldirish blokiga o'tiladi
-                        }
-                        else
-                        {
-                        // Buyurtma sarlavhasini yangilash
-                        order.OrderNo = editOrderNo ?? model.OrderNo;
-                        // Kompaniya berilmagan bo'lsa, standart kompaniyani olish
-                        var defaultCompany = await db.COMPANIES.Where(c => c.IsActive != false).FirstOrDefaultAsync();
-                        var companyId = model.CompanyID ?? (defaultCompany?.ID ?? 0);
-
-                        order.IssuedDate = model.IssuedDate;
-                        order.CompanyID = companyId;
-                        bool isDirectOrder = order.PurchaseType == 0;
-                        int? supplierId = model.SupplierID;
-                        if (isDirectOrder || !supplierId.HasValue || supplierId.Value <= 0)
-                        {
-                            supplierId = null;
-                        }
-
-                        int? contractId = model.ContractID;
-                        if (isDirectOrder || !contractId.HasValue || contractId.Value <= 0)
-                        {
-                            contractId = null;
-                        }
-
-                        order.SupplierID = supplierId;
-                        order.ContractID = contractId;
-                        order.CurrencyID = model.CurrencyID;
-                        order.Description = model.Description;
-
-                        // Mavjud buyurtma mahsulotlarini o'chirish
-                        var existingProducts = db.P_ORDER_PRODUCTS.Where(op => op.OrderID == order.ID).ToList();
-                        foreach (var existing in existingProducts)
-                        {
-                            db.P_ORDER_PRODUCTS.Remove(existing);
-                        }
-
-                        // Yangilangan buyurtma mahsulotlarini qo'shish
-                        double totalAmount = 0;
-                        if (model.OrderProducts != null && model.OrderProducts.Any())
-                        {
-                            foreach (var orderProduct in model.OrderProducts)
+                            using (var tx = db.Database.BeginTransaction())
                             {
-                                var product = await db.PRODUCTS.FindAsync(orderProduct.ProductID);
-                                if (product != null)
+                                order.OrderNo = editOrderNo ?? model.OrderNo;
+                                order.IssuedDate = model.IssuedDate;
+                                order.CompanyID = model.CompanyID ?? await ProcurementLookups.GetDefaultCompanyIdAsync(db);
+
+                                bool isDirectOrder = order.PurchaseType == ProcurementLookups.DirectPurchase;
+                                int? supplierId = model.SupplierID;
+                                if (isDirectOrder || !supplierId.HasValue || supplierId.Value <= 0)
                                 {
+                                    supplierId = null;
+                                }
+
+                                int? contractId = model.ContractID;
+                                if (isDirectOrder || !contractId.HasValue || contractId.Value <= 0)
+                                {
+                                    contractId = null;
+                                }
+
+                                order.SupplierID = supplierId;
+                                order.ContractID = contractId;
+                                order.CurrencyID = model.CurrencyID;
+                                order.Description = model.Description;
+
+                                var existingProducts = await db.P_ORDER_PRODUCTS.Where(op => op.OrderID == order.ID).ToListAsync();
+                                db.P_ORDER_PRODUCTS.RemoveRange(existingProducts);
+
+                                // Mahsulot birliklari bitta so'rovda (avval har qatorga FindAsync, SRM-P06)
+                                var lines = model.OrderProducts ?? new List<POrderProductViewModel>();
+                                var productIds = lines.Select(l => l.ProductID).Distinct().ToList();
+                                var products = await db.PRODUCTS.AsNoTracking()
+                                    .Where(p => productIds.Contains(p.ID))
+                                    .Select(p => new { p.ID, p.UnitID })
+                                    .ToDictionaryAsync(p => p.ID, p => p.UnitID);
+
+                                double totalAmount = 0;
+                                foreach (var orderProduct in lines)
+                                {
+                                    if (!products.ContainsKey(orderProduct.ProductID))
+                                    {
+                                        continue;
+                                    }
+                                    var productUnitId = products[orderProduct.ProductID];
+
                                     var pOrderProduct = new P_ORDER_PRODUCTS
                                     {
                                         OrderID = order.ID,
                                         ProductID = orderProduct.ProductID,
                                         Price = orderProduct.Price,
                                         Amount = orderProduct.Amount,
-                                        UnitID = orderProduct.UnitID ?? (product.UnitID > 0 ? product.UnitID : 1),
+                                        UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : 1),
                                         TotalPrice = orderProduct.Price * orderProduct.Amount,
                                         MOQ = orderProduct.MOQ,
                                         Priority = TruncateToPOrderProductPriority(
@@ -912,17 +633,16 @@ namespace tahsinERP.Controllers
                                     db.P_ORDER_PRODUCTS.Add(pOrderProduct);
                                     totalAmount += pOrderProduct.TotalPrice;
                                 }
+
+                                // Umumiy summa QQS bilan: Amount = net summa + QQS.
+                                order.Amount = VatMath.ApplyVat(totalAmount, model.VatRate);
+                                await db.SaveChangesAsync();
+                                tx.Commit();
                             }
-                        }
 
-                        // Umumiy summa QQS bilan: Amount = net summa + QQS.
-                        order.Amount = ApplyVat(totalAmount, model.VatRate);
-                        await db.SaveChangesAsync();
+                            LogHelper.LogToDatabase(CurrentUserName, Module, $"Edit - {order.OrderNo} buyurtmasi tahrirlandi");
 
-                        // Amalni logga yozish
-                        LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Edit - {order.OrderNo} buyurtmasi tahrirlandi");
-
-                        return RedirectToAction("Index");
+                            return RedirectToAction("Index");
                         }
                     }
                     catch (Exception ex)
@@ -932,56 +652,13 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            // Xatolikda ViewBag qiymatlarini qayta ga'ldirish
             using (var db = new DBTHSNEntities())
             {
-                var currentOrder = await db.P_ORDERS.AsNoTracking().FirstOrDefaultAsync(o => o.ID == model.ID);
-                bool isDirectOrder = currentOrder != null && currentOrder.PurchaseType == 0;
-                ViewBag.IsDirectOrder = isDirectOrder;
-                ViewBag.Suppliers = new SelectList(
-                    await db.SUPPLIERS.Where(s => s.IsDeleted != true).OrderBy(s => s.Name).ToListAsync(),
-                    "ID", "Name", isDirectOrder ? null : model.SupplierID
-                );
-                if (!isDirectOrder && model.SupplierID.HasValue)
-                {
-                    var failContracts = await db.P_CONTRACTS
-                        .Where(c => c.SupplierID == model.SupplierID && c.IsDeleted != true)
-                        .OrderByDescending(c => c.IssuedDate)
-                        .Select(c => new { c.ID, c.ContractNo })
-                        .ToListAsync();
-                    ViewBag.Contracts = new SelectList(failContracts, "ID", "ContractNo", model.ContractID);
-                }
-                else
-                {
-                    ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
-                    model.SupplierID = null;
-                    model.ContractID = null;
-                }
-
-                ViewBag.Companies = new SelectList(
-                    await db.COMPANIES.Where(c => c.IsActive != false).ToListAsync(),
-                    "ID", "Name", model.CompanyID
-                );
-
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname", model.CurrencyID
-                );
-
-                var purchasableProducts = await db.PRODUCTS
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
-                    .OrderBy(p => p.PNo)
-                    .Select(p => new { p.ID, p.PNo, p.Name })
-                    .ToListAsync();
-
-                ViewBag.PurchasableProductsList = purchasableProducts;
-                ViewBag.PurchasableProducts = new SelectList(purchasableProducts, "ID", "PNo");
-
-                var units = await db.UNITS.ToListAsync();
-                ViewBag.UnitsList = units;
-                ViewBag.Units = new SelectList(units, "ID", "ShortName");
+                var purchaseType = await db.P_ORDERS
+                    .Where(o => o.ID == model.ID)
+                    .Select(o => (byte?)o.PurchaseType)
+                    .FirstOrDefaultAsync();
+                await PopulateEditLookupsAsync(db, model, purchaseType == ProcurementLookups.DirectPurchase);
             }
 
             return View(model);
@@ -990,9 +667,9 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: POrders/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+            if (!CanChange(Module))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -1003,6 +680,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var order = await db.P_ORDERS
+                    .AsNoTracking()
                     .Include(o => o.SUPPLIER)
                     .Include(o => o.COMPANy)
                     .Include(o => o.CURRENCy)
@@ -1024,15 +702,15 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
+            if (!CanChange(Module))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             using (var db = new DBTHSNEntities())
             {
                 var order = await db.P_ORDERS.FindAsync(id);
-                if (order != null)
+                if (order != null && order.IsDeleted != true)
                 {
                     order.IsDeleted = true;
                     // O'chirilgan buyurtmaning OrderNo siga _d suffix qo'shamiz — xuddi shu OrderNo bilan
@@ -1041,8 +719,7 @@ namespace tahsinERP.Controllers
                     await SoftDeleteReferenceService.AfterPOrderSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
 
-                    // Amalni logga yozish
-                    LogHelper.LogToDatabase(User.Identity.Name, "POrders", $"Delete - {order.OrderNo} buyurtmasi o'chirildi");
+                    LogHelper.LogToDatabase(CurrentUserName, Module, $"Delete - {order.OrderNo} buyurtmasi o'chirildi");
                 }
 
                 return RedirectToAction("Index");
@@ -1051,58 +728,98 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryHeader]
+        [Permission(Module)]
         public async Task<JsonResult> GetContractsBySupplier(int supplierId)
         {
             try
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    var contracts = await db.P_CONTRACTS
-                        .Where(c => c.SupplierID == supplierId && c.IsDeleted != true)
-                        .OrderByDescending(c => c.IssuedDate)
-                        .Select(c => new { c.ID, c.ContractNo })
-                        .ToListAsync();
-
-                    var contractIds = contracts.Select(c => c.ID).ToList();
-                    var contractProducts = await db.P_CONTRACT_PRODUCTS
-                        .Where(p => contractIds.Contains(p.ContractID))
-                        .Select(p => new PContractVatHelper.ContractProductVatLine
-                        {
-                            ContractID = p.ContractID,
-                            Amount = p.Amount,
-                            VATAmount = p.VATAmount
-                        })
-                        .ToListAsync();
-
-                    var vatByContract = PContractVatHelper.BuildContractVatRates(contractProducts);
-
-                    var data = contracts.Select(c => new
-                    {
-                        c.ID,
-                        c.ContractNo,
-                        VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 0d
-                    }).ToList();
-
+                    var data = await ProcurementLookups.GetSupplierContractsWithVatAsync(db, supplierId);
                     return Json(new { success = true, data }, JsonRequestBehavior.AllowGet);
                 }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonError(ex);
             }
         }
 
+        // ---------- yordamchilar ----------
+
         /// <summary>
-        /// Net summaga QQS qo'shadi: total = base + base*rate/100. Rate manfiy bo'lsa 0 deb olinadi.
+        /// Create sahifasi spravochniklari — GET va xato yo'li uchun bitta joy (SRM-B15: avval xato yo'lida
+        /// DefaultCompanyID va talabnoma o'rnatilmay, CompanyID=0 bilan saqlanardi).
+        /// View'da ishlatilmaydigan ta'minotchi/shartnoma/bo'lim/xodim ro'yxatlari olib tashlandi (SRM-P07).
         /// </summary>
-        private static double ApplyVat(double baseAmount, double vatRate)
+        private async Task PopulateCreateLookupsAsync(DBTHSNEntities db, POrderCreateViewModel model, P_REQUISITIONS requisition)
         {
-            if (vatRate <= 0)
+            bool isIndirect = requisition != null;
+            ViewBag.PurchaseType = isIndirect ? 1 : 0;
+            ViewBag.Requisition = requisition;
+
+            if (!isIndirect)
             {
-                return Math.Round(baseAmount, 2, MidpointRounding.AwayFromZero);
+                // Sotuv buyurtmalari (BOM generatsiyasi uchun) — faqat bevosita xaridda
+                var salesOrders = await db.S_ORDERS.AsNoTracking()
+                    .Where(o => o.IsDeleted != true)
+                    .OrderByDescending(o => o.IssuedDate)
+                    .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name })
+                    .ToListAsync();
+
+                ViewBag.SalesOrders = new MultiSelectList(
+                    salesOrders.Select(so => new { so.ID, DisplayText = $"{so.OrderNo} - {so.CustomerName}" }),
+                    "ID", "DisplayText",
+                    model?.SelectedSalesOrderIds);
             }
 
-            return Math.Round(baseAmount * (1 + vatRate / 100d), 2, MidpointRounding.AwayFromZero);
+            ViewBag.DefaultCompanyID = await ProcurementLookups.GetDefaultCompanyIdAsync(db);
+            ViewBag.Currencies = ProcurementLookups.Currencies(model?.CurrencyID);
+
+            // Bilvosita: uskuna, asbob, sarf materiallari; bevosita: xomashyo (BOM)
+            var products = await ProcurementLookups.GetPurchasableProductsAsync(
+                db,
+                isIndirect ? ProcurementLookups.IndirectPurchase : ProcurementLookups.DirectPurchase,
+                model?.OrderProducts?.Select(p => p.ProductID));
+            ViewBag.PurchasableProducts = new SelectList(products, "ID", "PNo");
+            ViewBag.Units = ProcurementLookups.Units();
+        }
+
+        /// <summary>Edit sahifasi spravochniklari (GET va xato yo'li).</summary>
+        private async Task PopulateEditLookupsAsync(DBTHSNEntities db, POrderEditViewModel model, bool isDirectOrder)
+        {
+            ViewBag.IsDirectOrder = isDirectOrder;
+            ViewBag.Suppliers = ProcurementLookups.Suppliers(isDirectOrder ? null : model.SupplierID);
+            if (!isDirectOrder && model.SupplierID.HasValue)
+            {
+                ViewBag.Contracts = await ProcurementLookups.ContractsBySupplierAsync(db, model.SupplierID, model.ContractID);
+            }
+            else
+            {
+                ViewBag.Contracts = new SelectList(Enumerable.Empty<SelectListItem>(), "Value", "Text");
+                model.SupplierID = null;
+                model.ContractID = null;
+            }
+
+            var companies = await db.COMPANIES.AsNoTracking()
+                .Where(c => c.IsActive != false)
+                .Select(c => new { c.ID, c.Name })
+                .ToListAsync();
+            ViewBag.Companies = new SelectList(companies, "ID", "Name", model.CompanyID);
+            ViewBag.Currencies = ProcurementLookups.Currencies(model.CurrencyID);
+
+            var products = await ProcurementLookups.GetPurchasableProductsAsync(
+                db, ProcurementLookups.DirectPurchase, model.OrderProducts?.Select(p => p.ProductID));
+            ViewBag.PurchasableProductsList = products;
+            ViewBag.UnitsList = ProcurementLookups.UnitItems();
+            ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, model.ContractID);
+        }
+
+        /// <summary>PO-{yil}-{oy}-NNNN — qulf bilan; "_d{ID}" bilan arxivlangan o'chirilgan raqamlar qayta ishlatilishi mumkin.</summary>
+        private static Task<string> GenerateOrderNoAsync(DBTHSNEntities db)
+        {
+            var now = DateTime.Now;
+            return DocumentNumberService.NextAsync(db, "P_ORDERS", "OrderNo", $"PO-{now.Year}-{now.Month:D2}-", 4);
         }
 
         private const int POrderNoMaxLength = 50;

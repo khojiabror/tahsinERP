@@ -1,0 +1,120 @@
+@model tahsinERP.ViewModels.Tannarx.TannarxFinanceCategoryMapViewModel
+
+@{
+    ViewBag.Title = "Tannarx: Finance kategoriyalari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit");
+    int? backYear = ViewBag.Year;
+    int? backMonth = ViewBag.Month;
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("MonthSources", "TannarxAnalytics", new { year = backYear, month = backMonth })">Oy xarajatlari manbalari</a></li>
+                                    <li class="breadcrumb-item active">Finance kategoriyalari</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Finance xarajat kategoriyalari → tannarx guruhi</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">
+                            "Avtomatik" — kategoriya nomi bo'yicha aniqlanadi (o'ng ustunda ko'rsatilgan). Qo'lda tanlangan guruh nomdan ustun turadi;
+                            bola kategoriya o'zi belgilanmagan bo'lsa ota kategoriyaning guruhini oladi.
+                            "B — Soliq va bank" va "D — Boshqa" oy jami bo'yicha barcha ishlab chiqarilgan mahsulotlarga 1 donaga teng bo'linadi.
+                            "Material (PATH3)" — faqat ombordan chiqim yoki xarid invoysi topilmagan mahsulotlarga reja ulushida.
+                        </p>
+                        @if (!Model.TableExists)
+                        {
+                            <div class="alert alert-info small">Hali qo'lda belgilangan guruh yo'q — birinchi saqlashda sozlamalar jadvali avtomatik yaratiladi.</div>
+                        }
+
+                        @using (Html.BeginForm("FinanceCategories", "TannarxAnalytics", new { year = backYear, month = backMonth }, FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Kategoriya</th>
+                                            <th class="text-right">Tranzaksiya</th>
+                                            <th style="min-width:220px">Tannarx guruhi</th>
+                                            <th>Avtomatik bo'lsa</th>
+                                            <th>Hozir amalda</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var r in Model.Rows)
+                                        {
+                                            var current = r.ManualBucket.HasValue ? r.ManualBucket.Value.ToString() : "";
+                                            <tr class="@(r.IsActive ? "" : "text-muted")">
+                                                <td>
+                                                    @if (r.ParentName != null)
+                                                    {
+                                                        <span class="text-muted small">@r.ParentName ›</span>
+                                                    }
+                                                    @r.Name
+                                                    @if (!r.IsActive)
+                                                    {
+                                                        <span class="badge badge-light-secondary">nofaol</span>
+                                                    }
+                                                </td>
+                                                <td class="text-right">@r.TransactionCount</td>
+                                                <td>
+                                                    <select name="bucket_@r.CategoryID" class="form-control form-control-sm" @(changePermit ? "" : "disabled")>
+                                                        @foreach (var o in tahsinERP.ViewModels.Tannarx.TannarxFinanceCategoryMapViewModel.Options)
+                                                        {
+                                                            <option value="@o.Key" @(o.Key == current ? "selected" : "")>@o.Value</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td class="small">@r.AutoBucket <span class="text-muted">(@r.AutoReason)</span></td>
+                                                <td class="small font-weight-bold">@r.EffectiveBucket</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            if (changePermit)
+                            {
+                                <button type="submit" class="btn btn-primary mt-2"><i class="bx bx-save"></i> Saqlash</button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

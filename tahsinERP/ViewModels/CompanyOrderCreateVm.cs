@@ -33,7 +33,6 @@ namespace tahsinERP.ViewModels
 
         public SelectList OrderTypes { get; set; }
         public SelectList OrgUnits { get; set; }
-        public SelectList Employees { get; set; }
     }
 }
 

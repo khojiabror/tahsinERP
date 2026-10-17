@@ -115,6 +115,7 @@ namespace tahsinERP.Controllers.Logistic
                 model.IsDeleted = false;
 
                 // To'lov + split'lar + moliya yozuvi — bitta tranzaksiya (LOG-B08)
+                bool posted;
                 using (var tx = db.Database.BeginTransaction())
                 {
                     try
@@ -126,7 +127,7 @@ namespace tahsinERP.Controllers.Logistic
                         WaybillLedgerService.ReplacePaymentSplits(db, model.ID, waybillIds, model.Payment_Amount, model.CurrencyID, model.Comment);
                         db.SaveChanges();
 
-                        FinancePostingService.PostWaybillPayment(model.ID, AccountID, db, CurrentUserId);
+                        posted = FinancePostingService.PostWaybillPayment(model.ID, AccountID, db, CurrentUserId);
                         tx.Commit();
                     }
                     catch (Exception ex)
@@ -141,7 +142,7 @@ namespace tahsinERP.Controllers.Logistic
                     }
                 }
 
-                WarnIfNotPosted(db, model.ID);
+                WarnIfNotPosted(posted);
                 WarnIfOverpaid(db, waybillIds);
 
                 var waybillNo = db.F_WAYBILLS.Where(w => w.ID == model.WaybillID).Select(w => w.WaybillNo).FirstOrDefault();
@@ -344,6 +345,7 @@ namespace tahsinERP.Controllers.Logistic
                     return View(waybillPayment);
                 }
 
+                bool posted = true; // avvalgi moliya yozuvi yangilanadi yoki quyida yangisi yoziladi
                 using (var tx = db.Database.BeginTransaction())
                 {
                     try
@@ -375,7 +377,7 @@ namespace tahsinERP.Controllers.Logistic
                         if (finTransaction == null)
                         {
                             // Avval moliyaga o'tmagan bo'lsa — hozir o'tkazamiz
-                            FinancePostingService.PostWaybillPayment(waybillPaymentToUpdate.ID, AccountID, db, CurrentUserId);
+                            posted = FinancePostingService.PostWaybillPayment(waybillPaymentToUpdate.ID, AccountID, db, CurrentUserId);
                         }
                         tx.Commit();
                     }
@@ -390,7 +392,7 @@ namespace tahsinERP.Controllers.Logistic
                     }
                 }
 
-                WarnIfNotPosted(db, waybillPaymentToUpdate.ID);
+                WarnIfNotPosted(posted);
                 WarnIfOverpaid(db, waybillIds);
 
                 var waybillNo = db.F_WAYBILLS.Where(w => w.ID == waybillPayment.WaybillID).Select(w => w.WaybillNo).FirstOrDefault();
@@ -437,9 +439,9 @@ namespace tahsinERP.Controllers.Logistic
             }
         }
 
-        private void WarnIfNotPosted(DBTHSNEntities db, int paymentId)
+        private void WarnIfNotPosted(bool posted)
         {
-            if (FindFinTransaction(db, paymentId) == null)
+            if (!posted)
             {
                 // Foydalanuvchi qarori: bank hisobi topilmasa to'lov saqlanadi, lekin ogohlantiriladi
                 TempData["Warning"] = "To'lov saqlandi, lekin moliyaga (Chiqim) o'tkazilmadi: mos bank hisob-raqami topilmadi. " +

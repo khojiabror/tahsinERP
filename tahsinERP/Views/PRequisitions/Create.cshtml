@@ -37,7 +37,7 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
-                                        @using (Html.BeginForm("Create", "PRequisitions", FormMethod.Post, new { @class = "form", @id = "requisitionForm" }))
+                                        @using (Html.BeginForm("Create", "PRequisitions", FormMethod.Post, new { @class = "form", @id = "requisitionForm", data_renumber = "RequisitionProducts" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -178,6 +178,8 @@ else
 }
 
 @section scripts {
+    <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
     <script>
         (function() {
             function initRequisitionScripts() {
@@ -199,18 +201,14 @@ else
                     function addProductRow(productId, productText, quantity, unitId, estimatedPrice, priority, requiredDate, description) {
                         var row = '<tr data-index="' + productRowIndex + '">' +
                             '<td><select name="RequisitionProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
-                            '<option value="">---Tanlang---</option>';
-                        products.forEach(function(p) {
-                            var selected = p.Value == productId ? 'selected' : '';
-                            row += '<option value="' + p.Value + '" ' + selected + '>' + p.Text + '</option>';
-                        });
+                            ProductSelect.optionsHtml(products, productId, productText);
                         row += '</select></td>' +
                             '<td><input type="number" name="RequisitionProducts[' + productRowIndex + '].Quantity" class="form-control quantity" step="0.01" min="0.01" value="' + (quantity || '') + '" required /></td>' +
                             '<td><select name="RequisitionProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
                             '<option value="">---Tanlang---</option>';
                         units.forEach(function(u) {
                             var selected = u.Value == unitId ? 'selected' : '';
-                            row += '<option value="' + u.Value + '" ' + selected + '>' + u.Text + '</option>';
+                            row += '<option value="' + u.Value + '" ' + selected + '>' + htmlEscape(u.Text) + '</option>';
                         });
                         row += '</select></td>' +
                             '<td><input type="number" name="RequisitionProducts[' + productRowIndex + '].EstimatedPrice" class="form-control price" step="0.01" min="0" value="' + (estimatedPrice || '') + '" /></td>' +
@@ -221,10 +219,11 @@ else
                             '<option value="Low"' + (priority === 'Low' ? ' selected' : '') + '>Low</option>' +
                             '</select></td>' +
                             '<td><input type="date" name="RequisitionProducts[' + productRowIndex + '].RequiredDate" class="form-control" value="' + (requiredDate || '') + '" /></td>' +
-                            '<td><input type="text" name="RequisitionProducts[' + productRowIndex + '].Description" class="form-control" value="' + (description || '') + '" /></td>' +
+                            '<td><input type="text" name="RequisitionProducts[' + productRowIndex + '].Description" class="form-control" value="' + htmlEscape(description) + '" /></td>' +
                             '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
                             '</tr>';
                         $('#requisitionProductsTable tbody').append(row);
+                        ProductSelect.attach($('#requisitionProductsTable select.product-select').last(), products);
                         productRowIndex++;
                         updateTotal();
                     }

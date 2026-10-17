@@ -1,0 +1,215 @@
+@using tahsinERP.Services.Documents
+@model List<DocTemplateListItem>
+@{
+    ViewBag.Title = "Hujjat shablonlari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string docType = ViewBag.DocType;
+    bool canChange = ViewBag.CanChange == true;
+    var docTypes = (List<string>)ViewBag.DocTypes;
+    var placeholders = (IReadOnlyList<PlaceholderInfo>)ViewBag.Placeholders;
+    string backController = DocPlaceholders.OwnerController(docType);
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                <li class="breadcrumb-item"><a href="@Url.Action("Index", backController)">@DocPlaceholders.TypeName(docType)</a></li>
+                                <li class="breadcrumb-item active">Shablonlar</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+            }
+            @if (TempData["Warning"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    @TempData["Warning"]
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+            }
+
+            <ul class="nav nav-tabs mb-1">
+                @foreach (var t in docTypes)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(t == docType ? "active" : "")" href="@Url.Action("Index", new { docType = t })">@DocPlaceholders.TypeName(t)</a>
+                    </li>
+                }
+            </ul>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">@DocPlaceholders.TypeName(docType) shablonlari</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                @if (!Model.Any())
+                                {
+                                    <div class="alert alert-info">
+                                        Hali shablon yo'q. Avval <a href="@Url.Action("Sample", new { docType })">namunaviy shablonni</a> yuklab oling,
+                                        Word'da korxona blankasi bilan bezang va o'ngdagi forma orqali yuklang.
+                                    </div>
+                                    if (ViewBag.CanImportLegacy == true && canChange)
+                                    {
+                                        <a href="#" class="btn btn-outline-primary mb-1" data-post-url="@Url.Action("ImportLegacy")"
+                                           data-confirm="Papkadagi eski shablon bazaga ko'chirilsinmi?">
+                                            <i class="bx bx-import"></i> Papkadagi eski shablonni bazaga ko'chirish
+                                        </a>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Kod</th>
+                                                    <th>Nomi</th>
+                                                    <th>Fayl</th>
+                                                    <th>Yuklangan</th>
+                                                    <th>Hujjatlar</th>
+                                                    <th>Holat</th>
+                                                    <th class="text-center">Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var t in Model)
+                                                {
+                                                    <tr class="@(t.IsActive ? "" : "text-muted")">
+                                                        <td>@t.TemplateCode</td>
+                                                        <td>@t.Name</td>
+                                                        <td>@t.FileName</td>
+                                                        <td>@t.CreatedDT.ToString("dd.MM.yyyy HH:mm")</td>
+                                                        <td>@t.UsageCount</td>
+                                                        <td>
+                                                            <span class="badge @(t.IsActive ? "badge-success" : "badge-secondary")">@(t.IsActive ? "Faol" : "Arxivda")</span>
+                                                        </td>
+                                                        <td class="text-center text-nowrap">
+                                                            <a href="@Url.Action("Download", new { id = t.ID })" class="btn btn-sm btn-outline-primary" title="Yuklab olish"><i class="bx bx-download"></i></a>
+                                                            @if (canChange)
+                                                            {
+                                                                <a href="#" class="btn btn-sm btn-outline-warning" title="@(t.IsActive ? "Arxivlash" : "Faollashtirish")"
+                                                                   data-post-url="@Url.Action("ToggleActive", new { id = t.ID })"><i class="bx @(t.IsActive ? "bx-archive-in" : "bx-archive-out")"></i></a>
+                                                                if (t.UsageCount == 0)
+                                                                {
+                                                                    <a href="#" class="btn btn-sm btn-outline-danger" title="O'chirish"
+                                                                       data-post-url="@Url.Action("Delete", new { id = t.ID })" data-confirm="Shablon o'chirilsinmi?"><i class="bx bx-trash"></i></a>
+                                                                }
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <small class="text-muted">Hujjat yaratishda faol shablonlardan biri tanlanadi. Eski shablonni o'chirmasdan arxivlang — u bilan yaratilgan hujjatlar tarixi saqlanadi.</small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (placeholders.Any())
+                    {
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Shablon maydonlari</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <p>
+                                        Word shablonda kerakli joyga maydon nomini <b>ikki juft jingalak qavs</b> ichida yozing, masalan
+                                        <code>@placeholders[0].Token</code>. Maydon qaysi shrift va formatda yozilsa, qiymat ham shunday chiqadi.
+                                        <b>Matn</b> va <b>jadval</b> maydonlarini alohida qatorga (paragrafga) yozing — shunda formatlangan matn/jadval qo'yiladi.
+                                    </p>
+                                    <table class="table table-sm table-striped">
+                                        <thead><tr><th>Maydon</th><th>Ma'nosi</th><th>Turi</th></tr></thead>
+                                        <tbody>
+                                            @foreach (var p in placeholders)
+                                            {
+                                                <tr>
+                                                    <td><code>@p.Token</code></td>
+                                                    <td>@p.Description</td>
+                                                    <td>@(p.Kind == PlaceholderKind.RichText ? "Formatlangan matn" : p.Kind == PlaceholderKind.Table ? "Jadval" : "Matn")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-lg-4">
+                    @if (canChange)
+                    {
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Yangi shablon yuklash</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Upload", "DocTemplates", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="docType" value="@docType" />
+                                        <div class="form-group">
+                                            <label>Nomi</label>
+                                            <input type="text" name="name" class="form-control" maxlength="200" placeholder="Masalan: Asosiy blanka" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Word fayl (.docx)</label>
+                                            <input type="file" name="file" class="form-control-file" accept=".docx" required />
+                                        </div>
+                                        <div class="form-group form-check">
+                                            <input type="checkbox" name="archiveOthers" value="true" class="form-check-input" id="archiveOthers" />
+                                            <label class="form-check-label" for="archiveOthers">Boshqa faol shablonlarni arxivlash</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-upload"></i> Yuklash</button>
+                                    }
+                                    <hr />
+                                    <p class="mb-0">Fayl yuklanganda tekshiriladi: Word formati va tanilgan/tanilmagan maydonlar ko'rsatiladi.</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <a href="@Url.Action("Sample", new { docType })" class="btn btn-outline-success btn-block">
+                                    <i class="bx bx-file"></i> Namunaviy shablonni yuklab olish
+                                </a>
+                                <small class="text-muted d-block mt-1">Tayyor tuzilma va barcha maydonlar bilan — Word'da o'z blankangizga moslang.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

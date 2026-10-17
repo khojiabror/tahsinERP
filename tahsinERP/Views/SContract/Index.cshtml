@@ -4,9 +4,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString(), true);
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -143,6 +143,10 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    @Html.Partial("~/Views/SalesInvoices/_Pager.cshtml")
+                                    <div class="text-right mt-1">
+                                        <a class="btn btn-sm btn-success" href="@(Url.Action("ExportExcel", "SContract") + Request.Url.Query)"><i class="bx bxs-file-excel"></i> Excel (barchasi)</a>
+                                    </div>
 
                                 </div>
                             </div>
@@ -176,83 +180,15 @@
                 }
 
                 $table.DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "order": [[2, "desc"]],
-                "columnDefs": columnDefs,
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Shartnomalar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: changePermit ? ':not(:last-child)' : ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        titleAttr: 'PDFga yuklash',
-                        className: 'btn btn-danger',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Shartnomalar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: changePermit ? ':not(:last-child)' : ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        },
-                        title: 'Shartnomalar ro\'yxati',
-                        customize: function (doc) {
-                            doc.defaultStyle.fontSize = 9;
-                            doc.styles.tableHeader.fontSize = 10;
-                        }
-                    }
-                ],
-                "scrollX": true
-            });
+                    // Sahifalash serverda (pastdagi pager, CRM-P05); DataTables faqat joriy sahifada qidiradi/saralaydi
+                    "language": { "search": "Sahifada qidirish:", "zeroRecords": "Ma'lumot topilmadi" },
+                    "paging": false,
+                    "info": false,
+                    "order": [],
+                    "columnDefs": columnDefs,
+                    dom: 'frt',
+                    "scrollX": true
+                });
             }
 
             if (document.readyState === 'loading') {
@@ -262,8 +198,4 @@
             }
         })();
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

@@ -1,3 +1,4 @@
+@using tahsinERP.Services.Tasks
 @model tahsinERP.ViewModels.TaskKanbanViewModel
 @{
     ViewBag.Title = "Task Kanban";
@@ -38,15 +39,20 @@
                                     </div>
                                     <div>
                                         <div class="btn-group" role="group">
-                                            <a href="@Url.Action("Index", new { viewType = "project" })" 
+                                            <a href="@Url.Action("Index", new { viewType = "project", showClosed = ViewBag.ShowClosed })"
                                                class="btn @(Model.ViewType == "project" ? "btn-primary" : "btn-outline-primary")">
                                                 <i class="bx bx-folder"></i> Loyiha bo'yicha
                                             </a>
-                                            <a href="@Url.Action("Index", new { viewType = "status" })" 
+                                            <a href="@Url.Action("Index", new { viewType = "status", showClosed = ViewBag.ShowClosed })"
                                                class="btn @(Model.ViewType == "status" ? "btn-primary" : "btn-outline-primary")">
                                                 <i class="bx bx-check-circle"></i> Status bo'yicha
                                             </a>
                                         </div>
+                                        @* Yakunlangan topshiriqlar standart holatda faqat oxirgi 30 kun uchun ko'rsatiladi *@
+                                        <a href="@Url.Action("Index", new { viewType = Model.ViewType, showClosed = !(ViewBag.ShowClosed ?? false) })"
+                                           class="btn btn-sm @(ViewBag.ShowClosed == true ? "btn-secondary" : "btn-outline-secondary") ml-1">
+                                            <i class="bx bx-archive"></i> @(ViewBag.ShowClosed == true ? "Faqat oxirgi 30 kun" : "Barcha yopilganlar")
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -76,25 +82,7 @@
                                                             <span class="kanban-item-key">@(task.KeyCode ?? task.ID.ToString())</span>
                                                             @if (task.PriorityID.HasValue)
                                                             {
-                                                                string priorityBadgeClass = "badge-danger";
-                                                                string priorityStyle = "";
-                                                                string priorityNameLower = task.PriorityName?.ToLower() ?? "";
-                                                                if (priorityNameLower.Contains("juda muhim") || priorityNameLower.Contains("critical"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #DC3545 !important; border-color: #DC3545 !important;";
-                                                                }
-                                                                else if (priorityNameLower.Contains("muhim") || priorityNameLower.Contains("high"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #FF6666 !important; border-color: #FF6666 !important;";
-                                                                }
-                                                                else if (priorityNameLower.Contains("normal") || priorityNameLower.Contains("medium"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #FFCCCC !important; border-color: #FFCCCC !important;";
-                                                                }
-                                                                <span class="badge @priorityBadgeClass float-right" style="@priorityStyle">@task.PriorityName</span>
+                                                                @Html.TaskPriorityBadge(task.PriorityName, "", "float-right")
                                                             }
                                                         </div>
                                                         <div class="kanban-item-title">@task.Title</div>
@@ -106,7 +94,7 @@
                                                             <div class="kanban-item-meta">
                                                                 @if (task.DueDate.HasValue)
                                                                 {
-                                                                    <span class="kanban-item-date @(task.DueDate.Value < DateTime.Now && task.StatusName?.ToLower() != "done" ? "text-danger" : "")">
+                                                                    <span class="kanban-item-date @(TaskBadges.IsOverdue(task.DueDate, task.StatusName) ? "text-danger" : "")">
                                                                         <i class="bx bx-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
                                                                     </span>
                                                                 }
@@ -137,35 +125,10 @@
                                 {
                                     foreach (var board in Model.StatusBoards)
                                     {
-                                        // Status rangini aniqlash
-                                        string statusBadgeClass = "badge-secondary";
-                                        string statusStyle = "";
-                                        string statusNameLower = board.Title?.ToLower() ?? "";
-                                        if (statusNameLower.Contains("jarayonda") || statusNameLower.Contains("in_progress") || statusNameLower.Contains("in progress"))
-                                        {
-                                            statusBadgeClass = "badge-warning";
-                                            statusStyle = "background-color: #FFC107 !important; border-color: #FFC107 !important;";
-                                        }
-                                        else if (statusNameLower.Contains("bajarildi") || statusNameLower.Contains("done") || statusNameLower.Contains("tugallangan"))
-                                        {
-                                            statusBadgeClass = "badge-success";
-                                            statusStyle = "background-color: #28A745 !important; border-color: #28A745 !important;";
-                                        }
-                                        else if (statusNameLower.Contains("bekor") || statusNameLower.Contains("cancelled") || statusNameLower.Contains("cancel"))
-                                        {
-                                            statusBadgeClass = "badge-danger";
-                                            statusStyle = "background-color: #DC3545 !important; border-color: #DC3545 !important;";
-                                        }
-                                        else if (statusNameLower.Contains("rejada") || statusNameLower.Contains("todo") || statusNameLower.Contains("planned"))
-                                        {
-                                            statusBadgeClass = "badge-secondary";
-                                            statusStyle = "background-color: #6C757D !important; border-color: #6C757D !important;";
-                                        }
-                                        
                                         <div class="kanban-board" data-board-id="@board.ID">
                                             <div class="kanban-board-header">
                                                 <h5 class="kanban-board-title">
-                                                    <span class="badge @statusBadgeClass mr-2" style="@statusStyle">@board.Title</span>
+                                                    @Html.TaskStatusBadge(board.Title, "", "mr-2")
                                                 </h5>
                                                 <span class="badge badge-primary">@board.Tasks.Count</span>
                                             </div>
@@ -177,25 +140,7 @@
                                                             <span class="kanban-item-key">@(task.KeyCode ?? task.ID.ToString())</span>
                                                             @if (task.PriorityID.HasValue)
                                                             {
-                                                                string priorityBadgeClass = "badge-danger";
-                                                                string priorityStyle = "";
-                                                                string priorityNameLower = task.PriorityName?.ToLower() ?? "";
-                                                                if (priorityNameLower.Contains("juda muhim") || priorityNameLower.Contains("critical"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #DC3545 !important; border-color: #DC3545 !important;";
-                                                                }
-                                                                else if (priorityNameLower.Contains("muhim") || priorityNameLower.Contains("high"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #FF6666 !important; border-color: #FF6666 !important;";
-                                                                }
-                                                                else if (priorityNameLower.Contains("normal") || priorityNameLower.Contains("medium"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #FFCCCC !important; border-color: #FFCCCC !important;";
-                                                                }
-                                                                <span class="badge @priorityBadgeClass float-right" style="@priorityStyle">@task.PriorityName</span>
+                                                                @Html.TaskPriorityBadge(task.PriorityName, "", "float-right")
                                                             }
                                                         </div>
                                                         <div class="kanban-item-title">@task.Title</div>
@@ -213,7 +158,7 @@
                                                             <div class="kanban-item-meta">
                                                                 @if (task.DueDate.HasValue)
                                                                 {
-                                                                    <span class="kanban-item-date @(task.DueDate.Value < DateTime.Now && task.StatusName?.ToLower() != "done" ? "text-danger" : "")">
+                                                                    <span class="kanban-item-date @(TaskBadges.IsOverdue(task.DueDate, task.StatusName) ? "text-danger" : "")">
                                                                         <i class="bx bx-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
                                                                     </span>
                                                                 }
