@@ -552,9 +552,7 @@
     <Compile Include="Controllers\SRM\PInvoicesController.cs" />
     <Compile Include="Controllers\SRM\POrdersController.cs" />
     <Compile Include="Controllers\SRM\PRequisitionsController.cs" />
-    <Compile Include="Controllers\SRM\ProductionControlController.cs" />
     <Compile Include="Controllers\SRM\ProductionToSalesTransferController.cs" />
-    <Compile Include="Controllers\SRM\ProductStockController.cs" />
     <Compile Include="Controllers\SRM\PurchaseOrderTrackingController.cs" />
     <Compile Include="Controllers\SRM\SupplierBaseController.cs" />
     <Compile Include="Controllers\SRM\TenderController.cs" />
@@ -1074,6 +1072,9 @@
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
+    <Compile Include="Services\Stock\DocumentMarkers.cs" />
+    <Compile Include="Services\Stock\StockLedger.cs" />
+    <Compile Include="Services\WarehouseAttachments.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\ExpenseStockIssueHelper.cs" />
     <Compile Include="Services\DlocFifo\DlocFifoSchema.cs" />
@@ -1082,13 +1083,15 @@
     <Compile Include="Services\DlocFifo\DlocCapacityGuard.cs" />
     <Compile Include="Services\DlocFifo\FifoAllocatorService.cs" />
     <Compile Include="Services\DlocFifo\LocationLotStockLedger.cs" />
-    <Compile Include="Services\DlocFifo\StockLedgerRollupService.cs" />
     <Compile Include="Services\DlocFifo\InventoryValuationService.cs" />
     <Compile Include="Services\DlocFifo\DlocFifoReporting.cs" />
     <Compile Include="Services\DlocFifo\WarehouseDlocException.cs" />
     <Compile Include="Services\DlocFifo\ProductionDlocGuard.cs" />
     <Compile Include="Services\DlocFifo\LegacyDlocAssignmentService.cs" />
     <Compile Include="Controllers\Settings\WarehouseLocationsController.cs" />
+    <Compile Include="ViewModels\DataTablesPageRequest.cs" />
+    <Compile Include="ViewModels\Warehouse\InventoryDashboardViewModels.cs" />
+    <Compile Include="ViewModels\Warehouse\ProductionToSalesTransferViewModels.cs" />
     <Compile Include="ViewModels\WarehouseLocationEditViewModel.cs" />
     <Compile Include="ViewModels\LicenseViewModels.cs" />
     <Compile Include="Services\LotTrackingService.cs" />
@@ -2883,6 +2886,7 @@
       <LastGenOutput>DBTHSNModel.cs</LastGenOutput>
     </Content>
     <Content Include="Scripts\404.js" />
+    <Content Include="Scripts\srm\srm-server-table.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />
     <Content Include="app-assets\data\citynames.json" />
@@ -3052,12 +3056,7 @@
     <Content Include="Views\SContract\Create.cshtml" />
     <Content Include="Views\SContract\Edit.cshtml" />
     <Content Include="Views\SContract\Delete.cshtml" />
-    <Content Include="Views\PartWRHS\Index.cshtml" />
-    <Content Include="Views\PartWRHS\Create.cshtml" />
     <Content Include="Views\Forwarder\Index.cshtml" />
-    <Content Include="Views\PartWRHS\Edit.cshtml" />
-    <Content Include="Views\PartWRHS\Details.cshtml" />
-    <Content Include="Views\PartWRHS\Delete.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_LicenseBanner.cshtml" />
     <Content Include="Views\Shared\_SafeHtml.cshtml" />
@@ -3111,7 +3110,6 @@
     <Content Include="Views\DamagedProduct\Edit.cshtml" />
     <Content Include="Views\DamagedProduct\Delete.cshtml" />
     <Content Include="Views\DamagedProduct\Details.cshtml" />
-    <Content Include="Views\PartStock\Index.cshtml" />
     <Content Include="Views\Log\Index.cshtml" />
     <Content Include="Views\Reports\Coverage.cshtml" />
     <Content Include="Views\Manual\Index.cshtml" />
@@ -3133,7 +3131,6 @@
     <Content Include="Views\Currency\Edit.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
     <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
-    <Content Include="Views\PartStock\UploadWithExcel.cshtml" />
     <Content Include="Views\Norm\Edit.cshtml" />
     <Content Include="Views\Norm\Index.cshtml" />
     <Content Include="Views\UserEntries\Index.cshtml" />
@@ -3280,7 +3277,6 @@
     <Content Include="Views\WarehouseLocations\Create.cshtml" />
     <Content Include="Views\WarehouseLocations\Edit.cshtml" />
     <Content Include="Views\Inventory\Adjust.cshtml" />
-    <Content Include="Views\Inventory\AdjustResult.cshtml" />
     <Content Include="Views\InventoryReports\Dashboard.cshtml" />
     <Content Include="Views\LogisticsDashboard\Index.cshtml" />
     <Content Include="Views\LogisticsDashboard\MonthlyReport.cshtml" />
