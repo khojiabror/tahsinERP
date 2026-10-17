@@ -1,24 +1,16 @@
 @model List<tahsinERP.ViewModels.WaybillIndexItemViewModel>
+@using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqalari";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var T = new
-    {
-        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
-        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
-        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
-        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
-        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
-    };
 }
 
+@{
+    bool canChangeWaybill = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+}
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-    {
-        changePermit = true;
-    }
+    bool changePermit = canChangeWaybill;
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -36,7 +28,7 @@
                                         Logistika
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @T.Waybills
+                                        @LogisticsTerms.Waybills
                                     </li>
                                 </ol>
                             </div>
@@ -50,7 +42,7 @@
                     {
                         <div class="invoice-create-btn mb-1 d-flex">
                             <a href="@Url.Action("Create", "Waybill")" class="btn btn-success bg-light invoice-create" role="button">
-                                <i class="bx bx-plus"></i> Yangi @T.Waybill.ToLower()
+                                <i class="bx bx-plus"></i> Yangi @LogisticsTerms.Waybill.ToLower()
                             </a>
                             <a href="@Url.Action("UploadExcel", "Waybill")" class="btn btn-outline-primary ml-1" role="button">
                                 <i class="bx bx-file"></i> Excel orqali yuklash
@@ -65,14 +57,14 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label>Qidirish</label>
-                                        <input type="text" name="searchTerm" class="form-control" value="@ViewBag.SearchTerm" placeholder="@T.Waybill raqami, manzil, haydovchi..." />
+                                        <input type="text" name="searchTerm" class="form-control" value="@ViewBag.SearchTerm" placeholder="@LogisticsTerms.Waybill raqami, manzil, haydovchi..." />
                                     </div>
                                     <div class="col-md-2">
                                         <label>Yo'nalish</label>
                                         @Html.DropDownList("direction", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
-                                        <label>@T.Forwarder</label>
+                                        <label>@LogisticsTerms.Forwarder</label>
                                         @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
@@ -107,11 +99,11 @@
                                         <table id="waybillDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>@T.Waybill No</th>
+                                                    <th>@LogisticsTerms.Waybill No</th>
                                                     <th>Sana</th>
                                                     <th>Yo'nalish</th>
                                                     <th>Yuk turi</th>
-                                                    <th>@T.Forwarder</th>
+                                                    <th>@LogisticsTerms.Forwarder</th>
                                                     <th>Shartnoma</th>
                                                     <th>Qayerdan</th>
                                                     <th>Qayerga</th>
@@ -138,7 +130,7 @@
                                                     {
                                                         var directionText = item.Direction == 0 ? "Kiruvchi" : item.Direction == 1 ? "Chiquvchi" : "Ichki";
                                                         var directionClass = item.Direction == 0 ? "badge-success" : item.Direction == 1 ? "badge-danger" : "badge-secondary";
-                                                        var paymentClass = item.PaymentStatus == "To'landi" ? "badge-success" :
+                                                        var paymentClass = item.PaymentStatus == "To'langan" ? "badge-success" :
                                                             item.PaymentStatus == "Qisman" ? "badge-warning" : "badge-danger";
 
                                                         <tr>
@@ -177,12 +169,13 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="@(changePermit ? 18 : 17)" class="text-center">Ma'lumot topilmadi</td>
+                                                        <td colspan="@(changePermit ? 19 : 18)" class="text-center">Ma'lumot topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
+                                    @Html.Partial("~/Views/Logistic/Shared/_Pager.cshtml", (tahsinERP.ViewModels.LogisticsPageInfo)ViewBag.Paging)
                                 </div>
                             </div>
                         </div>
@@ -192,40 +185,6 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function() {
-            var tableConfig = {
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "order": [[1, "desc"]],
-                "scrollX": true
-            };
-
-            @if (changePermit)
-            {
-                <text>
-                tableConfig.columnDefs = [
-                    { "orderable": false, "targets": -1 }
-                ];
-                </text>
-            }
-
-            var table = $('#waybillDataTable').DataTable(tableConfig);
-        });
-    </script>
 }
 else
 {

@@ -1,15 +1,8 @@
 @model tahsinERP.Models.F_WAYBILLS
+@using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqasi tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var T = new
-    {
-        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
-        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
-        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
-        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
-        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
-    };
     var currencyShortname = Model.CURRENCy?.Shortname ?? "";
     var totalPaid = (ViewBag.TotalPaid as double?) ?? 0;
     var outstanding = (ViewBag.Outstanding as double?) ?? 0;
@@ -41,10 +34,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Waybill/Index">@T.Waybills</a>
+                                        <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @T.Waybill tafsilotlari
+                                        @LogisticsTerms.Waybill tafsilotlari
                                     </li>
                                 </ol>
                             </div>
@@ -58,13 +51,13 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h4 class="text-primary mb-0">@T.Waybill ma'lumotlari</h4>
+                                    <h4 class="text-primary mb-0">@LogisticsTerms.Waybill ma'lumotlari</h4>
                                     <span class="badge badge-light-primary">@Model.WaybillNo</span>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-borderless table-sm mb-0">
                                         <tr><td style="width:220px"><b>Sana</b></td><td>@(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
-                                        <tr><td><b>@T.Forwarder</b></td><td>@(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td></tr>
+                                        <tr><td><b>@LogisticsTerms.Forwarder</b></td><td>@(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td></tr>
                                         <tr><td><b>Shartnoma</b></td><td>@(Model.F_CONTRACTS?.ContractNo ?? "")</td></tr>
                                         <tr><td><b>Transport turi</b></td><td>@(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</td></tr>
                                         <tr><td><b>Marshrut</b></td><td>@(Model.FromLocation ?? "") → @(Model.ToLocation ?? "")</td></tr>
@@ -136,7 +129,7 @@
                                                 <th>Sana</th>
                                                 <th>Summa</th>
                                                 <th>Valyuta</th>
-                                                <th>@T.Forwarder</th>
+                                                <th>@LogisticsTerms.Forwarder</th>
                                                 <th>Izoh</th>
                                             </tr>
                                         </thead>

@@ -1,15 +1,8 @@
 @model List<tahsinERP.Models.F_WAYBILL_PAYMENTS>
+@using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqasi to'lovlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var T = new
-    {
-        Waybill = tahsinERP.Services.LogisticsTerms.Waybill,
-        Waybills = tahsinERP.Services.LogisticsTerms.Waybills,
-        Forwarder = tahsinERP.Services.LogisticsTerms.Forwarder,
-        TariffBasis = tahsinERP.Services.LogisticsTerms.TariffBasis,
-        TariffRate = tahsinERP.Services.LogisticsTerms.TariffRate
-    };
     var linkedWaybillMap = ViewBag.LinkedWaybillMap as IDictionary<int, string>;
     var paymentWaybillAmountMap = ViewBag.PaymentWaybillAmountMap as IDictionary<int, double>;
     var paymentOutstandingMap = ViewBag.PaymentOutstandingMap as IDictionary<int, double>;
@@ -34,10 +27,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        @T.Waybills
+                                        @LogisticsTerms.Waybills
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @T.Waybill to'lovlari
+                                        @LogisticsTerms.Waybill to'lovlari
                                     </li>
                                 </ol>
                             </div>
@@ -48,6 +41,7 @@
             <div class="content-body">
                 <!-- users list start -->
                 <section class="invoice-list-wrapper">
+                    @Html.Partial("~/Views/Logistic/Shared/_Alerts.cshtml")
                     @if (changePermit)
                     {
                         <div class="invoice-create-btn mb-1">
@@ -62,15 +56,15 @@
                                 <div class="card-body">
                                     <!-- datatable start -->
                                     <div class="table-responsive table-responsivetable-responsive">
-                                        <table id="myDataTable" class="table table-striped table-bordered complex-headers" style="width:100%">
+                                        <table id="myDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>To'liq ma'lumot</th>
-                                                    <th>@T.Waybill lar</th>
-                                                    <th>@T.Forwarder</th>
+                                                    <th>@LogisticsTerms.Waybill lar</th>
+                                                    <th>@LogisticsTerms.Forwarder</th>
                                                     <th>To'lov sanasi</th>
                                                     <th>Miqdori</th>
-                                                    <th>@T.Waybill summasi</th>
+                                                    <th>@LogisticsTerms.Waybill summasi</th>
                                                     <th>Qoldiq</th>
                                                     <th>Pul birligi</th>
                                                     <th>Izoh</th>
@@ -103,7 +97,7 @@
                                                         </td>
                                                         <td><a href="~/Forwarder/Details/@item.ForwarderID">@(item.FORWARDER != null ? item.FORWARDER.ForwarderName : "")</a></td>
                                                         <td>@(item.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
-                                                        <td>@item.Payment_Amount</td>
+                                                        <td>@item.Payment_Amount.ToString("N2")</td>
                                                         <td>@waybillAmount.ToString("N2")</td>
                                                         <td>@outstanding.ToString("N2")</td>
                                                         <td>@(item.CURRENCy != null ? item.CURRENCy.Shortname : "")</td>
@@ -122,6 +116,7 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    @Html.Partial("~/Views/Logistic/Shared/_Pager.cshtml", (tahsinERP.ViewModels.LogisticsPageInfo)ViewBag.Paging)
                                     <!-- datatable ends -->
                                 </div>
                             </div>

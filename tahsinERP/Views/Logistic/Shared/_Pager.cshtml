@@ -1,0 +1,32 @@
+@model tahsinERP.ViewModels.LogisticsPageInfo
+@{
+    Func<int, string> link = p =>
+    {
+        var rv = new System.Web.Routing.RouteValueDictionary(Model.RouteValues);
+        rv["page"] = p;
+        rv["pageSize"] = Model.PageSize;
+        return Url.Action(ViewContext.RouteData.Values["action"].ToString(), rv);
+    };
+    int from = Math.Max(1, Model.Page - 3);
+    int to = Math.Min(Model.TotalPages, Model.Page + 3);
+}
+<div class="d-flex justify-content-between align-items-center mt-1 flex-wrap">
+    <small class="text-muted">
+        Jami: @Model.TotalCount ta yozuv
+        @if (Model.TotalCount > 0)
+        {
+            <text>(@(Model.Skip + 1)–@(Math.Min(Model.Skip + Model.PageSize, Model.TotalCount)))</text>
+        }
+    </small>
+    @if (Model.TotalPages > 1)
+    {
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.Page == 1 ? "disabled" : "")"><a class="page-link" href="@link(1)">&laquo;</a></li>
+            @for (int p = from; p <= to; p++)
+            {
+                <li class="page-item @(p == Model.Page ? "active" : "")"><a class="page-link" href="@link(p)">@p</a></li>
+            }
+            <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")"><a class="page-link" href="@link(Model.TotalPages)">&raquo;</a></li>
+        </ul>
+    }
+</div>

@@ -40,6 +40,9 @@ namespace tahsinERP.ViewModels
         public int? TariffID { get; set; }
         public List<SelectListItem> Tariffs { get; set; }
 
+        /// <summary>Edit ochilgandagi tarif: o'zgarmasa stavka qayta yozilmaydi (LOG-B05).</summary>
+        public int? OriginalTariffID { get; set; }
+
         [Display(Name = "Qayerdan")]
         public string FromLocation { get; set; }
 
