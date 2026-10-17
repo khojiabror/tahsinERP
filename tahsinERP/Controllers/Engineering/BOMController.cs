@@ -62,12 +62,8 @@ namespace tahsinERP.Controllers.Engineering
                 }
 
                 // Eng so'nggi faol BOM: VersionNo (yyyy-MM) bo'yicha, bo'lmasa CreatedAt bo'yicha
-                var latestHeader = headers
-                    .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
-                    .OrderByDescending(bh => ParseVersionNoDate(bh.VersionNo))
-                    .ThenByDescending(bh => bh.CreatedAt)
-                    .FirstOrDefault()
-                    ?? headers.OrderByDescending(bh => bh.CreatedAt).First();
+                var latestHeader = BomMaterialSummaryService.PickLatestHeader(
+                    headers, bh => bh.VersionNo, bh => bh.CreatedAt, fallbackToCreatedAt: true);
 
                 latestNormPeriodByProduct.TryGetValue(product.ID, out var normVersion);
                 if (string.IsNullOrEmpty(normVersion))
@@ -145,24 +141,6 @@ namespace tahsinERP.Controllers.Engineering
             };
 
             return View(viewModel);
-        }
-
-        private static DateTime ParseVersionNoDate(string versionNo)
-        {
-            if (string.IsNullOrWhiteSpace(versionNo))
-                return DateTime.MinValue;
-
-            versionNo = versionNo.Trim();
-            if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
-                return parsedDate;
-
-            var parts = versionNo.Split('-');
-            if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month)
-                && month >= 1 && month <= 12 && year > 1900 && year < 2100)
-            {
-                return new DateTime(year, month, 1);
-            }
-            return DateTime.MinValue;
         }
 
         protected override void Dispose(bool disposing)

@@ -3,13 +3,14 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System.Collections.Generic;
 using System.Web;
 
@@ -757,10 +758,10 @@ namespace tahsinERP.Controllers.Finance
 
             try
             {
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    if ((worksheet.Dimension?.Rows ?? 0) < 2)
+                    var worksheet = workbook.Worksheet(1);
+                    if (worksheet.LastRowNumber() < 2)
                     {
                         ViewBag.Error = "Excel faylda ma'lumot yo'q!";
                         return View();

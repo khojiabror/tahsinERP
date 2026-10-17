@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.IO;
 using System.Web.Mvc;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using tahsinERP.Controllers;
 using tahsinERP.Models;
 using tahsinERP.Filters;
@@ -809,11 +809,10 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public ActionResult DownloadOpeningBalanceExcelTemplate()
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var ar = package.Workbook.Worksheets.Add("AR");
-                var ap = package.Workbook.Worksheets.Add("AP");
+                var ar = workbook.Worksheets.Add("AR");
+                var ap = workbook.Worksheets.Add("AP");
                 var headers = new[]
                 {
                     "CounterpartyName",
@@ -827,32 +826,32 @@ namespace tahsinERP.Controllers.Finance
 
                 for (int i = 0; i < headers.Length; i++)
                 {
-                    ar.Cells[1, i + 1].Value = headers[i];
-                    ap.Cells[1, i + 1].Value = headers[i];
+                    ar.Cell(1, i + 1).Value = headers[i];
+                    ap.Cell(1, i + 1).Value = headers[i];
                 }
 
-                ar.Cells[2, 1].Value = "Uz-Koram Kompani";
-                ar.Cells[2, 2].Value = "";
-                ar.Cells[2, 3].Value = "27/10-2025";
-                ar.Cells[2, 4].Value = "";
-                ar.Cells[2, 5].Value = 56576700;
-                ar.Cells[2, 6].Value = 51467720;
-                ar.Cells[2, 7].Value = "UZS";
+                ar.Cell(2, 1).Value = "Uz-Koram Kompani";
+                ar.Cell(2, 2).Value = "";
+                ar.Cell(2, 3).Value = "27/10-2025";
+                ar.Cell(2, 4).Value = "";
+                ar.Cell(2, 5).Value = 56576700;
+                ar.Cell(2, 6).Value = 51467720;
+                ar.Cell(2, 7).Value = "UZS";
 
-                ap.Cells[2, 1].Value = "Supplier name";
-                ap.Cells[2, 2].Value = "";
-                ap.Cells[2, 3].Value = "Contract-001";
-                ap.Cells[2, 4].Value = "";
-                ap.Cells[2, 5].Value = 10000000;
-                ap.Cells[2, 6].Value = 2500000;
-                ap.Cells[2, 7].Value = "UZS";
+                ap.Cell(2, 1).Value = "Supplier name";
+                ap.Cell(2, 2).Value = "";
+                ap.Cell(2, 3).Value = "Contract-001";
+                ap.Cell(2, 4).Value = "";
+                ap.Cell(2, 5).Value = 10000000;
+                ap.Cell(2, 6).Value = 2500000;
+                ap.Cell(2, 7).Value = "UZS";
 
-                ar.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
-                ap.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
-                ar.Cells.AutoFitColumns();
-                ap.Cells.AutoFitColumns();
+                ar.Range(1, 1, 1, headers.Length).Style.Font.Bold = true;
+                ap.Range(1, 1, 1, headers.Length).Style.Font.Bold = true;
+                ar.Columns().AdjustToContents();
+                ap.Columns().AdjustToContents();
 
-                var file = package.GetAsByteArray();
+                var file = workbook.ToByteArray();
                 return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "opening-balance-template.xlsx");
             }
         }
@@ -915,24 +914,23 @@ namespace tahsinERP.Controllers.Finance
                     return CounterpartyBalanceService.PurchaseInvoiceAmounts(db, invoiceQuery, snapshotDate).Values.Sum();
                 };
 
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
                     Action<string, bool> importSheet = (sheetName, isCustomer) =>
                     {
-                        var ws = package.Workbook.Worksheets.FirstOrDefault(x => x.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
-                        if (ws == null || ws.Dimension == null) return;
+                        var ws = workbook.Worksheets.FirstOrDefault(x => x.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
+                        if (ws == null || ws.LastRowNumber() == 0) return;
 
-                        var rowCount = ws.Dimension.Rows;
+                        var rowCount = ws.LastRowNumber();
                         for (int r = 2; r <= rowCount; r++)
                         {
-                            var cpNameRaw = ws.Cells[r, 1].Text?.Trim();
-                            var cpIdRaw = ws.Cells[r, 2].Text?.Trim();
-                            var contractNoRaw = ws.Cells[r, 3].Text?.Trim();
-                            var contractIdRaw = ws.Cells[r, 4].Text?.Trim();
-                            var totalRaw = ws.Cells[r, 5].Text?.Trim();
-                            var paidRaw = ws.Cells[r, 6].Text?.Trim();
-                            var currencyRaw = ws.Cells[r, 7].Text?.Trim();
+                            var cpNameRaw = ws.Cell(r, 1).GetFormattedString()?.Trim();
+                            var cpIdRaw = ws.Cell(r, 2).GetFormattedString()?.Trim();
+                            var contractNoRaw = ws.Cell(r, 3).GetFormattedString()?.Trim();
+                            var contractIdRaw = ws.Cell(r, 4).GetFormattedString()?.Trim();
+                            var totalRaw = ws.Cell(r, 5).GetFormattedString()?.Trim();
+                            var paidRaw = ws.Cell(r, 6).GetFormattedString()?.Trim();
+                            var currencyRaw = ws.Cell(r, 7).GetFormattedString()?.Trim();
 
                             if (string.IsNullOrWhiteSpace(cpNameRaw) &&
                                 string.IsNullOrWhiteSpace(cpIdRaw) &&

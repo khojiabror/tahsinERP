@@ -87,7 +87,7 @@ namespace tahsinERP.Services.Common
         /// <summary>Spravochnik ro'yxati (o'zgartirmang — umumiy nusxa).</summary>
         public static IReadOnlyList<RefItem> Get(string kind)
         {
-            var cached = Cache.Get(kind) as List<RefItem>;
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(kind)) as List<RefItem>;
             if (cached != null) return cached;
 
             Func<DBTHSNEntities, List<RefItem>> loader;
@@ -101,7 +101,7 @@ namespace tahsinERP.Services.Common
                     .OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase)
                     .ToList();
             }
-            Cache.Set(kind, items, DateTimeOffset.Now.Add(Ttl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(kind), items, DateTimeOffset.Now.Add(Ttl));
             return items;
         }
 
@@ -120,7 +120,7 @@ namespace tahsinERP.Services.Common
 
         public static void Invalidate(string kind)
         {
-            Cache.Remove(kind);
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(kind));
         }
 
         /// <summary>Entity turi bo'yicha (SaveChanges hook'i chaqiradi).</summary>
@@ -128,7 +128,7 @@ namespace tahsinERP.Services.Common
         {
             string kind;
             if (entityType != null && EntityKinds.TryGetValue(entityType, out kind))
-                Cache.Remove(kind);
+                Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(kind));
         }
 
         /// <summary>Kesh qaysi entity turlarini kuzatadi.</summary>

@@ -37,7 +37,7 @@ namespace tahsinERP.Services.Documents
 
         public static async Task<string> DirectorNameAsync(DBTHSNEntities db)
         {
-            var cached = Cache.Get(DirectorKey) as string;
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(DirectorKey)) as string;
             if (cached != null)
                 return cached;
 
@@ -46,13 +46,13 @@ namespace tahsinERP.Services.Documents
                 ? LegacyDirectorName
                 : (row.DirectorName ?? string.Empty);
 
-            Cache.Set(DirectorKey, name, DateTimeOffset.Now.Add(Ttl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(DirectorKey), name, DateTimeOffset.Now.Add(Ttl));
             return name;
         }
 
         public static void Invalidate()
         {
-            Cache.Remove(DirectorKey);
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(DirectorKey));
         }
     }
 }

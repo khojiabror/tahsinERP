@@ -98,27 +98,6 @@
                 </div>
             </section>
 
-            @if (ViewBag.ShowCookieConsent)
-            {
-                <script>
-                    (function() {
-                        function showCookieConsent() {
-                            if (typeof jQuery !== 'undefined') {
-                                jQuery(document).ready(function () {
-                                    jQuery("#cookieConsent").modal('show');
-                                });
-                            } else {
-                                setTimeout(showCookieConsent, 100);
-                            }
-                        }
-                        if (document.readyState === 'loading') {
-                            document.addEventListener('DOMContentLoaded', showCookieConsent);
-                        } else {
-                            showCookieConsent();
-                        }
-                    })();
-                </script>
-            }
         </div>
     </div>
 </div>

@@ -27,7 +27,7 @@ namespace tahsinERP.Helpers
             if (string.IsNullOrEmpty(username))
                 return new Counts();
 
-            string key = "LayoutBadges_" + username.ToLowerInvariant();
+            string key = tahsinERP.Configuration.Tenancy.TenantContext.CacheKey("LayoutBadges_" + username.ToLowerInvariant());
             var cached = HttpRuntime.Cache.Get(key) as Counts;
             if (cached != null)
                 return cached;

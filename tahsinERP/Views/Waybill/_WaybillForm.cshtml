@@ -1,4 +1,4 @@
-@model tahsinERP.ViewModels.WaybillCreateViewModel
+﻿@model tahsinERP.ViewModels.WaybillCreateViewModel
 @using tahsinERP.Services
 @* Yo'l varaqasi formasi — Create va Edit uchun bitta (LOG-D02). JS: ~/Scripts/app/waybill-form.js *@
 @{
@@ -7,9 +7,9 @@
 @using (Html.BeginForm(isEdit ? "Edit" : "Create", "Waybill", FormMethod.Post, new
 {
     id = "waybillForm",
-    data_tariffs_url = Url.Action("GetTariffsByContract", "Waybill"),
-    data_invoice_url = Url.Action("GetDataFromInvoice", "Waybill"),
-    data_search_url = Url.Action("SearchDocuments", "Waybill"),
+    data_tariffs_url = Url.Action("GetTariffsByContract", "WaybillLookup"),
+    data_invoice_url = Url.Action("GetDataFromInvoice", "WaybillLookup"),
+    data_search_url = Url.Action("SearchDocuments", "WaybillLookup"),
     data_selected_tariff = Model.TariffID,
     data_edit = isEdit ? "true" : "false"
 }))

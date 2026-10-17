@@ -315,6 +315,11 @@ namespace tahsinERP.Controllers.HR
             existingHistory.EmployeeID = history.EmployeeID;
             existingHistory.FromOrgUnitID = history.FromOrgUnitID;
             existingHistory.FromPositionID = history.FromPositionID;
+            // Formadagi tur va "Yangi bo'lim/lavozim" avval saqlanmasdi; yangi qiymatlar faqat ko'chirishda ma'noli
+            bool isTransfer = history.ActionType == "Transfer";
+            existingHistory.ActionType = history.ActionType;
+            existingHistory.ToOrgUnitID = isTransfer ? history.ToOrgUnitID : null;
+            existingHistory.ToPositionID = isTransfer ? history.ToPositionID : null;
             existingHistory.EffectiveDateFrom = history.EffectiveDateFrom;
             existingHistory.EffectiveDateTo = effectiveDateTo;
             existingHistory.Reason = history.Reason;

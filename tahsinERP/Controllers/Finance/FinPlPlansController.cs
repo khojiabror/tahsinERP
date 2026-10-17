@@ -3,10 +3,11 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Controllers;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System.IO;
 using System.Web;
 
@@ -362,27 +363,26 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(p => p.FIN_PL_ITEMS.SortOrder)
                     .ToList();
 
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage())
+                using (var workbook = new XLWorkbook())
                 {
-                    var worksheet = package.Workbook.Worksheets.Add("P&L Plans");
-                    worksheet.Cells[1, 1].Value = "Kod";
-                    worksheet.Cells[1, 2].Value = "Nomi";
-                    worksheet.Cells[1, 3].Value = "Reja summasi";
+                    var worksheet = workbook.Worksheets.Add("P&L Plans");
+                    worksheet.Cell(1, 1).Value = "Kod";
+                    worksheet.Cell(1, 2).Value = "Nomi";
+                    worksheet.Cell(1, 3).Value = "Reja summasi";
 
                     int row = 2;
                     foreach (var plan in plans)
                     {
-                        worksheet.Cells[row, 1].Value = plan.FIN_PL_ITEMS.Code;
-                        worksheet.Cells[row, 2].Value = plan.FIN_PL_ITEMS.Name;
-                        worksheet.Cells[row, 3].Value = plan.AmountPlan;
+                        worksheet.Cell(row, 1).Value = plan.FIN_PL_ITEMS.Code;
+                        worksheet.Cell(row, 2).Value = plan.FIN_PL_ITEMS.Name;
+                        worksheet.Cell(row, 3).Value = plan.AmountPlan;
                         row++;
                     }
 
-                    worksheet.Cells.AutoFitColumns();
+                    worksheet.Columns().AdjustToContents();
 
                     var stream = new MemoryStream();
-                    package.SaveAs(stream);
+                    workbook.SaveAs(stream);
                     stream.Position = 0;
 
                     return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Finance;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 
@@ -37,28 +37,14 @@ namespace tahsinERP.Controllers.HR
             var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
             var viewModel = new HrDashboardViewModel();
-            var latestOpeningDate = await db.FIN_BALANCE_SNAPSHOTS
-                .Where(s => s.SourceType == "OpeningBalance" && s.SnapshotDate <= periodEnd)
-                .OrderByDescending(s => s.SnapshotDate)
-                .Select(s => (DateTime?)s.SnapshotDate)
-                .FirstOrDefaultAsync();
-            var openingPayrollTotal = 0m;
-            var openingPayrollPaid = 0m;
-            if (latestOpeningDate.HasValue)
-            {
-                try
-                {
-                    var openingPayrollRows = db.Database.SqlQuery<OpeningPayrollRow>(
-                        "SELECT TotalAmount, PaidAmount FROM FIN_OPENING_CONTRACT_BALANCES WHERE SnapshotDate = @p0 AND BalanceType = 3",
-                        new SqlParameter("@p0", latestOpeningDate.Value.Date)).ToList();
-                    openingPayrollTotal = openingPayrollRows.Sum(x => x.TotalAmount);
-                    openingPayrollPaid = openingPayrollRows.Sum(x => x.PaidAmount);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Trace.TraceError("[HrDashboard] Ochilish qoldig'ini o'qishda xato: " + ex);
-                }
-            }
+            // Oylik ochilish qoldig'i — Finance qoidasi bilan (avval xom SQL + xatoni yutuvchi try/catch, HRM-D15)
+            var balances = new CounterpartyBalanceService(db);
+            var latestOpeningDate = balances.LatestOpeningDate(periodEnd, CounterpartyBalanceService.BalanceTypePayroll);
+            var openingPayrollRows = latestOpeningDate.HasValue
+                ? balances.OpeningContractBalances(latestOpeningDate.Value, CounterpartyBalanceService.BalanceTypePayroll)
+                : new List<OpeningContractBalance>();
+            var openingPayrollTotal = openingPayrollRows.Sum(x => x.TotalAmount);
+            var openingPayrollPaid = openingPayrollRows.Sum(x => x.PaidAmount);
 
             // Jami xodimlar (o'chirilganlar hisobga olinmaydi)
             viewModel.TotalHeadcount = await db.HR_EMPLOYEES.CountAsync(e => e.IsActive && e.IsDeleted != true);
@@ -105,22 +91,8 @@ namespace tahsinERP.Controllers.HR
                             (orgUnitId == null || e.HR_EMPLOYEES.OrgUnitID == orgUnitId.Value))
                 .SumAsync(e => (decimal?)e.Quantity) ?? 0m;
 
-            // To'langan oylik: FinTransactions (xodimga bog'langan) + HR_PAYROLL postlari
-            var salaryCategoryIds = db.FIN_CATEGORIES
-                .Where(c => c.IsActive &&
-                            (c.IsDeleted == null || c.IsDeleted == false) &&
-                            c.Name != null &&
-                            c.Name.ToLower().Contains("oylik"))
-                .Select(c => c.ID);
-
-            var periodEndExclusive = periodEnd.AddDays(1);
-            var directSalaryPaid = await db.FIN_TRANSACTIONS
-                .Where(t => (t.IsDeleted == null || t.IsDeleted == false) &&
-                            t.Direction == 2 &&
-                            t.TxnDate >= periodStart && t.TxnDate < periodEndExclusive &&
-                            (salaryCategoryIds.Contains(t.CategoryID) ||
-                             (t.CounterpartyType.HasValue && t.CounterpartyType.Value == 6) ||
-                             t.SourceDocType == "HR_PAYROLL"))
+            // To'langan oylik: Finance'ning yagona qoidasi ("oylik" toifasi, xodim kontragenti yoki HR_PAYROLL chiqimi, HRM-D16)
+            var directSalaryPaid = await FinQueries.PayrollPayments(db, FinQueries.SalaryCategoryIds(db), periodStart, periodEnd)
                 .SumAsync(t => (decimal?)t.Amount) ?? 0m;
 
             viewModel.TotalSalaryPaidFromFin = openingPayrollPaid + directSalaryPaid;
@@ -187,12 +159,6 @@ namespace tahsinERP.Controllers.HR
             }
             base.Dispose(disposing);
         }
-    }
-
-    internal class OpeningPayrollRow
-    {
-        public decimal TotalAmount { get; set; }
-        public decimal PaidAmount { get; set; }
     }
 }
 

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using OfficeOpenXml;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services.Finance
@@ -48,9 +49,9 @@ namespace tahsinERP.Services.Finance
         /// <summary>Import shabloni: namuna qatori + Hisoblar/Kategoriyalar/Valyutalar ma'lumotnoma varaqlari.</summary>
         public static byte[] Template(DBTHSNEntities db)
         {
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var worksheet = package.Workbook.Worksheets.Add("Tranzaksiyalar");
+                var worksheet = workbook.Worksheets.Add("Tranzaksiyalar");
                 var headers = new[]
                 {
                     "Sana (DD.MM.YYYY)", "Vaqt (HH:mm)", "Hisob kodi", "Kategoriya nomi", "Yo'nalish (1=Kirim, 2=Chiqim)", "Summa",
@@ -59,18 +60,16 @@ namespace tahsinERP.Services.Finance
                     "Miqdor (ixtiyoriy)", "Narx birligi (ixtiyoriy)"
                 };
                 for (int c = 0; c < headers.Length; c++)
-                    worksheet.Cells[1, c + 1].Value = headers[c];
+                    worksheet.Cell(1, c + 1).Value = headers[c];
 
-                using (var range = worksheet.Cells[1, 1, 1, headers.Length])
-                {
-                    range.Style.Font.Bold = true;
-                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                }
+                var range = worksheet.Range(1, 1, 1, headers.Length);
+                range.Style.Font.Bold = true;
+                range.Style.Fill.PatternType = XLFillPatternValues.Solid;
+                range.Style.Fill.BackgroundColor = XLColor.FromColor(System.Drawing.Color.LightGray);
 
                 var sample = new[] { "01.11.2025", "10:30", "9000", "Sotuv", "1", "1000000.00", "UZS", "Mijoz nomi", "Mahsulot sotuvi", "K-001", "Qo'shimcha izoh" };
                 for (int c = 0; c < sample.Length; c++)
-                    worksheet.Cells[2, c + 1].Value = sample[c];
+                    worksheet.Cell(2, c + 1).Value = sample[c];
 
                 var accounts = db.FIN_ACCOUNTS.AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Code)
                     .Select(a => new { a.Code, a.Name }).ToList();
@@ -79,57 +78,53 @@ namespace tahsinERP.Services.Finance
                 var currencies = db.CURRENCIES.AsNoTracking().OrderBy(c => c.Shortname)
                     .Select(c => c.Shortname).ToList();
 
-                var accountsSheet = package.Workbook.Worksheets.Add("Hisoblar");
-                accountsSheet.Cells[1, 1].Value = "Kod";
-                accountsSheet.Cells[1, 2].Value = "Nomi";
+                var accountsSheet = workbook.Worksheets.Add("Hisoblar");
+                accountsSheet.Cell(1, 1).Value = "Kod";
+                accountsSheet.Cell(1, 2).Value = "Nomi";
                 for (int i = 0; i < accounts.Count; i++)
                 {
-                    accountsSheet.Cells[i + 2, 1].Value = accounts[i].Code;
-                    accountsSheet.Cells[i + 2, 2].Value = accounts[i].Name;
+                    accountsSheet.Cell(i + 2, 1).Value = accounts[i].Code;
+                    accountsSheet.Cell(i + 2, 2).Value = accounts[i].Name;
                 }
 
-                var categoriesSheet = package.Workbook.Worksheets.Add("Kategoriyalar");
-                categoriesSheet.Cells[1, 1].Value = "Nomi";
+                var categoriesSheet = workbook.Worksheets.Add("Kategoriyalar");
+                categoriesSheet.Cell(1, 1).Value = "Nomi";
                 for (int i = 0; i < categories.Count; i++)
-                    categoriesSheet.Cells[i + 2, 1].Value = categories[i];
+                    categoriesSheet.Cell(i + 2, 1).Value = categories[i];
 
-                var currenciesSheet = package.Workbook.Worksheets.Add("Valyutalar");
-                currenciesSheet.Cells[1, 1].Value = "Qisqa nomi";
-                currenciesSheet.Cells[1, 2].Value = "To'liq nomi";
+                var currenciesSheet = workbook.Worksheets.Add("Valyutalar");
+                currenciesSheet.Cell(1, 1).Value = "Qisqa nomi";
+                currenciesSheet.Cell(1, 2).Value = "To'liq nomi";
                 for (int i = 0; i < currencies.Count; i++)
                 {
-                    currenciesSheet.Cells[i + 2, 1].Value = currencies[i];
-                    currenciesSheet.Cells[i + 2, 2].Value = currencies[i];
+                    currenciesSheet.Cell(i + 2, 1).Value = currencies[i];
+                    currenciesSheet.Cell(i + 2, 2).Value = currencies[i];
                 }
 
-                worksheet.Cells.AutoFitColumns();
-                accountsSheet.Cells.AutoFitColumns();
-                categoriesSheet.Cells.AutoFitColumns();
-                currenciesSheet.Cells.AutoFitColumns();
+                worksheet.Columns().AdjustToContents();
+                accountsSheet.Columns().AdjustToContents();
+                categoriesSheet.Columns().AdjustToContents();
+                currenciesSheet.Columns().AdjustToContents();
 
-                return package.GetAsByteArray();
+                return workbook.ToByteArray();
             }
         }
 
         /// <summary>Sana katagi: DateTime, Excel seriya raqami yoki matn. Bo'sh katak — <paramref name="empty"/> = true.</summary>
-        private static bool TryReadDate(ExcelRange cell, out DateTime date, out bool empty, out string raw)
+        private static bool TryReadDate(IXLCell cell, out DateTime date, out bool empty, out string raw)
         {
             date = default(DateTime);
             empty = false;
             raw = null;
 
-            if (cell.Value is DateTime dt)
-            {
-                date = dt;
-                return true;
-            }
-            if (cell.Value is double serial)
+            var value = cell.GetRawValue();
+            if (value is double serial)
             {
                 date = DateTime.FromOADate(serial);
                 return true;
             }
 
-            raw = (cell.Value != null ? cell.Value.ToString() : cell.Text)?.Trim();
+            raw = (value != null ? value.ToString() : cell.GetFormattedString())?.Trim();
             if (string.IsNullOrEmpty(raw))
             {
                 empty = true;
@@ -141,14 +136,16 @@ namespace tahsinERP.Services.Finance
         }
 
         /// <summary>Vaqt katagi (ixtiyoriy): DateTime, kun ulushi (0..1) yoki "HH:mm" matni.</summary>
-        private static DateTime ApplyTime(DateTime date, ExcelRange cell)
+        private static DateTime ApplyTime(DateTime date, IXLCell cell)
         {
-            if (cell.Value is DateTime timeValue)
-                return date.Date.Add(timeValue.TimeOfDay);
-            if (cell.Value is double fraction && fraction < 1.0)
-                return date.Date.Add(TimeSpan.FromDays(fraction));
+            var value = cell.GetRawValue();
+            if (value is double serial)
+            {
+                // Vaqt — kun ulushi (0..1); to'liq sana-vaqt bo'lsa — uning vaqt qismi
+                return date.Date.Add(serial < 1.0 ? TimeSpan.FromDays(serial) : DateTime.FromOADate(serial).TimeOfDay);
+            }
 
-            var text = (cell.Value != null ? cell.Value.ToString() : cell.Text)?.Trim();
+            var text = (value != null ? value.ToString() : cell.GetFormattedString())?.Trim();
             return !string.IsNullOrEmpty(text) && TimeSpan.TryParse(text, out var time)
                 ? date.Date.Add(time)
                 : date;
@@ -172,10 +169,10 @@ namespace tahsinERP.Services.Finance
                 amount.ToString("0.####", CultureInfo.InvariantCulture), currencyId);
         }
 
-        public static FinTransactionImportResult Parse(ExcelWorksheet worksheet, DBTHSNEntities db, int currentUserId)
+        public static FinTransactionImportResult Parse(IXLWorksheet worksheet, DBTHSNEntities db, int currentUserId)
         {
             var result = new FinTransactionImportResult();
-            var rowCount = worksheet.Dimension?.Rows ?? 0;
+            var rowCount = worksheet.LastRowNumber();
 
             // FIN-B23: GroupBy().First() — takroriy kod/nom bo'lsa butun import yiqilmaydi
             var accounts = db.FIN_ACCOUNTS.AsNoTracking().Where(a => a.IsActive)
@@ -201,43 +198,43 @@ namespace tahsinERP.Services.Finance
             {
                 try
                 {
-                    if (!TryReadDate(worksheet.Cells[row, 1], out var txnDate, out var empty, out var rawDate))
+                    if (!TryReadDate(worksheet.Cell(row, 1), out var txnDate, out var empty, out var rawDate))
                     {
                         if (empty) continue; // bo'sh qator
                         result.Errors.Add($"Qator {row}: Sana noto'g'ri format - {rawDate}");
                         continue;
                     }
-                    txnDate = ApplyTime(txnDate, worksheet.Cells[row, 2]);
+                    txnDate = ApplyTime(txnDate, worksheet.Cell(row, 2));
 
-                    var accountCode = worksheet.Cells[row, 3].Text?.Trim();
+                    var accountCode = worksheet.Cell(row, 3).GetFormattedString()?.Trim();
                     if (string.IsNullOrEmpty(accountCode) || !accounts.TryGetValue(accountCode, out var account))
                     {
                         result.Errors.Add($"Qator {row}: Hisob kodi topilmadi - {accountCode}");
                         continue;
                     }
 
-                    var categoryName = worksheet.Cells[row, 4].Text?.Trim();
+                    var categoryName = worksheet.Cell(row, 4).GetFormattedString()?.Trim();
                     if (string.IsNullOrEmpty(categoryName) || !categories.TryGetValue(categoryName, out var categoryId))
                     {
                         result.Errors.Add($"Qator {row}: Kategoriya topilmadi - {categoryName}");
                         continue;
                     }
 
-                    var directionStr = worksheet.Cells[row, 5].Text?.Trim();
+                    var directionStr = worksheet.Cell(row, 5).GetFormattedString()?.Trim();
                     if (!byte.TryParse(directionStr, out var direction) || (direction != 1 && direction != 2))
                     {
                         result.Errors.Add($"Qator {row}: Yo'nalish noto'g'ri (1 yoki 2 bo'lishi kerak) - {directionStr}");
                         continue;
                     }
 
-                    var amountStr = worksheet.Cells[row, 6].Text?.Trim();
+                    var amountStr = worksheet.Cell(row, 6).GetFormattedString()?.Trim();
                     if (!TryDecimal(amountStr, out var amount))
                     {
                         result.Errors.Add($"Qator {row}: Summa noto'g'ri - {amountStr}");
                         continue;
                     }
 
-                    var currencyShortname = worksheet.Cells[row, 7].Text?.Trim();
+                    var currencyShortname = worksheet.Cell(row, 7).GetFormattedString()?.Trim();
                     if (string.IsNullOrEmpty(currencyShortname) || !currencies.TryGetValue(currencyShortname, out var currencyId))
                     {
                         result.Errors.Add($"Qator {row}: Valyuta topilmadi - {currencyShortname}");
@@ -259,12 +256,12 @@ namespace tahsinERP.Services.Finance
                         Direction = direction,
                         Amount = amount,
                         CurrencyID = currencyId,
-                        CounterpartyName = NullIfEmpty(worksheet.Cells[row, 8].Text?.Trim()),
-                        Purpose = NullIfEmpty(worksheet.Cells[row, 9].Text?.Trim()),
-                        ContractNo = NullIfEmpty(worksheet.Cells[row, 10].Text?.Trim()),
-                        Comment = NullIfEmpty(worksheet.Cells[row, 11].Text?.Trim()),
-                        Qty = TryDecimal(worksheet.Cells[row, 12].Text?.Trim(), out var qty) ? qty : (decimal?)null,
-                        PricePerUnit = TryDecimal(worksheet.Cells[row, 13].Text?.Trim(), out var price) ? price : (decimal?)null,
+                        CounterpartyName = NullIfEmpty(worksheet.Cell(row, 8).GetFormattedString()?.Trim()),
+                        Purpose = NullIfEmpty(worksheet.Cell(row, 9).GetFormattedString()?.Trim()),
+                        ContractNo = NullIfEmpty(worksheet.Cell(row, 10).GetFormattedString()?.Trim()),
+                        Comment = NullIfEmpty(worksheet.Cell(row, 11).GetFormattedString()?.Trim()),
+                        Qty = TryDecimal(worksheet.Cell(row, 12).GetFormattedString()?.Trim(), out var qty) ? qty : (decimal?)null,
+                        PricePerUnit = TryDecimal(worksheet.Cell(row, 13).GetFormattedString()?.Trim(), out var price) ? price : (decimal?)null,
                         SourceDocType = FinSelectLists.Manual,
                         CreatedByUserID = currentUserId,
                         CreatedDT = DateTime.Now

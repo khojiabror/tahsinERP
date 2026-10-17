@@ -29,10 +29,13 @@ namespace tahsinERP.Models
         private static long _permissionsVersion;
 
         #region Cache Keys
-        private static string SnapshotKey(string username) => "PermSnap_" + username.ToLowerInvariant();
-        private const string ModulesKey = "PermModules";
-        private static string GetUserFullNameCacheKey(string username) => $"UserFullName_{username}";
-        private static string GetUserPositionCacheKey(string username) => $"UserPosition_{username}";
+        // T = tenant prefiksi ("" bitta-baza rejimida) — HttpRuntime.Cache barcha tenantlar uchun umumiy,
+        // ikki tenantdagi bir xil "admin" huquqlari/modullari aralashib ketmasligi kerak.
+        private static string T => tahsinERP.Configuration.Tenancy.TenantContext.CacheKeyPrefix;
+        private static string SnapshotKey(string username) => "PermSnap_" + T + username.ToLowerInvariant();
+        private static string ModulesKey => "PermModules" + T;
+        private static string GetUserFullNameCacheKey(string username) => $"UserFullName_{T}{username}";
+        private static string GetUserPositionCacheKey(string username) => $"UserPosition_{T}{username}";
         #endregion
 
         #region Cache Helper
@@ -71,10 +74,11 @@ namespace tahsinERP.Models
                 if (authCookie != null)
                 {
                     var authTicket = FormsAuthentication.Decrypt(authCookie.Value);
-                    if (authTicket != null && !string.IsNullOrEmpty(authTicket.UserData))
+                    var ticketName = authTicket != null ? tahsinERP.Configuration.Tenancy.TenantHttp.StripTenant(authTicket.UserData) : null;
+                    if (!string.IsNullOrEmpty(ticketName))
                     {
-                        SetCache(cacheKey, authTicket.UserData);
-                        return authTicket.UserData;
+                        SetCache(cacheKey, ticketName);
+                        return ticketName;
                     }
                 }
             }
@@ -170,27 +174,36 @@ namespace tahsinERP.Models
             return IsInRole(username, "Developer");
         }
 
+        /// <summary>Admin yoki Developer roli (modullarda 13+ joyda qo'lda yozilgan tekshiruv).</summary>
+        public static bool IsAdminOrDeveloper(string username)
+        {
+            return IsInRole(username, "Admin") || IsInRole(username, "Developer");
+        }
+
         /// <summary>Litsenziyani boshqara oladigan rol (Admin yoki Developer).</summary>
         public static bool CanManageLicense(string username)
         {
-            return IsInRole(username, "Admin") || IsInRole(username, "Developer");
+            return IsAdminOrDeveloper(username);
         }
 
         /// <summary>Ko'rish huquqi (Module nomi bo'yicha)</summary>
         public static bool IsViewPermitted(string username, string moduleName)
         {
+            if (!tahsinERP.Services.Editions.EditionGate.IsControllerAllowed(moduleName)) return false; // paketda yo'q — menyu yashiriladi
             return Lookup(username, ModuleKey(moduleName)).View;
         }
 
         /// <summary>Ko'rish huquqi (Controller/Action bo'yicha)</summary>
         public static bool IsViewPermitted(string username, string controller, string action)
         {
+            if (!tahsinERP.Services.Editions.EditionGate.IsControllerAllowed(controller)) return false; // paketda yo'q — menyu yashiriladi
             return Lookup(username, ActionKey(controller, action, null)).View;
         }
 
         /// <summary>Ko'rish huquqi (Controller/Action/Parameter bo'yicha)</summary>
         public static bool IsViewPermitted(string username, string controller, string action, string parameter)
         {
+            if (!tahsinERP.Services.Editions.EditionGate.IsControllerAllowed(controller)) return false; // paketda yo'q — menyu yashiriladi
             return Lookup(username, ActionKey(controller, action, parameter)).View;
         }
 
