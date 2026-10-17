@@ -30,6 +30,10 @@
                 </div>
             </div>
             <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
@@ -169,16 +173,17 @@
                                         </table>
                                     </div>
 
-                                    @if (Model.WRHS_EXPENSE_DOCS != null && Model.WRHS_EXPENSE_DOCS.Any())
+                                    @{ var expenseDocIds = ViewBag.DocIds as List<int> ?? new List<int>(); }
+                                    @if (expenseDocIds.Any())
                                     {
                                         <hr />
                                         <h5>Chiqim hujjatlari</h5>
                                         <ul>
-                                            @foreach (var doc in Model.WRHS_EXPENSE_DOCS)
+                                            @foreach (var docId in expenseDocIds)
                                             {
                                                 <li>
-                                                    <a href="@Url.Action("DownloadDoc", "Expenses", new { id = doc.ID })" target="_blank">
-                                                        <i class="bx bx-file"></i> Hujjat #@doc.ID
+                                                    <a href="@Url.Action("DownloadDoc", "Expenses", new { id = docId })" target="_blank">
+                                                        <i class="bx bx-file"></i> Hujjat #@docId
                                                     </a>
                                                 </li>
                                             }

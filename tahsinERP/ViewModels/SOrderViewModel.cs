@@ -90,6 +90,14 @@ namespace tahsinERP.ViewModels
         public string UnitName { get; set; }
     }
 
+    /// <summary>Buyurtma qatori bo'yicha reja/yetkazilgan jami (CRM-B09: avval anonim tip — view'da doim null).</summary>
+    public class ScheduleSummaryDto
+    {
+        public int SOrderProductID { get; set; }
+        public decimal TotalPlanned { get; set; }
+        public decimal TotalShipped { get; set; }
+    }
+
     public class DeliveryScheduleItem
     {
         public long? ID { get; set; }

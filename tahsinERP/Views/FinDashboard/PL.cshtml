@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "Foyda va zarar hisoboti";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var plData = ViewBag.PLData as List<tahsinERP.Controllers.Finance.PLItemData> ?? new List<tahsinERP.Controllers.Finance.PLItemData>();
+    var plData = ViewBag.PLData as List<tahsinERP.ViewModels.Finance.PLItemData> ?? new List<tahsinERP.ViewModels.Finance.PLItemData>();
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))

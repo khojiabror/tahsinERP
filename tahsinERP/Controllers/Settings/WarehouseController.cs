@@ -8,9 +8,11 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Controllers;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.Settings
 {
+    [Permission]
     public class WarehouseController : Controller
     {
         // Olish so'rovi: Warehouse
@@ -22,17 +24,14 @@ namespace tahsinERP.Controllers.Settings
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                // MRP foydalanuvchisi va sex bitta so'rovda (avval har ombor uchun 2 ta Reference().Load() — SRM-P13)
                 var list = await db.WAREHOUSES
-        .Where(w => w.IsDeleted != true)
-        .OrderBy(w => w.WHName)
-        .ToListAsync();
-
-                // Yuklash related entities
-                foreach (var w in list)
-                {
-                    db.Entry(w).Reference(x => x.USER).Load();
-                    db.Entry(w).Reference(x => x.SHOP).Load(); // SHOP null bo'lsa ham ok
-                }
+                    .AsNoTracking()
+                    .Include(w => w.USER)
+                    .Include(w => w.SHOP)
+                    .Where(w => w.IsDeleted != true)
+                    .OrderBy(w => w.WHName)
+                    .ToListAsync();
 
                 ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "Warehouse", "Index");
                 ViewBag.DlocEnabled = DlocFifoSchema.IsEnabled(db);
@@ -221,8 +220,50 @@ namespace tahsinERP.Controllers.Settings
                     return HttpNotFound();
                 }
 
+                var blockReason = await GetDeleteBlockReasonAsync(db, warehouse.ID);
+                if (blockReason != null)
+                {
+                    TempData["Error"] = blockReason;
+                    return RedirectToAction("Index");
+                }
+
                 return View(warehouse);
             }
+        }
+
+        /// <summary>
+        /// SRM-B11: qoldig'i, DLOC lotlari yoki yakunlanmagan o'tkazmalari bor omborni o'chirib bo'lmaydi —
+        /// aks holda qoldiq "yo'qoladi" va kutilayotgan kirimlarni hech kim qabul qila olmaydi.
+        /// </summary>
+        private static async Task<string> GetDeleteBlockReasonAsync(DBTHSNEntities db, int warehouseId)
+        {
+            var stockQty = await db.PRODUCT_STOCKS
+                .Where(s => s.WHID == warehouseId && s.Amount > 0)
+                .Select(s => (double?)s.Amount)
+                .SumAsync() ?? 0;
+            if (stockQty > 0.000001)
+                return $"Omborda qoldiq bor ({stockQty:N2}). Avval qoldiqni boshqa omborga o'tkazing yoki inventarizatsiya qiling.";
+
+            if (DlocFifoSchema.IsEnabled(db))
+            {
+                var dlocQty = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: false)
+                    .Sum(l => DlocFifoDataAccess.GetLocationCurrentQty(db, l.ID));
+                if (dlocQty > 0.000001m)
+                    return $"Ombor DLOC joylarida lot qoldig'i bor ({dlocQty:N2}).";
+            }
+
+            var pendingIncomes = await db.INCOMES.CountAsync(i =>
+                i.ReceivingWHID == warehouseId && i.IsDeleted != true && i.RecieveStatus != true);
+            if (pendingIncomes > 0)
+                return $"Omborga {pendingIncomes} ta qabul qilinmagan kirim bor. Avval ularni qabul qiling yoki rad eting.";
+
+            var pendingTransfers = await db.EXPENSES.CountAsync(e =>
+                e.IsDeleted != true && e.SendStatus != true && e.ReceiverWhID != null
+                && (e.SenderWHID == warehouseId || e.ReceiverWhID == warehouseId));
+            if (pendingTransfers > 0)
+                return $"Ombor ishtirokidagi {pendingTransfers} ta yakunlanmagan o'tkazma bor.";
+
+            return null;
         }
 
         // POST so'rovi: Warehouse/o'chirish/5
@@ -235,7 +276,12 @@ namespace tahsinERP.Controllers.Settings
                 try
                 {
                     var warehouse = await db.WAREHOUSES.FindAsync(id);
-                    if (warehouse != null)
+                    var blockReason = warehouse != null ? await GetDeleteBlockReasonAsync(db, warehouse.ID) : null;
+                    if (blockReason != null)
+                    {
+                        TempData["Error"] = blockReason;
+                    }
+                    else if (warehouse != null)
                     {
                         // Soft o'chirish + nullable ombor havolalarini tozalash
                         warehouse.IsDeleted = true;

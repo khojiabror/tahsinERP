@@ -4,9 +4,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString(), true);
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -130,47 +130,7 @@
                                         </table>
                                     </div>
 
-                                    <!-- Pagination -->
-                                    @if (ViewBag.TotalPages > 1)
-                                    {
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <span class="text-muted">
-                                                    Sahifa @ViewBag.CurrentPage dan @ViewBag.TotalPages (@ViewBag.TotalItems ta yozuv)
-                                                </span>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <nav>
-                                                    <ul class="pagination justify-content-end">
-                                                        @if (ViewBag.CurrentPage > 1)
-                                                        {
-                                                            <li class="page-item">
-                                                                <a class="page-link" href="@Url.Action("Index", "SalesSF", new { searchTerm = ViewBag.SearchTerm, invoiceID = ViewBag.InvoiceID, customerID = ViewBag.CustomerID, statusCode = ViewBag.StatusCode, sortOrder = ViewBag.SortOrder, page = ViewBag.CurrentPage - 1 })">
-                                                                    Oldingi
-                                                                </a>
-                                                            </li>
-                                                        }
-                                                        @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
-                                                        {
-                                                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                                                <a class="page-link" href="@Url.Action("Index", "SalesSF", new { searchTerm = ViewBag.SearchTerm, invoiceID = ViewBag.InvoiceID, customerID = ViewBag.CustomerID, statusCode = ViewBag.StatusCode, sortOrder = ViewBag.SortOrder, page = i })">
-                                                                    @i
-                                                                </a>
-                                                            </li>
-                                                        }
-                                                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                                                        {
-                                                            <li class="page-item">
-                                                                <a class="page-link" href="@Url.Action("Index", "SalesSF", new { searchTerm = ViewBag.SearchTerm, invoiceID = ViewBag.InvoiceID, customerID = ViewBag.CustomerID, statusCode = ViewBag.StatusCode, sortOrder = ViewBag.SortOrder, page = ViewBag.CurrentPage + 1 })">
-                                                                    Keyingi
-                                                                </a>
-                                                            </li>
-                                                        }
-                                                    </ul>
-                                                </nav>
-                                            </div>
-                                        </div>
-                                    }
+                                    @Html.Partial("~/Views/SalesInvoices/_Pager.cshtml")
                                 </div>
                             </div>
                         </div>
@@ -179,9 +139,5 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 

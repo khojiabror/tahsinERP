@@ -1,67 +1,33 @@
-using Newtonsoft.Json;
-using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using tahsinERP.Models;
 using tahsinERP.Filters;
+using tahsinERP.Models;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Crm;
 
 namespace tahsinERP.Controllers
 {
-    public class CustomerController : Controller
+    [Permission]
+    public class CustomerController : BaseController
     {
-        
-        private string supplierName = "";
         // Olish so'rovi: Customer
-        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string sortOrder, int? page, int? pageSize)
+        public async Task<ActionResult> Index(string searchTerm, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.CUSTOMERS.Where(x => x.IsDeleted == false);
+                var query = BuildIndexQuery(db, searchTerm, sortOrder);
 
-                // Search filtrlash
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    query = query.Where(c => 
-                        c.Name.Contains(searchTerm) || 
-                        (c.Email != null && c.Email.Contains(searchTerm)) || 
-                        (c.DUNS != null && c.DUNS.Contains(searchTerm)) ||
-                        (c.Type != null && c.Type.Contains(searchTerm)));
-                }
-
-                // Sorting
-                switch (sortOrder)
-                {
-                    case "name_desc":
-                        query = query.OrderByDescending(c => c.Name);
-                        break;
-                    case "name":
-                        query = query.OrderBy(c => c.Name);
-                        break;
-                    case "email":
-                        query = query.OrderBy(c => c.Email);
-                        break;
-                    case "email_desc":
-                        query = query.OrderByDescending(c => c.Email);
-                        break;
-                    default:
-                        query = query.OrderBy(c => c.Name);
-                        break;
-                }
-
-                // Pagination
-                int currentPage = page ?? 1;
-                int itemsPerPage = pageSize ?? 25;
+                // Server tomonida sahifalash — view'da pager va qidiruv bor (CRM-B05: avval faqat 25 ta ko'rinardi)
+                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
                 int totalItems = await query.CountAsync();
-                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
+                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
 
                 var customers = await query
                     .Skip((currentPage - 1) * itemsPerPage)
@@ -79,32 +45,51 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Navigation actions
-        public ActionResult ViewOrders(int? customerId)
+        /// <summary>Qidiruvga mos barcha mijozlar Excel'da.</summary>
+        public ActionResult ExportExcel(string searchTerm, string sortOrder)
         {
-            if (customerId == null)
+            using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                var rows = BuildIndexQuery(db, searchTerm, sortOrder).ToList();
+                var bytes = ExcelExport.Create("Haridorlar", rows,
+                    ExcelExport.Col<CUSTOMER>("Haridor", c => c.Name),
+                    ExcelExport.Col<CUSTOMER>("Elektron manzil", c => c.Email),
+                    ExcelExport.Col<CUSTOMER>("DUNS", c => c.DUNS),
+                    ExcelExport.Col<CUSTOMER>("Turi", c => c.Type),
+                    ExcelExport.Col<CUSTOMER>("Davlat", c => c.Country),
+                    ExcelExport.Col<CUSTOMER>("Shahar", c => c.City),
+                    ExcelExport.Col<CUSTOMER>("Manzil", c => c.Address),
+                    ExcelExport.Col<CUSTOMER>("Telefon", c => c.Telephone),
+                    ExcelExport.Col<CUSTOMER>("Mas'ul shaxs", c => c.ContactPersonName),
+                    ExcelExport.Col<CUSTOMER>("Direktor", c => c.DirectorName));
+                return File(bytes, ExcelExport.ContentType, $"Haridorlar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
-            return RedirectToAction("Index", "SOrder", new { customerID = customerId });
         }
 
-        public ActionResult ViewContracts(int? customerId)
+        private static IQueryable<CUSTOMER> BuildIndexQuery(DBTHSNEntities db, string searchTerm, string sortOrder)
         {
-            if (customerId == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            return RedirectToAction("Index", "SContract", new { customerID = customerId });
-        }
+            var query = db.CUSTOMERS.AsNoTracking().Where(x => x.IsDeleted == false);
 
-        public ActionResult ViewInvoices(int? customerId)
-        {
-            if (customerId == null)
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                query = query.Where(c =>
+                    c.Name.Contains(searchTerm) ||
+                    (c.Email != null && c.Email.Contains(searchTerm)) ||
+                    (c.DUNS != null && c.DUNS.Contains(searchTerm)) ||
+                    (c.Type != null && c.Type.Contains(searchTerm)));
             }
-            return RedirectToAction("Index", "SalesInvoices", new { customerID = customerId });
+
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    return query.OrderByDescending(c => c.Name);
+                case "email":
+                    return query.OrderBy(c => c.Email);
+                case "email_desc":
+                    return query.OrderByDescending(c => c.Email);
+                default:
+                    return query.OrderBy(c => c.Name);
+            }
         }
 
 
@@ -117,22 +102,16 @@ namespace tahsinERP.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
-                var customer = db.CUSTOMERS
-                    .Include(c => c.S_ORDERS)
-                    .Include(c => c.S_CONTRACTS)
-                    .FirstOrDefault(c => c.ID == Id);
+                var customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == Id);
                 if (customer == null)
                 {
                     return HttpNotFound();
                 }
 
-                // Olish counts uchun navigation
-                ViewBag.OrdersCount = customer.S_ORDERS != null ? customer.S_ORDERS.Where(o => o.IsDeleted == false).Count() : 0;
-                ViewBag.ContractsCount = customer.S_CONTRACTS != null ? customer.S_CONTRACTS.Where(c => c.IsDeleted == false).Count() : 0;
-                
-                // Olish invoices count
-                var invoicesCount = db.SALES_INVOICES.Where(i => i.CustomerID == Id).Count();
-                ViewBag.InvoicesCount = invoicesCount;
+                // Faqat sonlar kerak — to'liq kolleksiyalar yuklanmaydi; bekor qilingan invoyslar sanalmaydi (CRM-P09)
+                ViewBag.OrdersCount = db.S_ORDERS.Count(o => o.CustomerID == Id && (o.IsDeleted == false || o.IsDeleted == null));
+                ViewBag.ContractsCount = db.S_CONTRACTS.Count(c => c.CustomerID == Id && c.IsDeleted == false);
+                ViewBag.InvoicesCount = db.SALES_INVOICES.Active().Count(i => i.CustomerID == Id);
 
                 return View(customer);
             }
@@ -159,7 +138,7 @@ namespace tahsinERP.Controllers
                         db.CUSTOMERS.Add(customer);
                         db.SaveChanges();
 
-                        var userEmail = User.Identity.Name;
+                        var userEmail = CurrentUserName;
                         LogHelper.LogToDatabase(userEmail, "CustomerController", $"{customer.Name} Mijozni yaratdi");
 
                         return RedirectToAction("Index");
@@ -167,7 +146,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError(ex.Message, ex);
+                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
                 }
 
                 ViewBag.Customer = ConfigurationManager.AppSettings["Customer"]?.Split(',').ToList() ?? new List<string>();
@@ -207,7 +186,7 @@ namespace tahsinERP.Controllers
                     db.Entry(customer).State = EntityState.Modified;
                     db.SaveChanges();
 
-                    var userEmail = User.Identity.Name;
+                    var userEmail = CurrentUserName;
                     LogHelper.LogToDatabase(userEmail, "CustomerController", $"{customer.Name} Mijoz ni tahrirladi");
 
                     return RedirectToAction("Index");
@@ -243,165 +222,22 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 CUSTOMER customer = db.CUSTOMERS.Find(id);
-                if (customer != null)
+                if (customer == null)
                 {
-                    customer.IsDeleted = true;
-                    db.Entry(customer).State = System.Data.Entity.EntityState.Modified;
-                    db.SaveChanges();
+                    // Avval NullReferenceException (CRM-S04)
+                    return HttpNotFound();
                 }
 
-                var userEmail = User.Identity.Name;
-                LogHelper.LogToDatabase(userEmail, "CustomerController", $"{customer.Name} Mijozni o'chirdi");
+                // Soft delete; tarixiy hujjatlardagi bog'lanish saqlanadi (CORE-B01 siyosati)
+                customer.IsDeleted = true;
+                db.SaveChanges();
+
+                LogHelper.LogToDatabase(CurrentUserName, "CustomerController", $"{customer.Name} Mijozni o'chirdi");
 
                 return RedirectToAction("Index");
             }
         }
 
 
-        public ActionResult Download()
-        {
-            using(DBTHSNEntities db = new DBTHSNEntities())
-            { 
-                SAMPLE_FILES taminotchilar = db.SAMPLE_FILES.Where(s => s.FileName.CompareTo("taminotchilar.xlsx") == 0).FirstOrDefault();
-                if (taminotchilar != null)
-                    return File(taminotchilar.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                return View();
-            }
-        }
-        public ActionResult UploadWithExcel()
-        {
-            ViewBag.IsFileUploaded = false;
-            return View();
-        }
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult UploadWithExcel(HttpPostedFileBase file)
-        {
-            if (file != null && file.ContentLength > 0)
-            {
-                if (Path.GetExtension(file.FileName).ToLower() == ".xlsx")
-                {
-                    try
-                    {
-                        var dataTable = new DataTable();
-                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-                        using (var package = new ExcelPackage(file.InputStream))
-                        {
-                            var worksheet = package.Workbook.Worksheets[0];
-                            var rowCount = worksheet.Dimension.Rows;
-                            var colCount = worksheet.Dimension.Columns;
-
-                            for (int col = 1; col <= colCount; col++)
-                            {
-                                dataTable.Columns.Add(worksheet.Cells[1, col].Text);
-                            }
-
-                            for (int row = 2; row <= rowCount; row++)
-                            {
-                                var dataRow = dataTable.NewRow();
-                                for (int col = 1; col <= colCount; col++)
-                                {
-                                    dataRow[col - 1] = worksheet.Cells[row, col].Text;
-                                }
-                                dataTable.Rows.Add(dataRow);
-                            }
-                        }
-
-                        ViewBag.DataTable = dataTable;
-                        ViewBag.DataTableModel = JsonConvert.SerializeObject(dataTable);
-                        ViewBag.IsFileUploaded = true;
-
-                        using(DBTHSNEntities db = new DBTHSNEntities())
-                        {
-                            foreach (DataRow row in dataTable.Rows)
-                            {
-                                supplierName = row["Name"].ToString();
-
-                                SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
-                                if (supplier != null)
-                                    ViewBag.ExistingRecordsCount = 1;
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        ViewBag.Message = $"Faylni yuklashda quyidagicha muammo tug'ildi: {ex.Message}";
-                        return View("UploadWithExcel");
-                    }
-                }
-                else
-                {
-                    ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
-                    return View("UploadWithExcel");
-                }
-            }
-            else
-            {
-                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
-                return View("UploadWithExcel");
-            }
-            return View("UploadWithExcel");
-        }
-        public ActionResult ClearDataTable()
-        {
-            // Clear the DataTable va related ViewBag properties
-            ViewBag.DataTable = null;
-            ViewBag.DataTableModel = null;
-            ViewBag.IsFileUploaded = false;
-            ViewBag.Message = "Jadval ma'lumotlari o'chirib yuborildi.";
-
-            // Qaytarish the UploadWithExcel view
-            return View("UploadWithExcel");
-        }
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult Save(string dataTableModel)
-        {
-            if (!string.IsNullOrEmpty(dataTableModel))
-            {
-                var tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
-                // Saqlash ga the database
-                try
-                {
-                    using(DBTHSNEntities db = new DBTHSNEntities())
-                    {
-                        foreach (DataRow row in tableModel.Rows)
-                        {
-                            supplierName = row["Name"].ToString();
-                            SUPPLIER supplier = db.SUPPLIERS.Where(s => s.Name.CompareTo(supplierName) == 0 && s.IsDeleted == false).FirstOrDefault();
-
-                            if (supplier == null)
-                            {
-                                SUPPLIER new_supplier = new SUPPLIER();
-                                new_supplier.Name = supplierName;
-                                new_supplier.Address = row["Address"].ToString();
-                                new_supplier.Country = row["Country"].ToString();
-                                new_supplier.City = row["City"].ToString();
-                                new_supplier.Type = row["Type"].ToString();
-                                new_supplier.DUNS = row["DUNS"].ToString();
-                                new_supplier.Email = row["Email"].ToString();
-                                new_supplier.Telephone = row["Telephone"].ToString();
-                                new_supplier.ContactPersonName = row["ContactPersonName"].ToString();
-                                new_supplier.DirectorName = row["DirectorName"].ToString();
-                                new_supplier.IsDeleted = false;
-
-                                db.SUPPLIERS.Add(new_supplier);
-                                db.SaveChanges();
-
-                                var userEmail = User.Identity.Name;
-                                LogHelper.LogToDatabase(userEmail, "CustomerController", $"{new_supplier.Name} Mijozni Excell orqali yaratdi");
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", ex.Message);
-                }
-            }
-
-            return RedirectToAction("Index");
-        }
     }
 }

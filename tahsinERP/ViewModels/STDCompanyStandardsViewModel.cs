@@ -32,7 +32,6 @@ namespace tahsinERP.ViewModels
         public decimal NewVersionNo { get; set; }
         public string Notes { get; set; }
         public string DocumentContent { get; set; } // Base64 encoded .docx content
-        public byte[] ExistingDocumentContent { get; set; }
     }
 
     public class STDCompanyStandardsDetailsViewModel

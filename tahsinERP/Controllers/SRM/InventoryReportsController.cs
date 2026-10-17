@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
 
@@ -17,7 +18,11 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class InventoryReportsController : Controller
     {
+        private const int DohCardLimit = 50;
+
         // Olish so'rovi: InventoryReports/Dashboard
+        // Barcha agregatlar SQL'da (SRM-P01/P08): avval butun tarixdagi kirim/chiqim qatorlari va to'liq
+        // EXPENSES entity'lari xotiraga yuklanib, O(G×E) tsikl bilan hisoblanardi.
         public async Task<ActionResult> Dashboard(int? warehouseId, int? categoryId, DateTime? fromDate, DateTime? toDate, int? runnerDays, int? runnerTopN, string fifoScope, string productType)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "Dashboard"))
@@ -33,6 +38,14 @@ namespace tahsinERP.Controllers
                 var runnerTopNValue = runnerTopN.HasValue && runnerTopN.Value > 0 ? runnerTopN.Value : 10;
                 if (runnerTopNValue > 50) runnerTopNValue = 50;
                 var fifoScopeValue = string.IsNullOrWhiteSpace(fifoScope) ? "all" : fifoScope.ToLowerInvariant();
+                var productTypeValue = string.IsNullOrWhiteSpace(productType) ? null : productType.ToLowerInvariant();
+
+                ViewBag.Warehouses = ReferenceDataCache.SelectList(ReferenceDataCache.Warehouses, warehouseId);
+                ViewBag.Categories = ReferenceDataCache.SelectList(ReferenceDataCache.ProductCategories, categoryId);
+                ViewBag.RunnerDays = runnerDaysValue;
+                ViewBag.RunnerTopN = runnerTopNValue;
+                ViewBag.FifoScope = fifoScopeValue;
+                ViewBag.ProductType = productType;
 
                 var model = new InventoryDashboardViewModel
                 {
@@ -51,120 +64,75 @@ namespace tahsinERP.Controllers
                     OutboundTrends = new List<TrendData>()
                 };
 
-                // Olish warehouse IDs birinchi (as simple list of integers)
                 var warehouseIds = warehouseId.HasValue
                     ? new List<int> { warehouseId.Value }
-                    : await db.WAREHOUSES.Where(w => w.IsDeleted != true).Select(w => w.ID).ToListAsync();
+                    : ReferenceDataCache.Get(ReferenceDataCache.Warehouses).Select(w => w.ID).ToList();
 
                 if (!warehouseIds.Any())
                 {
                     ViewBag.Error = "Ombor topilmadi";
-                    return View(new InventoryDashboardViewModel
-                    {
-                        FromDate = fromDateValue,
-                        ToDate = toDateValue,
-                        HighDOHItems = new List<InventoryDashboardItem>(),
-                        LowDOHItems = new List<InventoryDashboardItem>(),
-                        StockItems = new List<InventoryDashboardItem>(),
-                        HighRunnerItems = new List<InventoryDashboardItem>(),
-                        LowRunnerItems = new List<InventoryDashboardItem>(),
-                        FifoJournal = new List<InventoryFifoViolationItem>(),
-                        FifoHeuristicAlerts = new List<InventoryFifoViolationItem>(),
-                        DlocAlerts = new List<DlocCapacityAlertRow>(),
-                        StockByCategory = new List<CategoryStockSummary>(),
-                        InboundTrends = new List<TrendData>(),
-                        OutboundTrends = new List<TrendData>()
-                    });
+                    return View(model);
                 }
 
-                // Olish barcha stocks
-                var stocks = await db.PRODUCT_STOCKS
-                    .Include(s => s.PRODUCT)
-                    .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                    .Include(s => s.UNIT)
-                    .Include(s => s.Warehouse)
-                    .Where(s => warehouseIds.Contains(s.WHID) && s.Amount > 0)
-                    .ToListAsync();
-
-                // Filtrlash bo'yicha category agar specified
+                // Qoldiqlar: filtrlar SQL'da, faqat kerakli ustunlar (Include'li to'liq entity o'rniga)
+                var stockQuery = db.PRODUCT_STOCKS.AsNoTracking()
+                    .Where(s => warehouseIds.Contains(s.WHID) && s.Amount > 0);
                 if (categoryId.HasValue)
-                {
-                    stocks = stocks.Where(s => s.PRODUCT != null && s.PRODUCT.CategoryID == categoryId.Value).ToList();
-                }
+                    stockQuery = stockQuery.Where(s => s.PRODUCT.CategoryID == categoryId.Value);
+                if (productTypeValue == "finished")
+                    stockQuery = stockQuery.Where(s => s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood);
+                else if (productTypeValue == "raw")
+                    stockQuery = stockQuery.Where(s => s.PRODUCT.IsRawMaterial == true || s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial);
 
-                // Filtrlash bo'yicha mahsulot turi: tayyor mahsulot / xomashyo
-                if (!string.IsNullOrWhiteSpace(productType))
-                {
-                    var pt = productType.ToLowerInvariant();
-                    if (pt == "finished")
+                var stocks = await stockQuery
+                    .Select(s => new
                     {
-                        stocks = stocks.Where(s => s.PRODUCT != null && s.PRODUCT.PRODUCT_CATEGORIES != null && s.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood == true).ToList();
-                    }
-                    else if (pt == "raw")
-                    {
-                        stocks = stocks.Where(s => s.PRODUCT != null && (
-                            s.PRODUCT.IsRawMaterial == true ||
-                            (s.PRODUCT.PRODUCT_CATEGORIES != null && s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial == true))).ToList();
-                    }
-                }
+                        s.WHID,
+                        s.ProductID,
+                        s.Amount,
+                        PNo = s.PRODUCT.PNo,
+                        Name = s.PRODUCT.Name,
+                        CategoryName = s.PRODUCT.PRODUCT_CATEGORIES.Name,
+                        UnitName = s.UNIT.ShortName,
+                        WarehouseName = s.Warehouse.WHName
+                    })
+                    .ToListAsync();
 
                 var totalDays = (toDateValue - fromDateValue).TotalDays;
                 if (totalDays <= 0) totalDays = 1;
 
-                // Calculate planned consumption dan production plan (PRODUCTPLANS_DAILY)
-                var plannedDaily = await db.PRODUCTPLANS_DAILY
+                // Rejadagi sarf (PRODUCTPLANS_DAILY) — mahsulot bo'yicha SQL'da yig'iladi
+                var plannedByProduct = (await db.PRODUCTPLANS_DAILY
                     .Where(d => d.Day >= fromDateValue && d.Day <= toDateValue && d.PRODUCTPLAN.IsDeleted == false)
-                    .Select(d => new { d.PRODUCTPLAN.ProductID, d.Total })
-                    .ToListAsync();
+                    .GroupBy(d => d.PRODUCTPLAN.ProductID)
+                    .Select(g => new { ProductID = g.Key, Total = g.Sum(x => x.Total) })
+                    .ToListAsync())
+                    .ToDictionary(x => x.ProductID, x => (double)x.Total);
 
-                var plannedByProduct = plannedDaily
-                    .GroupBy(x => x.ProductID)
-                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Total));
-
-                // Calculate actual consumption dan expenses (warehouse-specific)
-                var expenses = await db.EXPENSES
-                    .Include(e => e.EXPENSE_PRODUCTS)
-                    .Where(e => e.IssueDateTime >= fromDateValue && e.IssueDateTime <= toDateValue && e.IsDeleted != true)
-                    .ToListAsync();
-
-                var expenseByProductWarehouse = expenses
-                    .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new
-                    {
-                        ep.ProductID,
-                        WarehouseId = e.SenderWHID,
-                        Amount = ep.Amount
-                    }))
-                    .Where(x => warehouseIds.Contains(x.WarehouseId))
-                    .GroupBy(x => new { x.ProductID, x.WarehouseId })
-                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+                // Haqiqiy sarf (chiqimlar) — (mahsulot, ombor) bo'yicha SQL'da yig'iladi
+                var actualByProductWarehouse = await SumExpensesAsync(db, warehouseIds, fromDateValue, toDateValue);
 
                 foreach (var stock in stocks)
                 {
-                    if (stock.PRODUCT == null) continue;
-
-                    // Calculate average daily consumption dan production plan
-                    var plannedTotal = plannedByProduct.ContainsKey(stock.ProductID)
-                        ? plannedByProduct[stock.ProductID]
-                        : 0;
+                    double plannedTotal;
+                    plannedByProduct.TryGetValue(stock.ProductID, out plannedTotal);
                     var avgDailyPlanned = plannedTotal / totalDays;
                     var plannedDoh = avgDailyPlanned > 0 ? stock.Amount / avgDailyPlanned : (double?)null;
 
-                    var expenseKey = new { stock.ProductID, WarehouseId = stock.WHID };
-                    var actualTotal = expenseByProductWarehouse.ContainsKey(expenseKey)
-                        ? expenseByProductWarehouse[expenseKey]
-                        : 0;
+                    double actualTotal;
+                    actualByProductWarehouse.TryGetValue(Tuple.Create(stock.ProductID, stock.WHID), out actualTotal);
                     var avgDailyActual = actualTotal / totalDays;
                     var actualDoh = avgDailyActual > 0 ? stock.Amount / avgDailyActual : (double?)null;
 
                     var item = new InventoryDashboardItem
                     {
                         ProductID = stock.ProductID,
-                        ProductPNo = stock.PRODUCT.PNo ?? "N/A",
-                        ProductName = stock.PRODUCT.Name ?? "N/A",
-                        CategoryName = stock.PRODUCT.PRODUCT_CATEGORIES?.Name ?? "N/A",
-                        WarehouseName = stock.Warehouse?.WHName ?? "N/A",
+                        ProductPNo = stock.PNo ?? "N/A",
+                        ProductName = stock.Name ?? "N/A",
+                        CategoryName = stock.CategoryName ?? "N/A",
+                        WarehouseName = stock.WarehouseName ?? "N/A",
                         CurrentStock = stock.Amount,
-                        UnitName = stock.UNIT?.ShortName ?? "N/A",
+                        UnitName = stock.UnitName ?? "N/A",
                         AverageDailyConsumption = avgDailyActual,
                         PlannedAverageDailyConsumption = avgDailyPlanned,
                         PlannedDOH = plannedDoh,
@@ -173,55 +141,34 @@ namespace tahsinERP.Controllers
 
                     model.StockItems.Add(item);
 
-                    // Categorize by DOH
                     if (plannedDoh.HasValue)
                     {
                         if (plannedDoh.Value > 60)
-                        {
                             model.HighDOHItems.Add(item);
-                        }
                         else if (plannedDoh.Value < 30)
-                        {
                             model.LowDOHItems.Add(item);
-                        }
                     }
                 }
 
-                // Low/High runner by average consumption (actual) over selected window
-                var runnerFrom = DateTime.Now.AddDays(-runnerDaysValue);
-                var runnerExpenses = await db.EXPENSES
-                    .Include(e => e.EXPENSE_PRODUCTS)
-                    .Where(e => e.IssueDateTime >= runnerFrom && e.IssueDateTime <= DateTime.Now && e.IsDeleted != true)
-                    .ToListAsync();
-
-                var runnerTotals = runnerExpenses
-                    .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new
-                    {
-                        ep.ProductID,
-                        WarehouseId = e.SenderWHID,
-                        Amount = ep.Amount
-                    }))
-                    .Where(x => warehouseIds.Contains(x.WarehouseId))
-                    .GroupBy(x => new { x.ProductID, x.WarehouseId })
-                    .Select(g => new { g.Key.ProductID, g.Key.WarehouseId, Total = g.Sum(x => x.Amount) })
-                    .ToList();
-
+                // Low/High runner: tanlangan oyna bo'yicha o'rtacha sarf (lug'at bilan, avval O(N×M) FirstOrDefault)
+                var now = DateTime.Now;
+                var runnerTotals = await SumExpensesAsync(db, warehouseIds, now.AddDays(-runnerDaysValue), now);
                 var runnerDaysDouble = (double)runnerDaysValue;
                 var runnerItems = stocks
                     .Select(s =>
                     {
-                        var total = runnerTotals.FirstOrDefault(t => t.ProductID == s.ProductID && t.WarehouseId == s.WHID)?.Total ?? 0;
-                        var avg = total / runnerDaysDouble;
+                        double total;
+                        runnerTotals.TryGetValue(Tuple.Create(s.ProductID, s.WHID), out total);
                         return new InventoryDashboardItem
                         {
                             ProductID = s.ProductID,
-                            ProductPNo = s.PRODUCT?.PNo ?? "N/A",
-                            ProductName = s.PRODUCT?.Name ?? "N/A",
-                            CategoryName = s.PRODUCT?.PRODUCT_CATEGORIES?.Name ?? "N/A",
-                            WarehouseName = s.Warehouse?.WHName ?? "N/A",
+                            ProductPNo = s.PNo ?? "N/A",
+                            ProductName = s.Name ?? "N/A",
+                            CategoryName = s.CategoryName ?? "N/A",
+                            WarehouseName = s.WarehouseName ?? "N/A",
                             CurrentStock = s.Amount,
-                            UnitName = s.UNIT?.ShortName ?? "N/A",
-                            AverageDailyConsumption = avg
+                            UnitName = s.UnitName ?? "N/A",
+                            AverageDailyConsumption = total / runnerDaysDouble
                         };
                     })
                     .Where(i => i.AverageDailyConsumption > 0)
@@ -231,7 +178,7 @@ namespace tahsinERP.Controllers
                 model.HighRunnerItems = runnerItems.Take(runnerTopNValue).ToList();
                 model.LowRunnerItems = runnerItems.OrderBy(i => i.AverageDailyConsumption).Take(runnerTopNValue).ToList();
 
-                // FIFO violations: ledger jadvali yoki soddalashtirilgan fallback
+                // FIFO: DLOC jurnali + soddalashtirilgan (heuristik) ogohlantirishlar
                 var fifoWarehouseIds = fifoScopeValue == "selected"
                     ? (warehouseId.HasValue ? new List<int> { warehouseId.Value } : new List<int>())
                     : warehouseIds;
@@ -240,35 +187,6 @@ namespace tahsinERP.Controllers
                 {
                     ViewBag.FifoScopeWarning = "FIFO uchun ombor tanlanmagan. 'Tanlangan ombor' rejimida natija chiqmaydi.";
                 }
-
-                var incomeLines = await db.INCOME_PRODUCTS
-                    .Include(ip => ip.INCOME)
-                    .Where(ip => ip.INCOME.IsDeleted != true && ip.INCOME.ReceivingWHID != 0)
-                    .Select(ip => new
-                    {
-                        ip.ProductID,
-                        WarehouseId = ip.INCOME.ReceivingWHID,
-                        ip.Amount,
-                        Date = ip.INCOME.IssueDateTime
-                    })
-                    .Where(x => fifoWarehouseIds.Contains(x.WarehouseId))
-                    .ToListAsync();
-
-                var expenseLines = await db.EXPENSE_PRODUCTS
-                    .Include(ep => ep.EXPENS)
-                    .Where(ep => ep.EXPENS.IsDeleted != true)
-                    .Select(ep => new
-                    {
-                        ep.ProductID,
-                        WarehouseId = ep.EXPENS.SenderWHID,
-                        ep.Amount,
-                        Date = ep.EXPENS.IssueDateTime
-                    })
-                    .Where(x => fifoWarehouseIds.Contains(x.WarehouseId))
-                    .ToListAsync();
-
-                model.FifoJournal = new List<InventoryFifoViolationItem>();
-                model.FifoHeuristicAlerts = new List<InventoryFifoViolationItem>();
 
                 if (DlocFifoSchema.IsEnabled(db))
                 {
@@ -281,58 +199,34 @@ namespace tahsinERP.Controllers
                     model.DlocNearMaxCount = dlocAlerts.Count(a => a.AlertType == "NEAR_MAX");
                 }
 
+                if (fifoWarehouseIds.Any())
                 {
-                    var fifoViolations = new List<InventoryFifoViolationItem>();
-                    var fifoGroups = incomeLines
-                        .GroupBy(x => new { x.ProductID, x.WarehouseId })
-                        .ToList();
-
-                    foreach (var group in fifoGroups)
-                    {
-                        var incomes = group.OrderBy(x => x.Date).ToList();
-                        if (incomes.Count < 2) continue;
-
-                        var expensesForGroup = expenseLines
-                            .Where(e => e.ProductID == group.Key.ProductID && e.WarehouseId == group.Key.WarehouseId)
-                            .OrderBy(e => e.Date)
-                            .ToList();
-
-                        if (!expensesForGroup.Any()) continue;
-
-                        var firstIncome = incomes.First();
-                        var secondIncome = incomes.Skip(1).First();
-
-                        var totalExpensesSinceFirst = expensesForGroup
-                            .Where(e => e.Date >= firstIncome.Date)
-                            .Sum(e => e.Amount);
-
-                        var expensesAfterSecond = expensesForGroup.Any(e => e.Date >= secondIncome.Date);
-
-                        if (totalExpensesSinceFirst < firstIncome.Amount && expensesAfterSecond)
+                    var fifoSet = new HashSet<int>(fifoWarehouseIds);
+                    model.FifoHeuristicAlerts = (await db.Database.SqlQuery<FifoHeuristicRow>(FifoHeuristicSql).ToListAsync())
+                        .Where(r => fifoSet.Contains(r.WHID))
+                        .Select(r => new InventoryFifoViolationItem
                         {
-                            var product = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.PRODUCT;
-                            var warehouse = stocks.FirstOrDefault(s => s.ProductID == group.Key.ProductID && s.WHID == group.Key.WarehouseId)?.Warehouse;
-
-                            fifoViolations.Add(new InventoryFifoViolationItem
-                            {
-                                ProductPNo = product?.PNo ?? "N/A",
-                                ProductName = product?.Name ?? "N/A",
-                                WarehouseName = warehouse?.WHName ?? "N/A",
-                                OldestIncomeDate = firstIncome.Date,
-                                LatestExpenseDate = expensesForGroup.Last().Date,
-                                RemainingFromOldest = firstIncome.Amount - totalExpensesSinceFirst,
-                                ReasonCode = "HEURISTIC"
-                            });
-                        }
-                    }
-
-                    model.FifoHeuristicAlerts = fifoViolations;
+                            ProductPNo = r.ProductPNo ?? "N/A",
+                            ProductName = r.ProductName ?? "N/A",
+                            WarehouseName = r.WarehouseName ?? "N/A",
+                            OldestIncomeDate = r.FirstDate,
+                            LatestExpenseDate = r.LastExpense,
+                            RemainingFromOldest = r.FirstAmount - r.SinceFirst,
+                            ReasonCode = "HEURISTIC"
+                        })
+                        .ToList();
                 }
 
-                // Calculate stock by category
+                // Yuqori/past DOH kartalari sahifalashsiz jadval — eng muhim 50 tasi tartiblab ko'rsatiladi
+                // (to'liq ro'yxat pastdagi DataTable'da). Avval barcha mos qatorlar tartibsiz chiqarilardi.
+                ViewBag.HighDohTotal = model.HighDOHItems.Count;
+                ViewBag.LowDohTotal = model.LowDOHItems.Count;
+                model.HighDOHItems = model.HighDOHItems.OrderByDescending(i => i.PlannedDOH).Take(DohCardLimit).ToList();
+                model.LowDOHItems = model.LowDOHItems.OrderBy(i => i.PlannedDOH).Take(DohCardLimit).ToList();
+
                 model.StockByCategory = stocks
-                    .Where(s => s.PRODUCT != null && s.PRODUCT.PRODUCT_CATEGORIES != null)
-                    .GroupBy(s => s.PRODUCT.PRODUCT_CATEGORIES.Name)
+                    .Where(s => s.CategoryName != null)
+                    .GroupBy(s => s.CategoryName)
                     .Select(g => new CategoryStockSummary
                     {
                         CategoryName = g.Key,
@@ -340,39 +234,112 @@ namespace tahsinERP.Controllers
                     })
                     .ToList();
 
-                // Calculate inbound/outbound trends
-                var inboundData = await db.INCOMES
-                    .Include(i => i.INCOME_PRODUCTS)
-                    .Where(i => i.IssueDateTime >= fromDateValue && i.IssueDateTime <= toDateValue && i.IsDeleted != true)
-                    .GroupBy(i => DbFunctions.TruncateTime(i.IssueDateTime))
-                    .Select(g => new { Date = g.Key, Amount = g.SelectMany(i => i.INCOME_PRODUCTS).Sum(ip => ip.Amount) })
+                // Kirim/chiqim trendlari — ombor, kategoriya va tur filtrlari bilan (SRM-B20: avval barcha omborlar)
+                var inboundQuery = db.INCOME_PRODUCTS.AsNoTracking()
+                    .Where(ip => ip.INCOME.IssueDateTime >= fromDateValue && ip.INCOME.IssueDateTime <= toDateValue
+                        && ip.INCOME.IsDeleted != true && warehouseIds.Contains(ip.INCOME.ReceivingWHID));
+                var outboundQuery = db.EXPENSE_PRODUCTS.AsNoTracking()
+                    .Where(ep => ep.EXPENS.IssueDateTime >= fromDateValue && ep.EXPENS.IssueDateTime <= toDateValue
+                        && ep.EXPENS.IsDeleted != true && warehouseIds.Contains(ep.EXPENS.SenderWHID));
+                if (categoryId.HasValue)
+                {
+                    inboundQuery = inboundQuery.Where(ip => ip.PRODUCT.CategoryID == categoryId.Value);
+                    outboundQuery = outboundQuery.Where(ep => ep.PRODUCT.CategoryID == categoryId.Value);
+                }
+                if (productTypeValue == "finished")
+                {
+                    inboundQuery = inboundQuery.Where(ip => ip.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood);
+                    outboundQuery = outboundQuery.Where(ep => ep.PRODUCT.PRODUCT_CATEGORIES.IsFinishedGood);
+                }
+                else if (productTypeValue == "raw")
+                {
+                    inboundQuery = inboundQuery.Where(ip => ip.PRODUCT.IsRawMaterial == true || ip.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial);
+                    outboundQuery = outboundQuery.Where(ep => ep.PRODUCT.IsRawMaterial == true || ep.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial);
+                }
+
+                var inboundData = await inboundQuery
+                    .GroupBy(ip => DbFunctions.TruncateTime(ip.INCOME.IssueDateTime))
+                    .Select(g => new { Date = g.Key, Amount = g.Sum(ip => ip.Amount) })
+                    .ToListAsync();
+                var outboundData = await outboundQuery
+                    .GroupBy(ep => DbFunctions.TruncateTime(ep.EXPENS.IssueDateTime))
+                    .Select(g => new { Date = g.Key, Amount = g.Sum(ep => ep.Amount) })
                     .ToListAsync();
 
-                var outboundData = await db.EXPENSES
-                    .Include(e => e.EXPENSE_PRODUCTS)
-                    .Where(e => e.IssueDateTime >= fromDateValue && e.IssueDateTime <= toDateValue && e.IsDeleted != true)
-                    .GroupBy(e => DbFunctions.TruncateTime(e.IssueDateTime))
-                    .Select(g => new { Date = g.Key, Amount = g.SelectMany(e => e.EXPENSE_PRODUCTS).Sum(ep => ep.Amount) })
-                    .ToListAsync();
-
-                model.InboundTrends = inboundData.Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
-                model.OutboundTrends = outboundData.Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
-
-                // Tayyorlash ViewBag
-                ViewBag.Warehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).ToListAsync(),
-                    "ID", "WHName", warehouseId);
-                ViewBag.Categories = new SelectList(
-                    await db.PRODUCT_CATEGORIES.ToListAsync(),
-                    "ID", "Name", categoryId);
-                ViewBag.RunnerDays = runnerDaysValue;
-                ViewBag.RunnerTopN = runnerTopNValue;
-                ViewBag.FifoScope = fifoScopeValue;
-                ViewBag.ProductType = productType;
+                model.InboundTrends = inboundData.OrderBy(d => d.Date).Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
+                model.OutboundTrends = outboundData.OrderBy(d => d.Date).Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
 
                 return View(model);
             }
         }
+
+        /// <summary>Chiqimlar (mahsulot, yuboruvchi ombor) bo'yicha jami — SQL'da GROUP BY.</summary>
+        private static async Task<Dictionary<Tuple<int, int>, double>> SumExpensesAsync(
+            DBTHSNEntities db, List<int> warehouseIds, DateTime from, DateTime to)
+        {
+            var rows = await db.EXPENSE_PRODUCTS.AsNoTracking()
+                .Where(ep => ep.EXPENS.IssueDateTime >= from && ep.EXPENS.IssueDateTime <= to
+                    && ep.EXPENS.IsDeleted != true && warehouseIds.Contains(ep.EXPENS.SenderWHID))
+                .GroupBy(ep => new { ep.ProductID, ep.EXPENS.SenderWHID })
+                .Select(g => new { g.Key.ProductID, g.Key.SenderWHID, Total = g.Sum(x => x.Amount) })
+                .ToListAsync();
+            return rows.ToDictionary(r => Tuple.Create(r.ProductID, r.SenderWHID), r => r.Total);
+        }
+
+        private class FifoHeuristicRow
+        {
+            public int ProductID { get; set; }
+            public int WHID { get; set; }
+            public string ProductPNo { get; set; }
+            public string ProductName { get; set; }
+            public string WarehouseName { get; set; }
+            public DateTime FirstDate { get; set; }
+            public double FirstAmount { get; set; }
+            public double SinceFirst { get; set; }
+            public DateTime LastExpense { get; set; }
+        }
+
+        /// <summary>
+        /// Soddalashtirilgan FIFO ogohlantirishi (avvalgi xotiradagi algoritm bilan bir xil mantiq, endi SQL'da):
+        /// (mahsulot, ombor) uchun kamida 2 ta kirim qatori bor, eng eski kirimdan beri chiqimlar uning
+        /// miqdoridan kam va ikkinchi kirimdan keyin chiqim bo'lgan — ya'ni yangi partiya eskisidan oldin ishlatilmoqda.
+        /// </summary>
+        private const string FifoHeuristicSql = @"
+;WITH Inc AS (
+    SELECT ip.ProductID, i.ReceivingWHID AS WHID, i.IssueDateTime AS D, ip.Amount,
+           ROW_NUMBER() OVER (PARTITION BY ip.ProductID, i.ReceivingWHID ORDER BY i.IssueDateTime, ip.ID) AS rn
+    FROM dbo.INCOME_PRODUCTS ip
+    JOIN dbo.INCOMES i ON i.ID = ip.IncomeID
+    WHERE ISNULL(i.IsDeleted, 0) = 0 AND i.ReceivingWHID <> 0
+), G AS (
+    SELECT ProductID, WHID,
+           MAX(CASE WHEN rn = 1 THEN D END)      AS FirstDate,
+           MAX(CASE WHEN rn = 1 THEN Amount END) AS FirstAmount,
+           MAX(CASE WHEN rn = 2 THEN D END)      AS SecondDate
+    FROM Inc
+    WHERE rn <= 2
+    GROUP BY ProductID, WHID
+    HAVING COUNT(*) = 2
+), X AS (
+    SELECT g.ProductID, g.WHID,
+           SUM(CASE WHEN e.IssueDateTime >= g.FirstDate THEN ep.Amount ELSE 0 END) AS SinceFirst,
+           MAX(e.IssueDateTime) AS LastExpense,
+           MAX(CASE WHEN e.IssueDateTime >= g.SecondDate THEN 1 ELSE 0 END) AS AfterSecond
+    FROM G g
+    JOIN dbo.EXPENSES e ON e.SenderWHID = g.WHID AND e.IsDeleted = 0
+    JOIN dbo.EXPENSE_PRODUCTS ep ON ep.ExpenseID = e.ID AND ep.ProductID = g.ProductID
+    GROUP BY g.ProductID, g.WHID
+)
+SELECT g.ProductID, g.WHID, p.PNo AS ProductPNo, p.Name AS ProductName, w.WHName AS WarehouseName,
+       g.FirstDate, CAST(g.FirstAmount AS FLOAT) AS FirstAmount,
+       CAST(ISNULL(x.SinceFirst, 0) AS FLOAT) AS SinceFirst, x.LastExpense
+FROM G g
+JOIN X x ON x.ProductID = g.ProductID AND x.WHID = g.WHID
+LEFT JOIN dbo.PRODUCTS p ON p.ID = g.ProductID
+LEFT JOIN dbo.WAREHOUSES w ON w.ID = g.WHID
+WHERE x.LastExpense IS NOT NULL
+  AND ISNULL(x.SinceFirst, 0) < g.FirstAmount
+  AND x.AfterSecond = 1";
 
         /// <summary>
         /// Ombor oylik hisoboti (MRP topshirig'i) — kirim/chiqim va qoldiqlar. Barcha omborlar uchun.
@@ -435,266 +402,5 @@ namespace tahsinERP.Controllers
                 return View(model);
             }
         }
-
-        // Olish so'rovi: InventoryReports/ProductionWH
-        public async Task<ActionResult> ProductionWH(int? warehouseId, DateTime? reportDate)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "InventoryReports", "ProductionWH"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                var reportDateValue = reportDate ?? DateTime.Now;
-
-                // Olish Production warehouse
-                var productionWarehouse = warehouseId.HasValue
-                    ? await db.WAREHOUSES.FindAsync(warehouseId.Value)
-                    : db.WAREHOUSES.FirstOrDefault(w => w.WHName.Contains("Production") || w.WHName.Contains("Ishlab chiqarish"));
-
-                if (productionWarehouse == null)
-                {
-                    productionWarehouse = db.WAREHOUSES.FirstOrDefault();
-                }
-
-                if (productionWarehouse == null)
-                {
-                    ViewBag.Error = "Production ombor topilmadi";
-                    return View(new InventoryReportViewModel());
-                }
-
-                var report = await GenerateInventoryReportAsync(productionWarehouse.ID, reportDateValue, db);
-
-                ViewBag.Warehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != false).ToListAsync(),
-                    "ID", "WHName", productionWarehouse.ID);
-                ViewBag.ReportDate = reportDateValue;
-
-                return View(report);
-            }
-        }
-
-        /// <summary>
-        /// Generates inventory report uchun Production warehouse
-        /// </summary>
-        private async Task<InventoryReportViewModel> GenerateInventoryReportAsync(
-            int warehouseId, 
-            DateTime reportDate, 
-            DBTHSNEntities db)
-        {
-            var report = new InventoryReportViewModel
-            {
-                WarehouseID = warehouseId,
-                ReportDate = reportDate,
-                Items = new List<InventoryReportItem>()
-                };
-
-            // Olish barcha stocks in Production warehouse
-            var stocks = await db.PRODUCT_STOCKS
-                .Include(s => s.PRODUCT)
-                .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
-                .Include(s => s.UNIT)
-                .Where(s => s.WHID == warehouseId && s.Amount > 0)
-                    .ToListAsync();
-
-            // Olish faol production plans
-            var activePlans = await db.PRODUCTPLANS
-                .Include(p => p.PRODUCT)
-                .Where(p => p.IsDeleted == false &&
-                           p.StartDate <= reportDate &&
-                           p.DueDate >= reportDate)
-                    .ToListAsync();
-
-            var consumptionService = new ProductionConsumptionService(db);
-
-            foreach (var stock in stocks)
-            {
-                // Calculate average daily consumption dan faol plans
-                var materialPlans = activePlans
-                    .Where(p => 
-                    {
-                        // Tekshirish agar this material is used in the plan's BOM
-                        // This is a simplified tekshirish - in production, you'd query BOM/NORMLINES
-                        return true; // Placeholder - should tekshirish BOM relationship
-                    })
-                    .ToList();
-
-                double totalPlannedQty = 0;
-                int totalDays = 0;
-
-                foreach (var plan in materialPlans)
-                {
-                    var days = (plan.DueDate - plan.StartDate).Days + 1;
-                    totalDays += days;
-                    // Olish material requirement uchun this plan
-                    var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
-                        plan.ProductID, plan.Amount);
-                    var materialReq = requirements.FirstOrDefault(r => r.MaterialID == stock.ProductID);
-                    if (materialReq != null)
-                    {
-                        totalPlannedQty += materialReq.TotalConsumption;
-            }
-        }
-
-                double avgDailyConsumption = totalDays > 0 ? totalPlannedQty / totalDays : 0;
-                double doh = avgDailyConsumption > 0 ? stock.Amount / avgDailyConsumption : 0;
-
-                // Calculate coverage (how many days the stock will last)
-                double coverage = doh;
-
-                // Calculate plan fulfillment (percentage of planned quantity available)
-                double planFulfillment = 0;
-                if (totalPlannedQty > 0)
-                {
-                    planFulfillment = (stock.Amount / totalPlannedQty) * 100;
-                    if (planFulfillment > 100) planFulfillment = 100;
-                }
-
-                report.Items.Add(new InventoryReportItem
-                {
-                    ProductID = stock.ProductID,
-                    ProductPNo = stock.PRODUCT?.PNo ?? "N/A",
-                    ProductName = stock.PRODUCT?.Name ?? "N/A",
-                    CurrentStock = stock.Amount,
-                    UnitID = stock.UnitID,
-                    UnitName = stock.UNIT?.ShortName ?? "N/A",
-                    AvgDailyConsumption = Math.Round(avgDailyConsumption, 2),
-                    DaysOnHand = Math.Round(doh, 1),
-                    Coverage = Math.Round(coverage, 1),
-                    PlanFulfillment = Math.Round(planFulfillment, 1),
-                    IsRawMaterial = stock.PRODUCT?.IsRawMaterial ?? false,
-                    RequiresCutting = stock.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting ?? false
-                });
-            }
-
-            return report;
-        }
-
-        // Olish so'rovi: InventoryReports/Export
-        public async Task<ActionResult> Export(int warehouseId, DateTime reportDate)
-        {
-            using (var db = new DBTHSNEntities())
-            {
-                var report = await GenerateInventoryReportAsync(warehouseId, reportDate, db);
-                
-                // TODO: Implement Excel export
-                // uchun now, return JSON
-                return Json(report, JsonRequestBehavior.AllowGet);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Inventory report view model
-    /// </summary>
-    public class InventoryReportViewModel
-    {
-        public int WarehouseID { get; set; }
-        public DateTime ReportDate { get; set; }
-        public List<InventoryReportItem> Items { get; set; }
-    }
-
-    public class InventoryReportItem
-    {
-        public int ProductID { get; set; }
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public double CurrentStock { get; set; }
-        public int UnitID { get; set; }
-        public string UnitName { get; set; }
-        public double AvgDailyConsumption { get; set; }
-        public double DaysOnHand { get; set; }
-        public double Coverage { get; set; }
-        public double PlanFulfillment { get; set; }
-        public bool IsRawMaterial { get; set; }
-        public bool RequiresCutting { get; set; }
-    }
-
-    /// <summary>
-    /// Inventory Dashboard ViewModel
-    /// </summary>
-    public class InventoryDashboardViewModel
-    {
-        public DateTime FromDate { get; set; }
-        public DateTime ToDate { get; set; }
-        public List<InventoryDashboardItem> HighDOHItems { get; set; }
-        public List<InventoryDashboardItem> LowDOHItems { get; set; }
-        public List<InventoryDashboardItem> StockItems { get; set; }
-        public List<InventoryDashboardItem> HighRunnerItems { get; set; }
-        public List<InventoryDashboardItem> LowRunnerItems { get; set; }
-        public List<InventoryFifoViolationItem> FifoJournal { get; set; }
-        public List<InventoryFifoViolationItem> FifoHeuristicAlerts { get; set; }
-        public int DlocBelowMinCount { get; set; }
-        public int DlocNearMaxCount { get; set; }
-        public List<DlocCapacityAlertRow> DlocAlerts { get; set; }
-        public List<CategoryStockSummary> StockByCategory { get; set; }
-        public List<TrendData> InboundTrends { get; set; }
-        public List<TrendData> OutboundTrends { get; set; }
-    }
-
-    public class InventoryDashboardItem
-    {
-        public int ProductID { get; set; }
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public string CategoryName { get; set; }
-        public string WarehouseName { get; set; }
-        public double CurrentStock { get; set; }
-        public string UnitName { get; set; }
-        public double AverageDailyConsumption { get; set; }
-        public double PlannedAverageDailyConsumption { get; set; }
-        public double? PlannedDOH { get; set; }
-        public double? ActualDOH { get; set; }
-    }
-
-    public class InventoryFifoViolationItem
-    {
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public string WarehouseName { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime OldestIncomeDate { get; set; }
-        public DateTime LatestExpenseDate { get; set; }
-        public double RemainingFromOldest { get; set; }
-        public string ReasonCode { get; set; }
-        public string ExpenseDocNo { get; set; }
-        public string ExpectedLotNo { get; set; }
-        public string SelectedLotNo { get; set; }
-        public string CreatedBy { get; set; }
-    }
-
-    internal static class InventoryReportsFifoMapper
-    {
-        public static InventoryFifoViolationItem MapFifoJournalRow(FifoViolationReportRow v)
-        {
-            return new InventoryFifoViolationItem
-            {
-                ProductPNo = v.ProductPNo ?? "N/A",
-                ProductName = v.ProductName ?? "N/A",
-                WarehouseName = v.WarehouseName ?? "N/A",
-                CreatedAt = v.CreatedAt,
-                OldestIncomeDate = v.ExpectedReceivedAt ?? v.CreatedAt,
-                LatestExpenseDate = v.SelectedReceivedAt ?? v.CreatedAt,
-                RemainingFromOldest = 0,
-                ReasonCode = v.ReasonCode,
-                ExpenseDocNo = v.ExpenseDocNo,
-                ExpectedLotNo = v.ExpectedLotNo,
-                SelectedLotNo = v.SelectedLotNo,
-                CreatedBy = v.CreatedBy
-            };
-        }
-    }
-
-    public class CategoryStockSummary
-    {
-        public string CategoryName { get; set; }
-        public double TotalStock { get; set; }
-    }
-
-    public class TrendData
-    {
-        public DateTime Date { get; set; }
-        public double Amount { get; set; }
     }
 }

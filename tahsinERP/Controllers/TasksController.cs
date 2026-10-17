@@ -1,34 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
-    public class TasksController : Controller
+    [Permission]
+    public class TasksController : BaseController
     {
         // Olish so'rovi: Tasks
         public async Task<ActionResult> Index(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string searchTerm, string sortOrder, int? page, int? pageSize, bool? showOverdue)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            // Oddiy user uchun faqat o'z tasklarini ko'rsatish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            int currentUserId = CurrentUserId;
             if (!isAdminOrDeveloper)
             {
                 // Oddiy user - faqat o'z tasklarini ko'rsatish
@@ -37,7 +29,7 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.APP_TASKS
+                var query = db.APP_TASKS.AsNoTracking()
                     .Include(t => t.APP_TASK_STATUS_REF)
                     .Include(t => t.APP_TASK_PRIORITY_REF)
                     .Include(t => t.APP_TASK_PROJECTS)
@@ -71,8 +63,8 @@ namespace tahsinERP.Controllers
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    query = query.Where(t => 
-                        t.Title.Contains(searchTerm) || 
+                    query = query.Where(t =>
+                        t.Title.Contains(searchTerm) ||
                         (t.Description != null && t.Description.Contains(searchTerm)) ||
                         (t.KeyCode != null && t.KeyCode.Contains(searchTerm)));
                 }
@@ -81,19 +73,16 @@ namespace tahsinERP.Controllers
                 if (showOverdue == true)
                 {
                     var today = DateTime.Now.Date;
-                    query = query.Where(t => 
-                        t.DueDate.HasValue && 
-                        t.DueDate.Value < today && 
-                        t.APP_TASK_STATUS_REF.Code != "DONE" &&
-                        !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi"));
+                    query = query.Where(t =>
+                        t.DueDate.HasValue &&
+                        t.DueDate.Value < today &&
+                        t.APP_TASK_STATUS_REF.Code != TaskRules.DoneCode &&
+                        !t.APP_TASK_STATUS_REF.Name.Contains("bajarildi"));
                 }
 
                 // Sorting
                 switch (sortOrder)
                 {
-                    case "created_desc":
-                        query = query.OrderByDescending(t => t.CreatedDT);
-                        break;
                     case "created":
                         query = query.OrderBy(t => t.CreatedDT);
                         break;
@@ -109,48 +98,30 @@ namespace tahsinERP.Controllers
                     case "priority":
                         query = query.OrderBy(t => t.APP_TASK_PRIORITY_REF.SortOrder);
                         break;
-                    default:
+                    default: // created_desc
                         query = query.OrderByDescending(t => t.CreatedDT);
                         break;
                 }
 
                 // Pagination
-                int currentPage = page ?? 1;
-                int itemsPerPage = pageSize ?? 25;
+                int itemsPerPage = Math.Max(1, Math.Min(pageSize ?? 25, 500));
                 int totalItems = await query.CountAsync();
                 int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+                int currentPage = Math.Max(1, page ?? 1);
 
                 var tasks = await query
                     .Skip((currentPage - 1) * itemsPerPage)
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // Aylantirish ga ViewModels
-                var taskViewModels = tasks.Select(t => new TaskViewModel
-                {
-                    ID = t.ID,
-                    KeyCode = t.KeyCode,
-                    Title = t.Title,
-                    Description = t.Description,
-                    StatusID = t.StatusID,
-                    StatusName = t.APP_TASK_STATUS_REF?.Name,
-                    PriorityID = t.PriorityID,
-                    PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
-                    AssigneeUserID = t.AssigneeUserID,
-                    AssigneeFullName = t.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: t.AssigneeUserID.Value) : null,
-                    ReporterUserID = t.ReporterUserID,
-                    ReporterFullName = t.ReporterUserID.HasValue ? UserHelper.GetFullName(userID: t.ReporterUserID.Value) : null,
-                    CreatedDT = t.CreatedDT,
-                    UpdatedDT = t.UpdatedDT,
-                    DueDate = t.DueDate,
-                    ProjectID = t.ProjectID,
-                    ProjectName = t.APP_TASK_PROJECTS?.Name
-                }).ToList();
+                // Bitta so'rov bilan ismlar (avval har qatorga 2 ta GetFullName — TSK-P01)
+                var names = await TaskLookups.UserNamesAsync(db, tasks.SelectMany(t => new[] { t.AssigneeUserID, t.ReporterUserID }));
+                var taskViewModels = tasks.Select(t => ToViewModel(t, names)).ToList();
 
                 // ViewBag uchun filters
-                ViewBag.AssigneeUserID = new SelectList(await db.USERS.Where(u => u.IsDeleted != true && u.IsActive).ToListAsync(), "ID", "FullName", assigneeUserID);
-                ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", statusID);
-                ViewBag.PriorityID = new SelectList(await db.APP_TASK_PRIORITY_REF.OrderBy(p => p.SortOrder).ToListAsync(), "ID", "Name", priorityID);
+                ViewBag.AssigneeUserID = await TaskLookups.UserListAsync(db, assigneeUserID);
+                ViewBag.StatusID = TaskLookups.StatusList(statusID);
+                ViewBag.PriorityID = TaskLookups.PriorityList(priorityID);
                 ViewBag.CurrentPage = currentPage;
                 ViewBag.TotalPages = totalPages;
                 ViewBag.TotalItems = totalItems;
@@ -162,6 +133,8 @@ namespace tahsinERP.Controllers
                 ViewBag.DueDateFrom = dueDateFrom;
                 ViewBag.DueDateTo = dueDateTo;
                 ViewBag.SortOrder = sortOrder;
+                ViewBag.ShowOverdue = showOverdue == true;
+                ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
 
                 return View(taskViewModels);
             }
@@ -170,26 +143,14 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: Tasks/Details/5
         public async Task<ActionResult> Details(long? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            // Oddiy user uchun faqat o'z tasklarini ko'rish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var task = await db.APP_TASKS
+                var task = await db.APP_TASKS.AsNoTracking()
                     .Include(t => t.APP_TASK_STATUS_REF)
                     .Include(t => t.APP_TASK_PRIORITY_REF)
                     .Include(t => t.APP_TASK_PROJECTS)
@@ -201,44 +162,15 @@ namespace tahsinERP.Controllers
                 }
 
                 // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
-                if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
                     return RedirectToAction("Index");
                 }
 
-                // UserComment'ni SQL orqali o'qish (EF model'da yo'q)
-                string userComment = null;
-                try
-                {
-                    var commentParam = new System.Data.SqlClient.SqlParameter("@taskId", task.ID);
-                    userComment = await db.Database.SqlQuery<string>(
-                        "SELECT UserComment FROM APP_TASKS WHERE ID = @taskId",
-                        commentParam).FirstOrDefaultAsync();
-                }
-                catch { }
-
-                var viewModel = new TaskViewModel
-                {
-                    ID = task.ID,
-                    KeyCode = task.KeyCode,
-                    Title = task.Title,
-                    Description = task.Description,
-                    StatusID = task.StatusID,
-                    StatusName = task.APP_TASK_STATUS_REF?.Name,
-                    PriorityID = task.PriorityID,
-                    PriorityName = task.APP_TASK_PRIORITY_REF?.Name,
-                    AssigneeUserID = task.AssigneeUserID,
-                    AssigneeFullName = task.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: task.AssigneeUserID.Value) : null,
-                    ReporterUserID = task.ReporterUserID,
-                    ReporterFullName = task.ReporterUserID.HasValue ? UserHelper.GetFullName(userID: task.ReporterUserID.Value) : null,
-                    CreatedDT = task.CreatedDT,
-                    UpdatedDT = task.UpdatedDT,
-                    DueDate = task.DueDate,
-                    ProjectID = task.ProjectID,
-                    ProjectName = task.APP_TASK_PROJECTS?.Name,
-                    UserComment = userComment
-                };
+                var names = await TaskLookups.UserNamesAsync(db, new[] { task.AssigneeUserID, task.ReporterUserID });
+                var viewModel = ToViewModel(task, names);
+                viewModel.UserComment = task.UserComment;
 
                 return View(viewModel);
             }
@@ -247,35 +179,23 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: Tasks/yaratish
         public async Task<ActionResult> Create(int? projectID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            var viewModel = new TaskViewModel
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                CreatedDT = DateTime.Now,
+                ReporterUserID = CurrentUserId,
+                ReporterFullName = UserHelper.GetFullName(CurrentUserName),
+                ProjectID = projectID
+            };
+
+            // Standart TODO holat
+            var todoStatus = TaskLookups.Statuses().FirstOrDefault(s => s.Code == "TODO");
+            if (todoStatus != null)
+            {
+                viewModel.StatusID = todoStatus.ID;
             }
 
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var viewModel = new TaskViewModel
-                {
-                    CreatedDT = DateTime.Now,
-                    ReporterUserID = UserHelper.GetUserId(User.Identity.Name),
-                    ReporterFullName = UserHelper.GetFullName(User.Identity.Name),
-                    ProjectID = projectID
-                };
-
-                // Olish standart TODO holat
-                var todoStatus = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "TODO" && s.IsActive);
-                if (todoStatus != null)
-                {
-                    viewModel.StatusID = todoStatus.ID;
-                }
-
-                ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", viewModel.StatusID);
-                ViewBag.PriorityID = new SelectList(await db.APP_TASK_PRIORITY_REF.OrderBy(p => p.SortOrder).ToListAsync(), "ID", "Name");
-                ViewBag.AssigneeUserID = new SelectList(await db.USERS.Where(u => u.IsDeleted != true && u.IsActive).ToListAsync(), "ID", "FullName");
-                ViewBag.ProjectID = new SelectList(await db.APP_TASK_PROJECTS.Where(p => p.IsActive).ToListAsync(), "ID", "Name", projectID);
-
-                return View(viewModel);
-            }
+            await PopulateLookupsAsync(viewModel);
+            return View(viewModel);
         }
 
         // POST so'rovi: Tasks/yaratish
@@ -283,11 +203,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(TaskViewModel viewModel)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -301,109 +216,70 @@ namespace tahsinERP.Controllers
                             StatusID = viewModel.StatusID,
                             PriorityID = viewModel.PriorityID,
                             AssigneeUserID = viewModel.AssigneeUserID,
-                            ReporterUserID = viewModel.ReporterUserID ?? UserHelper.GetUserId(User.Identity.Name),
+                            ReporterUserID = viewModel.ReporterUserID ?? CurrentUserId,
                             CreatedDT = DateTime.Now,
                             DueDate = viewModel.DueDate,
                             ProjectID = viewModel.ProjectID,
                             IsDeleted = false
                         };
 
-                        // Yaratish KeyCode agar not provided
-                        if (string.IsNullOrEmpty(viewModel.KeyCode))
+                        using (var tx = db.Database.BeginTransaction())
                         {
-                            var projectCode = viewModel.ProjectID.HasValue 
-                                ? (await db.APP_TASK_PROJECTS.FindAsync(viewModel.ProjectID.Value))?.Code ?? "TASK"
-                                : "TASK";
+                            if (string.IsNullOrEmpty(viewModel.KeyCode))
+                            {
+                                var projectCode = viewModel.ProjectID.HasValue
+                                    ? await db.APP_TASK_PROJECTS.Where(p => p.ID == viewModel.ProjectID.Value).Select(p => p.Code).FirstOrDefaultAsync()
+                                    : null;
 
-                            // String sort o'rniga raqam suffixni ajratib, maksimalini olamiz.
-                            // Masalan: TASK-9, TASK-10, TASK-11 -> keyingisi TASK-12 bo'ladi.
-                            var codePrefix = (projectCode ?? "TASK").Trim();
-                            var keyPattern = new Regex("^" + Regex.Escape(codePrefix) + "-(\\d+)$", RegexOptions.IgnoreCase);
-                            var existingKeys = await db.APP_TASKS
-                                .Where(t => t.KeyCode != null && t.KeyCode.StartsWith(codePrefix + "-"))
-                                .Select(t => t.KeyCode)
-                                .ToListAsync();
+                                // TASK-9, TASK-10 -> TASK-11: raqamli MAX SQL'da, qulf bilan — parallel yaratishda
+                                // takrorlanmaydi (avval barcha kodlar xotiraga yuklanib, qulfsiz hisoblanardi — TSK-P08/TSK-B05)
+                                var codePrefix = (string.IsNullOrWhiteSpace(projectCode) ? "TASK" : projectCode).Trim();
+                                task.KeyCode = await DocumentNumberService.NextAsync(db, "APP_TASKS", "KeyCode", codePrefix + "-");
+                            }
+                            else
+                            {
+                                task.KeyCode = viewModel.KeyCode;
+                            }
 
-                            var maxNumber = existingKeys
-                                .Select(k =>
-                                {
-                                    var m = keyPattern.Match(k ?? "");
-                                    return m.Success ? int.Parse(m.Groups[1].Value) : 0;
-                                })
-                                .DefaultIfEmpty(0)
-                                .Max();
-
-                            int nextNumber = maxNumber + 1;
-                            task.KeyCode = $"{projectCode}-{nextNumber}";
-                        }
-                        else
-                        {
-                            task.KeyCode = viewModel.KeyCode;
+                            db.APP_TASKS.Add(task);
+                            await db.SaveChangesAsync();
+                            tx.Commit();
                         }
 
-                        db.APP_TASKS.Add(task);
-                        await db.SaveChangesAsync();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "TasksController", $"Task {task.KeyCode} - {task.Title} yaratdi");
+                        LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} yaratdi");
 
                         return RedirectToAction("Details", new { id = task.ID });
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        System.Diagnostics.Trace.TraceError("Tasks Create: {0}", ex);
+                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
                     }
                 }
             }
 
-            // Reload ViewBag on xatolik
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", viewModel.StatusID);
-                ViewBag.PriorityID = new SelectList(await db.APP_TASK_PRIORITY_REF.OrderBy(p => p.SortOrder).ToListAsync(), "ID", "Name", viewModel.PriorityID);
-                ViewBag.AssigneeUserID = new SelectList(await db.USERS.Where(u => u.IsDeleted != true && u.IsActive).ToListAsync(), "ID", "FullName", viewModel.AssigneeUserID);
-                ViewBag.ProjectID = new SelectList(await db.APP_TASK_PROJECTS.Where(p => p.IsActive).ToListAsync(), "ID", "Name", viewModel.ProjectID);
-            }
-
+            await PopulateLookupsAsync(viewModel);
             return View(viewModel);
         }
 
         // Olish so'rovi: Tasks/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            // Oddiy user uchun faqat o'z tasklarini tahrirlash
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var task = await db.APP_TASKS.FindAsync(id);
-                if (task == null || task.IsDeleted)
+                var task = await db.APP_TASKS.AsNoTracking().FirstOrDefaultAsync(t => t.ID == id && t.IsDeleted == false);
+                if (task == null)
                 {
                     return HttpNotFound();
                 }
 
                 // Oddiy user boshqalarning tasklarini tahrirlamasligi kerak
-                if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin";
                     return RedirectToAction("Index");
@@ -424,11 +300,7 @@ namespace tahsinERP.Controllers
                     CreatedDT = task.CreatedDT
                 };
 
-                ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", viewModel.StatusID);
-                ViewBag.PriorityID = new SelectList(await db.APP_TASK_PRIORITY_REF.OrderBy(p => p.SortOrder).ToListAsync(), "ID", "Name", viewModel.PriorityID);
-                ViewBag.AssigneeUserID = new SelectList(await db.USERS.Where(u => u.IsDeleted != true && u.IsActive).ToListAsync(), "ID", "FullName", viewModel.AssigneeUserID);
-                ViewBag.ProjectID = new SelectList(await db.APP_TASK_PROJECTS.Where(p => p.IsActive).ToListAsync(), "ID", "Name", viewModel.ProjectID);
-
+                await PopulateLookupsAsync(viewModel, db);
                 return View(viewModel);
             }
         }
@@ -438,17 +310,7 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(TaskViewModel viewModel)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            // Oddiy user uchun faqat o'z tasklarini tahrirlash
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
 
             if (ModelState.IsValid)
             {
@@ -461,7 +323,7 @@ namespace tahsinERP.Controllers
                     }
 
                     // Oddiy user boshqalarning tasklarini tahrirlamasligi kerak
-                    if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                    if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, isAdminOrDeveloper))
                     {
                         TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin";
                         return RedirectToAction("Index");
@@ -473,54 +335,33 @@ namespace tahsinERP.Controllers
                         task.Description = viewModel.Description;
                         task.StatusID = viewModel.StatusID;
                         task.PriorityID = viewModel.PriorityID;
-                        
-                        // Oddiy user faqat statusni o'zgartira oladi, assignee'ni emas
+
+                        // Oddiy user assignee'ni o'zgartira olmaydi
                         if (isAdminOrDeveloper)
                         {
                             task.AssigneeUserID = viewModel.AssigneeUserID;
                         }
-                        
+
                         task.DueDate = viewModel.DueDate;
                         task.ProjectID = viewModel.ProjectID;
                         task.UpdatedDT = DateTime.Now;
 
-                        // agar holat changed ga DONE, set CompletedDT
-                        var doneStatus = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "DONE" && s.IsActive);
-                        if (doneStatus != null && task.StatusID == doneStatus.ID && !task.UpdatedDT.HasValue)
-                        {
-                            // holat is now DONE
-                        }
-
-                        db.Entry(task).State = EntityState.Modified;
+                        // Entity kuzatilmoqda — faqat o'zgargan ustunlar yoziladi (UserComment ustiga yozilmaydi)
                         await db.SaveChangesAsync();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "TasksController", $"Task {task.KeyCode} - {task.Title} tahrirladi");
+                        LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} tahrirladi");
 
                         return RedirectToAction("Details", new { id = task.ID });
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        System.Diagnostics.Trace.TraceError("Tasks Edit {0}: {1}", viewModel.ID, ex);
+                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
                     }
                 }
             }
 
-            // Reload ViewBag on xatolik
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                ViewBag.StatusID = new SelectList(await db.APP_TASK_STATUS_REF.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync(), "ID", "Name", viewModel.StatusID);
-                ViewBag.PriorityID = new SelectList(await db.APP_TASK_PRIORITY_REF.OrderBy(p => p.SortOrder).ToListAsync(), "ID", "Name", viewModel.PriorityID);
-                ViewBag.AssigneeUserID = new SelectList(await db.USERS.Where(u => u.IsDeleted != true && u.IsActive).ToListAsync(), "ID", "FullName", viewModel.AssigneeUserID);
-                ViewBag.ProjectID = new SelectList(await db.APP_TASK_PROJECTS.Where(p => p.IsActive).ToListAsync(), "ID", "Name", viewModel.ProjectID);
-            }
-
+            await PopulateLookupsAsync(viewModel);
             return View(viewModel);
         }
 
@@ -529,11 +370,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(long id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var task = await db.APP_TASKS.FindAsync(id);
@@ -542,8 +378,15 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Soft o'chirish - set holat ga CANCELLED agar possible, otherwise just mark as deleted
-                var cancelledStatus = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "CANCELLED" && s.IsActive);
+                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
+                {
+                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni o'chirishingiz mumkin";
+                    return RedirectToAction("Index");
+                }
+
+                // Biznes qarori (TSK-B06, 2026-10-17): "o'chirish" = bekor qilish — CANCELLED holati bo'lsa
+                // status o'zgaradi (tarix saqlanadi), aks holda IsDeleted
+                var cancelledStatus = TaskLookups.Statuses().FirstOrDefault(s => s.Code == TaskRules.CancelledCode);
                 if (cancelledStatus != null)
                 {
                     task.StatusID = cancelledStatus.ID;
@@ -556,9 +399,51 @@ namespace tahsinERP.Controllers
 
                 await db.SaveChangesAsync();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "TasksController", $"Task {task.KeyCode} - {task.Title} o'chirildi");
+                LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} o'chirildi");
 
                 return RedirectToAction("Index");
+            }
+        }
+
+        private static TaskViewModel ToViewModel(APP_TASKS t, Dictionary<int, string> names)
+        {
+            return new TaskViewModel
+            {
+                ID = t.ID,
+                KeyCode = t.KeyCode,
+                Title = t.Title,
+                Description = t.Description,
+                StatusID = t.StatusID,
+                StatusName = t.APP_TASK_STATUS_REF?.Name,
+                PriorityID = t.PriorityID,
+                PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
+                AssigneeUserID = t.AssigneeUserID,
+                AssigneeFullName = TaskLookups.NameOf(names, t.AssigneeUserID),
+                ReporterUserID = t.ReporterUserID,
+                ReporterFullName = TaskLookups.NameOf(names, t.ReporterUserID),
+                CreatedDT = t.CreatedDT,
+                UpdatedDT = t.UpdatedDT,
+                DueDate = t.DueDate,
+                ProjectID = t.ProjectID,
+                ProjectName = t.APP_TASK_PROJECTS?.Name
+            };
+        }
+
+        /// <summary>Create/Edit dropdownlari (avval 5 joyda 4 tadan so'rov — TSK-P07).</summary>
+        private async Task PopulateLookupsAsync(TaskViewModel viewModel, DBTHSNEntities db = null)
+        {
+            ViewBag.StatusID = TaskLookups.StatusList(viewModel.StatusID);
+            ViewBag.PriorityID = TaskLookups.PriorityList(viewModel.PriorityID);
+            ViewBag.ProjectID = TaskLookups.ProjectList(viewModel.ProjectID);
+
+            if (db != null)
+            {
+                ViewBag.AssigneeUserID = await TaskLookups.UserListAsync(db, viewModel.AssigneeUserID);
+                return;
+            }
+            using (var ctx = new DBTHSNEntities())
+            {
+                ViewBag.AssigneeUserID = await TaskLookups.UserListAsync(ctx, viewModel.AssigneeUserID);
             }
         }
     }

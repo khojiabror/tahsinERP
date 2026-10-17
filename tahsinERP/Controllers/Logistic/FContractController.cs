@@ -1,30 +1,26 @@
-using DocumentFormat.OpenXml.EMMA;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.UI.WebControls;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
 
 namespace tahsinERP.Controllers
 {
-    public class FContractController : Controller
+    /// <summary>Ruxsat: [Permission] (GET — ko'rish, POST/Create/Edit/Delete — o'zgartirish; AJAX endpointlar ham, LOG-S02).</summary>
+    // LOG-S03: POST entity binding faqat ruxsat etilgan maydonlar bilan ([Bind(Include)]) — over-posting yo'q
+    [Permission]
+    public class FContractController : BaseController
     {
         // Olish so'rovi: FContract
         public async Task<ActionResult> Index(int? forwarderID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var q = db.F_CONTRACTS
@@ -44,10 +40,6 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             using(DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
@@ -57,12 +49,8 @@ namespace tahsinERP.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(F_CONTRACTS contract)
+        public async Task<ActionResult> Create([Bind(Include = "ContractNo,ForwarderID,IssueDate,DueDate,Amount,CurrencyID,Description")] F_CONTRACTS contract)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             try
             {
                 using(DBTHSNEntities db = new DBTHSNEntities()) 
@@ -70,7 +58,8 @@ namespace tahsinERP.Controllers
                     if (ModelState.IsValid)
                     {
                         contract.IsDeleted = false;
-                        contract.CompanyID = 1;
+                        // LOG-S01: qattiq "1" o'rniga joriy bazadagi kompaniya (DB-per-tenant)
+                        contract.CompanyID = await db.COMPANIES.OrderBy(c => c.ID).Select(c => c.ID).FirstOrDefaultAsync();
                         db.F_CONTRACTS.Add(contract);
                         await db.SaveChangesAsync();
 
@@ -101,10 +90,6 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Details(int? ID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -129,10 +114,6 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Edit(int? ID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -143,7 +124,7 @@ namespace tahsinERP.Controllers
                 var contract = await db1.F_CONTRACTS
                     .Include(c => c.FORWARDER)
                     .Include (c => c.CURRENCy)
-                    .FirstOrDefaultAsync(c => c.ID == ID);
+                    .FirstOrDefaultAsync(c => c.ID == ID && !c.IsDeleted);
 
                 if (contract == null)
                 {
@@ -157,17 +138,14 @@ namespace tahsinERP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(F_CONTRACTS contract)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,ContractNo,ForwarderID,IssueDate,DueDate,Amount,CurrencyID,Description")] F_CONTRACTS contract)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    var contractToUpdate = await db.F_CONTRACTS.FindAsync(contract.ID);
+                    // LOG-B16: o'chirilgan shartnoma Edit orqali tiklanmaydi
+                    var contractToUpdate = await db.F_CONTRACTS.FirstOrDefaultAsync(c => c.ID == contract.ID && !c.IsDeleted);
                     if (contractToUpdate != null)
                     {
                         contractToUpdate.ContractNo = contract.ContractNo;
@@ -177,7 +155,6 @@ namespace tahsinERP.Controllers
                         contractToUpdate.CurrencyID = contract.CurrencyID;
                         contractToUpdate.Amount = contract.Amount;
                         contractToUpdate.Description = contract.Description;
-                        contractToUpdate.IsDeleted = false;
 
                         try
                         {
@@ -214,40 +191,30 @@ namespace tahsinERP.Controllers
         }
         public async Task<ActionResult> Delete(int? Id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             if (Id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var contract = await db.F_CONTRACTS.FindAsync(Id);
+                var contract = await LoadContractForDeleteAsync(db, Id.Value);
                 if (contract == null)
                 {
                     return HttpNotFound();
                 }
-
-                await db.Entry(contract).Reference(i => i.FORWARDER).LoadAsync();
-                await db.Entry(contract).Reference(i => i.CURRENCy).LoadAsync();
                 return View(contract);
             }
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int? ID, FormCollection gfs)
+        [ActionName("Delete")]
+        public async Task<ActionResult> DeleteConfirmed(int? ID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    var contractToDelete = await db.F_CONTRACTS.FindAsync(ID);
+                    var contractToDelete = await db.F_CONTRACTS.FirstOrDefaultAsync(c => c.ID == ID && !c.IsDeleted);
                     if (contractToDelete != null)
                     {
                         contractToDelete.IsDeleted = true;
@@ -283,7 +250,24 @@ namespace tahsinERP.Controllers
                 ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
             }
 
-            return View();
+            // LOG-B09: view null model bilan ochilmasin
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var model = ID.HasValue ? await LoadContractForDeleteAsync(db, ID.Value) : null;
+                if (model == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(model);
+            }
+        }
+
+        private static Task<F_CONTRACTS> LoadContractForDeleteAsync(DBTHSNEntities db, int id)
+        {
+            return db.F_CONTRACTS.AsNoTracking()
+                .Include(c => c.FORWARDER)
+                .Include(c => c.CURRENCy)
+                .FirstOrDefaultAsync(c => c.ID == id && !c.IsDeleted);
         }
     }
 }

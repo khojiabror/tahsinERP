@@ -1,71 +1,65 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
-using tahsinERP.Services;
-using tahsinERP.ViewModels;
+using tahsinERP.Services.Tasks;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
-    public class TaskProjectController : Controller
+    public class TaskProjectController : TaskRefDataController<APP_TASK_PROJECTS>
     {
-        // Olish so'rovi: TaskProject
-        public async Task<ActionResult> Index()
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
+        private static readonly string[] Fields = { "Code", "Name", "IsActive" };
 
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var projects = await db.APP_TASK_PROJECTS
-                    .OrderBy(p => p.Name)
-                    .ToListAsync();
-                return View(projects);
-            }
+        protected override DbSet<APP_TASK_PROJECTS> Set(DBTHSNEntities db) => db.APP_TASK_PROJECTS;
+
+        // Index avval o'chirilgan loyihalarni ham ko'rsatardi (TSK-B04) — endi asos filtrlaydi
+        protected override IQueryable<APP_TASK_PROJECTS> Ordered(IQueryable<APP_TASK_PROJECTS> query) => query.OrderBy(p => p.Name);
+
+        protected override string[] EditableFields => Fields;
+
+        protected override Expression<Func<APP_TASKS, bool>> UsedBy(int id) => t => t.ProjectID == id;
+
+        protected override string LogLabel => "Project";
+
+        protected override string InUseMessage => "Bu loyiha vazifalarda ishlatilmoqda. O'chirish mumkin emas.";
+
+        protected override Task OnCreatingAsync(DBTHSNEntities db, APP_TASK_PROJECTS entity)
+        {
+            entity.CreatedDT = DateTime.Now;
+            entity.IsActive = true;
+            return Task.FromResult(0);
         }
 
-        // Olish so'rovi: TaskProject/Details/5
-        public async Task<ActionResult> Details(int? id)
+        // Olish so'rovi: TaskProject/Details/5 — loyiha va uning topshiriqlari
+        public override async Task<ActionResult> Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
             // Oddiy user uchun faqat o'z tasklarini ko'rsatish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            int currentUserId = CurrentUserId;
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var project = await db.APP_TASK_PROJECTS
-                    .Where(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null))
-                    .FirstOrDefaultAsync();
+                var project = await db.APP_TASK_PROJECTS.AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.ID == id && p.IsDeleted != true);
                 if (project == null)
                 {
                     return HttpNotFound();
                 }
 
-                // Olish tasks uchun this project
-                var tasksQuery = db.APP_TASKS
+                var tasksQuery = db.APP_TASKS.AsNoTracking()
                     .Include(t => t.APP_TASK_STATUS_REF)
                     .Include(t => t.APP_TASK_PRIORITY_REF)
                     .Where(t => t.ProjectID == id && t.IsDeleted == false);
 
-                // Oddiy user uchun faqat o'z tasklarini ko'rsatish
                 if (!isAdminOrDeveloper)
                 {
                     tasksQuery = tasksQuery.Where(t => t.AssigneeUserID == currentUserId);
@@ -75,7 +69,8 @@ namespace tahsinERP.Controllers.TaskSettings
                     .OrderByDescending(t => t.CreatedDT)
                     .ToListAsync();
 
-                // Aylantirish ga ViewModels
+                // Ismlar bitta so'rovda (avval har topshiriqqa 2 ta GetFullName — TSK-P01)
+                var names = await TaskLookups.UserNamesAsync(db, tasks.SelectMany(t => new[] { t.AssigneeUserID, t.ReporterUserID }));
                 var taskViewModels = tasks.Select(t => new ViewModels.TaskViewModel
                 {
                     ID = t.ID,
@@ -87,9 +82,9 @@ namespace tahsinERP.Controllers.TaskSettings
                     PriorityID = t.PriorityID,
                     PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
                     AssigneeUserID = t.AssigneeUserID,
-                    AssigneeFullName = t.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: t.AssigneeUserID.Value) : null,
+                    AssigneeFullName = TaskLookups.NameOf(names, t.AssigneeUserID),
                     ReporterUserID = t.ReporterUserID,
-                    ReporterFullName = t.ReporterUserID.HasValue ? UserHelper.GetFullName(userID: t.ReporterUserID.Value) : null,
+                    ReporterFullName = TaskLookups.NameOf(names, t.ReporterUserID),
                     CreatedDT = t.CreatedDT,
                     UpdatedDT = t.UpdatedDT,
                     DueDate = t.DueDate,
@@ -101,146 +96,6 @@ namespace tahsinERP.Controllers.TaskSettings
                 ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
 
                 return View(project);
-            }
-        }
-
-        // Olish so'rovi: TaskProject/yaratish
-        public ActionResult Create()
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            return View();
-        }
-
-        // POST so'rovi: TaskProject/yaratish
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(APP_TASK_PROJECTS project)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    // Tekshirish agar code already mavjud
-                    var existing = await db.APP_TASK_PROJECTS.FirstOrDefaultAsync(p => p.Code == project.Code);
-                    if (existing != null)
-                    {
-                        ModelState.AddModelError("Code", "Bu kod allaqachon mavjud");
-                        return View(project);
-                    }
-
-                    project.CreatedDT = DateTime.Now;
-                    project.IsActive = true;
-
-                    db.APP_TASK_PROJECTS.Add(project);
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} yaratdi");
-                    return RedirectToAction("Index");
-                }
-            }
-
-            return View(project);
-        }
-
-        // Olish so'rovi: TaskProject/Edit/5
-        public async Task<ActionResult> Edit(int? id)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var project = await db.APP_TASK_PROJECTS.FindAsync(id);
-                if (project == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(project);
-            }
-        }
-
-        // POST so'rovi: TaskProject/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(APP_TASK_PROJECTS project)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    // Tekshirish agar code already mavjud (excluding current record)
-                    var existing = await db.APP_TASK_PROJECTS.FirstOrDefaultAsync(p => p.Code == project.Code && p.ID != project.ID);
-                    if (existing != null)
-                    {
-                        ModelState.AddModelError("Code", "Bu kod allaqachon mavjud");
-                        return View(project);
-                    }
-
-                    db.Entry(project).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} tahrirladi");
-                    return RedirectToAction("Index");
-                }
-            }
-
-            return View(project);
-        }
-
-        // POST so'rovi: TaskProject/o'chirish/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int id)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var project = await db.APP_TASK_PROJECTS.FindAsync(id);
-                if (project == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // Tekshirish agar project is used in tasks
-                var usedInTasks = await db.APP_TASKS.AnyAsync(t => t.ProjectID == id && t.IsDeleted == false);
-                if (usedInTasks)
-                {
-                    TempData["Error"] = "Bu loyiha vazifalarda ishlatilmoqda. O'chirish mumkin emas.";
-                    return RedirectToAction("Index");
-                }
-
-                project.IsDeleted = true;
-                db.Entry(project).State = System.Data.Entity.EntityState.Modified;
-                await SoftDeleteReferenceService.AfterTaskProjectSoftDeletedAsync(db, id);
-                await db.SaveChangesAsync();
-
-                LogHelper.LogToDatabase(User.Identity.Name, "TaskProjectController", $"Project {project.Code} - {project.Name} o'chirildi");
-                return RedirectToAction("Index");
             }
         }
     }

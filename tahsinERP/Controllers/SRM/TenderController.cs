@@ -5,30 +5,24 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Procurement;
 
 namespace tahsinERP.Controllers
 {
-    public class TenderController : Controller
+    public class TenderController : BaseController
     {
         // Olish so'rovi: Tender
         public async Task<ActionResult> Index()
         {
-            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tender", "Index"))
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, "Tender", "Index"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             using (var db = new DBTHSNEntities())
             {
-                // Olish purchasable materials - faqat where IsFinishedGood == false
-                var materials = await db.PRODUCTS
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .Where(p => p.IsDeleted != true && 
-                                (p.PRODUCT_CATEGORIES == null || p.PRODUCT_CATEGORIES.IsFinishedGood == false))
-                    .OrderBy(p => p.PNo)
-                    .Select(p => new { p.ID, p.PNo, p.Name })
-                    .ToListAsync();
-
+                // Xarid qilinadigan materiallar (tayyor mahsulot emas) — umumiy keshdan
+                var materials = await ProcurementLookups.GetPurchasableProductsAsync(db, ProcurementLookups.DirectPurchase);
                 ViewBag.Materials = new SelectList(materials, "ID", "PNo");
 
                 return View();

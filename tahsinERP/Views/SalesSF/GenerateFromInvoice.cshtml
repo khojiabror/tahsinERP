@@ -7,8 +7,8 @@
     var products = ViewBag.Products as Dictionary<int, tahsinERP.Models.PRODUCT>;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -65,7 +65,7 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>SF raqami *</label>
-                                                        @Html.TextBoxFor(m => m.SFNumber, new { @class = "form-control", required = "required" })
+                                                        @Html.TextBoxFor(m => m.SFNumber, new { @class = "form-control", placeholder = "Bo'sh qoldiring — avtomatik (SF-yyyy-0001)" })
                                                         @Html.ValidationMessageFor(m => m.SFNumber, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
@@ -168,9 +168,5 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 

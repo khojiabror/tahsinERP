@@ -112,13 +112,13 @@
                                                     }
                                                     @if (changePermit && item.Status == "Draft")
                                                     {
-                                                        <a href="@Url.Action("Approve", new { id = item.ID })" class="btn btn-sm btn-primary" onclick="return confirm('Tabelni tasdiqlash?');">
+                                                        <a href="#" data-post-url="@Url.Action("Approve", new { id = item.ID })" data-confirm="Tabelni tasdiqlash?" class="btn btn-sm btn-primary" title="Tasdiqlash">
                                                             <i class="bx bx-check"></i>
                                                         </a>
                                                     }
                                                     @if (changePermit && item.Status == "Approved")
                                                     {
-                                                        <a href="@Url.Action("Close", new { id = item.ID })" class="btn btn-sm btn-secondary" onclick="return confirm('Tabelni yopish?');">
+                                                        <a href="#" data-post-url="@Url.Action("Close", new { id = item.ID })" data-confirm="Tabelni yopish?" class="btn btn-sm btn-secondary" title="Yopish">
                                                             <i class="bx bx-lock"></i>
                                                         </a>
                                                     }

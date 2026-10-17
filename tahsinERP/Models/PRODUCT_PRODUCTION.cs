@@ -29,6 +29,7 @@ namespace tahsinERP.Models
         public double Total { get; set; }
         public string Comment { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
+        public Nullable<System.DateTime> PlanDate { get; set; }
     
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual SHOP SHOP { get; set; }

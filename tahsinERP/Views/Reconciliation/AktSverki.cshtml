@@ -194,8 +194,8 @@
     {
         <script>
             $(document).ready(function () {
-                var partyName = '@Html.Raw(Model.Party2Name?.Replace("'", "\\'") ?? "Akt_sverki")';
-                var cn = '@Html.Raw((Model.ContractNo ?? "").Replace("'", "\\'"))';
+                var partyName = @Html.Raw(Json.Encode(Model.Party2Name ?? "Akt_sverki"));
+                var cn = @Html.Raw(Json.Encode(Model.ContractNo ?? ""));
                 var baseName = 'Akt_sverki_' + partyName.replace(/[^a-zA-Z0-9-_]/g, '_') + '_' + cn.replace(/[^a-zA-Z0-9-_]/g, '_');
                 $('#aktSverkiTable').DataTable({
                     "language": {
@@ -238,10 +238,10 @@
                             customize: function (doc) {
                                 var asOf = '@Model.AsOfDate.ToString("dd.MM.yyyy")';
                                 var reportDate = '@Model.ReportDate';
-                                var party1 = '@Html.Raw((Model.Party1Name ?? "").Replace("'", "\\'"))';
-                                var party2 = '@Html.Raw((Model.Party2Name ?? "").Replace("'", "\\'"))';
-                                var contractNo = '@Html.Raw((Model.ContractNo ?? "").Replace("'", "\\'"))';
-                                var agreement = '@Html.Raw((Model.AgreementInfo ?? "").Replace("'", "\\'"))';
+                                var party1 = @Html.Raw(Json.Encode(Model.Party1Name ?? ""));
+                                var party2 = @Html.Raw(Json.Encode(Model.Party2Name ?? ""));
+                                var contractNo = @Html.Raw(Json.Encode(Model.ContractNo ?? ""));
+                                var agreement = @Html.Raw(Json.Encode(Model.AgreementInfo ?? ""));
                                 var reconciliationType = '@Model.ReconciliationType';
                                 var finalBalance = @Model.FinalBalance.ToString(System.Globalization.CultureInfo.InvariantCulture);
                                 var finalAbsText = '@Math.Abs(Model.FinalBalance).ToString("N2")';

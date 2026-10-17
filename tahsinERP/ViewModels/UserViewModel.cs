@@ -28,6 +28,13 @@ namespace tahsinERP.ViewModels
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
+        // Akkaunt sozlamalari: amaldagi parol (tekshiruv uchun) va yangi parol takrori
+        [DataType(DataType.Password)]
+        public string CurrentPassword { get; set; }
+
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; }
+
         public string Role { get; set; }
         public int RoleID { get; set; }
         public bool IsActive { get; set; }

@@ -37,19 +37,21 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 // Parent filtrlash
-                if (parentID.HasValue)
-                {
-                    query = query.Where(c => c.ParentID == parentID.Value);
-                }
-                else if (parentID == 0)
+                // parentID=0 — faqat ildiz elementlar (avval bu tarmoq HasValue'dan keyin turgani uchun ishlamasdi, FIN-B25)
+                if (parentID == 0)
                 {
                     query = query.Where(c => c.ParentID == null);
+                }
+                else if (parentID.HasValue)
+                {
+                    query = query.Where(c => c.ParentID == parentID.Value);
                 }
 
                 var categories = query.OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
 
                 // Build tree structure
-                var tree = BuildCategoryTree(categories, null);
+                // parentID bo'yicha filtrlanganda daraxt shu elementdan quriladi (avval bo'sh chiqardi)
+                var tree = BuildCategoryTree(categories, parentID > 0 ? parentID : null);
 
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.Type = type;

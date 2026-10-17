@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace tahsinERP.Services
 {
     public interface ITextSuggestionService
     {
-        string SuggestOrderBody(CompanyOrderMeta meta);
-        string SuggestLetterBody(OfficialLetterMeta meta);
+        Task<string> SuggestOrderBodyAsync(CompanyOrderMeta meta);
+        Task<string> SuggestLetterBodyAsync(OfficialLetterMeta meta);
     }
 
     public class CompanyOrderMeta
@@ -29,4 +30,3 @@ namespace tahsinERP.Services
         public string TheirRefNo { get; set; }
     }
 }
-

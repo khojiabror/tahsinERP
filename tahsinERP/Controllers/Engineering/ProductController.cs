@@ -15,11 +15,16 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using System.Data.Entity;
 using tahsinERP.Filters;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers
 {
-    public class ProductController : Controller
+    [Permission]
+    public class ProductController : BaseController
     {
+        // Formadan bog'lanadigan maydonlar (avval butun PRODUCT entity bog'lanardi — over-posting, MES-B17)
+        private const string ProductFormFields = "ID,PNo,Name,Description,Weight,Length,Width,Height,StandardLengthMm,UnitID,PNo2,PNo3,PNo4,ShopID,CategoryID,HSCodeID";
+
         private int productPhotoMaxLength = Convert.ToInt32(ConfigurationManager.AppSettings["photoMaxSize"]);
         private DBTHSNEntities db = new DBTHSNEntities();
 
@@ -31,19 +36,28 @@ namespace tahsinERP.Controllers
 
         #region Helpers
 
-        private async Task<SelectList> GetUnitSelectListAsync(object selected = null)
+        private static SelectList GetUnitSelectList(object selected = null)
         {
-            var units = await db.UNITS.OrderBy(u => u.ShortName).ToListAsync();
+            // Birliklar keshdan (Extra = ShortName)
+            var units = ReferenceDataCache.Get(ReferenceDataCache.Units)
+                .Select(u => new { u.ID, ShortName = u.Extra ?? u.Name })
+                .OrderBy(u => u.ShortName)
+                .ToList();
             return new SelectList(units, "ID", "ShortName", selected);
         }
 
-        private async Task<SelectList> GetShopSelectListAsync(object selected = null)
+        /// <summary>Create/Edit formasi dropdownlari (avval 5 joyda nusxalangan edi — dublikat #26).</summary>
+        private async Task PopulateFormLookupsAsync(int? unitId, int? shopId, int? categoryId, string productType)
         {
-            var shops = await db.SHOPS
-                .Where(s => s.IsDeleted != true)
-                .OrderBy(s => s.ShopName)
+            ViewBag.UNIT = GetUnitSelectList(unitId);
+            ViewBag.TypeList = GetProductTypeFormSelectList(productType);
+            ViewBag.ShopList = ReferenceDataCache.SelectList(ReferenceDataCache.Shops, shopId);
+            var categories = await db.PRODUCT_CATEGORIES.AsNoTracking()
+                .Where(c => c.IsDeleted != true)
+                .OrderBy(c => c.Name)
+                .Select(c => new { c.ID, c.Name })
                 .ToListAsync();
-            return new SelectList(shops, "ID", "ShopName", selected);
+            ViewBag.CategoryList = new SelectList(categories, "ID", "Name", categoryId);
         }
 
         // INDEX filtri uchun Type list
@@ -121,7 +135,7 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: Product
         public async Task<ActionResult> Index()
         {
-            var list = await db.PRODUCTS
+            var list = await db.PRODUCTS.AsNoTracking()
                 .Include(p => p.UNIT)
                 .Include(p => p.SHOP)
                 .Where(p => p.IsDeleted == false)
@@ -165,24 +179,14 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: Product/yaratish
         public async Task<ActionResult> Create()
         {
-            ViewBag.UNIT = await GetUnitSelectListAsync();
-            ViewBag.TypeList = GetProductTypeFormSelectList(PRODUCT_TYPE_FINISHED_GOOD);
-            ViewBag.ShopList = await GetShopSelectListAsync();
-            
-            // Kategoriya dropdown: birinchi element "Tanlang" (null), qolganlari ro'yxatdan
-            var categories = await db.PRODUCT_CATEGORIES
-                .Where(c => c.IsDeleted != true)
-                .OrderBy(c => c.Name)
-                .ToListAsync();
-            ViewBag.CategoryList = new SelectList(categories, "ID", "Name", null);
-
+            await PopulateFormLookupsAsync(null, null, null, PRODUCT_TYPE_FINISHED_GOOD);
             return View();
         }
 
         // POST so'rovi: Product/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(PRODUCT product, string ProductType)
+        public async Task<ActionResult> Create([Bind(Include = ProductFormFields)] PRODUCT product, string ProductType)
         {
             if (ModelState.IsValid)
             {
@@ -203,11 +207,7 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
-            ViewBag.TypeList = GetProductTypeFormSelectList(ProductType);
-            ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
-            var categoriesCreate = await db.PRODUCT_CATEGORIES.OrderBy(c => c.Name).ToListAsync();
-            ViewBag.CategoryList = new SelectList(categoriesCreate, "ID", "Name", product.CategoryID);
+            await PopulateFormLookupsAsync(product.UnitID, product.ShopID, product.CategoryID, ProductType);
             return View(product);
         }
 
@@ -273,12 +273,8 @@ namespace tahsinERP.Controllers
             // Olish current product type dan flags
             var currentProductType = GetProductTypeFromFlags(product);
 
-            ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
-            ViewBag.TypeList = GetProductTypeFormSelectList(currentProductType);
-            ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
+            await PopulateFormLookupsAsync(product.UnitID, product.ShopID, product.CategoryID, currentProductType);
             ViewBag.CurrentProductType = currentProductType;
-            var categories = await db.PRODUCT_CATEGORIES.Where(c => c.IsDeleted != true).OrderBy(c => c.Name).ToListAsync();
-            ViewBag.CategoryList = new SelectList(categories, "ID", "Name", product.CategoryID);
 
             // Yuklash existing image uchun display
             var existingImage = await db.PRODUCTIMAGES
@@ -296,15 +292,11 @@ namespace tahsinERP.Controllers
         // POST so'rovi: Product/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(PRODUCT product, string ProductType)
+        public async Task<ActionResult> Edit([Bind(Include = ProductFormFields)] PRODUCT product, string ProductType)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
-                ViewBag.TypeList = GetProductTypeFormSelectList(ProductType);
-                ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
-                var categoriesErr = await db.PRODUCT_CATEGORIES.Where(c => c.IsDeleted != true).OrderBy(c => c.Name).ToListAsync();
-                ViewBag.CategoryList = new SelectList(categoriesErr, "ID", "Name", product.CategoryID);
+                await PopulateFormLookupsAsync(product.UnitID, product.ShopID, product.CategoryID, ProductType);
                 return View(product);
             }
 
@@ -320,6 +312,8 @@ namespace tahsinERP.Controllers
             entity.Length = product.Length;
             entity.Width = product.Width;
             entity.Height = product.Height;
+            // Kesish hisoblari shu maydonga tayanadi, lekin u avval UI'da umuman tahrirlanmasdi (MES-B21)
+            entity.StandardLengthMm = product.StandardLengthMm;
             entity.UnitID = product.UnitID;
             entity.PNo2 = product.PNo2;
             entity.PNo3 = product.PNo3;
@@ -339,11 +333,7 @@ namespace tahsinERP.Controllers
             // Handle image upload on Edit
             if (!await HandleImageUploadAsync(product.ID, entity.PNo, isUpdate: true))
             {
-                ViewBag.UNIT = await GetUnitSelectListAsync(product.UnitID);
-                ViewBag.TypeList = GetProductTypeFormSelectList(ProductType);
-                ViewBag.ShopList = await GetShopSelectListAsync(product.ShopID);
-                var categoriesImg = await db.PRODUCT_CATEGORIES.Where(c => c.IsDeleted != true).OrderBy(c => c.Name).ToListAsync();
-                ViewBag.CategoryList = new SelectList(categoriesImg, "ID", "Name", product.CategoryID);
+                await PopulateFormLookupsAsync(product.UnitID, product.ShopID, product.CategoryID, ProductType);
                 return View(product);
             }
 
@@ -523,15 +513,18 @@ namespace tahsinERP.Controllers
                     .FirstOrDefaultAsync(s => s.IsDeleted != true);
 
                 int defaultShopId = defaultShop?.ID ?? 1;
-                int savedCount = 0;
+
+                // Mavjud PNo'lar bir martada; yangi qatorlar birga qo'shiladi, bitta SaveChanges va bitta log
+                // (avval har qatorga AnyAsync + SaveChanges + log, MES-P24). Fayl ichidagi takror PNo ham o'tkazib yuboriladi.
+                var existingPNos = new HashSet<string>(
+                    await db.PRODUCTS.Where(p => p.IsDeleted == false && p.PNo != null).Select(p => p.PNo).ToListAsync(),
+                    StringComparer.OrdinalIgnoreCase);
+                var newProducts = new List<PRODUCT>();
 
                 foreach (DataRow row in tableModel.Rows)
                 {
                     var pno = row.Table.Columns.Contains("Partnumber") ? row["Partnumber"].ToString().Trim() : "";
-                    if (string.IsNullOrEmpty(pno)) continue;
-
-                    var exists = await db.PRODUCTS.AnyAsync(p => p.PNo == pno && p.IsDeleted == false);
-                    if (exists) continue;
+                    if (string.IsNullOrEmpty(pno) || !existingPNos.Add(pno)) continue;
 
                     var newProduct = new PRODUCT
                     {
@@ -552,12 +545,17 @@ namespace tahsinERP.Controllers
                     // Handle product type dan Excel
                     var typeFromExcel = row.Table.Columns.Contains("Type") ? row["Type"].ToString().Trim().ToUpper() : "";
                     SetProductTypeFlagsFromExcel(newProduct, typeFromExcel);
+                    newProducts.Add(newProduct);
+                }
 
-                    db.PRODUCTS.Add(newProduct);
-                    await db.SaveChangesAsync();
-                    savedCount++;
+                db.PRODUCTS.AddRange(newProducts);
+                await db.SaveChangesAsync();
+                var savedCount = newProducts.Count;
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "ProductController", $"{newProduct.PNo} - Productni Excel orqali yaratdi");
+                if (savedCount > 0)
+                {
+                    LogHelper.LogToDatabase(User.Identity.Name, "ProductController",
+                        $"Excel orqali {savedCount} ta maxsulot yaratildi: {string.Join(", ", newProducts.Take(20).Select(p => p.PNo))}{(savedCount > 20 ? " ..." : "")}");
                 }
 
                 TempData["Success"] = $"{savedCount} ta maxsulot muvaffaqiyatli saqlandi";

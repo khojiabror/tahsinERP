@@ -4,94 +4,193 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
+using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
-    public class TaskDashboardController : Controller
+    [Permission]
+    public class TaskDashboardController : BaseController
     {
+        /// <summary>Bitta GROUP BY qatori: shu kombinatsiyadagi topshiriqlar soni.</summary>
+        private sealed class TaskGroup
+        {
+            public string StatusCode { get; set; }
+            public string StatusName { get; set; }
+            public string PriorityCode { get; set; }
+            public string PriorityName { get; set; }
+            public string ProjectName { get; set; }
+            public int? AssigneeUserID { get; set; }
+            public bool IsDone { get; set; }
+            public bool IsOverdue { get; set; }
+            public bool IsOverdueByDate { get; set; }
+            public bool IsOnTime { get; set; }
+            public bool IsRecent { get; set; }
+            public int Count { get; set; }
+        }
+
         // Olish so'rovi: TaskDashboard
         public async Task<ActionResult> Index(int? userId, int? productID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            // Oddiy user uchun faqat o'z tasklarini ko'rsatish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            int currentUserId = CurrentUserId;
             if (!isAdminOrDeveloper)
             {
                 // Oddiy user - faqat o'z tasklarini ko'rsatish
                 userId = currentUserId;
             }
-            // Admin/Developer uchun userId null bo'lishi mumkin (barcha foydalanuvchilar)
-            // userId null bo'lsa, barcha tasklar ko'rsatiladi
+            // Admin/Developer uchun userId null bo'lsa, barcha tasklar ko'rsatiladi
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var viewModel = new TaskDashboardViewModel();
 
-                // Base query uchun tasks
-                var allTasksQuery = db.APP_TASKS
-                    .Include(t => t.APP_TASK_STATUS_REF)
-                    .Include(t => t.APP_TASK_PRIORITY_REF)
-                    .Where(t => t.IsDeleted == false);
-
-                // Filtrlash bo'yicha user
+                var query = db.APP_TASKS.AsNoTracking().Where(t => t.IsDeleted == false);
                 if (userId.HasValue)
                 {
-                    allTasksQuery = allTasksQuery.Where(t => t.AssigneeUserID == userId.Value);
+                    query = query.Where(t => t.AssigneeUserID == userId.Value);
                 }
 
-                var allTasks = await allTasksQuery.ToListAsync();
+                // Avval barcha topshiriqlar (Include bilan) xotiraga yuklanib, keyin hisoblanardi va
+                // loyiha nomi lazy-load, har xodim uchun alohida USERS so'rovi ketardi (TSK-P03/P04/P05).
+                // Endi bitta GROUP BY: natija qatorlari soni topshiriqlar soniga emas, kombinatsiyalarga bog'liq.
+                var now = DateTime.Now;
+                var today = now.Date;
+                var sevenDaysAgo = now.AddDays(-7);
+
+                var groups = await query
+                    .Select(t => new
+                    {
+                        StatusCode = t.APP_TASK_STATUS_REF.Code,
+                        StatusName = t.APP_TASK_STATUS_REF.Name,
+                        PriorityCode = t.APP_TASK_PRIORITY_REF.Code,
+                        PriorityName = t.APP_TASK_PRIORITY_REF.Name,
+                        ProjectName = t.APP_TASK_PROJECTS.Name,
+                        t.AssigneeUserID,
+                        t.DueDate,
+                        t.UpdatedDT,
+                        t.CreatedDT,
+                        IsDone = t.APP_TASK_STATUS_REF.Code == TaskRules.DoneCode || t.APP_TASK_STATUS_REF.Name.Contains("bajarildi")
+                    })
+                    .GroupBy(t => new
+                    {
+                        t.StatusCode,
+                        t.StatusName,
+                        t.PriorityCode,
+                        t.PriorityName,
+                        t.ProjectName,
+                        t.AssigneeUserID,
+                        t.IsDone,
+                        IsOverdue = t.DueDate.HasValue && t.DueDate.Value < now && !t.IsDone,
+                        IsOverdueByDate = t.DueDate.HasValue && t.DueDate.Value < today && !t.IsDone,
+                        IsOnTime = t.IsDone && t.DueDate.HasValue && t.UpdatedDT.HasValue &&
+                                   DbFunctions.TruncateTime(t.UpdatedDT) <= DbFunctions.TruncateTime(t.DueDate),
+                        IsRecent = t.CreatedDT >= sevenDaysAgo
+                    })
+                    .Select(g => new TaskGroup
+                    {
+                        StatusCode = g.Key.StatusCode,
+                        StatusName = g.Key.StatusName,
+                        PriorityCode = g.Key.PriorityCode,
+                        PriorityName = g.Key.PriorityName,
+                        ProjectName = g.Key.ProjectName,
+                        AssigneeUserID = g.Key.AssigneeUserID,
+                        IsDone = g.Key.IsDone,
+                        IsOverdue = g.Key.IsOverdue,
+                        IsOverdueByDate = g.Key.IsOverdueByDate,
+                        IsOnTime = g.Key.IsOnTime,
+                        IsRecent = g.Key.IsRecent,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                int total = groups.Sum(g => g.Count);
 
                 // holat Statistics (Pie Chart ma'lumot)
-                var statusStats = allTasks
-                    .GroupBy(t => t.APP_TASK_STATUS_REF?.Code ?? "UNKNOWN")
-                    .Select(g => new TaskStatusStatViewModel
+                viewModel.StatusStatistics = groups
+                    .GroupBy(g => g.StatusCode ?? "UNKNOWN")
+                    .Select(s => new TaskStatusStatViewModel
                     {
-                        StatusCode = g.Key,
-                        StatusName = g.First().APP_TASK_STATUS_REF?.Name ?? "Noma'lum",
-                        Count = g.Count(),
-                        Percentage = (decimal)g.Count() * 100 / (allTasks.Any() ? allTasks.Count : 1)
+                        StatusCode = s.Key,
+                        StatusName = s.First().StatusName ?? "Noma'lum",
+                        Count = s.Sum(g => g.Count),
+                        Percentage = (decimal)s.Sum(g => g.Count) * 100 / (total > 0 ? total : 1)
                     })
                     .OrderBy(s => s.StatusCode)
                     .ToList();
 
-                viewModel.StatusStatistics = statusStats;
-
                 // Priority Statistics
-                var priorityStats = allTasks
-                    .GroupBy(t => t.APP_TASK_PRIORITY_REF?.Code ?? "UNKNOWN")
-                    .Select(g => new TaskPriorityStatViewModel
+                viewModel.PriorityStatistics = groups
+                    .GroupBy(g => g.PriorityCode ?? "UNKNOWN")
+                    .Select(p => new TaskPriorityStatViewModel
                     {
-                        PriorityCode = g.Key,
-                        PriorityName = g.First().APP_TASK_PRIORITY_REF?.Name ?? "Noma'lum",
-                        TotalCount = g.Count(),
-                        DoneCount = g.Count(t => t.APP_TASK_STATUS_REF?.Code == "DONE"),
-                        InProgressCount = g.Count(t => t.APP_TASK_STATUS_REF?.Code == "IN_PROGRESS"),
-                        TodoCount = g.Count(t => t.APP_TASK_STATUS_REF?.Code == "TODO")
+                        PriorityCode = p.Key,
+                        PriorityName = p.First().PriorityName ?? "Noma'lum",
+                        TotalCount = p.Sum(g => g.Count),
+                        DoneCount = p.Where(g => g.StatusCode == TaskRules.DoneCode).Sum(g => g.Count),
+                        InProgressCount = p.Where(g => g.StatusCode == "IN_PROGRESS").Sum(g => g.Count),
+                        TodoCount = p.Where(g => g.StatusCode == "TODO").Sum(g => g.Count)
                     })
                     .OrderBy(p => p.PriorityCode)
                     .ToList();
 
-                viewModel.PriorityStatistics = priorityStats;
+                // Umumiy (yoki tanlangan foydalanuvchi) ko'rsatkichlari — query allaqachon userId bo'yicha filtrlangan
+                viewModel.UserTaskCount = total;
+                viewModel.UserDoneCount = groups.Where(g => g.StatusCode == TaskRules.DoneCode).Sum(g => g.Count);
+                viewModel.UserInProgressCount = groups.Where(g => g.StatusCode == "IN_PROGRESS").Sum(g => g.Count);
+                viewModel.UserTodoCount = groups.Where(g => g.StatusCode == "TODO").Sum(g => g.Count);
+                viewModel.OverdueCount = groups.Where(g => g.IsOverdue).Sum(g => g.Count);
+                viewModel.RecentTasksCount = groups.Where(g => g.IsRecent).Sum(g => g.Count);
 
-                // User-specific statistics (agar user selected)
+                // Overdue tasks by project (muddatidan o'tgan tasklar)
+                viewModel.OverdueTasksStatistics = groups
+                    .Where(g => g.IsOverdue)
+                    .GroupBy(g => g.ProjectName ?? "Loyiha yo'q")
+                    .Select(p => new TaskOverdueStatViewModel
+                    {
+                        ProjectName = p.Key,
+                        OverdueCount = p.Sum(g => g.Count)
+                    })
+                    .OrderByDescending(s => s.OverdueCount)
+                    .ToList();
+
+                // Employee Rating Statistics (Xodimlar rating) — ismlar bitta so'rovda
+                var assigneeIds = groups.Where(g => g.AssigneeUserID.HasValue).Select(g => g.AssigneeUserID).Distinct().ToList();
+                var names = await TaskLookups.UserNamesAsync(db, assigneeIds);
+
+                var employeeRatings = new List<EmployeeRatingViewModel>();
+                foreach (var assigneeId in assigneeIds)
+                {
+                    string fullName;
+                    if (!names.TryGetValue(assigneeId.Value, out fullName))
+                        continue;
+
+                    var userGroups = groups.Where(g => g.AssigneeUserID == assigneeId).ToList();
+
+                    // Muddatida bajarilgan (UpdatedDT <= DueDate va holat = bajarildi)
+                    int onTimeCompleted = userGroups.Where(g => g.IsOnTime).Sum(g => g.Count);
+                    // Muddati o'tgan va bajarilmagan
+                    int overdueNotCompleted = userGroups.Where(g => g.IsOverdueByDate).Sum(g => g.Count);
+
+                    employeeRatings.Add(new EmployeeRatingViewModel
+                    {
+                        UserID = assigneeId.Value,
+                        FullName = fullName ?? "Noma'lum",
+                        OnTimeCompletedCount = onTimeCompleted,
+                        OverdueNotCompletedCount = overdueNotCompleted,
+                        // Muddatida bajarilganlar bo'lsa — ular soni; aks holda kamroq kechikkan yuqorida
+                        RatingScore = onTimeCompleted > 0 ? onTimeCompleted : -overdueNotCompleted
+                    });
+                }
+
+                viewModel.EmployeeRatings = employeeRatings.Any(r => r.OnTimeCompletedCount > 0)
+                    ? employeeRatings.OrderByDescending(r => r.OnTimeCompletedCount).ThenBy(r => r.OverdueNotCompletedCount).ToList()
+                    : employeeRatings.OrderBy(r => r.OverdueNotCompletedCount).ToList();
+
                 if (userId.HasValue)
                 {
-                    var userTasks = allTasks.Where(t => t.AssigneeUserID == userId.Value).ToList();
-                    viewModel.UserTaskCount = userTasks.Count;
-                    viewModel.UserDoneCount = userTasks.Count(t => t.APP_TASK_STATUS_REF?.Code == "DONE");
-                    viewModel.UserInProgressCount = userTasks.Count(t => t.APP_TASK_STATUS_REF?.Code == "IN_PROGRESS");
-                    viewModel.UserTodoCount = userTasks.Count(t => t.APP_TASK_STATUS_REF?.Code == "TODO");
                     viewModel.UserName = await db.USERS
                         .Where(u => u.ID == userId.Value)
                         .Select(u => u.FullName ?? u.Uname)
@@ -99,141 +198,13 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    // Overall statistics
-                    viewModel.UserTaskCount = allTasks.Count;
-                    viewModel.UserDoneCount = allTasks.Count(t => t.APP_TASK_STATUS_REF?.Code == "DONE");
-                    viewModel.UserInProgressCount = allTasks.Count(t => t.APP_TASK_STATUS_REF?.Code == "IN_PROGRESS");
-                    viewModel.UserTodoCount = allTasks.Count(t => t.APP_TASK_STATUS_REF?.Code == "TODO");
                     viewModel.UserName = "Barcha foydalanuvchilar";
                 }
 
-                // Overdue tasks count (muddatidan o'tgan tasklar)
-                viewModel.OverdueCount = allTasks.Count(t => 
-                    t.DueDate.HasValue && 
-                    t.DueDate.Value < DateTime.Now && 
-                    (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE") &&
-                    (t.APP_TASK_STATUS_REF == null || !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi")));
-
-                // Recent tasks (last 7 days)
-                var sevenDaysAgo = DateTime.Now.AddDays(-7);
-                viewModel.RecentTasksCount = allTasks.Count(t => t.CreatedDT >= sevenDaysAgo);
-
-                // Overdue tasks by project (muddatidan o'tgan tasklar)
-                var overdueTasks = allTasks.Where(t => 
-                    t.DueDate.HasValue && 
-                    t.DueDate.Value < DateTime.Now && 
-                    (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE") &&
-                    (t.APP_TASK_STATUS_REF == null || !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi"))).ToList();
-
-                var overdueStats = overdueTasks
-                    .GroupBy(t => t.APP_TASK_PROJECTS?.Name ?? "Loyiha yo'q")
-                    .Select(g => new TaskOverdueStatViewModel
-                    {
-                        ProjectName = g.Key,
-                        OverdueCount = g.Count()
-                    })
-                    .OrderByDescending(s => s.OverdueCount)
-                    .ToList();
-
-                viewModel.OverdueTasksStatistics = overdueStats;
-
-                // Employee Rating Statistics (Xodimlar rating)
-                var allUsersWithTasks = allTasks
-                    .Where(t => t.AssigneeUserID.HasValue)
-                    .Select(t => t.AssigneeUserID.Value)
-                    .Distinct()
-                    .ToList();
-
-                var employeeRatings = new List<EmployeeRatingViewModel>();
-                var today = DateTime.Now.Date;
-
-                foreach (var assigneeId in allUsersWithTasks)
-                {
-                    var userTasks = allTasks.Where(t => t.AssigneeUserID == assigneeId).ToList();
-                    
-                    // Muddatida bajarilgan tasklar (UpdatedDT <= DueDate va holat = 'bajarildi')
-                    var onTimeCompleted = userTasks.Count(t =>
-                        t.DueDate.HasValue &&
-                        t.UpdatedDT.HasValue &&
-                        t.UpdatedDT.Value.Date <= t.DueDate.Value.Date &&
-                        (t.APP_TASK_STATUS_REF?.Code == "DONE" || 
-                         (t.APP_TASK_STATUS_REF?.Name != null && t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi"))));
-
-                    // Muddati o'tgan va bajarilmagan tasklar
-                    var overdueNotCompleted = userTasks.Count(t =>
-                        t.DueDate.HasValue &&
-                        t.DueDate.Value.Date < today &&
-                        (t.APP_TASK_STATUS_REF == null || 
-                         (t.APP_TASK_STATUS_REF.Code != "DONE" && 
-                          (t.APP_TASK_STATUS_REF.Name == null || !t.APP_TASK_STATUS_REF.Name.ToLower().Contains("bajarildi")))));
-
-                    // Rating score: agar muddatida bajarilgan tasklar bo'lsa, ular soni (yaxshi)
-                    // Agar yo'q bo'lsa, muddati o'tgan tasklar soni (yomon, lekin teskari tartibda)
-                    decimal ratingScore;
-                    if (onTimeCompleted > 0)
-                    {
-                        // Muddatida bajarilgan tasklar soni - eng ko'p = eng yaxshi
-                        ratingScore = onTimeCompleted;
-                    }
-                    else
-                    {
-                        // Muddati o'tgan tasklar soni - eng kam = eng yaxshi (teskari)
-                        // Katta manfiy raqam qo'shamiz, shunda eng kam overdue = eng katta rating
-                        ratingScore = -overdueNotCompleted;
-                    }
-
-                    var user = await db.USERS.FirstOrDefaultAsync(u => u.ID == assigneeId);
-                    if (user != null)
-                    {
-                        employeeRatings.Add(new EmployeeRatingViewModel
-                        {
-                            UserID = assigneeId,
-                            FullName = user.FullName ?? user.Uname ?? "Noma'lum",
-                            OnTimeCompletedCount = onTimeCompleted,
-                            OverdueNotCompletedCount = overdueNotCompleted,
-                            RatingScore = ratingScore
-                        });
-                    }
-                }
-
-                // Sort: agar muddatida bajarilgan tasklar bo'lsa, descending (eng ko'p = eng yaxshi)
-                // Agar yo'q bo'lsa, ratingScore bo'yicha descending (eng katta = eng yaxshi, ya'ni eng kam overdue)
-                var hasOnTimeCompleted = employeeRatings.Any(r => r.OnTimeCompletedCount > 0);
-                if (hasOnTimeCompleted)
-                {
-                    // Muddatida bajarilgan tasklar bo'yicha descending
-                    employeeRatings = employeeRatings
-                        .OrderByDescending(r => r.OnTimeCompletedCount)
-                        .ThenBy(r => r.OverdueNotCompletedCount) // Keyin overdue bo'yicha ascending
-                        .ToList();
-                }
-                else
-                {
-                    // Muddati o'tgan tasklar bo'yicha ascending (eng kam = eng yaxshi)
-                    employeeRatings = employeeRatings
-                        .OrderBy(r => r.OverdueNotCompletedCount)
-                        .ToList();
-                }
-
-                viewModel.EmployeeRatings = employeeRatings;
-
-                // ViewBag uchun user dropdown
-                if (isAdminOrDeveloper)
-                {
-                    // Admin/Developer uchun barcha foydalanuvchilar + "Barcha foydalanuvchilar" option
-                    var allUsers = await db.USERS.Where(u => u.IsDeleted != true && u.IsActive)
-                        .OrderBy(u => u.FullName ?? u.Uname)
-                        .ToListAsync();
-                    ViewBag.UserID = new SelectList(allUsers, "ID", "FullName", userId);
-                }
-                else
-                {
-                    // Oddiy user uchun faqat o'zini useri
-                    var currentUser = await db.USERS.Where(u => u.ID == currentUserId && u.IsDeleted != true && u.IsActive)
-                        .OrderBy(u => u.FullName ?? u.Uname)
-                        .ToListAsync();
-                    ViewBag.UserID = new SelectList(currentUser, "ID", "FullName", currentUserId);
-                }
+                // User dropdown: admin — hammasi, oddiy user — faqat o'zi
+                ViewBag.UserID = isAdminOrDeveloper
+                    ? await TaskLookups.UserListAsync(db, userId)
+                    : await TaskLookups.UserListAsync(db, currentUserId, onlyUserId: currentUserId);
 
                 ViewBag.SelectedUserID = userId;
                 ViewBag.CurrentUserID = currentUserId;

@@ -9,7 +9,7 @@ using tahsinERP.Models;
 
 namespace tahsinERP.Controllers
 {
-    public class SupplierBaseController : Controller
+    public class SupplierBaseController : BaseController
     {
         // Olish so'rovi: SupplierBase
         public async Task<ActionResult> Index(string productType)
@@ -31,7 +31,7 @@ namespace tahsinERP.Controllers
                 ViewBag.ProductTypeList = new SelectList(productTypes, productType);
                 ViewBag.ProductType = productType;
 
-                IQueryable<SUPPLIER_BASE> query = db.SUPPLIER_BASE.Where(s => s.IsDeleted != true);
+                IQueryable<SUPPLIER_BASE> query = db.SUPPLIER_BASE.AsNoTracking().Where(s => s.IsDeleted != true);
 
                 if (!string.IsNullOrEmpty(productType))
                 {
@@ -84,9 +84,9 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: SupplierBase/yaratish
         public ActionResult Create()
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase"))
+            if (!CanChange("SupplierBase"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
             return View();
         }
@@ -96,9 +96,9 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(SUPPLIER_BASE supplierBase, FormCollection collection)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase"))
+            if (!CanChange("SupplierBase"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (ModelState.IsValid)
@@ -128,9 +128,9 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: SupplierBase/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase"))
+            if (!CanChange("SupplierBase"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -155,9 +155,9 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(SUPPLIER_BASE supplierBase, FormCollection collection)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase"))
+            if (!CanChange("SupplierBase"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (ModelState.IsValid)
@@ -203,9 +203,9 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: SupplierBase/o'chirish/5
         public async Task<ActionResult> Delete(int? id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase"))
+            if (!CanChange("SupplierBase"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
             if (id == null)
@@ -230,32 +230,23 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id, FormCollection collection)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase"))
+            if (!CanChange("SupplierBase"))
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                return NotAuthorized();
             }
 
-            using (var db = new DBTHSNEntities())
+            try
             {
-                try
+                if (await SoftDeleteAsync(id) == null)
                 {
-                    var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
-                    if (supplierBase == null || supplierBase.IsDeleted == true)
-                    {
-                        return Json(new { success = false, message = "Yozuv topilmadi" });
-                    }
-
-                    supplierBase.IsDeleted = true;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "SupplierBase", $"Delete - {supplierBase.CompanyName} o'chirildi");
-
-                    return RedirectToAction("Index");
+                    return Json(new { success = false, message = "Yozuv topilmadi" });
                 }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
-                }
+
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                return JsonError(ex);
             }
         }
 
@@ -264,34 +255,43 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> DeleteAjax(int id)
         {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "SupplierBase"))
+            if (!CanChange("SupplierBase"))
             {
                 return Json(new { success = false, message = "Ruxsat yo'q" });
             }
 
+            try
+            {
+                if (await SoftDeleteAsync(id) == null)
+                {
+                    return Json(new { success = false, message = "Yozuv topilmadi" });
+                }
+
+                return Json(new { success = true, message = "Muvaffaqiyatli o'chirildi" });
+            }
+            catch (Exception ex)
+            {
+                return JsonError(ex);
+            }
+        }
+
+        /// <summary>Soft-delete (sahifa va AJAX uchun bitta joy, SRM-D14). Topilmasa null, aks holda kompaniya nomi.</summary>
+        private async Task<string> SoftDeleteAsync(int id)
+        {
             using (var db = new DBTHSNEntities())
             {
-                try
+                var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
+                if (supplierBase == null || supplierBase.IsDeleted == true)
                 {
-                    var supplierBase = await db.SUPPLIER_BASE.FindAsync(id);
-                    if (supplierBase == null || supplierBase.IsDeleted == true)
-                    {
-                        return Json(new { success = false, message = "Yozuv topilmadi" });
-                    }
-
-                    supplierBase.IsDeleted = true;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "SupplierBase", $"Delete - {supplierBase.CompanyName} o'chirildi");
-
-                    return Json(new { success = true, message = "Muvaffaqiyatli o'chirildi" });
+                    return null;
                 }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
-                }
+
+                supplierBase.IsDeleted = true;
+                await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(CurrentUserName, "SupplierBase", $"Delete - {supplierBase.CompanyName} o'chirildi");
+                return supplierBase.CompanyName ?? string.Empty;
             }
         }
     }
 }
-

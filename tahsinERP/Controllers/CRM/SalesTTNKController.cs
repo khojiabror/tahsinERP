@@ -5,25 +5,32 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Crm;
+using tahsinERP.ViewModels.Sales;
 
 namespace tahsinERP.Controllers
 {
-    public class SalesTTNKController : Controller
+    [Permission]
+    public class SalesTTNKController : BaseController
     {
         // Olish so'rovi: SalesTTNK
-        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string ttnkNumber, long? invoiceID, int? orderID, int? customerID, string statusCode, string sortOrder, int? page, int? pageSize)
+        public async Task<ActionResult> Index(string searchTerm, string ttnkNumber, long? invoiceID, int? orderID, int? customerID, string statusCode, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.SALES_TTNK_HEADERS
+                // SALES_TTNK_INVOICES → SALES_INVOICES view'da ishlatiladi — kontekst yopilgandan keyin
+                // lazy-load yiqilmasligi uchun oldindan yuklanadi (CRM-B14)
+                var query = db.SALES_TTNK_HEADERS.AsNoTracking()
                     .Include(t => t.SALES_INVOICES)
+                    .Include(t => t.SALES_TTNK_INVOICES.Select(ti => ti.SALES_INVOICES))
                     .AsQueryable();
 
-                // Filters
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    query = query.Where(t => t.TTNKNumber.Contains(searchTerm) || 
+                    query = query.Where(t => t.TTNKNumber.Contains(searchTerm) ||
                                              (t.DriverName != null && t.DriverName.Contains(searchTerm)) ||
                                              (t.TruckNo != null && t.TruckNo.Contains(searchTerm)));
                 }
@@ -53,7 +60,6 @@ namespace tahsinERP.Controllers
                     query = query.Where(t => t.StatusCode == statusCode);
                 }
 
-                // Sorting
                 switch (sortOrder)
                 {
                     case "ttnkNumber_desc":
@@ -61,9 +67,6 @@ namespace tahsinERP.Controllers
                         break;
                     case "ttnkNumber":
                         query = query.OrderBy(t => t.TTNKNumber);
-                        break;
-                    case "date_desc":
-                        query = query.OrderByDescending(t => t.TTNKDate);
                         break;
                     case "date":
                         query = query.OrderBy(t => t.TTNKDate);
@@ -73,21 +76,27 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                // Pagination
-                int currentPage = page ?? 1;
-                int itemsPerPage = pageSize ?? 25;
+                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
                 int totalItems = await query.CountAsync();
-                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
+                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
 
                 var ttnkHeaders = await query
                     .Skip((currentPage - 1) * itemsPerPage)
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // ViewBag uchun filters
-                ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
-                ViewBag.Invoices = new SelectList(await db.SALES_INVOICES.ToListAsync(), "ID", "InvoiceNo", invoiceID);
-                ViewBag.Orders = new SelectList(await db.S_ORDERS.Where(o => o.IsDeleted == false).ToListAsync(), "ID", "OrderNo", orderID);
+                // Filtr ro'yxatlari: proyeksiya, faqat faol invoyslar (CRM-P04: avval barcha SALES_INVOICES to'liq yuklanardi)
+                ViewBag.Customers = SalesLookups.Customers(customerID);
+                ViewBag.Invoices = new SelectList(await db.SALES_INVOICES.AsNoTracking().Active()
+                    .OrderByDescending(i => i.InvoiceDate)
+                    .Select(i => new { i.ID, i.InvoiceNo })
+                    .ToListAsync(), "ID", "InvoiceNo", invoiceID);
+                ViewBag.Orders = new SelectList(await db.S_ORDERS.AsNoTracking()
+                    .Where(o => o.IsDeleted == false || o.IsDeleted == null)
+                    .OrderByDescending(o => o.IssuedDate)
+                    .Select(o => new { o.ID, o.OrderNo })
+                    .ToListAsync(), "ID", "OrderNo", orderID);
                 ViewBag.CurrentPage = currentPage;
                 ViewBag.TotalPages = totalPages;
                 ViewBag.TotalItems = totalItems;
@@ -125,7 +134,6 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Yuklash related order agar mavjud
                 if (ttnkHeader.OrderID.HasValue)
                 {
                     ViewBag.Order = db.S_ORDERS
@@ -133,13 +141,11 @@ namespace tahsinERP.Controllers
                         .FirstOrDefault(o => o.ID == ttnkHeader.OrderID.Value);
                 }
 
-                // Yuklash customer dan invoice
                 if (ttnkHeader.SALES_INVOICES != null)
                 {
                     ViewBag.Customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == ttnkHeader.SALES_INVOICES.CustomerID);
                 }
 
-                // Yuklash products uchun lines
                 var productIDs = ttnkHeader.SALES_TTNK_LINES.Where(l => l.ProductID.HasValue).Select(l => l.ProductID.Value).Distinct().ToList();
                 ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
 
@@ -147,67 +153,46 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Olish so'rovi: yaratish dan Invoice(s)
+        // Olish so'rovi: yaratish dan Invoice(s) — kirish nuqtasi: invoys Details sahifasidagi "TTNK yaratish"
         public ActionResult CreateFromInvoices(string invoiceIDs)
         {
-            if (string.IsNullOrEmpty(invoiceIDs))
+            var invoiceIDList = ParseIds(invoiceIDs);
+            if (invoiceIDList == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Invoys ID lari ko'rsatilmagan");
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Invoys ID lari noto'g'ri yoki ko'rsatilmagan");
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var invoiceIDList = invoiceIDs.Split(',').Select(id => long.Parse(id.Trim())).ToList();
-                var invoices = db.SALES_INVOICES
-                    .Include(i => i.CUSTOMER)
-                    .Include(i => i.SALES_INVOICE_LINES)
-                    .Where(i => invoiceIDList.Contains(i.ID))
-                    .ToList();
-
-                if (!invoices.Any())
+                var invoices = LoadInvoices(db, invoiceIDList);
+                if (invoices.Count != invoiceIDList.Count)
                 {
                     return HttpNotFound();
                 }
 
-                // Tekshirish agar barcha invoices belong ga same customer
-                var customerIDs = invoices.Select(i => i.CustomerID).Distinct().ToList();
-                if (customerIDs.Count > 1)
+                if (invoices.Select(i => i.CustomerID).Distinct().Count() > 1)
                 {
                     TempData["ErrorMessage"] = "Barcha invoyslar bir xil mijozga tegishli bo'lishi kerak";
                     return RedirectToAction("Index", "SalesInvoices");
                 }
 
-                // Yaratish TTNK header
+                var firstInvoice = invoices.First();
                 var ttnkHeader = new SALES_TTNK_HEADERS
                 {
                     TTNKDate = DateTime.Now,
-                    InvoiceID = invoices.First().ID, // Primary invoice
-                    OrderID = invoices.First().OrderID,
-                    ContractID = invoices.First().ContractID,
-                    //CustomerID = invoices.birinchi().CustomerID,
+                    InvoiceID = firstInvoice.ID,
+                    OrderID = firstInvoice.OrderID,
+                    ContractID = firstInvoice.ContractID,
                     StatusCode = "DRAFT",
                     CreatedDT = DateTime.Now,
-                    IntegrationUID = Guid.NewGuid()
+                    IntegrationUID = Guid.NewGuid(),
+                    ShipperName = "",
+                    ConsigneeName = firstInvoice.CUSTOMER?.Name ?? "",
+                    ConsigneeINN = firstInvoice.CUSTOMER?.DUNS ?? "",
+                    CurrencyCode = firstInvoice.CurrencyCode
                 };
 
-                // Pre-fill dan birinchi invoice
-                var firstInvoice = invoices.First();
-                ttnkHeader.ShipperName = ""; // ga be filled dan company settings
-                ttnkHeader.ConsigneeName = firstInvoice.CUSTOMER?.Name ?? "";
-                ttnkHeader.ConsigneeINN = firstInvoice.CUSTOMER?.DUNS ?? "";
-                ttnkHeader.CurrencyCode = firstInvoice.CurrencyCode;
-
-                ViewBag.Invoices = invoices;
-                ViewBag.InvoiceIDs = invoiceIDs;
-
-                // Olish barcha invoice lines
-                var allInvoiceLines = invoices.SelectMany(i => i.SALES_INVOICE_LINES).OrderBy(l => l.LineNo).ToList();
-                ViewBag.InvoiceLines = allInvoiceLines;
-
-                // Yuklash products
-                var productIDs = allInvoiceLines.Select(l => l.ProductID).Distinct().ToList();
-                ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
-
+                PopulateCreateLookups(db, invoices, invoiceIDs);
                 return View(ttnkHeader);
             }
         }
@@ -217,73 +202,64 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreateFromInvoices(SALES_TTNK_HEADERS ttnkHeader, string invoiceIDs, List<SalesTTNKLineViewModel> lines)
         {
+            var invoiceIDList = ParseIds(invoiceIDs);
+            if (invoiceIDList == null)
+            {
+                ModelState.AddModelError("", "Invoys ID lari noto'g'ri yoki ko'rsatilmagan");
+            }
+
             if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     try
                     {
-                        if (string.IsNullOrEmpty(invoiceIDs))
-                        {
-                            ModelState.AddModelError("", "Invoys ID lari ko'rsatilmagan");
-                            return View(ttnkHeader);
-                        }
-
-                        var invoiceIDList = invoiceIDs.Split(',').Select(id => long.Parse(id.Trim())).ToList();
-                        var invoices = db.SALES_INVOICES
+                        var invoices = db.SALES_INVOICES.Active()
                             .Where(i => invoiceIDList.Contains(i.ID))
                             .ToList();
 
-                        if (!invoices.Any())
+                        if (invoices.Count != invoiceIDList.Count)
                         {
-                            ModelState.AddModelError("", "Invoyslar topilmadi");
-                            return View(ttnkHeader);
+                            ModelState.AddModelError("", "Invoyslar topilmadi yoki bekor qilingan");
                         }
-
-                        // Belgilash defaults
-                        ttnkHeader.TTNKDate = DateTime.Now;
-                        ttnkHeader.InvoiceID = invoices.First().ID;
-                        ttnkHeader.OrderID = invoices.First().OrderID;
-                        ttnkHeader.ContractID = invoices.First().ContractID;
-                        ttnkHeader.StatusCode = "DRAFT";
-                        ttnkHeader.CreatedDT = DateTime.Now;
-                        ttnkHeader.IntegrationUID = Guid.NewGuid();
-                        
-                        // Pre-fill consignee dan customer
-                        var customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == invoices.First().CustomerID);
-                        if (customer != null)
+                        else if (invoices.Select(i => i.CustomerID).Distinct().Count() > 1)
                         {
-                            ttnkHeader.ConsigneeName = customer.Name;
-                            ttnkHeader.ConsigneeINN = customer.DUNS;
+                            ModelState.AddModelError("", "Barcha invoyslar bir xil mijozga tegishli bo'lishi kerak");
                         }
-
-                        // Calculate totals
-                        ttnkHeader.TotalDeliveryCost = ttnkHeader.DeliveryCost + ttnkHeader.VATAmount;
-
-                        db.SALES_TTNK_HEADERS.Add(ttnkHeader);
-                        db.SaveChanges();
-
-                        // Link invoices
-                        foreach (var invoiceID in invoiceIDList)
+                        else
                         {
-                            var ttnkInvoice = new SALES_TTNK_INVOICES
+                            var first = invoices.OrderBy(i => invoiceIDList.IndexOf(i.ID)).First();
+                            ttnkHeader.TTNKDate = DateTime.Now;
+                            ttnkHeader.InvoiceID = first.ID;
+                            ttnkHeader.OrderID = first.OrderID;
+                            ttnkHeader.ContractID = first.ContractID;
+                            ttnkHeader.StatusCode = "DRAFT";
+                            ttnkHeader.CreatedDT = DateTime.Now;
+                            ttnkHeader.IntegrationUID = Guid.NewGuid();
+
+                            var customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == first.CustomerID);
+                            if (customer != null)
                             {
-                                TTNKHeaderID = ttnkHeader.ID,
-                                InvoiceID = invoiceID,
-                                AmountShare = invoices.First(i => i.ID == invoiceID).TotalAmount
-                            };
-                            db.SALES_TTNK_INVOICES.Add(ttnkInvoice);
-                        }
+                                ttnkHeader.ConsigneeName = customer.Name;
+                                ttnkHeader.ConsigneeINN = customer.DUNS;
+                            }
 
-                        // Qo'shish lines
-                        if (lines != null && lines.Any())
-                        {
-                            int lineNo = 1;
-                            foreach (var line in lines)
+                            ttnkHeader.TotalDeliveryCost = ttnkHeader.DeliveryCost + ttnkHeader.VATAmount;
+
+                            foreach (var invoice in invoices)
                             {
-                                var ttnkLine = new SALES_TTNK_LINES
+                                ttnkHeader.SALES_TTNK_INVOICES.Add(new SALES_TTNK_INVOICES
                                 {
-                                    TTNKHeaderID = ttnkHeader.ID,
+                                    InvoiceID = invoice.ID,
+                                    AmountShare = invoice.TotalAmount
+                                });
+                            }
+
+                            int lineNo = 1;
+                            foreach (var line in lines ?? new List<SalesTTNKLineViewModel>())
+                            {
+                                ttnkHeader.SALES_TTNK_LINES.Add(new SALES_TTNK_LINES
+                                {
                                     LineNo = lineNo++,
                                     ProductID = line.ProductID,
                                     InvoiceLineID = line.InvoiceLineID,
@@ -292,51 +268,43 @@ namespace tahsinERP.Controllers
                                     UnitOfMeasure = line.UnitOfMeasure,
                                     Qty = line.Qty,
                                     UnitPrice = line.UnitPrice,
-                                    LineAmount = line.LineAmount,
+                                    LineAmount = line.UnitPrice.HasValue ? line.Qty * line.UnitPrice.Value : line.LineAmount,
                                     WeightNetT = line.WeightNetT,
                                     WeightGrossT = line.WeightGrossT,
                                     PlaceCount = line.PlaceCount,
                                     PackageType = line.PackageType,
                                     Remark = line.Remark
-                                };
-                                db.SALES_TTNK_LINES.Add(ttnkLine);
+                                });
                             }
+
+                            // Sarlavha, bog'lanishlar va qatorlar bitta tranzaksiyada; raqam bo'sh bo'lsa — takrorlanmas avtomatik (CRM-B17)
+                            using (var tx = db.Database.BeginTransaction())
+                            {
+                                if (string.IsNullOrWhiteSpace(ttnkHeader.TTNKNumber))
+                                {
+                                    ttnkHeader.TTNKNumber = DocumentNumberService.Next(db, "SALES_TTNK_HEADERS", "TTNKNumber", $"TTNK-{DateTime.Now:yyyy}-", 4);
+                                }
+                                db.SALES_TTNK_HEADERS.Add(ttnkHeader);
+                                db.SaveChanges();
+                                tx.Commit();
+                            }
+
+                            LogHelper.LogToDatabase(CurrentUserName, "SalesTTNKController", $"{ttnkHeader.TTNKNumber} - TTNK yaratdi");
+
+                            return RedirectToAction("Details", new { id = ttnkHeader.ID });
                         }
-
-                        db.SaveChanges();
-
-                        LogHelper.LogToDatabase(User.Identity.Name, "SalesTTNKController", $"{ttnkHeader.TTNKNumber} - TTNK yaratdi");
-
-                        return RedirectToAction("Details", new { id = ttnkHeader.ID });
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
                     }
                 }
             }
 
-            // Reload ViewBag on xatolik
+            // Barcha xato yo'llarida ro'yxatlar qayta quriladi (CRM-B15)
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                if (!string.IsNullOrEmpty(invoiceIDs))
-                {
-                    var invoiceIDList = invoiceIDs.Split(',').Select(id => long.Parse(id.Trim())).ToList();
-                    var invoices = db.SALES_INVOICES
-                        .Include(i => i.SALES_INVOICE_LINES)
-                        .Where(i => invoiceIDList.Contains(i.ID))
-                        .ToList();
-                    ViewBag.Invoices = invoices;
-                    ViewBag.InvoiceIDs = invoiceIDs;
-                    ViewBag.InvoiceLines = invoices.SelectMany(i => i.SALES_INVOICE_LINES).OrderBy(l => l.LineNo).ToList();
-                }
+                PopulateCreateLookups(db, invoiceIDList != null ? LoadInvoices(db, invoiceIDList) : new List<SALES_INVOICES>(), invoiceIDs);
             }
 
             return View(ttnkHeader);
@@ -362,7 +330,6 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Tekshirish agar TTNK can be edited
                 if (ttnkHeader.StatusCode == "FINALIZED" || ttnkHeader.StatusCode == "SENT")
                 {
                     TempData["ErrorMessage"] = "Yakunlangan yoki yuborilgan TTNK ni tahrirlash mumkin emas";
@@ -388,7 +355,6 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Tekshirish agar TTNK can be edited
                     if (existingTTNK.StatusCode == "FINALIZED" || existingTTNK.StatusCode == "SENT")
                     {
                         ModelState.AddModelError("", "Yakunlangan yoki yuborilgan TTNK ni tahrirlash mumkin emas");
@@ -397,7 +363,6 @@ namespace tahsinERP.Controllers
 
                     try
                     {
-                        // Yangilash header fields
                         existingTTNK.TTNKNumber = ttnkHeader.TTNKNumber;
                         existingTTNK.TTNKDate = ttnkHeader.TTNKDate;
                         existingTTNK.ShipperName = ttnkHeader.ShipperName;
@@ -428,21 +393,14 @@ namespace tahsinERP.Controllers
                         existingTTNK.StatusCode = ttnkHeader.StatusCode;
                         existingTTNK.UpdatedDT = DateTime.Now;
 
-                        // Yangilash lines agar provided
                         if (lines != null && lines.Any())
                         {
-                            // O'chirish existing lines
-                            var existingLines = db.SALES_TTNK_LINES.Where(l => l.TTNKHeaderID == ttnkHeader.ID).ToList();
-                            foreach (var line in existingLines)
-                            {
-                                db.SALES_TTNK_LINES.Remove(line);
-                            }
+                            db.SALES_TTNK_LINES.RemoveRange(db.SALES_TTNK_LINES.Where(l => l.TTNKHeaderID == ttnkHeader.ID).ToList());
 
-                            // Qo'shish updated lines
                             int lineNo = 1;
                             foreach (var line in lines)
                             {
-                                var ttnkLine = new SALES_TTNK_LINES
+                                db.SALES_TTNK_LINES.Add(new SALES_TTNK_LINES
                                 {
                                     TTNKHeaderID = ttnkHeader.ID,
                                     LineNo = lineNo++,
@@ -453,57 +411,70 @@ namespace tahsinERP.Controllers
                                     UnitOfMeasure = line.UnitOfMeasure,
                                     Qty = line.Qty,
                                     UnitPrice = line.UnitPrice,
-                                    LineAmount = line.LineAmount,
+                                    LineAmount = line.UnitPrice.HasValue ? line.Qty * line.UnitPrice.Value : line.LineAmount,
                                     WeightNetT = line.WeightNetT,
                                     WeightGrossT = line.WeightGrossT,
                                     PlaceCount = line.PlaceCount,
                                     PackageType = line.PackageType,
                                     Remark = line.Remark
-                                };
-                                db.SALES_TTNK_LINES.Add(ttnkLine);
+                                });
                             }
                         }
 
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "SalesTTNKController", $"{existingTTNK.TTNKNumber} - TTNK ni tahrirladi");
+                        LogHelper.LogToDatabase(CurrentUserName, "SalesTTNKController", $"{existingTTNK.TTNKNumber} - TTNK ni tahrirladi");
 
                         return RedirectToAction("Details", new { id = ttnkHeader.ID });
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
                     }
                 }
             }
 
             return View(ttnkHeader);
         }
-    }
 
-    // ViewModel uchun TTNK lines
-    public class SalesTTNKLineViewModel
-    {
-        public int? ProductID { get; set; }
-        public long? InvoiceLineID { get; set; }
-        public string HSCode { get; set; }
-        public string Description { get; set; }
-        public string UnitOfMeasure { get; set; }
-        public decimal Qty { get; set; }
-        public decimal? UnitPrice { get; set; }
-        public decimal? LineAmount { get; set; }
-        public decimal? WeightNetT { get; set; }
-        public decimal? WeightGrossT { get; set; }
-        public int? PlaceCount { get; set; }
-        public string PackageType { get; set; }
-        public string Remark { get; set; }
+        // ───────────────────────────── yordamchi metodlar ─────────────────────────────
+
+        /// <summary>"1,2,3" → ID ro'yxati; noto'g'ri qiymatda null (avval long.Parse 500 qaytarardi — CRM-B17).</summary>
+        private static List<long> ParseIds(string invoiceIDs)
+        {
+            if (string.IsNullOrWhiteSpace(invoiceIDs))
+                return null;
+
+            var result = new List<long>();
+            foreach (var part in invoiceIDs.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                long id;
+                if (!long.TryParse(part.Trim(), out id) || id <= 0)
+                    return null;
+                if (!result.Contains(id))
+                    result.Add(id);
+            }
+            return result.Count > 0 ? result : null;
+        }
+
+        private static List<SALES_INVOICES> LoadInvoices(DBTHSNEntities db, List<long> ids)
+        {
+            return db.SALES_INVOICES.Active()
+                .Include(i => i.CUSTOMER)
+                .Include(i => i.SALES_INVOICE_LINES)
+                .Where(i => ids.Contains(i.ID))
+                .ToList();
+        }
+
+        private void PopulateCreateLookups(DBTHSNEntities db, List<SALES_INVOICES> invoices, string invoiceIDs)
+        {
+            var allInvoiceLines = invoices.SelectMany(i => i.SALES_INVOICE_LINES).OrderBy(l => l.InvoiceID).ThenBy(l => l.LineNo).ToList();
+            var productIDs = allInvoiceLines.Select(l => l.ProductID).Distinct().ToList();
+
+            ViewBag.Invoices = invoices;
+            ViewBag.InvoiceIDs = invoiceIDs;
+            ViewBag.InvoiceLines = allInvoiceLines;
+            ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
+        }
     }
 }
-

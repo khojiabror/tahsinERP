@@ -29,17 +29,18 @@ namespace tahsinERP.Controllers.Finance
                     query = query.Where(i => i.Name.Contains(searchTerm) || (i.Code != null && i.Code.Contains(searchTerm)));
                 }
 
-                if (parentID.HasValue)
-                {
-                    query = query.Where(i => i.ParentID == parentID.Value);
-                }
-                else if (parentID == 0)
+                // parentID=0 — faqat ildiz elementlar (avval bu tarmoq HasValue'dan keyin turgani uchun ishlamasdi, FIN-B25)
+                if (parentID == 0)
                 {
                     query = query.Where(i => i.ParentID == null);
                 }
+                else if (parentID.HasValue)
+                {
+                    query = query.Where(i => i.ParentID == parentID.Value);
+                }
 
                 var items = query.OrderBy(i => i.SortOrder).ThenBy(i => i.Name).ToList();
-                var tree = BuildItemTree(items, null);
+                var tree = BuildItemTree(items, parentID > 0 ? parentID : null);
 
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.ParentID = parentID;

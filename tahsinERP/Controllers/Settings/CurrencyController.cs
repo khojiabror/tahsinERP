@@ -8,9 +8,11 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.Settings
 {
+    [Permission]
     public class CurrencyController : Controller
     {
         // Olish so'rovi: Currency

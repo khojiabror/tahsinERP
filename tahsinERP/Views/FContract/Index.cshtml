@@ -2,7 +2,6 @@
 @{
     ViewBag.Title = "Shartnomalar";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var type = ViewBag.Type;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()) )
@@ -82,7 +81,7 @@
                                                         <td>@item.IssueDate.ToString("dd.MM.yyyy")</td>
                                                         <td>@item.DueDate.ToString("dd.MM.yyyy")</td>
                                                         <td>@item.Amount</td>
-                                                        <td>@item.CURRENCy.Shortname</td>
+                                                        <td>@(item.CURRENCy?.Shortname ?? "")</td>
                                                         @if (changePermit)
                                                         {
                                                             <td>
@@ -108,14 +107,6 @@
         </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script type="text/javascript">
-        function refreshDataTable() {
-            const source = document.getElementById("SourceID").value;
-
-            window.location.href = '@Url.Action("Index", "FContract")?type=' + source;
-        }
-    </script>
 }
 else
 {

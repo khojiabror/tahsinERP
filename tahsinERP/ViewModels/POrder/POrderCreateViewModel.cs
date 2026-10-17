@@ -86,14 +86,6 @@ namespace tahsinERP.ViewModels.POrder
         /// <summary> DB Priority (max 50) uchun qisqa qator — generatsiyadan. </summary>
         public string CalculationSummary { get; set; }
         
-        [Display(Name = "Konvertatsiya qilingan")]
-        public bool IsConverted { get; set; }
-        
-        [Display(Name = "Original miqdor")]
-        public decimal? OriginalQuantity { get; set; }
-        
-        [Display(Name = "Original birlik")]
-        public int? OriginalUnitID { get; set; }
     }
     
     public class POrderEditViewModel

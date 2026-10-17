@@ -41,9 +41,13 @@
                     @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
                     {
                         <div class="invoice-create-btn mb-1">
-                            <a href="@Url.Action("ReconcileProductionConsumption", "ProductProduction")" class="btn btn-outline-secondary" role="button" onclick="return confirm('Har bir ishlab chiqarish uchun xomashyo chiqimini «ishlab chiqarilgan son × BOM» ga moslab qayta hisoblashni xohlaysizmi?');" title="Avtomatik xomashyo chiqimlarini BOM bo'yicha qayta hisoblash">
-                                <i class="bx bx-wrench"></i> Chiqimni tuzatish (BOM)
-                            </a>
+                            @using (Html.BeginForm("ReconcileProductionConsumption", "ProductProduction", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Har bir ishlab chiqarish uchun xomashyo chiqimini «ishlab chiqarilgan son × BOM» ga moslab qayta hisoblashni xohlaysizmi?');" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-secondary" title="Avtomatik xomashyo chiqimlarini BOM bo'yicha qayta hisoblash">
+                                    <i class="bx bx-wrench"></i> Chiqimni tuzatish (BOM)
+                                </button>
+                            }
                         </div>
                     }
 
@@ -128,7 +132,11 @@
                                                                 @if (changePermit)
                                                                 {
                                                                     <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit"></i></a>
-                                                                    <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                    using (Html.BeginForm("Delete", "ProductProduction", new { id = item.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Ishlab chiqarishni oʻchirishni tasdiqlaysizmi? Kirim va xomashyo chiqimi bekor qilinadi.');" }))
+                                                                    {
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></button>
+                                                                    }
                                                                 }
                                                             </td>
                                                         </tr>

@@ -1,5 +1,3 @@
-@model List<tahsinERP.Models.FIN_TRANSACTIONS>
-
 @{
     ViewBag.Title = "Moliya tranzaksiyalari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -8,6 +6,21 @@
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
 {
     bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions");
+    var fromDate = (DateTime?)ViewBag.FromDate;
+    var toDate = (DateTime?)ViewBag.ToDate;
+    // Server tomonidagi filtrlar: DataTables so'rovi va Excel eksporti bir xil filtrdan foydalanadi
+    var filter = new
+    {
+        fromDate = fromDate.HasValue ? fromDate.Value.ToString("yyyy-MM-dd") : null,
+        toDate = toDate.HasValue ? toDate.Value.ToString("yyyy-MM-dd") : null,
+        accountID = (int?)ViewBag.AccountID,
+        categoryID = (int?)ViewBag.CategoryID,
+        direction = (byte?)ViewBag.Direction,
+        counterpartyType = (byte?)ViewBag.CounterpartyType,
+        counterpartyID = (int?)ViewBag.CounterpartyID,
+        sourceDocType = (string)ViewBag.SourceDocType,
+        searchTerm = (string)ViewBag.SearchTerm
+    };
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -29,20 +42,20 @@
             </div>
             <div class="content-body">
                 <section class="invoice-list-wrapper">
-                    @if (changePermit)
-                    {
-                        <div class="invoice-create-btn mb-1">
+                    <div class="invoice-create-btn mb-1">
+                        @if (changePermit)
+                        {
                             <a href="@Url.Action("Create")" class="btn btn-success mr-1 mb-1">
                                 <i class="bx bx-plus"></i> <span class="align-middle ml-25">Tranzaksiya qo'shish</span>
                             </a>
                             <a href="@Url.Action("Import")" class="btn btn-warning mr-1 mb-1">
                                 <i class="bx bx-upload"></i> <span class="align-middle ml-25">Excel dan import</span>
                             </a>
-                            <a href="@Url.Action("ExportExcel", new { fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, accountID = ViewBag.AccountID, categoryID = ViewBag.CategoryID })" class="btn btn-info mr-1 mb-1">
-                                <i class="bx bx-download"></i> <span class="align-middle ml-25">Excel ga eksport</span>
-                            </a>
-                        </div>
-                    }
+                        }
+                        <a href="@Url.Action("ExportExcel", filter)" class="btn btn-info mr-1 mb-1">
+                            <i class="bx bx-download"></i> <span class="align-middle ml-25">Excel ga eksport</span>
+                        </a>
+                    </div>
 
                     <div class="card">
                         <div class="card-content">
@@ -57,14 +70,30 @@
                                 }
 
                                 <form method="get" action="@Url.Action("Index")" class="mb-3" id="filterForm">
+                                    @if (filter.counterpartyType.HasValue)
+                                    {
+                                        <input type="hidden" name="counterpartyType" value="@filter.counterpartyType" />
+                                    }
+                                    @if (filter.counterpartyID.HasValue)
+                                    {
+                                        <input type="hidden" name="counterpartyID" value="@filter.counterpartyID" />
+                                    }
+                                    @if (!string.IsNullOrEmpty(filter.sourceDocType))
+                                    {
+                                        <input type="hidden" name="sourceDocType" value="@filter.sourceDocType" />
+                                    }
+                                    @if (!string.IsNullOrEmpty(filter.searchTerm))
+                                    {
+                                        <input type="hidden" name="searchTerm" value="@filter.searchTerm" />
+                                    }
                                     <div class="row">
                                         <div class="col-md-2">
                                             <label class="form-label small">Dan</label>
-                                            <input type="date" name="fromDate" class="form-control form-control-sm" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                            <input type="date" name="fromDate" class="form-control form-control-sm" value="@filter.fromDate" />
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label small">Gacha</label>
-                                            <input type="date" name="toDate" class="form-control form-control-sm" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                            <input type="date" name="toDate" class="form-control form-control-sm" value="@filter.toDate" />
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label small">Hisob</label>
@@ -99,51 +128,10 @@
                                                 <th>Valyuta</th>
                                                 <th>Kontragent</th>
                                                 <th>Maqsad</th>
-                                                @if (changePermit)
-                                                {
-                                                    <th>Amallar</th>
-                                                }
+                                                <th>Amallar</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            @foreach (var item in Model)
-                                            {
-                                                <tr>
-                                                    <td data-order="@item.TxnDate.ToString("yyyy-MM-dd")" class="text-center">@item.TxnDate.ToString("dd.MM.yyyy")</td>
-                                                    <td>@(item.FIN_ACCOUNTS != null ? item.FIN_ACCOUNTS.Name : "-")</td>
-                                                    <td>@(item.FIN_CATEGORIES != null ? item.FIN_CATEGORIES.Name : "-")</td>
-                                                    <td>
-                                                        @if (item.Direction == 1)
-                                                        {<span class="badge badge-success">Kirim</span> }
-                                                        else
-                                                        { <span class="badge badge-danger">Chiqim</span>}
-                                                    </td>
-                                                    <td class="text-right">@item.Amount.ToString("N2")</td>
-                                                    <td class="text-center">@(item.CURRENCy != null ? item.CURRENCy.Shortname : "-")</td>
-                                                    <td>@(item.CounterpartyName ?? "-")</td>
-                                                    <td>@(item.Purpose ?? "-")</td>
-
-                                                    <td class="text-center">
-                                                        <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish">
-                                                            <i class="bx bx-show"></i>
-                                                        </a>
-                                                        @if (changePermit)
-                                                        {
-                                                            if (string.IsNullOrEmpty(item.SourceDocType) || item.SourceDocType == "Manual")
-                                                            {
-                                                                <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
-                                                                    <i class="bx bx-edit"></i>
-                                                                </a>
-                                                                <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish">
-                                                                    <i class="bx bx-trash"></i>
-                                                                </a>
-                                                            }
-                                                        }
-                                                    </td>
-
-                                                </tr>
-                                            }
-                                        </tbody>
+                                        <tbody></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -157,21 +145,28 @@
     @section Scripts {
         <script>
             $(document).ready(function () {
-                // Define changePermit in JavaScript
                 var changePermit = @(changePermit ? "true" : "false");
+                var filter = @Html.Raw(Json.Encode(filter));
+                var detailsUrl = '@Url.Action("Details")';
+                var editUrl = '@Url.Action("Edit")';
+                var deleteUrl = '@Url.Action("Delete")';
 
-                // Destroy existing DataTable if it exists
-                if ($.fn.DataTable.isDataTable('#transactionsTable')) {
-                    $('#transactionsTable').DataTable().destroy();
+                function esc(value) {
+                    return $('<div>').text(value == null ? '' : String(value)).html();
                 }
 
-                var table = $('#transactionsTable').DataTable({
+                function renderText(data, type) {
+                    return type === 'display' ? esc(data) : data;
+                }
+
+                $('#transactionsTable').DataTable({
                     "language": {
                         "search": "Qidirish:",
                         "lengthMenu": "_MENU_ ta ko'rsatish",
                         "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
                         "infoEmpty": "Yozuvlar yo'q",
                         "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
+                        "processing": "Yuklanmoqda...",
                         "paginate": {
                             "first": "Birinchi",
                             "last": "Oxirgi",
@@ -180,70 +175,56 @@
                         },
                         "zeroRecords": "Ma'lumot topilmadi"
                     },
-                    "paging": true,
-                    "searching": true, // Search'ni faollashtirish
-                    "lengthChange": true, // Show entries'ni faollashtirish
+                    "processing": true,
+                    "serverSide": true,
+                    "searchDelay": 400,
+                    "ajax": {
+                        "url": '@Url.Action("IndexData")',
+                        "data": function (d) {
+                            $.each(filter, function (k, v) {
+                                if (v !== null && v !== '') d[k] = v;
+                            });
+                        }
+                    },
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                    "order": [[0, "desc"]], // Default: Sana bo'yicha teskari tartib
-                    "columnDefs": [
-                        { "className": "text-center", "targets": [0, 3, 5, 6, 7] }, // Center alignment
-                        { "className": "text-right", "targets": 4 }, // Right align amount
-                        { "type": "date", "targets": 0 }, // Sana ustuni date type
-                        @if (changePermit)
+                    "lengthMenu": [[10, 25, 50, 100, 1000], [10, 25, 50, 100, 1000]],
+                    "order": [[0, "desc"]],
+                    "columns": [
+                        { "data": "date", "className": "text-center" },
+                        { "data": "account", "render": renderText },
+                        { "data": "category", "render": renderText },
                         {
-                            <text>
-                            { "orderable": false, "targets": -1, "className": "text-center" } // Amallar ustuni sorting'siz
-                            </text>
+                            "data": "direction", "className": "text-center",
+                            "render": function (data) {
+                                return data === 1
+                                    ? '<span class="badge badge-success">Kirim</span>'
+                                    : '<span class="badge badge-danger">Chiqim</span>';
+                            }
+                        },
+                        { "data": "amount", "className": "text-right", "render": renderText },
+                        { "data": "currency", "className": "text-center", "render": renderText },
+                        { "data": "counterparty", "className": "text-center", "render": renderText },
+                        { "data": "purpose", "className": "text-center", "render": renderText },
+                        {
+                            "data": null, "orderable": false, "className": "text-center",
+                            "render": function (row) {
+                                var id = encodeURIComponent(row.id);
+                                var html = '<a href="' + detailsUrl + '/' + id + '" class="btn btn-sm btn-outline-info" title="Ko\'rish"><i class="bx bx-show"></i></a> ';
+                                if (changePermit && row.editable) {
+                                    html += '<a href="' + editUrl + '/' + id + '" class="btn btn-sm btn-outline-primary" title="Tahrirlash"><i class="bx bx-edit"></i></a> ';
+                                    html += '<a href="' + deleteUrl + '/' + id + '" class="btn btn-sm btn-outline-danger" title="O\'chirish"><i class="bx bx-trash"></i></a>';
+                                }
+                                return html;
+                            }
                         }
                     ],
-                    "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>', // l=length, f=filter, r=processing, t=table, i=info, p=pagination
+                    "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
                     "pagingType": "full_numbers",
-                    "processing": true,
-                    "serverSide": false,
-                    "deferRender": true,
                     "scrollX": true
                 });
-
-                // Force pagination to be visible on initial load
-                setTimeout(function() {
-                    var wrapper = $('#transactionsTable_wrapper');
-                    if (wrapper.find('.dataTables_paginate').length > 0) {
-                        wrapper.find('.dataTables_paginate').show().css('display', 'block');
-                    }
-                    if (wrapper.find('.dataTables_length').length > 0) {
-                        wrapper.find('.dataTables_length').show().css('display', 'block');
-                    }
-                }, 200);
             });
         </script>
         <style>
-            /* Ensure DataTable controls are visible */
-            #transactionsTable_wrapper .dataTables_length {
-                display: block !important;
-                visibility: visible !important;
-                margin-bottom: 10px;
-            }
-
-            #transactionsTable_wrapper .dataTables_filter {
-                display: block !important;
-                visibility: visible !important;
-                margin-bottom: 10px;
-            }
-
-            #transactionsTable_wrapper .dataTables_paginate {
-                display: block !important;
-                visibility: visible !important;
-                margin-top: 10px;
-            }
-
-            #transactionsTable_wrapper .dataTables_info {
-                display: block !important;
-                visibility: visible !important;
-                margin-top: 10px;
-            }
-
-            /* Style for search input */
             #transactionsTable_wrapper .dataTables_filter input {
                 margin-left: 5px;
                 padding: 5px;
@@ -251,7 +232,6 @@
                 border-radius: 4px;
             }
 
-            /* Style for length select */
             #transactionsTable_wrapper .dataTables_length select {
                 margin: 0 5px;
                 padding: 5px;

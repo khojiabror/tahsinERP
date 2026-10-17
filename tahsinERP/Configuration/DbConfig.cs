@@ -118,7 +118,9 @@ namespace tahsinERP.Configuration
             return builder.ToString();
         }
 
-        private static readonly Lazy<string> _entity = new Lazy<string>(() => BuildEntityConnectionString(_sql.Value));
+        // Bitta-baza rejimi: har "new DBTHSNEntities()" da builder qurmaslik uchun keshlanadi; xato keshlanmaydi
+        private static readonly Lazy<string> _entity = new Lazy<string>(() => BuildEntityConnectionString(_sql.Value),
+            System.Threading.LazyThreadSafetyMode.PublicationOnly);
 
         /// <summary>Muhit o'zgaruvchisi: ochiq SQL connection string (AWS SSM → env).</summary>
         public const string EnvConnectionString = "TAHSINERP_DB";

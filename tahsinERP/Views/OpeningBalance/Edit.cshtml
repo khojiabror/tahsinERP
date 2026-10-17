@@ -684,7 +684,7 @@ else
                     $contract.empty().append('<option value="">-- Shartnoma tanlanmagan --</option>');
                     if (!counterpartyId || !type) {
                         if (selectedId && selectedText) {
-                            $contract.append('<option value="' + selectedId + '">' + selectedText + '</option>');
+                            $contract.append($('<option></option>').val(selectedId).text(selectedText));
                         }
                         return;
                     }
@@ -703,7 +703,7 @@ else
                         .then(function (res) {
                             if (!res || !res.success || !res.data) return;
                             res.data.forEach(function (x) {
-                                $contract.append('<option value="' + x.id + '">' + x.text + '</option>');
+                                $contract.append($('<option></option>').val(x.id).text(x.text));
                             });
                             if (selectedId) {
                                 $contract.val(String(selectedId));
@@ -799,10 +799,9 @@ else
                     tbody.insertAdjacentHTML('beforeend', createLineHtml(prefix, idx, type));
                     var $row = $(tbody).find('tr:last');
                     $row.find('.opening-counterparty').val(String(row.CounterpartyID || ''));
-                    $row.find('.opening-contract-select').html(
-                        '<option value="">-- Shartnoma tanlanmagan --</option>'
-                        + '<option value="' + (row.ContractID || '') + '" selected="selected">' + (row.ContractNo || '') + '</option>'
-                    );
+                    $row.find('.opening-contract-select').empty()
+                        .append($('<option></option>').val('').text('-- Shartnoma tanlanmagan --'))
+                        .append($('<option></option>').val(row.ContractID || '').text(row.ContractNo || '').prop('selected', true));
                     $row.find('.opening-contract-no').val(row.ContractNo || '');
                     $row.find('.opening-total').val(toFixed2(row.TotalAmount || 0));
                     $row.find('.opening-paid').val(toFixed2(row.PaidAmount || 0));

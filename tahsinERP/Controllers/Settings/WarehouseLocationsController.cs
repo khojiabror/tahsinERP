@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 using tahsinERP.Controllers;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
@@ -24,9 +25,7 @@ namespace tahsinERP.Controllers.Settings
                 }
 
                 var list = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: false);
-                ViewBag.Warehouses = new SelectList(
-                    db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToList(),
-                    "ID", "WHName", warehouseId);
+                ViewBag.Warehouses = ReferenceDataCache.SelectList(ReferenceDataCache.Warehouses, warehouseId);
                 ViewBag.WarehouseId = warehouseId;
                 ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "Warehouse", "Index");
                 if (warehouseId.HasValue)
@@ -45,9 +44,7 @@ namespace tahsinERP.Controllers.Settings
 
             using (var db = new DBTHSNEntities())
             {
-                ViewBag.Warehouses = new SelectList(
-                    db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToList(),
-                    "ID", "WHName", warehouseId);
+                ViewBag.Warehouses = ReferenceDataCache.SelectList(ReferenceDataCache.Warehouses, warehouseId);
                 ViewBag.LockWarehouse = warehouseId.HasValue && warehouseId.Value > 0;
                 return View(new WarehouseLocationEditViewModel { WarehouseID = warehouseId ?? 0, IsActive = true });
             }
@@ -67,9 +64,7 @@ namespace tahsinERP.Controllers.Settings
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    ViewBag.Warehouses = new SelectList(
-                        db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToList(),
-                        "ID", "WHName", model.WarehouseID);
+                    ViewBag.Warehouses = ReferenceDataCache.SelectList(ReferenceDataCache.Warehouses, model.WarehouseID);
                     ViewBag.LockWarehouse = model.WarehouseID > 0;
                 }
                 return View(model);
@@ -104,9 +99,7 @@ namespace tahsinERP.Controllers.Settings
                 if (loc == null)
                     return HttpNotFound();
 
-                ViewBag.Warehouses = new SelectList(
-                    db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToList(),
-                    "ID", "WHName", loc.WarehouseID);
+                ViewBag.Warehouses = ReferenceDataCache.SelectList(ReferenceDataCache.Warehouses, loc.WarehouseID);
 
                 return View(new WarehouseLocationEditViewModel
                 {
@@ -133,13 +126,22 @@ namespace tahsinERP.Controllers.Settings
             if (model.MaxCapacity < model.MinCapacity)
                 ModelState.AddModelError("MaxCapacity", "Max Min dan kichik bo‘lmasligi kerak.");
 
+            // SRM-B17: joyda qoldiq bor bo'lsa sig'imni undan kamaytirish yoki joyni nofaol qilish mumkin emas
+            // (nofaol/o'chirilgan joydagi lotlar FIFO va ledger yig'indisidan tushib qoladi).
+            using (var dbCheck = new DBTHSNEntities())
+            {
+                var currentQty = DlocFifoDataAccess.GetLocationCurrentQty(dbCheck, model.ID);
+                if (currentQty > 0 && model.MaxCapacity < currentQty)
+                    ModelState.AddModelError("MaxCapacity", $"Joyda hozir {currentQty:N2} qoldiq bor — Max undan kam bo‘lishi mumkin emas.");
+                if (currentQty > 0 && !model.IsActive)
+                    ModelState.AddModelError("", $"Joyda {currentQty:N2} qoldiq bor — avval qoldiqni boshqa joyga o‘tkazing.");
+            }
+
             if (!ModelState.IsValid)
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    ViewBag.Warehouses = new SelectList(
-                        db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToList(),
-                        "ID", "WHName", model.WarehouseID);
+                    ViewBag.Warehouses = ReferenceDataCache.SelectList(ReferenceDataCache.Warehouses, model.WarehouseID);
                 }
                 return View(model);
             }
@@ -174,6 +176,15 @@ namespace tahsinERP.Controllers.Settings
             {
                 var loc = DlocFifoDataAccess.GetLocation(db, id);
                 var whId = loc?.WarehouseID;
+
+                // SRM-B17: qoldig'i bor joy o'chirilmaydi (lotlar ledger'dan "yo'qolib", PRODUCT_STOCKS bilan nomuvofiqlik bo'lardi)
+                var currentQty = DlocFifoDataAccess.GetLocationCurrentQty(db, id);
+                if (currentQty > 0)
+                {
+                    TempData["Error"] = $"DLOC da {currentQty:N2} qoldiq bor — o‘chirib bo‘lmaydi. Avval qoldiqni boshqa joyga o‘tkazing.";
+                    return RedirectToAction("Index", new { warehouseId = whId });
+                }
+
                 DlocFifoDataAccess.SoftDeleteLocation(db, id);
                 TempData["Success"] = "DLOC o‘chirildi.";
                 return RedirectToAction("Index", new { warehouseId = whId });

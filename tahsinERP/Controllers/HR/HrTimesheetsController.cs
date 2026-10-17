@@ -6,11 +6,13 @@ using System.Data.Entity;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
 
@@ -33,8 +35,6 @@ namespace tahsinERP.Controllers.HR
         private class TimesheetSavePayload
         {
             public List<TimesheetHourCell> Hours { get; set; }
-            public List<TimesheetQtyCell> Quantities { get; set; }
-            public List<TimesheetLineProduct> Products { get; set; }
         }
 
         private class TimesheetHourCell
@@ -44,22 +44,14 @@ namespace tahsinERP.Controllers.HR
             public decimal? Hours { get; set; }
         }
 
-        private class TimesheetQtyCell
-        {
-            public int LineId { get; set; }
-            public int Day { get; set; }
-            public decimal? Quantity { get; set; }
-        }
-
-        private class TimesheetLineProduct
-        {
-            public int LineId { get; set; }
-            public int ProductId { get; set; }
-        }
-
         private const string Draft = "Draft";
         private const string Approved = "Approved";
         private const string Closed = "Closed";
+        private const decimal MaxDayHours = 24m;
+
+        /// <summary>Yuklangan Excel fayli Import va ImportFromSheet so'rovlari orasida (avval Session'da tozalanmay qolardi, HRM-M03).</summary>
+        private static readonly MemoryCache UploadCache = new MemoryCache("tahsinERP.HrTimesheetUploads");
+        private static readonly TimeSpan UploadTtl = TimeSpan.FromMinutes(20);
 
         private readonly DBTHSNEntities db = new DBTHSNEntities();
         private readonly IUserActionLogger logger;
@@ -79,7 +71,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             year = year ?? DateTime.Now.Year;
-            IQueryable<HR_TIMESHEET_HEADERS> query = db.HR_TIMESHEET_HEADERS
+            IQueryable<HR_TIMESHEET_HEADERS> query = db.HR_TIMESHEET_HEADERS.AsNoTracking()
                 .Where(IsNotDeletedHeaderExpr())
                 .Where(h => h.HR_TIMESHEET_LINES.Any(l =>
                     (l.IsDeleted == null || l.IsDeleted == false) &&
@@ -96,9 +88,7 @@ namespace tahsinERP.Controllers.HR
             ViewBag.Year = year;
             ViewBag.Month = month;
             ViewBag.Status = status;
-            ViewBag.OrgUnitID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", orgUnitId);
+            PopulateOrgUnits(orgUnitId);
 
             return View(model);
         }
@@ -122,14 +112,14 @@ namespace tahsinERP.Controllers.HR
 
             ViewBag.Year = year;
             ViewBag.Month = month;
-            await PopulateOrgUnits(orgUnitId);
+            PopulateOrgUnits(orgUnitId);
             await PopulateCreateEmployees();
             return View(new HrTimesheetHeaderViewModel
             {
                 Year = year.Value,
                 Month = month.Value,
                 OrgUnitID = orgUnitId,
-                FundHours = 160m
+                FundHours = HrTimesheetSettingsService.DefaultFundHours
             });
         }
 
@@ -142,57 +132,58 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            if (!ModelState.IsValid)
-            {
-                await PopulateOrgUnits(model.OrgUnitID);
-                await PopulateCreateEmployees();
-                return View(model);
-            }
-
-            if (new DateTime(model.Year, model.Month, 1) > new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1))
+            if (ModelState.IsValid && new DateTime(model.Year, model.Month, 1) > new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1))
             {
                 ModelState.AddModelError("", "Kelajak oyiga tabel yaratib bo'lmaydi");
-                await PopulateOrgUnits(model.OrgUnitID);
+            }
+
+            if (ModelState.IsValid && await FindActiveHeader(model.Year, model.Month, model.OrgUnitID) != null)
+            {
+                ModelState.AddModelError("", "Ushbu davr uchun tabel allaqachon mavjud");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                PopulateOrgUnits(model.OrgUnitID);
                 await PopulateCreateEmployees();
                 return View(model);
             }
 
-            var existing = await FindActiveHeader(model.Year, model.Month, model.OrgUnitID);
-                if (existing != null)
+            HR_TIMESHEET_HEADERS header;
+            AddEmployeesResult addResult;
+            // Sarlavha, sozlama va qatorlar — bitta tranzaksiyada (HRM-M02)
+            using (var tx = db.Database.BeginTransaction())
+            {
+                header = new HR_TIMESHEET_HEADERS
                 {
-                ModelState.AddModelError("", "Ushbu davr uchun tabel allaqachon mavjud");
-                await PopulateOrgUnits(model.OrgUnitID);
-                await PopulateCreateEmployees();
-                return View(model);
-                }
-
-                var header = new HR_TIMESHEET_HEADERS
-                {
-                Year = model.Year,
-                Month = model.Month,
-                OrgUnitID = model.OrgUnitID,
-                Status = Draft,
+                    Year = model.Year,
+                    Month = model.Month,
+                    OrgUnitID = model.OrgUnitID,
+                    Status = Draft,
                     CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                CreatedDT = DateTime.Now,
-                IsDeleted = false
+                    CreatedDT = DateTime.Now,
+                    IsDeleted = false
                 };
                 db.HR_TIMESHEET_HEADERS.Add(header);
                 await db.SaveChangesAsync();
                 timesheetSettingsService.UpsertFundHours(header.ID, model.FundHours);
 
-            await CreateTimesheetLines(header.ID, header.OrgUnitID);
-            var addResult = await AddEmployeesToTimesheet(header.ID, selectedEmployeeIds);
+                await CreateTimesheetLines(header);
+                addResult = await AddEmployeesToTimesheet(header, selectedEmployeeIds);
+                tx.Commit();
+            }
+
             if (addResult.Errors.Any())
             {
-                TempData["Error"] = string.Join("<br/>", addResult.Errors);
+                TempData["Error"] = string.Join("; ", addResult.Errors);
             }
             if (addResult.AddedCount > 0)
             {
                 TempData["Success"] = $"{addResult.AddedCount} ta xodim qo'shildi";
             }
             logger.Log("HrTimesheets", "Create", $"ID={header.ID}");
-                return RedirectToAction("Edit", new { id = header.ID });
-            }
+            return RedirectToAction("Edit", new { id = header.ID });
+        }
 
         public async Task<ActionResult> Edit(int? id)
         {
@@ -202,40 +193,11 @@ namespace tahsinERP.Controllers.HR
             }
             if (!id.HasValue) return HttpNotFound();
 
-            var header = await db.HR_TIMESHEET_HEADERS
-                .Include(h => h.HR_ORG_UNITS)
-                .Include(h => h.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
-                .Include(h => h.HR_TIMESHEET_LINES.Select(l => l.PRODUCT))
-                .FirstOrDefaultAsync(h => h.ID == id.Value && (h.IsDeleted == null || h.IsDeleted == false));
-            if (header == null) return HttpNotFound();
+            var vm = await BuildTimesheetVmAsync(id.Value);
+            if (vm == null) return HttpNotFound();
 
-            var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
-            var vm = new HrTimesheetHeaderViewModel
-            {
-                ID = header.ID,
-                Year = header.Year,
-                Month = header.Month,
-                OrgUnitID = header.OrgUnitID,
-                OrgUnitName = header.HR_ORG_UNITS?.Name,
-                Status = header.Status,
-                CreatedByUserID = header.CreatedByUserID,
-                CreatedDT = header.CreatedDT,
-                ApprovedByUserID = header.ApprovedByUserID,
-                ApprovedDT = header.ApprovedDT,
-                FundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID),
-                Lines = header.HR_TIMESHEET_LINES
-                    .Where(l => l.IsDeleted == null || l.IsDeleted == false)
-                    .Where(l => l.HR_EMPLOYEES != null)
-                    .OrderBy(l => l.HR_EMPLOYEES.TabNo)
-                    .Select(l => ToLineVm(l, daysInMonth))
-                    .ToList()
-            };
-
-            ViewBag.FinishedGoods = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false).OrderBy(p => p.PNo).ToListAsync(),
-                "ID", "PNo");
             ViewBag.AvailableEmployees = new MultiSelectList(
-                await GetEmployeesNotInTimesheet(header.ID),
+                await GetEmployeesNotInTimesheet(vm.ID),
                 "ID",
                 "DisplayName");
 
@@ -252,7 +214,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            var header = await db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == timesheetId && (h.IsDeleted == null || h.IsDeleted == false));
+            var header = await FindHeaderById(timesheetId);
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
@@ -260,14 +222,14 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Edit", new { id = timesheetId });
             }
 
-            var result = await AddEmployeesToTimesheet(timesheetId, employeeIds);
+            var result = await AddEmployeesToTimesheet(header, employeeIds);
             if (result.AddedCount > 0)
             {
                 TempData["Success"] = $"{result.AddedCount} ta xodim qo'shildi";
             }
             if (result.Errors.Any())
             {
-                TempData["Error"] = string.Join("<br/>", result.Errors);
+                TempData["Error"] = string.Join("; ", result.Errors);
             }
             if (result.AddedCount == 0 && !result.Errors.Any())
             {
@@ -302,7 +264,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Edit", new { id = timesheetId });
             }
 
-            var header = await db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == timesheetId && (h.IsDeleted == null || h.IsDeleted == false));
+            var header = await FindHeaderById(timesheetId);
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
@@ -311,51 +273,25 @@ namespace tahsinERP.Controllers.HR
             }
 
             var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
-            var linesList = await db.HR_TIMESHEET_LINES
+            var linesDict = await db.HR_TIMESHEET_LINES
                 .Where(l => l.TimesheetID == timesheetId && (l.IsDeleted == null || l.IsDeleted == false))
-                .ToListAsync();
-            var linesDict = linesList.ToDictionary(l => l.ID);
+                .ToDictionaryAsync(l => l.ID);
 
             var touchedLineIds = new HashSet<int>();
-
-            if (payload.Hours != null)
+            if (payload?.Hours != null)
             {
                 foreach (var cell in payload.Hours)
                 {
                     if (cell.Day < 1 || cell.Day > daysInMonth) continue;
                     if (!linesDict.TryGetValue(cell.LineId, out var line)) continue;
-                    typeof(HR_TIMESHEET_LINES).GetProperty($"Day{cell.Day:D2}Hours")?.SetValue(line, cell.Hours);
-                    touchedLineIds.Add(line.ID);
-                }
-            }
-
-            if (payload.Quantities != null)
-            {
-                foreach (var cell in payload.Quantities)
-                {
-                    if (cell.Day < 1 || cell.Day > daysInMonth) continue;
-                    if (!linesDict.TryGetValue(cell.LineId, out var line)) continue;
-                    typeof(HR_TIMESHEET_LINES).GetProperty($"Day{cell.Day:D2}Quantity")?.SetValue(line, cell.Quantity);
-                    touchedLineIds.Add(line.ID);
-                }
-            }
-
-            if (payload.Products != null)
-            {
-                foreach (var p in payload.Products)
-                {
-                    if (!linesDict.TryGetValue(p.LineId, out var line)) continue;
-                    line.ProductID = p.ProductId;
+                    TimesheetLineAccessor.SetHours(line, cell.Day, ClampHours(cell.Hours));
                     touchedLineIds.Add(line.ID);
                 }
             }
 
             foreach (var lineId in touchedLineIds)
             {
-                if (linesDict.TryGetValue(lineId, out var line))
-                {
-                    await RecalculateLineTotals(line);
-                }
+                TimesheetLineAccessor.RecalculateTotals(linesDict[lineId], daysInMonth);
             }
 
             if (fundHours.HasValue)
@@ -375,123 +311,65 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
                 return Json(new { success = false, message = "Ruxsat yo'q" });
-            if (day < 1 || day > 31) return Json(new { success = false, message = "Kun noto'g'ri" });
-
-            var line = await db.HR_TIMESHEET_LINES.FirstOrDefaultAsync(l => l.ID == lineId && (l.IsDeleted == null || l.IsDeleted == false));
-            if (line == null) return Json(new { success = false, message = "Qator topilmadi" });
-
-            typeof(HR_TIMESHEET_LINES).GetProperty($"Day{day:D2}Hours")?.SetValue(line, hours);
-                await RecalculateLineTotals(line);
-                await db.SaveChangesAsync();
-            return Json(new { success = true });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public async Task<JsonResult> UpdateQuantity(int lineId, int day, decimal? quantity, int? productId)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
-                return Json(new { success = false, message = "Ruxsat yo'q" });
-            if (day < 1 || day > 31) return Json(new { success = false, message = "Kun noto'g'ri" });
-
-            var line = await db.HR_TIMESHEET_LINES.FirstOrDefaultAsync(l => l.ID == lineId && (l.IsDeleted == null || l.IsDeleted == false));
-            if (line == null) return Json(new { success = false, message = "Qator topilmadi" });
-
-            if (productId.HasValue) line.ProductID = productId;
-            typeof(HR_TIMESHEET_LINES).GetProperty($"Day{day:D2}Quantity")?.SetValue(line, quantity);
-            await RecalculateLineTotals(line);
-            await db.SaveChangesAsync();
-            return Json(new { success = true });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public async Task<JsonResult> BulkUpdate(int timesheetId, List<int> employeeIds, int day, decimal? hours)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
-                return Json(new { success = false, message = "Ruxsat yo'q" });
-            if (employeeIds == null || !employeeIds.Any())
-                return Json(new { success = false, message = "Xodimlar tanlanmagan" });
-
-                var lines = await db.HR_TIMESHEET_LINES
-                .Where(l => l.TimesheetID == timesheetId && employeeIds.Contains(l.EmployeeID) && (l.IsDeleted == null || l.IsDeleted == false))
-                    .ToListAsync();
-
-            var prop = typeof(HR_TIMESHEET_LINES).GetProperty($"Day{day:D2}Hours");
-                foreach (var line in lines)
-                {
-                prop?.SetValue(line, hours);
-                    await RecalculateLineTotals(line);
-                }
-                await db.SaveChangesAsync();
-                return Json(new { success = true });
-            }
-
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public async Task<JsonResult> ImportFromProduction(int timesheetId, int employeeId, int year, int month)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
-                return Json(new { success = false, message = "Ruxsat yo'q" });
 
             var line = await db.HR_TIMESHEET_LINES
-                .FirstOrDefaultAsync(l => l.TimesheetID == timesheetId && l.EmployeeID == employeeId && (l.IsDeleted == null || l.IsDeleted == false));
+                .Include(l => l.HR_TIMESHEET_HEADERS)
+                .FirstOrDefaultAsync(l => l.ID == lineId && (l.IsDeleted == null || l.IsDeleted == false));
             if (line == null) return Json(new { success = false, message = "Qator topilmadi" });
 
-            var from = new DateTime(year, month, 1);
-            var to = from.AddMonths(1).AddDays(-1);
-            var grouped = await db.PRODUCT_PRODUCTION
-                .Where(p => p.Date >= from && p.Date <= to && p.PRODUCT.IsFinishedGood == true)
-                .GroupBy(p => new { p.Date, p.ProductID })
-                .Select(g => new { g.Key.Date, g.Key.ProductID, Total = g.Sum(x => x.Total) })
-                .ToListAsync();
+            // Tasdiqlangan/yopilgan (ish haqi hisoblangan bo'lishi mumkin) tabel o'zgarmaydi (HRM-B05)
+            var header = line.HR_TIMESHEET_HEADERS;
+            if (header == null || header.IsDeleted == true || header.Status != Draft)
+                return Json(new { success = false, message = "Faqat qoralama holatidagi tabelni tahrirlash mumkin" });
 
-            foreach (var g in grouped)
-            {
-                var day = g.Date.Day;
-                if (day < 1 || day > 31) continue;
-                typeof(HR_TIMESHEET_LINES).GetProperty($"Day{day:D2}Quantity")?.SetValue(line, (decimal?)g.Total);
-                if (!line.ProductID.HasValue) line.ProductID = g.ProductID;
-            }
+            var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
+            if (day < 1 || day > daysInMonth) return Json(new { success = false, message = "Kun noto'g'ri" });
 
-            await RecalculateLineTotals(line);
+            TimesheetLineAccessor.SetHours(line, day, ClampHours(hours));
+            TimesheetLineAccessor.RecalculateTotals(line, daysInMonth);
             await db.SaveChangesAsync();
-            return Json(new { success = true, message = "Import bajarildi" });
+            return Json(new { success = true });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Approve(int id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets", "Approve"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
-            var header = await db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
+            var header = await FindHeaderById(id);
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
                 TempData["Error"] = "Faqat qoralama tabel tasdiqlanadi";
-                return RedirectToAction("Edit", new { id });
+                return RedirectToAction("Index");
             }
             header.Status = Approved;
             header.ApprovedByUserID = UserHelper.GetUserId(User.Identity.Name);
             header.ApprovedDT = DateTime.Now;
             await db.SaveChangesAsync();
+            logger.Log("HrTimesheets", "Approve", $"TabelID={id}");
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Close(int id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
-            var header = await db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
+            var header = await FindHeaderById(id);
             if (header == null) return HttpNotFound();
             if (header.Status != Approved)
             {
                 TempData["Error"] = "Faqat tasdiqlangan tabel yopiladi";
-                return RedirectToAction("Edit", new { id });
+                return RedirectToAction("Index");
             }
             header.Status = Closed;
             await db.SaveChangesAsync();
+            logger.Log("HrTimesheets", "Close", $"TabelID={id}");
             return RedirectToAction("Index");
         }
 
@@ -501,7 +379,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             if (!id.HasValue) return HttpNotFound();
 
-            var header = await db.HR_TIMESHEET_HEADERS
+            var header = await db.HR_TIMESHEET_HEADERS.AsNoTracking()
                 .Include(h => h.HR_ORG_UNITS)
                 .FirstOrDefaultAsync(h => h.ID == id.Value && (h.IsDeleted == null || h.IsDeleted == false));
             if (header == null) return HttpNotFound();
@@ -516,7 +394,7 @@ namespace tahsinERP.Controllers.HR
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
-            var header = await db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
+            var header = await FindHeaderById(id);
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
@@ -524,7 +402,8 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            var hasPayroll = await db.HR_PAYROLL_HEADERS.AnyAsync(p => p.TimesheetID == id);
+            // O'chirilgan ish haqi hisobi bloklamasligi kerak (HRM-B08)
+            var hasPayroll = await db.HR_PAYROLL_HEADERS.AnyAsync(p => p.TimesheetID == id && p.IsDeleted != true);
             if (hasPayroll)
             {
                 TempData["Error"] = "Bu tabelga bog'langan ish haqi bor";
@@ -535,6 +414,7 @@ namespace tahsinERP.Controllers.HR
             foreach (var line in lines) line.IsDeleted = true;
             header.IsDeleted = true;
             await db.SaveChangesAsync();
+            logger.Log("HrTimesheets", "Delete", $"TabelID={id}");
             return RedirectToAction("Index");
         }
 
@@ -548,15 +428,17 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index");
             }
 
-            var line = await db.HR_TIMESHEET_LINES.FirstOrDefaultAsync(l => l.ID == lineId && (l.IsDeleted == null || l.IsDeleted == false));
+            var line = await db.HR_TIMESHEET_LINES
+                .Include(l => l.HR_TIMESHEET_HEADERS)
+                .FirstOrDefaultAsync(l => l.ID == lineId && (l.IsDeleted == null || l.IsDeleted == false));
             if (line == null)
             {
                 TempData["Error"] = "Qator topilmadi";
                 return RedirectToAction("Index");
             }
 
-            var header = await db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == line.TimesheetID && (h.IsDeleted == null || h.IsDeleted == false));
-            if (header == null) return RedirectToAction("Index");
+            var header = line.HR_TIMESHEET_HEADERS;
+            if (header == null || header.IsDeleted == true) return RedirectToAction("Index");
             if (header.Status != Draft)
             {
                 TempData["Error"] = "Faqat qoralama tabel satri o'chiriladi";
@@ -574,28 +456,8 @@ namespace tahsinERP.Controllers.HR
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
-            var header = await db.HR_TIMESHEET_HEADERS
-                .Include(h => h.HR_ORG_UNITS)
-                .Include(h => h.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
-                .FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
-            if (header == null) return HttpNotFound();
-
-            var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
-            var vm = new HrTimesheetHeaderViewModel
-            {
-                ID = header.ID,
-                Year = header.Year,
-                Month = header.Month,
-                OrgUnitID = header.OrgUnitID,
-                OrgUnitName = header.HR_ORG_UNITS?.Name,
-                Status = header.Status,
-                FundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID),
-                Lines = header.HR_TIMESHEET_LINES
-                    .Where(l => l.IsDeleted == null || l.IsDeleted == false)
-                    .OrderBy(l => l.HR_EMPLOYEES.TabNo)
-                    .Select(l => ToLineVm(l, daysInMonth))
-                    .ToList()
-            };
+            var vm = await BuildTimesheetVmAsync(id);
+            if (vm == null) return HttpNotFound();
             return View("~/Views/HrReports/TimesheetReport.cshtml", vm);
         }
 
@@ -604,29 +466,8 @@ namespace tahsinERP.Controllers.HR
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
-            var header = await db.HR_TIMESHEET_HEADERS
-                .Include(h => h.HR_ORG_UNITS)
-                .Include(h => h.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
-                .FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
-            if (header == null) return HttpNotFound();
-
-            var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
-            var vm = new HrTimesheetHeaderViewModel
-            {
-                ID = header.ID,
-                Year = header.Year,
-                Month = header.Month,
-                OrgUnitID = header.OrgUnitID,
-                OrgUnitName = header.HR_ORG_UNITS?.Name,
-                Status = header.Status,
-                FundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID),
-                Lines = header.HR_TIMESHEET_LINES
-                    .Where(l => l.IsDeleted == null || l.IsDeleted == false)
-                    .OrderBy(l => l.HR_EMPLOYEES.TabNo)
-                    .Select(l => ToLineVm(l, daysInMonth))
-                    .ToList()
-            };
-
+            var vm = await BuildTimesheetVmAsync(id);
+            if (vm == null) return HttpNotFound();
             return View("~/Views/HrTimesheets/Details.cshtml", vm);
         }
 
@@ -635,22 +476,18 @@ namespace tahsinERP.Controllers.HR
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
-            var header = await db.HR_TIMESHEET_HEADERS
-                .Include(h => h.HR_TIMESHEET_LINES.Select(l => l.HR_EMPLOYEES.HR_POSITIONS))
-                .FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
-            if (header == null) return HttpNotFound();
+            var vm = await BuildTimesheetVmAsync(id);
+            if (vm == null) return HttpNotFound();
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage())
             {
-                var ws = package.Workbook.Worksheets.Add($"Tabel {header.Year}-{header.Month:D2}");
-                var fundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID);
+                var ws = package.Workbook.Worksheets.Add($"Tabel {vm.Year}-{vm.Month:D2}");
                 ws.Cells[1, 1].Value = "№";
                 ws.Cells[1, 2].Value = "Tab.№";
                 ws.Cells[1, 3].Value = "F.I.Sh.";
                 ws.Cells[1, 4].Value = "Lavozim";
 
-                var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
+                var daysInMonth = DateTime.DaysInMonth(vm.Year, vm.Month);
                 int col = 5;
                 for (int d = 1; d <= daysInMonth; d++) ws.Cells[1, col++].Value = d;
                 ws.Cells[1, col++].Value = "Ishlangan kun";
@@ -659,94 +496,92 @@ namespace tahsinERP.Controllers.HR
                 ws.Cells[1, col++].Value = "Kelmagan kun";
 
                 int row = 2; int n = 1;
-                foreach (var line in header.HR_TIMESHEET_LINES.Where(l => l.IsDeleted == null || l.IsDeleted == false).OrderBy(l => l.HR_EMPLOYEES.TabNo))
+                foreach (var line in vm.Lines)
                 {
                     ws.Cells[row, 1].Value = n++;
-                    ws.Cells[row, 2].Value = line.HR_EMPLOYEES.TabNo;
-                    ws.Cells[row, 3].Value = line.HR_EMPLOYEES.FullName;
-                    ws.Cells[row, 4].Value = line.HR_EMPLOYEES.HR_POSITIONS?.Name;
+                    ws.Cells[row, 2].Value = line.EmployeeTabNo;
+                    ws.Cells[row, 3].Value = line.EmployeeFullName;
+                    ws.Cells[row, 4].Value = line.PositionName;
                     col = 5;
                     for (int d = 1; d <= daysInMonth; d++)
                     {
-                        var h = typeof(HR_TIMESHEET_LINES).GetProperty($"Day{d:D2}Hours")?.GetValue(line) as decimal?;
-                        ws.Cells[row, col++].Value = h ?? 0;
+                        ws.Cells[row, col++].Value = TimesheetLineAccessor.GetHours(line, d) ?? 0;
                     }
-                    ws.Cells[row, col++].Value = line.TotalWorkedDays ?? 0;
-                    ws.Cells[row, col++].Value = line.TotalWorkedHours ?? 0;
-                    ws.Cells[row, col++].Value = line.OvertimeHours ?? 0;
-                    ws.Cells[row, col++].Value = line.AbsentDays ?? 0;
+                    ws.Cells[row, col++].Value = line.TotalWorkedDays;
+                    ws.Cells[row, col++].Value = line.TotalWorkedHours;
+                    ws.Cells[row, col++].Value = line.OvertimeHours;
+                    ws.Cells[row, col++].Value = line.AbsentDays;
                     row++;
                 }
 
                 ws.Cells[row + 1, 1].Value = "Oylik fond soati";
-                ws.Cells[row + 1, 2].Value = fundHours;
+                ws.Cells[row + 1, 2].Value = vm.FundHours;
                 ws.Cells[row + 2, 1].Value = "Jami qo'shimcha soat";
-                ws.Cells[row + 2, 2].Value = header.HR_TIMESHEET_LINES
-                    .Where(l => l.IsDeleted == null || l.IsDeleted == false)
-                    .Sum(l => l.OvertimeHours ?? 0);
+                ws.Cells[row + 2, 2].Value = vm.Lines.Sum(l => l.OvertimeHours);
 
                 ws.Cells[ws.Dimension.Address].AutoFitColumns();
                 return File(package.GetAsByteArray(),
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"Tabel_{header.Year}_{header.Month:D2}.xlsx");
+                    $"Tabel_{vm.Year}_{vm.Month:D2}.xlsx");
             }
         }
 
-        public async Task<ActionResult> Import()
+        public ActionResult Import()
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
-            await PopulateOrgUnits(null);
+            PopulateOrgUnits(null);
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UploadExcel(HttpPostedFileBase file, int year, int? month, int? orgUnitId)
+        public ActionResult UploadExcel(HttpPostedFileBase file, int year, int? month, int? orgUnitId)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
             if (file == null || file.ContentLength == 0)
             {
                 TempData["Error"] = "Fayl tanlanmagan";
-                await PopulateOrgUnits(orgUnitId);
+                PopulateOrgUnits(orgUnitId);
                 return View("Import");
             }
 
             byte[] bytes;
             using (var ms = new MemoryStream())
             {
-                    file.InputStream.CopyTo(ms);
+                file.InputStream.CopyTo(ms);
                 bytes = ms.ToArray();
-                }
-            Session[$"ExcelFile_{User.Identity.Name}"] = bytes;
+            }
 
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var fileToken = Guid.NewGuid().ToString("N");
+            UploadCache.Set(UploadKey(fileToken), bytes, DateTimeOffset.Now.Add(UploadTtl));
+
             using (var package = new ExcelPackage(new MemoryStream(bytes)))
             {
                 ViewBag.Year = year;
                 ViewBag.OrgUnitId = orgUnitId;
-                            ViewBag.SheetNames = new SelectList(package.Workbook.Worksheets.Select(w => w.Name));
-                await PopulateOrgUnits(orgUnitId);
+                ViewBag.FileToken = fileToken;
+                ViewBag.SheetNames = new SelectList(package.Workbook.Worksheets.Select(w => w.Name));
+                PopulateOrgUnits(orgUnitId);
                 return View("ImportSheets");
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ImportFromSheet(string sheetName, int year, int? orgUnitId)
+        public async Task<ActionResult> ImportFromSheet(string sheetName, int year, int? orgUnitId, string fileToken)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
-            var bytes = Session[$"ExcelFile_{User.Identity.Name}"] as byte[];
+            var bytes = string.IsNullOrEmpty(fileToken) ? null : UploadCache.Get(UploadKey(fileToken)) as byte[];
             if (bytes == null)
             {
                 TempData["Error"] = "Fayl topilmadi, qayta yuklang";
                 return RedirectToAction("Import");
             }
 
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage(new MemoryStream(bytes)))
             {
                 var ws = package.Workbook.Worksheets[sheetName];
@@ -762,6 +597,18 @@ namespace tahsinERP.Controllers.HR
                 if (sheetYear == 0) sheetYear = year;
 
                 var header = await FindActiveHeader(sheetYear, month, orgUnitId);
+                // Tasdiqlangan/yopilgan tabelga import qilib bo'lmaydi — ish haqi bilan farq paydo bo'lardi (HRM-B05)
+                if (header != null && header.Status != Draft)
+                {
+                    TempData["Error"] = $"{sheetYear}-{month:D2} uchun tabel qoralama holatida emas — import qilib bo'lmaydi";
+                    return RedirectToAction("Import");
+                }
+
+                var daysInMonth = DateTime.DaysInMonth(sheetYear, month);
+                var lastRow = ws.Dimension?.End.Row ?? 0;
+
+                using (var tx = db.Database.BeginTransaction())
+                {
                     if (header == null)
                     {
                         header = new HR_TIMESHEET_HEADERS
@@ -769,131 +616,174 @@ namespace tahsinERP.Controllers.HR
                             Year = sheetYear,
                             Month = month,
                             OrgUnitID = orgUnitId,
-                        Status = Draft,
+                            Status = Draft,
                             CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                        CreatedDT = DateTime.Now,
-                        IsDeleted = false
+                            CreatedDT = DateTime.Now,
+                            IsDeleted = false
                         };
                         db.HR_TIMESHEET_HEADERS.Add(header);
                         await db.SaveChangesAsync();
-                }
+                    }
 
-                var daysInMonth = DateTime.DaysInMonth(sheetYear, month);
-                var lastRow = ws.Dimension?.End.Row ?? 0;
-                for (int row = 3; row <= lastRow; row++)
-                {
-                    var tabNo = (ws.Cells[row, 2].Value ?? "").ToString().Trim();
-                    if (string.IsNullOrWhiteSpace(tabNo)) continue;
+                    // Oldindan yuklash: TabNo → xodim, faol xodimlar to'plami, mavjud qatorlar (avval har Excel qatoriga ~4 so'rov, HRM-P04)
+                    var employeeIdByTabNo = await LoadEmployeeIdsByTabNoAsync();
+                    var activeIds = await GetActiveEmployeeIdsAsync(sheetYear, month, null);
+                    var existingLines = await LoadLinesByEmployeeAsync(header.ID);
 
-                    var employee = await FindEmployeeByTabNo(tabNo);
-                    if (employee == null) continue;
-                    if (!await IsEmployeeActiveInPeriod(employee.ID, sheetYear, month)) continue;
-
-                    var line = await db.HR_TIMESHEET_LINES.FirstOrDefaultAsync(l => l.TimesheetID == header.ID && l.EmployeeID == employee.ID);
-                    if (line == null)
+                    for (int row = 3; row <= lastRow; row++)
                     {
-                        line = new HR_TIMESHEET_LINES { TimesheetID = header.ID, EmployeeID = employee.ID, IsDeleted = false };
+                        var tabNo = (ws.Cells[row, 2].Value ?? "").ToString().Trim();
+                        if (string.IsNullOrWhiteSpace(tabNo)) continue;
+
+                        var employeeId = FindEmployeeIdByTabNo(employeeIdByTabNo, tabNo);
+                        if (!employeeId.HasValue || !activeIds.Contains(employeeId.Value)) continue;
+
+                        if (!existingLines.TryGetValue(employeeId.Value, out var line))
+                        {
+                            line = new HR_TIMESHEET_LINES { TimesheetID = header.ID, EmployeeID = employeeId.Value, IsDeleted = false };
                             db.HR_TIMESHEET_LINES.Add(line);
-                    }
-                    else if (line.IsDeleted == true)
-                    {
-                        line.IsDeleted = false;
-                    }
+                            existingLines[employeeId.Value] = line;
+                        }
+                        else if (line.IsDeleted == true)
+                        {
+                            line.IsDeleted = false;
+                        }
 
-                    for (int d = 1; d <= daysInMonth; d++)
-                    {
-                        var val = (ws.Cells[row, 5 + d]?.Value ?? "").ToString().Trim();
-                        decimal parsed;
-                        decimal? h = decimal.TryParse(val, NumberStyles.Any, CultureInfo.InvariantCulture, out parsed) ? (decimal?)parsed : null;
-                        typeof(HR_TIMESHEET_LINES).GetProperty($"Day{d:D2}Hours")?.SetValue(line, h);
-                    }
-                            await RecalculateLineTotals(line);
+                        for (int d = 1; d <= daysInMonth; d++)
+                        {
+                            var val = (ws.Cells[row, 5 + d]?.Value ?? "").ToString().Trim();
+                            decimal parsed;
+                            decimal? h = decimal.TryParse(val, NumberStyles.Any, CultureInfo.InvariantCulture, out parsed) ? (decimal?)parsed : null;
+                            TimesheetLineAccessor.SetHours(line, d, ClampHours(h));
+                        }
+                        TimesheetLineAccessor.RecalculateTotals(line, daysInMonth);
                     }
 
                     await db.SaveChangesAsync();
+                    tx.Commit();
+                }
+
+                UploadCache.Remove(UploadKey(fileToken));
                 TempData["Success"] = "Import yakunlandi";
-                    return RedirectToAction("Edit", new { id = header.ID });
-                }
+                logger.Log("HrTimesheets", "ImportFromSheet", $"TabelID={header.ID}, Varaq={sheetName}");
+                return RedirectToAction("Edit", new { id = header.ID });
             }
-
-        private async Task CreateTimesheetLines(int timesheetId, int? orgUnitId)
-        {
-            var header = await db.HR_TIMESHEET_HEADERS.FindAsync(timesheetId);
-            if (header == null) return;
-
-            var periodStart = new DateTime(header.Year, header.Month, 1);
-            var periodEnd = periodStart.AddMonths(1).AddDays(-1);
-            var employees = db.HR_EMPLOYEES
-                .Where(e => (e.IsDeleted == null || e.IsDeleted == false));
-
-            if (orgUnitId.HasValue)
-            {
-                var historyIds = await db.HR_EMPLOYEE_HISTORY
-                    .Where(h => (h.ToOrgUnitID == orgUnitId.Value || h.FromOrgUnitID == orgUnitId.Value)
-                        && h.EffectiveDateFrom <= periodEnd
-                        && (h.EffectiveDateTo == null || h.EffectiveDateTo >= periodStart))
-                    .Select(h => h.EmployeeID)
-                    .Distinct()
-                    .ToListAsync();
-
-                employees = employees.Where(e => e.OrgUnitID == orgUnitId.Value || historyIds.Contains(e.ID));
-            }
-
-            var employeeList = await employees.ToListAsync();
-            foreach (var employee in employeeList)
-            {
-                if (!await IsEmployeeActiveInPeriod(employee.ID, header.Year, header.Month)) continue;
-                var line = await db.HR_TIMESHEET_LINES.FirstOrDefaultAsync(l => l.TimesheetID == timesheetId && l.EmployeeID == employee.ID);
-                if (line == null)
-                {
-                    db.HR_TIMESHEET_LINES.Add(new HR_TIMESHEET_LINES
-                    {
-                        TimesheetID = timesheetId,
-                        EmployeeID = employee.ID,
-                        IsDeleted = false
-                    });
-                }
-                else if (line.IsDeleted == true)
-                {
-                    line.IsDeleted = false;
-                }
-            }
-                        await db.SaveChangesAsync();
         }
 
-        private async Task<AddEmployeesResult> AddEmployeesToTimesheet(int timesheetId, List<int> employeeIds)
+        private string UploadKey(string token) => tahsinERP.Configuration.Tenancy.TenantContext.CacheKey((User?.Identity?.Name ?? "") + "|" + token);
+
+        private static decimal? ClampHours(decimal? hours)
+        {
+            if (!hours.HasValue) return null;
+            if (hours.Value < 0) return 0m;
+            return hours.Value > MaxDayHours ? MaxDayHours : hours.Value;
+        }
+
+        private async Task<HrTimesheetHeaderViewModel> BuildTimesheetVmAsync(int id)
+        {
+            var header = await db.HR_TIMESHEET_HEADERS.AsNoTracking()
+                .Include(h => h.HR_ORG_UNITS)
+                .FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
+            if (header == null) return null;
+
+            var lines = await db.HR_TIMESHEET_LINES.AsNoTracking()
+                .Include(l => l.HR_EMPLOYEES.HR_POSITIONS)
+                .Where(l => l.TimesheetID == id && (l.IsDeleted == null || l.IsDeleted == false) && l.HR_EMPLOYEES != null)
+                .ToListAsync();
+
+            var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
+            return new HrTimesheetHeaderViewModel
+            {
+                ID = header.ID,
+                Year = header.Year,
+                Month = header.Month,
+                OrgUnitID = header.OrgUnitID,
+                OrgUnitName = header.HR_ORG_UNITS?.Name,
+                Status = header.Status,
+                CreatedByUserID = header.CreatedByUserID,
+                CreatedDT = header.CreatedDT,
+                ApprovedByUserID = header.ApprovedByUserID,
+                ApprovedDT = header.ApprovedDT,
+                FundHours = timesheetSettingsService.GetFundHoursOrDefault(header.ID),
+                Lines = lines
+                    .OrderBy(l => l.HR_EMPLOYEES.TabNo)
+                    .Select(l => TimesheetLineAccessor.ToLineVm(l, daysInMonth))
+                    .ToList()
+            };
+        }
+
+        private async Task CreateTimesheetLines(HR_TIMESHEET_HEADERS header)
+        {
+            var periodStart = new DateTime(header.Year, header.Month, 1);
+            var periodEnd = periodStart.AddMonths(1).AddDays(-1);
+
+            IQueryable<int> candidates = db.HR_EMPLOYEES
+                .Where(e => e.IsDeleted == null || e.IsDeleted == false)
+                .Select(e => e.ID);
+
+            if (header.OrgUnitID.HasValue)
+            {
+                var orgUnitId = header.OrgUnitID.Value;
+                var historyIds = db.HR_EMPLOYEE_HISTORY
+                    .Where(h => (h.ToOrgUnitID == orgUnitId || h.FromOrgUnitID == orgUnitId)
+                        && h.EffectiveDateFrom <= periodEnd
+                        && (h.EffectiveDateTo == null || h.EffectiveDateTo >= periodStart))
+                    .Select(h => h.EmployeeID);
+
+                candidates = db.HR_EMPLOYEES
+                    .Where(e => (e.IsDeleted == null || e.IsDeleted == false) &&
+                                (e.OrgUnitID == orgUnitId || historyIds.Contains(e.ID)))
+                    .Select(e => e.ID);
+            }
+
+            var activeIds = await GetActiveEmployeeIdsAsync(header.Year, header.Month, candidates);
+            var existingLines = await LoadLinesByEmployeeAsync(header.ID);
+
+            foreach (var employeeId in activeIds)
+            {
+                if (existingLines.TryGetValue(employeeId, out var line))
+                {
+                    if (line.IsDeleted == true) line.IsDeleted = false;
+                    continue;
+                }
+                db.HR_TIMESHEET_LINES.Add(new HR_TIMESHEET_LINES
+                {
+                    TimesheetID = header.ID,
+                    EmployeeID = employeeId,
+                    IsDeleted = false
+                });
+            }
+            await db.SaveChangesAsync();
+        }
+
+        private async Task<AddEmployeesResult> AddEmployeesToTimesheet(HR_TIMESHEET_HEADERS header, List<int> employeeIds)
         {
             var result = new AddEmployeesResult();
             if (employeeIds == null || !employeeIds.Any()) return result;
 
-            var header = await db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == timesheetId && (h.IsDeleted == null || h.IsDeleted == false));
-            if (header == null)
-            {
-                result.Errors.Add("Tabel topilmadi");
-                return result;
-            }
-
             var validIds = employeeIds.Distinct().ToList();
-            var employees = await db.HR_EMPLOYEES
+            var employees = await db.HR_EMPLOYEES.AsNoTracking()
                 .Where(e => validIds.Contains(e.ID) && (e.IsDeleted == null || e.IsDeleted == false))
-                                .ToListAsync();
-                            
+                .Select(e => new { e.ID, e.TabNo, e.FullName })
+                .ToListAsync();
+
+            var activeIds = await GetActiveEmployeeIdsAsync(header.Year, header.Month, null, validIds);
+            var existingLines = await LoadLinesByEmployeeAsync(header.ID);
+
             foreach (var emp in employees)
             {
                 var label = $"{(emp.TabNo ?? "-")} - {emp.FullName}";
-                var activeInPeriod = await IsEmployeeActiveInPeriod(emp.ID, header.Year, header.Month);
-                if (!activeInPeriod)
+                if (!activeIds.Contains(emp.ID))
                 {
                     result.Errors.Add($"{label}: tanlangan oyda ish davri topilmadi");
-                            continue;
-                        }
+                    continue;
+                }
 
-                var line = await db.HR_TIMESHEET_LINES.FirstOrDefaultAsync(l => l.TimesheetID == timesheetId && l.EmployeeID == emp.ID);
-                        if (line == null)
-                        {
+                if (!existingLines.TryGetValue(emp.ID, out var line))
+                {
                     db.HR_TIMESHEET_LINES.Add(new HR_TIMESHEET_LINES
                     {
-                        TimesheetID = timesheetId,
+                        TimesheetID = header.ID,
                         EmployeeID = emp.ID,
                         IsDeleted = false
                     });
@@ -903,9 +793,9 @@ namespace tahsinERP.Controllers.HR
                 {
                     line.IsDeleted = false;
                     result.AddedCount++;
-                                }
-                                else
-                                {
+                }
+                else
+                {
                     result.Errors.Add($"{label}: allaqachon tabelda mavjud");
                 }
             }
@@ -914,93 +804,79 @@ namespace tahsinERP.Controllers.HR
             return result;
         }
 
-        private async Task<bool> IsEmployeeActiveInPeriod(int employeeId, int year, int month)
+        /// <summary>
+        /// Tanlangan oyda ishlagan xodimlar (bitta so'rov; avval har xodimga 1-2 so'rov, HRM-P04).
+        /// Faol: davr bilan kesishgan tarix yozuvi bor yoki ishga qabul/bo'shash oralig'i davr bilan kesishadi.
+        /// Davr boshlanishidan oldin bo'shatilgan xodim tarixidagi ochiq qatordan qat'i nazar faol emas (HRM-B06).
+        /// </summary>
+        private async Task<HashSet<int>> GetActiveEmployeeIdsAsync(int year, int month, IQueryable<int> candidateIds, List<int> candidateList = null)
         {
             var periodStart = new DateTime(year, month, 1);
             var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
-            var hasHistoryOverlap = await db.HR_EMPLOYEE_HISTORY.AnyAsync(h =>
-                h.EmployeeID == employeeId &&
-                h.EffectiveDateFrom <= periodEnd &&
-                (h.EffectiveDateTo == null || h.EffectiveDateTo >= periodStart));
-            if (hasHistoryOverlap) return true;
+            var historyIds = db.HR_EMPLOYEE_HISTORY
+                .Where(h => h.EffectiveDateFrom <= periodEnd &&
+                            (h.EffectiveDateTo == null || h.EffectiveDateTo >= periodStart))
+                .Select(h => h.EmployeeID);
 
-            var emp = await db.HR_EMPLOYEES.FindAsync(employeeId);
-            if (emp == null) return false;
-            var from = emp.EmploymentDate ?? DateTime.MinValue;
-            var to = emp.DismissalDate ?? DateTime.MaxValue;
-            return from <= periodEnd && to >= periodStart;
-        }
+            var query = db.HR_EMPLOYEES
+                .Where(e => e.DismissalDate == null || e.DismissalDate >= periodStart)
+                .Where(e => historyIds.Contains(e.ID) ||
+                            e.EmploymentDate == null ||
+                            e.EmploymentDate <= periodEnd);
 
-        private async Task RecalculateLineTotals(HR_TIMESHEET_LINES line)
-        {
-            var header = await db.HR_TIMESHEET_HEADERS.FindAsync(line.TimesheetID);
-            if (header == null) return;
-            var days = DateTime.DaysInMonth(header.Year, header.Month);
-
-            decimal totalH = 0, workD = 0, absent = 0, overtime = 0, totalQ = 0;
-            for (int d = 1; d <= days; d++)
+            if (candidateIds != null)
             {
-                var h = typeof(HR_TIMESHEET_LINES).GetProperty($"Day{d:D2}Hours")?.GetValue(line) as decimal? ?? 0;
-                var q = typeof(HR_TIMESHEET_LINES).GetProperty($"Day{d:D2}Quantity")?.GetValue(line) as decimal? ?? 0;
-                if (h > 0)
-                {
-                    totalH += h;
-                    workD += 1;
-                    if (h > 8) overtime += (h - 8);
-                }
-                else absent += 1;
-                if (q > 0) totalQ += q;
+                query = query.Where(e => candidateIds.Contains(e.ID));
             }
-            line.TotalWorkedHours = totalH;
-            line.TotalWorkedDays = workD;
-            line.AbsentDays = absent;
-            line.OvertimeHours = overtime;
-            line.TotalQuantity = totalQ;
-        }
-
-        private HrTimesheetLineViewModel ToLineVm(HR_TIMESHEET_LINES l, int daysInMonth)
-        {
-            return new HrTimesheetLineViewModel
+            if (candidateList != null)
             {
-                ID = l.ID,
-                TimesheetID = l.TimesheetID,
-                EmployeeID = l.EmployeeID,
-                EmployeeTabNo = l.HR_EMPLOYEES?.TabNo,
-                EmployeeFullName = l.HR_EMPLOYEES?.FullName,
-                PositionName = l.HR_EMPLOYEES?.HR_POSITIONS?.Name,
-                Day01Hours = l.Day01Hours, Day02Hours = l.Day02Hours, Day03Hours = l.Day03Hours, Day04Hours = l.Day04Hours, Day05Hours = l.Day05Hours,
-                Day06Hours = l.Day06Hours, Day07Hours = l.Day07Hours, Day08Hours = l.Day08Hours, Day09Hours = l.Day09Hours, Day10Hours = l.Day10Hours,
-                Day11Hours = l.Day11Hours, Day12Hours = l.Day12Hours, Day13Hours = l.Day13Hours, Day14Hours = l.Day14Hours, Day15Hours = l.Day15Hours,
-                Day16Hours = l.Day16Hours, Day17Hours = l.Day17Hours, Day18Hours = l.Day18Hours, Day19Hours = l.Day19Hours, Day20Hours = l.Day20Hours,
-                Day21Hours = l.Day21Hours, Day22Hours = l.Day22Hours, Day23Hours = l.Day23Hours, Day24Hours = l.Day24Hours, Day25Hours = l.Day25Hours,
-                Day26Hours = l.Day26Hours, Day27Hours = l.Day27Hours, Day28Hours = l.Day28Hours, Day29Hours = l.Day29Hours, Day30Hours = l.Day30Hours, Day31Hours = l.Day31Hours,
-                Day01Quantity = l.Day01Quantity, Day02Quantity = l.Day02Quantity, Day03Quantity = l.Day03Quantity, Day04Quantity = l.Day04Quantity, Day05Quantity = l.Day05Quantity,
-                Day06Quantity = l.Day06Quantity, Day07Quantity = l.Day07Quantity, Day08Quantity = l.Day08Quantity, Day09Quantity = l.Day09Quantity, Day10Quantity = l.Day10Quantity,
-                Day11Quantity = l.Day11Quantity, Day12Quantity = l.Day12Quantity, Day13Quantity = l.Day13Quantity, Day14Quantity = l.Day14Quantity, Day15Quantity = l.Day15Quantity,
-                Day16Quantity = l.Day16Quantity, Day17Quantity = l.Day17Quantity, Day18Quantity = l.Day18Quantity, Day19Quantity = l.Day19Quantity, Day20Quantity = l.Day20Quantity,
-                Day21Quantity = l.Day21Quantity, Day22Quantity = l.Day22Quantity, Day23Quantity = l.Day23Quantity, Day24Quantity = l.Day24Quantity, Day25Quantity = l.Day25Quantity,
-                Day26Quantity = l.Day26Quantity, Day27Quantity = l.Day27Quantity, Day28Quantity = l.Day28Quantity, Day29Quantity = l.Day29Quantity, Day30Quantity = l.Day30Quantity, Day31Quantity = l.Day31Quantity,
-                ProductID = l.ProductID,
-                ProductName = l.PRODUCT?.PNo,
-                TotalWorkedDays = l.TotalWorkedDays ?? 0,
-                TotalWorkedHours = l.TotalWorkedHours ?? 0,
-                OvertimeHours = l.OvertimeHours ?? 0,
-                AbsentDays = l.AbsentDays ?? 0,
-                TotalQuantity = l.TotalQuantity ?? 0,
-                IsPieceRate = false,
-                DaysInMonth = daysInMonth
-            };
+                query = query.Where(e => candidateList.Contains(e.ID));
+            }
+
+            return new HashSet<int>(await query.Select(e => e.ID).ToListAsync());
         }
 
-        private async Task<HR_EMPLOYEES> FindEmployeeByTabNo(string tabNo)
+        private async Task<Dictionary<int, HR_TIMESHEET_LINES>> LoadLinesByEmployeeAsync(int timesheetId)
         {
-            var norm = tabNo.PadLeft(4, '0');
+            var lines = await db.HR_TIMESHEET_LINES.Where(l => l.TimesheetID == timesheetId).ToListAsync();
+            // Bir xodimga bir nechta qator bo'lsa — faol qator ustun
+            return lines
+                .GroupBy(l => l.EmployeeID)
+                .ToDictionary(g => g.Key, g => g.OrderBy(l => l.IsDeleted == true ? 1 : 0).ThenBy(l => l.ID).First());
+        }
+
+        private async Task<Dictionary<string, int>> LoadEmployeeIdsByTabNoAsync()
+        {
+            var rows = await db.HR_EMPLOYEES.AsNoTracking()
+                .Where(e => (e.IsDeleted == null || e.IsDeleted == false) && e.TabNo != null)
+                .OrderBy(e => e.ID)
+                .Select(e => new { e.ID, e.TabNo })
+                .ToListAsync();
+
+            var map = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var r in rows)
+            {
+                if (!map.ContainsKey(r.TabNo)) map[r.TabNo] = r.ID;
+            }
+            return map;
+        }
+
+        /// <summary>TabNo aynan, 4 xonagacha 0 bilan to'ldirilgan yoki boshidagi 0'larsiz ko'rinishda qidiriladi.</summary>
+        private static int? FindEmployeeIdByTabNo(Dictionary<string, int> map, string tabNo)
+        {
             var trimmed = tabNo.TrimStart('0');
             if (string.IsNullOrWhiteSpace(trimmed)) trimmed = "0";
-            return await db.HR_EMPLOYEES.FirstOrDefaultAsync(e =>
-                (e.IsDeleted == null || e.IsDeleted == false) &&
-                (e.TabNo == tabNo || e.TabNo == norm || e.TabNo == trimmed));
+            foreach (var key in new[] { tabNo, tabNo.PadLeft(4, '0'), trimmed })
+            {
+                if (map.TryGetValue(key, out var id)) return id;
+            }
+            return null;
+        }
+
+        private Task<HR_TIMESHEET_HEADERS> FindHeaderById(int id)
+        {
+            return db.HR_TIMESHEET_HEADERS.FirstOrDefaultAsync(h => h.ID == id && (h.IsDeleted == null || h.IsDeleted == false));
         }
 
         private async Task<HR_TIMESHEET_HEADERS> FindActiveHeader(int year, int month, int? orgUnitId)
@@ -1017,25 +893,14 @@ namespace tahsinERP.Controllers.HR
             return h => h.IsDeleted == null || h.IsDeleted == false;
         }
 
-        private async Task<List<int>> GetHourlyPositionIds()
+        private void PopulateOrgUnits(int? orgUnitId)
         {
-            return await db.HR_STAFFING_PLAN
-                .Where(s => s.IsActive && s.IsPieceRate == false)
-                .Select(s => s.PositionID)
-                .Distinct()
-                .ToListAsync();
-        }
-
-        private async Task PopulateOrgUnits(int? orgUnitId)
-        {
-            ViewBag.OrgUnitID = new SelectList(
-                await db.HR_ORG_UNITS.Where(o => o.IsActive).OrderBy(o => o.Name).ToListAsync(),
-                "ID", "Name", orgUnitId);
+            ViewBag.OrgUnitID = HrLookups.SelectList(HrLookups.OrgUnits, orgUnitId);
         }
 
         private async Task PopulateCreateEmployees()
         {
-            var employees = await db.HR_EMPLOYEES
+            var employees = await db.HR_EMPLOYEES.AsNoTracking()
                 .Where(e => (e.IsDeleted == null || e.IsDeleted == false))
                 .OrderBy(e => e.TabNo)
                 .Select(e => new EmployeePickItem
@@ -1050,14 +915,11 @@ namespace tahsinERP.Controllers.HR
 
         private async Task<List<EmployeePickItem>> GetEmployeesNotInTimesheet(int timesheetId)
         {
-            var usedEmployeeIds = await db.HR_TIMESHEET_LINES
-                .Where(l => l.TimesheetID == timesheetId && (l.IsDeleted == null || l.IsDeleted == false))
-                .Select(l => l.EmployeeID)
-                .ToListAsync();
-
-            var employees = await db.HR_EMPLOYEES
+            return await db.HR_EMPLOYEES.AsNoTracking()
                 .Where(e => (e.IsDeleted == null || e.IsDeleted == false)
-                            && !usedEmployeeIds.Contains(e.ID))
+                            && !db.HR_TIMESHEET_LINES.Any(l => l.TimesheetID == timesheetId &&
+                                                               l.EmployeeID == e.ID &&
+                                                               (l.IsDeleted == null || l.IsDeleted == false)))
                 .OrderBy(e => e.TabNo)
                 .Select(e => new EmployeePickItem
                 {
@@ -1065,21 +927,20 @@ namespace tahsinERP.Controllers.HR
                     DisplayName = (e.TabNo ?? "-") + " - " + e.FullName
                 })
                 .ToListAsync();
-
-            return employees;
         }
 
-        private int ParseMonthFromSheetName(string name)
+        private static readonly Dictionary<string, int> SheetMonths = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
         {
-            var months = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["yanvar"] = 1, ["fevral"] = 2, ["mart"] = 3, ["aprel"] = 4, ["may"] = 5, ["iyun"] = 6, ["iyul"] = 7, ["avgust"] = 8, ["sentyabr"] = 9, ["oktyabr"] = 10, ["noyabr"] = 11, ["dekabr"] = 12
-            };
+            ["yanvar"] = 1, ["fevral"] = 2, ["mart"] = 3, ["aprel"] = 4, ["may"] = 5, ["iyun"] = 6, ["iyul"] = 7, ["avgust"] = 8, ["sentyabr"] = 9, ["oktyabr"] = 10, ["noyabr"] = 11, ["dekabr"] = 12
+        };
+
+        private static int ParseMonthFromSheetName(string name)
+        {
             var m = name.Split('-').FirstOrDefault()?.Trim();
-            return m != null && months.ContainsKey(m) ? months[m] : 0;
+            return m != null && SheetMonths.ContainsKey(m) ? SheetMonths[m] : 0;
         }
 
-        private int ParseYearFromSheetName(string name)
+        private static int ParseYearFromSheetName(string name)
         {
             var parts = name.Split('-');
             if (parts.Length < 2) return 0;

@@ -65,7 +65,7 @@ namespace tahsinERP.Services.Editions
                 {
                     "Home", "Account", "License", "Error", "ViewNotAuthorized", "ComingSoon", "HelpDocs", "UserManual",
                     "AdminPanel", "DeletedRecords", "Log", "PModule", "Permission", "Role", "User", "UserEntries",
-                    "Company", "Currency", "Unit", "Warehouse", "WarehouseLocations",
+                    "Company", "Currency", "CurrencyRates", "Unit", "Warehouse", "WarehouseLocations",
                     "Product", "ProductCategory", "Shop",
                     "Reconciliation"    // akt-sverka: xarid, sotuv va yuk tashish shartnomalari uchun umumiy
                 } },
@@ -73,7 +73,7 @@ namespace tahsinERP.Services.Editions
                 {
                     "SRMDashboard", "Supplier", "SupplierBase", "PRequisitions", "PContracts", "POrders", "PInvoices",
                     "PurchaseOrderTracking", "Tender", "HSCode", "Reports",
-                    "Incomes", "Expenses", "Inventory", "InventoryReports", "ProductStock", "ProductionToSalesTransfer"
+                    "Incomes", "Expenses", "Inventory", "InventoryReports", "ProductionToSalesTransfer"
                 } },
             { ProductModule.Crm, new[]
                 {
@@ -87,7 +87,7 @@ namespace tahsinERP.Services.Editions
             { ProductModule.Mes, new[]
                 {
                     "MESDashboard", "MESReports", "ProductPlan", "ProductProduction", "QualityInspection", "DefectType",
-                    "DamagedPart", "DamagedProduct", "ProductionProcess", "ProductionControl"
+                    "DamagedProduct", "ProductionProcess"
                 } },
             { ProductModule.Engineering, new[] { "Bom", "Norm", "Tannarx", "TannarxAnalytics" } },
             { ProductModule.Finance, new[]
@@ -105,7 +105,7 @@ namespace tahsinERP.Services.Editions
                     "LogisticsDashboard", "Forwarder", "FContract", "FContractTariff", "FTransportType", "Waybill",
                     "WaybillPayment", "TransportLoadSimulation", "TransportLoadApi"
                 } },
-            { ProductModule.Docs, new[] { "OfficialLetters", "CompanyOrders", "STDCompanyStandards", "JobDesc" } },
+            { ProductModule.Docs, new[] { "OfficialLetters", "CompanyOrders", "STDCompanyStandards", "JobDesc", "DocTemplates" } },
         });
 
         private static Dictionary<string, ProductModule> Build(Dictionary<ProductModule, string[]> byModule)

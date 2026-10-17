@@ -4,8 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -54,7 +54,7 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>Invoys raqami</label>
-                                                        @Html.TextBoxFor(m => m.InvoiceNo, new { @class = "form-control", @placeholder = "Bo'sh qoldirsangiz avtomatik yoziladi" })
+                                                        @Html.TextBoxFor(m => m.InvoiceNo, new { @class = "form-control", @placeholder = "Avtomatik: " + ViewBag.SuggestedInvoiceNo + " (bo'sh qoldiring)" })
                                                         @Html.ValidationMessageFor(m => m.InvoiceNo, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
@@ -129,29 +129,44 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <tr>
-                                                            <td>
-                                                                @Html.DropDownList("lines[0].ProductID", ViewBag.Products as SelectList, "Tanlang", new { @class = "form-control product-select", required = "required" })
-                                                                <small class="text-muted available-stock-hint"></small>
-                                                            </td>
-                                                            <td>
-                                                                <input type="text" name="lines[0].Description" class="form-control" />
-                                                            </td>
-                                                            <td>
-                                                                <input type="number" name="lines[0].Qty" class="form-control qty-input" step="0.01" min="0" required />
-                                                            </td>
-                                                            <td>
-                                                                <input type="number" name="lines[0].UnitPrice" class="form-control price-input" step="0.01" min="0" required readonly />
-                                                            </td>
-                                                            <td>
-                                                                <input type="number" name="lines[0].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="0" required />
-                                                            </td>
-                                                            <td>
-                                                                <button type="button" class="btn btn-sm btn-danger remove-line">O'chirish</button>
-                                                            </td>
-                                                        </tr>
+                                                        @{
+                                                            var productItems = ViewBag.ProductItems as List<SelectListItem> ?? new List<SelectListItem>();
+                                                            // Xato bilan qaytganda kiritilgan qatorlar saqlanadi
+                                                            var formLines = Model.SALES_INVOICE_LINES != null && Model.SALES_INVOICE_LINES.Any()
+                                                                ? Model.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList()
+                                                                : new List<tahsinERP.Models.SALES_INVOICE_LINES> { new tahsinERP.Models.SALES_INVOICE_LINES() };
+                                                            var inv = System.Globalization.CultureInfo.InvariantCulture;
+                                                            int lineIndex = 0;
+                                                        }
+                                                        @foreach (var line in formLines)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    @Html.DropDownList($"lines[{lineIndex}].ProductID", new SelectList(productItems, "Value", "Text", line.ProductID > 0 ? line.ProductID.ToString() : null), "Tanlang", new { @class = "form-control product-select", required = "required" })
+                                                                    <small class="text-muted available-stock-hint"></small>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" name="lines[@lineIndex].Description" class="form-control" value="@line.Description" />
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" name="lines[@lineIndex].Qty" class="form-control qty-input" step="0.01" min="0.01" value="@(line.ProductID > 0 ? line.Qty.ToString(inv) : "")" required />
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" name="lines[@lineIndex].UnitPrice" class="form-control price-input" step="0.01" min="0" value="@(line.ProductID > 0 ? line.UnitPrice.ToString(inv) : "")" required readonly />
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" name="lines[@lineIndex].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="@line.VATRate.ToString(inv)" required />
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-danger remove-line">O'chirish</button>
+                                                                </td>
+                                                            </tr>
+                                                            lineIndex++;
+                                                        }
                                                     </tbody>
                                                 </table>
+                                                @* Yangi qator uchun mahsulot ro'yxati namunasi (birinchi qator o'chirilsa ham ishlaydi) *@
+                                                @Html.DropDownList("productSelectTemplate", new SelectList(productItems, "Value", "Text"), "Tanlang", new { @class = "form-control product-select d-none", id = "productSelectTemplate", disabled = "disabled" })
                                             </div>
 
                                             <div class="row mt-2">
@@ -203,7 +218,7 @@
             var initialOrderId = @(Model.OrderID.HasValue ? Model.OrderID.Value : 0);
 
             function init() {
-                var lineIndex = 1;
+                var lineIndex = document.querySelectorAll('#invoiceLinesTable tbody tr').length;
                 var productStockMap = {};
 
                 function loadContracts(customerId) {
@@ -307,7 +322,7 @@
                     productStockMap = {};
                     var table = document.getElementById('invoiceLinesTable');
                     if (!table) return;
-                    var firstSelect = table.querySelector('tbody tr:first-child td:first-child select');
+                    var firstSelect = document.getElementById('productSelectTemplate');
                     if (!firstSelect) return;
                     for (var i = 0; i < firstSelect.options.length; i++) {
                         var opt = firstSelect.options[i];
@@ -359,15 +374,16 @@
                     addBtn.addEventListener('click', function() {
                         var table = document.getElementById('invoiceLinesTable');
                         if (!table) return;
-                        var firstRow = table.querySelector('tbody tr:first-child');
-                        if (!firstRow) return;
                         var tbody = table.querySelector('tbody');
-                        var productSelect = firstRow.querySelector('select.product-select');
+                        var productSelect = document.getElementById('productSelectTemplate');
                         if (!productSelect) return;
 
                         var newSelect = productSelect.cloneNode(true);
                         newSelect.name = 'lines[' + lineIndex + '].ProductID';
                         newSelect.removeAttribute('id');
+                        newSelect.removeAttribute('disabled');
+                        newSelect.classList.remove('d-none');
+                        newSelect.required = true;
                         newSelect.value = '';
 
                         var newRow = document.createElement('tr');
@@ -395,12 +411,7 @@
                         btn.type = 'button';
                         btn.className = 'btn btn-sm btn-danger remove-line';
                         btn.textContent = 'O\'chirish';
-                        btn.addEventListener('click', function() {
-                            if (confirm('Bu qatorni o\'chirishni tasdiqlaysizmi?')) {
-                                newRow.remove();
-                                calculateTotals();
-                            }
-                        });
+                        // O'chirish document darajasidagi delegat orqali (avval ikki marta tasdiq so'ralardi — CRM-B20)
                         tdBtn.appendChild(btn);
                         newRow.appendChild(tdBtn);
 
@@ -444,7 +455,9 @@
                 var firstRow = document.querySelector('#invoiceLinesTable tbody tr:first-child');
                 updateStockHint(firstRow);
 
-                if (initialOrderId) {
+                // Xato bilan qaytgan formada qatorlar bor — ularni buyurtmadan qayta to'ldirmaymiz
+                var hasPostedLines = @((Model.SALES_INVOICE_LINES != null && Model.SALES_INVOICE_LINES.Any()) ? "true" : "false");
+                if (initialOrderId && !hasPostedLines) {
                     fetch(urls.orderProducts + '?orderId=' + initialOrderId)
                         .then(function(r) { return r.json(); })
                         .then(function(data) {
@@ -477,6 +490,20 @@
                         });
                 }
 
+                // O'rtadagi qator o'chirilsa indekslarda bo'shliq qoladi va MVC binder undan keyingi
+                // qatorlarni jimgina tashlab yuboradi — yuborishdan oldin 0..n-1 qilib qayta raqamlaymiz (CRM-B08)
+                var form = document.getElementById('invoiceCreateForm');
+                if (form) {
+                    form.addEventListener('submit', function() {
+                        var rows = document.querySelectorAll('#invoiceLinesTable tbody tr');
+                        for (var i = 0; i < rows.length; i++) {
+                            rows[i].querySelectorAll('[name^="lines["]').forEach(function(el) {
+                                el.name = el.name.replace(/^lines\[\d+\]/, 'lines[' + i + ']');
+                            });
+                        }
+                    });
+                }
+
                 var vs = document.getElementById('validationSummary');
                 if (vs && vs.textContent.trim()) vs.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -488,9 +515,5 @@
             }
         })();
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 

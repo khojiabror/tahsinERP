@@ -35,6 +35,9 @@
                             <a href="@Url.Action("Create", "CompanyOrders")" class="btn btn-success bg-light invoice-create" role="button">
                                 <i class="bx bx-plus"></i> Yangi Buyruq
                             </a>
+                            <a href="@Url.Action("Index", "DocTemplates", new { docType = "COMP_ORDER" })" class="btn btn-outline-secondary" role="button" style="margin-left: 10px;">
+                                <i class="bx bx-cog"></i> Word shablonlar
+                            </a>
                         </div>
                     }
 
@@ -121,19 +124,8 @@
                                                                     <a href="@Url.Action("Edit", new { id = item.DocumentId })" class="btn btn-sm btn-warning" title="Tahrirlash">
                                                                         <i class="bx bx-edit"></i>
                                                                     </a>
-                                                                    using (Html.BeginForm("Delete", "CompanyOrders", new { id = item.DocumentId }, FormMethod.Post, new { @style = "display:inline;" }))
-                                                                    {
-                                                                        @Html.AntiForgeryToken()
-                                                                        <button type="submit" class="btn btn-sm btn-danger" title="O'chirish" onclick="return confirm('O\'chirishni tasdiqlaysizmi?');">
-                                                                            <i class="bx bx-trash"></i>
-                                                                        </button>
-                                                                    }
-                                                                    <form method="post" action="@Url.Action("GenerateDoc", "CompanyOrders", new { id = item.DocumentId })" style="display:inline;" onsubmit="return confirm('Hujjat yaratilsinmi?');">
-                                                                        @Html.AntiForgeryToken()
-                                                                        <button type="submit" class="btn btn-sm btn-success" title="Hujjat yaratish">
-                                                                            <i class="bx bx-file"></i>
-                                                                        </button>
-                                                                    </form>
+                                                                    <a href="#" data-post-url="@Url.Action("Delete", "CompanyOrders", new { id = item.DocumentId })" data-confirm="O'chirishni tasdiqlaysizmi?" class="btn btn-sm btn-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                    <a href="#" data-post-url="@Url.Action("GenerateDoc", "CompanyOrders", new { id = item.DocumentId })" data-confirm="Hujjat yaratilsinmi?" class="btn btn-sm btn-success" title="Hujjat yaratish"><i class="bx bx-file"></i></a>
                                                                 }
                                                             </td>
                                                         </tr>

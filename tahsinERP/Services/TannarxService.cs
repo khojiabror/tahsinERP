@@ -4,6 +4,8 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
+using tahsinERP.Services.Norm;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Services
 {
@@ -23,70 +25,97 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<decimal> CalculateMaterialPriceAsync(int productID, string month)
         {
+            var prices = await CalculateMaterialPricesAsync(new List<int> { productID }, month);
+            decimal price;
+            return prices.TryGetValue(productID, out price) ? price : 0m;
+        }
+
+        /// <summary>
+        /// <see cref="CalculateMaterialPriceAsync"/> ning ko'p mahsulotli varianti: aktiv versiyalar, norma qatorlari
+        /// va material kategoriyalari bir martada yuklanadi (avval har mahsulotga 3–4 so'rov, MES-P06).
+        /// </summary>
+        private async Task<Dictionary<int, decimal>> CalculateMaterialPricesAsync(List<int> productIds, string month)
+        {
+            var result = new Dictionary<int, decimal>();
+            if (productIds == null || productIds.Count == 0)
+                return result;
+
             // Tannarxdagi A (material narxi) Norm/ViewDetails "Umumiy summa" mantig'idan olinadi.
             // Avvalo requested oyga aktiv NORMVERSION topamiz va uning periodidagi input lines ni olamiz.
-            List<NORM_INPUT_LINES> normLines = null;
+            var periodByProduct = new Dictionary<int, string>();
             DateTime requestedDate;
             if (TryParseMonthString(month, out requestedDate))
             {
-                var version = await _db.NORMVERSIONS
-                    .Where(nv => nv.ProductID == productID
+                var versions = await _db.NORMVERSIONS.AsNoTracking()
+                    .Where(nv => nv.ProductID.HasValue
+                        && productIds.Contains(nv.ProductID.Value)
                         && nv.IsDeleted != true
                         && nv.EffectiveFrom.HasValue
                         && nv.EffectiveFrom.Value <= requestedDate
                         && (nv.EffectiveTo == null || nv.EffectiveTo.Value >= requestedDate))
-                    .OrderByDescending(nv => nv.EffectiveFrom)
-                    .ThenByDescending(nv => nv.ID)
-                    .FirstOrDefaultAsync();
+                    .Select(nv => new { ProductID = nv.ProductID.Value, nv.ID, EffectiveFrom = nv.EffectiveFrom.Value })
+                    .ToListAsync();
 
-                if (version != null && version.EffectiveFrom.HasValue)
+                foreach (var g in versions.GroupBy(v => v.ProductID))
                 {
-                    var period = version.EffectiveFrom.Value.ToString("yyyy-MM");
-                    normLines = await _db.NORM_INPUT_LINES
-                        .Where(n => n.ProductID == productID && n.Month == period)
-                        .OrderByDescending(n => n.CreatedDT)
-                        .ToListAsync();
+                    var latest = g.OrderByDescending(v => v.EffectiveFrom).ThenByDescending(v => v.ID).First();
+                    periodByProduct[g.Key] = latest.EffectiveFrom.ToString("yyyy-MM");
                 }
             }
 
-            // Fallback: to'g'ridan-to'g'ri selected month
-            if (normLines == null || !normLines.Any())
+            var months = periodByProduct.Values.Concat(new[] { month }).Where(m => m != null).Distinct().ToList();
+            var allLines = await _db.NORM_INPUT_LINES.AsNoTracking()
+                .Where(n => productIds.Contains(n.ProductID) && months.Contains(n.Month))
+                .ToListAsync();
+            if (!allLines.Any())
+                return result;
+
+            var materialIds = allLines.Select(n => n.MaterialID).Distinct().ToList();
+            var requiresCuttingByMaterial = await _db.PRODUCTS.AsNoTracking()
+                .Where(p => materialIds.Contains(p.ID))
+                .Select(p => new { p.ID, RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting })
+                .ToDictionaryAsync(p => p.ID, p => p.RequiresCutting);
+
+            var linesByProduct = allLines.GroupBy(n => n.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+            foreach (var productID in productIds.Distinct())
             {
-                normLines = await _db.NORM_INPUT_LINES
-                    .Where(n => n.ProductID == productID && n.Month == month)
-                    .OrderByDescending(n => n.CreatedDT)
-                    .ToListAsync();
+                List<NORM_INPUT_LINES> productLines;
+                if (!linesByProduct.TryGetValue(productID, out productLines))
+                    continue;
+
+                List<NORM_INPUT_LINES> normLines = null;
+                string period;
+                if (periodByProduct.TryGetValue(productID, out period))
+                {
+                    normLines = productLines.Where(n => n.Month == period).ToList();
+                }
+
+                // Fallback: to'g'ridan-to'g'ri selected month
+                if (normLines == null || !normLines.Any())
+                {
+                    normLines = productLines.Where(n => n.Month == month).ToList();
+                }
+
+                if (!normLines.Any())
+                    continue;
+
+                // Bir oyda qayta saqlangan eski satrlar qolib ketgan bo'lsa, narx oshib ketmasin:
+                // bir xil variant (material + uzunlik + son + birlik) bo'yicha oxirgi satrni olamiz.
+                normLines = normLines
+                    .GroupBy(n => new
+                    {
+                        n.MaterialID,
+                        n.CutLengthMm,
+                        n.PiecesPerProduct,
+                        UnitID = n.UnitID ?? 0
+                    })
+                    .Select(g => g.OrderByDescending(x => x.CreatedDT).ThenByDescending(x => x.ID).First())
+                    .ToList();
+
+                result[productID] = SumMaterialPriceFromNormLines(normLines, requiresCuttingByMaterial);
             }
 
-            if (!normLines.Any())
-                return 0;
-
-            // Bir oyda qayta saqlangan eski satrlar qolib ketgan bo'lsa, narx oshib ketmasin:
-            // bir xil variant (material + uzunlik + son + birlik) bo'yicha oxirgi satrni olamiz.
-            normLines = normLines
-                .GroupBy(n => new
-                {
-                    n.MaterialID,
-                    n.CutLengthMm,
-                    n.PiecesPerProduct,
-                    UnitID = n.UnitID ?? 0
-                })
-                .Select(g => g.OrderByDescending(x => x.CreatedDT).ThenByDescending(x => x.ID).First())
-                .ToList();
-
-            var materialIds = normLines
-                .Select(n => n.MaterialID)
-                .Distinct()
-                .ToList();
-
-            var requiresCuttingByMaterial = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => materialIds.Contains(p.ID))
-                .ToDictionaryAsync(
-                    p => p.ID,
-                    p => p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting);
-
-            return SumMaterialPriceFromNormLines(normLines, requiresCuttingByMaterial);
+            return result;
         }
 
         /// <summary>
@@ -115,9 +144,9 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Sum material price from a list of NORM_INPUT_LINES.
+        /// Sum material price from a list of NORM_INPUT_LINES (sarf + chiqindi, metrda — NormLineMath).
         /// </summary>
-        private decimal SumMaterialPriceFromNormLines(
+        private static decimal SumMaterialPriceFromNormLines(
             List<NORM_INPUT_LINES> normLines,
             IDictionary<int, bool> requiresCuttingByMaterial)
         {
@@ -127,55 +156,15 @@ namespace tahsinERP.Services
                 if (line.Price <= 0)
                     continue;
 
-                var requiresCutting = requiresCuttingByMaterial != null
-                    && requiresCuttingByMaterial.ContainsKey(line.MaterialID)
-                    && requiresCuttingByMaterial[line.MaterialID];
+                bool requiresCutting;
+                requiresCuttingByMaterial.TryGetValue(line.MaterialID, out requiresCutting);
 
-                decimal consumptionMeters = 0;
-                if (line.Consumption.HasValue && line.Consumption.Value > 0)
-                {
-                    consumptionMeters = NormInputLineConsumptionToDisplay(
-                        requiresCutting,
-                        line.CutLengthMm,
-                        line.Consumption);
-                }
-                else if (requiresCutting && line.CutLengthMm > 0)
-                {
-                    consumptionMeters = (decimal)(line.CutLengthMm / 1000.0) * line.PiecesPerProduct;
-                }
-                else
-                {
-                    consumptionMeters = line.PiecesPerProduct;
-                }
-
-                decimal wasteMeters = NormInputLineWasteToDisplay(line.WasteAmount);
+                var consumptionMeters = NormLineMath.LineConsumption(requiresCutting, line.CutLengthMm, line.PiecesPerProduct, line.Consumption);
+                var wasteMeters = NormLineMath.WasteToDisplay(line.WasteAmount);
 
                 total += (consumptionMeters + wasteMeters) * line.Price;
             }
             return total;
-        }
-
-        /// <summary>
-        /// NORM_INPUT_LINES.Consumption: kesish qatori (CutLengthMm > 0) bo'lsa jami mm saqlanadi -> m ga /1000.
-        /// Qolganlarda Consumption qiymati as-is olinadi.
-        /// </summary>
-        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
-        {
-            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
-                return 0;
-            if (requiresCutting && cutLengthMm > 0)
-                return (decimal)(consumptionDb.Value / 1000.0);
-            return (decimal)consumptionDb.Value;
-        }
-
-        /// <summary>
-        /// Norm/ViewDetails "Summa hisoblar" bilan bir xil bo'lishi uchun WasteAmount har doim mm -> m.
-        /// </summary>
-        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
-        {
-            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
-                return 0;
-            return (decimal)(wasteAmountDb.Value / 1000.0);
         }
 
         /// <summary>
@@ -184,20 +173,23 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<decimal> CalculateLaborCostAsync(int productID)
         {
+            var costs = await CalculateLaborCostsAsync(new List<int> { productID });
+            decimal cost;
+            return costs.TryGetValue(productID, out cost) ? cost : 0m;
+        }
+
+        /// <summary>Ko'p mahsulot uchun ish haqi (bitta GROUP BY so'rov).</summary>
+        private async Task<Dictionary<int, decimal>> CalculateLaborCostsAsync(List<int> productIds)
+        {
             var now = DateTime.Now;
-            
-            var tariffs = await _db.HR_PIECE_RATE_TARIFFS
-                .Where(t => t.ProductID == productID 
+            return await _db.HR_PIECE_RATE_TARIFFS.AsNoTracking()
+                .Where(t => productIds.Contains(t.ProductID)
                     && t.IsActive == true
                     && t.EffectiveFrom <= now
                     && (t.EffectiveTo == null || t.EffectiveTo >= now))
-                .ToListAsync();
-
-            if (!tariffs.Any())
-                return 0;
-
-            // Sum all RatePerUnit for all operations
-            return tariffs.Sum(t => t.RatePerUnit);
+                .GroupBy(t => t.ProductID)
+                .Select(g => new { ProductID = g.Key, Total = g.Sum(t => t.RatePerUnit) })
+                .ToDictionaryAsync(x => x.ProductID, x => x.Total);
         }
 
         /// <summary>
@@ -270,78 +262,82 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<bool> HasNormsForMonthAsync(int productID, int year, int month)
         {
-            var requestedDate = new DateTime(year, month, 1);
-            var activeVersions = await _db.NORMVERSIONS
-                .Include(nv => nv.NORMLINES)
-                .Where(nv => nv.ProductID.HasValue
-                    && nv.ProductID.Value == productID
-                    && nv.IsDeleted != true
-                    && nv.EffectiveFrom.HasValue
-                    && nv.EffectiveFrom.Value <= requestedDate
-                    && (!nv.EffectiveTo.HasValue || nv.EffectiveTo.Value >= requestedDate))
-                .OrderByDescending(nv => nv.EffectiveFrom)
-                .ToListAsync();
-
-            if (!activeVersions.Any())
-                return false;
-
-            // If any active version has NORMLINES - norm exists.
-            if (activeVersions.Any(nv => nv.NORMLINES != null && nv.NORMLINES.Any()))
-                return true;
-
-            // Norm module stores NORM_INPUT_LINES by EffectiveFrom month.
-            // For active version(s), check NORM_INPUT_LINES on their EffectiveFrom period.
-            var periods = activeVersions
-                .Where(v => v.EffectiveFrom.HasValue)
-                .Select(v => v.EffectiveFrom.Value.ToString("yyyy-MM"))
-                .Distinct()
-                .ToList();
-
-            if (!periods.Any())
-                return false;
-
-            return await _db.NORM_INPUT_LINES
-                .AnyAsync(n => n.ProductID == productID
-                    && n.Month != null
-                    && periods.Contains(n.Month));
+            var ids = await FilterProductsWithNormsAsync(new List<int> { productID }, year, month);
+            return ids.Contains(productID);
         }
 
         /// <summary>
         /// Get finished goods product IDs that have norms for a specific month.
+        /// Avval har tayyor mahsulot uchun HasNormsForMonthAsync (1–2 so'rov) chaqirilardi — 500 FG ≈ 1000 so'rov (MES-P05).
         /// </summary>
         public async Task<List<int>> GetFinishedGoodsWithNormsProductIdsAsync(int year, int month)
         {
-            // Get all finished goods products
-            // Check both PRODUCT.IsFinishedGood and PRODUCT_CATEGORIES.IsFinishedGood
-            var finishedGoods = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => p.IsDeleted == false 
-                    && (p.IsFinishedGood == true 
-                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
-                .Select(p => p.ID)
-                .ToListAsync();
-
-            var productIdsWithNorms = new List<int>();
-            
-            // Check each product for norms
-            foreach (var productId in finishedGoods)
-            {
-                if (await HasNormsForMonthAsync(productId, year, month))
-                {
-                    productIdsWithNorms.Add(productId);
-                }
-            }
-
-            return productIdsWithNorms;
+            var finishedGoods = await FinishedGoodsQuery().Select(p => p.ID).ToListAsync();
+            var withNorms = await FilterProductsWithNormsAsync(finishedGoods, year, month);
+            return finishedGoods.Where(withNorms.Contains).ToList();
         }
 
         /// <summary>
-        /// Get count of finished goods products that have norms for a specific month
+        /// Tayyor mahsulot: PRODUCT.IsFinishedGood yoki PRODUCT_CATEGORIES.IsFinishedGood.
         /// </summary>
-        public async Task<int> GetFinishedGoodsWithNormsCountAsync(int year, int month)
+        private IQueryable<PRODUCT> FinishedGoodsQuery()
         {
-            var ids = await GetFinishedGoodsWithNormsProductIdsAsync(year, month);
-            return ids.Count;
+            return MesLookups.FinishedGoods(_db);
+        }
+
+        /// <summary>
+        /// Berilgan mahsulotlardan tanlangan oyda aktiv normasi borlarini qaytaradi (set-based, 2 ta so'rov):
+        /// aktiv versiyada NORMLINES bo'lsa — bor; aks holda versiya EffectiveFrom oyi bo'yicha NORM_INPUT_LINES tekshiriladi.
+        /// </summary>
+        private async Task<HashSet<int>> FilterProductsWithNormsAsync(List<int> productIds, int year, int month)
+        {
+            var result = new HashSet<int>();
+            if (productIds == null || productIds.Count == 0)
+                return result;
+
+            var requestedDate = new DateTime(year, month, 1);
+            var activeVersions = await _db.NORMVERSIONS.AsNoTracking()
+                .Where(nv => nv.ProductID.HasValue
+                    && productIds.Contains(nv.ProductID.Value)
+                    && nv.IsDeleted != true
+                    && nv.EffectiveFrom.HasValue
+                    && nv.EffectiveFrom.Value <= requestedDate
+                    && (!nv.EffectiveTo.HasValue || nv.EffectiveTo.Value >= requestedDate))
+                .Select(nv => new
+                {
+                    ProductID = nv.ProductID.Value,
+                    EffectiveFrom = nv.EffectiveFrom.Value,
+                    HasLines = nv.NORMLINES.Any()
+                })
+                .ToListAsync();
+
+            foreach (var v in activeVersions.Where(v => v.HasLines))
+                result.Add(v.ProductID);
+
+            // Norm module stores NORM_INPUT_LINES by EffectiveFrom month.
+            var pending = activeVersions
+                .Where(v => !result.Contains(v.ProductID))
+                .Select(v => new { v.ProductID, Period = v.EffectiveFrom.ToString("yyyy-MM") })
+                .Distinct()
+                .ToList();
+            if (!pending.Any())
+                return result;
+
+            var pendingProductIds = pending.Select(p => p.ProductID).Distinct().ToList();
+            var periods = pending.Select(p => p.Period).Distinct().ToList();
+            var existingPairs = await _db.NORM_INPUT_LINES.AsNoTracking()
+                .Where(n => pendingProductIds.Contains(n.ProductID) && n.Month != null && periods.Contains(n.Month))
+                .Select(n => new { n.ProductID, n.Month })
+                .Distinct()
+                .ToListAsync();
+            var pairSet = new HashSet<string>(existingPairs.Select(p => p.ProductID + "|" + p.Month));
+
+            foreach (var p in pending)
+            {
+                if (pairSet.Contains(p.ProductID + "|" + p.Period))
+                    result.Add(p.ProductID);
+            }
+            return result;
         }
 
         /// <summary>
@@ -355,40 +351,35 @@ namespace tahsinERP.Services
             var monthStringDisplay = $"{monthName}-{year % 100:D2}";
 
             // Get all products where product_category.IsFinishedGood == true or PRODUCT.IsFinishedGood == true
-            var finishedGoods = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => p.IsDeleted == false 
-                    && (p.IsFinishedGood == true 
-                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
-                .ToListAsync();
+            var finishedGoodIds = await FinishedGoodsQuery().Select(p => p.ID).ToListAsync();
+
+            // Hammasi oldindan: mavjud tannarxlar, normasi borlar, material narxlari va ish haqi
+            // (avval har mahsulotga ~8 so'rov ketardi, MES-P06).
+            var existingProductIds = new HashSet<int>(await _db.TANNARXes.AsNoTracking()
+                .Where(t => t.Year == year && t.Month == month && !t.IsDeleted)
+                .Select(t => t.ProductID)
+                .ToListAsync());
+            var candidateIds = finishedGoodIds.Where(id => !existingProductIds.Contains(id)).ToList();
+            var withNorms = await FilterProductsWithNormsAsync(candidateIds, year, month);
+            var targetIds = candidateIds.Where(withNorms.Contains).ToList();
+
+            var materialPrices = await CalculateMaterialPricesAsync(targetIds, monthString);
+            var laborCosts = await CalculateLaborCostsAsync(targetIds);
 
             int generatedCount = 0;
 
-            foreach (var product in finishedGoods)
+            foreach (var productID in targetIds)
             {
-                // Check if tannarx already exists for this product and month
-                var existing = await _db.TANNARXes
-                    .FirstOrDefaultAsync(t => t.ProductID == product.ID 
-                        && t.Year == year 
-                        && t.Month == month 
-                        && !t.IsDeleted);
-
-                if (existing != null)
-                    continue; // Skip if already exists
-
-                // Check if product has norms (NORM_INPUT_LINES or NORMLINES) for this month
-                var hasNorms = await HasNormsForMonthAsync(product.ID, year, month);
-                if (!hasNorms)
-                    continue; // Skip if no norms exist
-
                 // Calculate material price from NORM tables
-                var materialPrice = await CalculateMaterialPriceAsync(product.ID, monthString);
+                decimal materialPrice;
+                materialPrices.TryGetValue(productID, out materialPrice);
 
                 // Calculate material transport cost (2% of material price)
                 var materialTransportCost = CalculateMaterialTransportCost(materialPrice);
 
                 // Calculate labor cost from HR_PIECE_RATE_TARIFFS
-                var laborCost = await CalculateLaborCostAsync(product.ID);
+                decimal laborCost;
+                laborCosts.TryGetValue(productID, out laborCost);
 
                 // Default percentages
                 var taxAndBankPercent = 5m;
@@ -423,7 +414,7 @@ namespace tahsinERP.Services
                 // Create new TANNARX record
                 var tannarx = new TANNARX
                 {
-                    ProductID = product.ID,
+                    ProductID = productID,
                     Year = year,
                     Month = month,
                     MonthString = monthStringDisplay,
@@ -530,15 +521,7 @@ namespace tahsinERP.Services
         /// </summary>
         public string GetMonthName(int month)
         {
-            var monthNames = new Dictionary<int, string>
-            {
-                { 1, "Yanvar" }, { 2, "Fevral" }, { 3, "Mart" },
-                { 4, "Aprel" }, { 5, "May" }, { 6, "Iyun" },
-                { 7, "Iyul" }, { 8, "Avgust" }, { 9, "Sentabr" },
-                { 10, "Oktabr" }, { 11, "Noyabr" }, { 12, "Dekabr" }
-            };
-
-            return monthNames.ContainsKey(month) ? monthNames[month] : month.ToString();
+            return UzMonthNames.Get(month);
         }
     }
 }

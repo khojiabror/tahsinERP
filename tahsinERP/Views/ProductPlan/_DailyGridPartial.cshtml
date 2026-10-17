@@ -1,7 +1,9 @@
 @model List<tahsinERP.ViewModels.ProductPlanDailyViewModel>
 @{
     var planID = Model != null && Model.Any() ? Model.FirstOrDefault()?.PlanID ?? 0 : 0;
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "ProductPlan", "UpdateDailyPlan");
+    // "ProductPlan/UpdateDailyPlan" uchun PERMISSIONMODULES yozuvi yo'q — tahrirlash huquqi rejani tahrirlash bilan bir xil
+    // ([Permission] filtri ham POST'da shu controller'ning o'zgartirish huquqini talab qiladi)
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "ProductPlan", "Edit");
 }
 
 @if (Model == null || !Model.Any())
@@ -90,8 +92,11 @@ else
             <span id="saveStatus" class="ml-2"></span>
         </div>
 
+        @Html.AntiForgeryToken()
         <script>
-        $(document).ready(function() {
+        // _Layout jQuery'ni RenderBody'dan keyin yuklaydi — inline skript DOMContentLoaded'da ishga tushadi (MES-B15)
+        document.addEventListener('DOMContentLoaded', function () {
+            var $ = window.jQuery;
             var planID = @planID;
             var changedItems = [];
 

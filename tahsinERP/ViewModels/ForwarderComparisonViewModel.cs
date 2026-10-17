@@ -1,5 +1,6 @@
 namespace tahsinERP.ViewModels
 {
+    /// <summary>Yuk tashuvchi statistikasi — Dashboard va ForwarderComparison uchun yagona model (LOG-D04).</summary>
     public class ForwarderComparisonViewModel
     {
         public int? ForwarderID { get; set; }
@@ -13,5 +14,8 @@ namespace tahsinERP.ViewModels
         public int OnTimeDeliveries { get; set; }
         public int TotalDeliveries { get; set; }
         public double OTIFPercentage { get; set; }
+
+        /// <summary>Dashboard uchun: to'langan summa (WaybillLedgerService).</summary>
+        public double TotalPaid { get; set; }
     }
 }

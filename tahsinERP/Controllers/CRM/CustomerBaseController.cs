@@ -242,7 +242,8 @@ namespace tahsinERP.Controllers
                     var customerBase = await db.CUSTOMER_BASE.FindAsync(id);
                     if (customerBase == null || customerBase.IsDeleted == true)
                     {
-                        return Json(new { success = false, message = "Yozuv topilmadi" });
+                        // Oddiy forma POST'i — JSON emas, 404 (avval xom JSON sahifa ko'rinardi)
+                        return HttpNotFound();
                     }
 
                     customerBase.IsDeleted = true;
@@ -254,7 +255,10 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
+                    ModelState.AddModelError("", "O'chirishda xatolik: " + (ex.GetBaseException()?.Message ?? ex.Message));
+                    var model = await db.CUSTOMER_BASE.AsNoTracking().FirstOrDefaultAsync(x => x.ID == id);
+                    if (model == null) return HttpNotFound();
+                    return View("Delete", model);
                 }
             }
         }

@@ -16,16 +16,15 @@
     <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/forms/select/select2.min.css">
 
     <!-- Theme CSS -->
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap-extended.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/colors.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/components.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/dark-layout.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/colors.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/components.min.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/semi-dark-layout.css">
 
     <!-- Page CSS -->
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/core/menu/menu-types/vertical-menu.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-invoice.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/core/menu/menu-types/vertical-menu.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-invoice.min.css">
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
     <link rel="stylesheet" type="text/css" href="~/assets/css/app.css" />
     <link rel="stylesheet" type="text/css" href="~/Content/flatpickr.css" />
@@ -923,32 +922,11 @@
                                         }
                                     </div>
                                     @{
-                                        int userTaskCount = 0;
-                                        int pendingIncomeCount = 0;
-                                        bool isMrpUser = false;
-                                        try
-                                        {
-                                            using (var db = new tahsinERP.Models.DBTHSNEntities())
-                                            {
-                                                var userId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-                                                userTaskCount = db.APP_TASKS.Count(t => t.AssigneeUserID == userId && t.IsDeleted == false &&
-                                                    (t.APP_TASK_STATUS_REF == null || t.APP_TASK_STATUS_REF.Code != "DONE"));
-
-                                                var mrpWarehouseIds = db.WAREHOUSES
-                                                    .Where(w => w.IsDeleted != true && w.MRP == userId)
-                                                    .Select(w => w.ID)
-                                                    .ToList();
-                                                isMrpUser = mrpWarehouseIds.Any();
-                                                if (isMrpUser)
-                                                {
-                                                    pendingIncomeCount = db.INCOMES.Count(i =>
-                                                        i.IsDeleted != true &&
-                                                        i.RecieveStatus != true &&
-                                                        mrpWarehouseIds.Contains(i.ReceivingWHID));
-                                                }
-                                            }
-                                        }
-                                        catch { }
+                                        // 60 soniya keshlanadi (avval har sahifada 3–4 ta so'rov)
+                                        var badges = tahsinERP.Helpers.LayoutBadges.Get(User.Identity.Name);
+                                        int userTaskCount = badges.OpenTasks;
+                                        int pendingIncomeCount = badges.PendingIncomes;
+                                        bool isMrpUser = badges.IsMrpUser;
                                     }
                                     <span class="position-relative d-inline-block">
                                         @Html.Partial("_UserProfile")
@@ -959,7 +937,7 @@
                                     </span>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right pb-0">
-                                    <a class="dropdown-item" href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })">
+                                    <a class="dropdown-item" href="@Url.Action("Settings", "Account")">
                                         <i class="bx bx-user mr-50"></i> Profil sozlamalari
                                     </a>
                                     @if (RoleHelper.CanManageLicense(User.Identity.Name))
@@ -1713,7 +1691,7 @@
                             <li><a href="~/Warehouse/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Omborlar</span></a></li>
                             <li><a href="~/Unit/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">O'lchov birliklari</span></a></li>
                             <li><a href="~/Currency/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Valyutalar</span></a></li>
-                            <li><a href="@Url.Action("Settings", "Account", new { userName = User.Identity.Name })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Mening Profilim</span></a></li>
+                            <li><a href="@Url.Action("Settings", "Account")"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Mening Profilim</span></a></li>
                         </ul>
                     </li>
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
@@ -1740,14 +1718,18 @@
         </footer>
 
         <!-- Scripts -->
-        @Scripts.Render("~/bundles/jquery")
-        <script src="~/Scripts/bootstrap.bundle.js"></script>
-
-        <!-- Vendor JS -->
+        <!-- Vendor JS: jQuery 3.3.1 + Bootstrap 4 shu faylning ichida.
+             Avval yana ~/bundles/jquery (3.7.1), Bootstrap 5 bundle va assets/js/jquery.min.js (3.6.0)
+             yuklanib, noConflict bilan aralashtirilardi — endi bitta jQuery. -->
         <script src="~/app-assets/vendors/js/vendors.min.js"></script>
-        <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.tools.js"></script>
-        <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.defaults.js"></script>
-        <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.min.js"></script>
+        <script>
+            // LivIcons (261 KB) ishlatilmaydi; app-menu.js chaqiradigan metodlar uchun bo'sh stublar
+            (function ($) {
+                ['addLiviconEvo', 'removeLiviconEvo', 'updateLiviconEvo', 'playLiviconEvo', 'stopLiviconEvo'].forEach(function (m) {
+                    if (!$.fn[m]) { $.fn[m] = function () { return this; }; }
+                });
+            })(jQuery);
+        </script>
 
         <!-- DataTables -->
         <script src="~/app-assets/vendors/js/tables/datatable/datatables.min.js"></script>
@@ -1755,12 +1737,11 @@
         <script src="~/app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
         <script src="~/app-assets/vendors/js/tables/datatable/responsive.bootstrap.min.js"></script>
 
-        <!-- DataTables Buttons Extension -->
+        <!-- DataTables Buttons Extension (pdfmake faqat PDF bosilganda yuklanadi) -->
         <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
         <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+        <script src="~/assets/js/lazy-pdfmake.js"></script>
         <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
         <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
@@ -1768,21 +1749,20 @@
         <script src="~/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
 
         <!-- Theme JS -->
-        <script src="~/app-assets/js/scripts/configs/vertical-menu-light.js"></script>
-        <script src="~/app-assets/js/core/app-menu.js"></script>
-        <script src="~/app-assets/js/core/app.js"></script>
-        <script src="~/app-assets/js/scripts/components.js"></script>
+        <script src="~/app-assets/js/scripts/configs/vertical-menu-light.min.js"></script>
+        <script src="~/app-assets/js/core/app-menu.min.js"></script>
+        <script src="~/app-assets/js/core/app.min.js"></script>
+        <script src="~/app-assets/js/scripts/components.min.js"></script>
         <script src="~/app-assets/js/scripts/datatables/datatable.js"></script>
         <script src="~/app-assets/js/scripts/forms/select/form-select2.js"></script>
 
         <!-- Custom JS -->
-        <script src="~/assets/js/jquery.min.js"></script>
         <script src="~/assets/js/app.js"></script>
         <script src="~/Scripts/flatpickr.js"></script>
 
         <!-- Repeater -->
         <script src="~/assets/js/jquery.repeater.min.js"></script>
-        <!-- CSRF token: barcha AJAX POST va formalarga (oxirgi jQuery'dan keyin bo'lishi shart) -->
+        <!-- CSRF token: barcha AJAX POST va formalarga -->
         <script src="~/Scripts/csrf.js"></script>
         <script>
             (function () {
@@ -1899,7 +1879,7 @@
             })();
         </script>
         <script>
-            var $j = jQuery.noConflict(true);
+            var $j = jQuery; // eski kod uchun taxallus (avval alohida jQuery 3.6 nusxasi edi)
             $j(document).ready(function () {
                 $j('.repeater-default').repeater({
                     show: function () {

@@ -12,6 +12,36 @@ namespace tahsinERP.Services
     {
         private const decimal MM_TO_M_CUBE = 1_000_000_000m; // 1 m³ = 1,000,000,000 mm³
 
+        /// <summary>Standart sanoat palleti (ISO, 1200×1000), mm — avvalgi hisob bilan bir xil.</summary>
+        public const double PalletLengthMm = 1200;
+        public const double PalletWidthMm = 1000;
+
+        /// <summary>
+        /// F_TRANSPORT_TYPES o'lchamlari — mm (LOG-B10, foydalanuvchi qarori). Avval FTransportType
+        /// sahifalari ularni sm deb (÷100) hisoblardi, simulyator esa mm deb — natija 1000 marta farq qilardi.
+        /// </summary>
+        public static double? CbmFromMm(double lengthMm, double widthMm, double heightMm)
+        {
+            if (lengthMm <= 0 || widthMm <= 0 || heightMm <= 0) return null;
+            return (double)((decimal)lengthMm * (decimal)widthMm * (decimal)heightMm / MM_TO_M_CUBE);
+        }
+
+        /// <summary>Polga bir qatlamda sig'adigan palletlar soni (ikki yo'nalishning yaxshisi).</summary>
+        public static int? PalletsOnFloor(double lengthMm, double widthMm,
+            double palletLengthMm = PalletLengthMm, double palletWidthMm = PalletWidthMm)
+        {
+            if (lengthMm <= 0 || widthMm <= 0) return null;
+            int along = (int)Math.Floor(lengthMm / palletLengthMm) * (int)Math.Floor(widthMm / palletWidthMm);
+            int across = (int)Math.Floor(lengthMm / palletWidthMm) * (int)Math.Floor(widthMm / palletLengthMm);
+            return Math.Max(along, across);
+        }
+
+        public static double? InternalCbm(F_TRANSPORT_TYPES t) => t == null ? null : CbmFromMm(t.IntLgth, t.IntWdth, t.IntHght);
+
+        public static double? ExternalCbm(F_TRANSPORT_TYPES t) => t == null ? null : CbmFromMm(t.ExtLgth, t.ExtWdth, t.ExtHght);
+
+        public static int? Pallets(F_TRANSPORT_TYPES t) => t == null ? null : PalletsOnFloor(t.IntLgth, t.IntWdth);
+
         /// <summary>
         /// Calculate maximum load for a product in a transport type
         /// </summary>
@@ -25,7 +55,7 @@ namespace tahsinERP.Services
             }
 
             // Load transport type
-            var transportType = db.F_TRANSPORT_TYPES.FirstOrDefault(t => t.ID == transportTypeId);
+            var transportType = db.F_TRANSPORT_TYPES.FirstOrDefault(t => t.ID == transportTypeId && t.IsDeleted != true);
             if (transportType == null)
             {
                 throw new ArgumentException($"Transport type with ID {transportTypeId} not found");

@@ -1,39 +1,30 @@
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
+using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
-    public class TaskKanbanController : Controller
+    public class TaskKanbanController : BaseController
     {
-        // Olish so'rovi: TaskKanban
-        public async Task<ActionResult> Index(string viewType = "project")
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
+        /// <summary>Yakunlangan topshiriqlar doskada shuncha kun ko'rinadi (showClosed=true bo'lsa — hammasi).</summary>
+        private const int ClosedVisibleDays = 30;
 
-            // Oddiy user uchun faqat o'z tasklarini ko'rsatish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+        // Olish so'rovi: TaskKanban
+        [Permission]
+        public async Task<ActionResult> Index(string viewType = "project", bool showClosed = false)
+        {
+            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            int currentUserId = CurrentUserId;
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.APP_TASKS
-                    .Include(t => t.APP_TASK_STATUS_REF)
-                    .Include(t => t.APP_TASK_PRIORITY_REF)
-                    .Include(t => t.APP_TASK_PROJECTS)
-                    .Where(t => t.IsDeleted == false);
+                var query = db.APP_TASKS.AsNoTracking().Where(t => t.IsDeleted == false);
 
                 // Oddiy user uchun faqat o'z tasklarini ko'rsatish
                 if (!isAdminOrDeveloper)
@@ -41,7 +32,43 @@ namespace tahsinERP.Controllers
                     query = query.Where(t => t.AssigneeUserID == currentUserId);
                 }
 
-                var tasks = await query.ToListAsync();
+                // Avval yillar davomida yopilgan topshiriqlar ham yuklanardi — doska cheksiz o'sardi (TSK-P02)
+                if (!showClosed)
+                {
+                    var closedSince = DateTime.Now.AddDays(-ClosedVisibleDays);
+                    query = query.Where(t =>
+                        !(t.APP_TASK_STATUS_REF.Code == TaskRules.DoneCode ||
+                          t.APP_TASK_STATUS_REF.Code == TaskRules.CancelledCode ||
+                          t.APP_TASK_STATUS_REF.Name.Contains("bajarildi")) ||
+                        (t.UpdatedDT ?? t.CreatedDT) >= closedSince);
+                }
+
+                // SQL'da proyeksiya: faqat kartochka maydonlari, tavsif 101 belgigacha (view 100 tasini ko'rsatadi)
+                var tasks = await query
+                    .Select(t => new KanbanTaskViewModel
+                    {
+                        ID = t.ID,
+                        Title = t.Title,
+                        Description = t.Description.Substring(0, 101),
+                        KeyCode = t.KeyCode,
+                        StatusID = t.StatusID,
+                        StatusName = t.APP_TASK_STATUS_REF.Name,
+                        PriorityID = t.PriorityID,
+                        PriorityName = t.APP_TASK_PRIORITY_REF.Name,
+                        AssigneeUserID = t.AssigneeUserID,
+                        DueDate = t.DueDate,
+                        CreatedDT = t.CreatedDT,
+                        ProjectID = t.ProjectID,
+                        ProjectName = t.APP_TASK_PROJECTS.Name
+                    })
+                    .ToListAsync();
+
+                // Ismlar bitta so'rovda (avval har kartochkaga UserHelper.GetFullName — TSK-P01)
+                var names = await TaskLookups.UserNamesAsync(db, tasks.Select(t => t.AssigneeUserID));
+                foreach (var t in tasks)
+                {
+                    t.AssigneeFullName = TaskLookups.NameOf(names, t.AssigneeUserID);
+                }
 
                 var viewModel = new TaskKanbanViewModel
                 {
@@ -51,103 +78,49 @@ namespace tahsinERP.Controllers
 
                 if (viewType == "project")
                 {
-                    // Group by Project
-                    var projects = await db.APP_TASK_PROJECTS
-                        .Where(p => p.IsActive)
-                        .OrderBy(p => p.Name)
-                        .ToListAsync();
-
-                    foreach (var project in projects)
+                    var byProject = tasks.ToLookup(t => t.ProjectID);
+                    foreach (var project in TaskLookups.Projects())
                     {
-                        var projectTasks = tasks.Where(t => t.ProjectID == project.ID).ToList();
+                        var projectTasks = byProject[project.ID].ToList();
                         if (projectTasks.Any() || isAdminOrDeveloper)
                         {
                             viewModel.ProjectBoards.Add(new KanbanBoardViewModel
                             {
                                 ID = project.ID.ToString(),
                                 Title = project.Name,
-                                Tasks = projectTasks.Select(t => new KanbanTaskViewModel
-                                {
-                                    ID = t.ID,
-                                    Title = t.Title,
-                                    Description = t.Description,
-                                    KeyCode = t.KeyCode,
-                                    StatusID = t.StatusID,
-                                    StatusName = t.APP_TASK_STATUS_REF?.Name,
-                                    PriorityID = t.PriorityID,
-                                    PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
-                                    AssigneeUserID = t.AssigneeUserID,
-                                    AssigneeFullName = t.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: t.AssigneeUserID.Value) : null,
-                                    DueDate = t.DueDate,
-                                    CreatedDT = t.CreatedDT
-                                }).ToList()
+                                Tasks = projectTasks
                             });
                         }
                     }
 
                     // Tasks without project
-                    var noProjectTasks = tasks.Where(t => !t.ProjectID.HasValue).ToList();
+                    var noProjectTasks = byProject[null].ToList();
                     if (noProjectTasks.Any() || isAdminOrDeveloper)
                     {
                         viewModel.ProjectBoards.Add(new KanbanBoardViewModel
                         {
                             ID = "no-project",
                             Title = "Loyiha yo'q",
-                            Tasks = noProjectTasks.Select(t => new KanbanTaskViewModel
-                            {
-                                ID = t.ID,
-                                Title = t.Title,
-                                Description = t.Description,
-                                KeyCode = t.KeyCode,
-                                StatusID = t.StatusID,
-                                StatusName = t.APP_TASK_STATUS_REF?.Name,
-                                PriorityID = t.PriorityID,
-                                PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
-                                AssigneeUserID = t.AssigneeUserID,
-                                AssigneeFullName = t.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: t.AssigneeUserID.Value) : null,
-                                DueDate = t.DueDate,
-                                CreatedDT = t.CreatedDT
-                            }).ToList()
+                            Tasks = noProjectTasks
                         });
                     }
                 }
-                else // viewType == "holat"
+                else // viewType == "status"
                 {
-                    // Group by holat
-                    var statuses = await db.APP_TASK_STATUS_REF
-                        .Where(s => s.IsActive)
-                        .OrderBy(s => s.SortOrder)
-                        .ToListAsync();
-
-                    foreach (var status in statuses)
+                    var byStatus = tasks.ToLookup(t => t.StatusID);
+                    foreach (var status in TaskLookups.Statuses())
                     {
-                        var statusTasks = tasks.Where(t => t.StatusID == status.ID).ToList();
                         viewModel.StatusBoards.Add(new KanbanBoardViewModel
                         {
                             ID = status.ID.ToString(),
                             Title = status.Name,
-                            Tasks = statusTasks.Select(t => new KanbanTaskViewModel
-                            {
-                                ID = t.ID,
-                                Title = t.Title,
-                                Description = t.Description,
-                                KeyCode = t.KeyCode,
-                                StatusID = t.StatusID,
-                                StatusName = t.APP_TASK_STATUS_REF?.Name,
-                                PriorityID = t.PriorityID,
-                                PriorityName = t.APP_TASK_PRIORITY_REF?.Name,
-                                AssigneeUserID = t.AssigneeUserID,
-                                AssigneeFullName = t.AssigneeUserID.HasValue ? UserHelper.GetFullName(userID: t.AssigneeUserID.Value) : null,
-                                DueDate = t.DueDate,
-                                CreatedDT = t.CreatedDT,
-                                ProjectID = t.ProjectID,
-                                ProjectName = t.APP_TASK_PROJECTS?.Name
-                            }).ToList()
+                            Tasks = byStatus[status.ID].ToList()
                         });
                     }
                 }
 
                 ViewBag.ViewType = viewType;
+                ViewBag.ShowClosed = showClosed;
                 ViewBag.IsAdminOrDeveloper = isAdminOrDeveloper;
 
                 return View(viewModel);
@@ -159,13 +132,22 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> UpdateStatus(long taskId, int newStatusId)
         {
-            // Oddiy user uchun faqat o'z tasklarini o'zgartirish
-            var userRoles = RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isAdminOrDeveloper = userRoles != null && userRoles.Any(r => 
-                r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                r.Equals("Developer", StringComparison.OrdinalIgnoreCase));
-            
-            int currentUserId = UserHelper.GetUserId(User.Identity.Name);
+            // Avval faqat egalik tekshirilardi (TSK-B03). Status o'zgartirish huquqi — Tasks tahrirlash
+            // yoki status o'zgartirish sahifasi (TaskChangeStatus) bilan bir xil.
+            if (!RoleHelper.IsChangePermitted(CurrentUserName, "Tasks", "Edit") &&
+                !RoleHelper.IsViewPermitted(CurrentUserName, "TaskChangeStatus", "ChangeStatus"))
+            {
+                Response.StatusCode = 403;
+                return Json(new { success = false, message = "Ruxsat yo'q" });
+            }
+
+            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            int currentUserId = CurrentUserId;
+
+            if (!TaskLookups.Statuses().Any(s => s.ID == newStatusId))
+            {
+                return Json(new { success = false, message = "Noto'g'ri status" });
+            }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
@@ -176,7 +158,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Oddiy user boshqalarning tasklarini o'zgartirmasligi kerak
-                if (!isAdminOrDeveloper && task.AssigneeUserID != currentUserId)
+                if (!TaskRules.CanAccess(task.AssigneeUserID, currentUserId, isAdminOrDeveloper))
                 {
                     return Json(new { success = false, message = "Siz faqat o'zingizga tegishli tasklarni o'zgartirishingiz mumkin" });
                 }
@@ -187,13 +169,13 @@ namespace tahsinERP.Controllers
                     task.UpdatedDT = DateTime.Now;
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "TaskKanbanController", $"Task {task.KeyCode} status o'zgartirildi: {newStatusId}");
+                    LogHelper.LogToDatabase(CurrentUserName, "TaskKanbanController", $"Task {task.KeyCode} status o'zgartirildi: {newStatusId}");
 
                     return Json(new { success = true, message = "Status muvaffaqiyatli o'zgartirildi" });
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
+                    return JsonError(ex, "Statusni o'zgartirib bo'lmadi.");
                 }
             }
         }

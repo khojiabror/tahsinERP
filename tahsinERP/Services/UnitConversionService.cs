@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -14,6 +15,25 @@ namespace tahsinERP.Services
     {
         private readonly DBTHSNEntities _db;
 
+        // Bitta so'rov (instansiya) ichida mahsulot va birliklar bir marta o'qiladi: avval har metod
+        // (RequiresCutting, ShouldCalculateByWeight, Convert...) o'sha mahsulotni qayta so'rardi (SRM-P18).
+        private readonly Dictionary<int, PRODUCT> _products = new Dictionary<int, PRODUCT>();
+        private List<UNIT> _units;
+
+        private async Task<PRODUCT> GetProductAsync(int productId)
+        {
+            PRODUCT product;
+            if (_products.TryGetValue(productId, out product))
+                return product;
+
+            product = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Include(p => p.UNIT)
+                .FirstOrDefaultAsync(p => p.ID == productId);
+            _products[productId] = product;
+            return product;
+        }
+
         public UnitConversionService(DBTHSNEntities db)
         {
             _db = db;
@@ -28,9 +48,7 @@ namespace tahsinERP.Services
         /// <returns>Quantity in pieces</returns>
         public async Task<decimal> ConvertMeterToPieceAsync(int productId, decimal meterQuantity)
         {
-            var product = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
             {
@@ -79,9 +97,7 @@ namespace tahsinERP.Services
         /// <returns>Quantity in CBM (cubic meters)</returns>
         public async Task<decimal> ConvertPieceToCBMAsync(int productId, decimal pieceQuantity)
         {
-            var product = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
             {
@@ -133,9 +149,7 @@ namespace tahsinERP.Services
         /// <returns>True if product requires cutting, false otherwise</returns>
         public async Task<bool> RequiresCuttingAsync(int productId)
         {
-            var product = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
             {
@@ -155,9 +169,7 @@ namespace tahsinERP.Services
         /// <returns>Unit ID</returns>
         public async Task<int> GetUnitIdAsync(int productId, bool forPieces = false)
         {
-            var product = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
             {
@@ -189,8 +201,7 @@ namespace tahsinERP.Services
         /// <returns>Quantity in kg</returns>
         public async Task<decimal> ConvertPieceToKgAsync(int productId, decimal pieceQuantity)
         {
-            var product = await _db.PRODUCTS
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
             {
@@ -215,10 +226,7 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<bool> ShouldCalculateByWeightAsync(int productId)
         {
-            var product = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Include(p => p.UNIT)
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
             {
@@ -303,8 +311,7 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<decimal> ConvertKgToPieceAsync(int productId, decimal kgQuantity)
         {
-            var product = await _db.PRODUCTS
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
             {
@@ -366,9 +373,7 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<decimal> ConvertPieceToMeterAsync(int productId, decimal pieceQuantity)
         {
-            var product = await _db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .FirstOrDefaultAsync(p => p.ID == productId);
+            var product = await GetProductAsync(productId);
 
             if (product == null)
                 throw new ArgumentException($"Product with ID {productId} not found.");
@@ -393,11 +398,14 @@ namespace tahsinERP.Services
         /// </summary>
         public async Task<int?> FindFirstUnitIdAsync(Func<UNIT, bool> predicate)
         {
-            var list = await _db.UNITS
-                .Where(x => x.IsDeleted == null || x.IsDeleted == false)
-                .OrderBy(x => x.ID)
-                .ToListAsync();
-            var u = list.FirstOrDefault(predicate);
+            if (_units == null)
+            {
+                _units = await _db.UNITS
+                    .Where(x => x.IsDeleted == null || x.IsDeleted == false)
+                    .OrderBy(x => x.ID)
+                    .ToListAsync();
+            }
+            var u = _units.FirstOrDefault(predicate);
             return u != null ? (int?)u.ID : null;
         }
 

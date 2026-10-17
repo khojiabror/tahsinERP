@@ -109,7 +109,6 @@
                                                             <th>Mahsulot</th>
                                                             <th>Mahsulot nomi</th>
                                                             <th>Mavjud qoldiq</th>
-                                                            <th>Lot (FIFO)</th>
                                                             <th>Chiqim miqdori</th>
                                                             <th>Birlik</th>
                                                             <th>Dona narxi</th>
@@ -139,11 +138,7 @@
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.ExpenseProducts[i].AvailableStock, new { @type = "number", @class = "form-control available-stock", @readonly = "readonly" })
                                                                     </td>
-                                                                    <td class="lot-cell">
-                                                                        <select name="ExpenseProducts[@i].IncomeID" class="form-control lot-select select2" data-current-income="@(product.IncomeID ?? 0)" title="FIFO uchun eng eski kirim">
-                                                                            <option value="">---Yuklanmoqda---</option>
-                                                                        </select>
-                                                                    </td>
+
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.ExpenseProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
@@ -168,7 +163,7 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <td colspan="7" class="text-right"><strong>Jami:</strong></td>
+                                                            <td colspan="6" class="text-right"><strong>Jami:</strong></td>
                                                             <td id="totalAmount" class="text-right"><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
                                                             <td colspan="2"></td>
                                                         </tr>
@@ -304,52 +299,7 @@
                         });
                     }
 
-                    function loadLotOptions($row, preserveSelection) {
-                        var warehouseId = $('#SenderWHID').val() || $('#senderWarehouseSelect').val();
-                        var productId = $row.find('.product-select').val();
-                        var $lotSelect = $row.find('.lot-select');
-                        var currentVal = preserveSelection ? $lotSelect.val() : ($row.find('.lot-select').data('current-income') || '');
-                        $lotSelect.html('<option value="">---Yuklanmoqda---</option>');
-                        if (!warehouseId || !productId) {
-                            $lotSelect.html('<option value="">---Tanlang---</option>');
-                            return;
-                        }
-                        $.post('@Url.Action("GetAvailableIncomeLots", "Expenses")', { warehouseId: warehouseId, productId: productId })
-                            .done(function(res) {
-                                var opts = '<option value="">---Tanlanmagan---</option>';
-                                var hasRealLots = false;
-                                if (res.success && res.data && res.data.length) {
-                                    res.data.forEach(function(lot) {
-                                        if (lot.IsLegacy || lot.IncomeID === 0) {
-                                            opts += '<option value="0" data-max="' + (lot.RemainingAmount || res.legacyUnassignedQty || '') + '">' +
-                                                escapeHtml(lot.DisplayText) + '</option>';
-                                        } else {
-                                            hasRealLots = true;
-                                            opts += '<option value="' + lot.IncomeID + '">' + escapeHtml(lot.DisplayText) + '</option>';
-                                        }
-                                    });
-                                }
-                                $lotSelect.html(opts);
-                                if (currentVal !== '' && currentVal !== null && res.data && res.data.some(function(l) { return String(l.IncomeID) === String(currentVal); })) {
-                                    $lotSelect.val(currentVal);
-                                } else if (res.allowLegacy && !hasRealLots) {
-                                    $lotSelect.val('0');
-                                } else if (hasRealLots) {
-                                    var first = res.data.filter(function(l) { return l.IncomeID > 0; })[0];
-                                    if (first) $lotSelect.val(first.IncomeID);
-                                }
-                                var $row = $lotSelect.closest('tr');
-                                if ($lotSelect.val() === '0') {
-                                    var maxLegacy = $lotSelect.find('option:selected').data('max');
-                                    if (maxLegacy) {
-                                        var stock = parseFloat($row.find('.available-stock').val()) || 0;
-                                        $row.find('.amount-input').attr('max', Math.min(stock, parseFloat(maxLegacy)));
-                                    }
-                                }
-                            })
-                            .fail(function() { $lotSelect.html('<option value="">---Xatolik---</option>'); });
-                    }
-
+                    // Lot tanlanmaydi: chiqim har doim sof FIFO (eng eski partiyadan) — serverda avtomatik (SRM-B13)
                     function loadAvailableProducts(warehouseId) {
                         return $.ajax({
                             url: '@Url.Action("GetAvailableProducts", "Expenses")',
@@ -360,10 +310,6 @@
                                 availableProducts = response.data || [];
                                 mergeExistingProducts();
                                 refreshProductSelects();
-                                $('#expenseProductsTable tbody tr').each(function() {
-                                    var $row = $(this);
-                                    if ($row.find('.product-select').val()) loadLotOptions($row, true);
-                                });
                             } else {
                                 alert('Xatolik: ' + response.message);
                             }
@@ -415,7 +361,7 @@
                                 '<input type="hidden" name="ExpenseProducts[' + productRowIndex + '].ProductName" class="product-name" value="" />' +
                             '</td>' +
                             '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].AvailableStock" class="form-control available-stock" value="0" readonly /></td>' +
-                            '<td class="lot-cell"><select name="ExpenseProducts[' + productRowIndex + '].IncomeID" class="form-control lot-select select2" title="FIFO"><option value="">---Tanlang---</option></select></td>' +
+
                             '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].Amount" class="form-control amount-input" step="0.01" min="0" required /></td>' +
                             '<td>' +
                                 '<select name="ExpenseProducts[' + productRowIndex + '].UnitID" class="form-control unit-select select2" required>' +
@@ -449,7 +395,6 @@
                     $(document).on('change', '.product-select', function () {
                         var $row = $(this).closest('tr');
                         syncProductFields($row);
-                        loadLotOptions($row, false);
                     });
 
                     $(document).on('input', '.amount-input, .price-input', function () {

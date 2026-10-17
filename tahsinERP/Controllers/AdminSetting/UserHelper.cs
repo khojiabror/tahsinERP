@@ -14,17 +14,12 @@ namespace tahsinERP.Controllers
             if (string.IsNullOrEmpty(username))
                 throw new ArgumentException("Username cannot be null or empty");
 
-            using (var db = new DBTHSNEntities())
-            {
-                var user = db.USERS.FirstOrDefault(u => 
-                    u.IsDeleted != true && 
-                    u.Uname == username);
+            // RoleHelper snapshot keshidan — har chaqiruvda yangi DbContext ochilmaydi
+            var id = RoleHelper.GetUserId(username);
+            if (id.HasValue)
+                return id.Value;
 
-                if (user != null)
-                    return user.ID;
-
-                throw new Exception($"Foydalanuvchi topilmadi: '{username}'");
-            }
+            throw new Exception($"Foydalanuvchi topilmadi: '{username}'");
         }
 
         /// <summary>
@@ -52,6 +47,12 @@ namespace tahsinERP.Controllers
             if (string.IsNullOrEmpty(username) && userID == null)
                 throw new ArgumentException("Username va UserID ham bir vaqtda NULL bo'lishi mumkin emas");
 
+            // Ro'yxatlarda har qator uchun chaqiriladi — 10 daqiqalik kesh (avval har safar yangi DbContext)
+            string cacheKey = tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(userID.HasValue ? "UserFullNameById_" + userID.Value : "UserFullNameByName_" + username);
+            var cached = System.Web.HttpRuntime.Cache.Get(cacheKey) as string;
+            if (cached != null)
+                return cached;
+
             using (var db = new DBTHSNEntities())
             {
                 USER user = null;
@@ -66,7 +67,11 @@ namespace tahsinERP.Controllers
                 }
 
                 if (user != null)
-                    return user.FullName ?? user.Uname;
+                {
+                    var name = user.FullName ?? user.Uname;
+                    System.Web.HttpRuntime.Cache.Insert(cacheKey, name, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                    return name;
+                }
 
                 throw new Exception("Foydalanuvchi topilmadi");
             }

@@ -17,6 +17,8 @@ namespace tahsinERP.Services
     {
         private readonly DBTHSNEntities _db;
         private readonly UnitConversionService _conversionService;
+        // MaterialID → birinchi kirim birligi (bitta servis nusxasi doirasida keshlanadi; avval har chaqiruvda so'rov, MES-P10)
+        private readonly Dictionary<int, int?> _displayUnitCache = new Dictionary<int, int?>();
 
         public ProductionConsumptionService(DBTHSNEntities db)
         {
@@ -152,14 +154,19 @@ namespace tahsinERP.Services
         /// </summary>
         public int? GetDisplayUnitFromIncome(int materialId)
         {
-            var firstIp = _db.INCOME_PRODUCTS
-                .Include(ip => ip.INCOME)
+            int? cached;
+            if (_displayUnitCache.TryGetValue(materialId, out cached))
+                return cached;
+
+            var unitId = _db.INCOME_PRODUCTS.AsNoTracking()
                 .Where(ip => ip.ProductID == materialId
                     && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false))
                 .OrderBy(ip => ip.INCOME.IssueDateTime)
+                .Select(ip => (int?)ip.UnitID)
                 .FirstOrDefault();
 
-            return firstIp != null ? (int?)firstIp.UnitID : null;
+            _displayUnitCache[materialId] = unitId;
+            return unitId;
         }
 
         /// <summary>
@@ -265,7 +272,9 @@ namespace tahsinERP.Services
                 TotalPrice = 0,
                 Description = description,
                 SendStatus = true,
-                IsDeleted = false
+                IsDeleted = false,
+                // Haqiqiy bog'lanish ustuni (Description'dagi marker eski o'quvchilar uchun qoladi, MES-P12)
+                ProductionID = productionProcessId.HasValue && productionProcessId.Value > 0 ? productionProcessId : null
             };
 
             _db.EXPENSES.Add(expense);
@@ -339,18 +348,14 @@ namespace tahsinERP.Services
             if (productionId <= 0)
                 return;
 
-            var marker = WarehouseFlowService.ProductionIncomeMarker + productionId;
+            // EXPENSES.ProductionID ustuni bo'yicha (avval Description LIKE '%ProductionID:x%' — to'liq skan, MES-P12).
+            // Eski markerli yozuvlar migratsiyada (MES_2026_10_PlanDate_ProductionID.sql) ustunga ko'chiriladi.
             var expenses = await _db.EXPENSES
                 .Include(e => e.EXPENSE_PRODUCTS)
                 .Where(e => e.IsDeleted != true
                     && e.ReceiverWhID == null
-                    && e.Description != null
-                    && e.Description.Contains(marker))
+                    && e.ProductionID == productionId)
                 .ToListAsync();
-
-            expenses = expenses
-                .Where(e => WarehouseFlowService.DescriptionMatchesProductionId(e.Description, productionId))
-                .ToList();
 
             if (!expenses.Any())
                 return;

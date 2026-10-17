@@ -65,7 +65,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="pOrdersTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
+                                        <table id="pOrdersTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Buyurtma raqami</th>
@@ -95,7 +95,7 @@
                                                                 }
                                                                 <span class="badge @orderTypeClass">@orderType</span>
                                                             </td>
-                                                            <td>@item.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                            <td data-order="@item.IssuedDate.ToString("yyyyMMdd")">@item.IssuedDate.ToString("dd.MM.yyyy")</td>
                                                             <td>@(item.Amount?.ToString("N2") ?? "0.00")</td>
                                                             <td>@(item.CURRENCy?.Shortname ?? "")</td>
                                                             @if (changePermit)
@@ -162,7 +162,7 @@
                             },
                             "pageLength": 25,
                             "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Hammasi"]],
-                            "order": [[3, "desc"]],
+                            "order": [[2, "desc"]],
                             dom: 'lBfrtip',
                             buttons: [
                                 { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },

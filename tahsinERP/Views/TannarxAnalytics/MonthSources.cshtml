@@ -1,0 +1,262 @@
+@model tahsinERP.ViewModels.Tannarx.TannarxMonthSourcesViewModel
+
+@{
+    ViewBag.Title = "Oy xarajatlari manbalari";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Tannarx", "Edit");
+
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })">Tahlil</a></li>
+                                    <li class="breadcrumb-item active">Oy xarajatlari manbalari</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <form id="sourcesFilter" method="get" action="@Url.Action("MonthSources", "TannarxAnalytics")">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label>Yil</label>
+                                            @Html.DropDownList("year", (SelectList)ViewBag.Years, new { @class = "form-control" })
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Oy</label>
+                                            @Html.DropDownList("month", (SelectList)ViewBag.Months, new { @class = "form-control" })
+                                        </div>
+                                        <div class="col-md-6 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary mr-1"><i class="bx bx-search"></i> Ko'rsatish</button>
+                                            @if (changePermit)
+                                            {
+                                                <button type="submit" form="updateActualForm" class="btn btn-success">
+                                                    <i class="bx bx-refresh"></i> Shu natijani tannarxga yozish
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </form>
+                                @if (changePermit)
+                                {
+                                    using (Html.BeginForm("UpdateActualCosts", "TannarxAnalytics", FormMethod.Post, new { id = "updateActualForm" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="year" value="@Model.Year" />
+                                        <input type="hidden" name="month" value="@Model.Month" />
+                                        <input type="hidden" name="returnTo" value="Dashboard" />
+                                    }
+                                }
+                                <p class="text-muted small mb-0 mt-1">
+                                    @Model.MonthString @Model.Year: barcha ishlab chiqarilgan miqdor — <b>@Model.MonthProducedQty.ToString("N2")</b> dona.
+                                    Valyuta: @(Model.BaseCurrencyCode ?? "barchasi (UZS topilmadi)"). Bu sahifa hech narsa yozmaydi — "yozish" tugmasi bir xil hisobni TANNARX ga saqlaydi.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @foreach (var w in Model.Warnings)
+                {
+                    <div class="alert alert-warning mb-1">@w</div>
+                }
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">Xarajat elementlari: manba → taqsimlangan</h4></div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Element</th>
+                                                <th>Manba</th>
+                                                <th class="text-right">Manbada (oy jami)</th>
+                                                <th class="text-right">Tannarxga taqsimlangan</th>
+                                                <th class="text-right">Taqsimlanmagan</th>
+                                                <th>Izoh</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var e in Model.Elements)
+                                            {
+                                                var un = e.Unallocated;
+                                                <tr>
+                                                    <td>@e.Element</td>
+                                                    <td>@e.Source</td>
+                                                    <td class="text-right">@(e.SourceTotal.HasValue ? e.SourceTotal.Value.ToString("N0") : "—")</td>
+                                                    <td class="text-right font-weight-bold">@e.AllocatedTotal.ToString("N0")</td>
+                                                    <td class="text-right @(un.HasValue && Math.Abs(un.Value) >= 1 ? "text-warning" : "")">@(un.HasValue ? un.Value.ToString("N0") : "—")</td>
+                                                    <td class="small text-muted">@e.Note</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Mahsulotlar (1 dona uchun fakt)</h4>
+                                <div class="small text-muted">
+                                    @foreach (var kv in Model.MaterialPathCounts)
+                                    {
+                                        <span class="badge badge-light-primary mr-1">@kv.Key: @kv.Value</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Mahsulot</th>
+                                                <th class="text-right">Ishlab chiq.</th>
+                                                <th>Material algoritmi</th>
+                                                <th class="text-right">Material</th>
+                                                <th class="text-right">Mat. tashuvi</th>
+                                                <th class="text-right">A Ish haqi</th>
+                                                <th class="text-right">B Soliq/bank</th>
+                                                <th class="text-right">C Admin</th>
+                                                <th class="text-right">D Boshqa</th>
+                                                <th class="text-right">Jami xarajat</th>
+                                                <th class="text-right">T.M. tashuvi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var p in Model.Products)
+                                            {
+                                                <tr class="@(p.ProducedQty <= 0 ? "text-muted" : "")">
+                                                    <td>
+                                                        <a href="@Url.Action("ProductDetails", "TannarxAnalytics", new { productID = p.ProductID, year = Model.Year, month = Model.Month })">@p.ProductPNo</a>
+                                                        <div class="small">@p.ProductName</div>
+                                                    </td>
+                                                    <td class="text-right">@p.ProducedQty.ToString("N0")</td>
+                                                    <td class="small" title="@p.PathAttempts">
+                                                        @if (p.ProducedQty <= 0)
+                                                        {
+                                                            <span>Ishlab chiqarilmagan</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <b>@p.MaterialPath</b> <span>@p.MaterialMethod</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-right">@p.Material.ToString("N0")</td>
+                                                    <td class="text-right">@p.MaterialTransport.ToString("N0")</td>
+                                                    <td class="text-right">@p.Labor.ToString("N0")</td>
+                                                    <td class="text-right">@p.TaxBank.ToString("N0")</td>
+                                                    <td class="text-right">@p.Admin.ToString("N0")</td>
+                                                    <td class="text-right">@p.Other.ToString("N0")</td>
+                                                    <td class="text-right font-weight-bold">@p.TotalCostPerUnit.ToString("N0")</td>
+                                                    <td class="text-right">@p.FinishedTransport.ToString("N0")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="small text-muted mb-0 mt-1">Material algoritmi ustiga sichqonchani olib borsangiz, barcha urinishlar va rad etilish sabablari ko'rinadi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Finance kategoriyalari (shu oy)</h4>
+                                <a href="@Url.Action("FinanceCategories", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-sm btn-outline-primary">
+                                    <i class="bx bx-cog"></i> Kategoriya guruhlarini sozlash
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Kategoriya</th>
+                                                <th>Qayerga</th>
+                                                <th>Sabab</th>
+                                                <th class="text-right">Tranzaksiya</th>
+                                                <th class="text-right">Summa (chiqim − qaytish)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (!Model.FinanceLines.Any())
+                                            {
+                                                <tr><td colspan="5" class="text-center text-muted">Shu oyda xarajat tranzaksiyalari yo'q.</td></tr>
+                                            }
+                                            @foreach (var f in Model.FinanceLines)
+                                            {
+                                                <tr class="@(f.Included ? "" : "text-muted")">
+                                                    <td>@f.CategoryName</td>
+                                                    <td>@(f.Included ? f.Bucket : "Chiqarildi")</td>
+                                                    <td class="small">@f.Reason</td>
+                                                    <td class="text-right">@f.TransactionCount</td>
+                                                    <td class="text-right">@f.Amount.ToString("N0")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.ProducedWithoutTannarx.Any())
+                {
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card border-warning">
+                                <div class="card-header"><h4 class="card-title text-warning">Ishlab chiqarilgan, lekin tannarx qatori yo'q</h4></div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-0">
+                                            <thead><tr><th>Mahsulot</th><th>Nomi</th><th class="text-right">Ishlab chiqarilgan</th></tr></thead>
+                                            <tbody>
+                                                @foreach (var p in Model.ProducedWithoutTannarx)
+                                                {
+                                                    <tr><td>@p.ProductPNo</td><td>@p.ProductName</td><td class="text-right">@p.ProducedQty.ToString("N0")</td></tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}

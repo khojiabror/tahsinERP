@@ -5,12 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
     /// <summary>
     /// Tizim loglarini ko'rish va filterlash
     /// </summary>
+    [Permission]
     public class LogController : Controller
     {
         // Olish so'rovi: Log

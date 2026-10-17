@@ -1,4 +1,3 @@
-@model List<tahsinERP.Models.EXPENS>
 @{
     ViewBag.Title = "Ombor chiqimlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -8,6 +7,8 @@
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
     var assignedWarehouseIds = ViewBag.AssignedWarehouseIds as List<int> ?? new List<int>();
     bool canCreate = changePermit && assignedWarehouseIds.Any();
+    var fromDate = ViewBag.FromDate as DateTime?;
+    var toDate = ViewBag.ToDate as DateTime?;
 }
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -56,20 +57,40 @@
                 }
 
                 <div class="users-list-filter px-1">
-                    @using (Html.BeginForm("Index", "Expenses", FormMethod.Get, new { @class = "form" }))
+                    @if (changePermit)
+                    {
+                        @* Ma'lumotni o'zgartiruvchi tuzatish amallari faqat POST + antiforgery bilan (SRM-B18) *@
+                        using (Html.BeginForm("RepairMissingLinkedIncomes", "Expenses", FormMethod.Post, new { id = "repairLinkedIncomesForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                        }
+                        using (Html.BeginForm("RepairTransferExpenseStatuses", "Expenses", FormMethod.Post, new { id = "repairTransferStatusesForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                        }
+                    }
+                    @using (Html.BeginForm("Index", "Expenses", FormMethod.Get, new { @class = "form", id = "expensesFilter" }))
                     {
                         <div class="row border rounded py-2 mb-2">
-                            <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="col-12 col-sm-6 col-lg-2">
                                 <label>Ombor</label>
                                 @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
                             </div>
-                            <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="col-12 col-sm-6 col-lg-2">
                                 <label>Status</label>
                                 <select name="status" class="form-control">
                                     <option value="">Barchasi</option>
                                     <option value="pending" @(ViewBag.Status == "pending" ? "selected" : "")>Kutilmoqda</option>
                                     <option value="sent" @(ViewBag.Status == "sent" ? "selected" : "")>Yuborilgan</option>
                                 </select>
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2">
+                                <label>Sanadan</label>
+                                <input type="date" name="fromDate" class="form-control" value="@(fromDate.HasValue ? fromDate.Value.ToString("yyyy-MM-dd") : "")" />
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-2">
+                                <label>Sanagacha</label>
+                                <input type="date" name="toDate" class="form-control" value="@(toDate.HasValue ? toDate.Value.ToString("yyyy-MM-dd") : "")" />
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary w-100">
@@ -79,14 +100,14 @@
                             @if (changePermit)
                             {
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
-                                    <a href="@Url.Action("RepairMissingLinkedIncomes", "Expenses")" class="btn btn-outline-secondary w-100" onclick="return confirm('Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratishni xohlaysizmi?');" title="Kutilmoqdagi chiqimlar uchun Ishlab chiqarish/Sotuv omborida kirim hujjatlarini yaratish">
+                                    <button type="submit" form="repairLinkedIncomesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratishni xohlaysizmi?');" title="Kutilmoqdagi chiqimlar uchun Ishlab chiqarish/Sotuv omborida kirim hujjatlarini yaratish">
                                         <i class="bx bx-wrench"></i> Tuzatish
-                                    </a>
+                                    </button>
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
-                                    <a href="@Url.Action("RepairTransferExpenseStatuses", "Expenses")" class="btn btn-outline-secondary w-100" onclick="return confirm('Qabul qilingan o\'tkazmalarga bog\'langan chiqimlar statusini «Yuborilgan» ga moslashtirishni xohlaysizmi?');" title="Qabul qilingan kirimlarga bog'langan chiqimlar statusini tuzatish">
+                                    <button type="submit" form="repairTransferStatusesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('Qabul qilingan o\'tkazmalarga bog\'langan chiqimlar statusini «Yuborilgan» ga moslashtirishni xohlaysizmi?');" title="Qabul qilingan kirimlarga bog'langan chiqimlar statusini tuzatish">
                                         <i class="bx bx-check-circle"></i> Status tuzatish
-                                    </a>
+                                    </button>
                                 </div>
                             }
                         </div>
@@ -113,56 +134,7 @@
                                                 }
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            @if (Model != null && Model.Any())
-                                            {
-                                                foreach (var item in Model)
-                                                {
-                                                    <tr>
-                                                        <td>
-                                                            <a href="@Url.Action("Details", "Expenses", new { id = item.ID })">@item.DocNo</a>
-                                                        </td>
-                                                        <td>@(item.Warehouse?.WHName ?? "-")</td>
-                                                        <td>@(item.Warehouse1?.WHName ?? "-")</td>
-                                                        <td>@(item.TotalPrice?.ToString("N2") ?? "0.00")</td>
-                                                        <td>
-                                                            @if (item.SendStatus == true)
-                                                            {
-                                                                <span class="badge badge-success">Yuborilgan</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge badge-warning">Kutilmoqda</span>
-                                                            }
-                                                        </td>
-                                                        <td>@item.IssueDateTime.ToString("dd.MM.yyyy")</td>
-                                                        @if (changePermit)
-                                                        {
-                                                            bool canModify = assignedWarehouseIds.Contains(item.SenderWHID);
-                                                            <td>
-                                                                <div class="d-flex">
-                                                                    <a href="@Url.Action("Details", "Expenses", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
-                                                                        <i class="bx bx-show"></i>
-                                                                    </a>
-                                                                    @if (canModify && item.SendStatus != true)
-                                                                    {
-                                                                        <a href="@Url.Action("Edit", "Expenses", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
-                                                                            <i class="bx bx-edit-alt"></i>
-                                                                        </a>
-                                                                    }
-                                                                    @if (canModify)
-                                                                    {
-                                                                        <a href="@Url.Action("Delete", "Expenses", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu chiqim hujjatini o\'chirishni tasdiqlaysizmi?');">
-                                                                            <i class="bx bx-trash"></i>
-                                                                        </a>
-                                                                    }
-                                                                </div>
-                                                            </td>
-                                                        }
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
+                                        <tbody></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -174,89 +146,42 @@
     </div>
 </div>
 @section Scripts {
+    <script src="~/Scripts/srm/srm-server-table.js"></script>
     <script>
         $(document).ready(function () {
-            $('#expensesTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                "order": [[3, "desc"]],
-                "columnDefs": [
-                    { "type": "date", "targets": 3 }
-                ],
-                "scrollX": true,
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() +
-                                String(now.getMonth() + 1).padStart(2, '0') +
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') +
-                                String(now.getMinutes()).padStart(2, '0') +
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Ombor_chiqimlari_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
+            var detailsUrl = '@Url.Action("Details", "Expenses")/';
+            var editUrl = '@Url.Action("Edit", "Expenses")/';
+            var deleteUrl = '@Url.Action("Delete", "Expenses")/';
+            var columns = [
+                { data: 'docNo', render: function (v, t, r) { return '<a href="' + detailsUrl + r.id + '">' + srmEsc(v) + '</a>'; } },
+                { data: 'sender', render: function (v) { return srmEsc(v || '-'); } },
+                { data: 'receiver', render: function (v) { return srmEsc(v || '-'); } },
+                { data: 'total' },
+                { data: 'sent', render: function (v) { return v ? '<span class="badge badge-success">Yuborilgan</span>' : '<span class="badge badge-warning">Kutilmoqda</span>'; } },
+                { data: 'date' }
+            ];
+            @if (changePermit)
+            {
+                <text>
+                columns.push({
+                    data: null, orderable: false, render: function (v, t, r) {
+                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>';
+                        if (r.canModify && !r.sent) {
+                            html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>';
+                            html += '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish"><i class="bx bx-trash"></i></a>';
                         }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        titleAttr: 'PDFga yuklash',
-                        className: 'btn btn-danger',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() +
-                                String(now.getMonth() + 1).padStart(2, '0') +
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') +
-                                String(now.getMinutes()).padStart(2, '0') +
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Ombor_chiqimlari_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        },
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        title: 'Ombor chiqimlari',
-                        customize: function (doc) {
-                            doc.defaultStyle.fontSize = 9;
-                            doc.styles.tableHeader.fontSize = 10;
-                        }
+                        return html + '</div>';
                     }
-                ]
+                });
+                </text>
+            }
+            srmServerTable('#expensesTable', {
+                dataUrl: '@Url.Action("IndexData", "Expenses")',
+                exportUrl: '@Url.Action("ExportExcel", "Expenses")',
+                filterForm: '#expensesFilter',
+                order: [[5, 'desc']],
+                columns: columns
             });
         });
     </script>
-    }
+}

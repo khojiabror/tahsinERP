@@ -124,18 +124,16 @@
                                                                 </a>
                                                                 @if (changePermit && item.StatusCode != "APPROVED")
                                                                 {
-                                                                    <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-warning">
-                                                                        <i class="bx bx-edit"></i>
-                                                                    </a>
-                                                                    <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger">
-                                                                        <i class="bx bx-trash"></i>
-                                                                    </a>
-                                                                }
-                                                                @if (item.StatusCode != "APPROVED")
-                                                                {
-                                                                    <a href="@Url.Action("Approve", new { id = item.ID })" class="btn btn-sm btn-success">
-                                                                        <i class="bx bx-check"></i> Tasdiqlash
-                                                                    </a>
+                                                                    using (Html.BeginForm("Delete", "QualityInspection", new { id = item.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Sifat nazorati yozuvini oʻchirasizmi?');" }))
+                                                                    {
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-danger" title="O'chirish"><i class="bx bx-trash"></i></button>
+                                                                    }
+                                                                    using (Html.BeginForm("Approve", "QualityInspection", new { id = item.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Sifat nazoratini tasdiqlaysizmi?');" }))
+                                                                    {
+                                                                        @Html.AntiForgeryToken()
+                                                                        <button type="submit" class="btn btn-sm btn-success"><i class="bx bx-check"></i> Tasdiqlash</button>
+                                                                    }
                                                                 }
                                                             </td>
                                                         </tr>

@@ -3,12 +3,14 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
     /// <summary>
     /// API controller uchun transport yuklash simulation calculations
     /// </summary>
+    [Permission(Controller = "TransportLoadSimulation")]
     public class TransportLoadApiController : Controller
     {
         /// <summary>
@@ -37,7 +39,9 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, error = "An error occurred: " + ex.Message }, JsonRequestBehavior.AllowGet);
+                // LOG-S02: ichki xato matni (SQL va h.k.) foydalanuvchiga ko'rsatilmaydi
+                System.Diagnostics.Trace.TraceError("TransportLoadApi/Calculate: {0}", ex);
+                return Json(new { success = false, error = "Hisoblashda xatolik yuz berdi." }, JsonRequestBehavior.AllowGet);
             }
         }
     }
