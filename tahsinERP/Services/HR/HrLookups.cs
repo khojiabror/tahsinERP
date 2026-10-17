@@ -50,7 +50,7 @@ namespace tahsinERP.Services.HR
         /// <summary>Keshlangan ro'yxat (o'zgartirmang — umumiy nusxa). Tartib: loader'dagi tartib.</summary>
         public static IReadOnlyList<RefItem> Get(string kind)
         {
-            var cached = Cache.Get(kind) as List<RefItem>;
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(kind)) as List<RefItem>;
             if (cached != null) return cached;
 
             Func<DBTHSNEntities, List<RefItem>> loader;
@@ -62,7 +62,7 @@ namespace tahsinERP.Services.HR
             {
                 items = loader(db);
             }
-            Cache.Set(kind, items, DateTimeOffset.Now.Add(Ttl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(kind), items, DateTimeOffset.Now.Add(Ttl));
             return items;
         }
 
@@ -80,7 +80,7 @@ namespace tahsinERP.Services.HR
 
         public static void Invalidate(string kind)
         {
-            Cache.Remove(kind);
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(kind));
         }
     }
 }

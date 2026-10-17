@@ -674,7 +674,7 @@ namespace tahsinERP.Controllers.HR
             }
         }
 
-        private string UploadKey(string token) => (User?.Identity?.Name ?? "") + "|" + token;
+        private string UploadKey(string token) => tahsinERP.Configuration.Tenancy.TenantContext.CacheKey((User?.Identity?.Name ?? "") + "|" + token);
 
         private static decimal? ClampHours(decimal? hours)
         {
