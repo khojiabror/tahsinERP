@@ -3041,6 +3041,8 @@
     <Content Include="Views\FinPlPlans\Delete.cshtml" />
     <Content Include="Views\FinPlPlans\Edit.cshtml" />
     <Content Include="Views\FinPlPlans\Index.cshtml" />
+    <Content Include="Views\FinTransactions\_FormScripts.cshtml" />
+    <Content Include="Views\FinTransactions\_Form.cshtml" />
     <Content Include="Views\FinTransactions\Create.cshtml" />
     <Content Include="Views\FinTransactions\Delete.cshtml" />
     <Content Include="Views\FinTransactions\Details.cshtml" />
