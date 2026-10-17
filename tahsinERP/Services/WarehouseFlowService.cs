@@ -163,7 +163,8 @@ namespace tahsinERP.Services
 
                 if (totalAvailable > 0)
                 {
-                    AdjustProductStock(db, warehouseId, productId, -(double)totalAvailable);
+                    // Lot joylaridagi miqdor allaqachon qoldiq birligida (unitId = 0 — konversiyasiz)
+                    StockLedger.Adjust(db, warehouseId, productId, -(double)totalAvailable);
                 }
             }
 
@@ -535,31 +536,6 @@ namespace tahsinERP.Services
             }
 
             return expense;
-        }
-
-        /// <summary>
-        /// PRODUCT_STOCKS qoldig'ini atomik o'zgartiradi. Manfiy natija — <see cref="InsufficientStockException"/>.
-        /// Yangi kod uchun <see cref="StockLedger.Adjust"/> ni to'g'ridan-to'g'ri chaqiring.
-        /// </summary>
-        public static void AdjustProductStock(DBTHSNEntities db, int warehouseId, int productId, double delta, int unitId = 1)
-        {
-            StockLedger.Adjust(db, warehouseId, productId, delta, unitId);
-        }
-
-        /// <summary>Kirim / ishlab chiqarish qabul — umumiy qoldiq oshadi (<see cref="StockLedger.Increase"/>).</summary>
-        public static void ApplyIncomeReceiveToStock(DBTHSNEntities db, int warehouseId, int productId, double amount, int unitId)
-        {
-            if (amount <= 0)
-                return;
-            StockLedger.Increase(db, warehouseId, productId, amount, unitId);
-        }
-
-        /// <summary>Chiqim — umumiy qoldiq kamayadi, yetmasa xato (<see cref="StockLedger.Decrease"/>).</summary>
-        public static void ApplyIncomeIssueFromStock(DBTHSNEntities db, int warehouseId, int productId, double amount, int unitId)
-        {
-            if (amount <= 0)
-                return;
-            StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
         }
 
         /// <summary>

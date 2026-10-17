@@ -103,12 +103,66 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
             if (Math.Abs(delta) < 1e-12)
                 return GetOnHand(db, warehouseId, productId);
 
+            // SRM-B14: miqdor qoldiq qatori birligiga o'giriladi (unitId <= 0 — allaqachon qoldiq birligida)
+            delta = ToStockUnit(db, warehouseId, productId, delta, unitId, out var stockUnitId);
+
             var r = db.Database.SqlQuery<AdjustResult>(AdjustSql,
-                warehouseId, productId, delta, unitId > 0 ? unitId : 1, Epsilon).Single();
+                warehouseId, productId, delta, stockUnitId > 0 ? stockUnitId : 1, Epsilon).Single();
 
             if (!r.Ok)
                 throw new InsufficientStockException(warehouseId, productId, -delta, r.Available);
             return r.Available;
+        }
+
+        private class StockUnitRow
+        {
+            public int UnitID { get; set; }
+            public double Amount { get; set; }
+        }
+
+        /// <summary>
+        /// SRM-B14: hujjat qatoridagi miqdorni (<paramref name="lineUnitId"/> birligida) ombor qoldig'i qatori
+        /// birligiga o'giradi. Qoidalar:
+        ///  - <paramref name="lineUnitId"/> &lt;= 0 — miqdor allaqachon qoldiq birligida;
+        ///  - qoldiq qatori yo'q — qator shu birlikda yaratiladi (konversiya yo'q);
+        ///  - qator bor, lekin bo'sh (qoldiq 0, DLOC lotlari yo'q) — qator birligi yangi harakat birligiga moslanadi;
+        ///  - aks holda <see cref="UnitConversionService.TryConvert"/>; konversiya yo'q bo'lsa — xato (jimgina qo'shilmaydi).
+        /// </summary>
+        /// <param name="stockUnitId">Natija birligi (qoldiq qatori birligi).</param>
+        public static double ToStockUnit(DBTHSNEntities db, int warehouseId, int productId, double qty, int lineUnitId,
+            out int stockUnitId)
+        {
+            stockUnitId = lineUnitId;
+            if (lineUnitId <= 0)
+                return qty;
+
+            var row = db.Database.SqlQuery<StockUnitRow>(
+                "SELECT TOP 1 ISNULL(UnitID, 0) AS UnitID, CAST(Amount AS FLOAT) AS Amount FROM dbo.PRODUCT_STOCKS " +
+                "WHERE WHID = @p0 AND ProductID = @p1 ORDER BY ID", warehouseId, productId).FirstOrDefault();
+            if (row == null || row.UnitID <= 0 || row.UnitID == lineUnitId)
+                return qty;
+
+            var ledgerQty = DlocFifoSchema.IsEnabled(db) ? DlocFifoDataAccess.GetLedgerQty(db, warehouseId, productId) : 0m;
+            if (Math.Abs(row.Amount) < Epsilon && ledgerQty <= 0.000001m)
+            {
+                db.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.PRODUCT_STOCKS SET UnitID = @p2 WHERE WHID = @p0 AND ProductID = @p1",
+                    warehouseId, productId, lineUnitId);
+                return qty;
+            }
+
+            var conversion = new UnitConversionService(db);
+            var converted = conversion.TryConvert(productId, (decimal)qty, lineUnitId, row.UnitID);
+            if (!converted.HasValue)
+            {
+                throw new InvalidOperationException(
+                    $"Mahsulot #{productId}: {conversion.UnitName(lineUnitId)} → {conversion.UnitName(row.UnitID)} " +
+                    "birlik konversiyasi topilmadi (mahsulot og'irligi/uzunligi kiritilmagan yoki birliklar mos emas). " +
+                    $"Qatorni ombor qoldig'i birligida ({conversion.UnitName(row.UnitID)}) kiriting.");
+            }
+
+            stockUnitId = row.UnitID;
+            return (double)converted.Value;
         }
 
         /// <summary>Kirim: qoldiqni oshiradi (faqat PRODUCT_STOCKS).</summary>
@@ -168,6 +222,9 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         {
             if (qty <= Epsilon)
                 return;
+
+            // SRM-B14: lot va qoldiq bir xil (qoldiq) birligida yuritiladi
+            qty = ToStockUnit(db, warehouseId, productId, qty, unitId, out unitId);
 
             if (IsDlocWarehouse(db, warehouseId))
             {
@@ -275,11 +332,15 @@ WHERE il.IncomeID = @p0 AND il.IsDeleted = 0";
             var lines = db.Database.SqlQuery<IncomeLineRow>(
                 "SELECT ProductID, Amount, UnitID FROM dbo.INCOME_PRODUCTS WHERE IncomeID = @p0", incomeId).ToList();
 
+            // Har qator o'z birligidan qoldiq birligiga o'giriladi (SRM-B14), keyin mahsulot bo'yicha jamlanadi
             foreach (var g in lines.GroupBy(l => l.ProductID))
             {
-                var qty = g.Sum(x => x.Amount);
+                int stockUnitId = 0;
+                double qty = 0;
+                foreach (var line in g)
+                    qty += ToStockUnit(db, warehouseId, g.Key, line.Amount, line.UnitID, out stockUnitId);
                 if (qty > Epsilon)
-                    Decrease(db, warehouseId, g.Key, qty, g.First().UnitID);
+                    Decrease(db, warehouseId, g.Key, qty, stockUnitId);
             }
         }
 
