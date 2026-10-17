@@ -23,6 +23,9 @@ namespace tahsinERP.Services.Finance
         public const byte TypePayroll = 3;
         public const byte TypeForwarder = 4;
 
+        /// <summary>Hisob kesimidagi opening snapshot'i: SourceID = FIN_ACCOUNTS.ID (FIN-B16).</summary>
+        public const string AccountOpeningSourceType = "OpeningBalanceAccount";
+
         private readonly DBTHSNEntities _db;
 
         public OpeningBalanceService(DBTHSNEntities db)
@@ -192,6 +195,27 @@ namespace tahsinERP.Services.Finance
                 });
             }
 
+            // FIN-B16: faol hisoblar (kategoriyasi shu sahifadagi qo'lda kiritiladigan kategoriyalardan) — hisob kesimidagi opening
+            var categoryNames = categories.ToDictionary(c => c.ID, c => c.Name);
+            var accountSnapshots = AccountOpenings(date);
+            model.AccountItems = db.FIN_ACCOUNTS.AsNoTracking()
+                .Where(a => a.IsActive && a.BalanceCategoryID.HasValue)
+                .Select(a => new { a.ID, a.Name, a.Code, CategoryID = a.BalanceCategoryID.Value, Currency = a.CURRENCy.Shortname })
+                .ToList()
+                .Where(a => categoryNames.ContainsKey(a.CategoryID))
+                .OrderBy(a => categories.FindIndex(c => c.ID == a.CategoryID))
+                .ThenBy(a => a.Name)
+                .Select(a => new OpeningBalanceAccountItem
+                {
+                    AccountID = a.ID,
+                    AccountName = string.IsNullOrEmpty(a.Code) ? a.Name : a.Code + " — " + a.Name,
+                    CategoryID = a.CategoryID,
+                    CategoryName = categoryNames[a.CategoryID],
+                    CurrencyShortname = a.Currency,
+                    Amount = accountSnapshots.TryGetValue(a.ID, out var amount) ? amount : (decimal?)null
+                })
+                .ToList();
+
             var d = date.Date;
             var rows = db.FIN_OPENING_CONTRACT_BALANCES.AsNoTracking()
                 .Where(x => x.SnapshotDate == d)
@@ -241,6 +265,19 @@ namespace tahsinERP.Services.Finance
                 .ToList();
 
             return model;
+        }
+
+        /// <summary>Shu sanadagi hisob kesimidagi opening'lar: AccountID → summa.</summary>
+        private Dictionary<int, decimal> AccountOpenings(DateTime date)
+        {
+            var d = date.Date;
+            return _db.FIN_BALANCE_SNAPSHOTS.AsNoTracking()
+                .Where(s => s.SourceType == AccountOpeningSourceType && s.SourceID.HasValue &&
+                            DbFunctions.TruncateTime(s.SnapshotDate) == d)
+                .Select(s => new { AccountID = s.SourceID.Value, s.Amount, s.ID })
+                .ToList()
+                .GroupBy(s => s.AccountID)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.ID).First().Amount);
         }
 
         /// <summary>
@@ -301,16 +338,46 @@ namespace tahsinERP.Services.Finance
                 : (currencyIds.Contains(model.DefaultCurrencyID) ? model.DefaultCurrencyID : currencyIds.FirstOrDefault());
             Func<int, int> clampCurrency = cid => (cid > 0 && currencyIds.Contains(cid)) ? cid : resolvedDefaultCurrencyId;
 
+            // FIN-B16: hisob kesimidagi opening; kiritilgan hisoblar kategoriyasining opening'i ularning yig'indisi
+            var postedAccountIds = (model.AccountItems ?? new List<OpeningBalanceAccountItem>())
+                .Where(a => a != null && a.Amount.HasValue)
+                .Select(a => a.AccountID)
+                .Distinct()
+                .ToList();
+            var accounts = postedAccountIds.Count == 0
+                ? new Dictionary<int, FIN_ACCOUNTS>()
+                : db.FIN_ACCOUNTS.Where(a => postedAccountIds.Contains(a.ID) && a.BalanceCategoryID.HasValue).ToDictionary(a => a.ID);
+            var accountSumByCategory = new Dictionary<int, decimal>();
+            foreach (var a in model.AccountItems ?? new List<OpeningBalanceAccountItem>())
+            {
+                if (a == null || !a.Amount.HasValue || !accounts.TryGetValue(a.AccountID, out var account)) continue;
+                var categoryId = account.BalanceCategoryID.Value;
+                db.FIN_BALANCE_SNAPSHOTS.Add(new FIN_BALANCE_SNAPSHOTS
+                {
+                    SnapshotDate = date,
+                    CategoryID = categoryId,
+                    Amount = a.Amount.Value,
+                    CurrencyID = clampCurrency(account.CurrencyID),
+                    SourceType = AccountOpeningSourceType,
+                    SourceID = account.ID,
+                    CreatedByUserID = userId,
+                    CreatedDT = DateTime.Now
+                });
+                accountSumByCategory[categoryId] = (accountSumByCategory.TryGetValue(categoryId, out var s) ? s : 0m) + a.Amount.Value;
+            }
+
             foreach (var item in model.Items ?? new List<OpeningBalanceCategoryItem>())
             {
+                if (item == null) continue;
+                var hasAccounts = accountSumByCategory.TryGetValue(item.CategoryID, out var accountSum);
                 // 0: "Bo'sh qoldirish" belgilangan bo'lsa — qator yozilmaydi; belgilanmagan bo'lsa — aniq 0 saqlanadi.
-                if (item == null || (item.Amount == 0 && item.LeaveEmpty)) continue;
+                if (!hasAccounts && item.Amount == 0 && item.LeaveEmpty) continue;
 
                 db.FIN_BALANCE_SNAPSHOTS.Add(new FIN_BALANCE_SNAPSHOTS
                 {
                     SnapshotDate = date,
                     CategoryID = item.CategoryID,
-                    Amount = item.Amount,
+                    Amount = hasAccounts ? accountSum : item.Amount,
                     CurrencyID = clampCurrency(item.CurrencyID),
                     SourceType = "OpeningBalance",
                     SourceID = null,

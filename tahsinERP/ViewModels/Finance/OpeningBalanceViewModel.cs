@@ -34,8 +34,25 @@ namespace tahsinERP.ViewModels.Finance
         public bool LeaveEmpty { get; set; } = true;
     }
 
+    /// <summary>
+    /// Hisob (kassa/bank) kesimidagi opening (FIN-B16). FIN_BALANCE_SNAPSHOTS'da
+    /// SourceType = "OpeningBalanceAccount", SourceID = AccountID sifatida saqlanadi; kiritilgan bo'lsa
+    /// hisob kategoriyasining opening'i shu hisoblar yig'indisiga teng bo'ladi.
+    /// </summary>
+    public class OpeningBalanceAccountItem
+    {
+        public int AccountID { get; set; }
+        public string AccountName { get; set; }
+        public int CategoryID { get; set; }
+        public string CategoryName { get; set; }
+        public string CurrencyShortname { get; set; }
+        /// <summary>Bo'sh — bu hisob uchun opening kiritilmagan.</summary>
+        public decimal? Amount { get; set; }
+    }
+
     public class OpeningBalanceViewModel
     {
+        public List<OpeningBalanceAccountItem> AccountItems { get; set; } = new List<OpeningBalanceAccountItem>();
         public DateTime SnapshotDate { get; set; }
         public IEnumerable<SelectListItem> CurrencyList { get; set; }
         public int DefaultCurrencyID { get; set; }

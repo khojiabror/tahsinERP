@@ -137,6 +137,35 @@
                                 </table>
                             </div>
 
+                            <h5 class="mb-1">Hisoblar bo'yicha opening</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Hisob</th>
+                                            <th>Kategoriya</th>
+                                            <th class="text-right">Opening qoldig'i</th>
+                                            <th>Valyuta</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var a in Model.AccountItems.Where(x => x.Amount.HasValue))
+                                        {
+                                            <tr>
+                                                <td>@a.AccountName</td>
+                                                <td>@a.CategoryName</td>
+                                                <td class="text-right">@a.Amount.Value.ToString("N2")</td>
+                                                <td>@a.CurrencyShortname</td>
+                                            </tr>
+                                        }
+                                        @if (!Model.AccountItems.Any(x => x.Amount.HasValue))
+                                        {
+                                            <tr><td colspan="4" class="text-center text-muted">Kiritilmagan</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
                             <a href="@Url.Action("Index", "OpeningBalance")" class="btn btn-secondary mt-2">Ro'yxatga</a>
                         </div>
                     </div>
