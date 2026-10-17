@@ -14,7 +14,7 @@ namespace tahsinERP.Services.Documents
     /// </summary>
     public static class CompanySettings
     {
-        /// <summary>Migratsiya hali ishga tushirilmagan bazalar uchun eski qiymat.</summary>
+        /// <summary>DirectorName ustuni hali qo'shilmagan bazalar uchun zaxira qiymat.</summary>
         private const string LegacyDirectorName = "X.M. Maxmudov";
         private const string DirectorKey = "DirectorName";
 
