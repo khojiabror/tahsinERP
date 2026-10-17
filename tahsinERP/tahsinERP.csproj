@@ -881,6 +881,7 @@
     <Compile Include="Services\WaybillImportService.cs" />
     <Compile Include="Services\FreightCalculator.cs" />
     <Compile Include="Services\LogisticsAnalyticsService.cs" />
+    <Compile Include="Services\LogisticsMoney.cs" />
     <Compile Include="Services\LogisticsLookups.cs" />
     <Compile Include="Services\LogisticsEnums.cs" />
     <Compile Include="Services\Common\ExcelCellReader.cs" />
@@ -2912,6 +2913,7 @@
     <Content Include="Scripts\app\waybill-form.js" />
     <Content Include="Views\Logistic\Shared\_Pager.cshtml" />
     <Content Include="Views\Logistic\Shared\_Alerts.cshtml" />
+    <Content Include="Views\Logistic\Shared\_CurrencyNote.cshtml" />
     <Content Include="Views\Waybill\Create.cshtml" />
     <Content Include="Views\Waybill\Details.cshtml" />
     <Content Include="Views\Waybill\Edit.cshtml" />

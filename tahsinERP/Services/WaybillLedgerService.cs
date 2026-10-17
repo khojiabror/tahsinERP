@@ -18,7 +18,8 @@ namespace tahsinERP.Services
     ///  - Yuk tashuvchiga to'langan = to'lovning o'z ForwarderID'si bo'yicha barcha o'chirilmagan to'lovlar
     ///    (asosiy yo'l varaqasi o'chirilmagan) + FIN'da qo'lda kiritilgan yuk tashuvchi to'lovlari
     ///    (CounterpartyType = 4, Direction = 2, SourceDocType != "WaybillPayment").
-    ///  - Valyutalar konvertatsiya qilinmaydi (LOG-B13 — biznes qarori kutilmoqda), summalar qo'shiladi.
+    ///  - Valyuta (LOG-B13, CBU kursi, hujjat sanasi — <see cref="LogisticsMoney"/>): yo'l varaqasi bo'yicha to'langan
+    ///    yo'l varaqasi valyutasida; to'lov taqsimoti to'lov valyutasida; yuk tashuvchi balanslari so'mda.
     /// </summary>
     public static class WaybillLedgerService
     {
@@ -65,50 +66,88 @@ namespace tahsinERP.Services
         /// Yo'l varaqalari bo'yicha to'langan summa. <paramref name="waybillIds"/> — IQueryable bo'lsa
         /// SQL'da subquery (katta IN ro'yxatisiz) bo'ladi.
         /// </summary>
-        public static Dictionary<int, double> GetPaidLookup(DBTHSNEntities db, IQueryable<int> waybillIds, int? excludePaymentId = null)
+        /// <remarks>
+        /// LOG-B13: natija yo'l varaqasi valyutasida — boshqa valyutadagi to'lov to'lov sanasidagi kurs bilan
+        /// o'giriladi (kurs topilmasa qo'shilmaydi, <paramref name="money"/>.Warning).
+        /// </remarks>
+        public static Dictionary<int, double> GetPaidLookup(DBTHSNEntities db, IQueryable<int> waybillIds,
+            int? excludePaymentId = null, LogisticsMoney money = null)
         {
             var direct = db.F_WAYBILL_PAYMENTS
                 .Where(p => !p.IsDeleted
                             && waybillIds.Contains(p.WaybillID)
                             && (!excludePaymentId.HasValue || p.ID != excludePaymentId.Value)
                             && !db.F_WAYBILL_PAYMENT_SPLITS.Any(s => s.PayerType == SplitPayerType && s.PayerID == p.ID))
-                .GroupBy(p => p.WaybillID)
-                .Select(g => new { WaybillID = g.Key, Amount = g.Sum(x => x.Payment_Amount) })
+                .GroupBy(p => new { p.WaybillID, WaybillCurrencyID = p.F_WAYBILLS.CurrencyID, p.CurrencyID, Day = DbFunctions.TruncateTime(p.PaymentDate) })
+                .Select(g => new PaidPart
+                {
+                    WaybillID = g.Key.WaybillID,
+                    WaybillCurrencyID = g.Key.WaybillCurrencyID,
+                    CurrencyID = g.Key.CurrencyID,
+                    Day = g.Key.Day,
+                    Amount = g.Sum(x => x.Payment_Amount)
+                })
                 .ToList();
 
             var split = (from s in db.F_WAYBILL_PAYMENT_SPLITS
                          join p in db.F_WAYBILL_PAYMENTS on s.PayerID equals p.ID
+                         join w in db.F_WAYBILLS on s.WaybillID equals w.ID
                          where s.PayerType == SplitPayerType
                                && !p.IsDeleted
                                && waybillIds.Contains(s.WaybillID)
                                && (!excludePaymentId.HasValue || p.ID != excludePaymentId.Value)
-                         group s by s.WaybillID into g
-                         select new { WaybillID = g.Key, Amount = g.Sum(x => x.Amount) })
+                         group s by new { s.WaybillID, WaybillCurrencyID = w.CurrencyID, CurrencyID = s.CurrencyID ?? p.CurrencyID, Day = DbFunctions.TruncateTime(p.PaymentDate) } into g
+                         select new PaidPart
+                         {
+                             WaybillID = g.Key.WaybillID,
+                             WaybillCurrencyID = g.Key.WaybillCurrencyID,
+                             CurrencyID = g.Key.CurrencyID,
+                             Day = g.Key.Day,
+                             Amount = g.Sum(x => x.Amount)
+                         })
                 .ToList();
 
             var result = new Dictionary<int, double>();
             foreach (var item in direct.Concat(split))
             {
+                double? amount = item.Amount;
+                if (item.CurrencyID.HasValue && item.WaybillCurrencyID.HasValue && item.CurrencyID != item.WaybillCurrencyID)
+                {
+                    money = money ?? new LogisticsMoney(db);
+                    amount = money.Convert(item.Amount, item.CurrencyID, item.WaybillCurrencyID, item.Day);
+                    if (!amount.HasValue) continue;
+                }
+
                 double current;
                 result.TryGetValue(item.WaybillID, out current);
-                result[item.WaybillID] = current + item.Amount;
+                result[item.WaybillID] = current + amount.Value;
             }
             return result;
         }
 
+        private sealed class PaidPart
+        {
+            public int WaybillID { get; set; }
+            public int? WaybillCurrencyID { get; set; }
+            public int? CurrencyID { get; set; }
+            public DateTime? Day { get; set; }
+            public double Amount { get; set; }
+        }
+
         /// <summary>Kichik ro'yxat (sahifa, tanlangan yo'l varaqalari) uchun.</summary>
-        public static Dictionary<int, double> GetPaidLookup(DBTHSNEntities db, ICollection<int> waybillIds, int? excludePaymentId = null)
+        public static Dictionary<int, double> GetPaidLookup(DBTHSNEntities db, ICollection<int> waybillIds,
+            int? excludePaymentId = null, LogisticsMoney money = null)
         {
             if (waybillIds == null || waybillIds.Count == 0)
                 return new Dictionary<int, double>();
             var ids = waybillIds.Distinct().ToList();
-            return GetPaidLookup(db, db.F_WAYBILLS.Where(w => ids.Contains(w.ID)).Select(w => w.ID), excludePaymentId);
+            return GetPaidLookup(db, db.F_WAYBILLS.Where(w => ids.Contains(w.ID)).Select(w => w.ID), excludePaymentId, money);
         }
 
-        public static double GetPaidTotal(DBTHSNEntities db, int waybillId, int? excludePaymentId = null)
+        public static double GetPaidTotal(DBTHSNEntities db, int waybillId, int? excludePaymentId = null, LogisticsMoney money = null)
         {
             double paid;
-            GetPaidLookup(db, new[] { waybillId }, excludePaymentId).TryGetValue(waybillId, out paid);
+            GetPaidLookup(db, new[] { waybillId }, excludePaymentId, money).TryGetValue(waybillId, out paid);
             return paid;
         }
 
@@ -192,28 +231,37 @@ namespace tahsinERP.Services
         /// yopadi, ortgan summa teng bo'linadi. <paramref name="paymentId"/> ning o'zi "allaqachon to'langan"
         /// hisoblanmaydi (LOG-B01: Create'da yangi to'lov birinchi yo'l varaqasini yopib qo'yardi).
         /// </summary>
-        public static Dictionary<int, double> Allocate(DBTHSNEntities db, IList<int> waybillIds, double paymentAmount, int? paymentId)
+        /// <remarks>
+        /// LOG-B13: taqsimot to'lov valyutasida — yo'l varaqasi qoldig'i to'lov sanasidagi kurs bilan
+        /// to'lov valyutasiga o'giriladi (kurs bo'lishi ValidatePayment'da tekshiriladi).
+        /// </remarks>
+        public static Dictionary<int, double> Allocate(DBTHSNEntities db, IList<int> waybillIds, double paymentAmount, int? paymentId,
+            int? paymentCurrencyId = null, DateTime? paymentDate = null)
         {
             var result = new Dictionary<int, double>();
             if (waybillIds == null || waybillIds.Count == 0 || paymentAmount <= 0)
                 return result;
 
             var ids = waybillIds.Distinct().ToList();
-            var amounts = db.F_WAYBILLS
+            var waybills = db.F_WAYBILLS
                 .Where(w => ids.Contains(w.ID))
-                .Select(w => new { w.ID, w.Amount })
+                .Select(w => new { w.ID, w.Amount, w.CurrencyID })
                 .ToList()
-                .ToDictionary(x => x.ID, x => x.Amount ?? 0);
-            var paid = GetPaidLookup(db, ids, paymentId);
+                .ToDictionary(x => x.ID);
+            var money = new LogisticsMoney(db);
+            var paid = GetPaidLookup(db, ids, paymentId, money);
 
-            var existing = ids.Where(amounts.ContainsKey).ToList();
+            var existing = ids.Where(waybills.ContainsKey).ToList();
             if (existing.Count == 0) return result;
 
             var remaining = paymentAmount;
             foreach (var id in existing)
             {
                 if (remaining <= 0) break;
-                var outstanding = Math.Max(0, amounts[id] - PaidOf(paid, id));
+                var w = waybills[id];
+                var outstandingInWaybillCurrency = Math.Max(0, (w.Amount ?? 0) - PaidOf(paid, id));
+                var outstanding = money.Convert(outstandingInWaybillCurrency, w.CurrencyID, paymentCurrencyId, paymentDate)
+                                  ?? outstandingInWaybillCurrency;
                 if (outstanding <= 0) continue;
 
                 var allocated = Math.Min(outstanding, remaining);
@@ -242,7 +290,7 @@ namespace tahsinERP.Services
         /// To'lov (<paramref name="paymentId"/>) allaqachon bazada bo'lishi kerak.
         /// </summary>
         public static void ReplacePaymentSplits(DBTHSNEntities db, int paymentId, IList<int> waybillIds,
-            double paymentAmount, int? currencyId, string comment)
+            double paymentAmount, int? currencyId, string comment, DateTime? paymentDate)
         {
             var oldSplits = db.F_WAYBILL_PAYMENT_SPLITS
                 .Where(s => s.PayerType == SplitPayerType && s.PayerID == paymentId)
@@ -251,7 +299,7 @@ namespace tahsinERP.Services
                 db.F_WAYBILL_PAYMENT_SPLITS.RemoveRange(oldSplits);
 
             // Taqsimot eski split'larni hisobga olmasligi uchun paymentId chiqarib tashlanadi
-            var alloc = Allocate(db, waybillIds, paymentAmount, paymentId);
+            var alloc = Allocate(db, waybillIds, paymentAmount, paymentId, currencyId, paymentDate);
             foreach (var kv in alloc.Where(x => x.Value > 0))
             {
                 db.F_WAYBILL_PAYMENT_SPLITS.Add(new F_WAYBILL_PAYMENT_SPLITS
@@ -284,7 +332,7 @@ namespace tahsinERP.Services
         /// <paramref name="periodEnd"/> — kiritilgan (ichida) chegara; null bo'lsa yuqori chegara yo'q.
         /// </summary>
         public static Dictionary<int, ForwarderBalance> GetForwarderBalances(DBTHSNEntities db,
-            DateTime? periodStart, DateTime? periodEnd, int? forwarderId = null)
+            DateTime? periodStart, DateTime? periodEnd, int? forwarderId = null, LogisticsMoney money = null)
         {
             // SQL datetime DateTime.MinValue'ni qabul qilmaydi
             var start = periodStart ?? new DateTime(1900, 1, 1);
@@ -312,35 +360,22 @@ namespace tahsinERP.Services
                 manual = manual.Where(t => t.CounterpartyID == forwarderId.Value);
             }
 
+            // LOG-B13: (yuk tashuvchi, valyuta, kun) kesimida guruhlanadi va so'mga hujjat sanasidagi kurs bilan o'giriladi
+            money = money ?? new LogisticsMoney(db);
+
             var freight = waybills
-                .GroupBy(w => w.ForwarderID.Value)
-                .Select(g => new
-                {
-                    ForwarderID = g.Key,
-                    Before = g.Sum(w => w.IssueDate < start ? (w.Amount ?? 0) : 0),
-                    InPeriod = g.Sum(w => (w.IssueDate == null || w.IssueDate >= start) ? (w.Amount ?? 0) : 0),
-                    Trips = g.Sum(w => (w.IssueDate == null || w.IssueDate >= start) ? 1 : 0)
-                })
+                .GroupBy(w => new { ForwarderID = w.ForwarderID.Value, w.CurrencyID, Day = DbFunctions.TruncateTime(w.IssueDate) })
+                .Select(g => new { g.Key.ForwarderID, g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(w => w.Amount) ?? 0, Trips = g.Count() })
                 .ToList();
 
             var paid = payments
-                .GroupBy(p => p.ForwarderID)
-                .Select(g => new
-                {
-                    ForwarderID = g.Key,
-                    Before = g.Sum(p => p.PaymentDate < start ? p.Payment_Amount : 0),
-                    InPeriod = g.Sum(p => (p.PaymentDate == null || p.PaymentDate >= start) ? p.Payment_Amount : 0)
-                })
+                .GroupBy(p => new { p.ForwarderID, p.CurrencyID, Day = DbFunctions.TruncateTime(p.PaymentDate) })
+                .Select(g => new { g.Key.ForwarderID, g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(p => p.Payment_Amount) })
                 .ToList();
 
             var fin = manual
-                .GroupBy(t => t.CounterpartyID.Value)
-                .Select(g => new
-                {
-                    ForwarderID = g.Key,
-                    Before = g.Sum(t => t.TxnDate < start ? t.Amount : 0m),
-                    InPeriod = g.Sum(t => t.TxnDate >= start ? t.Amount : 0m)
-                })
+                .GroupBy(t => new { ForwarderID = t.CounterpartyID.Value, t.CurrencyID, Day = DbFunctions.TruncateTime(t.TxnDate) })
+                .Select(g => new { g.Key.ForwarderID, g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(t => t.Amount) })
                 .ToList();
 
             var result = new Dictionary<int, ForwarderBalance>();
@@ -355,33 +390,43 @@ namespace tahsinERP.Services
                 return b;
             };
 
+            // Sanasiz yozuvlar — davr ichida (avvalgidek)
+            Func<DateTime?, bool> inPeriod = day => !day.HasValue || day.Value >= start;
+
             foreach (var x in freight)
             {
                 var b = row(x.ForwarderID);
-                b.FreightBefore += x.Before;
-                b.FreightInPeriod += x.InPeriod;
-                b.TripsInPeriod += x.Trips;
+                var uzs = money.ToUzs(x.Amount, x.CurrencyID, x.Day);
+                if (inPeriod(x.Day))
+                {
+                    b.FreightInPeriod += uzs;
+                    b.TripsInPeriod += x.Trips;
+                }
+                else
+                {
+                    b.FreightBefore += uzs;
+                }
             }
             foreach (var x in paid)
             {
                 var b = row(x.ForwarderID);
-                b.PaidBefore += x.Before;
-                b.PaidInPeriod += x.InPeriod;
+                var uzs = money.ToUzs(x.Amount, x.CurrencyID, x.Day);
+                if (inPeriod(x.Day)) b.PaidInPeriod += uzs; else b.PaidBefore += uzs;
             }
             foreach (var x in fin)
             {
                 var b = row(x.ForwarderID);
-                b.PaidBefore += (double)x.Before;
-                b.PaidInPeriod += (double)x.InPeriod;
+                var uzs = money.ToUzs(x.Amount, x.CurrencyID, x.Day);
+                if (inPeriod(x.Day)) b.PaidInPeriod += uzs; else b.PaidBefore += uzs;
             }
             return result;
         }
 
-        /// <summary>Bitta yuk tashuvchining umumiy balansi (barcha davr).</summary>
-        public static ForwarderBalance GetForwarderBalance(DBTHSNEntities db, int forwarderId)
+        /// <summary>Bitta yuk tashuvchining umumiy balansi (barcha davr, so'mda).</summary>
+        public static ForwarderBalance GetForwarderBalance(DBTHSNEntities db, int forwarderId, LogisticsMoney money = null)
         {
             ForwarderBalance b;
-            return GetForwarderBalances(db, null, null, forwarderId).TryGetValue(forwarderId, out b)
+            return GetForwarderBalances(db, null, null, forwarderId, money).TryGetValue(forwarderId, out b)
                 ? b
                 : new ForwarderBalance { ForwarderID = forwarderId };
         }
