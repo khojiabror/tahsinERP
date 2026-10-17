@@ -119,6 +119,17 @@ namespace tahsinERP.Tests.Licensing
         }
 
         [TestMethod]
+        public void GenerateKeyPair_Is2048Bit()
+        {
+            // .NET Framework'da RSA.Create() 1024 bitli CSP qaytaradi — KeySize setter yetarli emas edi
+            string pub, priv;
+            LicenseHelper.GenerateKeyPair(out pub, out priv);
+            Assert.AreEqual(256, LicenseHelper.FromXml(pub, false).Modulus.Length);
+            Assert.AreEqual(256, LicenseHelper.FromXml(priv, true).Modulus.Length);
+            Assert.AreEqual(256, LicenseHelper.FromXml(LicenseHelper.PublicKeyXml, false).Modulus.Length, "k1 ham 2048 bit");
+        }
+
+        [TestMethod]
         public void ProductionTrustedKeys_K1Present_EmptyK2Skipped()
         {
             Assert.IsTrue(LicenseHelper.TrustedPublicKeys.Any(k => k.KeyId == "k1" && k.Xml == LicenseHelper.PublicKeyXml));

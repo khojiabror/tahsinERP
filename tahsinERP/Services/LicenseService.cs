@@ -481,6 +481,10 @@ namespace tahsinERP.Services
             db.COMPANY_LICENSES.Add(lic);
             db.SaveChanges();
 
+            // Xodimlar seat'lari yangi kalitga ko'chiriladi — aks holda har yangilanishda (panel buni
+            // avtomatik qiladi) barcha xodimlar keyingi login'da "seat berilmagan" bo'lib qolardi.
+            MigrateSeats(db, actives.Select(a => a.ID).ToList(), lic);
+
             if (resetStamp || lastSeenUtc < DateTime.UtcNow)
                 WriteState(db, STATE_LAST_SEEN, LicenseHelper.CreateClockStamp(DateTime.UtcNow, installationId));
 
@@ -489,6 +493,44 @@ namespace tahsinERP.Services
         }
 
         #endregion
+
+        /// <summary>
+        /// Avvalgi faol litsenziya(lar)dagi faol seat'larni yangi litsenziyaga o'tkazadi. Yangi kalitda joy
+        /// kamroq bo'lsa (paket pasaygan) — birinchi berilganlar qoladi, qolganlari o'chiriladi (admin qayta taqsimlaydi).
+        /// Seat muddati yangi kalit muddatidan oshmaydi.
+        /// </summary>
+        private static void MigrateSeats(DBTHSNEntities db, System.Collections.Generic.List<int> oldLicenseIds, COMPANY_LICENSES newLic)
+        {
+            if (oldLicenseIds.Count == 0)
+                return;
+
+            var seats = db.USER_LICENSES
+                .Where(u => u.CompanyLicenseID.HasValue && oldLicenseIds.Contains(u.CompanyLicenseID.Value) && u.IsActive)
+                .OrderBy(u => u.AssignedDate).ThenBy(u => u.ID)
+                .ToList();
+            if (seats.Count == 0)
+                return;
+
+            var seenUsers = new System.Collections.Generic.HashSet<int>();
+            int kept = 0;
+            foreach (var seat in seats)
+            {
+                bool duplicate = seat.UserID.HasValue && !seenUsers.Add(seat.UserID.Value);
+                bool fits = newLic.MaxUsers == 0 || kept < newLic.MaxUsers;
+                if (duplicate || !fits)
+                {
+                    seat.IsActive = false;
+                    continue;
+                }
+                seat.CompanyLicenseID = newLic.ID;
+                if (newLic.ExpiryDate.HasValue && seat.ExpiryDate.HasValue && seat.ExpiryDate.Value.Date > newLic.ExpiryDate.Value.Date)
+                    seat.ExpiryDate = newLic.ExpiryDate;
+                kept++;
+            }
+            db.SaveChanges();
+            if (kept < seats.Count)
+                Trace.TraceWarning("[License] Yangi kalitda joy kam: " + (seats.Count - kept) + " ta seat o'chirildi.");
+        }
 
         #region User seat (admin mustaqil boshqaradi — company muddati ichida)
 

@@ -89,6 +89,10 @@ Javoblar:
 - Taymer `Application_Start` da, birinchi ishga tushish 2 daqiqadan keyin, keyin har `poll_hours` (6). Ko'p-tenant rejimida reestrdagi
   har tenant uchun `TenantContext.Use(tenant)` ichida alohida.
 - Panel ishlamasa — hech narsa bloklanmaydi, saqlangan kalit bilan ishlash davom etadi.
+- **Panel ustun:** panelga ulangan o'rnatmada pull qaytargan kalit faoldan farq qilsa, u faollashtiriladi (qo'lda kiritilgan
+  kalit ham keyingi pull'da panel kaliti bilan almashadi). Bekor qilish/pasaytirish shu yo'l bilan yetkaziladi (3.4).
+- Yangi kalit faollashganda xodimlar seat'lari yangi kalitga ko'chiriladi (joy kam bo'lsa — birinchi berilganlar qoladi).
+- 2026-10-17 lokal E2E: soxta panel (PowerShell HttpListener) bilan register → BIZNES kalit faollashdi, imzoli pull → 304.
 - Testlar: `tahsinERP.Tests/LicenseSync/*` — soxta panel (HttpMessageHandler) shu hujjatdagi imzo qoidasini mustaqil tekshiradi.
 
 ## Ochiq savollar (panel 1-bosqichi)

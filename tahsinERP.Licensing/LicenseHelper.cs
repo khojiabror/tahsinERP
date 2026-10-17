@@ -196,13 +196,31 @@ namespace tahsinERP.Licensing
         /// </summary>
         public static void GenerateKeyPair(out string publicXml, out string privateXml)
         {
-            using (var rsa = RSA.Create())
+            using (var rsa = CreateRsa(KeySizeBits))
             {
-                rsa.KeySize = 2048;
                 RSAParameters p = rsa.ExportParameters(true);
+                if (p.Modulus == null || p.Modulus.Length * 8 < KeySizeBits)
+                    throw new CryptographicException("RSA kaliti " + KeySizeBits + " bit bo'lmadi.");
                 publicXml = ToXml(p, false);
                 privateXml = ToXml(p, true);
             }
+        }
+
+        /// <summary>Yangi kalit juftlari hajmi.</summary>
+        public const int KeySizeBits = 2048;
+
+        // .NET Framework'da RSA.Create() — RSACryptoServiceProvider (1024 bit), unda KeySize setter kalitni
+        // qayta yaratmaydi; shuning uchun CSP bo'lsa hajm konstruktorda beriladi. .NET Core/.NET 10 da setter ishlaydi.
+        private static RSA CreateRsa(int keySize)
+        {
+            RSA rsa = RSA.Create();
+            if (rsa is RSACryptoServiceProvider)
+            {
+                rsa.Dispose();
+                return new RSACryptoServiceProvider(keySize) { PersistKeyInCsp = false };
+            }
+            rsa.KeySize = keySize;
+            return rsa;
         }
 
         /// <summary>
