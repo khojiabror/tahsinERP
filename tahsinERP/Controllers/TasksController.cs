@@ -207,17 +207,6 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Index");
                 }
 
-                // UserComment'ni SQL orqali o'qish (EF model'da yo'q)
-                string userComment = null;
-                try
-                {
-                    var commentParam = new System.Data.SqlClient.SqlParameter("@taskId", task.ID);
-                    userComment = await db.Database.SqlQuery<string>(
-                        "SELECT UserComment FROM APP_TASKS WHERE ID = @taskId",
-                        commentParam).FirstOrDefaultAsync();
-                }
-                catch { }
-
                 var viewModel = new TaskViewModel
                 {
                     ID = task.ID,
@@ -237,7 +226,7 @@ namespace tahsinERP.Controllers
                     DueDate = task.DueDate,
                     ProjectID = task.ProjectID,
                     ProjectName = task.APP_TASK_PROJECTS?.Name,
-                    UserComment = userComment
+                    UserComment = task.UserComment
                 };
 
                 return View(viewModel);

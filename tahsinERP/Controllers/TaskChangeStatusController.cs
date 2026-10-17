@@ -111,34 +111,16 @@ namespace tahsinERP.Controllers
                         task.StatusID = viewModel.StatusID;
                         task.UpdatedDT = DateTime.Now;
 
-                        // UserComment qo'shish (agar mavjud bo'lsa) - SQL orqali
+                        // UserComment EF modelida bor. Avval raw SQL bilan yozilib, keyin
+                        // Entry.State = Modified + SaveChanges eski qiymatni qayta yozardi — izoh yo'qolardi (TSK-B01).
                         if (!string.IsNullOrWhiteSpace(viewModel.UserComment))
                         {
-                            // Olish current UserComment value foydalanib SQL
-                            var currentCommentParam = new SqlParameter("@taskId", task.ID);
-                            var currentComment = await db.Database.SqlQuery<string>(
-                                "SELECT UserComment FROM APP_TASKS WHERE ID = @taskId", 
-                                currentCommentParam).FirstOrDefaultAsync();
-
-                            string newComment;
-                            if (!string.IsNullOrEmpty(currentComment))
-                            {
-                                newComment = currentComment + "\n\n[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " - " + UserHelper.GetFullName(User.Identity.Name) + "]:\n" + viewModel.UserComment;
-                            }
-                            else
-                            {
-                                newComment = "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " - " + UserHelper.GetFullName(User.Identity.Name) + "]:\n" + viewModel.UserComment;
-                            }
-
-                            // Yangilash UserComment foydalanib SQL
-                            var commentParam = new SqlParameter("@comment", newComment ?? (object)DBNull.Value);
-                            var idParam = new SqlParameter("@id", task.ID);
-                            await db.Database.ExecuteSqlCommandAsync(
-                                "UPDATE APP_TASKS SET UserComment = @comment WHERE ID = @id",
-                                commentParam, idParam);
+                            string entry = "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " - " + UserHelper.GetFullName(User.Identity.Name) + "]:\n" + viewModel.UserComment;
+                            task.UserComment = string.IsNullOrEmpty(task.UserComment)
+                                ? entry
+                                : task.UserComment + "\n\n" + entry;
                         }
 
-                        db.Entry(task).State = EntityState.Modified;
                         await db.SaveChangesAsync();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "TaskChangeStatusController", 
