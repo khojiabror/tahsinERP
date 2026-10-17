@@ -58,7 +58,7 @@ namespace tahsinERP.Controllers
                     ExcelExport.Col<S_ORDERS>("Shartnoma", o => o.S_CONTRACTS?.ContractNo),
                     ExcelExport.Col<S_ORDERS>("Sana", o => o.IssuedDate, "dd.MM.yyyy"),
                     ExcelExport.Col<S_ORDERS>("Summa", o => o.Amount, "#,##0.00"),
-                    ExcelExport.Col<S_ORDERS>("Valyuta", o => o.CURRENCy1 != null ? o.CURRENCy1.Shortname : o.Currency));
+                    ExcelExport.Col<S_ORDERS>("Valyuta", o => o.CURRENCy1?.Shortname));
                 return File(bytes, ExcelExport.ContentType, $"Buyurtmalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }

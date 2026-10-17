@@ -173,9 +173,9 @@
                                                             </td>
                                                             <td>@((item.TotalWithVAT ?? item.TotalAmount).ToString("N2"))</td>
                                                             <td>
-                                                                @if (!string.IsNullOrEmpty(item.CurrencyCode))
+                                                                @if (item.CurrencyID.HasValue)
                                                                 {
-                                                                    <span class="badge badge-light-primary">@item.CurrencyCode</span>
+                                                                    <span class="badge badge-light-primary">@tahsinERP.Services.Crm.SalesLookups.CurrencyCode(item.CurrencyID)</span>
                                                                 }
                                                                 else
                                                                 {

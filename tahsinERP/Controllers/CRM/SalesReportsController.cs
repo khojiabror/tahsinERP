@@ -65,14 +65,14 @@ namespace tahsinERP.Controllers
         private static Dictionary<int, QtyAmt> InvoiceTotalsByProduct(IQueryable<SALES_INVOICE_LINES> lines, UzsConverter uzs)
         {
             return lines
-                .GroupBy(l => new { l.ProductID, l.SALES_INVOICES.CurrencyCode, Day = DbFunctions.TruncateTime(l.SALES_INVOICES.InvoiceDate) })
-                .Select(g => new { g.Key.ProductID, g.Key.CurrencyCode, g.Key.Day, Qty = g.Sum(x => x.Qty), Amt = g.Sum(x => x.LineAmount ?? x.Qty * x.UnitPrice) })
+                .GroupBy(l => new { l.ProductID, l.SALES_INVOICES.CurrencyID, Day = DbFunctions.TruncateTime(l.SALES_INVOICES.InvoiceDate) })
+                .Select(g => new { g.Key.ProductID, g.Key.CurrencyID, g.Key.Day, Qty = g.Sum(x => x.Qty), Amt = g.Sum(x => x.LineAmount ?? x.Qty * x.UnitPrice) })
                 .ToList()
                 .GroupBy(x => x.ProductID)
                 .ToDictionary(g => g.Key, g => new QtyAmt
                 {
                     Qty = g.Sum(x => x.Qty),
-                    Amt = g.Sum(x => uzs.ToUzsOrZero(x.Amt, x.CurrencyCode, x.Day ?? DateTime.Today))
+                    Amt = g.Sum(x => uzs.ToUzsOrZero(x.Amt, x.CurrencyID, x.Day ?? DateTime.Today))
                 });
         }
 
@@ -195,14 +195,14 @@ namespace tahsinERP.Controllers
                     });
                 var invoiceAgg = db.SALES_INVOICES.AsNoTracking().Active()
                     .Where(i => i.InvoiceDate >= from && i.InvoiceDate < toExclusive)
-                    .GroupBy(i => new { i.CustomerID, i.CurrencyCode, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
-                    .Select(g => new { g.Key.CustomerID, g.Key.CurrencyCode, g.Key.Day, Count = g.Count(), Amount = g.Sum(i => i.TotalAmount) })
+                    .GroupBy(i => new { i.CustomerID, i.CurrencyID, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
+                    .Select(g => new { g.Key.CustomerID, g.Key.CurrencyID, g.Key.Day, Count = g.Count(), Amount = g.Sum(i => i.TotalAmount) })
                     .ToList()
                     .GroupBy(x => x.CustomerID)
                     .ToDictionary(g => g.Key, g => new
                     {
                         Count = g.Sum(x => x.Count),
-                        Amount = g.Sum(x => uzs.ToUzsOrZero(x.Amount, x.CurrencyCode, x.Day ?? from))
+                        Amount = g.Sum(x => uzs.ToUzsOrZero(x.Amount, x.CurrencyID, x.Day ?? from))
                     });
 
                 var customerIds = orderAgg.Keys.Union(invoiceAgg.Keys).ToList();

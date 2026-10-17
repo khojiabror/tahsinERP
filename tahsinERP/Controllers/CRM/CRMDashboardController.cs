@@ -32,7 +32,7 @@ namespace tahsinERP.Controllers
                     CustomerName = i.CUSTOMER.Name,
                     i.DueDate,
                     i.InvoiceDate,
-                    i.CurrencyCode,
+                    i.CurrencyID,
                     Amount = i.TotalWithVAT ?? i.TotalAmount
                 })
                 .ToList();
@@ -56,7 +56,7 @@ namespace tahsinERP.Controllers
                 {
                     decimal paid;
                     paidById.TryGetValue(i.ID, out paid);
-                    var total = uzs.ToUzsOrZero(i.Amount, i.CurrencyCode, i.InvoiceDate);
+                    var total = uzs.ToUzsOrZero(i.Amount, i.CurrencyID, i.InvoiceDate);
                     return new CRMInvoiceOverdueItem
                     {
                         InvoiceId = i.ID,
@@ -171,10 +171,10 @@ namespace tahsinERP.Controllers
                 model.TotalInvoices = activeInvoices.Count();
                 model.InvoicesOverdue = overdueInvoices.Count;
                 model.InvoicesTotalAmount = activeInvoices
-                    .GroupBy(i => new { i.CurrencyCode, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
-                    .Select(g => new { g.Key.CurrencyCode, g.Key.Day, Amount = g.Sum(i => i.TotalAmount) })
+                    .GroupBy(i => new { i.CurrencyID, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
+                    .Select(g => new { g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(i => i.TotalAmount) })
                     .ToList()
-                    .Sum(g => uzs.ToUzsOrZero(g.Amount, g.CurrencyCode, g.Day ?? today));
+                    .Sum(g => uzs.ToUzsOrZero(g.Amount, g.CurrencyID, g.Day ?? today));
 
                 // ——— Mijozlar ———
                 model.TotalCustomers = db.CUSTOMERS.Count(c => c.IsDeleted != true);
@@ -224,7 +224,7 @@ namespace tahsinERP.Controllers
                     .Where(o => !activeInvoices.Any(inv => inv.OrderID == o.ID))
                     .OrderByDescending(o => o.IssuedDate)
                     .Take(30)
-                    .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name, o.IssuedDate, o.Amount, Cur = o.CURRENCy1.Shortname, o.Currency })
+                    .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name, o.IssuedDate, o.Amount, Cur = o.CURRENCy1.Shortname })
                     .ToList()
                     .Select(o => new CRMOrderWithoutInvoiceItem
                     {
@@ -233,7 +233,7 @@ namespace tahsinERP.Controllers
                         CustomerName = o.CustomerName ?? "",
                         IssuedDate = o.IssuedDate,
                         Amount = (decimal?)o.Amount,
-                        CurrencyCode = o.Cur ?? o.Currency ?? ""
+                        CurrencyCode = o.Cur ?? ""
                     })
                     .ToList();
 
@@ -307,7 +307,7 @@ namespace tahsinERP.Controllers
                         i.CustomerID,
                         i.ContractID,
                         i.InvoiceDate,
-                        i.CurrencyCode,
+                        i.CurrencyID,
                         Amount = (i.TotalWithVAT ?? i.TotalAmount)
                     })
                     .ToList()
@@ -317,7 +317,7 @@ namespace tahsinERP.Controllers
                         i.CustomerID,
                         i.ContractID,
                         i.InvoiceDate,
-                        Amount = uzs.ToUzsOrZero(i.Amount, i.CurrencyCode, i.InvoiceDate)
+                        Amount = uzs.ToUzsOrZero(i.Amount, i.CurrencyID, i.InvoiceDate)
                     })
                     .ToList();
                 var openingContractByInvoiceId = new Dictionary<int, string>();

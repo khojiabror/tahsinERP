@@ -19,3 +19,10 @@ Baza: lokal `localhost / DBTHSN-IPACK` (ulanish `DbConfig.GetSqlConnectionString
 - **Tegilmagan (eski oqim):** 187 ta DRAFT invoys (176 tasi 2025 yil importi, 11 tasi 2026-mart) — ombor chiqimi va posting yo'q; 2026-martdagi 4 tasida chiqim bor. Ular yangi oqimdan oldingi hujjatlar; ularni post qilish/chiqim qilish buxgalteriya qarori bilan alohida.
 
 Ilova mantiqini chaqirish uchun vaqtinchalik konsol vosita (CrmFix: `post`, `cancel --id=N`, `--apply`) ishlatildi; repoga qo'shilmadi.
+
+## 2026-10-18
+| Skript | Natija |
+|---|---|
+| `CRM_2026_10_M02_DropCurrencyColumns.sql` | Foydalanuvchi qarori (M02): `SALES_INVOICES.CurrencyCode` va `S_ORDERS.Currency` olib tashlandi; yagona manba `CurrencyID`. Zaxira: `SALES_INVOICES_CurrencyCode_BAK_20261018` (211), `S_ORDERS_Currency_BAK_20261018` (95). EDMX bir vaqtda yangilangan — eski EDMX'li branch bu jadvallarda yiqiladi, master'ni olishi kerak. |
+
+187 ta eski DRAFT invoys — foydalanuvchi qarori: tegilmaydi.

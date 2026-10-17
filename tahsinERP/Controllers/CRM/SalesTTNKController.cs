@@ -178,7 +178,7 @@ namespace tahsinERP.Controllers
                     ShipperName = "",
                     ConsigneeName = firstInvoice.CUSTOMER?.Name ?? "",
                     ConsigneeINN = firstInvoice.CUSTOMER?.DUNS ?? "",
-                    CurrencyCode = firstInvoice.CurrencyCode
+                    CurrencyCode = SalesLookups.CurrencyCode(firstInvoice.CurrencyID)
                 };
 
                 PopulateCreateLookups(db, invoices, invoiceIDs);

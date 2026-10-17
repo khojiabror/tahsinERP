@@ -77,7 +77,7 @@ namespace tahsinERP.Controllers
                         TotalAmount = i.TotalAmount,
                         TotalVAT = i.TotalVAT,
                         TotalWithVAT = i.TotalWithVAT,
-                        CurrencyCode = i.CurrencyCode
+                        CurrencyCode = i.CURRENCy.Shortname
                     })
                     .ToList();
 
@@ -255,7 +255,7 @@ namespace tahsinERP.Controllers
                     {
                         invoice.CustomerID = order.CustomerID;
                         invoice.ContractID = order.ContractID;
-                        invoice.CurrencyCode = order.CURRENCy1?.Shortname ?? "UZS";
+                        invoice.CurrencyID = order.CurrencyID;
                         customerID = order.CustomerID;
                         contractID = order.ContractID;
                     }
@@ -264,14 +264,14 @@ namespace tahsinERP.Controllers
                 if (contractID.HasValue)
                 {
                     invoice.ContractID = contractID.Value;
-                    var contract = db.S_CONTRACTS.Include(c => c.CURRENCy).FirstOrDefault(c => c.ID == contractID.Value);
-                    if (contract?.CURRENCy != null)
+                    var contractCurrencyId = db.S_CONTRACTS.Where(c => c.ID == contractID.Value).Select(c => (int?)c.CurrencyID).FirstOrDefault();
+                    if (contractCurrencyId.HasValue)
                     {
-                        invoice.CurrencyCode = contract.CURRENCy.Shortname;
+                        invoice.CurrencyID = contractCurrencyId;
                     }
                 }
 
-                invoice.CurrencyCode = invoice.CurrencyCode ?? "UZS";
+                invoice.CurrencyID = invoice.CurrencyID ?? CurrencyRateService.BaseCurrencyId();
                 PopulateFormLookups(db, invoice, null);
                 return View(invoice);
             }
@@ -361,11 +361,11 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                var code = db.S_CONTRACTS
+                var currencyId = db.S_CONTRACTS
                     .Where(c => c.ID == contractId)
-                    .Select(c => c.CURRENCy.Shortname)
-                    .FirstOrDefault();
-                return Json(new { CurrencyCode = code ?? "UZS" }, JsonRequestBehavior.AllowGet);
+                    .Select(c => (int?)c.CurrencyID)
+                    .FirstOrDefault() ?? CurrencyRateService.BaseCurrencyId();
+                return Json(new { CurrencyID = currencyId, CurrencyCode = SalesLookups.CurrencyCode(currencyId) }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -531,7 +531,7 @@ namespace tahsinERP.Controllers
             ViewBag.Customers = SalesLookups.Customers(invoice.CustomerID > 0 ? (int?)invoice.CustomerID : null);
             ViewBag.Contracts = SalesLookups.ContractsFor(db, invoice.CustomerID, invoice.ContractID);
             ViewBag.Orders = SalesLookups.OrdersFor(db, invoice.ContractID, invoice.OrderID);
-            ViewBag.Currencies = SalesLookups.CurrencyCodes(invoice.CurrencyCode ?? "UZS");
+            ViewBag.Currencies = SalesLookups.Currencies(invoice.CurrencyID ?? CurrencyRateService.BaseCurrencyId());
             ViewBag.ProductItems = SalesInvoiceService.SalesWarehouseProductItems(db, ownQty);
             ViewBag.SuggestedInvoiceNo = SalesInvoiceService.SuggestNextInvoiceNo(db);
         }
