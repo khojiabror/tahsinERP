@@ -841,7 +841,7 @@
     <Compile Include="Services\Crm\SalesInvoiceService.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
     <Compile Include="Services\Crm\CrmNumber.cs" />
-    <Compile Include="Services\Crm\CurrencyRateService.cs" />
+    <Compile Include="Services\Common\CurrencyRateService.cs" />
     <Compile Include="ViewModels\Sales\SalesLineViewModels.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\VatMath.cs" />
