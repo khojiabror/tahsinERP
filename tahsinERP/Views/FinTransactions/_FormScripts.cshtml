@@ -1,0 +1,172 @@
+@model tahsinERP.Models.FIN_TRANSACTIONS
+@* FinTransactions Create/Edit: kontragent turi -> kontragent -> shartnoma (FIN-D18) *@
+<script type="text/javascript">
+    (function () {
+        var counterpartiesUrl = '@Html.Raw(Url.Action("GetCounterparties", "FinTransactions"))';
+        var contractsByCounterpartyUrl = '@Html.Raw(Url.Action("GetContractsByCounterparty", "FinTransactions"))';
+        var savedCounterpartyId = '@(Model.CounterpartyID.HasValue ? Model.CounterpartyID.Value.ToString() : "")';
+        var initialContractNo = @Html.Raw(System.Web.Helpers.Json.Encode(Model.ContractNo ?? ""));
+        var counterpartyLoadSeq = 0;
+
+        function itemId(it) {
+            if (!it) return '';
+            return it.id != null ? it.id : it.Id;
+        }
+        function itemName(it) {
+            if (!it) return '';
+            return it.name != null ? it.name : it.Name;
+        }
+
+        function resetSupplierContracts() {
+            var $row = $('#supplierContractRow');
+            var $cs = $('#contractSelect');
+            $row.hide();
+            $cs.empty().append($('<option></option>').val('').text('---Tanlang---')).prop('disabled', true);
+        }
+
+        function shouldShowContractByType(type) {
+            return type === '1' || type === '2' || type === '4';
+        }
+
+        function contractLabelByType(type) {
+            if (type === '1') return "Shartnoma (sotuv)";
+            if (type === '2') return "Shartnoma (xarid)";
+            if (type === '4') return "Shartnoma (forwarder)";
+            return "Shartnoma";
+        }
+
+        function loadContractsForCounterparty(type, counterpartyId, selectContractNo) {
+            resetSupplierContracts();
+            if (!shouldShowContractByType(type) || !counterpartyId) return;
+            $('#supplierContractRow label[for="contractSelect"]').text(contractLabelByType(type));
+            $.ajax({
+                url: contractsByCounterpartyUrl,
+                type: 'GET',
+                data: { type: type, counterpartyId: counterpartyId },
+                traditional: true
+            }).done(function (res) {
+                if (!res || !res.success || !res.data || !res.data.length) {
+                    return;
+                }
+                var $cs = $('#contractSelect');
+                $cs.empty().append($('<option></option>').val('').text('---Tanlang---'));
+                $.each(res.data, function (i, c) {
+                    var id = c.ID != null ? c.ID : c.id;
+                    var no = c.ContractNo != null ? c.ContractNo : c.contractNo;
+                    $cs.append($('<option></option>').val(id).text(no));
+                });
+                $cs.prop('disabled', false);
+                $('#supplierContractRow').show();
+                if (selectContractNo) {
+                    var found = false;
+                    $cs.find('option').each(function () {
+                        if ($(this).text() === selectContractNo) {
+                            $(this).prop('selected', true);
+                            found = true;
+                            return false;
+                        }
+                    });
+                    if (found) {
+                        $('#ContractNo').val(selectContractNo);
+                    }
+                }
+            });
+        }
+
+        function fillCounterpartyDropdown(restoreCounterpartyId) {
+            var type = $('#CounterpartyType').val();
+            var $cp = $('#CounterpartyID');
+            var seq = ++counterpartyLoadSeq;
+            $cp.empty();
+            resetSupplierContracts();
+            if (!restoreCounterpartyId) {
+                $('#ContractNo').val('');
+            }
+
+            if (!type) {
+                $cp.append($('<option></option>').val('').text('Avval kontragent turini tanlang'));
+                return;
+            }
+
+            $.ajax({
+                url: counterpartiesUrl,
+                type: 'GET',
+                data: { type: type },
+                traditional: true
+            }).done(function (data) {
+                if (seq !== counterpartyLoadSeq) {
+                    return;
+                }
+                $cp.empty();
+                $cp.append($('<option></option>').val('').text('Tanlang...'));
+                if (data && data.success && data.items && data.items.length) {
+                    $.each(data.items, function (i, it) {
+                        var id = itemId(it);
+                        var name = itemName(it) || ('#' + id);
+                        $cp.append($('<option></option>').val(id).text(name));
+                    });
+                }
+                if (restoreCounterpartyId) {
+                    $cp.val(restoreCounterpartyId);
+                    if (shouldShowContractByType(type) && restoreCounterpartyId) {
+                        loadContractsForCounterparty(type, restoreCounterpartyId, initialContractNo);
+                    } else if (initialContractNo && $('#ContractNo').length) {
+                        $('#ContractNo').val(initialContractNo);
+                    }
+                }
+            }).fail(function () {
+                if (seq !== counterpartyLoadSeq) {
+                    return;
+                }
+                $cp.empty();
+                $cp.append($('<option></option>').val('').text('Yuklashda xatolik'));
+            });
+        }
+
+        function bindCounterpartyUi() {
+            var $type = $('#CounterpartyType');
+            var $cp = $('#CounterpartyID');
+
+            $type.off('change.finctr').on('change.finctr', function () {
+                fillCounterpartyDropdown(null);
+            });
+
+            $cp.off('change.finctr').on('change.finctr', function () {
+                var t = $type.val();
+                var id = $(this).val();
+                if (shouldShowContractByType(t) && id) {
+                    loadContractsForCounterparty(t, id, null);
+                } else {
+                    resetSupplierContracts();
+                }
+            });
+
+            $('#contractSelect').off('change.finctr').on('change.finctr', function () {
+                var txt = $('#contractSelect option:selected').text();
+                if (txt && txt.indexOf('---') !== 0) {
+                    $('#ContractNo').val(txt);
+                }
+            });
+
+            if ($type.val()) {
+                fillCounterpartyDropdown(savedCounterpartyId || null);
+            }
+        }
+
+        function initPage() {
+            if (typeof jQuery === 'undefined') {
+                setTimeout(initPage, 50);
+                return;
+            }
+            // Select2 ishlatmaymiz: _Layout da ikkinchi jQuery yuklanishi + form-select2.js bilan
+            // qayta init "No results found" va bo'sh dropdownlarga olib kelishi mumkin.
+            bindCounterpartyUi();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPage);
+        } else {
+            initPage();
+        }
+    })();
+</script>

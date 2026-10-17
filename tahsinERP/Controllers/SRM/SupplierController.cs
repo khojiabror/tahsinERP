@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
@@ -123,6 +122,7 @@ namespace tahsinERP.Controllers
         }
 
         // Olish so'rovi: Supplier/yaratish
+        [ActionViewPermission(change: true)]
         public ActionResult Create()
         {
             if (!CanChange("Supplier"))
@@ -133,9 +133,10 @@ namespace tahsinERP.Controllers
         }
 
         // POST so'rovi: Supplier/yaratish
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(SUPPLIER supplier, FormCollection collection)
+        public async Task<ActionResult> Create(SUPPLIER supplier)
         {
             if (!CanChange("Supplier"))
             {
@@ -148,11 +149,12 @@ namespace tahsinERP.Controllers
                 {
                     try
                     {
-                        // Tekshirish agar supplier bilan same name mavjud
-                        var existSupplier = await db.SUPPLIERS
-                            .FirstOrDefaultAsync(x => x.IsDeleted != true && x.Name.ToLower() == supplier.Name.ToLower());
+                        // Nom takrorlanmasin. Baza collation'i CI (Cyrillic_General_CI_AS) — ToLower shart emas,
+                        // tenglik indeksdan foydalanadi (SRM-P12)
+                        var name = (supplier.Name ?? "").Trim();
+                        bool exists = await db.SUPPLIERS.AnyAsync(x => x.IsDeleted != true && x.Name == name);
 
-                        if (existSupplier != null)
+                        if (exists)
                         {
                             ModelState.AddModelError("", "Bunday nom bilan Ta'minotchi kiritilgan, ma'lumotlarni qaytadan tekshiring.");
                             return View(supplier);
@@ -176,6 +178,7 @@ namespace tahsinERP.Controllers
             return View(supplier);
         }
 
+        [ActionViewPermission(change: true)]
         public async Task<ActionResult> Edit(int? id)
         {
             if (!CanChange("Supplier"))
@@ -201,9 +204,10 @@ namespace tahsinERP.Controllers
         }
 
         // POST so'rovi: Supplier/Edit
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(SUPPLIER supplier, FormCollection collection)
+        public async Task<ActionResult> Edit(SUPPLIER supplier)
         {
             if (!CanChange("Supplier"))
             {
@@ -222,13 +226,11 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        // Tekshirish agar another supplier bilan same name mavjud
-                        var existSupplier = await db.SUPPLIERS
-                            .FirstOrDefaultAsync(x => x.IsDeleted != true && 
-                                                      x.Name.ToLower() == supplier.Name.ToLower() && 
-                                                      x.ID != supplier.ID);
+                        // Boshqa ta'minotchida shu nom bo'lmasin (CI collation — SRM-P12)
+                        var name = (supplier.Name ?? "").Trim();
+                        bool exists = await db.SUPPLIERS.AnyAsync(x => x.IsDeleted != true && x.Name == name && x.ID != supplier.ID);
 
-                        if (existSupplier != null)
+                        if (exists)
                         {
                             ModelState.AddModelError("", "Bunday nom bilan boshqa Ta'minotchi mavjud");
                             return View(supplier);
@@ -263,6 +265,7 @@ namespace tahsinERP.Controllers
             return View(supplier);
         }
 
+        [ActionViewPermission(change: true)]
         public async Task<ActionResult> Delete(int? id)
         {
             if (!CanChange("Supplier"))
@@ -287,6 +290,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)

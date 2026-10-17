@@ -1,4 +1,3 @@
-@model List<tahsinERP.Models.P_CONTRACTS>
 @{
     ViewBag.Title = "Xarid shartnomalari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -44,7 +43,7 @@
 
                     <div class="card mb-2">
                         <div class="card-body py-1">
-                            @using (Html.BeginForm("Index", "PContracts", FormMethod.Get, new { @class = "form" }))
+                            @using (Html.BeginForm("Index", "PContracts", FormMethod.Get, new { @class = "form", id = "pContractsFilter" }))
                             {
                                 <div class="row">
                                     <div class="col-md-2 form-group mb-1">
@@ -103,55 +102,7 @@
                                                     }
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                @if (Model != null && Model.Any())
-                                                {
-                                                    foreach (var item in Model)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                <a href="@Url.Action("Details", "PContracts", new { id = item.ID })">@item.ContractNo</a>
-                                                            </td>
-                                                            <td>
-                                                                @if (item.SUPPLIER != null)
-                                                                {
-                                                                    <a href="@Url.Action("Details", "Supplier", new { id = item.SupplierID })">@item.SUPPLIER.Name</a>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">-</span>
-                                                                }
-                                                            </td>
-                                                            <td>
-                                                                @{
-                                                                    var contractType = item.PurchaseType == 1 ? "Indirect" : "Direct";
-                                                                    var contractTypeClass = item.PurchaseType == 1 ? "badge-info" : "badge-primary";
-                                                                }
-                                                                <span class="badge @contractTypeClass">@contractType</span>
-                                                            </td>
-                                                            <td>@(item.Amount?.ToString("N2") ?? "0.00")</td>
-                                                            <td>@(item.PaymentTerms ?? "-")</td>
-                                                            <td data-order="@item.IssuedDate.ToString("yyyyMMdd")">@item.IssuedDate.ToString("dd.MM.yyyy")</td>
-                                                            @if (changePermit)
-                                                            {
-                                                                <td>
-                                                                    <div class="d-flex">
-                                                                        <a href="@Url.Action("Details", "PContracts", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
-                                                                            <i class="bx bx-show"></i>
-                                                                        </a>
-                                                                        <a href="@Url.Action("Edit", "PContracts", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
-                                                                            <i class="bx bx-edit-alt"></i>
-                                                                        </a>
-                                                                        <a href="@Url.Action("Delete", "PContracts", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu shartnomani o\'chirishni tasdiqlaysizmi?');">
-                                                                            <i class="bx bx-trash"></i>
-                                                                        </a>
-                                                                    </div>
-                                                                </td>
-                                                            }
-                                                        </tr>
-                                                    }
-                                                }
-                                            </tbody>
+                                            <tbody></tbody>
                                         </table>
                                     </div>
                                 </div>
@@ -163,45 +114,44 @@
         </div>
     </div>
 
+@section Scripts {
+    <script src="~/Scripts/srm/srm-server-table.js"></script>
     <script>
-        (function () {
-            function initPContractsTable() {
-                if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
-                    setTimeout(initPContractsTable, 100);
-                    return;
-                }
-                var $ = window.jQuery;
-                if (!$('#pContractsTable').length) return;
-
-                $('#pContractsTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "order": [[5, "desc"]],
-                dom: 'lBfrtip',
-                buttons: [
-                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
-                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
-                ]
+        $(document).ready(function () {
+            var detailsUrl = '@Url.Action("Details", "PContracts")/';
+            var editUrl = '@Url.Action("Edit", "PContracts")/';
+            var deleteUrl = '@Url.Action("Delete", "PContracts")/';
+            var supplierUrl = '@Url.Action("Details", "Supplier")/';
+            var columns = [
+                { data: 'contractNo', render: function (v, t, r) { return '<a href="' + detailsUrl + r.id + '">' + srmEsc(v) + '</a>'; } },
+                { data: 'supplier', render: function (v, t, r) { return v ? '<a href="' + supplierUrl + r.supplierId + '">' + srmEsc(v) + '</a>' : '<span class="text-muted">-</span>'; } },
+                { data: 'indirect', render: function (v) { return v ? '<span class="badge badge-info">Indirect</span>' : '<span class="badge badge-primary">Direct</span>'; } },
+                { data: 'amount' },
+                { data: 'paymentTerms', render: function (v) { return srmEsc(v || '-'); } },
+                { data: 'date' }
+            ];
+            @if (changePermit)
+            {
+                <text>
+                columns.push({
+                    data: null, orderable: false, render: function (v, t, r) {
+                        return '<div class="d-flex">' +
+                            '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>' +
+                            '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>' +
+                            '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish" onclick="return confirm(&quot;Ushbu shartnomani o&#39;chirishni tasdiqlaysizmi?&quot;);"><i class="bx bx-trash"></i></a>' +
+                            '</div>';
+                    }
+                });
+                </text>
+            }
+            var table = srmServerTable('#pContractsTable', {
+                dataUrl: '@Url.Action("IndexData", "PContracts")',
+                exportUrl: '@Url.Action("ExportExcel", "PContracts")',
+                filterForm: '#pContractsFilter',
+                order: [[5, 'desc']],
+                columns: columns
             });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initPContractsTable);
-            } else {
-                initPContractsTable();
-            }
-        })();
+            $('#pContractsFilter').on('submit', function (e) { e.preventDefault(); table.ajax.reload(); });
+        });
     </script>
+}

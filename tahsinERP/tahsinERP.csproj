@@ -344,6 +344,7 @@
     <Compile Include="Controllers\Logistic\TransportLoadSimulationController.cs" />
     <Compile Include="Controllers\Settings\WarehouseController.cs" />
     <Compile Include="Controllers\SRM\ExpensesController.cs" />
+    <Compile Include="Controllers\SRM\ActionViewPermissionAttribute.cs" />
     <Compile Include="Controllers\SRM\HSCodeController.cs" />
     <Compile Include="Controllers\AdminSetting\LogHelper.cs" />
     <Compile Include="Controllers\AdminSetting\NetworkHelper.cs" />
@@ -841,6 +842,13 @@
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\VatMath.cs" />
     <Compile Include="Services\Procurement\ProcurementLookups.cs" />
+    <Compile Include="Services\Procurement\ServerTablePage.cs" />
+    <Compile Include="Services\Procurement\POrderService.cs" />
+    <Compile Include="ViewModels\PInvoice\PInvoiceFormViewModels.cs" />
+    <Compile Include="Services\Procurement\PInvoiceService.cs" />
+    <Compile Include="ViewModels\PContract\PContractFormViewModels.cs" />
+    <Compile Include="Services\Procurement\ProcurementErrors.cs" />
+    <Compile Include="Services\Procurement\PContractService.cs" />
     <Compile Include="Services\Procurement\PdfUpload.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
@@ -864,6 +872,13 @@
     <Compile Include="Services\Finance\FinAnalyticsService.cs" />
     <Compile Include="Services\Finance\FinLiabilities.cs" />
     <Compile Include="Services\Finance\FinQueries.cs" />
+    <Compile Include="Services\Finance\FinCounterpartyLookupService.cs" />
+    <Compile Include="Services\Finance\OpeningBalanceService.cs" />
+    <Compile Include="Services\Finance\OpeningBalanceExcelService.cs" />
+    <Compile Include="Services\Finance\FinCategoryTree.cs" />
+    <Compile Include="ViewModels\Finance\MapCategoriesViewModel.cs" />
+    <Compile Include="Services\Finance\FinSelectLists.cs" />
+    <Compile Include="Services\Finance\FinTransactionImportService.cs" />
     <Compile Include="Services\Finance\LiabilityReportsService.cs" />
     <Compile Include="Services\Finance\ValuationService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
@@ -2723,6 +2738,7 @@
     </Content>
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
+    <Content Include="Scripts\app\contract-picker.js" />
     <Content Include="Scripts\app\indexed-rows.js" />
     <Content Include="Scripts\crm\contract-products.js" />
     <Content Include="Scripts\crm\crm-dashboard.js" />
@@ -3055,11 +3071,14 @@
     <Content Include="Views\FinPlPlans\Delete.cshtml" />
     <Content Include="Views\FinPlPlans\Edit.cshtml" />
     <Content Include="Views\FinPlPlans\Index.cshtml" />
+    <Content Include="Views\FinTransactions\_FormScripts.cshtml" />
+    <Content Include="Views\FinTransactions\_Form.cshtml" />
     <Content Include="Views\FinTransactions\Create.cshtml" />
     <Content Include="Views\FinTransactions\Delete.cshtml" />
     <Content Include="Views\FinTransactions\Details.cshtml" />
     <Content Include="Views\FinTransactions\Edit.cshtml" />
     <Content Include="Views\FinTransactions\Index.cshtml" />
+    <Content Include="Views\Shareholder\_Form.cshtml" />
     <Content Include="Views\Shareholder\AddContribution.cshtml" />
     <Content Include="Views\Shareholder\Create.cshtml" />
     <Content Include="Views\Shareholder\Delete.cshtml" />
@@ -3243,7 +3262,6 @@
     <Content Include="Views\STDCompanyStandards\_FormScripts.cshtml" />
     <Content Include="Views\STDCompanyStandards\_Form.cshtml" />
     <Content Include="Views\STDCompanyStandards\Index.cshtml" />
-    <Content Include="Views\FinBalanceCategories\MapCategories.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Index.cshtml" />
     <Content Include="Views\FinDashboard\AccountAnalytics.cshtml" />
     <Content Include="Views\FinDashboard\AccountBalances.cshtml" />
@@ -3280,6 +3298,7 @@
     <Content Include="Views\OpeningBalance\Delete.cshtml" />
     <Content Include="Views\OpeningBalance\Edit.cshtml" />
     <Content Include="Views\OpeningBalance\Index.cshtml" />
+    <Content Include="Views\FinRecurringObligations\_Form.cshtml" />
     <Content Include="Views\FinRecurringObligations\Create.cshtml" />
     <Content Include="Views\FinRecurringObligations\Edit.cshtml" />
     <Content Include="Views\FinRecurringObligations\Index.cshtml" />

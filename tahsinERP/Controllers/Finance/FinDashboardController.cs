@@ -57,9 +57,8 @@ namespace tahsinERP.Controllers.Finance
             {
                 ViewBag.Year = year;
                 ViewBag.Month = month;
-                ViewBag.YearList = new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 11).ToList(), year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
                 ViewBag.PLData = FinAnalyticsService.ProfitAndLoss(db, year.Value, month.Value);
 
                 return View();

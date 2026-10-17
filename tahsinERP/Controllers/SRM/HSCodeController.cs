@@ -1,34 +1,64 @@
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Services.Procurement;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
     [Permission]
     public class HSCodeController : Controller
     {
-        // Olish so'rovi: HSCode
-        public async Task<ActionResult> Index()
+        // Olish so'rovi: HSCode — sahifa faqat jadval qobig'i; qatorlar IndexData orqali (11 mingdan ortiq kod,
+        // avval hammasi bitta HTML'da edi — SRM-P03)
+        [ActionViewPermission(change: false)]
+        public ActionResult Index()
         {
-            using (DBTHSNEntities db = new DBTHSNEntities())
+            return View();
+        }
+
+        // Olish so'rovi: HSCode/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData()
+        {
+            // Index sahifasi bilan bir xil qat'iy tekshiruv (ActionViewPermission)
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "HSCode", "Index"))
             {
-                var list = await db.HSCODES.AsNoTracking().ToListAsync();
-                return View(list);
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 0, defaultDescending: false);
+            using (var db = new DBTHSNEntities())
+            {
+                var result = await ServerTablePage.LoadAsync(
+                    db.HSCODES.AsNoTracking().Select(h => new { h.ID, h.HSCODE1, h.Description }),
+                    page,
+                    (q, s) => q.Where(h => h.HSCODE1.Contains(s) || h.Description.Contains(s)),
+                    (q, column, desc) => (column == 1
+                        ? ServerTablePage.By(q, h => h.Description, desc)
+                        : ServerTablePage.By(q, h => h.HSCODE1, desc)).ThenBy(h => h.ID));
+
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(h => new { id = h.ID, code = h.HSCODE1, description = h.Description })
+                }, JsonRequestBehavior.AllowGet);
             }
         }
 
+        [ActionViewPermission(change: true)]
         public ActionResult Create()
         {
             return View();
         }
 
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(HSCODE hsCode)
@@ -58,6 +88,7 @@ namespace tahsinERP.Controllers
             return View(hsCode);
         }
 
+        [ActionViewPermission(change: false)]
         public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
@@ -73,6 +104,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         public async Task<ActionResult> Delete(int? id)
         {
             if (id == null)
@@ -88,6 +120,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(int? id, FormCollection gfs)
@@ -131,6 +164,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         public async Task<ActionResult> Edit(int? id)
         {
             if (id == null)
@@ -146,6 +180,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(HSCODE hsCode)

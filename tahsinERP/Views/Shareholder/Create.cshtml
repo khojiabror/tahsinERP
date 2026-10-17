@@ -5,8 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -38,30 +37,8 @@
                                     {
                                         @Html.AntiForgeryToken()
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                        
-                                        <div class="form-group">
-                                            @Html.LabelFor(m => m.FullName, "To'liq ism *", new { @class = "control-label" })
-                                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
-                                            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            @Html.LabelFor(m => m.Phone, "Telefon", new { @class = "control-label" })
-                                            @Html.TextBoxFor(m => m.Phone, new { @class = "form-control" })
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            @Html.LabelFor(m => m.Notes, "Izoh", new { @class = "control-label" })
-                                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 3 })
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <div class="custom-control custom-checkbox">
-                                                @Html.CheckBoxFor(m => m.IsActive, new { @class = "custom-control-input", id = "IsActive", @checked = "checked" })
-                                                <label class="custom-control-label" for="IsActive">Faol</label>
-                                            </div>
-                                        </div>
-                                        
+                                        @Html.Partial("_Form", Model, new ViewDataDictionary(ViewData) { { "IsCreate", true } })
+
                                         <div class="form-actions">
                                             <button type="submit" class="btn btn-primary">Saqlash</button>
                                             <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
@@ -75,8 +52,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

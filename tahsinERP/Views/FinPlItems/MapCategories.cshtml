@@ -1,15 +1,12 @@
-@model tahsinERP.Models.FIN_PL_ITEMS
+@model tahsinERP.ViewModels.Finance.MapCategoriesViewModel
 
 @{
     ViewBag.Title = "Kategoriyalarni bog'lash";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-{
-    var allCategories = ViewBag.AllCategories as List<tahsinERP.Models.FIN_CATEGORIES>;
-    var mappedCategoryIds = ViewBag.MappedCategoryIds as List<int> ?? new List<int>();
-    
+@* FinBalanceCategories va FinPlItems uchun umumiy (FIN-D16). Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -20,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinPlItems">P&L elementlar</a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = Model.ID })">@Model.Name</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", Model.Controller)">@Model.ListTitle</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Details", Model.Controller, new { id = Model.ID })">@Model.Name</a></li>
                                     <li class="breadcrumb-item active">Kategoriyalarni bog'lash</li>
                                 </ol>
                             </div>
@@ -38,25 +35,25 @@
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
-                                    @using (Html.BeginForm("MapCategories", "FinPlItems", FormMethod.Post, new { @class = "form" }))
+                                    @using (Html.BeginForm("MapCategories", Model.Controller, FormMethod.Post, new { @class = "form" }))
                                     {
                                         @Html.AntiForgeryToken()
                                         @Html.Hidden("id", Model.ID)
-                                        
+
                                         <div class="form-group">
                                             <label class="control-label">Tranzaksiya kategoriyalari:</label>
                                             <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
-                                                @foreach (var category in allCategories)
+                                                @foreach (var category in Model.AllCategories)
                                                 {
                                                     <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" 
-                                                               class="custom-control-input" 
-                                                               id="cat_@category.ID" 
-                                                               name="categoryIds" 
+                                                        <input type="checkbox"
+                                                               class="custom-control-input"
+                                                               id="cat_@category.ID"
+                                                               name="categoryIds"
                                                                value="@category.ID"
-                                                               @(mappedCategoryIds.Contains(category.ID) ? "checked" : "") />
+                                                               @(Model.MappedCategoryIds.Contains(category.ID) ? "checked" : "") />
                                                         <label class="custom-control-label" for="cat_@category.ID">
-                                                            @category.Name 
+                                                            @category.Name
                                                             <span class="badge badge-@(category.Type == 1 ? "success" : category.Type == 2 ? "danger" : "secondary")">
                                                                 @(category.Type == 1 ? "Daromad" : category.Type == 2 ? "Chiqim" : "Boshqa")
                                                             </span>
@@ -65,10 +62,10 @@
                                                 }
                                             </div>
                                         </div>
-                                        
+
                                         <div class="form-actions">
                                             <button type="submit" class="btn btn-primary">Saqlash</button>
-                                            <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-secondary">Bekor qilish</a>
+                                            <a href="@Url.Action("Details", Model.Controller, new { id = Model.ID })" class="btn btn-secondary">Bekor qilish</a>
                                         </div>
                                     }
                                 </div>
@@ -79,8 +76,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
