@@ -560,8 +560,6 @@ namespace tahsinERP.Controllers.MES
                         MaterialPNo = req.MaterialPNo,
                         MaterialName = req.MaterialName,
                         RequiredQtyPieces = req.RequiredQtyPieces,
-                        RequiredQtyMeters = req.RequiredQtyMeters,
-                        WasteQty = req.WasteQty,
                         TotalConsumption = req.TotalConsumption,
                         UnitName = unitName,
                         TotalConsumptionIsInKg = req.TotalConsumptionIsInKg,
@@ -676,58 +674,9 @@ namespace tahsinERP.Controllers.MES
                 return "Ishlab chiqarish ombori topilmadi";
             }
 
-            var consumptionService = new ProductionConsumptionService(db);
-            var newRequirements = await consumptionService.CalculateRequiredRawMaterialsAsync(productId, producedQty);
-            if (newRequirements == null || newRequirements.Count == 0)
-            {
-                return null;
-            }
-
-            var oldConsumptionByMaterial = new Dictionary<int, double>();
-            if (oldProductId.HasValue && oldProducedQty.HasValue && oldProducedQty.Value > 0)
-            {
-                var oldRequirements = await consumptionService.CalculateRequiredRawMaterialsAsync(oldProductId.Value, oldProducedQty.Value);
-                if (oldRequirements != null)
-                {
-                    foreach (var req in oldRequirements)
-                    {
-                        if (!oldConsumptionByMaterial.ContainsKey(req.MaterialID))
-                        {
-                            oldConsumptionByMaterial[req.MaterialID] = 0d;
-                        }
-                        oldConsumptionByMaterial[req.MaterialID] += req.TotalConsumption;
-                    }
-                }
-            }
-
-            foreach (var req in newRequirements)
-            {
-                var availableQty = InventoryValuationService.GetQty(db, productionWarehouse.ID, req.MaterialID);
-                if (oldConsumptionByMaterial.ContainsKey(req.MaterialID))
-                {
-                    availableQty += oldConsumptionByMaterial[req.MaterialID];
-                }
-
-                if (availableQty + 1e-9 < req.TotalConsumption)
-                {
-                    var stock = await db.PRODUCT_STOCKS
-                        .Include(s => s.UNIT)
-                        .FirstOrDefaultAsync(s => s.WHID == productionWarehouse.ID && s.ProductID == req.MaterialID);
-                    var unitName = (stock?.UNIT != null)
-                        ? (stock.UNIT.ShortName ?? stock.UNIT.UnitName ?? "").Trim()
-                        : "";
-                    var availableWithUnit = string.IsNullOrEmpty(unitName)
-                        ? availableQty.ToString("N2")
-                        : $"{availableQty:N2} {unitName}";
-                    var requiredWithUnit = string.IsNullOrEmpty(unitName)
-                        ? req.TotalConsumption.ToString("N2")
-                        : $"{req.TotalConsumption:N2} {unitName}";
-
-                    return $"Ishlab chiqarish natijasini saqlab bo'lmadi: xomashyo yetarli emas. Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, omborda {availableWithUnit}, kerak {requiredWithUnit}.";
-                }
-            }
-
-            return null;
+            // Tekshiruv mantiqi servisda (ConsumeMaterialsForProductionAsync ham shuni ishlatadi, MES-D23)
+            return await new ProductionConsumptionService(db).ValidateStockForProductionAsync(
+                productId, producedQty, productionWarehouse.ID, oldProductId, oldProducedQty);
         }
 
         /// <summary>
