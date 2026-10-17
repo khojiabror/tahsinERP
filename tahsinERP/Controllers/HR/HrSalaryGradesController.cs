@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 
 namespace tahsinERP.Controllers.HR
@@ -94,9 +96,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ViewBag.CurrencyCode = new SelectList(
-                db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                "Shortname", "Shortname");
+            PopulateCurrencies(null);
 
             return View();
         }
@@ -117,9 +117,7 @@ namespace tahsinERP.Controllers.HR
                 if (viewModel.MinSalary > viewModel.MaxSalary)
                 {
                     ModelState.AddModelError("MaxSalary", "Максимальная зарплата должна быть больше или равна минимальной");
-                    ViewBag.CurrencyCode = new SelectList(
-                        db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                        "Shortname", "Shortname", viewModel.CurrencyCode);
+                    PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
 
@@ -134,9 +132,7 @@ namespace tahsinERP.Controllers.HR
                 if (overlapping != null)
                 {
                     ModelState.AddModelError("EffectiveFrom", "Пересекающиеся периоды действия для этого кода тарифной сетки не допускаются");
-                    ViewBag.CurrencyCode = new SelectList(
-                        db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                        "Shortname", "Shortname", viewModel.CurrencyCode);
+                    PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
 
@@ -154,14 +150,13 @@ namespace tahsinERP.Controllers.HR
 
                 db.HR_SALARY_GRADES.Add(grade);
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.SalaryGrades);
 
                 logger.Log("HrSalaryGrades", "Create", $"Daraja: {grade.Name}, Kod: {grade.GradeCode}");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.CurrencyCode = new SelectList(
-                db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                "Shortname", "Shortname", viewModel.CurrencyCode);
+            PopulateCurrencies(viewModel.CurrencyCode);
             return View(viewModel);
         }
 
@@ -196,9 +191,7 @@ namespace tahsinERP.Controllers.HR
                 EffectiveTo = grade.EffectiveTo
             };
 
-            ViewBag.CurrencyCode = new SelectList(
-                db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                "Shortname", "Shortname", viewModel.CurrencyCode);
+            PopulateCurrencies(viewModel.CurrencyCode);
             return View(viewModel);
         }
 
@@ -218,9 +211,7 @@ namespace tahsinERP.Controllers.HR
                 if (viewModel.MinSalary > viewModel.MaxSalary)
                 {
                     ModelState.AddModelError("MaxSalary", "Максимальная зарплата должна быть больше или равна минимальной");
-                    ViewBag.CurrencyCode = new SelectList(
-                        db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                        "Shortname", "Shortname", viewModel.CurrencyCode);
+                    PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
 
@@ -236,9 +227,7 @@ namespace tahsinERP.Controllers.HR
                 if (overlapping != null)
                 {
                     ModelState.AddModelError("EffectiveFrom", "Пересекающиеся периоды действия для этого кода тарифной сетки не допускаются");
-                    ViewBag.CurrencyCode = new SelectList(
-                        db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                        "Shortname", "Shortname", viewModel.CurrencyCode);
+                    PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
 
@@ -256,16 +245,14 @@ namespace tahsinERP.Controllers.HR
                 grade.EffectiveFrom = viewModel.EffectiveFrom;
                 grade.EffectiveTo = viewModel.EffectiveTo;
 
-                db.Entry(grade).State = EntityState.Modified;
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.SalaryGrades);
 
                 logger.Log("HrSalaryGrades", "Edit", $"Daraja: {viewModel.Name}, Kod: {viewModel.GradeCode}");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.CurrencyCode = new SelectList(
-                db.CURRENCIES.OrderBy(c => c.Shortname).ToList(),
-                "Shortname", "Shortname", viewModel.CurrencyCode);
+            PopulateCurrencies(viewModel.CurrencyCode);
             return View(viewModel);
         }
 
@@ -286,7 +273,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Tekshirish agar used in staffing plan
-            var usedInStaffing = await db.HR_STAFFING_PLAN.AnyAsync(sp => sp.SalaryGradeID == id);
+            var usedInStaffing = await db.HR_STAFFING_PLAN.AnyAsync(sp => sp.SalaryGradeID == id && sp.IsDeleted != true);
             if (usedInStaffing)
             {
                 TempData["Error"] = "Нельзя удалить тарифную сетку, которая используется в штатном расписании";
@@ -297,9 +284,18 @@ namespace tahsinERP.Controllers.HR
             db.Entry(grade).State = System.Data.Entity.EntityState.Modified;
             await SoftDeleteReferenceService.AfterSalaryGradeSoftDeletedAsync(db, id);
             await db.SaveChangesAsync();
+            HrLookups.Invalidate(HrLookups.SalaryGrades);
 
             logger.Log("HrSalaryGrades", "Delete", $"Daraja: {grade.Name}, Kod: {grade.GradeCode}");
             return RedirectToAction("Index");
+        }
+
+        /// <summary>Valyuta ro'yxati keshdan (avval 8 joyda har safar bazadan, HRM-D09).</summary>
+        private void PopulateCurrencies(string selected)
+        {
+            ViewBag.CurrencyCode = new SelectList(
+                ReferenceDataCache.Get(ReferenceDataCache.Currencies).OrderBy(c => c.Name),
+                "Name", "Name", selected);
         }
 
         protected override void Dispose(bool disposing)
