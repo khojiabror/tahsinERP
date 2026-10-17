@@ -12,7 +12,6 @@ namespace tahsinERP.Services
     /// </summary>
     public static class FinancePostingService
     {
-        private const byte WaybillPaymentSplitPayerType = 99;
         /// <summary>
         /// Post transaction from Sales Invoice
         /// </summary>
@@ -215,7 +214,12 @@ namespace tahsinERP.Services
         /// <summary>
         /// Post transaction from Waybill Payment
         /// </summary>
-        public static void PostWaybillPayment(int paymentID, int? accountID, DBTHSNEntities db, int userId)
+        /// <summary>
+        /// Yo'l varaqasi to'lovini FIN_TRANSACTIONS'ga chiqim sifatida yozadi.
+        /// true — moliya yozuvi bor (yangi yozildi yoki avval yozilgan); false — to'lov topilmadi
+        /// yoki mos bank hisobi yo'q (yozilmadi). SaveChanges chaqiruvchining tranzaksiyasi ichida bajariladi.
+        /// </summary>
+        public static bool PostWaybillPayment(int paymentID, int? accountID, DBTHSNEntities db, int userId)
         {
             var payment = db.F_WAYBILL_PAYMENTS
                 .Include(p => p.F_WAYBILLS)
@@ -223,13 +227,13 @@ namespace tahsinERP.Services
                 .Include(p => p.CURRENCy)
                 .FirstOrDefault(p => p.ID == paymentID);
 
-            if (payment == null) return;
+            if (payment == null) return false;
 
             // Check if already posted
             var existing = db.FIN_TRANSACTIONS
-                .FirstOrDefault(t => t.SourceDocType == "WaybillPayment" && t.SourceDocID == paymentID && t.IsDeleted != true);
+                .FirstOrDefault(t => t.SourceDocType == WaybillLedgerService.FinSourceDocType && t.SourceDocID == paymentID && t.IsDeleted != true);
 
-            if (existing != null) return;
+            if (existing != null) return true;
 
             // Find bank account - use provided accountID or find default bank account
             FIN_ACCOUNTS account = null;
@@ -250,7 +254,7 @@ namespace tahsinERP.Services
             {
                 LogHelper.LogToDatabase("System", "FinancePosting", "PostWaybillPayment",
                     $"Yo'l varaqasi to'lovi (ID: {paymentID}) uchun mos hisob topilmadi.");
-                return; // No account found
+                return false; // No account found
             }
 
             // Find transport expense category (material vs finished product)
@@ -258,7 +262,7 @@ namespace tahsinERP.Services
 
             var linkedWaybillNos = (from s in db.F_WAYBILL_PAYMENT_SPLITS
                                     join w in db.F_WAYBILLS on s.WaybillID equals w.ID
-                                    where s.PayerType == WaybillPaymentSplitPayerType
+                                    where s.PayerType == WaybillLedgerService.SplitPayerType
                                           && s.PayerID == paymentID
                                     select w.WaybillNo).Distinct().ToList();
             if (!linkedWaybillNos.Any() && payment.F_WAYBILLS != null)
@@ -273,14 +277,14 @@ namespace tahsinERP.Services
                 TxnDate = payment.PaymentDate ?? DateTime.Now,
                 AccountID = account.ID,
                 CategoryID = category.ID,
-                Direction = 2, // Out
+                Direction = WaybillLedgerService.FinDirectionOut,
                 Amount = (decimal)payment.Payment_Amount,
                 CurrencyID = payment.CurrencyID ?? 1,
-                CounterpartyType = 4, // Yuk tashuvchi
+                CounterpartyType = WaybillLedgerService.FinCounterpartyForwarder,
                 CounterpartyID = payment.ForwarderID,
                 CounterpartyName = payment.FORWARDER?.ForwarderName,
                 Purpose = $"Yo'l varaqasi bo'yicha yuk tashish to'lovi: {waybillNoText}",
-                SourceDocType = "WaybillPayment",
+                SourceDocType = WaybillLedgerService.FinSourceDocType,
                 SourceDocID = paymentID,
                 CreatedByUserID = userId,
                 CreatedDT = DateTime.Now
@@ -290,6 +294,7 @@ namespace tahsinERP.Services
             db.SaveChanges();
 
             LogHelper.LogToDatabase("System", "FinancePosting", "PostWaybillPayment", $"Yo'l varaqasi to'lovi tranzaksiyaga kiritildi: {paymentID}");
+            return true;
         }
 
         private static FIN_CATEGORIES ResolveLogisticsCategory(F_WAYBILLS waybill, DBTHSNEntities db)

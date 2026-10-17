@@ -892,7 +892,7 @@
     <Compile Include="Services\LogisticsAnalyticsService.cs" />
     <Compile Include="Services\LogisticsLookups.cs" />
     <Compile Include="Services\LogisticsEnums.cs" />
-    <Compile Include="Services\ExcelCellReader.cs" />
+    <Compile Include="Services\Common\ExcelCellReader.cs" />
     <Compile Include="Services\OfficialLetterDataService.cs" />
     <Compile Include="Services\POrderGenerationService.cs" />
     <Compile Include="Services\ProductionConsumptionService.cs" />
