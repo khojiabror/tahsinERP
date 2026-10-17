@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
@@ -137,16 +138,54 @@ namespace tahsinERP.Services
             return false;
         }
 
-        /// <summary>Ushbu ishlab chiqarish uchun avtomatik kirim yaratilganmi.</summary>
-        public static bool HasProductionIncome(DBTHSNEntities db, int productionId)
+        private static bool _incomesHaveProductionIdColumn;
+
+        /// <summary>
+        /// INCOMES.ProductionID ustuni bormi (MES-P12 migratsiyasi). EDMX'da property bo'lmasa ham ishlashi uchun
+        /// ustunga xom SQL bilan murojaat qilinadi; faqat "bor" natijasi keshlanadi (migratsiya keyin qo'llansa ham topiladi).
+        /// </summary>
+        private static bool IncomesHaveProductionIdColumn(DBTHSNEntities db)
+        {
+            if (_incomesHaveProductionIdColumn)
+                return true;
+            var exists = db.Database.SqlQuery<int>(
+                "SELECT CASE WHEN COL_LENGTH('dbo.INCOMES', 'ProductionID') IS NULL THEN 0 ELSE 1 END").FirstOrDefault() == 1;
+            if (exists)
+                _incomesHaveProductionIdColumn = true;
+            return exists;
+        }
+
+        /// <summary>
+        /// Ishlab chiqarishning (o'chirilmagan) avtomatik kirimlari: avval INCOMES.ProductionID bo'yicha (indeksli, aniq);
+        /// topilmasa — zaxira sifatida izohdagi "ProductionID:x" markeri (aniq moslik bilan; backfill qilinmagan eski yozuvlar).
+        /// </summary>
+        public static List<int> FindProductionIncomeIds(DBTHSNEntities db, int productionId)
         {
             if (productionId <= 0)
-                return false;
+                return new List<int>();
+
+            if (IncomesHaveProductionIdColumn(db))
+            {
+                var byColumn = db.Database.SqlQuery<int>(
+                    "SELECT ID FROM dbo.INCOMES WHERE ProductionID = @p0 AND ISNULL(IsDeleted, 0) = 0", productionId).ToList();
+                if (byColumn.Count > 0)
+                    return byColumn;
+            }
+
             var marker = ProductionIncomeMarker + productionId;
             return db.INCOMES
                 .Where(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker))
+                .Select(i => new { i.ID, i.Description })
                 .AsEnumerable()
-                .Any(i => DescriptionMatchesProductionId(i.Description, productionId));
+                .Where(i => DescriptionMatchesProductionId(i.Description, productionId))
+                .Select(i => i.ID)
+                .ToList();
+        }
+
+        /// <summary>Ushbu ishlab chiqarish uchun avtomatik kirim yaratilganmi.</summary>
+        public static bool HasProductionIncome(DBTHSNEntities db, int productionId)
+        {
+            return FindProductionIncomeIds(db, productionId).Count > 0;
         }
 
         /// <summary>
@@ -162,14 +201,7 @@ namespace tahsinERP.Services
             if (productionId <= 0)
                 return;
 
-            var marker = ProductionIncomeMarker + productionId;
-            var incomeIds = db.INCOMES
-                .Where(i => i.IsDeleted != true && i.Description != null && i.Description.Contains(marker))
-                .Select(i => new { i.ID, i.Description })
-                .AsEnumerable()
-                .Where(i => DescriptionMatchesProductionId(i.Description, productionId))
-                .Select(i => i.ID)
-                .ToList();
+            var incomeIds = FindProductionIncomeIds(db, productionId);
 
             if (!incomeIds.Any())
                 return;
@@ -412,6 +444,14 @@ namespace tahsinERP.Services
                     db.INCOMES.Add(income);
                     db.INCOME_PRODUCTS.Add(incomeProduct);
                     db.SaveChanges();
+
+                    // MES-P12: ishlab chiqarishga FK bog'lanish (izohdagi marker ham saqlanadi). EDMX'da property
+                    // qo'shilgunga qadar xom SQL bilan; ustun yo'q bo'lsa (migratsiyadan oldin) — o'tkazib yuboriladi.
+                    if (productionID.HasValue && productionID.Value > 0 && IncomesHaveProductionIdColumn(db))
+                    {
+                        db.Database.ExecuteSqlCommand(
+                            "UPDATE dbo.INCOMES SET ProductionID = @p0 WHERE ID = @p1", productionID.Value, income.ID);
+                    }
 
                     var locations = DlocFifoDataAccess.GetLocations(db, productionWH.ID, activeOnly: true);
                     StockLedger.ReceiveLine(db, productionWH.ID, income.ID, incomeProduct.ID, productID,
