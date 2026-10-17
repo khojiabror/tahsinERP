@@ -1,0 +1,36 @@
+@model tahsinERP.Models.SHAREHOLDER
+@* Create/Edit umumiy forma maydonlari (FIN-D21). ViewData["IsCreate"] = true — yaratish. *@
+@{
+    var isCreate = ViewData["IsCreate"] as bool? ?? false;
+}
+
+<div class="form-group">
+    @Html.LabelFor(m => m.FullName, "To'liq ism *", new { @class = "control-label" })
+    @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
+    @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(m => m.Phone, "Telefon", new { @class = "control-label" })
+    @Html.TextBoxFor(m => m.Phone, new { @class = "form-control" })
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(m => m.Notes, "Izoh", new { @class = "control-label" })
+    @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 3 })
+</div>
+
+<div class="form-group">
+    <div class="custom-control custom-checkbox">
+        @if (isCreate)
+        {
+            @* Yangi aksiyador standart holatda faol *@
+            @Html.CheckBoxFor(m => m.IsActive, new { @class = "custom-control-input", id = "IsActive", @checked = "checked" })
+        }
+        else
+        {
+            @Html.CheckBoxFor(m => m.IsActive, new { @class = "custom-control-input", id = "IsActive" })
+        }
+        <label class="custom-control-label" for="IsActive">Faol</label>
+    </div>
+</div>

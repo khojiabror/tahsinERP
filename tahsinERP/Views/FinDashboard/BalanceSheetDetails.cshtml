@@ -1,11 +1,12 @@
 @{
-    ViewBag.Title = "Aktivlar Tafsiloti";
+    ViewBag.Title = (string)ViewBag.Heading;
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var details = ViewBag.AssetDetails as List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData>();
+    // FIN-D19: aktivlar (BalanceSheetAssetDetails) va passivlar (BalanceSheetLiabilityDetails) uchun bitta sahifa
+    var isLiability = ViewBag.IsLiability as bool? ?? false;
+    var details = ViewBag.Details as List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData>();
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -18,7 +19,7 @@
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item">Moliya</li>
                                     <li class="breadcrumb-item"><a href="@Url.Action("BalanceSheet", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">Balans</a></li>
-                                    <li class="breadcrumb-item active">Aktivlar Tafsiloti</li>
+                                    <li class="breadcrumb-item active">@ViewBag.Heading</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,14 +32,18 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">
-                                    Aktivlar Tafsiloti - @(ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy") : DateTime.Now.ToString("dd.MM.yyyy"))
+                                    @ViewBag.Heading - @(ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy") : DateTime.Now.ToString("dd.MM.yyyy"))
                                 </h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="mb-2">
-                                        <strong>Jami aktivlar:</strong>
-                                        <span class="ml-1">@details.Sum(d => d.Amount).ToString("N2")</span>
+                                        <strong>@ViewBag.TotalLabel</strong>
+                                        @{
+                                            var totalDisplay = details.Sum(d =>
+                                                isLiability && d.Category.Type == 2 ? -Math.Abs(d.Amount) : d.Amount);
+                                        }
+                                        <span class="ml-1">@totalDisplay.ToString("N2")</span>
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
@@ -56,6 +61,9 @@
                                             <tbody>
                                                 @foreach (var item in details)
                                                 {
+                                                    var displayAmount = isLiability && item.Category.Type == 2
+                                                        ? -Math.Abs(item.Amount)
+                                                        : item.Amount;
                                                     <tr>
                                                         <td>
                                                             @item.Category.Name
@@ -72,7 +80,7 @@
                                                         <td class="text-right">@item.TransactionCount</td>
                                                         <td class="text-right">@item.AddedAmount.ToString("N2")</td>
                                                         <td class="text-right">@item.SubtractedAmount.ToString("N2")</td>
-                                                        <td class="text-right">@item.Amount.ToString("N2")</td>
+                                                        <td class="text-right">@displayAmount.ToString("N2")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -140,11 +148,6 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
 
 @section scripts
 {
@@ -223,15 +226,15 @@ else
                             document.getElementById('movementBody').style.display = 'block';
                             var br = document.getElementById('movementBreakdownWrap');
                             var tx = document.getElementById('movementTxnWrap');
+                            var whNote = document.getElementById('movementWarehouseNote');
                             if (!data || !data.success) {
                                 br.style.display = 'none';
                                 tx.style.display = 'block';
-                                document.getElementById('movementWarehouseNote').textContent = '';
+                                whNote.textContent = '';
                                 document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
                                 document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
                                 return;
                             }
-                            var whNote = document.getElementById('movementWarehouseNote');
                             if (data.breakdownMode) {
                                 br.style.display = 'block';
                                 tx.style.display = 'none';

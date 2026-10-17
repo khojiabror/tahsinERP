@@ -5,10 +5,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
+@{
     bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts");
-    
+}
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -172,8 +173,3 @@
             });
         </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

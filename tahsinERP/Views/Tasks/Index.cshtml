@@ -11,7 +11,7 @@
         changePermit = true;
     }
     
-    bool isAdminOrDeveloper = tahsinERP.Services.Tasks.TaskRules.IsAdminOrDeveloper(User.Identity.Name);
+    bool isAdminOrDeveloper = tahsinERP.Models.RoleHelper.IsAdminOrDeveloper(User.Identity.Name);
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
