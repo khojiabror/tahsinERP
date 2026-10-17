@@ -20,10 +20,6 @@ namespace tahsinERP.Controllers.SRM
 {
     public class IncomesController : Controller
     {
-        private static readonly Regex IncomeLineVatInComment = new Regex(
-            @"\s*\|\s*QQS\s*%:\s*[\d.,]+\s*%|\s*QQS\s*%:\s*[\d.,]+\s*%",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
         // Olish so'rovi: Incomes
         // SRM-P04: sahifa faqat filtr va jadval "qobig'ini" qaytaradi; qatorlar IndexData orqali sahifalab
         // (SQL'da paging/saralash/qidiruv, AsNoTracking proyeksiya) yuklanadi. Standart sana filtri — oxirgi 30 kun.
@@ -434,60 +430,23 @@ namespace tahsinERP.Controllers.SRM
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            using (var dbPolicy = new DBTHSNEntities())
+            // SRM-P11: butun so'rov bitta kontekstda (avval siyosat, DLOC tekshiruvi, saqlash va formani qayta
+            // to'ldirish uchun 4 ta alohida DbContext ochilardi)
+            using (var db = new DBTHSNEntities())
             {
-                var policyError = WarehouseFlowService.ValidateManualIncomeCreate(dbPolicy, model.ReceivingWHID, model.InvoiceID);
+                var policyError = WarehouseFlowService.ValidateManualIncomeCreate(db, model.ReceivingWHID, model.InvoiceID);
                 if (policyError != null)
                 {
                     ModelState.AddModelError("", policyError);
                 }
-            }
 
-            using (var dbPre = new DBTHSNEntities())
-            {
-                if (model.ReceivingWHID > 0 && DlocFifoSchema.IsEnabled(dbPre)
-                    && DlocFifoDataAccess.WarehouseHasLocations(dbPre, model.ReceivingWHID))
+                if (model.ReceivingWHID > 0 && StockLedger.IsDlocWarehouse(db, model.ReceivingWHID))
                 {
-                    var lines = model.IncomeProducts ?? new List<ViewModels.IncomeProductViewModel>();
-                    var pendingQtyByLocation = new Dictionary<int, decimal>();
-                    foreach (var line in lines)
-                    {
-                        if (!line.LocationID.HasValue || line.LocationID.Value <= 0)
-                        {
-                            ModelState.AddModelError("", "Har bir mahsulot qatori uchun DLOC tanlanishi shart.");
-                            continue;
-                        }
-
-                        try
-                        {
-                            DlocCapacityGuard.ValidatePutaway(dbPre, line.LocationID.Value, line.ProductID, (decimal)line.Amount);
-                        }
-                        catch (WarehouseDlocException wex)
-                        {
-                            ModelState.AddModelError("", wex.Message);
-                            continue;
-                        }
-
-                        var locId = line.LocationID.Value;
-                        if (!pendingQtyByLocation.ContainsKey(locId))
-                            pendingQtyByLocation[locId] = 0;
-                        pendingQtyByLocation[locId] += (decimal)line.Amount;
-
-                        var loc = DlocFifoDataAccess.GetLocation(dbPre, locId);
-                        if (loc != null)
-                        {
-                            var current = DlocFifoDataAccess.GetLocationCurrentQty(dbPre, locId) + pendingQtyByLocation[locId];
-                            if (current > loc.MaxCapacity)
-                                ModelState.AddModelError("",
-                                    $"DLOC {loc.LocationCode}: sig'im oshib ketadi (Max {loc.MaxCapacity:N2}, jami kirimdan keyin {current:N2}).");
-                        }
-                    }
+                    foreach (var error in IncomeDocumentService.ValidatePutaway(db, model.IncomeProducts))
+                        ModelState.AddModelError("", error);
                 }
-            }
 
-            if (ModelState.IsValid)
-            {
-                using (var db = new DBTHSNEntities())
+                if (ModelState.IsValid)
                 {
                     using (var transaction = db.Database.BeginTransaction())
                     {
@@ -506,8 +465,7 @@ namespace tahsinERP.Controllers.SRM
                                 return RedirectToAction("Index");
                             }
 
-                            var requireDloc = DlocFifoSchema.IsEnabled(db)
-                                && DlocFifoDataAccess.WarehouseHasLocations(db, model.ReceivingWHID);
+                            var requireDloc = StockLedger.IsDlocWarehouse(db, model.ReceivingWHID);
 
                             // Yaratish DocNo agar not provided
                             if (string.IsNullOrEmpty(model.DocNo))
@@ -541,48 +499,22 @@ namespace tahsinERP.Controllers.SRM
 
                             if (model.IncomeProducts != null && model.IncomeProducts.Any())
                             {
+                                var productInfo = await LoadProductInfoAsync(db, model.IncomeProducts.Select(p => p.ProductID));
                                 foreach (var product in model.IncomeProducts)
                                 {
-                                    var productEntity = await db.PRODUCTS
-                                        .Include(p => p.PRODUCT_CATEGORIES)
-                                        .FirstOrDefaultAsync(p => p.ID == product.ProductID);
-                                    
-                                    // Tekshirish agar product requires cutting
-                                    bool requiresCutting = await conversionService.RequiresCuttingAsync(product.ProductID);
-                                    
-                                    // uchun requires_cutting products, use PIECES (UnitID = 1)
-                                    // uchun other products, use user-selected unit yoki product's standart unit
-                                    int unitId;
-                                    if (requiresCutting)
-                                    {
-                                        unitId = 1; // Piece
-                                    }
-                                    else
-                                    {
-                                        unitId = product.UnitID ?? (productEntity?.UnitID ?? 1);
-                                    }
+                                    ProductInfo productEntity;
+                                    productInfo.TryGetValue(product.ProductID, out productEntity);
+                                    var unitId = await IncomeDocumentService.ResolveUnitIdAsync(
+                                        conversionService, product.ProductID, product.UnitID, productEntity?.UnitID);
 
-                                    var vat = Math.Max(0, Math.Min(100, product.VATRate));
-                                    var baseLine = product.Amount * (product.PiecePrice ?? 0);
-                                    var lineTotal = baseLine * (1.0 + vat / 100.0);
-                                    var mergedComment = MergeIncomeCommentWithVat(product.Comment, vat);
-
-                                    var incomeProduct = new INCOME_PRODUCTS
-                                    {
-                                        IncomeID = income.ID,
-                                        ProductID = product.ProductID,
-                                        Amount = product.Amount, // In PIECES uchun cutting products, yoki user-selected unit uchun others
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = lineTotal,
-                                        UnitID = unitId,
-                                        Comment = mergedComment
-                                    };
-
+                                    var incomeProduct = IncomeDocumentService.NewLine(income.ID, product, unitId);
                                     db.INCOME_PRODUCTS.Add(incomeProduct);
                                     await db.SaveChangesAsync();
 
                                     totalAmount += product.Amount;
-                                    totalPrice += incomeProduct.TotalPrice.Value;
+                                    // Sarlavha jami — QQS bilan (qator TotalPrice bazada QQSsiz hisoblanadi; avval saqlashdan
+                                    // keyin qayta o'qilgan QQSsiz qiymat qo'shilib, Create'da jami QQSsiz, Edit'da QQS bilan chiqardi)
+                                    totalPrice += IncomeDocumentService.GrossTotal(product.Amount, product.PiecePrice, product.VATRate);
 
                                     // DLOC omborda kirim darhol joyga qabul qilinadi; oddiy omborda —
                                     // faqat invoys bilan (qabul qilingan) kirim qoldiqqa qo'shiladi.
@@ -655,22 +587,36 @@ namespace tahsinERP.Controllers.SRM
                         }
                     }
                 }
-            }
 
-            // Xato bilan qaytishda forma to'liq qayta to'ldiriladi (SRM-B24: avval Units/Products yo'q edi)
-            using (var db = new DBTHSNEntities())
-            {
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                // Xato bilan qaytishda forma to'liq qayta to'ldiriladi (SRM-B24: avval Units/Products yo'q edi)
+                var viewWarehouseId = await GetAssignedWarehouseIdAsync(db);
                 await PopulateInvoiceSelectListAsync(db, requireInvoice: false, selectedInvoiceId: model.InvoiceID);
-                PopulateHeaderLookups(assignedWarehouseId.HasValue ? new[] { assignedWarehouseId.Value } : null,
+                PopulateHeaderLookups(viewWarehouseId.HasValue ? new[] { viewWarehouseId.Value } : null,
                     model.ReceivingWHID, model.CurrencyID);
                 await PopulateLineLookupsAsync(db);
 
-                if (assignedWarehouseId.HasValue)
-                    PopulateCreateDlocViewBag(db, assignedWarehouseId.Value);
+                if (viewWarehouseId.HasValue)
+                    PopulateCreateDlocViewBag(db, viewWarehouseId.Value);
             }
 
             return View(model);
+        }
+
+        private sealed class ProductInfo
+        {
+            public int ID { get; set; }
+            public string PNo { get; set; }
+            public int UnitID { get; set; }
+        }
+
+        /// <summary>Qatorlardagi mahsulotlar bitta so'rovda (avval har qator uchun Include bilan alohida so'rov).</summary>
+        private static async Task<Dictionary<int, ProductInfo>> LoadProductInfoAsync(DBTHSNEntities db, IEnumerable<int> productIds)
+        {
+            var ids = productIds.Distinct().ToList();
+            return await db.PRODUCTS.AsNoTracking()
+                .Where(p => ids.Contains(p.ID))
+                .Select(p => new ProductInfo { ID = p.ID, PNo = p.PNo, UnitID = p.UnitID })
+                .ToDictionaryAsync(p => p.ID);
         }
 
         /// <summary>
@@ -766,7 +712,7 @@ namespace tahsinERP.Controllers.SRM
                         PiecePrice = ip.PiecePrice,
                         TotalPrice = ip.TotalPrice,
                         Comment = ip.Comment,
-                        VATRate = GetVatRateForIncomeLine(ip.TotalPrice, ip.Amount, ip.PiecePrice, ip.Comment)
+                        VATRate = ip.VATRate ?? 0
                     }).ToList()
                 };
 
@@ -864,30 +810,19 @@ namespace tahsinERP.Controllers.SRM
 
                             if (model.IncomeProducts != null && model.IncomeProducts.Any())
                             {
+                                var conversionService = new UnitConversionService(db);
+                                var productInfo = await LoadProductInfoAsync(db, model.IncomeProducts.Select(p => p.ProductID));
                                 foreach (var product in model.IncomeProducts)
                                 {
-                                    var productEntity = await db.PRODUCTS.FindAsync(product.ProductID);
-                                    var unitId = product.UnitID ?? (productEntity != null ? productEntity.UnitID : 1);
-                                    var vat = Math.Max(0, Math.Min(100, product.VATRate));
-                                    var baseLine = product.Amount * (product.PiecePrice ?? 0);
-                                    var lineTotal = baseLine * (1.0 + vat / 100.0);
-                                    var mergedComment = MergeIncomeCommentWithVat(product.Comment, vat);
+                                    ProductInfo productEntity;
+                                    productInfo.TryGetValue(product.ProductID, out productEntity);
+                                    var unitId = await IncomeDocumentService.ResolveUnitIdAsync(
+                                        conversionService, product.ProductID, product.UnitID, productEntity?.UnitID);
 
-                                    var incomeProduct = new INCOME_PRODUCTS
-                                    {
-                                        IncomeID = income.ID,
-                                        ProductID = product.ProductID,
-                                        Amount = product.Amount,
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = lineTotal,
-                                        UnitID = unitId,
-                                        Comment = mergedComment
-                                    };
-
-                                    db.INCOME_PRODUCTS.Add(incomeProduct);
+                                    db.INCOME_PRODUCTS.Add(IncomeDocumentService.NewLine(income.ID, product, unitId));
 
                                     totalAmount += product.Amount;
-                                    totalPrice += incomeProduct.TotalPrice.Value;
+                                    totalPrice += IncomeDocumentService.GrossTotal(product.Amount, product.PiecePrice, product.VATRate);
                                 }
                             }
 
@@ -1379,73 +1314,6 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        private static string MergeIncomeCommentWithVat(string commentFromForm, double vatRate)
-        {
-            var userPart = string.IsNullOrWhiteSpace(commentFromForm)
-                ? ""
-                : IncomeLineVatInComment.Replace(commentFromForm, "").Trim().Trim('|').Trim();
-            var pct = vatRate.ToString("0.##", CultureInfo.InvariantCulture);
-            var qqs = "QQS %: " + pct + "%";
-            if (string.IsNullOrEmpty(userPart))
-            {
-                return qqs;
-            }
-
-            return userPart + " | " + qqs;
-        }
-
-        private static double? TryParseVatFromComment(string comment)
-        {
-            if (string.IsNullOrWhiteSpace(comment))
-            {
-                return null;
-            }
-
-            var m = Regex.Match(comment, @"QQS\s*%:\s*([\d.,]+)\s*%", RegexOptions.IgnoreCase);
-            if (!m.Success)
-            {
-                return null;
-            }
-
-            var s = m.Groups[1].Value.Replace(",", ".");
-            if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
-            {
-                return v;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Tahrirlash: izohdan QQS o‘qiladi; yo‘q bo‘lsa, jami va asosiy summadan taxmin qilinadi (eski yozuvlar).
-        /// </summary>
-        private static double GetVatRateForIncomeLine(double? totalPrice, double amount, double? piecePrice, string comment)
-        {
-            var parsed = TryParseVatFromComment(comment);
-            if (parsed.HasValue)
-            {
-                return Math.Max(0, Math.Min(100, parsed.Value));
-            }
-
-            var b = amount * (piecePrice ?? 0);
-            if (b <= 0.0000001)
-            {
-                return 0;
-            }
-
-            if (!totalPrice.HasValue || Math.Abs(totalPrice.Value - b) < 0.02)
-            {
-                return 0;
-            }
-
-            var implied = (totalPrice.Value / b - 1.0) * 100.0;
-            if (implied >= -0.5 && implied <= 100.5)
-            {
-                return Math.Max(0, Math.Min(100, Math.Round(implied, 4)));
-            }
-
-            return 0;
-        }
 
         /// <summary>
         /// Kirim qabul qilinganda unga bog'langan chiqimni "yuborilgan" (SendStatus = true) deb

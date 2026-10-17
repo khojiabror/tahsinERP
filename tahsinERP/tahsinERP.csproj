@@ -920,6 +920,7 @@
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
+    <Compile Include="Services\Stock\IncomeDocumentService.cs" />
     <Compile Include="Services\Stock\StockLedger.cs" />
     <Compile Include="Services\Stock\WarehouseRoles.cs" />
     <Compile Include="Services\WarehouseAttachments.cs" />

@@ -842,7 +842,7 @@ namespace tahsinERP.Controllers
                 .Where(x => productIds.Contains(x.ProductID) && (x.INCOME.IsDeleted == null || x.INCOME.IsDeleted == false))
                 .GroupBy(x => x.ProductID)
                 .Select(g => g.OrderByDescending(x => x.INCOME.IssueDateTime)
-                    .Select(x => new { x.ProductID, x.PiecePrice, x.TotalPrice, x.Amount, x.VATRate })
+                    .Select(x => new { x.ProductID, x.PiecePrice, x.TotalPrice, x.Amount })
                     .FirstOrDefault())
                 .ToListAsync();
 
@@ -852,8 +852,7 @@ namespace tahsinERP.Controllers
                 if (ip.PiecePrice.HasValue && ip.PiecePrice.Value > 0)
                     price = ip.PiecePrice.Value;
                 else if (ip.TotalPrice.HasValue && ip.Amount > 0)
-                    // TotalPrice QQS bilan — baholash QQSsiz (SRM-B19)
-                    price = ip.TotalPrice.Value / ip.Amount / (1.0 + Math.Max(0, ip.VATRate ?? 0) / 100.0);
+                    price = ip.TotalPrice.Value / ip.Amount; // qator TotalPrice = Amount × PiecePrice (QQSsiz, hisoblanadigan ustun)
                 result[ip.ProductID] = price;
             }
             return result;
