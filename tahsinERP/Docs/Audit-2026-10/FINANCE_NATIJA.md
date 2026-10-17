@@ -119,22 +119,46 @@ SRM xarid branch'i `FinancePostingService.cs` ni o'zgartirmagan, shuning uchun m
 - **Dublikatlar:** D1–D12 (servislarga yig'ildi), D23 (FinTransactions Index fix-up).
 - **O'lik kod:** EnsureOpeningContractBalanceTable, UpsertDetailedOpeningSnapshots, ishlatilmagan ViewBag hisoblari, GetLatestOpeningDate/CategorySnapshotInfo, raw-SQL fallback'lar, FinTransactions.GetContractsBySupplier, sortOrder/page/pageSize, GetAllContractBalancesAsync va bo'sh if, `parentID == 0` tarmog'i, loadAccountCurrency, OpeningContractBalanceLite.TotalAmount/PaidAmount (Reconciliation).
 
+## 2-bosqich (2026-10-18): qolgan ishlar
+
+Asosiy audit sessiyasi ro'yxati bo'yicha. Har qadam alohida commit, master va main'ga merge qilingan (oxirgisi `bd84593c`).
+
+| Commit | Nima qilindi |
+|---|---|
+| `2931b371` | **Ruxsat:** 9 ta Finance controller class darajasida `[Permission("Modul")]`; 90+ inline `RoleHelper` tekshiruvi olib tashlandi. GET bo'lsa ham o'zgartirish talab qiladigan amallar `Change = true`. `OpeningBalance.Edit` GET ko'rish rejimi uchun `[SkipPermission]` va avvalgi tekshiruv bilan qoldi. |
+| `3946bd0b` | **M04:** 62 ta view'dagi `@if (RoleHelper…) { … } else { Response.Redirect(…) }` o'rami olib tashlandi. |
+| `13d2ace9` | **B15:** Create/Edit uchun umumiy `ValidateTransaction()`; hujjatdan yaratilgan tranzaksiyani Edit GET/POST rad etadi; SourceDocType faqat qo'lda tanlanadigan turlardan. **B23:** import'da takroriy kod/nom import'ni yiqitmaydi, hisob valyutasi tekshiriladi, bazadagi aynan bir xil qator o'tkazib yuboriladi. **M03:** import va shablon `FinTransactionImportService`'ga ko'chdi. **D14, D13:** `FinSelectLists`. **D22:** Export `ExcelExport` orqali. |
+| `12d05143` | **B18:** `FinLiabilities.PayrollByEmployee` balans va ReportsHub uchun bitta funksiya. **B17:** kategoriyasi tanlanmagan doimiy majburiyat "Doimiy harajatlar qarzi"ga tushadi. |
+| `2a304f8a` | **B20:** FinBalanceCategories'dagi `catch {}` va xom SQL fallback olib tashlandi; `ReconciliationAdjustmentService` EF'ga o'tdi (jadval EDMX'da bor); FinRecurringObligations Edit/Delete xatolari ko'rsatiladi. **P16:** daraxt avlodlari xotirada hisoblanadi. **D15:** `FinCategoryTree`. **D16:** MapCategories uchun bitta view. |
+| `c247d6c0` | origin/master merge: EPPlus o'rniga ClosedXML. Finance import ClosedXML'ga ko'chirildi. |
+| `90790770` | **B24:** ulush davri xatosi TempData orqali ko'rsatiladi; 100% tekshiruviga aksiyadorning o'z davrlari ham kiradi; AddContribution bitta DB tranzaksiyasida. **B29:** PostPurchaseInvoice hisobni `PAYABLES_{valyuta}` kodi bo'yicha topadi (Sales kabi); valyutasiz invoys jimgina o'tkazib yuborilmaydi. |
+| `76b1d496` | **P12:** Opening tahririda har qatorga shartnoma so'rovi yuborilmaydi (birinchi ochilganda yuklanadi, keshlanadi); har qatorda to'liq kontragent ro'yxati chizilmaydi. |
+| `3f88e2d4` | **M02:** OpeningBalanceController 1353 → 280 qator: `OpeningBalanceService` va `OpeningBalanceExcelService`. **D17:** `FinCounterpartyLookupService`, uni OpeningBalance va FinTransactions ishlatadi. **D11:** subledger nomi testi bitta funksiyada. |
+| `46acc329` | **D13, D22:** FinPlPlans va Dashboard'dagi yil/oy ro'yxatlari; P&L reja eksporti. |
+| `db32bfef` | **D18:** FinTransactions Create/Edit → `_Form` + `_FormScripts`. |
+| `85351c43` | **D21:** FinRecurringObligations va Shareholder Create/Edit → `_Form`. |
+| `bd84593c` | **D19:** aktiv va passiv tafsilot sahifalari bitta `BalanceSheetDetails.cshtml` view'ida (URL'lar o'zgarmagan). |
+
+**Raqamlar (lokal baza, faqat o'qish, harness):**
+- **B18:** 2026-06-30 holatiga oylik qarzi balansda 0 edi, Hub'da 16,6 mln (opening ikki marta sanalgan). Endi ikkalasida **8 298 141,99**: opening'ning o'zi, chunki undan keyin harakat yo'q.
+- DCF sof aktivlar shunga mos ravishda 8,3 mln ga kamaydi.
+- 2025 yildagi sanalar o'zgarmagan.
+- **M02, D17:** OpeningBalance Details (2 sana), 4 ta shartnoma summasi, 3 ta shartnoma ro'yxati va FinTransactions'ning 7 ta lookup'i eski va yangi kodda bir xil.
+
+**Eslatma:** CRM sessiyasi lokal bazada `S_ORDERS.Currency` ustunini olib tashlagan (`CRM_2026_10_M02_DropCurrencyColumns.sql`). Uning EDMX o'zgarishi hali master'da emas. Shu sababli 2026-10-18 holatida balans sahifalari lokal bazada `Invalid column name 'Currency'` bilan yiqiladi. Bu Finance kodi bilan bog'liq emas. Balans bo'yicha oxirgi harness solishtiruvi shu ustun olib tashlanishidan oldin qilingan (B18).
+
 ## Qolganlar (bajarilmadi)
 
-- **B01 (valyuta):** ko'rsatmaga ko'ra konvertatsiya qo'shilmadi. Dashboardlar UZS va USD summalarni hali ham qo'shib yuboradi.
-- **B15:** FinTransactions Edit POST'da Create'dagi validatsiya yo'q; posted (Manual emas) yozuvni POST orqali tahrirlash mumkin.
-- **B16:** AccountBalances opening snapshot'ni hisoblar soniga teng bo'ladi va `>=` ishlatadi. Bu hisob kesimidagi opening (sxema) talab qiladi.
-- **B17:** BalanceCategoryID NULL bo'lgan doimiy majburiyat balansga tushmaydi.
-- **B18:** balansdagi oylik qarzi opening payroll qatorlarini (BalanceType 3) hisobga olmaydi.
-- **B20 qoldig'i:** FinBalanceCategories/MapCategories va ReconciliationAdjustmentService'dagi `catch {}`.
-- **B23:** Import'da dublikat kod/nom; **B24:** Shareholder AddSharePeriod/AddContribution; **B27:** FinRecurringObligations o'z ruxsat moduli.
-- **B29:** PostPurchaseInvoice hisobni nom bo'yicha qidiradi va jim o'tkazib yuboradi. Mirror invoys yaratilganda yoziladi; keyin kelgan kirimlar (INCOMES) uni avtomatik yangilamaydi.
-- **P12, P14, P16, P18:** OpeningBalance sahifasidagi fetch'lar, ContractBalanceService N×M, daraxt N+1, Chart.js CDN.
-- **M02/M03:** OpeningBalance va FinTransactions controllerlarini servislarga bo'lish.
-- **D13–D22:** SelectList, daraxt CRUD, MapCategories va Create/Edit view'larini birlashtirish.
-- **Ruxsat:** boshqa Finance controllerlarini `[Permission]` ga o'tkazish (hozir inline tekshiruvlar ishlayapti). M04 — view'lardagi `Response.Redirect`.
-- **Ekspeditor akt-sverkisi:** opening (BalanceType 4) ishlatmaydi; ta'minotchi/mijoz bilan bir xil qilish uchun alohida qaror kerak.
-- **Brauzerda tekshirilmadi:** FinTransactions ro'yxatining server-side DataTables UI'si, OpeningBalance saqlash/AutoFill tranzaksiyasi va XSS tuzatishlari. Faqat build, view kompilyatsiyasi va harness orqali tekshirildi.
+- **B01 (valyuta):** qaror bor: konvertatsiya qilinadi (CBU + CURRENCY_RATES). Core `Services/Common/CurrencyRateService`'ni tayyorlagach Finance dashboardlari ulanadi.
+- **B16:** AccountBalances kategoriya snapshot'ini hisoblar soniga teng bo'ladi va `>=` ishlatadi. Hisob kesimidagi opening sxema o'zgarishini talab qiladi, shuning uchun foydalanuvchi qarori kerak.
+- **B27:** FinRecurringObligations'ga alohida ruxsat moduli kerak. Bu `PERMISSIONMODULES` yozuvini talab qiladi va foydalanuvchi qarori kerak. Hozircha `[Permission("FinDashboard")]`.
+- **Ekspeditor akt-sverkisi:** opening (BalanceType 4) ishlatilmaydi. Bu biznes qarori.
+- **P14:** SRM sessiyasi allaqachon qilgan (SRM-P05). **P18:** Chart.js CDN layout'da (core), unga tegilmadi.
+- **D15 qoldig'i:** uchta daraxt Index view'i hali alohida, umumiy `_TreeIndex` partial yo'q.
+- **D20:** auditda Finance tashqarisidagi qism (bajarilmadi).
+- **InvoiceMirrorAmounts_Fix:** SRM Xarid sessiyasining data-fix'i lokal bazada bajarilishini kutmoqda.
+- **Nom bo'yicha qidiruv → SystemCode:** db-foundation sessiyasi bajaradi. Finance fayllari master'ga tushgach o'z branch'ida qiladi.
+- **Brauzerda tekshirilmadi:** foydalanuvchidan login kerak. Faqat build, aspnet_compiler (barcha Finance view'lari) va harness orqali tekshirildi.
 
 ## Umumiy qatlam uchun takliflar (o'zgartirilmadi)
 
