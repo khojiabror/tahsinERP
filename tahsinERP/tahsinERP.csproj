@@ -985,6 +985,7 @@
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\ProductProductionPlanDateMeta.cs" />
+    <Compile Include="Helpers\MesLookups.cs" />
     <Compile Include="Helpers\QualityInspectionBalanceHelper.cs" />
     <Compile Include="Models\RoleHelper.cs" />
     <Compile Include="Models\USER_ENTRIES.cs">
@@ -1042,6 +1043,7 @@
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
+    <Compile Include="Services\Norm\NormLineMath.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />

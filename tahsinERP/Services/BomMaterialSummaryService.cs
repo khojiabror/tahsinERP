@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using tahsinERP.Models;
+using tahsinERP.Services.Norm;
 using tahsinERP.ViewModels.BOM;
 
 namespace tahsinERP.Services
@@ -11,10 +13,31 @@ namespace tahsinERP.Services
     /// <summary>
     /// BOM daraxti va materiallar jadvali (1 tayyor mahsulot uchun) hisob-kitobi.
     /// BOM Details va ishlab chiqarish sarfi bir xil manbadan foydalanadi.
+    ///
+    /// Samaradorlik (audit MES-P09):
+    ///  - daraxt tugunma-tugun sinxron so'rovlar o'rniga daraja bo'yicha oldindan yuklanadi
+    ///    (har BOM darajasi uchun 2 ta so'rov: faol headerlar + ularning qatorlari);
+    ///  - rasmlar faqat BOM Details uchun, bitta so'rovda;
+    ///  - NORM_INPUT_LINES (narx + yog'och ma'lumoti) bir marta o'qiladi;
+    ///  - <see cref="GetMaterialSummariesPerUnitAsync"/> natijasi shu DbContext doirasida keshlanadi —
+    ///    ishlab chiqarish kiritishda "tekshirish" va "sarf" bosqichlari bir xil hisobni qayta qilmaydi;
+    ///  - sikl himoyasi: BOM halqasi (A → B → A) StackOverflow emas, shu tugunda to'xtaydi.
     /// </summary>
     public class BomMaterialSummaryService
     {
+        private const int MaxDepth = 25;
+
+        private static readonly ConditionalWeakTable<DBTHSNEntities, Dictionary<string, List<BomMaterialSummaryViewModel>>> SummaryCache =
+            new ConditionalWeakTable<DBTHSNEntities, Dictionary<string, List<BomMaterialSummaryViewModel>>>();
+
         private readonly DBTHSNEntities _db;
+
+        // ProductID → eng so'nggi faol BOM header ID (null — BOM yo'q)
+        private readonly Dictionary<int, int?> _latestHeaderByProduct = new Dictionary<int, int?>();
+        // BOM header ID → qatorlar
+        private readonly Dictionary<int, List<BomLineRow>> _linesByHeader = new Dictionary<int, List<BomLineRow>>();
+        // (ProductID|Month) → norma qatorlari
+        private readonly Dictionary<string, List<NormLineRow>> _normLinesCache = new Dictionary<string, List<NormLineRow>>();
 
         public BomMaterialSummaryService(DBTHSNEntities db)
         {
@@ -23,27 +46,46 @@ namespace tahsinERP.Services
 
         public async Task<List<BomMaterialSummaryViewModel>> GetMaterialSummariesPerUnitAsync(int productId, int? bomHeaderId = null, DateTime? asOfDate = null)
         {
+            var cacheKey = productId + "|" + bomHeaderId + "|" + (asOfDate.HasValue ? asOfDate.Value.ToString("yyyy-MM") : "");
+            var cache = SummaryCache.GetOrCreateValue(_db);
+            List<BomMaterialSummaryViewModel> cached;
+            lock (cache)
+            {
+                cache.TryGetValue(cacheKey, out cached);
+            }
+            if (cached != null)
+            {
+                return Clone(cached);
+            }
+
+            var result = await ComputeMaterialSummariesPerUnitAsync(productId, bomHeaderId, asOfDate);
+            lock (cache)
+            {
+                cache[cacheKey] = result;
+            }
+            return Clone(result);
+        }
+
+        private async Task<List<BomMaterialSummaryViewModel>> ComputeMaterialSummariesPerUnitAsync(int productId, int? bomHeaderId, DateTime? asOfDate)
+        {
             var bomHeader = await SelectActiveBomHeaderAsync(productId, bomHeaderId, asOfDate);
             if (bomHeader == null)
             {
                 return new List<BomMaterialSummaryViewModel>();
             }
 
-            var product = await _db.PRODUCTS
-                .FirstOrDefaultAsync(p => p.ID == productId && p.IsDeleted == false);
+            var product = await _db.PRODUCTS.AsNoTracking()
+                .Where(p => p.ID == productId && p.IsDeleted == false)
+                .Select(p => new { p.ID, p.PNo, p.Name })
+                .FirstOrDefaultAsync();
             if (product == null)
             {
                 return new List<BomMaterialSummaryViewModel>();
             }
 
-            var bomLines = await _db.BOM_LINES
-                .Include(bl => bl.PRODUCT)
-                .Include(bl => bl.UNIT)
-                .Where(bl => bl.BOMID == bomHeader.ID)
-                .ToListAsync();
-
+            var rootLines = LoadLinesForHeaders(new[] { bomHeader.ID })[bomHeader.ID];
             var normVersion = bomHeader.VersionNo ?? string.Empty;
-            var rootNode = BuildBomTree(productId, bomLines, product, includeImages: false);
+            var rootNode = BuildTree(product.ID, product.PNo, product.Name, rootLines, includeImages: false);
             ApplyWoodQuantitiesFromNorm(rootNode, productId, normVersion);
             return BuildMaterialSummaries(rootNode, productId, normVersion);
         }
@@ -73,8 +115,8 @@ namespace tahsinERP.Services
             {
                 var asOfMonth = new DateTime(asOfDate.Value.Year, asOfDate.Value.Month, 1);
                 var effective = bomHeaders
-                    .Where(bh => GetBomEffectiveMonth(bh) <= asOfMonth)
-                    .OrderByDescending(bh => GetBomEffectiveMonth(bh))
+                    .Where(bh => GetBomEffectiveMonth(bh.VersionNo, bh.CreatedAt) <= asOfMonth)
+                    .OrderByDescending(bh => GetBomEffectiveMonth(bh.VersionNo, bh.CreatedAt))
                     .ThenByDescending(bh => bh.CreatedAt)
                     .FirstOrDefault();
 
@@ -85,7 +127,7 @@ namespace tahsinERP.Services
 
                 // Buyurtma sanasidan oldin hech qanday versiya bo'lmasa — eng eski (birinchi) versiyaga qaytamiz.
                 return bomHeaders
-                    .OrderBy(bh => GetBomEffectiveMonth(bh))
+                    .OrderBy(bh => GetBomEffectiveMonth(bh.VersionNo, bh.CreatedAt))
                     .ThenBy(bh => bh.CreatedAt)
                     .FirstOrDefault();
             }
@@ -104,102 +146,218 @@ namespace tahsinERP.Services
         /// <summary>
         /// BOM versiyasining amal qilish oyi: VersionNo (yyyy-MM) dan, bo'lmasa CreatedAt dan (oyning 1-kuni).
         /// </summary>
-        private static DateTime GetBomEffectiveMonth(BOM_HEADERS bh)
+        private static DateTime GetBomEffectiveMonth(string versionNo, DateTime? createdAt)
         {
-            var fromVersion = ParseVersionNoDate(bh?.VersionNo);
+            var fromVersion = ParseVersionNoDate(versionNo);
             if (fromVersion > DateTime.MinValue)
             {
                 return new DateTime(fromVersion.Year, fromVersion.Month, 1);
             }
 
-            if (bh?.CreatedAt != null)
+            if (createdAt.HasValue)
             {
-                var c = bh.CreatedAt.Value;
+                var c = createdAt.Value;
                 return new DateTime(c.Year, c.Month, 1);
             }
 
             return DateTime.MinValue;
         }
 
+        /// <summary>BOM Details uchun daraxt (berilgan root qatorlari bilan).</summary>
         public BomTreeNodeViewModel BuildBomTree(int parentProductId, List<BOM_LINES> bomLines, PRODUCT parentProduct, bool includeImages = true)
         {
-            string rootImageUrl = null;
-            if (includeImages)
-            {
-                var rootProductImage = _db.PRODUCTIMAGES
-                    .Where(pi => pi.ProdID == parentProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
-                    .FirstOrDefault();
-
-                if (rootProductImage?.Image != null)
+            var rootLines = (bomLines ?? new List<BOM_LINES>())
+                .Select(bl => new BomLineRow
                 {
-                    rootImageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(rootProductImage.Image);
-                }
-            }
+                    ComponentID = bl.ComponentID,
+                    Qty = bl.Qty,
+                    UnitID = bl.UnitID,
+                    UnitShortName = bl.UNIT?.ShortName,
+                    ComponentPNo = bl.PRODUCT?.PNo,
+                    ComponentName = bl.PRODUCT?.Name,
+                    ComponentIsDeleted = bl.PRODUCT == null || bl.PRODUCT.IsDeleted,
+                    ComponentUnitID = bl.PRODUCT?.UnitID ?? 0
+                })
+                .ToList();
+            return BuildTree(parentProduct.ID, parentProduct.PNo, parentProduct.Name, rootLines, includeImages);
+        }
 
-            var node = new BomTreeNodeViewModel
+        private BomTreeNodeViewModel BuildTree(int rootId, string rootPNo, string rootName, List<BomLineRow> rootLines, bool includeImages)
+        {
+            PreloadClosure(rootLines);
+
+            var root = new BomTreeNodeViewModel
             {
-                ProductId = parentProduct.ID,
-                ProductPno = parentProduct.PNo,
-                ProductName = parentProduct.Name,
+                ProductId = rootId,
+                ProductPno = rootPNo,
+                ProductName = rootName,
                 Quantity = 1,
-                ImageUrl = rootImageUrl,
                 Children = new List<BomTreeNodeViewModel>()
             };
 
-            foreach (var bomLine in bomLines)
+            var path = new HashSet<int> { rootId };
+            root.Children = BuildChildren(rootLines, path, 1);
+
+            if (includeImages)
             {
-                if (!bomLine.ComponentID.HasValue)
+                AttachImages(root);
+            }
+
+            return root;
+        }
+
+        private List<BomTreeNodeViewModel> BuildChildren(List<BomLineRow> lines, HashSet<int> path, int depth)
+        {
+            var children = new List<BomTreeNodeViewModel>();
+            foreach (var line in lines)
+            {
+                if (!line.ComponentID.HasValue || line.ComponentIsDeleted)
                 {
                     continue;
                 }
 
-                var childProduct = bomLine.PRODUCT;
-                if (childProduct == null || childProduct.IsDeleted)
-                {
-                    continue;
-                }
-
-                string childImageUrl = null;
-                if (includeImages)
-                {
-                    var childProductImage = _db.PRODUCTIMAGES
-                        .Where(pi => pi.ProdID == childProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
-                        .FirstOrDefault();
-
-                    if (childProductImage?.Image != null)
-                    {
-                        childImageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(childProductImage.Image);
-                    }
-                }
-
+                var childId = line.ComponentID.Value;
                 var childNode = new BomTreeNodeViewModel
                 {
-                    ProductId = childProduct.ID,
-                    ProductPno = childProduct.PNo,
-                    ProductName = childProduct.Name,
-                    Quantity = bomLine.Qty ?? 0,
-                    UnitShortname = bomLine.UNIT?.ShortName ?? string.Empty,
-                    UnitId = bomLine.UnitID ?? (childProduct.UnitID > 0 ? childProduct.UnitID : 0),
-                    ImageUrl = childImageUrl,
+                    ProductId = childId,
+                    ProductPno = line.ComponentPNo,
+                    ProductName = line.ComponentName,
+                    Quantity = line.Qty ?? 0,
+                    UnitShortname = line.UnitShortName ?? string.Empty,
+                    UnitId = line.UnitID ?? (line.ComponentUnitID > 0 ? line.ComponentUnitID : 0),
                     Children = new List<BomTreeNodeViewModel>()
                 };
 
-                var childBomHeader = SelectLatestChildBomHeader(childProduct.ID);
-                if (childBomHeader != null)
+                // Sikl himoyasi: tugun yo'lda allaqachon bor bo'lsa (A → B → A) yoki chuqurlik juda katta bo'lsa — yoymaymiz
+                int? childHeaderId;
+                if (depth < MaxDepth
+                    && !path.Contains(childId)
+                    && _latestHeaderByProduct.TryGetValue(childId, out childHeaderId)
+                    && childHeaderId.HasValue)
                 {
-                    var childBomLines = _db.BOM_LINES
-                        .Include(bl => bl.PRODUCT)
-                        .Include(bl => bl.UNIT)
-                        .Where(bl => bl.BOMID == childBomHeader.ID)
-                        .ToList();
-
-                    childNode.Children = BuildBomTreeChildren(childProduct.ID, childBomLines, includeImages);
+                    path.Add(childId);
+                    childNode.Children = BuildChildren(_linesByHeader[childHeaderId.Value], path, depth + 1);
+                    path.Remove(childId);
                 }
 
-                node.Children.Add(childNode);
+                children.Add(childNode);
             }
 
-            return node;
+            return children;
+        }
+
+        /// <summary>
+        /// Root qatorlaridagi komponentlardan boshlab, barcha pastki BOM'larni daraja bo'yicha yuklaydi.
+        /// </summary>
+        private void PreloadClosure(List<BomLineRow> rootLines)
+        {
+            var frontier = rootLines
+                .Where(l => l.ComponentID.HasValue && !l.ComponentIsDeleted)
+                .Select(l => l.ComponentID.Value)
+                .Distinct()
+                .Where(id => !_latestHeaderByProduct.ContainsKey(id))
+                .ToList();
+
+            int level = 0;
+            while (frontier.Count > 0 && level++ < MaxDepth)
+            {
+                var headers = _db.BOM_HEADERS.AsNoTracking()
+                    .Where(bh => bh.ProductID.HasValue && frontier.Contains(bh.ProductID.Value) && bh.IsActive == true)
+                    .Select(bh => new { bh.ID, ProductID = bh.ProductID.Value, bh.VersionNo, bh.CreatedAt })
+                    .ToList();
+
+                var newHeaderIds = new List<int>();
+                foreach (var productId in frontier)
+                {
+                    // Pastki BOM: VersionNo'si bor eng so'nggi faol header (avvalgi SelectLatestChildBomHeader bilan bir xil)
+                    var latest = headers
+                        .Where(h => h.ProductID == productId && !string.IsNullOrEmpty(h.VersionNo))
+                        .OrderByDescending(h => ParseVersionNoDate(h.VersionNo))
+                        .ThenByDescending(h => h.CreatedAt)
+                        .FirstOrDefault();
+                    _latestHeaderByProduct[productId] = latest?.ID;
+                    if (latest != null && !_linesByHeader.ContainsKey(latest.ID))
+                    {
+                        newHeaderIds.Add(latest.ID);
+                    }
+                }
+
+                if (newHeaderIds.Count == 0)
+                {
+                    break;
+                }
+
+                var loaded = LoadLinesForHeaders(newHeaderIds);
+                frontier = loaded.Values
+                    .SelectMany(ls => ls)
+                    .Where(l => l.ComponentID.HasValue && !l.ComponentIsDeleted)
+                    .Select(l => l.ComponentID.Value)
+                    .Distinct()
+                    .Where(id => !_latestHeaderByProduct.ContainsKey(id))
+                    .ToList();
+            }
+        }
+
+        private Dictionary<int, List<BomLineRow>> LoadLinesForHeaders(IEnumerable<int> headerIds)
+        {
+            var ids = headerIds.Distinct().ToList();
+            var rows = _db.BOM_LINES.AsNoTracking()
+                .Where(bl => bl.BOMID.HasValue && ids.Contains(bl.BOMID.Value))
+                .OrderBy(bl => bl.ID)
+                .Select(bl => new BomLineRow
+                {
+                    BomID = bl.BOMID.Value,
+                    ComponentID = bl.ComponentID,
+                    Qty = bl.Qty,
+                    UnitID = bl.UnitID,
+                    UnitShortName = bl.UNIT.ShortName,
+                    ComponentPNo = bl.PRODUCT.PNo,
+                    ComponentName = bl.PRODUCT.Name,
+                    ComponentIsDeleted = bl.PRODUCT == null || bl.PRODUCT.IsDeleted,
+                    ComponentUnitID = bl.PRODUCT == null ? 0 : bl.PRODUCT.UnitID
+                })
+                .ToList();
+
+            foreach (var id in ids)
+            {
+                _linesByHeader[id] = rows.Where(r => r.BomID == id).ToList();
+            }
+            return ids.ToDictionary(id => id, id => _linesByHeader[id]);
+        }
+
+        private void AttachImages(BomTreeNodeViewModel root)
+        {
+            var nodes = new List<BomTreeNodeViewModel>();
+            CollectNodes(root, nodes);
+            var productIds = nodes.Select(n => n.ProductId).Distinct().ToList();
+
+            var images = _db.PRODUCTIMAGES.AsNoTracking()
+                .Where(pi => productIds.Contains(pi.ProdID) && (pi.IsDeleted == null || pi.IsDeleted == false) && pi.Image != null)
+                .OrderBy(pi => pi.ID)
+                .Select(pi => new { pi.ProdID, pi.Image })
+                .ToList()
+                .GroupBy(pi => pi.ProdID)
+                .ToDictionary(g => g.Key, g => "data:image/jpeg;base64," + Convert.ToBase64String(g.First().Image));
+
+            foreach (var node in nodes)
+            {
+                string url;
+                if (images.TryGetValue(node.ProductId, out url))
+                {
+                    node.ImageUrl = url;
+                }
+            }
+        }
+
+        private static void CollectNodes(BomTreeNodeViewModel node, List<BomTreeNodeViewModel> sink)
+        {
+            if (node == null) return;
+            sink.Add(node);
+            if (node.Children == null) return;
+            foreach (var child in node.Children)
+            {
+                CollectNodes(child, sink);
+            }
         }
 
         public void ApplyWoodQuantitiesFromNorm(BomTreeNodeViewModel rootNode, int rootProductId, string normVersion)
@@ -267,79 +425,6 @@ namespace tahsinERP.Services
                 .ToList();
         }
 
-        private List<BomTreeNodeViewModel> BuildBomTreeChildren(int parentProductId, List<BOM_LINES> bomLines, bool includeImages)
-        {
-            var children = new List<BomTreeNodeViewModel>();
-
-            foreach (var bomLine in bomLines)
-            {
-                if (!bomLine.ComponentID.HasValue)
-                {
-                    continue;
-                }
-
-                var childProduct = bomLine.PRODUCT;
-                if (childProduct == null || childProduct.IsDeleted)
-                {
-                    continue;
-                }
-
-                string childImageUrl = null;
-                if (includeImages)
-                {
-                    var childProductImage = _db.PRODUCTIMAGES
-                        .Where(pi => pi.ProdID == childProduct.ID && (pi.IsDeleted == null || pi.IsDeleted == false))
-                        .FirstOrDefault();
-
-                    if (childProductImage?.Image != null)
-                    {
-                        childImageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(childProductImage.Image);
-                    }
-                }
-
-                var childNode = new BomTreeNodeViewModel
-                {
-                    ProductId = childProduct.ID,
-                    ProductPno = childProduct.PNo,
-                    ProductName = childProduct.Name,
-                    Quantity = bomLine.Qty ?? 0,
-                    UnitShortname = bomLine.UNIT?.ShortName ?? string.Empty,
-                    UnitId = bomLine.UnitID ?? (childProduct.UnitID > 0 ? childProduct.UnitID : 0),
-                    ImageUrl = childImageUrl,
-                    Children = new List<BomTreeNodeViewModel>()
-                };
-
-                var childBomHeader = SelectLatestChildBomHeader(childProduct.ID);
-                if (childBomHeader != null)
-                {
-                    var childBomLines = _db.BOM_LINES
-                        .Include(bl => bl.PRODUCT)
-                        .Include(bl => bl.UNIT)
-                        .Where(bl => bl.BOMID == childBomHeader.ID)
-                        .ToList();
-
-                    childNode.Children = BuildBomTreeChildren(childProduct.ID, childBomLines, includeImages);
-                }
-
-                children.Add(childNode);
-            }
-
-            return children;
-        }
-
-        private BOM_HEADERS SelectLatestChildBomHeader(int productId)
-        {
-            var childBomHeaders = _db.BOM_HEADERS
-                .Where(bh => bh.ProductID == productId && bh.IsActive == true)
-                .ToList();
-
-            return childBomHeaders
-                .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
-                .OrderByDescending(bh => ParseVersionNoDate(bh.VersionNo))
-                .ThenByDescending(bh => bh.CreatedAt)
-                .FirstOrDefault();
-        }
-
         private static DateTime ParseVersionNoDate(string versionNo)
         {
             if (string.IsNullOrWhiteSpace(versionNo))
@@ -366,7 +451,7 @@ namespace tahsinERP.Services
             return DateTime.MinValue;
         }
 
-        private void FlattenLeafMaterials(
+        private static void FlattenLeafMaterials(
             BomTreeNodeViewModel node,
             decimal multiplier,
             bool isRoot,
@@ -395,6 +480,44 @@ namespace tahsinERP.Services
             }
         }
 
+        private List<NormLineRow> LoadNormLines(int rootProductId, string normVersion)
+        {
+            if (string.IsNullOrWhiteSpace(normVersion))
+            {
+                return new List<NormLineRow>();
+            }
+
+            var key = rootProductId + "|" + normVersion;
+            List<NormLineRow> lines;
+            if (_normLinesCache.TryGetValue(key, out lines))
+            {
+                return lines;
+            }
+
+            lines = _db.NORM_INPUT_LINES.AsNoTracking()
+                .Where(n => n.ProductID == rootProductId && n.Month == normVersion)
+                .Select(n => new NormLineRow
+                {
+                    MaterialID = n.MaterialID,
+                    CutLengthMm = n.CutLengthMm,
+                    PiecesPerProduct = n.PiecesPerProduct,
+                    Consumption = n.Consumption,
+                    WasteAmount = n.WasteAmount,
+                    Price = n.Price,
+                    CreatedDT = n.CreatedDT,
+                    StandardLengthMm = n.PRODUCT.StandardLengthMm,
+                    Length = n.PRODUCT.Length,
+                    RequiresCutting = n.PRODUCT.PRODUCT_CATEGORIES != null && n.PRODUCT.PRODUCT_CATEGORIES.RequiresCutting,
+                    RawMaterialGroup = n.PRODUCT.PRODUCT_CATEGORIES.RawMaterialGroup,
+                    CategoryName = n.PRODUCT.PRODUCT_CATEGORIES.Name,
+                    HasCategory = n.PRODUCT.PRODUCT_CATEGORIES != null
+                })
+                .ToList();
+
+            _normLinesCache[key] = lines;
+            return lines;
+        }
+
         private Dictionary<int, decimal> LoadNormPricesByMaterial(int rootProductId, string normVersion, List<int> materialIds)
         {
             if (materialIds == null || !materialIds.Any() || string.IsNullOrWhiteSpace(normVersion))
@@ -402,29 +525,18 @@ namespace tahsinERP.Services
                 return new Dictionary<int, decimal>();
             }
 
-            return _db.NORM_INPUT_LINES
-                .Where(n => n.ProductID == rootProductId
-                    && n.Month == normVersion
-                    && materialIds.Contains(n.MaterialID))
+            var idSet = new HashSet<int>(materialIds);
+            return LoadNormLines(rootProductId, normVersion)
+                .Where(n => idSet.Contains(n.MaterialID))
                 .OrderByDescending(n => n.CreatedDT)
-                .AsEnumerable()
                 .GroupBy(n => n.MaterialID)
                 .ToDictionary(g => g.Key, g => g.First().Price);
         }
 
         private Dictionary<int, (decimal Quantity, decimal TotalAmount)> LoadNormWoodDataByMaterial(int rootProductId, string normVersion)
         {
-            if (string.IsNullOrWhiteSpace(normVersion))
-            {
-                return new Dictionary<int, (decimal Quantity, decimal TotalAmount)>();
-            }
-
-            var lines = _db.NORM_INPUT_LINES
-                .Include(n => n.PRODUCT)
-                .Include(n => n.PRODUCT.PRODUCT_CATEGORIES)
-                .Where(n => n.ProductID == rootProductId && n.Month == normVersion)
-                .ToList()
-                .Where(n => IsWoodProductCategory(n.PRODUCT?.PRODUCT_CATEGORIES))
+            var lines = LoadNormLines(rootProductId, normVersion)
+                .Where(n => n.HasCategory && NormLineMath.IsWoodCategory(n.RawMaterialGroup, n.CategoryName))
                 .ToList();
 
             if (!lines.Any())
@@ -437,134 +549,76 @@ namespace tahsinERP.Services
                 .ToDictionary(
                     g => g.Key,
                     g => (
-                        Quantity: ComputeWoodBarQuantity(g),
+                        Quantity: ComputeWoodBarQuantity(g.ToList()),
                         TotalAmount: g.Sum(ComputeNormWoodLineAmount)));
         }
 
         /// <summary>
-        /// Yog'och (kesiladigan) material uchun BOM dona soni:
-        /// ceil( Σ((CutLengthMm + chiqindi_mm) × PiecesPerProduct) / standart uzunlik ).
-        /// Ya'ni har bir qatorda kesim uzunligi + normadagi chiqindi (offcut) ham hisobga olinadi,
-        /// shunda taxta soni real ishlatiladigan materialni aks ettiradi (chiqindini tashlab ketmaydi).
-        /// WasteAmount bazada qator bo'yicha JAMI chiqindi (mm) sifatida saqlanadi, shuning uchun to'g'ridan-to'g'ri qo'shiladi.
-        /// Masalan: 4000mm taxta, 1140×12 (chiqindi 2320) + 940×4 (240) + 880×3 (1360) + 720×4 (1120)
-        ///          = 28000mm → ceil(28000/4000) = 7 dona.
+        /// Yog'och (kesiladigan) material uchun BOM dona soni — <see cref="NormLineMath.BarQuantity"/>.
+        /// WasteAmount bazada qator bo'yicha JAMI chiqindi (mm) sifatida saqlanadi.
         /// </summary>
-        private static decimal ComputeWoodBarQuantity(IEnumerable<NORM_INPUT_LINES> lines)
+        private static decimal ComputeWoodBarQuantity(List<NormLineRow> list)
         {
-            var list = lines?.ToList();
             if (list == null || list.Count == 0)
                 return 0;
 
-            // Standart uzunlik (mm): StandardLengthMm > 0 bo'lsa, aks holda Length > 0 bo'lsa (null/0 emas).
-            var material = list[0].PRODUCT;
-            double standardLengthMm = 0;
-            if (material != null)
-            {
-                if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-                    standardLengthMm = material.StandardLengthMm.Value;
-                else if (material.Length.HasValue && material.Length.Value > 0)
-                    standardLengthMm = material.Length.Value;
-            }
-
-            // Jami uzunlik (mm) = Σ(kesim × dona) + Σ(chiqindi). Chiqindi WasteAmount (jami mm) dan,
-            // bo'lmasa (standart - kesim) × dona dan hisoblanadi.
-            decimal totalLengthMm = 0;
-            foreach (var x in list)
-            {
-                var cutPartMm = (decimal)x.CutLengthMm * x.PiecesPerProduct;
-
-                decimal wasteMm;
-                if (x.WasteAmount.HasValue)
-                    wasteMm = (decimal)x.WasteAmount.Value;
-                else if (standardLengthMm > 0 && x.CutLengthMm > 0)
-                    wasteMm = (decimal)Math.Max(0, standardLengthMm - x.CutLengthMm) * x.PiecesPerProduct;
-                else
-                    wasteMm = 0;
-
-                totalLengthMm += cutPartMm + wasteMm;
-            }
-
-            if (standardLengthMm > 0 && totalLengthMm > 0)
-                return Math.Ceiling(totalLengthMm / (decimal)standardLengthMm);
-
-            // Standart uzunlik yo'q bo'lsa — eski xatti-harakat (donalar yig'indisi).
-            return (decimal)list.Sum(x => x.PiecesPerProduct);
+            var standardLengthMm = NormLineMath.EffectiveStandardLengthMm(list[0].StandardLengthMm, list[0].Length);
+            return NormLineMath.BarQuantity(
+                list.Select(x => new CutPiece(x.CutLengthMm, x.PiecesPerProduct, x.WasteAmount.HasValue ? (decimal?)(decimal)x.WasteAmount.Value : null)),
+                standardLengthMm);
         }
 
-        private static decimal ComputeNormWoodLineAmount(NORM_INPUT_LINES line)
+        private static decimal ComputeNormWoodLineAmount(NormLineRow line)
         {
-            var material = line.PRODUCT;
-            var requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-            // StandardLengthMm bazada 0 (null emas) bo'lishi mumkin — bunda Length ishlatiladi (> 0 tekshiruvi bilan).
-            double standardLengthMm = 0;
-            if (material != null)
-            {
-                if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-                    standardLengthMm = material.StandardLengthMm.Value;
-                else if (material.Length.HasValue && material.Length.Value > 0)
-                    standardLengthMm = material.Length.Value;
-            }
-
-            decimal consumption;
-            if (line.Consumption.HasValue && line.Consumption.Value > 0)
-            {
-                consumption = NormInputLineConsumptionToDisplay(requiresCutting, line.CutLengthMm, line.Consumption);
-            }
-            else if (requiresCutting && line.CutLengthMm > 0)
-            {
-                consumption = (decimal)(line.CutLengthMm / 1000.0) * line.PiecesPerProduct;
-            }
-            else
-            {
-                consumption = line.PiecesPerProduct;
-            }
-
-            decimal waste;
-            if (line.WasteAmount.HasValue)
-            {
-                waste = NormInputLineWasteToDisplay(line.WasteAmount);
-            }
-            else if (requiresCutting && standardLengthMm > 0 && line.CutLengthMm > 0)
-            {
-                var wastePerBar = Math.Max(0, standardLengthMm - line.CutLengthMm);
-                waste = (decimal)(wastePerBar / 1000.0) * line.PiecesPerProduct;
-            }
-            else
-            {
-                waste = 0;
-            }
-
+            var standardLengthMm = NormLineMath.EffectiveStandardLengthMm(line.StandardLengthMm, line.Length);
+            var consumption = NormLineMath.LineConsumption(line.RequiresCutting, line.CutLengthMm, line.PiecesPerProduct, line.Consumption);
+            var waste = NormLineMath.LineWaste(line.RequiresCutting, standardLengthMm, line.CutLengthMm, line.PiecesPerProduct, line.WasteAmount);
             return consumption * line.Price + waste * line.Price;
         }
 
-        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
+        private static List<BomMaterialSummaryViewModel> Clone(List<BomMaterialSummaryViewModel> source)
         {
-            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
-                return 0;
-            if (requiresCutting && cutLengthMm > 0)
-                return (decimal)(consumptionDb.Value / 1000.0);
-            return (decimal)consumptionDb.Value;
+            return source.Select(s => new BomMaterialSummaryViewModel
+            {
+                MaterialId = s.MaterialId,
+                MaterialPno = s.MaterialPno,
+                MaterialName = s.MaterialName,
+                UnitShortname = s.UnitShortname,
+                UnitId = s.UnitId,
+                TotalQuantity = s.TotalQuantity,
+                UnitPrice = s.UnitPrice,
+                TotalAmount = s.TotalAmount
+            }).ToList();
         }
 
-        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
+        private sealed class BomLineRow
         {
-            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
-                return 0;
-            return (decimal)(wasteAmountDb.Value / 1000.0);
+            public int BomID { get; set; }
+            public int? ComponentID { get; set; }
+            public decimal? Qty { get; set; }
+            public int? UnitID { get; set; }
+            public string UnitShortName { get; set; }
+            public string ComponentPNo { get; set; }
+            public string ComponentName { get; set; }
+            public bool ComponentIsDeleted { get; set; }
+            public int ComponentUnitID { get; set; }
         }
 
-        private static bool IsWoodProductCategory(PRODUCT_CATEGORIES category)
+        private sealed class NormLineRow
         {
-            if (category == null)
-                return false;
-
-            var rawGroup = category.RawMaterialGroup ?? string.Empty;
-            var catName = category.Name ?? string.Empty;
-            return rawGroup.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
-                || rawGroup.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0
-                || catName.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
-                || catName.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0;
+            public int MaterialID { get; set; }
+            public int CutLengthMm { get; set; }
+            public int PiecesPerProduct { get; set; }
+            public double? Consumption { get; set; }
+            public double? WasteAmount { get; set; }
+            public decimal Price { get; set; }
+            public DateTime CreatedDT { get; set; }
+            public double? StandardLengthMm { get; set; }
+            public double? Length { get; set; }
+            public bool RequiresCutting { get; set; }
+            public string RawMaterialGroup { get; set; }
+            public string CategoryName { get; set; }
+            public bool HasCategory { get; set; }
         }
     }
 }

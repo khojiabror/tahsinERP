@@ -17,6 +17,8 @@ namespace tahsinERP.Services
     {
         private readonly DBTHSNEntities _db;
         private readonly UnitConversionService _conversionService;
+        // MaterialID → birinchi kirim birligi (bitta servis nusxasi doirasida keshlanadi; avval har chaqiruvda so'rov, MES-P10)
+        private readonly Dictionary<int, int?> _displayUnitCache = new Dictionary<int, int?>();
 
         public ProductionConsumptionService(DBTHSNEntities db)
         {
@@ -152,14 +154,19 @@ namespace tahsinERP.Services
         /// </summary>
         public int? GetDisplayUnitFromIncome(int materialId)
         {
-            var firstIp = _db.INCOME_PRODUCTS
-                .Include(ip => ip.INCOME)
+            int? cached;
+            if (_displayUnitCache.TryGetValue(materialId, out cached))
+                return cached;
+
+            var unitId = _db.INCOME_PRODUCTS.AsNoTracking()
                 .Where(ip => ip.ProductID == materialId
                     && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false))
                 .OrderBy(ip => ip.INCOME.IssueDateTime)
+                .Select(ip => (int?)ip.UnitID)
                 .FirstOrDefault();
 
-            return firstIp != null ? (int?)firstIp.UnitID : null;
+            _displayUnitCache[materialId] = unitId;
+            return unitId;
         }
 
         /// <summary>

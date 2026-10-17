@@ -8,11 +8,12 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.Tannarx;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.Engineering
 {
     [Authorize]
-    public class TannarxController : Controller
+    public class TannarxController : BaseController
     {
         private DBTHSNEntities db = new DBTHSNEntities();
         private TannarxService _tannarxService;
@@ -42,42 +43,16 @@ namespace tahsinERP.Controllers.Engineering
             var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
             ViewBag.Years = new SelectList(years, currentYear);
 
-            // Olish months uchun dropdown
-            var months = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "1", Text = "Yanvar" },
-                new SelectListItem { Value = "2", Text = "Fevral" },
-                new SelectListItem { Value = "3", Text = "Mart" },
-                new SelectListItem { Value = "4", Text = "Aprel" },
-                new SelectListItem { Value = "5", Text = "May" },
-                new SelectListItem { Value = "6", Text = "Iyun" },
-                new SelectListItem { Value = "7", Text = "Iyul" },
-                new SelectListItem { Value = "8", Text = "Avgust" },
-                new SelectListItem { Value = "9", Text = "Sentabr" },
-                new SelectListItem { Value = "10", Text = "Oktabr" },
-                new SelectListItem { Value = "11", Text = "Noyabr" },
-                new SelectListItem { Value = "12", Text = "Dekabr" }
-            };
-            ViewBag.Months = new SelectList(months, "Value", "Text", currentMonth);
+            ViewBag.Months = UzMonthNames.SelectList(currentMonth);
 
-            // Olish products uchun dropdown (finished goods faqat)
-            // Tekshirish both PRODUCT.IsFinishedGood va PRODUCT_CATEGORIES.IsFinishedGood
-            var products = await db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => p.IsDeleted == false 
-                    && (p.IsFinishedGood == true 
-                        || (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsFinishedGood == true)))
-                .OrderBy(p => p.PNo)
-                .ToListAsync();
+            // Tayyor mahsulotlar (proyeksiya, "PNo - Name")
+            var products = await MesLookups.FinishedGoodItemsAsync(db);
 
-            ViewBag.Products = new SelectList(
-                products.Select(p => new { p.ID, Name = $"{p.PNo} - {p.Name}" }),
-                "ID", "Name", productID);
+            ViewBag.Products = new SelectList(products, "ID", "Name", productID);
 
             // Olish tannarx records uchun selected year, month, va product
-            var query = db.TANNARXes
+            var query = db.TANNARXes.AsNoTracking()
                 .Include(t => t.PRODUCT)
-                .Include(t => t.PRODUCT.PRODUCT_CATEGORIES)
                 .Where(t => t.Year == currentYear 
                     && t.Month == currentMonth
                     && t.IsDeleted == false);
@@ -171,11 +146,8 @@ namespace tahsinERP.Controllers.Engineering
 
             try
             {
-                var currentUser = await db.USERS
-                    .FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
-
                 var generatedCount = await _tannarxService.GenerateTannarxForMonthAsync(
-                    year, month, currentUser?.ID);
+                    year, month, RoleHelper.GetUserId(CurrentUserName));
 
                 if (generatedCount > 0)
                 {
@@ -303,8 +275,7 @@ namespace tahsinERP.Controllers.Engineering
                 tannarxForRefresh.MaterialTransportCost = _tannarxService.CalculateMaterialTransportCost(materialPrice);
                 tannarxForRefresh.ModifiedDT = DateTime.Now;
 
-                var currentUserForRefresh = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
-                tannarxForRefresh.ModifiedByUserID = currentUserForRefresh?.ID;
+                tannarxForRefresh.ModifiedByUserID = RoleHelper.GetUserId(CurrentUserName);
 
                 if (tannarxForRefresh.SetPriceEXWWithVAT.HasValue)
                 {
@@ -346,9 +317,6 @@ namespace tahsinERP.Controllers.Engineering
                     return RedirectToAction("Index");
                 }
 
-                var currentUser = await db.USERS
-                    .FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
-
                 // Yangilash fields
                 tannarx.LaborCost = viewModel.LaborCost;
                 tannarx.TaxAndBankPercent = viewModel.TaxAndBankPercent;
@@ -358,7 +326,7 @@ namespace tahsinERP.Controllers.Engineering
                 tannarx.SetPriceEXWWithVAT = viewModel.SetPriceEXWWithVAT;
                 tannarx.FinishedProductTransportCost = viewModel.FinishedProductTransportCost;
                 tannarx.SetPriceCIPWithVAT = viewModel.SetPriceCIPWithVAT;
-                tannarx.ModifiedByUserID = currentUser?.ID;
+                tannarx.ModifiedByUserID = RoleHelper.GetUserId(CurrentUserName);
                 tannarx.ModifiedDT = DateTime.Now;
 
                 // Recalculate prices based on SetPriceEXWWithVAT
@@ -513,9 +481,7 @@ namespace tahsinERP.Controllers.Engineering
                 // Soft o'chirish
                 tannarx.IsDeleted = true;
                 tannarx.ModifiedDT = DateTime.Now;
-                var currentUser = await db.USERS
-                    .FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
-                tannarx.ModifiedByUserID = currentUser?.ID;
+                tannarx.ModifiedByUserID = RoleHelper.GetUserId(CurrentUserName);
 
                 await db.SaveChangesAsync();
 
