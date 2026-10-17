@@ -9,7 +9,9 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Controllers
 {
     /// <summary>
-    /// Admin Panel - foydalanuvchilar, rollar va tizim statistikasini boshqarish
+    /// Admin Panel - foydalanuvchilar, rollar va tizim statistikasini boshqarish.
+    /// Users/Roles/Permissions/SavePermissions/Logs/UserEntries amallari olib tashlandi: ularning
+    /// view'lari yo'q edi; bu bo'limlarni User, Role, PModule, Log va UserEntries controllerlari qoplaydi.
     /// </summary>
     public class AdminPanelController : Controller
     {
@@ -23,6 +25,11 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            // Sana diapazoni (TruncateTime indeksni ishlatmasdi — butun jadval skan qilinardi)
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+            var weekAgo = DateTime.Now.AddDays(-7);
+
             var model = new AdminDashboardViewModel
             {
                 // Foydalanuvchilar statistikasi
@@ -30,232 +37,47 @@ namespace tahsinERP.Controllers
                 ActiveUsers = await db.USERS.CountAsync(u => u.IsDeleted != true && u.IsActive),
                 InactiveUsers = await db.USERS.CountAsync(u => u.IsDeleted != true && !u.IsActive),
 
-                // Rollar statistikasi
+                // Rollar statistikasi (TotalPermissions va TotalLogs sahifada ko'rsatilmaydi — katta jadvallarni sanamaymiz)
                 TotalRoles = await db.ROLES.CountAsync(),
                 TotalPermissionModules = await db.PERMISSIONMODULES.CountAsync(),
-                TotalPermissions = await db.PERMISSIONS.CountAsync(),
 
                 // Log statistikasi
-                TotalLogs = await db.USERLOGS.CountAsync(),
-                TodayLogs = await db.USERLOGS.CountAsync(l => DbFunctions.TruncateTime(l.DateTime) == DbFunctions.TruncateTime(DateTime.Now)),
-                ThisWeekLogs = await db.USERLOGS.CountAsync(l => l.DateTime >= DbFunctions.AddDays(DateTime.Now, -7)),
+                TodayLogs = await db.USERLOGS.CountAsync(l => l.DateTime >= today && l.DateTime < tomorrow),
+                ThisWeekLogs = await db.USERLOGS.CountAsync(l => l.DateTime >= weekAgo),
 
                 // Tizimga kirishlar
                 TotalUserEntries = await db.USER_ENTRIES.CountAsync(),
-                TodayUserEntries = await db.USER_ENTRIES.CountAsync(e => DbFunctions.TruncateTime(e.DateTime) == DbFunctions.TruncateTime(DateTime.Now)),
+                TodayUserEntries = await db.USER_ENTRIES.CountAsync(e => e.DateTime >= today && e.DateTime < tomorrow),
 
                 // Oxirgi kirishlar (so'nggi 10 ta)
-                RecentUserEntries = await db.USER_ENTRIES
+                RecentUserEntries = await db.USER_ENTRIES.AsNoTracking()
                     .Include(e => e.USER)
                     .OrderByDescending(e => e.DateTime)
                     .Take(10)
                     .ToListAsync(),
 
                 // Oxirgi loglar (so'nggi 10 ta)
-                RecentLogs = await db.USERLOGS
+                RecentLogs = await db.USERLOGS.AsNoTracking()
                     .Include(l => l.USER)
                     .OrderByDescending(l => l.DateTime)
                     .Take(10)
                     .ToListAsync(),
 
-                // Rollar ro'yxati
-                Roles = await db.ROLES.ToListAsync(),
+                // Rollar ro'yxati — huquqlar soni bitta so'rovda (view har rol uchun alohida yuklardi)
+                Roles = await db.ROLES.AsNoTracking()
+                    .Include(r => r.PERMISSIONS)
+                    .ToListAsync(),
 
-                // Foydalanuvchilar ro'yxati
-                Users = await db.USERS
+                // Foydalanuvchilar ro'yxati — view faqat birinchi 10 tasini ko'rsatadi
+                Users = await db.USERS.AsNoTracking()
                     .Include(u => u.ROLES)
                     .Where(u => u.IsDeleted != true)
                     .OrderBy(u => u.FullName)
+                    .Take(10)
                     .ToListAsync()
             };
 
             return View(model);
-        }
-
-        // Olish so'rovi: AdminPanel/Users
-        public async Task<ActionResult> Users()
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            var users = await db.USERS
-                .Include(u => u.ROLES)
-                .Where(u => u.IsDeleted != true)
-                .OrderBy(u => u.FullName)
-                .ToListAsync();
-
-            return View(users);
-        }
-
-        // Olish so'rovi: AdminPanel/Roles
-        public async Task<ActionResult> Roles()
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            var roles = await db.ROLES
-                .Include(r => r.PERMISSIONS)
-                .ToListAsync();
-
-            return View(roles);
-        }
-
-        // Olish so'rovi: AdminPanel/Permissions/{roleId}
-        public async Task<ActionResult> Permissions(int? roleId)
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            ViewBag.Roles = await db.ROLES.ToListAsync();
-            ViewBag.SelectedRoleId = roleId;
-
-            if (!roleId.HasValue)
-            {
-                return View(new PermissionManagementViewModel());
-            }
-
-            var role = await db.ROLES.FindAsync(roleId.Value);
-            if (role == null)
-            {
-                return HttpNotFound();
-            }
-
-            var modules = await db.PERMISSIONMODULES
-                .OrderBy(m => m.Module)
-                .ThenBy(m => m.Controller)
-                .ToListAsync();
-
-            var permissions = await db.PERMISSIONS
-                .Where(p => p.RoleID == roleId.Value)
-                .ToListAsync();
-
-            var model = new PermissionManagementViewModel
-            {
-                RoleId = roleId.Value,
-                RoleName = role.RName,
-                Modules = modules.Select(m => new ModulePermissionViewModel
-                {
-                    ModuleId = m.ID,
-                    ModuleName = m.Module,
-                    Controller = m.Controller,
-                    Action = m.Action,
-                    Parameter = m.Parameter,
-                    ViewPermit = permissions.FirstOrDefault(p => p.PermissionModuleID == m.ID)?.ViewPermit ?? false,
-                    ChangePermit = permissions.FirstOrDefault(p => p.PermissionModuleID == m.ID)?.ChangePermit ?? false
-                }).ToList()
-            };
-
-            return View(model);
-        }
-
-        // POST so'rovi: AdminPanel/SavePermissions
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SavePermissions(PermissionManagementViewModel model)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (model.Modules == null || !model.Modules.Any())
-            {
-                TempData["Error"] = "Saqlash uchun ma'lumot topilmadi.";
-                return RedirectToAction("Permissions", new { roleId = model.RoleId });
-            }
-
-            try
-            {
-                foreach (var moduleVm in model.Modules)
-                {
-                    var existingPermission = await db.PERMISSIONS
-                        .FirstOrDefaultAsync(p => p.RoleID == model.RoleId && p.PermissionModuleID == moduleVm.ModuleId);
-
-                    if (existingPermission != null)
-                    {
-                        existingPermission.ViewPermit = moduleVm.ViewPermit;
-                        existingPermission.ChangePermit = moduleVm.ChangePermit;
-                        existingPermission.DeletePermit = false; // standart value
-                    }
-                    else
-                    {
-                        db.PERMISSIONS.Add(new PERMISSION
-                        {
-                            RoleID = model.RoleId,
-                            PermissionModuleID = moduleVm.ModuleId,
-                            ViewPermit = moduleVm.ViewPermit,
-                            ChangePermit = moduleVm.ChangePermit,
-                            DeletePermit = false // standart value
-                        });
-                    }
-                }
-
-                await db.SaveChangesAsync();
-
-                // Cache ni tozalash - barcha foydalanuvchilar uchun
-                RoleHelper.ClearAllCache();
-
-                TempData["Success"] = "Huquqlar muvaffaqiyatli saqlandi.";
-                LogHelper.LogToDatabase(User.Identity.Name, "AdminPanel", $"Role #{model.RoleId} uchun huquqlar yangilandi");
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
-            }
-
-            return RedirectToAction("Permissions", new { roleId = model.RoleId });
-        }
-
-        // Olish so'rovi: AdminPanel/Logs
-        public async Task<ActionResult> Logs(int page = 1, int pageSize = 50)
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            var totalLogs = await db.USERLOGS.CountAsync();
-            var logs = await db.USERLOGS
-                .Include(l => l.USER)
-                .OrderByDescending(l => l.DateTime)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalLogs / pageSize);
-            ViewBag.TotalLogs = totalLogs;
-
-            return View(logs);
-        }
-
-        // Olish so'rovi: AdminPanel/UserEntries
-        public async Task<ActionResult> UserEntries(int page = 1, int pageSize = 50)
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            var totalEntries = await db.USER_ENTRIES.CountAsync();
-            var entries = await db.USER_ENTRIES
-                .Include(e => e.USER)
-                .OrderByDescending(e => e.DateTime)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalEntries / pageSize);
-            ViewBag.TotalEntries = totalEntries;
-
-            return View(entries);
         }
 
         protected override void Dispose(bool disposing)

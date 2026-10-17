@@ -333,7 +333,6 @@
     <Compile Include="Controllers\AdminSetting\AdminPanelController.cs" />
     <Compile Include="Controllers\Engineering\BOMController.cs" />
     <Compile Include="Controllers\AdminSetting\ComingSoonController.cs" />
-    <Compile Include="Controllers\AdminSetting\CookieHelper.cs" />
     <Compile Include="Controllers\CRM\CustomerController.cs" />
     <Compile Include="Controllers\DefectTypeController.cs" />
     <Compile Include="Controllers\LookupCrudController.cs" />
@@ -360,10 +359,8 @@
     <Compile Include="Controllers\SRM\SupplierBaseController.cs" />
     <Compile Include="Controllers\SRM\TenderController.cs" />
     <Compile Include="Controllers\AdminSetting\ErrorController.cs" />
-    <Compile Include="Controllers\AdminSetting\Helper.cs" />
     <Compile Include="Controllers\AdminSetting\HomeController.cs" />
     <Compile Include="Controllers\HelpDocsController.cs" />
-    <Compile Include="Controllers\AdminSetting\PermissionController.cs" />
     <Compile Include="Controllers\AdminSetting\PModuleController.cs" />
     <Compile Include="Controllers\Engineering\ProductController.cs" />
     <Compile Include="Controllers\ProductionProcessController.cs" />
@@ -775,7 +772,6 @@
     <Compile Include="Models\USERLOG.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\UsersRoleProvider.cs" />
     <Compile Include="Controllers\AdminSetting\ViewNotAuthorizedController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -2836,8 +2832,6 @@
     <Content Include="Views\License\Index.cshtml" />
     <Content Include="Views\License\Blocked.cshtml" />
     <Content Include="Views\Error\Error.cshtml" />
-    <Content Include="Views\Home\About.cshtml" />
-    <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\User\Index.cshtml" />
     <Content Include="Views\User\Create.cshtml" />
@@ -2854,7 +2848,6 @@
     <Content Include="Views\Shared\_UserProfile.cshtml" />
     <Content Include="Views\User\Delete.cshtml" />
     <Content Include="Views\PModule\Index.cshtml" />
-    <Content Include="Views\Permission\Edit.cshtml" />
     <Content Include="Views\PModule\Create.cshtml" />
     <Content Include="Views\PModule\Edit.cshtml" />
     <Content Include="Views\PModule\Details.cshtml" />
