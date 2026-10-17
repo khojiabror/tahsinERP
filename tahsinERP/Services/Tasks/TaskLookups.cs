@@ -126,14 +126,14 @@ namespace tahsinERP.Services.Tasks
 
         public static void Invalidate()
         {
-            Cache.Remove(StatusesKey);
-            Cache.Remove(PrioritiesKey);
-            Cache.Remove(ProjectsKey);
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(StatusesKey));
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(PrioritiesKey));
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(ProjectsKey));
         }
 
         private static IReadOnlyList<Item> Get(string key, Func<DBTHSNEntities, List<Item>> load)
         {
-            var cached = Cache.Get(key) as List<Item>;
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key)) as List<Item>;
             if (cached != null)
                 return cached;
 
@@ -141,7 +141,7 @@ namespace tahsinERP.Services.Tasks
             {
                 cached = load(db);
             }
-            Cache.Set(key, cached, DateTimeOffset.Now.Add(Ttl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key), cached, DateTimeOffset.Now.Add(Ttl));
             return cached;
         }
     }

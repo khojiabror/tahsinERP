@@ -442,7 +442,7 @@ namespace tahsinERP.Controllers.MES
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", BuildErrorMessage(ex));
+                        ModelState.AddModelError("", MesErrorMessage.From(ex));
                     }
                 }
             }
@@ -578,7 +578,7 @@ namespace tahsinERP.Controllers.MES
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", BuildErrorMessage(ex));
+                        ModelState.AddModelError("", MesErrorMessage.From(ex));
                     }
                 }
             }
@@ -968,14 +968,6 @@ namespace tahsinERP.Controllers.MES
             }
 
             return null;
-        }
-
-        private static string BuildErrorMessage(Exception ex)
-        {
-            var errorMessage = $"Xatolik: {ex.Message}";
-            for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
-                errorMessage += $" | Ichki xatolik: {inner.Message}";
-            return errorMessage;
         }
     }
 }

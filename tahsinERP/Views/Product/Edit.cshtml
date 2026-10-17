@@ -65,10 +65,10 @@
                                                         <div class="col-sm-6 col-12 order-1 order-sm-1">
                                                             <div>
                                                                 <h4 class="text-primary">Maxsulot rasmi</h4>
-                                                                @if (ViewBag.ProductImage != null)
+                                                                @if (ViewBag.ProductImageUrl != null)
                                                                 {
                                                                     <div class="mb-2">
-                                                                        <img src="data:image/png;base64,@ViewBag.ProductImage" alt="Maxsulot rasmi" style="max-width: 200px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px;" />
+                                                                        <img src="@ViewBag.ProductImageUrl" loading="lazy" alt="Maxsulot rasmi" style="max-width: 200px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px;" />
                                                                     </div>
                                                                 }
                                                                 <input type="file" id="productPhotoUpload" name="productPhotoUpload" class="form-control-file" />

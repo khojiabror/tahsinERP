@@ -106,8 +106,6 @@
                                                             <th>Mahsulot kodi</th>
                                                             <th>Xom ashyo nomi</th>
                                                             <th>Talab qilingan (dona)</th>
-                                                            <th>Talab (m)</th>
-                                                            <th>Chiqindi</th>
                                                             <th>Jami sarf</th>
                                                             <th>O'lchov birligi</th>
                                                             <th>Dona narxi</th>
@@ -123,8 +121,6 @@
                                                                 <td>@(line.MaterialPNo ?? "-")</td>
                                                                 <td>@(line.MaterialName ?? "-")</td>
                                                                 <td>@(line.RequiredQtyPieces > 0 ? line.RequiredQtyPieces.ToString("N3") : "-")</td>
-                                                                <td>@(line.RequiredQtyMeters > 0 ? line.RequiredQtyMeters.ToString("N3") : "-")</td>
-                                                                <td>@(line.WasteQty > 0 ? line.WasteQty.ToString("N3") : "-")</td>
                                                                 <td><strong>@line.TotalConsumption.ToString("N3")</strong> @(line.TotalConsumptionIsInKg ? " kg" : "")</td>
                                                                 <td>@(line.UnitName ?? "-")</td>
                                                                 <td>@(line.PiecePrice > 0 ? line.PiecePrice.ToString("N2") : "-")</td>

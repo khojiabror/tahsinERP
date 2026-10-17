@@ -154,6 +154,44 @@
                             }
                         </div>
                     </div>
+
+                    <!-- ==== MARKAZIY PANEL ==== -->
+                    @if (Model.PanelEnabled)
+                    {
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">Markaziy panel</h4></div>
+                            <div class="card-body">
+                                @if (Model.PanelConnected)
+                                {
+                                    <p class="mb-50"><span class="badge badge-success">Ulangan</span> Kalit har 6 soatda avtomatik yangilanadi.</p>
+                                }
+                                else
+                                {
+                                    <p class="mb-50"><span class="badge badge-secondary">Ulanmagan</span></p>
+                                    using (Html.BeginForm("ConnectPanel", "License", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group mb-50">
+                                            <input type="text" name="regToken" class="form-control" autocomplete="off" maxlength="200"
+                                                   placeholder="@(Model.HasRegToken ? "Token saqlangan — yangisini kiritish mumkin" : "Ro'yxat tokeni (reg_token)")" style="font-family:monospace;" />
+                                        </div>
+                                        <button type="submit" class="btn btn-outline-primary btn-block">Panelga ulash</button>
+                                    }
+                                }
+                                @using (Html.BeginForm("SyncNow", "License", FormMethod.Post, new { @class = "mt-50" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-primary btn-block">Hozir tekshirish</button>
+                                }
+                                @if (Model.LastSyncUtc.HasValue)
+                                {
+                                    <small class="text-muted d-block mt-50">
+                                        Oxirgi tekshiruv: @Model.LastSyncUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />@Model.LastSyncResult
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 

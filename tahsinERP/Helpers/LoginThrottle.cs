@@ -36,7 +36,9 @@ namespace tahsinERP.Helpers
 
         private static string Key(string userName, string ip)
         {
-            return "login-throttle:" + (userName ?? "").Trim().ToLowerInvariant() + "|" + (ip ?? "");
+            // Tenant prefiksi: firma1'dagi "admin" bloklansa, firma2'dagi "admin" bloklanmasin
+            return tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(
+                "login-throttle:" + (userName ?? "").Trim().ToLowerInvariant() + "|" + (ip ?? ""));
         }
 
         /// <summary>Bloklangan bo'lsa true va qolgan vaqtni qaytaradi.</summary>

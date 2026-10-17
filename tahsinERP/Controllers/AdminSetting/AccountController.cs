@@ -150,7 +150,8 @@ namespace tahsinERP.Controllers
                     DateTime.Now,               // issue date
                     expirationTime,             // expiration
                     user.KeepMeSigned,          // persistent
-                    getUser.FullName ?? getUser.Uname  // user ma'lumot (FullName)
+                    // user ma'lumot (FullName) + ko'p-tenant rejimida tenant belgisi
+                    tahsinERP.Configuration.Tenancy.TenantHttp.BindUserData(getUser.FullName ?? getUser.Uname)
                 );
 
                 string encryptedTicket = FormsAuthentication.Encrypt(authTicket);

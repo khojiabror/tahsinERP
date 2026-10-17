@@ -32,7 +32,6 @@ namespace tahsinERP.Models
         public int CustomerID { get; set; }
         public Nullable<int> ContractID { get; set; }
         public Nullable<int> OrderID { get; set; }
-        public string CurrencyCode { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal TotalVAT { get; set; }
         public Nullable<decimal> TotalWithVAT { get; set; }

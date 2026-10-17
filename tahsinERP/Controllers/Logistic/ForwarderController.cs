@@ -90,15 +90,17 @@ namespace tahsinERP.Controllers
                         Tonnage = g.Sum(w => w.GrWeight) ?? 0,
                         Cbm = g.Sum(w => w.CBM) ?? 0,
                         NetWeight = g.Sum(w => w.NetWeight) ?? 0,
-                        Cost = g.Sum(w => w.Amount) ?? 0,
-                        AvgPerKm = g.Where(w => w.DistanceKm > 0 && w.Amount != null).Average(w => w.Amount / w.DistanceKm),
                         OnTime = g.Count(w => w.PlannedDeliveryDate != null && w.ActualDeliveryDate != null && w.ActualDeliveryDate <= w.PlannedDeliveryDate),
                         Delivered = g.Count(w => w.PlannedDeliveryDate != null && w.ActualDeliveryDate != null)
                     })
                     .FirstOrDefaultAsync();
 
+                // LOG-B13: summalar so'mda (CBU kursi, hujjat sanasi) — xarajat analitika servisidan
+                var money = new LogisticsMoney(db);
+                var costStats = LogisticsAnalyticsService.GetForwarderStats(db, waybills, money: money).FirstOrDefault();
+
                 // LOG-B04: qarz ta'rifi boshqa ekranlar bilan bir xil (qo'lda kiritilgan FIN to'lovlar ham)
-                var balance = WaybillLedgerService.GetForwarderBalance(db, forwarder.ID);
+                var balance = WaybillLedgerService.GetForwarderBalance(db, forwarder.ID, money);
                 var today = DateTime.Today;
 
                 var statistics = new ForwarderStatisticsViewModel
@@ -111,10 +113,10 @@ namespace tahsinERP.Controllers
                     TotalTonnage = agg?.Tonnage ?? 0,
                     TotalCBM = agg?.Cbm ?? 0,
                     TotalNetWeight = agg?.NetWeight ?? 0,
-                    TotalCost = agg?.Cost ?? 0,
+                    TotalCost = costStats?.TotalCost ?? 0,
                     PaidAmount = balance.TotalPaid,
                     UnpaidAmount = balance.TotalFreight - balance.TotalPaid,
-                    AverageCostPerKm = agg?.AvgPerKm ?? 0,
+                    AverageCostPerKm = costStats?.AvgCostPerKm ?? 0,
                     ActiveContracts = await db.F_CONTRACTS.AsNoTracking()
                         .Where(c => c.ForwarderID == id && !c.IsDeleted && c.DueDate >= today)
                         .ToListAsync(),
@@ -124,8 +126,9 @@ namespace tahsinERP.Controllers
                         .OrderByDescending(p => p.PaymentDate)
                         .Take(10)
                         .ToListAsync(),
-                    TopLanes = LogisticsAnalyticsService.GetLaneStats(db, waybills, 10)
+                    TopLanes = LogisticsAnalyticsService.GetLaneStats(db, waybills, 10, money: money)
                 };
+                ViewBag.CurrencyWarning = money.Warning;
 
                 if (statistics.TotalTonnage > 0)
                     statistics.AverageCostPerTon = statistics.TotalCost / statistics.TotalTonnage;
@@ -229,42 +232,11 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                if (ModelState.IsValid)
-                {
-                    FORWARDER forwarderToDelete = await db.FORWARDERS.FirstOrDefaultAsync(f => f.ID == ID && f.IsDeleted != true);
-                    if (forwarderToDelete != null)
-                    {
-                        forwarderToDelete.IsDeleted = true;
-                        
-                        try
-                        {
-                            await SoftDeleteReferenceService.AfterForwarderSoftDeletedAsync(db, forwarderToDelete.ID);
-                            await db.SaveChangesAsync();
-
-                            var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "ForwarderController", "Delete", $"{forwarderToDelete.ForwarderName} - yuk tashuvchi o'chirildi.");
-
-                            return RedirectToAction("Index");
-                        }
-                        catch (RetryLimitExceededException)
-                        {
-                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        }
-                        catch (Exception ex)
-                        {
-                            ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
-                            LogHelper.LogToDatabase(User.Identity.Name, "ForwarderController", "Delete", $"Xatolik: {ex.Message}");
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "Yuk tashuvchi topilmadi.");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
-                }
+                if (await SoftDeleteAsync<FORWARDER>(db, ID,
+                        (ctx, f) => SoftDeleteReferenceService.AfterForwarderSoftDeletedAsync(ctx, f.ID),
+                        f => $"{f.ForwarderName} - yuk tashuvchi o'chirildi.",
+                        "Yuk tashuvchi topilmadi."))
+                    return RedirectToAction("Index");
 
                 // LOG-B09: view null model bilan ochilmasin
                 var model = await db.FORWARDERS.AsNoTracking().FirstOrDefaultAsync(f => f.ID == ID && f.IsDeleted != true);

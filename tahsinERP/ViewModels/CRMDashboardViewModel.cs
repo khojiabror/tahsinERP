@@ -97,7 +97,11 @@ namespace tahsinERP.ViewModels
         public string CustomerName { get; set; }
         public System.DateTime? DueDate { get; set; }
         public int DaysOverdue { get; set; }
+        /// <summary>Invoys summasi QQS bilan, so'mda.</summary>
         public decimal TotalAmount { get; set; }
+        /// <summary>Invoysga bog'langan to'lovlar, so'mda.</summary>
+        public decimal PaidAmount { get; set; }
+        public decimal RemainingAmount { get; set; }
     }
 
     public class CRMCustomerOrderSum

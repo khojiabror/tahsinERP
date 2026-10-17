@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels.Sales;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Services.Crm
 {
@@ -207,10 +208,9 @@ namespace tahsinERP.Services.Crm
                 CustomerID = posted.CustomerID,
                 ContractID = posted.ContractID,
                 OrderID = posted.OrderID,
-                CurrencyCode = posted.CurrencyCode,
                 // CRM-M02: CurrencyID hech qachon yozilmasdi — posting "CurrencyID ?? 1" bilan yiqilardi (bazada 1-valyuta yo'q).
                 // Kesh tranzaksiyadan OLDIN o'qiladi (scope ichida yangi ulanish DTC'ga olib keladi).
-                CurrencyID = CurrencyRateService.CurrencyIdByCode(posted.CurrencyCode) ?? CurrencyRateService.BaseCurrencyId(),
+                CurrencyID = posted.CurrencyID ?? CurrencyRateService.BaseCurrencyId(),
                 DueDate = posted.DueDate,
                 // Biznes qoidasi: invoys yaratilganda darhol APPROVED
                 StatusCode = SalesInvoiceStatus.Approved,
@@ -252,7 +252,7 @@ namespace tahsinERP.Services.Crm
         {
             lines = NormalizeLines(lines);
             bool linesChanged, stockChanged;
-            var currencyId = CurrencyRateService.CurrencyIdByCode(posted.CurrencyCode) ?? CurrencyRateService.BaseCurrencyId();
+            var currencyId = posted.CurrencyID ?? CurrencyRateService.BaseCurrencyId();
 
             using (var db = new DBTHSNEntities())
             {
@@ -306,7 +306,6 @@ namespace tahsinERP.Services.Crm
                 invoice.CustomerID = posted.CustomerID;
                 invoice.ContractID = posted.ContractID;
                 invoice.OrderID = posted.OrderID;
-                invoice.CurrencyCode = posted.CurrencyCode;
                 invoice.CurrencyID = currencyId;
                 // Tahrirlash formasida to'lov muddati maydoni yo'q — bo'sh kelsa saqlangani qoladi (avval NULL bo'lib ketardi)
                 invoice.DueDate = posted.DueDate ?? invoice.DueDate;
@@ -481,7 +480,7 @@ namespace tahsinERP.Services.Crm
         /// <summary>
         /// Shartnoma tanlangan bo'lsa birlik narxi shartnomadan olinadi (formada readonly — CRM-S03).
         /// Shartnomada bir mahsulot turli narxda takrorlangan bo'lsa, kiritilgan narx qoldiriladi.
-        /// QQS % foydalanuvchi tomonidan kiritiladi (0–100 oralig'iga cheklanadi).
+        /// QQS % ham shartnoma qatoridan olinadi (formada readonly).
         /// </summary>
         private static void ApplyContractPrices(DBTHSNEntities db, int? contractId, IList<SalesInvoiceLineViewModel> lines)
         {
@@ -495,11 +494,18 @@ namespace tahsinERP.Services.Crm
                 .Where(g => g.Select(x => x.PiecePrice).Distinct().Count() == 1)
                 .ToDictionary(g => g.Key, g => (decimal)g.First().PiecePrice);
 
+            // QQS foizi ham shartnomadan (CRM-S03): formadagi qiymatga faqat shartnomada yo'q mahsulot uchun ishoniladi
+            var vatRates = SContractVatHelper.GetProductVatRates(db, contractId);
+
             foreach (var line in lines)
             {
                 decimal price;
                 if (prices.TryGetValue(line.ProductID, out price))
                     line.UnitPrice = price;
+
+                double vatRate;
+                if (vatRates.TryGetValue(line.ProductID, out vatRate))
+                    line.VATRate = (decimal)vatRate;
             }
         }
 

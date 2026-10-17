@@ -3,7 +3,8 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Caching;
-using tahsinERP.Helpers;
+using tahsinERP.Configuration.Tenancy;
+using tahsinERP.Licensing;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
@@ -73,7 +74,9 @@ namespace tahsinERP.Services
         private const string STATE_INSTALLATION_ID = "InstallationId";
         private const string STATE_LAST_SEEN = "LastSeenUtc";
 
-        private static volatile bool _stateTableEnsured;
+        // LICENSE_STATE jadvali yaratilganmi — har tenant bazasi uchun alohida ("" = bitta-baza rejimi)
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _stateTableEnsured =
+            new System.Collections.Concurrent.ConcurrentDictionary<string, bool>(StringComparer.Ordinal);
         private static readonly object _stateLock = new object();
 
         public static string PublicKey
@@ -81,10 +84,17 @@ namespace tahsinERP.Services
             get { return LicenseHelper.PublicKeyXml; }
         }
 
+        /// <summary>
+        /// Shu o'rnatmaning CompanyID'si: ko'p-tenant rejimida tenant reestridagi companyId (berilgan bo'lsa),
+        /// aks holda Web.config'dagi companyID.
+        /// </summary>
         public static int InstallationCompanyId
         {
             get
             {
+                var tenant = TenantContext.Current;
+                if (tenant != null && tenant.CompanyId.HasValue)
+                    return tenant.CompanyId.Value;
                 int id;
                 return int.TryParse(ConfigurationManager.AppSettings["companyID"], out id) ? id : 0;
             }
@@ -98,7 +108,8 @@ namespace tahsinERP.Services
         /// </summary>
         public static LicenseStatus GetCachedStatus()
         {
-            var cached = MemoryCache.Default.Get(CACHE_KEY) as LicenseStatus;
+            string cacheKey = TenantContext.CacheKey(CACHE_KEY);
+            var cached = MemoryCache.Default.Get(cacheKey) as LicenseStatus;
             if (cached != null)
                 return cached;
 
@@ -118,14 +129,14 @@ namespace tahsinERP.Services
                 ttl = ErrorCacheDuration;
             }
 
-            MemoryCache.Default.Set(CACHE_KEY, status, DateTimeOffset.Now.Add(ttl));
+            MemoryCache.Default.Set(cacheKey, status, DateTimeOffset.Now.Add(ttl));
             return status;
         }
 
         /// <summary>Kalit faollashtirilganda (yoki holat o'zgarganda) keshni tozalaydi.</summary>
         public static void InvalidateCache()
         {
-            MemoryCache.Default.Remove(CACHE_KEY);
+            MemoryCache.Default.Remove(TenantContext.CacheKey(CACHE_KEY));
         }
 
         #endregion
@@ -134,7 +145,8 @@ namespace tahsinERP.Services
 
         private static void EnsureStateTable(DBTHSNEntities db)
         {
-            if (_stateTableEnsured)
+            string tenantKey = TenantContext.CacheKeyPrefix;
+            if (_stateTableEnsured.ContainsKey(tenantKey))
                 return;
 
             db.Database.ExecuteSqlCommand(
@@ -143,7 +155,7 @@ namespace tahsinERP.Services
                       Name      NVARCHAR(50)  NOT NULL CONSTRAINT PK_LICENSE_STATE PRIMARY KEY,
                       Value     NVARCHAR(400) NOT NULL,
                       UpdatedAt DATETIME      NOT NULL CONSTRAINT DF_LS_UpdatedAt DEFAULT(GETDATE()));");
-            _stateTableEnsured = true;
+            _stateTableEnsured[tenantKey] = true;
         }
 
         private static string ReadState(DBTHSNEntities db, string name)
@@ -158,6 +170,41 @@ namespace tahsinERP.Services
                 @"UPDATE dbo.LICENSE_STATE SET Value = @p1, UpdatedAt = GETDATE() WHERE Name = @p0;
                   IF @@ROWCOUNT = 0 INSERT INTO dbo.LICENSE_STATE (Name, Value) VALUES (@p0, @p1);",
                 name, value);
+        }
+
+        // Panel sinxronlash holati (LicenseSyncService). InstallationId va LastSeenUtc bu ro'yxatda YO'Q —
+        // ularni faqat shu klass yozadi (HMAC muhri qoidasi).
+        public const string STATE_REG_TOKEN = "RegToken";
+        public const string STATE_PANEL_SECRET = "PanelSecret";
+        public const string STATE_LAST_SYNC = "LastSyncUtc";
+        public const string STATE_LAST_SYNC_RESULT = "LastSyncResult";
+        private static readonly string[] SyncStateNames = { STATE_REG_TOKEN, STATE_PANEL_SECRET, STATE_LAST_SYNC, STATE_LAST_SYNC_RESULT };
+
+        private static void EnsureSyncStateName(string name)
+        {
+            if (Array.IndexOf(SyncStateNames, name) < 0)
+                throw new ArgumentException("LICENSE_STATE." + name + " ni tashqaridan o'qish/yozish mumkin emas.", nameof(name));
+        }
+
+        /// <summary>Panel sinxronlash holatini o'qiydi (RegToken, PanelSecret, LastSyncUtc, LastSyncResult).</summary>
+        public static string ReadSyncState(DBTHSNEntities db, string name)
+        {
+            EnsureSyncStateName(name);
+            EnsureStateTable(db);
+            return ReadState(db, name);
+        }
+
+        /// <summary>Panel sinxronlash holatini yozadi; null/bo'sh — o'chiradi. Qiymat 400 belgigacha qisqartiriladi.</summary>
+        public static void WriteSyncState(DBTHSNEntities db, string name, string value)
+        {
+            EnsureSyncStateName(name);
+            EnsureStateTable(db);
+            if (string.IsNullOrEmpty(value))
+            {
+                db.Database.ExecuteSqlCommand("DELETE FROM dbo.LICENSE_STATE WHERE Name = @p0", name);
+                return;
+            }
+            WriteState(db, name, value.Length > 400 ? value.Substring(0, 400) : value);
         }
 
         /// <summary>
@@ -434,6 +481,10 @@ namespace tahsinERP.Services
             db.COMPANY_LICENSES.Add(lic);
             db.SaveChanges();
 
+            // Xodimlar seat'lari yangi kalitga ko'chiriladi — aks holda har yangilanishda (panel buni
+            // avtomatik qiladi) barcha xodimlar keyingi login'da "seat berilmagan" bo'lib qolardi.
+            MigrateSeats(db, actives.Select(a => a.ID).ToList(), lic);
+
             if (resetStamp || lastSeenUtc < DateTime.UtcNow)
                 WriteState(db, STATE_LAST_SEEN, LicenseHelper.CreateClockStamp(DateTime.UtcNow, installationId));
 
@@ -442,6 +493,44 @@ namespace tahsinERP.Services
         }
 
         #endregion
+
+        /// <summary>
+        /// Avvalgi faol litsenziya(lar)dagi faol seat'larni yangi litsenziyaga o'tkazadi. Yangi kalitda joy
+        /// kamroq bo'lsa (paket pasaygan) — birinchi berilganlar qoladi, qolganlari o'chiriladi (admin qayta taqsimlaydi).
+        /// Seat muddati yangi kalit muddatidan oshmaydi.
+        /// </summary>
+        private static void MigrateSeats(DBTHSNEntities db, System.Collections.Generic.List<int> oldLicenseIds, COMPANY_LICENSES newLic)
+        {
+            if (oldLicenseIds.Count == 0)
+                return;
+
+            var seats = db.USER_LICENSES
+                .Where(u => u.CompanyLicenseID.HasValue && oldLicenseIds.Contains(u.CompanyLicenseID.Value) && u.IsActive)
+                .OrderBy(u => u.AssignedDate).ThenBy(u => u.ID)
+                .ToList();
+            if (seats.Count == 0)
+                return;
+
+            var seenUsers = new System.Collections.Generic.HashSet<int>();
+            int kept = 0;
+            foreach (var seat in seats)
+            {
+                bool duplicate = seat.UserID.HasValue && !seenUsers.Add(seat.UserID.Value);
+                bool fits = newLic.MaxUsers == 0 || kept < newLic.MaxUsers;
+                if (duplicate || !fits)
+                {
+                    seat.IsActive = false;
+                    continue;
+                }
+                seat.CompanyLicenseID = newLic.ID;
+                if (newLic.ExpiryDate.HasValue && seat.ExpiryDate.HasValue && seat.ExpiryDate.Value.Date > newLic.ExpiryDate.Value.Date)
+                    seat.ExpiryDate = newLic.ExpiryDate;
+                kept++;
+            }
+            db.SaveChanges();
+            if (kept < seats.Count)
+                Trace.TraceWarning("[License] Yangi kalitda joy kam: " + (seats.Count - kept) + " ta seat o'chirildi.");
+        }
 
         #region User seat (admin mustaqil boshqaradi — company muddati ichida)
 

@@ -44,7 +44,7 @@
                                 <div class="col-12 col-sm-12 col-lg-4">
                                     <label for="ProductType">Faoliyati:</label>
                                     <fieldset class="form-group">
-                                        @Html.DropDownList("ProductType", ViewBag.ProductTypeList as SelectList, "Barchasi", new { @class = "form-control", @id = "productTypeFilter", onchange = "refreshDataTable()" })
+                                        @Html.DropDownList("ProductType", ViewBag.ProductTypeList as SelectList, "Barchasi", new { @class = "form-control", @id = "productTypeFilter" })
                                     </fieldset>
                                 </div>
                                 <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
@@ -101,7 +101,7 @@
                                                                         <a href="@Url.Action("Edit", "CustomerBase", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Tahrirlash">
                                                                             <i class="bx bx-edit-alt"></i>
                                                                         </a>
-                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteCustomerBase(@item.ID, '@(item.CompanyName ?? "Yozuv")')" title="O'chirish">
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger js-delete-customer-base" data-id="@item.ID" data-name="@(item.CompanyName ?? "Yozuv")" title="O'chirish">
                                                                             <i class="bx bx-trash"></i>
                                                                         </button>
                                                                     </div>
@@ -122,118 +122,10 @@
         </div>
     </div>
     @section Scripts {
-        <script>
-        function refreshDataTable() {
-            const productType = document.getElementById("productTypeFilter").value;
-            window.location.href = '@Url.Action("Index", "CustomerBase")?productType=' + (productType || '');
-        }
-
-        function deleteCustomerBase(id, name) {
-            if (!confirm('"' + name + '" ni o\'chirishni tasdiqlaysizmi?')) {
-                return;
-            }
-
-            var token = $('input[name="__RequestVerificationToken"]').val();
-
-            $.ajax({
-                url: '@Url.Action("DeleteAjax", "CustomerBase")',
-                type: 'POST',
-                data: { id: id, __RequestVerificationToken: token },
-                success: function (response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        alert('Xatolik: ' + response.message);
-                    }
-                },
-                error: function () {
-                    alert('Server xatoligi yuz berdi');
-                }
-            });
-        }
-
-        $(document).ready(function () {
-            $('#customerBaseTable').DataTable({
-                    "language": {
-                "search": "Qidirish:",
-                "lengthMenu": "_MENU_ ta ko'rsatish",
-                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                "infoEmpty": "Yozuvlar yo'q",
-                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                "paginate": {
-                    "first": "Birinchi",
-                    "last": "Oxirgi",
-                    "next": "Keyingi",
-                    "previous": "Oldingi"
-                },
-                "zeroRecords": "Ma'lumot topilmadi"
-            },
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                "order": [[3, "desc"]],
-                "columnDefs": [
-                { "type": "date", "targets": 3 }
-            ],
-                "scrollX": true,
-                dom: 'lBfrtip',
-                buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: '<i class="bx bxs-file-excel"></i> Excel',
-                    titleAttr: 'Excelga yuklash',
-                    className: 'btn btn-success mr-1',
-                    filename: function () {
-                        var now = new Date();
-                        var dateStr = now.getFullYear() +
-                            String(now.getMonth() + 1).padStart(2, '0') +
-                            String(now.getDate()).padStart(2, '0') + '_' +
-                            String(now.getHours()).padStart(2, '0') +
-                            String(now.getMinutes()).padStart(2, '0') +
-                            String(now.getSeconds()).padStart(2, '0');
-                        return 'Xaridorlar_' + dateStr;
-                    },
-                    exportOptions: {
-                        columns: ':visible',
-                        format: {
-                            body: function (data, row, column, node) {
-                                return data.replace(/<[^>]*>/g, '').trim();
-                            }
-                        }
-                    }
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: '<i class="bx bxs-file-pdf"></i> PDF',
-                    titleAttr: 'PDFga yuklash',
-                    className: 'btn btn-danger',
-                    filename: function () {
-                        var now = new Date();
-                        var dateStr = now.getFullYear() +
-                            String(now.getMonth() + 1).padStart(2, '0') +
-                            String(now.getDate()).padStart(2, '0') + '_' +
-                            String(now.getHours()).padStart(2, '0') +
-                            String(now.getMinutes()).padStart(2, '0') +
-                            String(now.getSeconds()).padStart(2, '0');
-                        return 'Xaridorlar_' + dateStr;
-                    },
-                    exportOptions: {
-                        columns: ':visible',
-                        format: {
-                            body: function (data, row, column, node) {
-                                return data.replace(/<[^>]*>/g, '').trim();
-                            }
-                        }
-                    },
-                    orientation: 'landscape',
-                    pageSize: 'A4',
-                    title: 'Xaridorlar',
-                    customize: function (doc) {
-                        doc.defaultStyle.fontSize = 9;
-                        doc.styles.tableHeader.fontSize = 10;
-                    }
-                }
-            ]
-            });
-        });
-        </script>
+        <script type="application/json" id="customerBaseIndexConfig">@Html.Raw(Json.Encode(new
+        {
+            indexUrl = Url.Action("Index", "CustomerBase"),
+            deleteUrl = Url.Action("DeleteAjax", "CustomerBase")
+        }))</script>
+        <script src="@Url.Content("~/Scripts/crm/customer-base-index.js")"></script>
     }

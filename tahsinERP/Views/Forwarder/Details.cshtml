@@ -1,4 +1,4 @@
-@model tahsinERP.ViewModels.ForwarderStatisticsViewModel
+﻿@model tahsinERP.ViewModels.ForwarderStatisticsViewModel
 @{
     ViewBag.Title = "Yuk tashuvchi tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -33,6 +33,7 @@
                 </div>
             </div>
             <div class="content-body">
+                @Html.Partial("~/Views/Logistic/Shared/_CurrencyNote.cshtml")
                 <div class="row">
                     <!-- Forwarder Information -->
                     <div class="col-xl-12 col-md-12 col-12">
