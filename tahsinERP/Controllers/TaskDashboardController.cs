@@ -60,6 +60,7 @@ namespace tahsinERP.Controllers
                 var today = now.Date;
                 var sevenDaysAgo = now.AddDays(-7);
                 var doneIds = TaskRules.DoneStatusIds();
+                var closedIds = TaskRules.ClosedStatusIds();
 
                 var groups = await query
                     .Select(t => new
@@ -73,7 +74,8 @@ namespace tahsinERP.Controllers
                         t.DueDate,
                         t.UpdatedDT,
                         t.CreatedDT,
-                        IsDone = doneIds.Contains(t.StatusID)
+                        IsDone = doneIds.Contains(t.StatusID),
+                        IsClosed = closedIds.Contains(t.StatusID)
                     })
                     .GroupBy(t => new
                     {
@@ -84,8 +86,8 @@ namespace tahsinERP.Controllers
                         t.ProjectName,
                         t.AssigneeUserID,
                         t.IsDone,
-                        IsOverdue = t.DueDate.HasValue && t.DueDate.Value < now && !t.IsDone,
-                        IsOverdueByDate = t.DueDate.HasValue && t.DueDate.Value < today && !t.IsDone,
+                        IsOverdue = t.DueDate.HasValue && t.DueDate.Value < now && !t.IsClosed,
+                        IsOverdueByDate = t.DueDate.HasValue && t.DueDate.Value < today && !t.IsClosed,
                         IsOnTime = t.IsDone && t.DueDate.HasValue && t.UpdatedDT.HasValue &&
                                    DbFunctions.TruncateTime(t.UpdatedDT) <= DbFunctions.TruncateTime(t.DueDate),
                         IsRecent = t.CreatedDT >= sevenDaysAgo

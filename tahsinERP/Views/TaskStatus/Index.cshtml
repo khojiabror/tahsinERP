@@ -82,7 +82,7 @@
                                                             <td>
                                                                 <a href="@Url.Action("Details", "TaskStatus", new { id = item.ID })">@item.Code</a>
                                                             </td>
-                                                            <td>@item.Name</td>
+                                                            <td>@tahsinERP.Services.Tasks.TaskBadges.TaskStatusBadge(Html, item.Name)</td>
                                                             <td>@item.SortOrder</td>
                                                             <td>
                                                                 @if (item.IsActive)

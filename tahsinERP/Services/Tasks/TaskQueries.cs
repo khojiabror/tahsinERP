@@ -86,8 +86,8 @@ namespace tahsinERP.Services.Tasks
             if (f.ShowOverdue)
             {
                 var today = DateTime.Today;
-                var doneIds = TaskRules.DoneStatusIds();
-                query = query.Where(t => t.DueDate < today && !doneIds.Contains(t.StatusID));
+                var closedIds = TaskRules.ClosedStatusIds();
+                query = query.Where(t => t.DueDate < today && !closedIds.Contains(t.StatusID));
             }
             return query;
         }

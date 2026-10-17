@@ -9,7 +9,7 @@ namespace tahsinERP.Controllers.TaskSettings
 {
     public class TaskPriorityController : TaskRefDataController<APP_TASK_PRIORITY_REF>
     {
-        private static readonly string[] Fields = { "Code", "Name", "SortOrder" };
+        private static readonly string[] Fields = { "Code", "Name", "SortOrder", "ColorHex" };
 
         protected override DbSet<APP_TASK_PRIORITY_REF> Set(DBTHSNEntities db) => db.APP_TASK_PRIORITY_REF;
 

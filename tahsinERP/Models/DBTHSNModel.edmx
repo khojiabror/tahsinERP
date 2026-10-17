@@ -26,6 +26,7 @@
           <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="ColorHex" Type="nvarchar" MaxLength="7" />
         </EntityType>
         <EntityType Name="APP_TASK_PROJECTS">
           <Key>
@@ -48,6 +49,8 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="IsFinal" Type="bit" Nullable="false" />
+          <Property Name="ColorHex" Type="nvarchar" MaxLength="7" />
         </EntityType>
         <EntityType Name="APP_TASKS">
           <Key>
@@ -6628,6 +6631,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="ColorHex" Type="String" MaxLength="7" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="APP_TASKS" Relationship="Self.FK_APP_TASKS_PRIORITY" FromRole="APP_TASK_PRIORITY_REF" ToRole="APP_TASKS" />
         </EntityType>
         <EntityType Name="APP_TASK_PROJECTS">
@@ -6652,6 +6656,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="IsFinal" Type="Boolean" Nullable="false" />
+          <Property Name="ColorHex" Type="String" MaxLength="7" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="APP_TASKS" Relationship="Self.FK_APP_TASKS_STATUS" FromRole="APP_TASK_STATUS_REF" ToRole="APP_TASKS" />
         </EntityType>
         <EntityType Name="APP_TASKS">
@@ -13595,6 +13601,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="ColorHex" ColumnName="ColorHex" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13619,6 +13626,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="IsFinal" ColumnName="IsFinal" />
+                <ScalarProperty Name="ColorHex" ColumnName="ColorHex" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
