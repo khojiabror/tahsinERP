@@ -845,6 +845,7 @@
     <Compile Include="Services\Crm\SalesInvoiceService.cs" />
     <Compile Include="Services\Crm\SalesOrderService.cs" />
     <Compile Include="Services\Crm\CrmPaging.cs" />
+    <Compile Include="Services\Crm\CrmReport.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
     <Compile Include="Services\Crm\CrmNumber.cs" />
     <Compile Include="Services\Crm\CurrencyRateService.cs" />

@@ -83,17 +83,14 @@ namespace tahsinERP.Controllers
 
         public ActionResult Index(DateTime? fromDate, DateTime? toDate)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") &&
-                !RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") &&
-                !RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") &&
-                !RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
+            if (!CrmReport.AnyViewPermitted(User.Identity.Name, "CRMDashboard", "SOrder", "SContract", "SalesInvoices"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var from = fromDate ?? DateTime.Now.AddMonths(-11).Date;
-            var to = toDate ?? DateTime.Now.Date;
-            if (from > to) { var t = from; from = to; to = t; }
+            var period = CrmReport.Period(fromDate, toDate, DateTime.Now.AddMonths(-11).Date);
+            var from = period.From;
+            var to = period.To;
 
             using (var db = new DBTHSNEntities())
             {

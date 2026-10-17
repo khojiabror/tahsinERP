@@ -14,11 +14,14 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class SalesReportsController : Controller
     {
-        private static bool HasSalesReportPermission(string userName)
+        /// <summary>Barcha hisobotlar uchun bitta ruxsat tekshiruvi (avval har amalda takrorlanardi — D23).</summary>
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            return RoleHelper.IsViewPermitted(userName, "SalesReports") ||
-                   RoleHelper.IsViewPermitted(userName, "SOrder") ||
-                   RoleHelper.IsViewPermitted(userName, "SalesInvoices");
+            base.OnActionExecuting(filterContext);
+            if (!CrmReport.AnyViewPermitted(User.Identity.Name, "SalesReports", "SOrder", "SalesInvoices"))
+            {
+                filterContext.Result = RedirectToAction("Index", "ViewNotAuthorized");
+            }
         }
 
         /// <summary>Davrdagi faol (o'chirilmagan) buyurtma qatorlari; yuqori chegara yarim ochiq.</summary>
@@ -76,8 +79,6 @@ namespace tahsinERP.Controllers
         /// <summary>Hisobotlar ro'yxati (sahifa)</summary>
         public ActionResult Index()
         {
-            if (!HasSalesReportPermission(User.Identity.Name))
-                return RedirectToAction("Index", "ViewNotAuthorized");
             return View();
         }
 
@@ -85,9 +86,6 @@ namespace tahsinERP.Controllers
         [HttpGet]
         public ActionResult MonthlyReport(int? year, int? month)
         {
-            if (!HasSalesReportPermission(User.Identity.Name))
-                return RedirectToAction("Index", "ViewNotAuthorized");
-
             var y = year ?? DateTime.Now.Year;
             var m = month ?? DateTime.Now.Month;
             if (m < 1) m = 1;
@@ -100,13 +98,12 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var company = db.COMPANIES.FirstOrDefault();
                 var model = new MonthlySalesReportViewModel
                 {
                     Year = y,
                     Month = m,
                     MonthName = monthName,
-                    CompanyName = company?.Name ?? "Tahsin ERP"
+                    CompanyName = CrmReport.CompanyName(db)
                 };
 
                 // Mahsulot bo'yicha yig'indilar SQL'da (CRM-P08: avval to'liq qatorlar Include bilan yuklanardi);
@@ -169,24 +166,20 @@ namespace tahsinERP.Controllers
         [HttpGet]
         public ActionResult SalesByCustomer(DateTime? fromDate, DateTime? toDate)
         {
-            if (!HasSalesReportPermission(User.Identity.Name))
-                return RedirectToAction("Index", "ViewNotAuthorized");
-
-            var from = fromDate ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            var to = toDate ?? DateTime.Now.Date;
-            if (from > to) { var t = from; from = to; to = t; }
+            var period = CrmReport.Period(fromDate, toDate);
+            var from = period.From;
+            var to = period.To;
 
             using (var db = new DBTHSNEntities())
             {
-                var company = db.COMPANIES.FirstOrDefault();
                 var model = new SalesByCustomerReportViewModel
                 {
                     FromDate = from,
                     ToDate = to,
-                    CompanyName = company?.Name ?? "Tahsin ERP"
+                    CompanyName = CrmReport.CompanyName(db)
                 };
 
-                var toExclusive = to.AddDays(1);
+                var toExclusive = period.ToExclusive;
                 // Mijoz × valyuta × kun bo'yicha SQL'da, so'mga hujjat sanasidagi kurs bilan (CRM-B18)
                 var uzs = new UzsConverter(db);
                 var orderAgg = db.S_ORDERS.AsNoTracking()
@@ -247,24 +240,20 @@ namespace tahsinERP.Controllers
         [HttpGet]
         public ActionResult SalesByProduct(DateTime? fromDate, DateTime? toDate)
         {
-            if (!HasSalesReportPermission(User.Identity.Name))
-                return RedirectToAction("Index", "ViewNotAuthorized");
-
-            var from = fromDate ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            var to = toDate ?? DateTime.Now.Date;
-            if (from > to) { var t = from; from = to; to = t; }
+            var period = CrmReport.Period(fromDate, toDate);
+            var from = period.From;
+            var to = period.To;
 
             using (var db = new DBTHSNEntities())
             {
-                var company = db.COMPANIES.FirstOrDefault();
                 var model = new SalesByProductReportViewModel
                 {
                     FromDate = from,
                     ToDate = to,
-                    CompanyName = company?.Name ?? "Tahsin ERP"
+                    CompanyName = CrmReport.CompanyName(db)
                 };
 
-                var toExclusive = to.AddDays(1);
+                var toExclusive = period.ToExclusive;
                 var uzs = new UzsConverter(db);
                 var orderByProduct = OrderTotalsByProduct(OrderLines(db, from, toExclusive), uzs);
                 var soldByProduct = InvoiceTotalsByProduct(InvoiceLines(db, from, toExclusive), uzs);
