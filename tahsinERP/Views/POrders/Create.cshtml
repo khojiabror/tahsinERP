@@ -240,6 +240,7 @@ else
 
 @section scripts {
     <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
     <script>
         // Wait for both jQuery and Select2 to be loaded
         (function() {
@@ -545,19 +546,9 @@ else
                             .attr('name', 'OrderProducts[' + productRowIndex + '].ProductID')
                             .addClass('form-control product-select')
                             .attr('required', 'required');
-                        $productSelect.append($('<option>').attr('value', '').text('---Tanlang---'));
-                        
-                        purchasableProducts.forEach(function (product) {
-                            var $option = $('<option>')
-                                .attr('value', product.Value)
-                                .attr('data-pno', product.Text)
-                                .text(product.Text);
-                            if (product.Value == productId) {
-                                $option.attr('selected', 'selected');
-                            }
-                            $productSelect.append($option);
-                        });
-                        
+                        // Faqat tanlangan mahsulot; ro'yxat select2 qidiruvidan (SRM-P02)
+                        $productSelect.html(ProductSelect.optionsHtml(purchasableProducts, productId, safeProductPNo));
+
                         $productCell.append($productSelect);
                         $productCell.append($('<input>')
                             .attr('type', 'hidden')
@@ -692,7 +683,7 @@ else
                         
                         // Initialize Select2 for new row
                         if (typeof $.fn.select2 !== 'undefined') {
-                            $('select.product-select').last().select2();
+                            ProductSelect.attach($('select.product-select').last(), purchasableProducts);
                             $('select.unit-select').last().select2();
                         }
 
@@ -702,7 +693,7 @@ else
                         $('select.product-select').last().on('change', function () {
                             var $row = $(this).closest('tr');
                             var selectedOption = $(this).find('option:selected');
-                            var pno = selectedOption.data('pno') || '';
+                            var pno = selectedOption.attr('data-pno') || selectedOption.text() || '';
                             $row.find('.product-pno').val(pno);
                             
                             // Load product details via AJAX if needed

@@ -2882,6 +2882,7 @@
     </Content>
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\app\indexed-rows.js" />
+    <Content Include="Scripts\app\product-select.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />
     <Content Include="app-assets\data\citynames.json" />

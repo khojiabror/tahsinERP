@@ -179,6 +179,7 @@ else
 
 @section scripts {
     <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
     <script>
         (function() {
             function initRequisitionScripts() {
@@ -200,11 +201,7 @@ else
                     function addProductRow(productId, productText, quantity, unitId, estimatedPrice, priority, requiredDate, description) {
                         var row = '<tr data-index="' + productRowIndex + '">' +
                             '<td><select name="RequisitionProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
-                            '<option value="">---Tanlang---</option>';
-                        products.forEach(function(p) {
-                            var selected = p.Value == productId ? 'selected' : '';
-                            row += '<option value="' + p.Value + '" ' + selected + '>' + htmlEscape(p.Text) + '</option>';
-                        });
+                            ProductSelect.optionsHtml(products, productId, productText);
                         row += '</select></td>' +
                             '<td><input type="number" name="RequisitionProducts[' + productRowIndex + '].Quantity" class="form-control quantity" step="0.01" min="0.01" value="' + (quantity || '') + '" required /></td>' +
                             '<td><select name="RequisitionProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
@@ -226,6 +223,7 @@ else
                             '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
                             '</tr>';
                         $('#requisitionProductsTable tbody').append(row);
+                        ProductSelect.attach($('#requisitionProductsTable select.product-select').last(), products);
                         productRowIndex++;
                         updateTotal();
                     }

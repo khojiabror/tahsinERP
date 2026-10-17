@@ -199,6 +199,7 @@
     </div>
 
     <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
 
     <script>
         // Wait for jQuery to be available
@@ -221,6 +222,7 @@
                     var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData));
                     var units = @Html.Raw(Json.Encode(unitsData));
                     var hsCodes = @Html.Raw(Json.Encode(hsCodesData));
+                    // Mahsulot ro'yxati qatorlarga yozilmaydi — select2 qidiruvi (SRM-P02)
 
                     // Add row button handler - use delegated event only (prevents double binding)
                     $(document).on('click', '#addRowBtn', function (e) {
@@ -234,12 +236,7 @@
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
                                 '<select name="ContractProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
-                                '<option value="">---Tanlang---</option>';
-                        
-                        purchasableProducts.forEach(function (product) {
-                            var selected = product.Value == productId ? 'selected' : '';
-                            row += '<option value="' + product.Value + '" ' + selected + '>' + htmlEscape(product.Text) + '</option>';
-                        });
+                                ProductSelect.optionsHtml(purchasableProducts, productId);
                         
                         row += '</select></td>' +
                             '<td><input type="number" name="ContractProducts[' + productRowIndex + '].Quantity" class="form-control quantity-input" value="' + (quantity || 0) + '" step="0.01" min="0" required /></td>' +
@@ -273,7 +270,7 @@
                         $('#contractProductsTable tbody').append(row);
                         
                         if (typeof $.fn.select2 !== 'undefined') {
-                            $('select.product-select.select2').last().select2();
+                            ProductSelect.attach($('select.product-select').last(), purchasableProducts);
                             $('select.unit-select.select2').last().select2();
                             $('select.hs-code-select.select2').last().select2();
                         }

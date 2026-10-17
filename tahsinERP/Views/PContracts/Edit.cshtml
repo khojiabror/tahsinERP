@@ -10,6 +10,7 @@
     var unitsList = ViewBag.Units as SelectList;
     var hsCodesList = ViewBag.HSCodes as SelectList;
     var purchasableProductsData = new List<object>();
+    var productTextById = new Dictionary<string, string>();
     var unitsData = new List<object>();
     var hsCodesData = new List<object>();
     
@@ -18,6 +19,7 @@
         foreach (SelectListItem item in purchasableProductsList)
         {
             purchasableProductsData.Add(new { Value = item.Value, Text = item.Text });
+            productTextById[item.Value] = item.Text;
         }
     }
     
@@ -152,21 +154,17 @@
                                                                 <tr data-row-index="@i">
                                                                     <td>
                                                                         @{
+                                                                            // Faqat tanlangan mahsulot; ro'yxat select2 qidiruvidan (SRM-P02)
                                                                             var productIdStr = product.ProductID.ToString();
-                                                                            var productOptions = purchasableProductsList != null
-                                                                                ? purchasableProductsList.Cast<SelectListItem>().ToList()
-                                                                                : new List<SelectListItem>();
-                                                                            var productInList = productOptions.Any(o => o.Value == productIdStr);
+                                                                            var productText = productTextById.ContainsKey(productIdStr)
+                                                                                ? productTextById[productIdStr]
+                                                                                : (product.ProductPNo ?? productIdStr) + " - " + (product.ProductName ?? "");
                                                                         }
-                                                                        <select name="ContractProducts[@i].ProductID" class="form-control product-select select2" required>
+                                                                        <select name="ContractProducts[@i].ProductID" class="form-control product-select" required>
                                                                             <option value="">---Tanlang---</option>
-                                                                            @foreach (var item in productOptions)
+                                                                            @if (product.ProductID > 0)
                                                                             {
-                                                                                <option value="@item.Value" @(item.Value == productIdStr ? "selected" : null)>@item.Text</option>
-                                                                            }
-                                                                            @if (!productInList && product.ProductID > 0)
-                                                                            {
-                                                                                <option value="@productIdStr" selected>@(product.ProductPNo ?? productIdStr) - @(product.ProductName ?? "")</option>
+                                                                                <option value="@productIdStr" selected>@productText</option>
                                                                             }
                                                                         </select>
                                                                         @Html.HiddenFor(m => m.ContractProducts[i].ID)
@@ -239,6 +237,7 @@
     </div>
 
     <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
 
     <script>
         // Wait for jQuery to be available
@@ -255,19 +254,13 @@
                 $(document).ready(function () {
                     if (typeof $.fn.select2 !== 'undefined') {
                         $('.select2').select2();
-                        $('#contractProductsTable .product-select.select2').each(function () {
-                            var $select = $(this);
-                            if (!$select.hasClass('select2-hidden-accessible')) {
-                                $select.select2();
-                            }
-                            $select.trigger('change.select2');
-                        });
                     }
 
                     var productRowIndex = @(Model.ContractProducts?.Count ?? 0);
                     var purchasableProducts = @Html.Raw(Json.Encode(purchasableProductsData));
                     var units = @Html.Raw(Json.Encode(unitsData));
                     var hsCodes = @Html.Raw(Json.Encode(hsCodesData));
+                    ProductSelect.attach($('#contractProductsTable select.product-select'), purchasableProducts);
 
                     function updateRowTotal($row) {
                         var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
@@ -303,13 +296,8 @@
                     function addProductRow(productId, quantity, unitId, price, vatPercent, moq, hsCodeId) {
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
-                                '<select name="ContractProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
-                                '<option value="">---Tanlang---</option>';
-                        
-                        purchasableProducts.forEach(function (product) {
-                            var selected = product.Value == productId ? 'selected' : '';
-                            row += '<option value="' + product.Value + '" ' + selected + '>' + htmlEscape(product.Text) + '</option>';
-                        });
+                                '<select name="ContractProducts[' + productRowIndex + '].ProductID" class="form-control product-select" required>' +
+                                ProductSelect.optionsHtml(purchasableProducts, productId);
                         
                         row += '</select>' +
                             '<input type="hidden" name="ContractProducts[' + productRowIndex + '].ID" value="" />' +
@@ -345,7 +333,7 @@
                         $('#contractProductsTable tbody').append(row);
                         
                         if (typeof $.fn.select2 !== 'undefined') {
-                            $('select.product-select.select2').last().select2();
+                            ProductSelect.attach($('select.product-select').last(), purchasableProducts);
                             $('select.unit-select.select2').last().select2();
                             $('select.hs-code-select.select2').last().select2();
                         }
