@@ -38,6 +38,8 @@ Aniq commit'lar: `git log --first-parent optimization/integration`.
 
 ## Deploy tartibi (DB)
 
+Baza: faqat lokal (localhost, DBTHSN-IPACK). Kod/izohlardagi 192.168.100.200 eskirgan — ishlatilmaydi.
+
 Skriptlar `tahsinERP/Database_Migrations/`da. Hech biri avtomatik ishga tushirilmaydi. Har biridan oldin zaxira nusxa.
 
 ### 1. Kod o'rnatilishidan OLDIN (majburiy)
@@ -45,7 +47,7 @@ Skriptlar `tahsinERP/Database_Migrations/`da. Hech biri avtomatik ishga tushiril
    `INCOMES.ProductionID` qo'shilgan; ustunlarsiz bu jadvallarga har qanday EF so'rovi xato beradi.
 2. `HRM_Koreshok_PermissionModule.sql` — aks holda Koreshok sahifasiga hech kim kira olmaydi.
 3. `Finance_OpeningContractBalances_Schema.sql` — jadval yo'q bazada (kod endi uni o'zi yaratmaydi).
-4. `HRM_Create_Allowances_TimesheetSettings.sql` — faqat yangi muhitda (prod'da jadvallar bor).
+4. `HRM_Create_Allowances_TimesheetSettings.sql` — faqat jadvallar hali yo'q bazada (lokal DBTHSN-IPACK'da bor bo'lsa — kerak emas).
 5. `Alter_COMPANIES_AddDirectorName.sql` — ixtiyoriy (ustun bo'lmasa eski qiymat ishlatiladi).
 
 ### 2. Indekslar (tekshirib, past yuklama vaqtida)
