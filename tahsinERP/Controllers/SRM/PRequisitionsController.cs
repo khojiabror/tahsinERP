@@ -244,6 +244,111 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
+        // ---------- tasdiqlash oqimi (SRM-B04) ----------
+        // Biznes qarori (2026-10-17): bitta tasdiq. Draft -> Yuborish (Submitted) -> PRequisitions
+        // o'zgartirish huquqi bor foydalanuvchi Tasdiqlaydi (Approved) yoki sabab bilan Rad etadi (Rejected).
+        // P_REQUISITION_APPROVALS'dagi barcha bosqichlar bir vaqtda yopiladi.
+
+        // POST so'rovi: PRequisitions/Submit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public Task<ActionResult> Submit(int id)
+        {
+            return ChangeStatusAsync(id, "Draft", "Submitted", null,
+                "Talabnoma tasdiqlashga yuborildi.", "Faqat qoralama (Draft) talabnomani yuborish mumkin.");
+        }
+
+        // POST so'rovi: PRequisitions/Approve/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public Task<ActionResult> Approve(int id)
+        {
+            return ChangeStatusAsync(id, "Submitted", "Approved", null,
+                "Talabnoma tasdiqlandi.", "Faqat yuborilgan (Submitted) talabnomani tasdiqlash mumkin.");
+        }
+
+        // POST so'rovi: PRequisitions/Reject/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public Task<ActionResult> Reject(int id, string reason)
+        {
+            return ChangeStatusAsync(id, "Submitted", "Rejected", reason,
+                "Talabnoma rad etildi.", "Faqat yuborilgan (Submitted) talabnomani rad etish mumkin.");
+        }
+
+        private async Task<ActionResult> ChangeStatusAsync(int id, string expectedStatus, string newStatus, string reason,
+            string successMessage, string wrongStatusMessage)
+        {
+            if (!CanChange(Module))
+            {
+                return NotAuthorized();
+            }
+
+            reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+            if (newStatus == "Rejected" && reason == null)
+            {
+                TempData["ErrorMessage"] = "Rad etish sababini kiriting.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var requisition = await db.P_REQUISITIONS
+                    .Include(r => r.P_REQUISITION_APPROVALS)
+                    .FirstOrDefaultAsync(r => r.ID == id && r.IsDeleted != true);
+                if (requisition == null)
+                {
+                    return HttpNotFound();
+                }
+
+                if (requisition.Status != expectedStatus)
+                {
+                    TempData["ErrorMessage"] = wrongStatusMessage;
+                    return RedirectToAction("Details", new { id });
+                }
+
+                var now = DateTime.Now;
+                var userId = CurrentUserId;
+                requisition.Status = newStatus;
+                requisition.ModifiedDT = now;
+                requisition.ModifiedByUserID = userId;
+
+                if (newStatus == "Approved" || newStatus == "Rejected")
+                {
+                    if (newStatus == "Approved")
+                    {
+                        requisition.ApprovedByID = userId;
+                        requisition.ApprovedDate = now;
+                        requisition.RejectedByID = null;
+                        requisition.RejectionReason = null;
+                    }
+                    else
+                    {
+                        requisition.RejectedByID = userId;
+                        requisition.RejectionReason = reason;
+                    }
+
+                    var approverName = RoleHelper.GetUserFullName(CurrentUserName) ?? CurrentUserName;
+                    if (approverName != null && approverName.Length > 200) approverName = approverName.Substring(0, 200);
+                    foreach (var step in requisition.P_REQUISITION_APPROVALS)
+                    {
+                        step.Status = newStatus;
+                        step.ApproverID = userId;
+                        step.ApproverName = approverName;
+                        step.ApprovalDate = now;
+                        step.Comments = reason;
+                    }
+                }
+
+                await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(CurrentUserName, Module, $"{newStatus} - {requisition.RequisitionNo} talabnoma holati: {expectedStatus} -> {newStatus}");
+            }
+
+            TempData["SuccessMessage"] = successMessage;
+            return RedirectToAction("Details", new { id });
+        }
+
         // ---------- yordamchilar ----------
 
         /// <summary>Create formasi spravochniklari (GET va xato yo'li uchun bitta joy).</summary>
