@@ -163,6 +163,10 @@ else
                 if (isNaN(d.getTime())) return typeof v === 'string' ? v : '';
                 return d.toLocaleDateString('en-GB');
             }
+            function esc(v) {
+                if (v === null || v === undefined) return '';
+                return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
             function fmtNum(v) {
                 var n = Number(v || 0);
                 return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -176,7 +180,7 @@ else
                 rows.forEach(function (r) {
                     var tr = document.createElement('tr');
                     var rowDate = r.date !== undefined && r.date !== null ? r.date : r.Date;
-                    tr.innerHTML = '<td>' + fmtDate(rowDate) + '</td><td>' + (r.doc || r.Doc || '') + '</td><td>' + (r.note || r.Note || '') + '</td><td class="text-right">' + fmtNum(r.amount !== undefined ? r.amount : r.Amount) + '</td>';
+                    tr.innerHTML = '<td>' + esc(fmtDate(rowDate)) + '</td><td>' + esc(r.doc || r.Doc || '') + '</td><td>' + esc(r.note || r.Note || '') + '</td><td class="text-right">' + fmtNum(r.amount !== undefined ? r.amount : r.Amount) + '</td>';
                     tbody.appendChild(tr);
                 });
             }
@@ -197,9 +201,9 @@ else
                     var tr = document.createElement('tr');
                     var up = unitPrice != null && unitPrice !== undefined ? fmtNum(unitPrice) : '—';
                     if (!code && !name && note) {
-                        tr.innerHTML = '<td colspan="7" class="text-muted">' + note + '</td>';
+                        tr.innerHTML = '<td colspan="7" class="text-muted">' + esc(note) + '</td>';
                     } else {
-                        tr.innerHTML = '<td>' + code + '</td><td>' + name + '</td><td class="text-right">' + fmtNum(qty) + '</td><td>' + unit + '</td><td class="text-right">' + up + '</td><td class="text-right">' + fmtNum(lineTotal) + '</td><td><small>' + note + '</small></td>';
+                        tr.innerHTML = '<td>' + esc(code) + '</td><td>' + esc(name) + '</td><td class="text-right">' + fmtNum(qty) + '</td><td>' + esc(unit) + '</td><td class="text-right">' + up + '</td><td class="text-right">' + fmtNum(lineTotal) + '</td><td><small>' + esc(note) + '</small></td>';
                     }
                     tbody.appendChild(tr);
                 });
