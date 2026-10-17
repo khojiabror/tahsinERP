@@ -1,0 +1,46 @@
+@model tahsinERP.ViewModels.STDCompanyStandardsCreateViewModel
+@* STD Create/Edit skriptlari — umumiy ~/Scripts/app/docx-editor.js (avval har sahifada ~190 qatorli nusxa). *@
+@{
+    var editVm = Model as tahsinERP.ViewModels.STDCompanyStandardsEditViewModel;
+    string currentUrl = editVm != null && ViewBag.DocumentFileId != null
+        ? Url.Action("DownloadFile", "STDCompanyStandards", new { fileId = ViewBag.DocumentFileId })
+        : null;
+}
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="~/Scripts/app/docx-editor.js"></script>
+<script>
+    $(function () {
+        var templateUrl = '@Url.Action("GetTemplate", "STDCompanyStandards")';
+        var currentUrl = @Html.Raw(Json.Encode(currentUrl));
+        initDocxEditor({
+            form: '#stdForm',
+            hidden: '#documentContent',
+            saveBtn: '#saveBtn',
+            encode: 'base64',
+            restorePosted: true,
+@if (editVm != null)
+{
+            <text>
+            // Matn foydalanuvchi tomonidan o'zgartirilmasa, yangi fayl versiyasi yaratilmaydi: Quill -> docx
+            // konvertatsiyasi formatlashni soddalashtiradi, faqat metadata tahrirlanganda asosiy fayl buzilmasin.
+            onlyIfChanged: true,
+            autoLoadUrl: currentUrl,
+            buttons: [{ selector: '#loadCurrentDocxBtn', url: function () { return currentUrl; }, missing: 'Joriy versiya fayli topilmadi' }],
+            </text>
+}
+else
+{
+            <text>
+            // Tanlangan shablon (bir nechta bo'lsa) — bazadan
+            buttons: [{
+                selector: '#loadTemplateBtn',
+                url: function () { return templateUrl + ($('#templateSelect').length ? '?templateId=' + encodeURIComponent($('#templateSelect').val()) : ''); },
+                error: "Shablon topilmadi. Bo'sh hujjat bilan davom eting."
+            }],
+            </text>
+}
+            fileButton: '#loadDocxBtn'
+        });
+    });
+</script>

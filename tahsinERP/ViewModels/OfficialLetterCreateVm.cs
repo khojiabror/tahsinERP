@@ -11,7 +11,7 @@ namespace tahsinERP.ViewModels
         public string DirectionCode { get; set; } = "OUT";
 
         [Display(Name = "Maktub raqami")]
-        public string LetterNo { get; set; }
+        public virtual string LetterNo { get; set; }
 
         [Display(Name = "Maktub sanasi")]
         [Required(ErrorMessage = "Sana kiritilishi shart")]

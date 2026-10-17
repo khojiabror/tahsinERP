@@ -23,15 +23,12 @@ namespace tahsinERP.ViewModels
         public string DocumentContent { get; set; } // Base64 encoded .docx content
     }
 
-    public class STDCompanyStandardsEditViewModel
+    /// <summary>Tahrirlash = yaratish maydonlari + hujjat ID va versiyalar (Create/Edit bitta _Form partial'ini ishlatadi).</summary>
+    public class STDCompanyStandardsEditViewModel : STDCompanyStandardsCreateViewModel
     {
         public long DocumentID { get; set; }
-        public string StandardCode { get; set; }
-        public string Area { get; set; }
         public decimal CurrentVersionNo { get; set; }
         public decimal NewVersionNo { get; set; }
-        public string Notes { get; set; }
-        public string DocumentContent { get; set; } // Base64 encoded .docx content
     }
 
     public class STDCompanyStandardsDetailsViewModel
