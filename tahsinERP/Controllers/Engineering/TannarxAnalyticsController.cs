@@ -127,6 +127,33 @@ namespace tahsinERP.Controllers.Engineering
             return RedirectToAction("Dashboard", new { year = year, month = month, productID = productID });
         }
 
+        // Olish so'rovi: TannarxAnalytics/MonthSources — oy xarajatlari qayerdan tortildi va qanday taqsimlandi
+        public async Task<ActionResult> MonthSources(int? year, int? month)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            var y = year ?? DateTime.Now.Year;
+            var m = month ?? DateTime.Now.Month;
+            ViewBag.Years = new SelectList(Enumerable.Range(DateTime.Now.Year - 2, 5).ToList(), y);
+            ViewBag.Months = UzMonthNames.SelectList(m);
+
+            try
+            {
+                var model = await _analyticsService.GetMonthSourcesAsync(y, m);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics",
+                    $"MonthSources xatolik: Year={y}, Month={m}, Error={ex.Message}");
+                TempData["Error"] = $"Oy manbalarini hisoblashda xatolik: {ex.Message}";
+                return RedirectToAction("Dashboard", new { year = y, month = m });
+            }
+        }
+
         // Olish so'rovi: TannarxAnalytics/ProductDetails
         public async Task<ActionResult> ProductDetails(int productID, int year, int month)
         {
@@ -136,8 +163,7 @@ namespace tahsinERP.Controllers.Engineering
             }
             try
             {
-                var report = await _analyticsService.GetAnalyticsReportAsync(year, month, productID);
-                var productReport = report.Reports.FirstOrDefault();
+                var productReport = await _analyticsService.GetProductDetailsAsync(productID, year, month);
 
                 if (productReport == null)
                 {

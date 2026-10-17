@@ -71,6 +71,9 @@
                                         </div>
                                     </div>
                                 </form>
+                                <a href="@Url.Action("MonthSources", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-outline-primary mt-2 float-right">
+                                    <i class="bx bx-list-check"></i> Oy xarajatlari manbalari
+                                </a>
                                 @if (changePermit)
                                 {
                                     using (Html.BeginForm("UpdateActualCosts", "TannarxAnalytics", FormMethod.Post, new { @class = "mt-2" }))

@@ -1,4 +1,9 @@
 /*
+  !!! ESKIRGAN (2026-10): ilova bu SP ni endi chaqirmaydi. Fakt tannarx faqat C# engine'da
+  (Services/Tannarx/TannarxActualCostEngine.cs). Bu SP ni qayta ishga tushirmang — u yozgan ActualProfit
+  (QQS bilan narx − xarajat) va xomashyo ProductID ni tayyor mahsulot bilan bog'lashi noto'g'ri edi.
+  O'chirish: Database_Migrations/Tannarx_2026_10_ActualCosts_Fix.sql, 2-qism.
+
   Tannarx: fakt (actual) qiymatlarni hisoblab TANNARX jadvalini yangilaydi.
   SSMS da barcha blokni bitta marta ishga tushiring (F5).
 
