@@ -5,20 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("Shareholder")]
     public class ShareholderController : Controller
     {
         // Olish so'rovi: Shareholder
         public ActionResult Index(string searchTerm)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.SHAREHOLDERS.Where(s => s.IsActive && s.IsDeleted != true); // FIN-B12: o'chirilganlar ro'yxatda qolmasin
@@ -39,11 +36,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: Shareholder/Details/5
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -99,11 +91,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: Shareholder/yaratish
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             return View();
         }
 
@@ -112,11 +99,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(SHAREHOLDER shareholder)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -137,11 +119,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: Shareholder/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -164,11 +141,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(SHAREHOLDER shareholder)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -196,11 +168,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: Shareholder/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -226,11 +193,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var shareholder = db.SHAREHOLDERS.Find(id);
@@ -250,13 +212,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: Shareholder/ManageSharePeriods/5
+        [Permission("Shareholder", Change = true)]
         public ActionResult ManageSharePeriods(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -287,11 +245,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult AddSharePeriod(int shareholderID, DateTime fromDate, DateTime? toDate, decimal sharePercent)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Tekshirish total shares don't exceed 100%
@@ -326,13 +279,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: Shareholder/AddContribution/5
+        [Permission("Shareholder", Change = true)]
         public ActionResult AddContribution(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -371,11 +320,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult AddContribution(SHAREHOLDER_CONTRIBUTIONS contribution)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)

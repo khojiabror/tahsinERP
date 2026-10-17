@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using OfficeOpenXml;
 using tahsinERP.Controllers;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Helpers;
 using tahsinERP.Services;
@@ -16,16 +17,12 @@ using tahsinERP.Services.Finance;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("OpeningBalance")]
     public class OpeningBalanceController : Controller
     {
         /// <summary>Ro'yxat: OpeningBalance moduli — ko'rish ruxsati</summary>
         public ActionResult Index()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var snapshotRows = db.FIN_BALANCE_SNAPSHOTS
@@ -62,6 +59,7 @@ namespace tahsinERP.Controllers.Finance
         }
 
         /// <summary>Tahrir / ko'rish — GET: ko'rish ruxsati</summary>
+        [SkipPermission]
         public ActionResult Edit(DateTime? snapshotDate)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
@@ -81,11 +79,6 @@ namespace tahsinERP.Controllers.Finance
         /// <summary>Details — faqat ko'rish rejimi</summary>
         public ActionResult Details(DateTime? snapshotDate)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (!snapshotDate.HasValue)
             {
                 return RedirectToAction("Index");
@@ -104,11 +97,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(OpeningBalanceViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (model == null)
             {
                 return RedirectToAction("Index");
@@ -317,11 +305,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult AutoFillFromCurrentBalances(DateTime snapshotDate)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             try
             {
                 var date = snapshotDate.Date;
@@ -610,11 +593,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public JsonResult GetCustomerContracts(int customerId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var data = db.S_CONTRACTS
@@ -635,11 +613,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public JsonResult GetSupplierContracts(int supplierId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var data = db.P_CONTRACTS
@@ -660,11 +633,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public JsonResult GetCustomerContractTotals(int customerId, int? contractId, DateTime? snapshotDate)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
-            }
-
             if (customerId <= 0 || !contractId.HasValue || contractId.Value <= 0)
             {
                 return Json(new { success = false, message = "Invalid parameters" }, JsonRequestBehavior.AllowGet);
@@ -719,11 +687,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public JsonResult GetSupplierContractTotals(int supplierId, int? contractId, DateTime? snapshotDate)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
-            }
-
             if (supplierId <= 0 || !contractId.HasValue || contractId.Value <= 0)
             {
                 return Json(new { success = false, message = "Invalid parameters" }, JsonRequestBehavior.AllowGet);
@@ -780,11 +743,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public JsonResult GetForwarderContracts(int forwarderId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var data = db.F_CONTRACTS
@@ -805,11 +763,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public JsonResult GetForwarderContractTotals(int forwarderId, int? contractId, DateTime? snapshotDate)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return Json(new { success = false, message = "Not authorized" }, JsonRequestBehavior.AllowGet);
-            }
-
             if (forwarderId <= 0 || !contractId.HasValue || contractId.Value <= 0)
             {
                 return Json(new { success = false, message = "Invalid parameters" }, JsonRequestBehavior.AllowGet);
@@ -856,11 +809,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public ActionResult DownloadOpeningBalanceExcelTemplate()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage())
             {
@@ -913,11 +861,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public JsonResult ImportOpeningBalanceExcel(DateTime snapshotDate)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return Json(new { success = false, message = "Not authorized" });
-            }
-
             var file = Request.Files["file"];
             if (file == null || file.ContentLength <= 0)
             {
@@ -1098,11 +1041,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public ActionResult Delete(DateTime? snapshotDate)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (snapshotDate == null)
             {
                 return RedirectToAction("Index");
@@ -1137,11 +1075,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Delete(DateTime snapshotDate)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OpeningBalance"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             var date = snapshotDate.Date;
             using (var db = new DBTHSNEntities())
             using (var tx = db.Database.BeginTransaction())

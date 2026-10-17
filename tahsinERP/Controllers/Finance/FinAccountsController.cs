@@ -4,20 +4,17 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("FinAccounts")]
     public class FinAccountsController : Controller
     {
         // Olish so'rovi: FinAccounts
         public ActionResult Index(string searchTerm, int? currencyID, string accountType, string sortOrder)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.FIN_ACCOUNTS
@@ -89,11 +86,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinAccounts/Details/5
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -133,11 +125,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinAccounts/yaratish
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name");
@@ -156,11 +143,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_ACCOUNTS account)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Tekshirish code uniqueness
@@ -197,11 +179,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinAccounts/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -231,11 +208,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_ACCOUNTS account)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Tekshirish code uniqueness (excluding current record)
@@ -279,11 +251,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinAccounts/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -312,11 +279,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinAccounts"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var account = db.FIN_ACCOUNTS.Find(id);
@@ -334,13 +296,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinAccounts/Transactions/5
+        [Permission("FinTransactions")]
         public ActionResult Transactions(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);

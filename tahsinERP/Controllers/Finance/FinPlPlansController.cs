@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Controllers;
 using OfficeOpenXml;
 using System.IO;
@@ -11,16 +12,12 @@ using System.Web;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("FinPlPlans")]
     public class FinPlPlansController : Controller
     {
         // Olish so'rovi: FinPlPlans
         public ActionResult Index(int? year, int? month, int? itemID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 year = year ?? DateTime.Now.Year;
@@ -56,11 +53,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/yaratish
         public ActionResult Create(int? year, int? month, int? itemID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 year = year ?? DateTime.Now.Year;
@@ -95,11 +87,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_PL_PLANS plan)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Tekshirish agar plan already mavjud
@@ -150,11 +137,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -185,11 +167,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_PL_PLANS plan)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Declare years once at the beginning ga avoid scope conflicts
@@ -242,11 +219,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -272,11 +244,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var plan = db.FIN_PL_PLANS.Find(id);
@@ -299,13 +266,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinPlPlans/BulkEdit
+        [Permission("FinPlPlans", Change = true)]
         public ActionResult BulkEdit(int? year, int? month)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 year = year ?? DateTime.Now.Year;
@@ -340,11 +303,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult BulkEdit(int year, int month, BulkPlanItem[] plans)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var userId = UserHelper.GetUserId(User.Identity.Name);
@@ -393,11 +351,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/ExportExcel
         public ActionResult ExportExcel(int? year, int? month)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             year = year ?? DateTime.Now.Year;
             month = month ?? DateTime.Now.Month;
 

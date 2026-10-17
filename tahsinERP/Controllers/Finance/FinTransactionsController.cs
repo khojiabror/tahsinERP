@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Services;
 using tahsinERP.Controllers;
 using OfficeOpenXml;
@@ -13,6 +14,7 @@ using System.Web;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("FinTransactions")]
     public class FinTransactionsController : Controller
     {
         /// <summary>Ro'yxat filtrlari (Index, IndexData va ExportExcel uchun umumiy).</summary>
@@ -94,11 +96,6 @@ namespace tahsinERP.Controllers.Finance
         public ActionResult Index(DateTime? fromDate, DateTime? toDate, int? accountID, int? categoryID,
             byte? direction, byte? counterpartyType, int? counterpartyID, string sourceDocType, string searchTerm)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (!fromDate.HasValue && !toDate.HasValue)
             {
                 toDate = DateTime.Today;
@@ -138,12 +135,6 @@ namespace tahsinERP.Controllers.Finance
         [HttpGet]
         public JsonResult IndexData(FinTransactionFilter filter, int draw = 1, int start = 0, int length = 25)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
-            {
-                Response.StatusCode = 403;
-                return Json(new { error = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
-            }
-
             if (length <= 0 || length > 1000) length = 1000; // "Barchasi" ham 1000 qator bilan cheklanadi
             if (start < 0) start = 0;
 
@@ -222,11 +213,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinTransactions/Details/5
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -277,11 +263,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinTransactions/yaratish
         public ActionResult Create(int? accountID, int? categoryID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.AccountsSelectList = new SelectList(
@@ -344,11 +325,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_TRANSACTIONS transaction)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Tekshirish account currency matches transaction currency
@@ -430,14 +406,10 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // AJAX: kontragent turiga qarab ro'yxat qaytarish
+        [Permission("FinTransactions", Change = true)]
         [HttpGet]
         public JsonResult GetCounterparties(byte? type)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
-            }
-
             if (!type.HasValue)
             {
                 return Json(new { success = true, items = new object[0] }, JsonRequestBehavior.AllowGet);
@@ -507,14 +479,10 @@ namespace tahsinERP.Controllers.Finance
         /// Kontragent turi/id bo'yicha shartnomalar ro'yxati.
         /// type: 1=Mijoz(S_CONTRACTS), 2=Ta'minotchi(P_CONTRACTS), 4=Forwarder(F_CONTRACTS)
         /// </summary>
+        [Permission("FinTransactions", Change = true)]
         [HttpGet]
         public JsonResult GetContractsByCounterparty(byte? type, int? counterpartyId)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
-            }
-
             if (!type.HasValue || !counterpartyId.HasValue || counterpartyId.Value <= 0)
             {
                 return Json(new { success = true, data = new object[0] }, JsonRequestBehavior.AllowGet);
@@ -555,11 +523,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinTransactions/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -611,11 +574,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_TRANSACTIONS transaction)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var existing = db.FIN_TRANSACTIONS
@@ -694,11 +652,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinTransactions/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -734,11 +687,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 try
@@ -792,11 +740,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinTransactions/ExportExcel
         public ActionResult ExportExcel(FinTransactionFilter filter)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = ApplyFilter(ActiveTransactions(db)
@@ -850,11 +793,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinTransactions/Import
         public ActionResult Import()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var defaultCurrency = db.CURRENCIES
@@ -868,13 +806,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinTransactions/DownloadTemplate
+        [Permission("FinTransactions", Change = true)]
         public ActionResult DownloadTemplate()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -981,11 +915,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Import(HttpPostedFileBase file)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (file == null || file.ContentLength == 0)
             {
                 ViewBag.Error = "Fayl yuklanmadi yoki bo'sh!";

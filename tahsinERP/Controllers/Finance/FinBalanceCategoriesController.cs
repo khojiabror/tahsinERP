@@ -5,20 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("FinBalanceCategories")]
     public class FinBalanceCategoriesController : Controller
     {
         // Olish so'rovi: FinBalanceCategories
         public ActionResult Index(string searchTerm, int? type, int? parentID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive);
@@ -82,11 +79,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinBalanceCategories/Details/5
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -141,11 +133,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinBalanceCategories/yaratish
         public ActionResult Create(int? parentID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.ParentID = new SelectList(
@@ -181,11 +168,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_BALANCE_CATEGORIES category)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -229,11 +211,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinBalanceCategories/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -275,11 +252,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_BALANCE_CATEGORIES category)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -346,11 +318,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinBalanceCategories/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -376,11 +343,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var category = db.FIN_BALANCE_CATEGORIES.Find(id);
@@ -397,13 +359,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinBalanceCategories/MapCategories/5
+        [Permission("FinBalanceCategories", Change = true)]
         public ActionResult MapCategories(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -453,11 +411,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult MapCategories(int id, int[] categoryIds)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinBalanceCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var category = db.FIN_BALANCE_CATEGORIES.Find(id);

@@ -5,20 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("FinCategories")]
     public class FinCategoriesController : Controller
     {
         // Olish so'rovi: FinCategories
         public ActionResult Index(string searchTerm, int? type, int? parentID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.FIN_CATEGORIES
@@ -88,11 +85,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinCategories/Details/5
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -126,11 +118,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinCategories/yaratish
         public ActionResult Create(int? parentID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.ParentID = new SelectList(
@@ -159,11 +146,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_CATEGORIES category)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -201,11 +183,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinCategories/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -242,11 +219,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_CATEGORIES category)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -302,11 +274,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinCategories/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -334,11 +301,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinCategories"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var category = db.FIN_CATEGORIES.Find(id);

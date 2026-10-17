@@ -5,20 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("FinPlItems")]
     public class FinPlItemsController : Controller
     {
         // Olish so'rovi: FinPlItems
         public ActionResult Index(string searchTerm, int? parentID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.FIN_PL_ITEMS
@@ -70,11 +67,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlItems/Details/5
         public ActionResult Details(int? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -112,11 +104,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlItems/yaratish
         public ActionResult Create(int? parentID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 ViewBag.ParentID = new SelectList(
@@ -145,11 +132,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_PL_ITEMS item)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -186,11 +168,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlItems/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -225,11 +202,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_PL_ITEMS item)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (ModelState.IsValid)
@@ -283,11 +255,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlItems/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -314,11 +281,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var item = db.FIN_PL_ITEMS.Find(id);
@@ -335,13 +297,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinPlItems/MapCategories/5
+        [Permission("FinPlItems", Change = true)]
         public ActionResult MapCategories(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -373,11 +331,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult MapCategories(int id, int[] categoryIds)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlItems"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var item = db.FIN_PL_ITEMS
