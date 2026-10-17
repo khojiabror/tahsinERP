@@ -1049,6 +1049,8 @@
     <Compile Include="Services\ReconciliationService.cs" />
     <Compile Include="Services\ReconciliationAdjustmentService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
+    <Compile Include="Services\HR\HrLookups.cs" />
+    <Compile Include="Services\HR\TimesheetLineAccessor.cs" />
     <Compile Include="Services\HtmlToDocxConverter.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
     <Compile Include="Services\ITextSuggestionService.cs" />
@@ -3252,7 +3254,6 @@
     <Content Include="Views\HrStaffingPlan\ImportPreview.cshtml" />
     <Content Include="Views\HrStaffingPlan\Index.cshtml" />
     <Content Include="Views\HrTimesheets\Create.cshtml" />
-    <Content Include="Views\HrTimesheets\CreateSimple.cshtml" />
     <Content Include="Views\HrTimesheets\Delete.cshtml" />
     <Content Include="Views\HrTimesheets\Edit.cshtml" />
     <Content Include="Views\HrTimesheets\Import.cshtml" />
