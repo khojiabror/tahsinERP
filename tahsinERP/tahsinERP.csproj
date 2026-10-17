@@ -1064,6 +1064,12 @@
     <Compile Include="Services\TextSuggestionService.cs" />
     <Compile Include="Services\TransportLoadCalculator.cs" />
     <Compile Include="Services\UnitConversionService.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Models\DBTHSNModel.Context.Cache.cs" />
+    <Compile Include="Services\AuditLogQueue.cs" />
+    <Compile Include="Services\Common\DocumentNumberService.cs" />
+    <Compile Include="Services\Common\ExcelExport.cs" />
+    <Compile Include="Services\Common\ReferenceDataCache.cs" />
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />

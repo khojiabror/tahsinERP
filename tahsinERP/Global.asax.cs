@@ -18,12 +18,16 @@ namespace tahsinERP
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             GlobalFilters.Filters.Add(new AuthorizeAttribute());
             GlobalFilters.Filters.Add(new tahsinERP.Filters.LicenseCheckAttribute()); // Litsenziya (company muddat) tekshiruvi
+            tahsinERP.Services.Common.ExcelExport.Configure(); // EPPlus litsenziyasi bir marta (avval 20 joyda)
         }
+
+        // Har so'rovda yangi CultureInfo yaratilmaydi — keshlangan, faqat o'qiladigan nusxa
+        private static readonly System.Globalization.CultureInfo AppCulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+
         protected void Application_BeginRequest()
         {
-            System.Globalization.CultureInfo culture = new System.Globalization.CultureInfo("en-US");
-            System.Threading.Thread.CurrentThread.CurrentCulture = culture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+            System.Threading.Thread.CurrentThread.CurrentCulture = AppCulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = AppCulture;
         }
     }
 }
