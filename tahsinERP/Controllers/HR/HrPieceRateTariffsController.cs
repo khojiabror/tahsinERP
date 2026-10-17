@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.HR;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -28,8 +30,8 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            IQueryable<HR_PIECE_RATE_TARIFFS> query = db.HR_PIECE_RATE_TARIFFS
-                .Where(t => t.IsDeleted == false)
+            IQueryable<HR_PIECE_RATE_TARIFFS> query = db.HR_PIECE_RATE_TARIFFS.AsNoTracking()
+                .Where(t => t.IsDeleted != true)
                 .Include(t => t.PRODUCT)
                 .Include(t => t.HR_POSITIONS)
                 .Include(t => t.HR_PIECE_RATE_OPERATIONS)
@@ -52,22 +54,7 @@ namespace tahsinERP.Controllers.HR
 
             var tariffs = await query.OrderByDescending(t => t.CreatedDT).ToListAsync();
 
-            ViewBag.ProductID = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
-                    .OrderBy(p => p.PNo).ToListAsync(),
-                "ID", "PNo", productId);
-
-            ViewBag.PositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name", positionId);
-
-            ViewBag.OperationID = new SelectList(
-                await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
-                "ID", "Name");
-
-            ViewBag.CurrencyID = new SelectList(
-                await db.CURRENCIES.OrderBy(c => c.Shortname).ToListAsync(),
-                "ID", "Shortname");
+            await PopulateViewBags(productId, positionId, null, null);
 
             logger.Log("HrPieceRateTariffs", "Index");
             return View(tariffs);
@@ -86,8 +73,8 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            var tariff = await db.HR_PIECE_RATE_TARIFFS
-                .Where(t => t.ID == id && t.IsDeleted == false)
+            var tariff = await db.HR_PIECE_RATE_TARIFFS.AsNoTracking()
+                .Where(t => t.ID == id && t.IsDeleted != true)
                 .Include(t => t.PRODUCT)
                 .Include(t => t.HR_POSITIONS)
                 .Include(t => t.HR_PIECE_RATE_OPERATIONS)
@@ -101,10 +88,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            var productLabel = tariff.PRODUCT?.Name ?? tariff.PRODUCT?.PNo ?? "-";
-            var positionLabel = tariff.HR_POSITIONS?.Name ?? "Barcha lavozimlar";
-            var operationLabel = tariff.HR_PIECE_RATE_OPERATIONS?.Name ?? "-";
-            logger.Log("HrPieceRateTariffs", "Details", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
+            logger.Log("HrPieceRateTariffs", "Details", await TariffLabelAsync(tariff));
             return View(tariff);
         }
 
@@ -116,23 +100,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ViewBag.ProductID = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
-                    .OrderBy(p => p.PNo).ToListAsync(),
-                "ID", "PNo");
-
-            ViewBag.PositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name");
-
-            ViewBag.OperationID = new SelectList(
-                await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
-                "ID", "Name");
-
-            ViewBag.CurrencyID = new SelectList(
-                await db.CURRENCIES.OrderBy(c => c.Shortname).ToListAsync(),
-                "ID", "Shortname");
-
+            await PopulateViewBags(null, null, null, null);
             return View();
         }
 
@@ -155,25 +123,12 @@ namespace tahsinERP.Controllers.HR
                 db.HR_PIECE_RATE_TARIFFS.Add(tariff);
                 await db.SaveChangesAsync();
 
-                var product = await db.PRODUCTS.FindAsync(tariff.ProductID);
-                var position = tariff.PositionID.HasValue ? await db.HR_POSITIONS.FindAsync(tariff.PositionID.Value) : null;
-                var operation = tariff.OperationID.HasValue ? await db.HR_PIECE_RATE_OPERATIONS.FindAsync(tariff.OperationID.Value) : null;
-                var productLabel = product?.Name ?? product?.PNo ?? "-";
-                var positionLabel = position?.Name ?? "Barcha lavozimlar";
-                var operationLabel = operation?.Name ?? "-";
-                logger.Log("HrPieceRateTariffs", "Create", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
+                logger.Log("HrPieceRateTariffs", "Create", await TariffLabelAsync(tariff));
                 return RedirectToAction("Index");
             }
 
-            ViewBag.ProductID = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
-                    .OrderBy(p => p.PNo).ToListAsync(),
-                "ID", "PNo", tariff.ProductID);
-
-            ViewBag.PositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name", tariff.PositionID);
-
+            // Avval xato yo'lida operatsiya/valyuta ro'yxati berilmasdi va view yiqilardi
+            await PopulateViewBags(tariff.ProductID, tariff.PositionID, tariff.OperationID, tariff.CurrencyID);
             return View(tariff);
         }
 
@@ -196,23 +151,7 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            ViewBag.ProductID = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
-                    .OrderBy(p => p.PNo).ToListAsync(),
-                "ID", "PNo", tariff.ProductID);
-
-            ViewBag.PositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name", tariff.PositionID);
-
-            ViewBag.OperationID = new SelectList(
-                await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
-                "ID", "Name", tariff.OperationID);
-
-            ViewBag.CurrencyID = new SelectList(
-                await db.CURRENCIES.OrderBy(c => c.Shortname).ToListAsync(),
-                "ID", "Shortname", tariff.CurrencyID);
-
+            await PopulateViewBags(tariff.ProductID, tariff.PositionID, tariff.OperationID, tariff.CurrencyID);
             return View(tariff);
         }
 
@@ -244,37 +183,13 @@ namespace tahsinERP.Controllers.HR
                 existingTariff.IsActive = tariff.IsActive;
                 existingTariff.ModifiedByUserID = UserHelper.GetUserId(User.Identity.Name);
                 existingTariff.ModifiedDT = DateTime.Now;
-
-                db.Entry(existingTariff).State = EntityState.Modified;
                 await db.SaveChangesAsync();
 
-                var product = await db.PRODUCTS.FindAsync(existingTariff.ProductID);
-                var position = existingTariff.PositionID.HasValue ? await db.HR_POSITIONS.FindAsync(existingTariff.PositionID.Value) : null;
-                var operation = existingTariff.OperationID.HasValue ? await db.HR_PIECE_RATE_OPERATIONS.FindAsync(existingTariff.OperationID.Value) : null;
-                var productLabel = product?.Name ?? product?.PNo ?? "-";
-                var positionLabel = position?.Name ?? "Barcha lavozimlar";
-                var operationLabel = operation?.Name ?? "-";
-                logger.Log("HrPieceRateTariffs", "Edit", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
+                logger.Log("HrPieceRateTariffs", "Edit", await TariffLabelAsync(existingTariff));
                 return RedirectToAction("Index");
             }
 
-            ViewBag.ProductID = new SelectList(
-                await db.PRODUCTS.Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
-                    .OrderBy(p => p.PNo).ToListAsync(),
-                "ID", "PNo", tariff.ProductID);
-
-            ViewBag.PositionID = new SelectList(
-                await db.HR_POSITIONS.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync(),
-                "ID", "Name", tariff.PositionID);
-
-            ViewBag.OperationID = new SelectList(
-                await db.HR_PIECE_RATE_OPERATIONS.Where(o => o.IsActive).OrderBy(o => o.SortOrder).ToListAsync(),
-                "ID", "Name", tariff.OperationID);
-
-            ViewBag.CurrencyID = new SelectList(
-                await db.CURRENCIES.OrderBy(c => c.Shortname).ToListAsync(),
-                "ID", "Shortname", tariff.CurrencyID);
-
+            await PopulateViewBags(tariff.ProductID, tariff.PositionID, tariff.OperationID, tariff.CurrencyID);
             return View(tariff);
         }
 
@@ -291,12 +206,12 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            var tariff = await db.HR_PIECE_RATE_TARIFFS
+            var tariff = await db.HR_PIECE_RATE_TARIFFS.AsNoTracking()
                 .Include(t => t.PRODUCT)
                 .Include(t => t.HR_POSITIONS)
                 .Include(t => t.HR_PIECE_RATE_OPERATIONS)
                 .Include(t => t.CURRENCy)
-                .FirstOrDefaultAsync(t => t.ID == id);
+                .FirstOrDefaultAsync(t => t.ID == id && t.IsDeleted != true);
 
             if (tariff == null)
             {
@@ -323,17 +238,39 @@ namespace tahsinERP.Controllers.HR
             }
 
             tariff.IsDeleted = true;
-            db.Entry(tariff).State = System.Data.Entity.EntityState.Modified;
+            tariff.ModifiedByUserID = UserHelper.GetUserId(User.Identity.Name);
+            tariff.ModifiedDT = DateTime.Now;
             await db.SaveChangesAsync();
 
-            var product = await db.PRODUCTS.FindAsync(tariff.ProductID);
-            var position = tariff.PositionID.HasValue ? await db.HR_POSITIONS.FindAsync(tariff.PositionID.Value) : null;
-            var operation = tariff.OperationID.HasValue ? await db.HR_PIECE_RATE_OPERATIONS.FindAsync(tariff.OperationID.Value) : null;
-            var productLabel = product?.Name ?? product?.PNo ?? "-";
-            var positionLabel = position?.Name ?? "Barcha lavozimlar";
-            var operationLabel = operation?.Name ?? "-";
-            logger.Log("HrPieceRateTariffs", "Delete", $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}");
+            logger.Log("HrPieceRateTariffs", "Delete", await TariffLabelAsync(tariff));
             return RedirectToAction("Index");
+        }
+
+        /// <summary>Log uchun nomlar (avval har amaldan keyin 3 ta FindAsync, HRM-D11).</summary>
+        private async Task<string> TariffLabelAsync(HR_PIECE_RATE_TARIFFS tariff)
+        {
+            var productLabel = await db.PRODUCTS.AsNoTracking()
+                .Where(p => p.ID == tariff.ProductID)
+                .Select(p => p.Name ?? p.PNo)
+                .FirstOrDefaultAsync() ?? "-";
+            var positionLabel = HrLookups.NameOf(HrLookups.Positions, tariff.PositionID) ?? "Barcha lavozimlar";
+            var operationLabel = HrLookups.NameOf(HrLookups.Operations, tariff.OperationID) ?? "-";
+            return $"Mahsulot: {productLabel}, Operatsiya: {operationLabel}, Lavozim: {positionLabel}";
+        }
+
+        /// <summary>Barcha amallar uchun bitta dropdown to'ldiruvchi (avval 4 to'liq nusxa, HRM-D09).</summary>
+        private async Task PopulateViewBags(int? productId, int? positionId, int? operationId, int? currencyId)
+        {
+            var products = await db.PRODUCTS.AsNoTracking()
+                .Where(p => (p.IsFinishedGood == true && p.IsDeleted != true) || p.ID == productId)
+                .OrderBy(p => p.PNo)
+                .Select(p => new { p.ID, p.PNo })
+                .ToListAsync();
+
+            ViewBag.ProductID = new SelectList(products, "ID", "PNo", productId);
+            ViewBag.PositionID = HrLookups.SelectList(HrLookups.Positions, positionId);
+            ViewBag.OperationID = HrLookups.SelectList(HrLookups.Operations, operationId);
+            ViewBag.CurrencyID = ReferenceDataCache.SelectList(ReferenceDataCache.Currencies, currencyId);
         }
 
         protected override void Dispose(bool disposing)
@@ -346,4 +283,3 @@ namespace tahsinERP.Controllers.HR
         }
     }
 }
-

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.HR;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -28,7 +29,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             IQueryable<HR_POSITIONS> query = db.HR_POSITIONS
-                .Where(p => p.IsDeleted == false);
+                .Where(p => p.IsDeleted != true);
 
             if (isActive.HasValue)
             {
@@ -67,7 +68,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             var position = await db.HR_POSITIONS
-                .Where(p => p.ID == id && p.IsDeleted == false)
+                .Where(p => p.ID == id && p.IsDeleted != true)
                 .FirstOrDefaultAsync();
             if (position == null)
             {
@@ -108,6 +109,7 @@ namespace tahsinERP.Controllers.HR
                 position.CreatedDT = DateTime.Now;
                 db.HR_POSITIONS.Add(position);
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.Positions);
 
                 logger.Log("HrPositions", "Create", $"Lavozim: {position.Name}");
                 return RedirectToAction("Index");
@@ -150,8 +152,18 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid)
             {
-                db.Entry(position).State = EntityState.Modified;
+                // Avval bog'langan entity to'liq Modified qilinardi va formada yo'q IsDeleted NULL bo'lib qolardi
+                var existing = await db.HR_POSITIONS.FindAsync(position.ID);
+                if (existing == null)
+                {
+                    return HttpNotFound();
+                }
+                existing.Code = position.Code;
+                existing.Name = position.Name;
+                existing.IsManager = position.IsManager;
+                existing.IsActive = position.IsActive;
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.Positions);
 
                 logger.Log("HrPositions", "Edit", $"Lavozim: {position.Name}");
                 return RedirectToAction("Index");
@@ -180,8 +192,8 @@ namespace tahsinERP.Controllers.HR
             }
 
             // Tekshirish agar position is used
-            var employeeCount = await db.HR_EMPLOYEES.CountAsync(e => e.PositionID == id);
-            var staffingPlanCount = await db.HR_STAFFING_PLAN.CountAsync(sp => sp.PositionID == id);
+            var employeeCount = await db.HR_EMPLOYEES.CountAsync(e => e.PositionID == id && e.IsDeleted != true);
+            var staffingPlanCount = await db.HR_STAFFING_PLAN.CountAsync(sp => sp.PositionID == id && sp.IsDeleted != true);
 
             if (employeeCount > 0 || staffingPlanCount > 0)
             {
@@ -206,8 +218,8 @@ namespace tahsinERP.Controllers.HR
             if (position != null)
             {
                 // Tekshirish agar position is used
-                var employeeCount = await db.HR_EMPLOYEES.CountAsync(e => e.PositionID == id);
-                var staffingPlanCount = await db.HR_STAFFING_PLAN.CountAsync(sp => sp.PositionID == id);
+                var employeeCount = await db.HR_EMPLOYEES.CountAsync(e => e.PositionID == id && e.IsDeleted != true);
+                var staffingPlanCount = await db.HR_STAFFING_PLAN.CountAsync(sp => sp.PositionID == id && sp.IsDeleted != true);
 
                 if (employeeCount > 0 || staffingPlanCount > 0)
                 {
@@ -219,6 +231,7 @@ namespace tahsinERP.Controllers.HR
                 db.Entry(position).State = System.Data.Entity.EntityState.Modified;
                 await SoftDeleteReferenceService.AfterPositionSoftDeletedAsync(db, id);
                 await db.SaveChangesAsync();
+                HrLookups.Invalidate(HrLookups.Positions);
 
                 logger.Log("HrPositions", "Delete", $"Lavozim: {position.Name}");
             }

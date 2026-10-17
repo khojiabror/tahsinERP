@@ -4,6 +4,8 @@
 }
 @{
     ViewBag.Title = "Xodimlar staji";
+    // Controller "HrEmployees" modulini tekshiradi — view ham shu modul bo'yicha (HRM-B21)
+    bool canChange = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -35,7 +37,7 @@
                 <div class="card">
                     <div class="card-content">
                         <div class="card-body">
-                            @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                            @if (canChange)
                             {
                                 <div class="mb-2">
                                     <a href="@Url.Action("Create")" class="btn btn-primary">
@@ -81,7 +83,7 @@
                                             <th>Ishga kirgan sana</th>
                                             <th>Ishdan chiqqan sana</th>
                                             <th>Staj</th>
-                                            @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                                            @if (canChange)
                                             {
                                                 <th>Amallar</th>
                                             }
@@ -115,12 +117,15 @@
                                                             </small>
                                                         }
                                                     </td>
-                                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                                                    @if (canChange)
                                                     {
                                                         <td>
-                                                            <a href="@Url.Action("Edit", new { id = latest.ID })" class="btn btn-sm btn-warning">
-                                                                <i class="bx bx-edit"></i> Tahrirlash
-                                                            </a>
+                                                            @if (latest.ID > 0)
+                                                            {
+                                                                <a href="@Url.Action("Edit", new { id = latest.ID })" class="btn btn-sm btn-warning">
+                                                                    <i class="bx bx-edit"></i> Tahrirlash
+                                                                </a>
+                                                            }
                                                         </td>
                                                     }
                                                 </tr>
@@ -129,7 +134,7 @@
                                                 if (employeeGroup.Positions.Count > 1)
                                                 {
                                                     <tr class="child-rows-data" data-employee-id="@employeeGroup.EmployeeID" style="display: none;">
-                                                        <td colspan="@(tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()) ? 9 : 8)" style="padding: 0;">
+                                                        <td colspan="@(canChange ? 9 : 8)" style="padding: 0;">
                                                             <div class="child-rows-wrapper" style="padding: 10px; background-color: #f8f9fa;">
                                                                 <h6>Barcha lavozimlar:</h6>
                                                                 <table class="table table-sm table-bordered mb-0" style="margin: 0;">
