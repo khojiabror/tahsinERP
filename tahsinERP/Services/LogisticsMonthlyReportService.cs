@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Services
@@ -20,113 +21,39 @@ namespace tahsinERP.Services
             var periodStart = new DateTime(year, month, 1);
             var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
-            var waybills = await db.F_WAYBILLS
-                .Where(w => w.IsDeleted == false && w.ForwarderID.HasValue)
-                .Select(w => new
-                {
-                    w.ID,
-                    w.ForwarderID,
-                    Amount = w.Amount ?? 0,
-                    w.IssueDate
-                })
-                .ToListAsync();
+            // LOG-P05: davr kesimida SQL'da guruhlangan 3 ta so'rov (avval butun tarix xotiraga yuklanardi).
+            // LOG-B04: qarz ta'rifi WaybillLedgerService'da — boshqa ekranlar bilan bir xil.
+            var balances = WaybillLedgerService.GetForwarderBalances(db, periodStart, periodEnd, forwarderId);
 
-            var payments = await db.F_WAYBILL_PAYMENTS
-                .Where(p => p.IsDeleted == false)
-                .Select(p => new
-                {
-                    p.WaybillID,
-                    p.ForwarderID,
-                    Amount = p.Payment_Amount,
-                    p.PaymentDate
-                })
-                .ToListAsync();
-
-            var finPayments = await db.FIN_TRANSACTIONS
-                .Where(t => t.CounterpartyType == 4
-                    && t.Direction == 2
-                    && (t.IsDeleted == null || t.IsDeleted == false)
-                    && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment")
-                    && t.CounterpartyID.HasValue)
-                .Select(t => new
-                {
-                    ForwarderID = t.CounterpartyID.Value,
-                    Amount = (double)t.Amount,
-                    PaymentDate = (DateTime?)t.TxnDate
-                })
-                .ToListAsync();
-
-            var filteredWaybills = waybills
-                .Where(w => !forwarderId.HasValue || w.ForwarderID == forwarderId.Value)
-                .ToList();
-
-            var waybillIdSet = new HashSet<int>(filteredWaybills.Select(w => w.ID));
-            var filteredPayments = payments
-                .Where(p =>
-                    waybillIdSet.Contains(p.WaybillID) &&
-                    (!forwarderId.HasValue || p.ForwarderID == forwarderId.Value))
-                .ToList();
-
-            var forwarderIds = filteredWaybills.Select(w => w.ForwarderID.Value).Distinct().ToList();
-            var forwarderNames = await db.FORWARDERS
-                .Where(f => f.IsDeleted == false && forwarderIds.Contains(f.ID))
+            var forwarderIds = balances.Keys.ToList();
+            var nameMap = await db.FORWARDERS.AsNoTracking()
+                .Where(f => forwarderIds.Contains(f.ID))
                 .Select(f => new { f.ID, f.ForwarderName })
-                .ToListAsync();
-            var nameMap = forwarderNames.ToDictionary(x => x.ID, x => x.ForwarderName ?? "Noma'lum");
+                .ToDictionaryAsync(x => x.ID, x => x.ForwarderName ?? "Noma'lum");
 
-            var rows = new List<LogisticsMonthlyReportRowViewModel>();
-            foreach (var fid in forwarderIds.OrderBy(id => nameMap.ContainsKey(id) ? nameMap[id] : id.ToString()))
-            {
-                var wbForForwarder = filteredWaybills.Where(w => w.ForwarderID == fid).ToList();
-                var payForForwarder = filteredPayments.Where(p => p.ForwarderID == fid).ToList();
-                var finPayForForwarder = finPayments.Where(p => p.ForwarderID == fid).ToList();
-
-                var openingFreight = wbForForwarder
-                    .Where(w => w.IssueDate.HasValue && w.IssueDate.Value < periodStart)
-                    .Sum(w => w.Amount);
-                var openingPayment = payForForwarder
-                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value < periodStart)
-                    .Sum(p => p.Amount)
-                    + finPayForForwarder
-                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value < periodStart)
-                    .Sum(p => p.Amount);
-                var openingDebt = openingFreight - openingPayment;
-
-                var freightInMonth = wbForForwarder
-                    .Where(w => w.IssueDate.HasValue && w.IssueDate.Value >= periodStart && w.IssueDate.Value <= periodEnd)
-                    .Sum(w => w.Amount);
-                var tripsInMonth = wbForForwarder.Count(w =>
-                    w.IssueDate.HasValue && w.IssueDate.Value >= periodStart && w.IssueDate.Value <= periodEnd);
-
-                var paymentInMonth = payForForwarder
-                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value >= periodStart && p.PaymentDate.Value <= periodEnd)
-                    .Sum(p => p.Amount)
-                    + finPayForForwarder
-                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value >= periodStart && p.PaymentDate.Value <= periodEnd)
-                    .Sum(p => p.Amount);
-
-                rows.Add(new LogisticsMonthlyReportRowViewModel
+            var rows = balances.Values
+                .Where(b => Math.Abs(b.OpeningDebt) > 0.005 || b.FreightInPeriod != 0 || b.PaidInPeriod != 0 || b.TripsInPeriod > 0)
+                .Select(b => new LogisticsMonthlyReportRowViewModel
                 {
-                    ForwarderId = fid,
-                    ForwarderName = nameMap.ContainsKey(fid) ? nameMap[fid] : $"Forwarder #{fid}",
-                    TripsInMonth = tripsInMonth,
-                    OpeningDebt = openingDebt,
-                    FreightInMonth = freightInMonth,
-                    PaymentInMonth = paymentInMonth,
-                    ClosingDebt = openingDebt + freightInMonth - paymentInMonth
-                });
-            }
+                    ForwarderId = b.ForwarderID,
+                    ForwarderName = nameMap.ContainsKey(b.ForwarderID) ? nameMap[b.ForwarderID] : $"Forwarder #{b.ForwarderID}",
+                    TripsInMonth = b.TripsInPeriod,
+                    OpeningDebt = b.OpeningDebt,
+                    FreightInMonth = b.FreightInPeriod,
+                    PaymentInMonth = b.PaidInPeriod,
+                    ClosingDebt = b.ClosingDebt
+                })
+                .OrderBy(r => r.ForwarderName)
+                .ToList();
 
-            var allForwarders = await db.FORWARDERS
-                .Where(f => f.IsDeleted == false)
-                .OrderBy(f => f.ForwarderName)
+            var allForwarders = ReferenceDataCache.Get(ReferenceDataCache.Forwarders)
                 .Select(f => new SelectListItem
                 {
                     Value = f.ID.ToString(),
-                    Text = f.ForwarderName,
+                    Text = f.Name,
                     Selected = forwarderId.HasValue && f.ID == forwarderId.Value
                 })
-                .ToListAsync();
+                .ToList();
 
             var companyName = await db.COMPANIES.Select(c => c.Name).FirstOrDefaultAsync();
             var openingBalanceAdjustment = await GetLogisticsOpeningBalanceAdjustmentAsync(db, periodStart);

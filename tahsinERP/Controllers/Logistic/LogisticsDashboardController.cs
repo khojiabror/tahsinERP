@@ -62,25 +62,12 @@ namespace tahsinERP.Controllers
                 var costPerTrip = totalTrips > 0 ? totalCost / totalTrips : 0;
                 var costPerCBM = totalCBM > 0 ? totalCost / totalCBM : 0;
 
-                // Calculate unpaid amount
-                var waybillIds = waybills.Select(w => w.ID).ToList();
-                var paymentTotals = await db.F_WAYBILL_PAYMENTS
-                    .Where(p => waybillIds.Contains(p.WaybillID) && p.IsDeleted == false)
-                    .GroupBy(p => p.WaybillID)
-                    .Select(g => new { WaybillID = g.Key, TotalPaid = g.Sum(p => p.Payment_Amount) })
-                    .ToListAsync();
+                // To'langan summa: split'lar bilan (LOG-B04) + davrdagi qo'lda kiritilgan FIN to'lovlar
+                var paymentLookup = WaybillLedgerService.GetPaidLookup(db, query.Select(w => w.ID));
+                var totalPaid = paymentLookup.Values.Sum();
 
-                var paymentLookup = paymentTotals.ToDictionary(x => x.WaybillID, x => x.TotalPaid);
-                var totalPaid = paymentTotals.Sum(p => p.TotalPaid);
-
-                // FIN_TRANSACTIONS dagi qo'lda kiritilgan Forwarder to'lovlari (WaybillPayment dublikatini chiqaramiz)
-                var finForwarderPaymentsQuery = db.FIN_TRANSACTIONS
-                    .Where(t => t.CounterpartyType == 4
-                        && t.Direction == 2
-                        && (t.IsDeleted == null || t.IsDeleted == false)
-                        && t.TxnDate >= startDate.Value
-                        && t.TxnDate <= endDate.Value
-                        && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment"));
+                var finForwarderPaymentsQuery = WaybillLedgerService.ManualForwarderPayments(db)
+                    .Where(t => t.TxnDate >= startDate.Value && t.TxnDate <= endDate.Value);
 
                 if (forwarderId.HasValue)
                 {
@@ -298,23 +285,12 @@ namespace tahsinERP.Controllers
                         !w.SalesInvoiceID.HasValue)
                     .ToListAsync();
 
-                // Waybills without payments
-                var allWaybills = await db.F_WAYBILLS
+                // Waybills without payments (split to'lovlar ham hisobga olinadi — LOG-B04)
+                var waybillsWithoutPayments = await WaybillLedgerService
+                    .WithoutAnyPayment(db, db.F_WAYBILLS.Where(w => w.IsDeleted == false && w.Amount.HasValue))
                     .Include(w => w.FORWARDER)
                     .Include(w => w.F_CONTRACTS.FORWARDER)
-                    .Where(w => w.IsDeleted == false && w.Amount.HasValue)
                     .ToListAsync();
-
-                var waybillIds = allWaybills.Select(w => w.ID).ToList();
-                var paidWaybillIds = await db.F_WAYBILL_PAYMENTS
-                    .Where(p => waybillIds.Contains(p.WaybillID) && p.IsDeleted == false)
-                    .Select(p => p.WaybillID)
-                    .Distinct()
-                    .ToListAsync();
-
-                var waybillsWithoutPayments = allWaybills
-                    .Where(w => !paidWaybillIds.Contains(w.ID))
-                    .ToList();
 
                 // Invoices bilan missing freight cost
                 var salesInvoices = await db.SALES_INVOICES

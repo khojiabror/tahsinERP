@@ -104,6 +104,8 @@ namespace tahsinERP.Controllers
                     .Where(p => p.ForwarderID == id && p.IsDeleted == false)
                     .ToListAsync();
 
+                var balance = WaybillLedgerService.GetForwarderBalance(db, forwarder.ID);
+
                 var statistics = new ForwarderStatisticsViewModel
                 {
                     Forwarder = forwarder,
@@ -115,8 +117,9 @@ namespace tahsinERP.Controllers
                     TotalCBM = waybills.Where(w => w.CBM.HasValue).Sum(w => w.CBM.Value),
                     TotalNetWeight = waybills.Where(w => w.NetWeight.HasValue).Sum(w => w.NetWeight.Value),
                     TotalCost = waybills.Where(w => w.Amount.HasValue).Sum(w => w.Amount.Value),
-                    PaidAmount = payments.Sum(p => p.Payment_Amount),
-                    UnpaidAmount = waybills.Where(w => w.Amount.HasValue).Sum(w => w.Amount.Value) - payments.Sum(p => p.Payment_Amount),
+                    // LOG-B04: qarz ta'rifi boshqa ekranlar bilan bir xil (qo'lda kiritilgan FIN to'lovlar ham)
+                    PaidAmount = balance.TotalPaid,
+                    UnpaidAmount = balance.TotalFreight - balance.TotalPaid,
                     ActiveContracts = await db.F_CONTRACTS
                         .Where(c => c.ForwarderID == id && c.IsDeleted == false && c.DueDate >= DateTime.Now)
                         .ToListAsync(),

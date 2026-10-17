@@ -18,7 +18,6 @@ namespace tahsinERP.Controllers
 {
     public class WaybillController : Controller
     {
-        private const byte WaybillPaymentSplitPayerType = 99;
         // Olish so'rovi: Waybill
         public async Task<ActionResult> Index(string searchTerm, int? direction, int? forwarderId, int? contractId,
             int? transportTypeId, DateTime? startDate, DateTime? endDate, string sortOrder, int? page, int? pageSize)
@@ -102,14 +101,14 @@ namespace tahsinERP.Controllers
                 var waybillList = await query.ToListAsync();
 
                 var waybillIds = waybillList.Select(w => w.ID).ToList();
-                var paymentLookup = BuildWaybillPaidLookup(db, waybillIds);
+                var paymentLookup = WaybillLedgerService.GetPaidLookup(db, waybillIds);
 
                 var waybills = waybillList.Select(w =>
                 {
-                    var totalPaid = paymentLookup.ContainsKey(w.ID) ? paymentLookup[w.ID] : 0;
+                    var totalPaid = WaybillLedgerService.PaidOf(paymentLookup, w.ID);
                     var amount = w.Amount ?? 0;
                     var outstanding = amount - totalPaid;
-                    var paymentStatus = outstanding <= 0 ? "To'landi" : outstanding < amount ? "Qisman" : "To'lanmagan";
+                    var paymentStatus = WaybillLedgerService.StatusOf(amount, totalPaid).ToDisplay();
 
                     return new WaybillIndexItemViewModel
                     {
@@ -299,57 +298,31 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var waybill = await db.F_WAYBILLS
-                    .Include(w => w.F_CONTRACTS)
+                // LOG-P03: F_WAYBILL_DOCS (blob), F_WAYBILL_PAYMENTS va P_INVOICES view'da ishlatilmaydi
+                var waybill = await db.F_WAYBILLS.AsNoTracking()
                     .Include(w => w.F_CONTRACTS.FORWARDER)
-                    .Include(w => w.P_INVOICES)
                     .Include(w => w.F_TRANSPORT_TYPES)
                     .Include(w => w.CURRENCy)
                     .Include(w => w.FORWARDER)
-                    .Include(w => w.F_WAYBILL_DOCS)
-                    .Include(w => w.F_WAYBILL_PAYMENTS)
-                    .FirstOrDefaultAsync(w => w.ID == ID);
+                    .FirstOrDefaultAsync(w => w.ID == ID && w.IsDeleted != true);
 
                 if (waybill == null)
                 {
                     return HttpNotFound();
                 }
 
-                // Separate split-linked payments first to avoid complex nested EF expressions
+                // To'langan/qarz — yagona WaybillLedgerService (LOG-D01); P03: jadval bo'yicha split ID'lar yuklanmaydi
                 var splitPaymentIdsForWaybill = db.F_WAYBILL_PAYMENT_SPLITS
-                    .Where(s => s.PayerType == WaybillPaymentSplitPayerType &&
+                    .Where(s => s.PayerType == WaybillLedgerService.SplitPayerType &&
                                 s.WaybillID == waybill.ID &&
                                 s.PayerID.HasValue)
-                    .Select(s => s.PayerID.Value)
-                    .Distinct()
-                    .ToList();
+                    .Select(s => s.PayerID.Value);
 
-                var allSplitPaymentIds = db.F_WAYBILL_PAYMENT_SPLITS
-                    .Where(s => s.PayerType == WaybillPaymentSplitPayerType && s.PayerID.HasValue)
-                    .Select(s => s.PayerID.Value)
-                    .Distinct()
-                    .ToList();
-
-                var directPaid = db.F_WAYBILL_PAYMENTS
-                    .Where(p => p.IsDeleted == false &&
-                                p.WaybillID == waybill.ID &&
-                                !allSplitPaymentIds.Contains(p.ID))
-                    .Sum(p => (double?)p.Payment_Amount) ?? 0;
-
-                var splitPaid = (from s in db.F_WAYBILL_PAYMENT_SPLITS
-                                 join p in db.F_WAYBILL_PAYMENTS on s.PayerID equals p.ID
-                                 where s.PayerType == WaybillPaymentSplitPayerType &&
-                                       s.WaybillID == waybill.ID &&
-                                       p.IsDeleted == false
-                                 select (double?)s.Amount).Sum() ?? 0;
-
-                var totalPaid = directPaid + splitPaid;
+                var totalPaid = WaybillLedgerService.GetPaidTotal(db, waybill.ID);
                 var outstanding = (waybill.Amount ?? 0) - totalPaid;
-                var paymentStatus = outstanding <= 0
-                    ? "To'langan"
-                    : (totalPaid > 0 ? "Qisman" : "To'lanmagan");
+                var paymentStatus = WaybillLedgerService.StatusOf(waybill.Amount ?? 0, totalPaid).ToDisplay();
 
-                var linkedPayments = db.F_WAYBILL_PAYMENTS
+                var linkedPayments = db.F_WAYBILL_PAYMENTS.AsNoTracking()
                     .Where(p => p.IsDeleted == false &&
                                 (p.WaybillID == waybill.ID || splitPaymentIdsForWaybill.Contains(p.ID)))
                     .Include(p => p.CURRENCy)
@@ -1230,53 +1203,6 @@ namespace tahsinERP.Controllers
         {
             if (!map.ContainsKey(key)) return null;
             return worksheet.Cells[row, map[key]].Text?.Trim();
-        }
-
-        private Dictionary<int, double> BuildWaybillPaidLookup(DBTHSNEntities db, List<int> waybillIds)
-        {
-            var result = waybillIds.Distinct().ToDictionary(id => id, id => 0d);
-            if (!waybillIds.Any()) return result;
-
-            var direct = db.F_WAYBILL_PAYMENTS
-                .Where(p =>
-                    p.IsDeleted == false &&
-                    waybillIds.Contains(p.WaybillID) &&
-                    !db.F_WAYBILL_PAYMENT_SPLITS.Any(s => s.PayerType == WaybillPaymentSplitPayerType && s.PayerID == p.ID))
-                .GroupBy(p => p.WaybillID)
-                .Select(g => new { WaybillID = g.Key, Amount = g.Sum(x => x.Payment_Amount) })
-                .ToList();
-
-            foreach (var item in direct)
-            {
-                if (result.ContainsKey(item.WaybillID))
-                {
-                    result[item.WaybillID] += item.Amount;
-                }
-            }
-
-            var split = (from s in db.F_WAYBILL_PAYMENT_SPLITS
-                         join p in db.F_WAYBILL_PAYMENTS on s.PayerID equals p.ID
-                         where s.PayerType == WaybillPaymentSplitPayerType
-                               && waybillIds.Contains(s.WaybillID)
-                               && p.IsDeleted == false
-                         group s by s.WaybillID into g
-                         select new { WaybillID = g.Key, Amount = g.Sum(x => x.Amount) })
-                .ToList();
-
-            foreach (var item in split)
-            {
-                if (result.ContainsKey(item.WaybillID))
-                {
-                    result[item.WaybillID] += item.Amount;
-                }
-            }
-
-            return result;
-        }
-
-        private double GetWaybillPaidTotal(DBTHSNEntities db, int waybillId)
-        {
-            return BuildWaybillPaidLookup(db, new List<int> { waybillId })[waybillId];
         }
 
         private static double? GetCellDouble(ExcelWorksheet worksheet, int row, Dictionary<string, int> map, string key)
