@@ -1,10 +1,12 @@
 # Tasks + Documents — bajarilgan ishlar (2026-10-17)
 
-Branch: `claude/opt-tasks-docs-9aa641` (core `19c07bd7` ustida), 10 ta commit. Merge qilinmagan.
+Branch: `claude/opt-tasks-docs-9aa641` (core `19c07bd7` ustida), 12 ta commit, `tahsinERP-iPack` remote'iga push qilingan. Merge qilinmagan.
+
+**SQL:** barcha skriptlar 2026-10-17 da lokal `DBTHSN-IPACK` bazasida zaxiradan keyin ishga tushirildi — tafsilotlar oxirgi bo'limda.
 
 **Tekshiruv:** MSBuild (Debug) xatosiz. Modul view'lari aspnet_compiler bilan alohida nusxada kompilyatsiya qilindi (xatosiz).
 HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, rasm joylashgan.
-**Brauzerda va jonli bazada sinalmagan** — ayniqsa Dashboard GROUP BY, Kanban filtri, STD Edit muharriri, xat/buyruq yaratish va raqamlash.
+**Brauzerda sinalmagan** (SQL va shablon generatsiyasi lokal bazada sinalgan) — ayniqsa Dashboard GROUP BY, Kanban filtri, STD Edit muharriri, xat/buyruq yaratish va raqamlash.
 
 ## Commitlar
 
@@ -61,15 +63,14 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 - **Biznes qarorlari (2026-10-17, foydalanuvchi):**
   - **TSK-B06:** "Delete" topshiriqni o'chirmaydi, CANCELLED statusiga o'tkazadi — shunday qoladi (qasddan).
   - **DOC-B11:** direktor ismi `COMPANIES.DirectorName` ustunidan olinadi (`Services/Documents/CompanySettings`).
-    Migratsiya: `Database_Migrations/Alter_COMPANIES_AddDirectorName.sql` (ishga tushirilmagan; ustun bo'lmaguncha eski qiymat ishlatiladi).
+    Migratsiya `Database_Migrations/Alter_COMPANIES_AddDirectorName.sql` lokal bazada bajarilgan ("X.M. Maxmudov" yozilgan).
     Tahrirlash UI'si yo'q (Company sahifasi core'da) — hozircha SQL bilan o'rnatiladi.
   - **MAN-B01:** dasturchilar uchun "CRUD arxitekturasi" bo'limi qo'llanmadan olib tashlandi.
   - `assets/` ildizidagi 6 ta Cursor skrinshoti o'chirildi (csproj yozuvlari bilan).
-- **Sxema (taklif, `Database_Migrations/Proposal_Tasks_Docs_Indexes.sql`):**
+- **Sxema takliflari (EDMX yangilashni talab qiladi, `Database_Migrations/Tasks_Docs_Indexes.sql` oxirida):**
   - DOC-P02 — table splitting.
   - DOC-P10 — xat JSON'i alohida ustunlarga.
   - MNT-01/TSK-B09 — ref jadvallarga `IsFinal` va `ColorHex`.
-  - Unique indekslar.
 - **Kod:**
   - DOC-P08: rasmlarni dedupe qilish yoki faqat joriy versiyani ko'rsatish.
   - TSK-P10: DataTables server-side.
@@ -81,7 +82,7 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
   - `SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync` (`:237`) barcha DOC_FILES'ni blob bilan yuklaydi. Bu modul uni endi chaqirmaydi; JobDesc chaqirsa, set-based UPDATE'ga o'tkazish kerak.
   - `RoleHelper.IsAdminOrDeveloper` umumiy qatlamda bo'lishi kerak (hozir modulda `TaskRules`).
 
-## Data-fix skriptlari (ishga tushirilmagan)
+## Data-fix skriptlari (lokal bazada bajarilgan)
 
 - `Database_Migrations/DataFix_Docs_01_Find.sql` — faqat SELECT:
   - STD IsDeleted nomuvofiqligi;
@@ -90,7 +91,8 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
   - bir nechta IsMain;
   - takroriy raqamlar;
   - o'chirilgan ref'ga bog'langan topshiriqlar.
-- `Database_Migrations/DataFix_Docs_02_Fix.sql` — 1–4-bo'limlarni tuzatadi. Standart holatda `ROLLBACK` bilan tugaydi. Takroriy raqamlarga tegmaydi.
+- `Database_Migrations/DataFix_Docs_02_Fix.sql` — 1–5-bo'limlarni tuzatadi; 5-bo'lim takroriy topshiriq kodlarini qayta raqamlaydi. Xat/buyruq raqamlariga tegmaydi.
+  - Faylda oxirgi qator `ROLLBACK` — bu boshqa bazada qayta ishlatishda xavfsizlik uchun. Lokal bazada u COMMIT bilan bajarilgan.
 - TSK-B01 tufayli yo'qolgan izohlarni tiklab bo'lmaydi — ular bazada qolmagan.
 
 ## 11-commit: Word shablonlar va generatsiya qayta ishlandi (foydalanuvchi so'rovi)
