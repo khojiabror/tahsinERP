@@ -1041,6 +1041,7 @@
     <Compile Include="Services\SContractVatHelper.cs" />
     <Compile Include="Services\Crm\SalesInvoiceService.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
+    <Compile Include="Services\Crm\CrmNumber.cs" />
     <Compile Include="ViewModels\Sales\SalesLineViewModels.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />

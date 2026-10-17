@@ -2,26 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels;
-using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
     [Permission]
-    public class SOrderController : Controller
+    public class SOrderController : BaseController
     {
+        private static readonly Regex IndexPattern = new Regex(@"\[(\d+)\]", RegexOptions.Compiled);
+
         // Olish so'rovi: SOrder | Index - List barcha orders
-        public async Task<ActionResult> Index(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
+        public async Task<ActionResult> Index(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.S_ORDERS
+                var query = db.S_ORDERS.AsNoTracking()
                     .Include(o => o.CUSTOMER)
                     .Include(o => o.S_CONTRACTS)
                     .Include(o => o.CURRENCy1)
@@ -53,12 +58,15 @@ namespace tahsinERP.Controllers
 
                 if (fromDate.HasValue)
                 {
-                    query = query.Where(o => o.IssuedDate >= fromDate.Value);
+                    var from = fromDate.Value.Date;
+                    query = query.Where(o => o.IssuedDate >= from);
                 }
 
                 if (toDate.HasValue)
                 {
-                    query = query.Where(o => o.IssuedDate <= toDate.Value);
+                    // Yarim ochiq oraliq — oxirgi kun to'liq kiradi
+                    var toExclusive = toDate.Value.Date.AddDays(1);
+                    query = query.Where(o => o.IssuedDate < toExclusive);
                 }
 
                 // Sorting
@@ -69,9 +77,6 @@ namespace tahsinERP.Controllers
                         break;
                     case "orderNo":
                         query = query.OrderBy(o => o.OrderNo);
-                        break;
-                    case "date_desc":
-                        query = query.OrderByDescending(o => o.IssuedDate);
                         break;
                     case "date":
                         query = query.OrderBy(o => o.IssuedDate);
@@ -87,14 +92,15 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                // Barcha mos yozuvlarni yuklaymiz. Sahifalash (show entries) DataTable
-                // tomonidan klient tarafida bajariladi, shu sababli server tomonida
-                // Skip/Take bilan cheklamaymiz.
+                // Barcha mos yozuvlar (DataTable klientda sahifalaydi) — kuzatuvsiz
                 var orders = await query.ToListAsync();
 
-                // ViewBag uchun filters
-                ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.Name).ToListAsync(), "ID", "Name", customerID);
-                ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.Where(c => c.IsDeleted == false || c.IsDeleted == null).OrderBy(c => c.ContractNo).ToListAsync(), "ID", "ContractNo", contractID);
+                ViewBag.Customers = SalesLookups.Customers(customerID);
+                ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.AsNoTracking()
+                    .Where(c => c.IsDeleted == false || c.IsDeleted == null)
+                    .OrderBy(c => c.ContractNo)
+                    .Select(c => new { c.ID, c.ContractNo })
+                    .ToListAsync(), "ID", "ContractNo", contractID);
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.OrderNo = orderNo;
                 ViewBag.CustomerID = customerID;
@@ -119,31 +125,6 @@ namespace tahsinERP.Controllers
                     ProductQuantities = new List<ContractProductQuantity>()
                 };
 
-                // Dropdowns
-                var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false || x.IsDeleted == null).OrderBy(c => c.Name).ToList();
-                var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
-                customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
-                ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", customerID.HasValue && customerID.Value > 0 ? customerID.Value.ToString() : "0");
-
-                // Faqat tanlangan xaridorning shartnomalarini yuklash
-                // Faqat tanlangan xaridorning shartnomalarini yuklash
-                var contractsList = new List<S_CONTRACTS>();
-                if (customerID.HasValue && customerID.Value > 0)
-                {
-                    contractsList = db.S_CONTRACTS
-                        .Where(x => x.CustomerID == customerID.Value && (x.IsDeleted == false || x.IsDeleted == null))
-                        .OrderBy(c => c.ContractNo)
-                        .ToList();
-                }
-                // Agar xaridor tanlanmagan bo'lsa, shartnomalar bo'sh bo'lsin
-                // (AJAX orqali xaridor tanlanganda yuklanadi)
-                var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
-                if (contractsList.Any())
-                {
-                    contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
-                }
-                ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", contractID.HasValue && contractID.Value > 0 ? contractID.Value.ToString() : "0");
-
                 if (customerID.HasValue && customerID.Value > 0)
                 {
                     model.CustomerID = customerID.Value;
@@ -152,10 +133,10 @@ namespace tahsinERP.Controllers
                 if (contractID.HasValue && contractID.Value > 0)
                 {
                     model.ContractID = contractID.Value;
-                    // Yuklash contract products
-                    LoadContractProducts(model, contractID.Value);
+                    model.ProductQuantities = LoadContractProducts(db, contractID.Value);
                 }
 
+                SetupFormLookups(db, model);
                 return View(model);
             }
         }
@@ -167,85 +148,24 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Tahlil qilish product quantities dan form
-                model.ProductQuantities = new List<ContractProductQuantity>();
-                var keys = form.AllKeys.Where(k => k != null && k.StartsWith("ProductQuantities[") && k.Contains("].OrderQuantity"));
-                
-                foreach (var key in keys)
-                {
-                    var indexMatch = System.Text.RegularExpressions.Regex.Match(key, @"\[(\d+)\]");
-                    if (indexMatch.Success)
-                    {
-                        var index = int.Parse(indexMatch.Groups[1].Value);
-                        var quantityStr = form[key];
-                        if (!string.IsNullOrEmpty(quantityStr) && double.TryParse(quantityStr, out double quantity) && quantity > 0)
-                        {
-                            var contractProductIdStr = form[$"ProductQuantities[{index}].ContractProductID"];
-                            var productIdStr = form[$"ProductQuantities[{index}].ProductID"];
-                            var priceStr = form[$"ProductQuantities[{index}].PiecePrice"];
-                            var unitIdStr = form[$"ProductQuantities[{index}].UnitID"];
+                model.ProductQuantities = ParseProductQuantities(form);
 
-                            if (int.TryParse(contractProductIdStr, out int contractProductId) &&
-                                int.TryParse(productIdStr, out int productId) &&
-                                double.TryParse(priceStr, out double price) &&
-                                int.TryParse(unitIdStr, out int unitId))
-                            {
-                                model.ProductQuantities.Add(new ContractProductQuantity
-                                {
-                                    ContractProductID = contractProductId,
-                                    ProductID = productId,
-                                    PiecePrice = price,
-                                    OrderQuantity = quantity,
-                                    UnitID = unitId
-                                });
-                            }
-                        }
-                    }
-                }
-
-                // Validation
-                if (model.ProductQuantities == null || !model.ProductQuantities.Any())
+                if (!model.ProductQuantities.Any())
                 {
-                    SetupViewBagForError(db, model);
                     ModelState.AddModelError("", "Kamida bitta maxsulot uchun miqdor kiritish kerak");
-                    return View(model);
+                    return FormError(db, model);
                 }
 
-                if (!ValidateOrderQuantities(db, model, null))
+                if (!ResolveContractLines(db, model) || !ValidateOrderQuantities(db, model, null) || !ModelState.IsValid)
                 {
-                    SetupViewBagForError(db, model);
-                    return View(model);
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    SetupViewBagForError(db, model);
-                    return View(model);
+                    return FormError(db, model);
                 }
 
                 try
                 {
-                    // Olish CurrencyID dan contract
-                    int currencyID = 0;
-                    Dictionary<int, double> vatByProduct = null;
-                    if (model.ContractID > 0)
-                    {
-                        var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == model.ContractID);
-                        if (contract != null)
-                        {
-                            currencyID = contract.CurrencyID;
-                        }
+                    var contractCurrencyId = db.S_CONTRACTS.Where(c => c.ID == model.ContractID).Select(c => (int?)c.CurrencyID).FirstOrDefault() ?? 0;
+                    var vatByProduct = SContractVatHelper.GetProductVatRates(db, model.ContractID);
 
-                        vatByProduct = db.S_CONTRACT_PRODUCTS
-                            .Where(p => p.ContractID == model.ContractID)
-                            .ToList()
-                            .ToDictionary(
-                                p => p.ProductID,
-                                p => SContractVatHelper.GetVatPercentFromLine(
-                                    SContractVatHelper.GetLineBaseAmount(p), p.vatamount));
-                    }
-
-                    // Yaratish order
                     var order = new S_ORDERS
                     {
                         OrderNo = model.OrderNo,
@@ -253,56 +173,32 @@ namespace tahsinERP.Controllers
                         CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
                         CustomerID = model.CustomerID,
                         ContractID = model.ContractID,
-                        CurrencyID = currencyID,
+                        CurrencyID = contractCurrencyId,
                         Description = model.Description,
-                        IsDeleted = false,
-                        Amount = 0
+                        IsDeleted = false
                     };
+
+                    // Sarlavha va qatorlar bitta SaveChanges'da (avval ikki bosqichda — qatorlarsiz buyurtma qolishi mumkin edi)
+                    double totalAmount = 0;
+                    foreach (var q in model.ProductQuantities)
+                    {
+                        var line = new S_ORDER_PRODUCTS { MOQ = 0 };
+                        totalAmount += ApplyLine(line, q, vatByProduct);
+                        order.S_ORDER_PRODUCTS.Add(line);
+                    }
+                    order.Amount = totalAmount;
 
                     db.S_ORDERS.Add(order);
                     db.SaveChanges();
 
-                    // Qo'shish products
-                    double totalAmount = 0;
-                    foreach (var productQty in model.ProductQuantities)
-                    {
-                        var lineBase = productQty.PiecePrice * productQty.OrderQuantity;
-                        var vatRate = vatByProduct != null && vatByProduct.ContainsKey(productQty.ProductID)
-                            ? vatByProduct[productQty.ProductID]
-                            : 0d;
-                        var orderProduct = new S_ORDER_PRODUCTS
-                        {
-                            OrderID = order.ID,
-                            ProductID = productQty.ProductID,
-                            Price = productQty.PiecePrice,
-                            Amount = productQty.OrderQuantity,
-                            MOQ = 0,
-                            UnitID = productQty.UnitID,
-                            TotalPrice = lineBase
-                        };
-                        totalAmount += lineBase + SContractVatHelper.CalculateVatAmount(lineBase, vatRate);
-                        db.S_ORDER_PRODUCTS.Add(orderProduct);
-                    }
-
-                    order.Amount = totalAmount;
-                    db.SaveChanges();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani yaratdi");
+                    LogHelper.LogToDatabase(CurrentUserName, "SOrderController", $"{order.OrderNo} - Buyurtmani yaratdi");
 
                     return RedirectToAction("DeliverySchedule", new { orderID = order.ID });
                 }
                 catch (Exception ex)
                 {
-                    SetupViewBagForError(db, model);
-                    var errorMessage = $"Xatolik: {ex.Message}";
-                    var innerEx = ex.InnerException;
-                    while (innerEx != null)
-                    {
-                        errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                        innerEx = innerEx.InnerException;
-                    }
-                    ModelState.AddModelError("", errorMessage);
-                    return View(model);
+                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    return FormError(db, model);
                 }
             }
         }
@@ -313,34 +209,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var contracts = db.S_CONTRACTS
-                    .Where(c => c.CustomerID == customerId && (c.IsDeleted == false || c.IsDeleted == null))
-                    .OrderBy(c => c.ContractNo)
-                    .Select(c => new { c.ID, c.ContractNo })
-                    .ToList();
-
-                var contractIds = contracts.Select(c => c.ID).ToList();
-                var contractProducts = db.S_CONTRACT_PRODUCTS
-                    .Where(p => contractIds.Contains(p.ContractID))
-                    .ToList()
-                    .Select(p => new SContractVatHelper.ContractProductVatLine
-                    {
-                        ContractID = p.ContractID,
-                        LineBaseAmount = SContractVatHelper.GetLineBaseAmount(p),
-                        VATAmount = p.vatamount
-                    })
-                    .ToList();
-
-                var vatByContract = SContractVatHelper.BuildContractVatRates(contractProducts);
-
-                var result = contracts.Select(c => new
-                {
-                    ID = c.ID,
-                    ContractNo = c.ContractNo,
-                    VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 0d
-                }).ToList();
-
-                return Json(result, JsonRequestBehavior.AllowGet);
+                return Json(SalesLookups.ContractsByCustomer(db, customerId), JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -350,24 +219,18 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var contractProducts = db.S_CONTRACT_PRODUCTS
-                    .Include(cp => cp.PRODUCT)
-                    .Include(cp => cp.UNIT)
-                    .Where(cp => cp.ContractID == contractId)
-                    .OrderBy(cp => cp.PRODUCT.PNo)
-                    .ToList()
+                var contractProducts = LoadContractProducts(db, contractId)
                     .Select(cp => new
                     {
-                        ContractProductID = cp.ID,
-                        ProductID = cp.ProductID,
-                        ProductPNo = cp.PRODUCT.PNo,
-                        ProductName = cp.PRODUCT.Name,
-                        PiecePrice = cp.PiecePrice,
-                        ContractAmount = cp.Amount,
-                        UnitID = cp.UnitID,
-                        UnitName = cp.UNIT.ShortName,
-                        VatRate = SContractVatHelper.GetVatPercentFromLine(
-                            SContractVatHelper.GetLineBaseAmount(cp), cp.vatamount)
+                        cp.ContractProductID,
+                        cp.ProductID,
+                        ProductPNo = cp.ProductPNo,
+                        cp.ProductName,
+                        cp.PiecePrice,
+                        cp.ContractAmount,
+                        cp.UnitID,
+                        cp.UnitName,
+                        cp.VatRate
                     })
                     .ToList();
 
@@ -405,7 +268,6 @@ namespace tahsinERP.Controllers
                     IssuedDate = order.IssuedDate
                 };
 
-                // Olish order products
                 model.OrderProducts = order.S_ORDER_PRODUCTS.Select(p => new OrderProductForSchedule
                 {
                     SOrderProductID = p.ID,
@@ -417,8 +279,9 @@ namespace tahsinERP.Controllers
                     UnitName = p.UNIT?.ShortName ?? ""
                 }).ToList();
 
-                // Calculate planned va shipped quantities
+                // PRODUCT oldindan yuklanadi (avval har qator uchun lazy-load — CRM-P07)
                 var scheduleItems = db.SORDER_DELIVERY_SCHEDULE
+                    .Include(s => s.PRODUCT)
                     .Where(s => s.SOrderID == orderID)
                     .ToList();
 
@@ -429,7 +292,6 @@ namespace tahsinERP.Controllers
                     orderProduct.ShippedQuantity = (double)productSchedules.Sum(s => s.QtyShipped);
                 }
 
-                // Olish existing schedule items
                 model.ScheduleItems = scheduleItems.Select(s => new DeliveryScheduleItem
                 {
                     ID = s.ID,
@@ -447,113 +309,150 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST so'rovi: SaveDeliverySchedule
+        /// <summary>
+        /// Yetkazib berish rejasini saqlash — ID bo'yicha upsert (CRM-B06).
+        /// Avval hamma qatorlar o'chirilib, QtyShipped = 0 / PLANNED bilan qayta yozilardi: yetkazilgan miqdor
+        /// yo'qolardi, QUALITY_INSPECTION.DeliveryScheduleID bog'lanishi uzilardi, xatoda esa xom JSON qaytardi.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SaveDeliverySchedule(int orderID, FormCollection form)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                var order = db.S_ORDERS
+                    .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.PRODUCT))
+                    .FirstOrDefault(o => o.ID == orderID && (o.IsDeleted == false || o.IsDeleted == null));
+
+                if (order == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Formadagi qatorlar (indekslarda bo'shliq bo'lsa ham — kalitlar bo'yicha o'qiladi)
+                var posted = new List<DeliveryScheduleItem>();
+                foreach (var key in form.AllKeys.Where(k => k != null && k.StartsWith("ScheduleItems[") && k.EndsWith("].DeliveryDate")))
+                {
+                    var m = IndexPattern.Match(key);
+                    if (!m.Success) continue;
+                    var i = m.Groups[1].Value;
+
+                    DateTime deliveryDate;
+                    decimal qtyPlanned;
+                    int orderProductId;
+                    long id;
+                    if (!DateTime.TryParseExact(form[key], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out deliveryDate) &&
+                        !DateTime.TryParse(form[key], out deliveryDate))
+                        continue;
+                    if (!CrmNumber.TryDecimal(form[$"ScheduleItems[{i}].QtyPlanned"], out qtyPlanned) || qtyPlanned <= 0)
+                        continue;
+                    if (!int.TryParse(form[$"ScheduleItems[{i}].OrderProductID"], out orderProductId))
+                        continue;
+
+                    posted.Add(new DeliveryScheduleItem
+                    {
+                        ID = long.TryParse(form[$"ScheduleItems[{i}].ID"], out id) && id > 0 ? id : (long?)null,
+                        SOrderProductID = orderProductId,
+                        DeliveryDate = deliveryDate,
+                        QtyPlanned = qtyPlanned
+                    });
+                }
+
+                var existing = db.SORDER_DELIVERY_SCHEDULE.Where(s => s.SOrderID == orderID).ToList();
+                var existingById = existing.ToDictionary(s => s.ID);
+                var errors = new List<string>();
+
+                foreach (var item in posted)
+                {
+                    if (order.S_ORDER_PRODUCTS.All(p => p.ID != item.SOrderProductID))
+                        errors.Add("Reja qatori buyurtmada yo'q mahsulotga bog'langan.");
+                    if (item.ID.HasValue)
+                    {
+                        SORDER_DELIVERY_SCHEDULE row;
+                        if (!existingById.TryGetValue(item.ID.Value, out row))
+                            errors.Add("Reja qatori bu buyurtmaga tegishli emas.");
+                        else if (item.QtyPlanned < row.QtyShipped)
+                            errors.Add($"{row.DeliveryDate:dd.MM.yyyy} rejasida {row.QtyShipped:N2} yetkazilgan — reja miqdori undan kam bo'lishi mumkin emas.");
+                    }
+                }
+
+                foreach (var g in posted.GroupBy(i => i.SOrderProductID))
+                {
+                    var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == g.Key);
+                    var totalPlanned = (double)g.Sum(i => i.QtyPlanned);
+                    if (orderProduct != null && totalPlanned > orderProduct.Amount + 0.0001)
+                        errors.Add($"{orderProduct.PRODUCT?.PNo} - Rejalashtirilgan miqdor ({totalPlanned:N2}) buyurtma miqdoridan ({orderProduct.Amount:N2}) oshib ketdi");
+                }
+
+                var postedIds = new HashSet<long>(posted.Where(i => i.ID.HasValue).Select(i => i.ID.Value));
+                var toRemove = existing.Where(s => !postedIds.Contains(s.ID)).ToList();
+                if (toRemove.Any())
+                {
+                    var removeIds = toRemove.Select(s => (long?)s.ID).ToList();
+                    var inspected = new HashSet<long?>(db.QUALITY_INSPECTION
+                        .Where(q => removeIds.Contains(q.DeliveryScheduleID))
+                        .Select(q => q.DeliveryScheduleID)
+                        .Distinct()
+                        .ToList());
+                    foreach (var s in toRemove)
+                    {
+                        if (s.QtyShipped > 0)
+                            errors.Add($"{s.DeliveryDate:dd.MM.yyyy} rejasi bo'yicha yetkazib berilgan — uni o'chirib bo'lmaydi.");
+                        else if (inspected.Contains(s.ID))
+                            errors.Add($"{s.DeliveryDate:dd.MM.yyyy} rejasiga sifat nazorati bog'langan — uni o'chirib bo'lmaydi.");
+                    }
+                }
+
+                if (errors.Any())
+                {
+                    TempData["ErrorMessage"] = string.Join(" ", errors.Distinct());
+                    return RedirectToAction("DeliverySchedule", new { orderID });
+                }
+
                 try
                 {
-                    var order = db.S_ORDERS
-                        .Include(o => o.S_ORDER_PRODUCTS)
-                        .FirstOrDefault(o => o.ID == orderID && (o.IsDeleted == false || o.IsDeleted == null));
-
-                    if (order == null)
+                    int? userId = RoleHelper.GetUserId(CurrentUserName);
+                    foreach (var item in posted)
                     {
-                        return Json(new { success = false, message = "Buyurtma topilmadi" });
-                    }
-
-                    // Tahlil qilish schedule items dan form
-                    var scheduleItems = new List<DeliveryScheduleItem>();
-                    var keys = form.AllKeys.Where(k => k != null && k.StartsWith("ScheduleItems[") && k.Contains("].DeliveryDate"));
-
-                    foreach (var key in keys)
-                    {
-                        var indexMatch = System.Text.RegularExpressions.Regex.Match(key, @"\[(\d+)\]");
-                        if (indexMatch.Success)
+                        var productId = order.S_ORDER_PRODUCTS.First(p => p.ID == item.SOrderProductID).ProductID;
+                        if (item.ID.HasValue)
                         {
-                            var index = int.Parse(indexMatch.Groups[1].Value);
-                            var dateStr = form[key];
-                            var qtyStr = form[$"ScheduleItems[{index}].QtyPlanned"];
-                            var productIdStr = form[$"ScheduleItems[{index}].OrderProductID"];
-
-                            if (DateTime.TryParse(dateStr, out DateTime deliveryDate) &&
-                                decimal.TryParse(qtyStr, out decimal qtyPlanned) &&
-                                int.TryParse(productIdStr, out int orderProductID) &&
-                                qtyPlanned > 0)
-                            {
-                                scheduleItems.Add(new DeliveryScheduleItem
-                                {
-                                    SOrderProductID = orderProductID,
-                                    DeliveryDate = deliveryDate,
-                                    QtyPlanned = qtyPlanned
-                                });
-                            }
+                            var row = existingById[item.ID.Value];
+                            row.SOrderProductID = item.SOrderProductID;
+                            row.ProductID = productId;
+                            row.DeliveryDate = item.DeliveryDate;
+                            row.QtyPlanned = item.QtyPlanned;
+                            row.UpdatedDT = DateTime.Now;
                         }
-                    }
-
-                    // Tekshirish quantities don't exceed order quantities
-                    foreach (var item in scheduleItems.GroupBy(i => i.SOrderProductID))
-                    {
-                        var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == item.Key);
-                        if (orderProduct != null)
+                        else
                         {
-                            var totalPlanned = (double)item.Sum(i => i.QtyPlanned);
-                            if (totalPlanned > orderProduct.Amount)
-                            {
-                                return Json(new { success = false, message = $"{orderProduct.PRODUCT?.PNo} - Rejalashtirilgan miqdor ({totalPlanned}) buyurtma miqdoridan ({orderProduct.Amount}) oshib ketdi" });
-                            }
-                        }
-                    }
-
-                    // O'chirish existing schedule items
-                    var existingSchedules = db.SORDER_DELIVERY_SCHEDULE.Where(s => s.SOrderID == orderID).ToList();
-                    foreach (var existing in existingSchedules)
-                    {
-                        db.SORDER_DELIVERY_SCHEDULE.Remove(existing);
-                    }
-
-                    // Qo'shish new schedule items
-                    foreach (var item in scheduleItems)
-                    {
-                        var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == item.SOrderProductID);
-                        if (orderProduct != null)
-                        {
-                            var scheduleItem = new SORDER_DELIVERY_SCHEDULE
+                            db.SORDER_DELIVERY_SCHEDULE.Add(new SORDER_DELIVERY_SCHEDULE
                             {
                                 SOrderID = orderID,
                                 SOrderProductID = item.SOrderProductID,
-                                ProductID = orderProduct.ProductID,
+                                ProductID = productId,
                                 DeliveryDate = item.DeliveryDate,
                                 QtyPlanned = item.QtyPlanned,
                                 QtyShipped = 0,
                                 StatusCode = "PLANNED",
-                                CreatedByUserID = null, // Set agar you have user ID
+                                CreatedByUserID = userId,
                                 CreatedDT = DateTime.Now
-                            };
-                            db.SORDER_DELIVERY_SCHEDULE.Add(scheduleItem);
+                            });
                         }
                     }
 
+                    db.SORDER_DELIVERY_SCHEDULE.RemoveRange(toRemove);
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"Yetkazib berish rejasi saqlandi (Buyurtma: {order.OrderNo})");
+                    LogHelper.LogToDatabase(CurrentUserName, "SOrderController", $"Yetkazib berish rejasi saqlandi (Buyurtma: {order.OrderNo})");
 
                     TempData["Success"] = "Yetkazib berish rejasi muvaffaqiyatli saqlandi";
                     return RedirectToAction("Details", new { id = orderID });
                 }
                 catch (Exception ex)
                 {
-                    var errorMessage = $"Xatolik: {ex.Message}";
-                    var innerEx = ex.InnerException;
-                    while (innerEx != null)
-                    {
-                        errorMessage += $" | {innerEx.Message}";
-                        innerEx = innerEx.InnerException;
-                    }
-                    return Json(new { success = false, message = errorMessage });
+                    TempData["ErrorMessage"] = "Rejani saqlab bo'lmadi: " + InnermostMessage(ex);
+                    return RedirectToAction("DeliverySchedule", new { orderID });
                 }
             }
         }
@@ -591,20 +490,18 @@ namespace tahsinERP.Controllers
                 ViewBag.DeliverySchedule = deliverySchedule;
                 ViewBag.DeliveryScheduleCount = deliverySchedule.Count;
 
-                var scheduleSummary = deliverySchedule
+                // Typed lug'at (CRM-B09: anonim tipni view'da Dictionary<int, dynamic> ga cast qilib bo'lmasdi)
+                ViewBag.ScheduleSummary = deliverySchedule
                     .GroupBy(d => d.SOrderProductID)
-                    .Select(g => new
+                    .ToDictionary(g => g.Key, g => new ScheduleSummaryDto
                     {
                         SOrderProductID = g.Key,
                         TotalPlanned = g.Sum(d => d.QtyPlanned),
                         TotalShipped = g.Sum(d => d.QtyShipped)
-                    })
-                    .ToDictionary(s => s.SOrderProductID, s => s);
-
-                ViewBag.ScheduleSummary = scheduleSummary;
-                ViewBag.InvoicesCount = db.SALES_INVOICES.Where(i => i.OrderID == id).Count();
-                ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db,order.ContractID > 0 ? (int?)order.ContractID : null);
-                ViewBag.ProductVatRates = BuildProductVatRates(db, order.ContractID);
+                    });
+                ViewBag.InvoicesCount = db.SALES_INVOICES.Active().Count(i => i.OrderID == id);
+                ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db, order.ContractID > 0 ? (int?)order.ContractID : null);
+                ViewBag.ProductVatRates = SContractVatHelper.GetProductVatRates(db, order.ContractID);
 
                 return View(order);
             }
@@ -642,14 +539,14 @@ namespace tahsinERP.Controllers
                     Amount = order.Amount
                 };
 
-                SetupViewBagForEdit(db, model);
-                LoadContractProducts(model, order.ContractID);
+                SetupFormLookups(db, model);
+                model.ProductQuantities = LoadContractProducts(db, order.ContractID);
                 ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db, order.ContractID > 0 ? (int?)order.ContractID : null);
 
-                // Belgilash quantities dan existing order products
+                // Mavjud qatorlar miqdori (shartnoma qatori bo'yicha; topilmasa — mahsulot bo'yicha)
                 foreach (var orderProduct in order.S_ORDER_PRODUCTS)
                 {
-                    var contractProduct = model.ProductQuantities.FirstOrDefault(pq => pq.ProductID == orderProduct.ProductID);
+                    var contractProduct = model.ProductQuantities.FirstOrDefault(pq => pq.ProductID == orderProduct.ProductID && pq.OrderQuantity == 0);
                     if (contractProduct != null)
                     {
                         contractProduct.OrderQuantity = orderProduct.Amount;
@@ -660,66 +557,29 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // POST so'rovi: Edit
+        /// <summary>
+        /// Tahrirlash — qatorlar joyida yangilanadi (CRM-B10). Avval hammasi o'chirilib qayta qo'shilardi:
+        /// S_ORDER_PRODUCTS.ID o'zgarib, yetkazib berish rejasi "yo'qolardi". Invoys qilingan miqdordan
+        /// kamaytirish va rejasi bor qatorni olib tashlash taqiqlanadi.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, SOrderViewModel model, FormCollection form)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Tahlil qilish product quantities
-                model.ProductQuantities = new List<ContractProductQuantity>();
-                var keys = form.AllKeys.Where(k => k != null && k.StartsWith("ProductQuantities[") && k.Contains("].OrderQuantity"));
+                model.ID = id;
+                model.ProductQuantities = ParseProductQuantities(form);
 
-                foreach (var key in keys)
+                if (!model.ProductQuantities.Any())
                 {
-                    var indexMatch = System.Text.RegularExpressions.Regex.Match(key, @"\[(\d+)\]");
-                    if (indexMatch.Success)
-                    {
-                        var index = int.Parse(indexMatch.Groups[1].Value);
-                        var quantityStr = form[key];
-                        if (!string.IsNullOrEmpty(quantityStr) && double.TryParse(quantityStr, out double quantity) && quantity > 0)
-                        {
-                            var contractProductIdStr = form[$"ProductQuantities[{index}].ContractProductID"];
-                            var productIdStr = form[$"ProductQuantities[{index}].ProductID"];
-                            var priceStr = form[$"ProductQuantities[{index}].PiecePrice"];
-                            var unitIdStr = form[$"ProductQuantities[{index}].UnitID"];
-
-                            if (int.TryParse(contractProductIdStr, out int contractProductId) &&
-                                int.TryParse(productIdStr, out int productId) &&
-                                double.TryParse(priceStr, out double price) &&
-                                int.TryParse(unitIdStr, out int unitId))
-                            {
-                                model.ProductQuantities.Add(new ContractProductQuantity
-                                {
-                                    ContractProductID = contractProductId,
-                                    ProductID = productId,
-                                    PiecePrice = price,
-                                    OrderQuantity = quantity,
-                                    UnitID = unitId
-                                });
-                            }
-                        }
-                    }
-                }
-
-                if (model.ProductQuantities == null || !model.ProductQuantities.Any())
-                {
-                    SetupViewBagForError(db, model);
                     ModelState.AddModelError("", "Kamida bitta maxsulot uchun miqdor kiritish kerak");
-                    return View(model);
+                    return FormError(db, model);
                 }
 
-                if (!ValidateOrderQuantities(db, model, id))
+                if (!ResolveContractLines(db, model) || !ValidateOrderQuantities(db, model, id) || !ModelState.IsValid)
                 {
-                    SetupViewBagForError(db, model);
-                    return View(model);
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    SetupViewBagForError(db, model);
-                    return View(model);
+                    return FormError(db, model);
                 }
 
                 try
@@ -733,80 +593,58 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
+                    // Qatorlarni moslash: avval shu mahsulot + narx, keyin shu mahsulot
+                    var unmatched = order.S_ORDER_PRODUCTS.ToList();
+                    var pairs = new List<Tuple<S_ORDER_PRODUCTS, ContractProductQuantity>>();
+                    foreach (var q in model.ProductQuantities)
+                    {
+                        var match = unmatched.FirstOrDefault(l => l.ProductID == q.ProductID && Math.Abs(l.Price - q.PiecePrice) < 0.000001)
+                                    ?? unmatched.FirstOrDefault(l => l.ProductID == q.ProductID);
+                        if (match != null) unmatched.Remove(match);
+                        pairs.Add(Tuple.Create(match, q));
+                    }
+
+                    if (!ValidateOrderEditAgainstDocuments(db, order, pairs, unmatched))
+                    {
+                        return FormError(db, model);
+                    }
+
                     order.OrderNo = model.OrderNo;
                     order.IssuedDate = model.IssuedDate;
                     order.CustomerID = model.CustomerID;
                     order.ContractID = model.ContractID;
                     order.Description = model.Description;
-
-                    // Olish CurrencyID dan contract
-                    if (model.ContractID > 0)
+                    var contractCurrencyId = db.S_CONTRACTS.Where(c => c.ID == model.ContractID).Select(c => (int?)c.CurrencyID).FirstOrDefault();
+                    if (contractCurrencyId.HasValue)
                     {
-                        var contract = db.S_CONTRACTS.FirstOrDefault(c => c.ID == model.ContractID);
-                        if (contract != null)
-                        {
-                            order.CurrencyID = contract.CurrencyID;
-                        }
+                        order.CurrencyID = contractCurrencyId.Value;
                     }
 
-                    // O'chirish existing products
-                    var existingProducts = db.S_ORDER_PRODUCTS.Where(p => p.OrderID == id).ToList();
-                    foreach (var product in existingProducts)
-                    {
-                        db.S_ORDER_PRODUCTS.Remove(product);
-                    }
-
-                    // Qo'shish updated products
-                    var vatByProduct = model.ContractID > 0
-                        ? db.S_CONTRACT_PRODUCTS
-                            .Where(p => p.ContractID == model.ContractID)
-                            .ToList()
-                            .ToDictionary(
-                                p => p.ProductID,
-                                p => SContractVatHelper.GetVatPercentFromLine(
-                                    SContractVatHelper.GetLineBaseAmount(p), p.vatamount))
-                        : new Dictionary<int, double>();
-
+                    var vatByProduct = SContractVatHelper.GetProductVatRates(db, model.ContractID);
                     double totalAmount = 0;
-                    foreach (var productQty in model.ProductQuantities)
+                    foreach (var pair in pairs)
                     {
-                        var lineBase = productQty.PiecePrice * productQty.OrderQuantity;
-                        var vatRate = vatByProduct.ContainsKey(productQty.ProductID)
-                            ? vatByProduct[productQty.ProductID]
-                            : 0d;
-                        var orderProduct = new S_ORDER_PRODUCTS
+                        var line = pair.Item1;
+                        if (line == null)
                         {
-                            OrderID = order.ID,
-                            ProductID = productQty.ProductID,
-                            Price = productQty.PiecePrice,
-                            Amount = productQty.OrderQuantity,
-                            MOQ = 0,
-                            UnitID = productQty.UnitID,
-                            TotalPrice = lineBase
-                        };
-                        totalAmount += lineBase + SContractVatHelper.CalculateVatAmount(lineBase, vatRate);
-                        db.S_ORDER_PRODUCTS.Add(orderProduct);
+                            line = new S_ORDER_PRODUCTS { OrderID = order.ID, MOQ = 0 };
+                            db.S_ORDER_PRODUCTS.Add(line);
+                        }
+                        totalAmount += ApplyLine(line, pair.Item2, vatByProduct);
                     }
 
+                    db.S_ORDER_PRODUCTS.RemoveRange(unmatched);
                     order.Amount = totalAmount;
                     db.SaveChanges();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani tahrirladi");
+                    LogHelper.LogToDatabase(CurrentUserName, "SOrderController", $"{order.OrderNo} - Buyurtmani tahrirladi");
 
                     return RedirectToAction("Details", new { id = order.ID });
                 }
                 catch (Exception ex)
                 {
-                    SetupViewBagForError(db, model);
-                    var errorMessage = $"Xatolik: {ex.Message}";
-                    var innerEx = ex.InnerException;
-                    while (innerEx != null)
-                    {
-                        errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                        innerEx = innerEx.InnerException;
-                    }
-                    ModelState.AddModelError("", errorMessage);
-                    return View(model);
+                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    return FormError(db, model);
                 }
             }
         }
@@ -826,7 +664,6 @@ namespace tahsinERP.Controllers
                     .Include(o => o.CUSTOMER)
                     .Include(o => o.S_CONTRACTS)
                     .Include(o => o.CURRENCy1)
-                    .Include(o => o.S_ORDER_PRODUCTS)
                     .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.PRODUCT))
                     .Include(o => o.S_ORDER_PRODUCTS.Select(p => p.UNIT))
                     .FirstOrDefault(o => o.ID == id && (o.IsDeleted == false || o.IsDeleted == null));
@@ -837,7 +674,7 @@ namespace tahsinERP.Controllers
                 }
 
                 ViewBag.ContractVatRate = SContractVatHelper.CalculateContractVatRate(db, order.ContractID > 0 ? (int?)order.ContractID : null);
-                ViewBag.ProductVatRates = BuildProductVatRates(db, order.ContractID);
+                ViewBag.ProductVatRates = SContractVatHelper.GetProductVatRates(db, order.ContractID);
 
                 return View(order);
             }
@@ -856,90 +693,148 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                // Faol invoysi bor buyurtmani o'chirish taqiqlanadi (CRM-B10)
+                if (await db.SALES_INVOICES.Active().AnyAsync(i => i.OrderID == id))
+                {
+                    TempData["ErrorMessage"] = "Buyurtmaga faol invoys bog'langan — avval invoysni bekor qiling.";
+                    return RedirectToAction("Details", new { id });
+                }
+
                 try
                 {
                     order.IsDeleted = true;
                     await SoftDeleteReferenceService.AfterSOrderSoftDeletedAsync(db, id);
                     await db.SaveChangesAsync();
-                    LogHelper.LogToDatabase(User.Identity.Name, "SOrderController", $"{order.OrderNo} - Buyurtmani o'chirdi");
+                    LogHelper.LogToDatabase(CurrentUserName, "SOrderController", $"{order.OrderNo} - Buyurtmani o'chirdi");
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = $"Buyurtmani o'chirishda xatolik: {ex.Message}";
+                    TempData["ErrorMessage"] = "Buyurtmani o'chirishda xatolik: " + InnermostMessage(ex);
                     return RedirectToAction("Details", new { id });
                 }
             }
         }
 
-        // yordamchi methods
+        // ───────────────────────────── yordamchi metodlar ─────────────────────────────
 
-        // Shartnoma maxsulotlari bo'yicha QQS foizini (ProductID -> VAT %) qaytaradi.
-        // Agar shartnomada QQS 0 bo'lsa, foiz ham 0 bo'ladi (narxlar QQSsiz ko'rsatiladi).
-        private Dictionary<int, double> BuildProductVatRates(DBTHSNEntities db, int contractId)
+        /// <summary>
+        /// Formadagi "ProductQuantities[i].*" maydonlari (Create va Edit uchun bitta joy — D14).
+        /// Narx/birlik formadan olinmaydi — <see cref="ResolveContractLines"/> shartnomadan to'ldiradi (CRM-S03).
+        /// </summary>
+        private static List<ContractProductQuantity> ParseProductQuantities(FormCollection form)
         {
-            if (contractId <= 0)
+            var result = new List<ContractProductQuantity>();
+            foreach (var key in form.AllKeys.Where(k => k != null && k.StartsWith("ProductQuantities[") && k.EndsWith("].OrderQuantity")))
             {
-                return new Dictionary<int, double>();
-            }
+                var m = IndexPattern.Match(key);
+                if (!m.Success) continue;
+                var i = m.Groups[1].Value;
 
-            return db.S_CONTRACT_PRODUCTS
-                .Where(p => p.ContractID == contractId)
-                .ToList()
-                .GroupBy(p => p.ProductID)
-                .ToDictionary(
-                    g => g.Key,
-                    g => SContractVatHelper.GetVatPercentFromLine(
-                        g.Sum(p => SContractVatHelper.GetLineBaseAmount(p)),
-                        g.Sum(p => p.vatamount ?? 0)));
-        }
+                double quantity;
+                int contractProductId, productId;
+                if (!CrmNumber.TryDouble(form[key], out quantity) || quantity <= 0) continue;
+                if (!int.TryParse(form[$"ProductQuantities[{i}].ContractProductID"], out contractProductId)) continue;
+                int.TryParse(form[$"ProductQuantities[{i}].ProductID"], out productId);
 
-        private void LoadContractProducts(SOrderViewModel model, int contractId)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var contractProducts = db.S_CONTRACT_PRODUCTS
-                    .Include(cp => cp.PRODUCT)
-                    .Include(cp => cp.UNIT)
-                    .Where(cp => cp.ContractID == contractId)
-                    .OrderBy(cp => cp.PRODUCT.PNo)
-                    .ToList();
-
-                model.ProductQuantities = contractProducts.Select(cp => new ContractProductQuantity
+                result.Add(new ContractProductQuantity
                 {
-                    ContractProductID = cp.ID,
-                    ProductID = cp.ProductID,
-                    ProductPNo = cp.PRODUCT.PNo,
-                    ProductName = cp.PRODUCT.Name,
-                    PiecePrice = cp.PiecePrice,
-                    ContractAmount = cp.Amount,
-                    UnitID = cp.UnitID,
-                    UnitName = cp.UNIT.ShortName,
-                    OrderQuantity = 0,
-                    VatRate = SContractVatHelper.GetVatPercentFromLine(
-                        SContractVatHelper.GetLineBaseAmount(cp), cp.vatamount)
-                }).ToList();
+                    ContractProductID = contractProductId,
+                    ProductID = productId,
+                    OrderQuantity = quantity
+                });
             }
+            return result;
         }
 
-        private bool ValidateOrderQuantities(DBTHSNEntities db, SOrderViewModel model, int? currentOrderId)
+        /// <summary>Har qator uchun mahsulot, narx va birlik shartnoma qatoridan olinadi (brauzerdagi yashirin maydonga ishonilmaydi).</summary>
+        private bool ResolveContractLines(DBTHSNEntities db, SOrderViewModel model)
         {
-            if (model == null || model.ContractID <= 0)
+            if (model.ContractID <= 0)
             {
                 ModelState.AddModelError("", "Shartnoma tanlanmagan yoki noto'g'ri.");
                 return false;
             }
 
-            var productIds = model.ProductQuantities.Select(pq => pq.ProductID).Distinct().ToList();
-            if (!productIds.Any())
-            {
-                ModelState.AddModelError("", "Maxsulotlar topilmadi.");
-                return false;
-            }
-
-            var contractProducts = db.S_CONTRACT_PRODUCTS
+            var contractLines = db.S_CONTRACT_PRODUCTS.AsNoTracking()
                 .Where(cp => cp.ContractID == model.ContractID)
-                .Select(cp => new { cp.ProductID, cp.Amount })
+                .Select(cp => new { cp.ID, cp.ProductID, cp.PiecePrice, cp.UnitID })
+                .ToList()
+                .ToDictionary(cp => cp.ID);
+
+            foreach (var q in model.ProductQuantities)
+            {
+                if (!contractLines.TryGetValue(q.ContractProductID, out var cp))
+                {
+                    ModelState.AddModelError("", "Tanlangan mahsulot shu shartnomaga tegishli emas. Sahifani yangilab qayta urinib ko'ring.");
+                    return false;
+                }
+                q.ProductID = cp.ProductID;
+                q.PiecePrice = cp.PiecePrice;
+                q.UnitID = cp.UnitID;
+            }
+            return true;
+        }
+
+        /// <summary>Qator maydonlarini to'ldiradi va QQS bilan summani qaytaradi.</summary>
+        private static double ApplyLine(S_ORDER_PRODUCTS line, ContractProductQuantity q, IDictionary<int, double> vatByProduct)
+        {
+            var lineBase = q.PiecePrice * q.OrderQuantity;
+            double vatRate;
+            vatByProduct.TryGetValue(q.ProductID, out vatRate);
+
+            line.ProductID = q.ProductID;
+            line.Price = q.PiecePrice;
+            line.Amount = q.OrderQuantity;
+            line.UnitID = q.UnitID;
+            line.TotalPrice = lineBase;
+            return lineBase + SContractVatHelper.CalculateVatAmount(lineBase, vatRate);
+        }
+
+        private static List<ContractProductQuantity> LoadContractProducts(DBTHSNEntities db, int contractId)
+        {
+            return db.S_CONTRACT_PRODUCTS.AsNoTracking()
+                .Where(cp => cp.ContractID == contractId)
+                .OrderBy(cp => cp.PRODUCT.PNo)
+                .Select(cp => new
+                {
+                    cp.ID,
+                    cp.ProductID,
+                    PNo = cp.PRODUCT.PNo,
+                    Name = cp.PRODUCT.Name,
+                    cp.PiecePrice,
+                    cp.Amount,
+                    cp.UnitID,
+                    UnitName = cp.UNIT.ShortName,
+                    cp.vatamount
+                })
+                .ToList()
+                .Select(cp => new ContractProductQuantity
+                {
+                    ContractProductID = cp.ID,
+                    ProductID = cp.ProductID,
+                    ProductPNo = cp.PNo,
+                    ProductName = cp.Name,
+                    PiecePrice = cp.PiecePrice,
+                    ContractAmount = cp.Amount,
+                    UnitID = cp.UnitID,
+                    UnitName = cp.UnitName,
+                    OrderQuantity = 0,
+                    VatRate = SContractVatHelper.GetVatPercentFromLine(
+                        SContractVatHelper.GetLineBaseAmount(cp.PiecePrice, cp.Amount), cp.vatamount)
+                })
+                .ToList();
+        }
+
+        private bool ValidateOrderQuantities(DBTHSNEntities db, SOrderViewModel model, int? currentOrderId)
+        {
+            var productIds = model.ProductQuantities.Select(pq => pq.ProductID).Distinct().ToList();
+
+            // Shartnomada mahsulot takrorlansa — miqdorlar yig'iladi (avval ToDictionary yiqilardi — CRM-B13)
+            var contractAmounts = db.S_CONTRACT_PRODUCTS
+                .Where(cp => cp.ContractID == model.ContractID)
+                .GroupBy(cp => cp.ProductID)
+                .Select(g => new { ProductID = g.Key, Amount = g.Sum(x => x.Amount) })
                 .ToList()
                 .ToDictionary(cp => cp.ProductID, cp => cp.Amount);
 
@@ -958,37 +853,29 @@ namespace tahsinERP.Controllers
                 .ToList()
                 .ToDictionary(x => x.ProductID, x => x.Total);
 
-            var productNames = db.PRODUCTS
-                .Where(p => productIds.Contains(p.ID))
-                .Select(p => new { p.ID, p.PNo, p.Name })
-                .ToList()
-                .ToDictionary(p => p.ID, p => $"{p.PNo} {p.Name}".Trim());
+            var productNames = ProductLabels(db, productIds);
 
             var hasErrors = false;
-            foreach (var item in model.ProductQuantities)
+            foreach (var g in model.ProductQuantities.GroupBy(q => q.ProductID))
             {
-                if (!contractProducts.TryGetValue(item.ProductID, out var contractAmount))
+                var label = productNames(g.Key);
+                if (!contractAmounts.TryGetValue(g.Key, out var contractAmount))
                 {
-                    var labelMissing = productNames.ContainsKey(item.ProductID) ? productNames[item.ProductID] : $"ProductID={item.ProductID}";
-                    ModelState.AddModelError("", $"{labelMissing} uchun shartnoma miqdori topilmadi.");
+                    ModelState.AddModelError("", $"{label} uchun shartnoma miqdori topilmadi.");
                     hasErrors = true;
                     continue;
                 }
 
-                var alreadyOrdered = orderedSums.ContainsKey(item.ProductID) ? orderedSums[item.ProductID] : 0d;
-                var remaining = contractAmount - alreadyOrdered;
-                if (remaining < 0)
-                {
-                    remaining = 0;
-                }
+                var alreadyOrdered = orderedSums.ContainsKey(g.Key) ? orderedSums[g.Key] : 0d;
+                var remaining = Math.Max(0, contractAmount - alreadyOrdered);
+                var requested = g.Sum(q => q.OrderQuantity);
 
-                if (item.OrderQuantity > remaining + 0.0001)
+                if (requested > remaining + 0.0001)
                 {
-                    var label = productNames.ContainsKey(item.ProductID) ? productNames[item.ProductID] : $"ProductID={item.ProductID}";
                     ModelState.AddModelError("",
                         $"{label} bo'yicha shartnoma miqdori {contractAmount:N2}, " +
                         $"oldin buyurtma {alreadyOrdered:N2}, qolgan {remaining:N2}. " +
-                        $"Kiritilgan {item.OrderQuantity:N2}.");
+                        $"Kiritilgan {requested:N2}.");
                     hasErrors = true;
                 }
             }
@@ -996,41 +883,99 @@ namespace tahsinERP.Controllers
             return !hasErrors;
         }
 
-        private void SetupViewBagForError(DBTHSNEntities db, SOrderViewModel model)
+        /// <summary>Invoys va yetkazib berish rejasiga zid o'zgarishlarni rad etadi.</summary>
+        private bool ValidateOrderEditAgainstDocuments(DBTHSNEntities db, S_ORDERS order,
+            List<Tuple<S_ORDER_PRODUCTS, ContractProductQuantity>> pairs, List<S_ORDER_PRODUCTS> removed)
         {
-            var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false || x.IsDeleted == null).OrderBy(c => c.Name).ToList();
-            var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
-            customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
-            ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+            var invoiced = db.SALES_INVOICE_LINES.Active()
+                .Where(l => l.SALES_INVOICES.OrderID == order.ID)
+                .GroupBy(l => l.ProductID)
+                .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Qty) })
+                .ToList()
+                .ToDictionary(x => x.ProductID, x => (double)x.Qty);
 
-            var contractsList = db.S_CONTRACTS
-                .Where(x => (x.CustomerID == model.CustomerID || model.CustomerID == 0) && (x.IsDeleted == false || x.IsDeleted == null))
-                .OrderBy(c => c.ContractNo)
-                .ToList();
-            var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
-            contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
-            ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+            var lineIds = order.S_ORDER_PRODUCTS.Select(l => l.ID).ToList();
+            var planned = db.SORDER_DELIVERY_SCHEDULE
+                .Where(s => s.SOrderID == order.ID && lineIds.Contains(s.SOrderProductID))
+                .GroupBy(s => s.SOrderProductID)
+                .Select(g => new { LineID = g.Key, Qty = g.Sum(x => x.QtyPlanned) })
+                .ToList()
+                .ToDictionary(x => x.LineID, x => (double)x.Qty);
 
-            if (model.ContractID > 0)
+            var names = ProductLabels(db, pairs.Select(p => p.Item2.ProductID).Concat(removed.Select(r => r.ProductID)));
+            var newTotals = pairs.GroupBy(p => p.Item2.ProductID).ToDictionary(g => g.Key, g => g.Sum(p => p.Item2.OrderQuantity));
+            bool ok = true;
+
+            foreach (var kv in invoiced)
             {
-                LoadContractProducts(model, model.ContractID);
+                double newQty;
+                newTotals.TryGetValue(kv.Key, out newQty);
+                if (newQty + 0.0001 < kv.Value)
+                {
+                    ModelState.AddModelError("", $"{names(kv.Key)}: {kv.Value:N2} invoys qilingan — buyurtma miqdori undan kam bo'lishi mumkin emas.");
+                    ok = false;
+                }
             }
+
+            foreach (var pair in pairs.Where(p => p.Item1 != null))
+            {
+                double plannedQty;
+                if (planned.TryGetValue(pair.Item1.ID, out plannedQty) && pair.Item2.OrderQuantity + 0.0001 < plannedQty)
+                {
+                    ModelState.AddModelError("", $"{names(pair.Item2.ProductID)}: yetkazib berish rejasida {plannedQty:N2} — miqdorni avval rejada kamaytiring.");
+                    ok = false;
+                }
+            }
+
+            foreach (var line in removed)
+            {
+                if (planned.ContainsKey(line.ID))
+                {
+                    ModelState.AddModelError("", $"{names(line.ProductID)}: yetkazib berish rejasi bor — qatorni olib tashlashdan oldin rejadan o'chiring.");
+                    ok = false;
+                }
+            }
+
+            return ok;
         }
 
-        private void SetupViewBagForEdit(DBTHSNEntities db, SOrderViewModel model)
+        private static Func<int, string> ProductLabels(DBTHSNEntities db, IEnumerable<int> productIds)
         {
-            var customersList = db.CUSTOMERS.Where(x => x.IsDeleted == false || x.IsDeleted == null).OrderBy(c => c.Name).ToList();
-            var customersSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
-            customersSelectList.AddRange(customersList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
-            ViewBag.Customers = new SelectList(customersSelectList, "Value", "Text", model.CustomerID > 0 ? model.CustomerID.ToString() : "0");
+            var ids = productIds.Distinct().ToList();
+            var map = db.PRODUCTS.AsNoTracking()
+                .Where(p => ids.Contains(p.ID))
+                .Select(p => new { p.ID, p.PNo, p.Name })
+                .ToList()
+                .ToDictionary(p => p.ID, p => $"{p.PNo} {p.Name}".Trim());
+            return id => map.ContainsKey(id) ? map[id] : $"ProductID={id}";
+        }
 
-            var contractsList = db.S_CONTRACTS
-                .Where(x => (x.CustomerID == model.CustomerID || model.CustomerID == 0) && (x.IsDeleted == false || x.IsDeleted == null))
-                .OrderBy(c => c.ContractNo)
-                .ToList();
-            var contractsSelectList = new List<SelectListItem> { new SelectListItem { Value = "0", Text = "---Tanlang---" } };
-            contractsSelectList.AddRange(contractsList.Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo }));
-            ViewBag.SContract = new SelectList(contractsSelectList, "Value", "Text", model.ContractID > 0 ? model.ContractID.ToString() : "0");
+        /// <summary>
+        /// Xato bilan qaytish: ro'yxatlar qayta quriladi, shartnoma mahsulotlari yuklanib,
+        /// foydalanuvchi kiritgan miqdorlar saqlanadi (CRM-B11: avval hammasi 0 ga tushardi).
+        /// </summary>
+        private ActionResult FormError(DBTHSNEntities db, SOrderViewModel model)
+        {
+            SetupFormLookups(db, model);
+            if (model.ContractID > 0)
+            {
+                var posted = model.ProductQuantities ?? new List<ContractProductQuantity>();
+                var reloaded = LoadContractProducts(db, model.ContractID);
+                foreach (var line in reloaded)
+                {
+                    var q = posted.FirstOrDefault(p => p.ContractProductID == line.ContractProductID);
+                    if (q != null) line.OrderQuantity = q.OrderQuantity;
+                }
+                model.ProductQuantities = reloaded;
+            }
+            return View(model);
+        }
+
+        /// <summary>Create/Edit ro'yxatlari (avvalgi SetupViewBagForError ≡ SetupViewBagForEdit — D11).</summary>
+        private void SetupFormLookups(DBTHSNEntities db, SOrderViewModel model)
+        {
+            ViewBag.Customers = SalesLookups.CustomersWithPlaceholder(model.CustomerID, "0", "---Tanlang---");
+            ViewBag.SContract = SalesLookups.ContractsFor(db, model.CustomerID, model.ContractID, "0", "---Tanlang---");
         }
     }
 }

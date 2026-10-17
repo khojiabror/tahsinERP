@@ -42,6 +42,14 @@
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                @if (TempData["Success"] != null)
+                                                {
+                                                    <div class="alert alert-success" role="alert">@TempData["Success"]</div>
+                                                }
+                                                @if (TempData["ErrorMessage"] != null)
+                                                {
+                                                    <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
+                                                }
                                                 <h4 class="text-primary">Buyurtma ma'lumotlari</h4>
                                                 <hr />
                                                 <div class="row">
@@ -126,8 +134,7 @@
                                                                             }
                                                                             @foreach (var item in Model.S_ORDER_PRODUCTS)
                                                                             {
-                                                                                var scheduleSummary = ViewBag.ScheduleSummary as Dictionary<int, dynamic>;
-                                                                                // Ensure we check the correct key - SOrderProductID should match S_ORDER_PRODUCTS.ID
+                                                                                var scheduleSummary = ViewBag.ScheduleSummary as Dictionary<int, tahsinERP.ViewModels.ScheduleSummaryDto>;
                                                                                 var summary = scheduleSummary != null && scheduleSummary.ContainsKey(item.ID) ? scheduleSummary[item.ID] : null;
                                                                                 // Shartnoma QQS foizi; 0 bo'lsa narxlar QQSsiz ko'rsatiladi
                                                                                 var vatRate = productVatRates != null && productVatRates.ContainsKey(item.ProductID) ? productVatRates[item.ProductID] : 0d;

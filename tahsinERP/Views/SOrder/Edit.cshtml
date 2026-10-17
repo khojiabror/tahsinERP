@@ -114,16 +114,16 @@
                                                                         <td>
                                                                             <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
-                                                                            <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@product.PiecePrice" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@tahsinERP.Services.Crm.CrmNumber.ForInput(product.PiecePrice)" />
                                                                             <input type="hidden" name="ProductQuantities[@index].UnitID" value="@product.UnitID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].VatRate" value="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
                                                                             <input type="number" 
                                                                                    name="ProductQuantities[@index].OrderQuantity" 
                                                                                    class="form-control order-quantity" 
-                                                                                   value="@product.OrderQuantity.ToString("N2")" 
+                                                                                   value="@(product.OrderQuantity > 0 ? tahsinERP.Services.Crm.CrmNumber.ForInput(product.OrderQuantity) : "")" 
                                                                                    step="0.01" 
                                                                                    min="0.01" 
-                                                                                   data-price="@product.PiecePrice"
+                                                                                   data-price="@tahsinERP.Services.Crm.CrmNumber.ForInput(product.PiecePrice)"
                                                                                    data-vat-rate="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
                                                                                    required />
                                                                         </td>
