@@ -5,8 +5,7 @@
     var periods = ViewBag.Periods as List<tahsinERP.Models.SHAREHOLDER_SHARE_PERIODS> ?? new List<tahsinERP.Models.SHAREHOLDER_SHARE_PERIODS>();
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -104,8 +103,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
