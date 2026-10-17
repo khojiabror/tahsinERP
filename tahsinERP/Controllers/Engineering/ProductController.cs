@@ -530,7 +530,7 @@ namespace tahsinERP.Controllers
 
                     // Handle product type dan Excel
                     var typeFromExcel = row.Table.Columns.Contains("Type") ? row["Type"].ToString().Trim().ToUpper() : "";
-                    SetProductTypeFlagsFromExcel(newProduct, typeFromExcel);
+                    SetProductTypeFlags(newProduct, ProductTypeFromExcel(typeFromExcel));
                     newProducts.Add(newProduct);
                 }
 
@@ -570,31 +570,16 @@ namespace tahsinERP.Controllers
             return null;
         }
 
-        // Belgilash product type flags dan Excel Type ustun
-        private void SetProductTypeFlagsFromExcel(PRODUCT product, string typeValue)
+        // Excel "Type" ustuni matni -> mahsulot turi kodi; bayroqlarni SetProductTypeFlags qo'yadi
+        // (avval bayroq/Type qo'yish ikki joyda nusxalangan edi, dublikat #25)
+        private static string ProductTypeFromExcel(string typeValue)
         {
-            // Reset barcha flags
-            product.IsFinishedGood = false;
-            product.IsComponent = false;
-            product.IsRawMaterial = false;
-
-            // Tekshirish uchun different possible values
+            typeValue = typeValue ?? "";
             if (typeValue.Contains("XOMASHYO") || typeValue.Contains("RAW") || typeValue.Contains("MATERIAL"))
-            {
-                product.IsRawMaterial = true;
-                product.Type = "XOMASHYO";
-            }
-            else if (typeValue.Contains("YARIM") || typeValue.Contains("TAYYOR") || typeValue.Contains("COMPONENT") || typeValue.Contains("PART"))
-            {
-                product.IsComponent = true;
-                product.Type = "YARIM TAYYOR MAXSULOT";
-            }
-            else
-            {
-                // standart ga finished good (MAXSULOT)
-                product.IsFinishedGood = true;
-                product.Type = "MAXSULOT";
-            }
+                return PRODUCT_TYPE_RAW_MATERIAL;
+            if (typeValue.Contains("YARIM") || typeValue.Contains("TAYYOR") || typeValue.Contains("COMPONENT") || typeValue.Contains("PART"))
+                return PRODUCT_TYPE_COMPONENT;
+            return PRODUCT_TYPE_FINISHED_GOOD;
         }
     }
 }
