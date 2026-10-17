@@ -532,7 +532,6 @@
     <Compile Include="Controllers\AdminSetting\CookieHelper.cs" />
     <Compile Include="Controllers\CRM\CustomerController.cs" />
     <Compile Include="Controllers\DefectTypeController.cs" />
-    <Compile Include="Controllers\DamagedPartController.cs" />
     <Compile Include="Controllers\DamagedProductController.cs" />
     <Compile Include="Controllers\Logistic\FContractController.cs" />
     <Compile Include="Controllers\Logistic\ForwarderController.cs" />
@@ -1055,9 +1054,7 @@
     <Compile Include="Services\ITextSuggestionService.cs" />
     <Compile Include="Services\IUserActionLogger.cs" />
     <Compile Include="Services\LogisticsTerms.cs" />
-    <Compile Include="Services\MaterialConsumptionService.cs" />
     <Compile Include="Services\OfficialLetterDataService.cs" />
-    <Compile Include="Services\MaterialConsumptionServiceDTOs.cs" />
     <Compile Include="Services\POrderGenerationService.cs" />
     <Compile Include="Services\ProductionConsumptionService.cs" />
     <Compile Include="Services\TannarxAnalyticsService.cs" />
@@ -1106,7 +1103,6 @@
     <Compile Include="ViewModels\CompanyOrderEditVm.cs" />
     <Compile Include="ViewModels\CompanyOrderIndexVm.cs" />
     <Compile Include="ViewModels\CRMDashboardViewModel.cs" />
-    <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
     <Compile Include="ViewModels\FinanceReportsHubViewModel.cs" />
