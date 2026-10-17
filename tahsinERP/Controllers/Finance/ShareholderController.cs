@@ -245,18 +245,33 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult AddSharePeriod(int shareholderID, DateTime fromDate, DateTime? toDate, decimal sharePercent)
         {
+            // FIN-B24: xato TempData orqali ko'rsatiladi (avval ModelState'ga yozilib redirect'da yo'qolardi)
+            if (sharePercent <= 0 || sharePercent > 100)
+            {
+                TempData["Error"] = "Ulush 0% dan katta va 100% dan oshmasligi kerak.";
+                return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
+            }
+            if (toDate.HasValue && toDate.Value < fromDate)
+            {
+                TempData["Error"] = "Tugash sanasi boshlanish sanasidan oldin bo'lishi mumkin emas.";
+                return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Tekshirish total shares don't exceed 100%
+                // Shu davr bilan kesishgan barcha ulushlar — aksiyadorning o'z davrlari ham (avval chiqarib tashlanardi,
+                // natijada bir aksiyador ustma-ust davrlar bilan 100% dan oshirib yuborishi mumkin edi)
+                var upper = toDate ?? DateTime.MaxValue;
                 var totalShares = db.SHAREHOLDER_SHARE_PERIODS
-                    .Where(sp => sp.FromDate <= (toDate ?? DateTime.MaxValue) &&
+                    .Where(sp => sp.FromDate <= upper &&
                         (sp.ToDate == null || sp.ToDate >= fromDate) &&
-                        sp.ShareholderID != shareholderID)
+                        sp.SHAREHOLDER.IsActive && sp.SHAREHOLDER.IsDeleted != true)
                     .Sum(sp => (decimal?)sp.SharePercent) ?? 0m;
 
                 if (totalShares + sharePercent > 100)
                 {
-                    ModelState.AddModelError("", "Jami aksiyalar 100% dan oshib ketdi.");
+                    TempData["Error"] = $"Jami aksiyalar 100% dan oshib ketdi (shu davrda band: {totalShares:0.##}%). " +
+                                        "Aksiyadorning avvalgi davri bo'lsa, avval uning tugash sanasini belgilang.";
                     return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
                 }
 
@@ -271,9 +286,10 @@ namespace tahsinERP.Controllers.Finance
                 db.SHAREHOLDER_SHARE_PERIODS.Add(period);
                 db.SaveChanges();
 
-                LogHelper.LogToDatabase(User.Identity.Name, "Shareholder", "AddSharePeriod", 
+                LogHelper.LogToDatabase(User.Identity.Name, "Shareholder", "AddSharePeriod",
                     $"Aksiyador ulushi qo'shildi: {shareholderID}, {sharePercent}%");
 
+                TempData["Success"] = "Ulush davri qo'shildi.";
                 return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
             }
         }
@@ -324,50 +340,59 @@ namespace tahsinERP.Controllers.Finance
             {
                 if (ModelState.IsValid)
                 {
-                    // agar cash contribution, yaratish financial transaction
-                    if (contribution.ContributionType == 1) // Cash
+                    // FIN-B24: kategoriya, tranzaksiya va hissa bitta DB tranzaksiyasida (avval 3 ta alohida SaveChanges)
+                    using (var tx = db.Database.BeginTransaction())
                     {
-                        // Find a cash account
-                        var cashAccount = db.FIN_ACCOUNTS
-                            .FirstOrDefault(a => a.IsCash && a.IsActive && a.CurrencyID == contribution.CurrencyID);
-
-                        if (cashAccount != null)
+                        string warning = null;
+                        if (contribution.ContributionType == 1) // Naqd pul — kassa hisobiga kirim
                         {
-                            var transaction = new FIN_TRANSACTIONS
+                            var cashAccount = db.FIN_ACCOUNTS
+                                .FirstOrDefault(a => a.IsCash && a.IsActive && a.CurrencyID == contribution.CurrencyID);
+
+                            if (cashAccount != null)
                             {
-                                TxnDate = contribution.ContributionDate,
-                                AccountID = cashAccount.ID,
-                                CategoryID = GetContributionCategoryID(db), // You need ga implement this
-                                Direction = 1, // In
-                                Amount = contribution.Amount,
-                                CurrencyID = contribution.CurrencyID,
-                                CounterpartyType = 3, // Shareholder
-                                CounterpartyID = contribution.ShareholderID,
-                                CounterpartyName = db.SHAREHOLDERS.Find(contribution.ShareholderID)?.FullName,
-                                Purpose = "Aksiyador hissasi",
-                                SourceDocType = "ShareholderContribution",
-                                Comment = contribution.Description,
-                                CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                                CreatedDT = DateTime.Now
-                            };
+                                contribution.FIN_TRANSACTIONS = new FIN_TRANSACTIONS
+                                {
+                                    TxnDate = contribution.ContributionDate,
+                                    AccountID = cashAccount.ID,
+                                    CategoryID = GetContributionCategoryID(db),
+                                    Direction = 1, // In
+                                    Amount = contribution.Amount,
+                                    CurrencyID = contribution.CurrencyID,
+                                    CounterpartyType = 3, // Shareholder
+                                    CounterpartyID = contribution.ShareholderID,
+                                    CounterpartyName = db.SHAREHOLDERS.Find(contribution.ShareholderID)?.FullName,
+                                    Purpose = "Aksiyador hissasi",
+                                    SourceDocType = "ShareholderContribution",
+                                    Comment = contribution.Description,
+                                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                                    CreatedDT = DateTime.Now
+                                };
+                            }
+                            else
+                            {
+                                // Avval jimgina tranzaksiyasiz saqlanardi
+                                warning = "Shu valyutadagi faol kassa hisobi topilmadi — hissa saqlandi, lekin kassaga kirim yozilmadi.";
+                            }
+                        }
 
-                            db.FIN_TRANSACTIONS.Add(transaction);
-                            db.SaveChanges();
+                        db.SHAREHOLDER_CONTRIBUTIONS.Add(contribution);
+                        db.SaveChanges();
+                        tx.Commit();
 
-                            contribution.FinTransactionID = transaction.ID;
+                        if (warning != null)
+                        {
+                            TempData["Error"] = warning;
                         }
                     }
 
-                    db.SHAREHOLDER_CONTRIBUTIONS.Add(contribution);
-                    db.SaveChanges();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "Shareholder", "AddContribution", 
+                    LogHelper.LogToDatabase(User.Identity.Name, "Shareholder", "AddContribution",
                         $"Aksiyador hissasi qo'shildi: {contribution.ShareholderID}, {contribution.Amount}");
 
                     return RedirectToAction("Details", new { id = contribution.ShareholderID });
                 }
 
-                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name", contribution.CurrencyID);
+                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", contribution.CurrencyID);
                 ViewBag.ContributionTypeList = new SelectList(new[] {
                     new { Value = (byte)1, Text = "Naqd pul" },
                     new { Value = (byte)2, Text = "Tovarlar" },
@@ -400,7 +425,7 @@ namespace tahsinERP.Controllers.Finance
                     SortOrder = 999
                 };
                 db.FIN_CATEGORIES.Add(category);
-                db.SaveChanges();
+                db.SaveChanges(); // ID kerak; chaqiruvchining DB tranzaksiyasi ichida
             }
 
             return category.ID;
