@@ -4,43 +4,52 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
-using tahsinERP.ViewModels;
 using tahsinERP.Services;
 using tahsinERP.Services.Documents;
-using tahsinERP.Controllers;
-using tahsinERP.Filters;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
-    public class CompanyOrdersController : Controller
+    /// <summary>
+    /// Korxona buyruqlari. Ruxsat — [Permission]: GET = ko'rish, POST/Create/Edit/Delete = o'zgartirish.
+    /// </summary>
+    [Permission]
+    public class CompanyOrdersController : BaseController
     {
-        private readonly IDocumentTemplateService _templateService;
-        private readonly ITextSuggestionService _textSuggestionService;
+        private static readonly string[] OrderTypeItems = { "GENERAL", "URGENT", "SPECIAL" };
 
-        public CompanyOrdersController()
+        // Servislar faqat kerak bo'lganda yaratiladi (avval har so'rovda, Index'da ham — yangi HttpClient bilan)
+        private IDocumentTemplateService _templateService;
+        private ITextSuggestionService _textSuggestionService;
+        private IDocumentTemplateService TemplateService => _templateService ?? (_templateService = new DocumentTemplateService());
+        private ITextSuggestionService TextSuggestion => _textSuggestionService ?? (_textSuggestionService = new TextSuggestionService());
+
+        private static SelectList OrderTypes(string selected) => new SelectList(OrderTypeItems, selected);
+
+        private static async Task<SelectList> OrgUnitsAsync(DBTHSNEntities db, int? selected)
         {
-            _templateService = new DocumentTemplateService();
-            _textSuggestionService = new TextSuggestionService();
+            var units = await db.HR_ORG_UNITS.AsNoTracking()
+                .Where(o => o.IsActive)
+                .OrderBy(o => o.Name)
+                .Select(o => new { o.ID, o.Name })
+                .ToListAsync();
+            return new SelectList(units, "ID", "Name", selected);
         }
 
         // Olish so'rovi: CompanyOrders
         public async Task<ActionResult> Index(int? year, string orderTypeCode, string searchTerm)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
-                var query = from doc in db.DOC_DOCUMENTS
+                var query = from doc in db.DOC_DOCUMENTS.AsNoTracking()
                             join order in db.ADM_COMPANY_ORDERS on doc.ID equals order.DocumentID
-                            join docType in db.DOC_DOCUMENT_TYPES on doc.DocTypeID equals docType.ID
-                            where docType.Code == "COMP_ORDER" && (doc.IsDeleted == false || doc.IsDeleted == null) && (order.IsDeleted == false || order.IsDeleted == null)
-                            select new { doc, order, docType };
+                            where doc.DOC_DOCUMENT_TYPES.Code == DocumentService.CompanyOrderType && doc.IsDeleted != true && order.IsDeleted != true
+                            select new { doc, order };
 
                 if (year.HasValue)
                 {
@@ -54,37 +63,39 @@ namespace tahsinERP.Controllers
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    query = query.Where(x => x.order.OrderNo.Contains(searchTerm) || 
+                    query = query.Where(x => x.order.OrderNo.Contains(searchTerm) ||
                                              x.doc.Title.Contains(searchTerm) ||
                                              (x.order.Notes != null && x.order.Notes.Contains(searchTerm)));
                 }
 
-                var results = await query
+                // SQL'da proyeksiya — avval to'liq entity'lar olinib, bo'lim/status lazy-load qilinardi (DOC-P11)
+                var viewModel = await query
                     .OrderByDescending(x => x.order.OrderDate)
                     .ThenByDescending(x => x.doc.ID)
+                    .Select(x => new CompanyOrderIndexVm
+                    {
+                        DocumentId = x.doc.ID,
+                        OrderNo = x.order.OrderNo,
+                        OrderDate = x.order.OrderDate,
+                        OrderTypeCode = x.order.OrderTypeCode,
+                        OrderTypeName = x.order.OrderTypeCode,
+                        OrgUnitName = x.doc.HR_ORG_UNITS.Name,
+                        StatusName = x.doc.DOC_DOCUMENT_STATUS_REF.Name,
+                        CreatedDT = x.doc.CreatedDT
+                    })
                     .ToListAsync();
-
-                var viewModel = results.Select(x => new CompanyOrderIndexVm
-                {
-                    DocumentId = x.doc.ID,
-                    OrderNo = x.order.OrderNo,
-                    OrderDate = x.order.OrderDate,
-                    OrderTypeCode = x.order.OrderTypeCode,
-                    OrderTypeName = x.order.OrderTypeCode,
-                    OrgUnitName = x.doc.HR_ORG_UNITS != null ? x.doc.HR_ORG_UNITS.Name : null,
-                    StatusName = x.doc.DOC_DOCUMENT_STATUS_REF != null ? x.doc.DOC_DOCUMENT_STATUS_REF.Name : null,
-                    CreatedDT = x.doc.CreatedDT
-                }).ToList();
 
                 ViewBag.Year = year;
                 ViewBag.OrderTypeCode = orderTypeCode;
                 ViewBag.SearchTerm = searchTerm;
+                // O'chirilganlar yillari ko'rinmasin (DOC-B12)
                 ViewBag.Years = new SelectList(await db.ADM_COMPANY_ORDERS
+                    .Where(o => o.IsDeleted != true && o.DOC_DOCUMENTS.IsDeleted != true)
                     .Select(o => o.OrderDate.Year)
                     .Distinct()
                     .OrderByDescending(y => y)
                     .ToListAsync(), year);
-                ViewBag.OrderTypes = new SelectList(new[] { "GENERAL", "URGENT", "SPECIAL" }, orderTypeCode);
+                ViewBag.OrderTypes = OrderTypes(orderTypeCode);
 
                 return View(viewModel);
             }
@@ -93,28 +104,17 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: CompanyOrders/yaratish
         public async Task<ActionResult> Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "Create"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var vm = new CompanyOrderCreateVm
                 {
                     OrderDate = DateTime.Now,
-                    OrderNo = GenerateNextOrderNo(db)
+                    // Taxminiy raqam; saqlashda qulf ostida qayta tekshiriladi
+                    OrderNo = await DocNumbering.PeekOrderNoAsync(db)
                 };
 
-                vm.OrderTypes = new SelectList(new[] { "GENERAL", "URGENT", "SPECIAL" });
-                vm.OrgUnits = new SelectList(await db.HR_ORG_UNITS
-                    .Where(o => o.IsActive)
-                    .OrderBy(o => o.Name)
-                    .ToListAsync(), "ID", "Name");
-                vm.Employees = new SelectList(await db.USERS
-                    .Where(u => u.IsActive && u.IsDeleted != true)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync(), "ID", "FullName");
+                vm.OrderTypes = OrderTypes(null);
+                vm.OrgUnits = await OrgUnitsAsync(db, null);
 
                 return View(vm);
             }
@@ -125,70 +125,65 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(CompanyOrderCreateVm vm)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "Create"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (var db = new DBTHSNEntities())
-                {
-                    var docType = await db.DOC_DOCUMENT_TYPES.FirstOrDefaultAsync(dt => dt.Code == "COMP_ORDER");
-                    var statusDraft = await db.DOC_DOCUMENT_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "DRAFT");
-
-                    if (docType == null || statusDraft == null)
-                    {
-                        TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.";
-                        return RedirectToAction("Index");
-                    }
-
-                    var document = new DOC_DOCUMENTS
-                    {
-                        DocTypeID = docType.ID,
-                        StatusID = statusDraft.ID,
-                        Code = vm.OrderNo,
-                        Title = vm.Title,
-                        OrgUnitID = vm.OrgUnitId,
-                        CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                        CreatedDT = DateTime.Now,
-                        IntegrationUID = Guid.NewGuid()
-                    };
-
-                    db.DOC_DOCUMENTS.Add(document);
-                    await db.SaveChangesAsync();
-
-                    var order = new ADM_COMPANY_ORDERS
-                    {
-                        DocumentID = document.ID,
-                        OrderNo = vm.OrderNo,
-                        OrderDate = vm.OrderDate,
-                        OrderTypeCode = vm.OrderTypeCode,
-                        OrgUnitID = vm.OrgUnitId,
-                        Notes = vm.BodyText
-                    };
-
-                    db.ADM_COMPANY_ORDERS.Add(order);
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Create", $"Buyruq yaratildi: {vm.OrderNo}");
-
-                    TempData["Success"] = "Buyruq muvaffaqiyatli yaratildi";
-                    return RedirectToAction("Index");
-                }
-            }
-
             using (var db = new DBTHSNEntities())
             {
-                vm.OrderTypes = new SelectList(new[] { "GENERAL", "URGENT", "SPECIAL" });
-                vm.OrgUnits = new SelectList(await db.HR_ORG_UNITS
-                    .Where(o => o.IsActive)
-                    .OrderBy(o => o.Name)
-                    .ToListAsync(), "ID", "Name", vm.OrgUnitId);
-                vm.Employees = new SelectList(await db.USERS
-                    .Where(u => u.IsActive && u.IsDeleted != true)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync(), "ID", "FullName");
+                if (ModelState.IsValid)
+                {
+                    try
+                    {
+                        using (var tx = db.Database.BeginTransaction())
+                        {
+                            var ids = await DocumentService.DraftHeaderIdsAsync(db, DocumentService.CompanyOrderType);
+                            if (ids == null)
+                            {
+                                TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.";
+                                return RedirectToAction("Index");
+                            }
+
+                            // Buyruq raqami qulf ostida: band bo'lsa keyingisi beriladi (DOC-B06)
+                            string orderNo = await DocNumbering.EnsureOrderNoAsync(db, vm.OrderNo);
+
+                            // Hujjat va buyruq bitta SaveChanges'da — yetim DOC_DOCUMENTS qolmaydi (DOC-B05)
+                            db.DOC_DOCUMENTS.Add(new DOC_DOCUMENTS
+                            {
+                                DocTypeID = ids.Item1,
+                                StatusID = ids.Item2,
+                                Code = orderNo,
+                                Title = vm.Title,
+                                OrgUnitID = vm.OrgUnitId,
+                                CreatedByUserID = CurrentUserId,
+                                CreatedDT = DateTime.Now,
+                                IntegrationUID = Guid.NewGuid(),
+                                ADM_COMPANY_ORDERS = new ADM_COMPANY_ORDERS
+                                {
+                                    OrderNo = orderNo,
+                                    OrderDate = vm.OrderDate,
+                                    OrderTypeCode = vm.OrderTypeCode,
+                                    OrgUnitID = vm.OrgUnitId,
+                                    Notes = vm.BodyText
+                                }
+                            });
+
+                            await db.SaveChangesAsync();
+                            tx.Commit();
+
+                            LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "Create", $"Buyruq yaratildi: {orderNo}");
+
+                            TempData["Success"] = orderNo == vm.OrderNo?.Trim()
+                                ? "Buyruq muvaffaqiyatli yaratildi"
+                                : $"Buyruq yaratildi. {vm.OrderNo} raqami band bo'lgani uchun {orderNo} raqami berildi";
+                            return RedirectToAction("Index");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.TraceError("CompanyOrders Create: {0}", ex);
+                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
+                    }
+                }
+
+                vm.OrderTypes = OrderTypes(vm.OrderTypeCode);
+                vm.OrgUnits = await OrgUnitsAsync(db, vm.OrgUnitId);
             }
 
             return View(vm);
@@ -197,11 +192,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: CompanyOrders/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "Edit"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -209,8 +199,8 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
-                    .Where(d => d.ID == id && (d.IsDeleted == false || d.IsDeleted == null))
+                var doc = await db.DOC_DOCUMENTS.AsNoTracking()
+                    .Where(d => d.ID == id && d.IsDeleted != true)
                     .Include(d => d.ADM_COMPANY_ORDERS)
                     .FirstOrDefaultAsync();
 
@@ -231,15 +221,8 @@ namespace tahsinERP.Controllers
                     BodyText = order.Notes
                 };
 
-                vm.OrderTypes = new SelectList(new[] { "GENERAL", "URGENT", "SPECIAL" }, order.OrderTypeCode);
-                vm.OrgUnits = new SelectList(await db.HR_ORG_UNITS
-                    .Where(o => o.IsActive)
-                    .OrderBy(o => o.Name)
-                    .ToListAsync(), "ID", "Name", order.OrgUnitID);
-                vm.Employees = new SelectList(await db.USERS
-                    .Where(u => u.IsActive && u.IsDeleted != true)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync(), "ID", "FullName");
+                vm.OrderTypes = OrderTypes(order.OrderTypeCode);
+                vm.OrgUnits = await OrgUnitsAsync(db, order.OrgUnitID);
 
                 return View(vm);
             }
@@ -250,20 +233,15 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(CompanyOrderEditVm vm)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "Edit"))
+            using (var db = new DBTHSNEntities())
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (var db = new DBTHSNEntities())
+                if (ModelState.IsValid)
                 {
                     var doc = await db.DOC_DOCUMENTS
                         .Include(d => d.ADM_COMPANY_ORDERS)
-                        .FirstOrDefaultAsync(d => d.ID == vm.DocumentId);
+                        .FirstOrDefaultAsync(d => d.ID == vm.DocumentId && d.IsDeleted != true);
 
-                    if (doc == null || doc.ADM_COMPANY_ORDERS == null)
+                    if (doc == null || doc.ADM_COMPANY_ORDERS == null || doc.ADM_COMPANY_ORDERS.IsDeleted == true)
                     {
                         return HttpNotFound();
                     }
@@ -281,24 +259,14 @@ namespace tahsinERP.Controllers
 
                     await db.SaveChangesAsync();
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Edit", $"Buyruq yangilandi: {vm.OrderNo}");
+                    LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "Edit", $"Buyruq yangilandi: {vm.OrderNo}");
 
                     TempData["Success"] = "Buyruq muvaffaqiyatli yangilandi";
                     return RedirectToAction("Index");
                 }
-            }
 
-            using (var db = new DBTHSNEntities())
-            {
-                vm.OrderTypes = new SelectList(new[] { "GENERAL", "URGENT", "SPECIAL" }, vm.OrderTypeCode);
-                vm.OrgUnits = new SelectList(await db.HR_ORG_UNITS
-                    .Where(o => o.IsActive)
-                    .OrderBy(o => o.Name)
-                    .ToListAsync(), "ID", "Name", vm.OrgUnitId);
-                vm.Employees = new SelectList(await db.USERS
-                    .Where(u => u.IsActive && u.IsDeleted != true)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync(), "ID", "FullName");
+                vm.OrderTypes = OrderTypes(vm.OrderTypeCode);
+                vm.OrgUnits = await OrgUnitsAsync(db, vm.OrgUnitId);
             }
 
             return View(vm);
@@ -307,11 +275,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: CompanyOrders/Details/5
         public async Task<ActionResult> Details(long? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "Details"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -319,7 +282,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
+                var doc = await db.DOC_DOCUMENTS.AsNoTracking()
                     .Include(d => d.ADM_COMPANY_ORDERS)
                     .Include(d => d.HR_ORG_UNITS)
                     .Include(d => d.DOC_DOCUMENT_STATUS_REF)
@@ -342,11 +305,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(long id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "Delete"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var code = await db.ADM_COMPANY_ORDERS
@@ -359,7 +317,7 @@ namespace tahsinERP.Controllers
                     // Set-based: hujjat, buyruq va fayllar blob'larini yuklamasdan (DOC-P06)
                     await DocumentService.SoftDeleteAsync(db, id);
 
-                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Delete", $"Buyruq o'chirildi: {code}");
+                    LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "Delete", $"Buyruq o'chirildi: {code}");
 
                     TempData["Success"] = "Buyruq muvaffaqiyatli o'chirildi";
                 }
@@ -373,11 +331,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> GenerateDoc(long id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "GenerateDoc"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 // DOC_TEMPLATES Include olib tashlandi — shablon blob'i ishlatilmasdan yuklanardi (DOC-P07)
@@ -386,7 +339,7 @@ namespace tahsinERP.Controllers
                     .Include(d => d.HR_ORG_UNITS)
                     .FirstOrDefaultAsync(d => d.ID == id && d.IsDeleted != true);
 
-                if (doc == null || doc.ADM_COMPANY_ORDERS == null)
+                if (doc == null || doc.ADM_COMPANY_ORDERS == null || doc.ADM_COMPANY_ORDERS.IsDeleted == true)
                 {
                     return HttpNotFound();
                 }
@@ -448,7 +401,7 @@ namespace tahsinERP.Controllers
 
                 // Yaratish hujjat
                 string fileName, fileExtension, mimeType;
-                byte[] fileContent = _templateService.GenerateDocFromTemplate(
+                byte[] fileContent = TemplateService.GenerateDocFromTemplate(
                     templateId.Value, placeholders, out fileName, out fileExtension, out mimeType);
 
                 // Yangi asosiy versiya (VersionNo MAX va IsMain UPDATE SQL'da — blob'lar o'qilmaydi, DOC-P05)
@@ -456,12 +409,12 @@ namespace tahsinERP.Controllers
                 {
                     await DocFileService.AddMainVersionAsync(db, doc.ID, fileContent,
                         $"{order.OrderNo}_{order.OrderDate:yyyyMMdd}{fileExtension}",
-                        fileExtension, mimeType, UserHelper.GetUserId(User.Identity.Name));
+                        fileExtension, mimeType, CurrentUserId);
                     await db.SaveChangesAsync();
                     tx.Commit();
                 }
 
-                LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "GenerateDoc", $"Buyruq uchun hujjat yaratildi: {order.OrderNo}");
+                LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "GenerateDoc", $"Buyruq uchun hujjat yaratildi: {order.OrderNo}");
 
                 TempData["Success"] = "Hujjat muvaffaqiyatli yaratildi";
                 return RedirectToAction("Details", new { id });
@@ -473,50 +426,25 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangeStatus(long id, string statusCode)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "CompanyOrders", "ChangeStatus"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
-                    .Include(d => d.ADM_COMPANY_ORDERS)
-                    .FirstOrDefaultAsync(d => d.ID == id);
-
-                if (doc == null)
+                // Hujjat turi, o'chirilmaganligi va ruxsat etilgan o'tish tekshiriladi (DOC-B08)
+                var result = await DocumentService.ChangeStatusAsync(db, id, DocumentService.CompanyOrderType, statusCode, CurrentUserId);
+                if (result == null)
                 {
                     return HttpNotFound();
                 }
 
-                var status = await db.DOC_DOCUMENT_STATUS_REF
-                    .FirstOrDefaultAsync(s => s.Code == statusCode && s.IsActive);
-
-                if (status == null)
+                if (!result.Success)
                 {
-                    TempData["ErrorMessage"] = "Noto'g'ri holat kodi";
+                    TempData["ErrorMessage"] = result.Error;
                     return RedirectToAction("Details", new { id });
                 }
 
-                doc.StatusID = status.ID;
-                doc.UpdatedDT = DateTime.Now;
+                LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "ChangeStatus",
+                    $"Buyruq holati '{result.StatusName}' ga o'zgartirildi: {result.DocumentCode}");
 
-                // agar approving, set ApprovedByUserID
-                if (statusCode == "APPROVED")
-                {
-                    var currentUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
-                    if (currentUser != null)
-                    {
-                        doc.ApprovedByUserID = currentUser.ID;
-                    }
-                }
-
-                await db.SaveChangesAsync();
-
-                LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "ChangeStatus", 
-                    $"Buyruq holati '{status.Name}' ga o'zgartirildi: {doc.ADM_COMPANY_ORDERS?.OrderNo}");
-
-                TempData["Success"] = $"Holat '{status.Name}' ga o'zgartirildi";
+                TempData["Success"] = $"Holat '{result.StatusName}' ga o'zgartirildi";
                 return RedirectToAction("Details", new { id });
             }
         }
@@ -524,11 +452,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: CompanyOrders/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long fileId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "CompanyOrders", "DownloadFile"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var file = await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.CompanyOrder);
@@ -537,14 +460,17 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                // DOC_FILES qatori o'zgarmaydi (yangi versiya = yangi ID) — brauzer keshlay oladi
+                Response.Cache.SetCacheability(HttpCacheability.Private);
+                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
                 return File(file.FileContent, file.MimeType ?? "application/octet-stream", file.FileName);
             }
         }
 
-        // AJAX so'rovi: Suggest text
+        // AJAX so'rovi: Suggest text (ruxsat — [Permission], POST = o'zgartirish; avval tekshiruv yo'q edi, DOC-S04)
         [HttpPost]
         [ValidateAntiForgeryHeader]
-        public JsonResult SuggestText(string orderTypeCode, string orderDate, int? orgUnitId, string topic, string[] employeeNames)
+        public async Task<JsonResult> SuggestText(string orderTypeCode, string orderDate, int? orgUnitId, string topic, string[] employeeNames)
         {
             try
             {
@@ -553,8 +479,10 @@ namespace tahsinERP.Controllers
                 {
                     using (var db = new DBTHSNEntities())
                     {
-                        var orgUnit = db.HR_ORG_UNITS.Find(orgUnitId.Value);
-                        orgUnitName = orgUnit?.Name;
+                        orgUnitName = await db.HR_ORG_UNITS
+                            .Where(o => o.ID == orgUnitId.Value)
+                            .Select(o => o.Name)
+                            .FirstOrDefaultAsync();
                     }
                 }
 
@@ -576,44 +504,15 @@ namespace tahsinERP.Controllers
                     Topic = topic ?? string.Empty
                 };
 
-                var suggestedText = _textSuggestionService.SuggestOrderBody(meta);
-                return Json(new { success = true, text = suggestedText }, JsonRequestBehavior.AllowGet);
+                // Async — avval .Result bilan kutilardi (AI yoqilganda deadlock, DOC-B09)
+                var suggestedText = await TextSuggestion.SuggestOrderBodyAsync(meta);
+                return Json(new { success = true, text = suggestedText });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
+                System.Diagnostics.Trace.TraceError("CompanyOrders SuggestText: {0}", ex);
+                return Json(new { success = false, error = "Matn taklif qilib bo'lmadi." });
             }
-        }
-
-        private string GenerateNextOrderNo(DBTHSNEntities db)
-        {
-            // Olish barcha order numbers va find the maksimal numeric value
-            var allOrders = db.ADM_COMPANY_ORDERS
-                .Where(o => o.IsDeleted != true)
-                .Select(o => o.OrderNo)
-                .ToList();
-
-            int maxOrderNo = 0;
-            
-            foreach (var orderNo in allOrders)
-            {
-                // Urinish ga tahlil as pure number (e.g., "0001", "0043")
-                if (int.TryParse(orderNo, out int num))
-                {
-                    if (num > maxOrderNo)
-                        maxOrderNo = num;
-                }
-                // Urinish ga tahlil as year + number (e.g., "20250001")
-                else if (orderNo.Length >= 4 && int.TryParse(orderNo.Substring(4), out int yearNum))
-                {
-                    if (yearNum > maxOrderNo)
-                        maxOrderNo = yearNum;
-                }
-            }
-
-            // Qaytarish next number in format "0044", "0045", etc.
-            return (maxOrderNo + 1).ToString("D4");
         }
     }
 }
-
