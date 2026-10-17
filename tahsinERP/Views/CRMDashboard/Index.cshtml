@@ -444,7 +444,9 @@
                                                 <th>Xaridor</th>
                                                 <th>To'lov muddati</th>
                                                 <th>Kechikish (kun)</th>
-                                                <th>Summa</th>
+                                                <th>Summa (so'm)</th>
+                                                <th>To'langan</th>
+                                                <th>Qoldiq</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -458,12 +460,14 @@
                                                         <td>@(i.DueDate?.ToString("dd.MM.yyyy") ?? "")</td>
                                                         <td><span class="badge badge-danger">@i.DaysOverdue</span></td>
                                                         <td>@i.TotalAmount.ToString("N0")</td>
+                                                        <td>@i.PaidAmount.ToString("N0")</td>
+                                                        <td class="font-weight-bold">@i.RemainingAmount.ToString("N0")</td>
                                                     </tr>
                                                 }
                                             }
                                             else
                                             {
-                                                <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr>
+                                                <tr><td colspan="7" class="text-center text-muted">Yo'q</td></tr>
                                             }
                                         </tbody>
                                     </table>

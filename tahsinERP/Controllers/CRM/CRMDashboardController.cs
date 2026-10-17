@@ -16,6 +16,64 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class CRMDashboardController : Controller
     {
+        /// <summary>
+        /// Muddati o'tgan invoyslar va ularning qoldig'i (so'mda). Invoys summasi QQS bilan
+        /// (TotalWithVAT ?? TotalAmount), to'lovlar — FIN_TRANSACTIONS'dagi SalesInvoicePayment
+        /// yozuvlari; ikkalasi ham o'z sanasidagi kurs bilan so'mga o'giriladi.
+        /// </summary>
+        private static List<CRMInvoiceOverdueItem> OverdueInvoicesWithBalance(DBTHSNEntities db, IQueryable<SALES_INVOICES> activeInvoices, DateTime today, UzsConverter uzs)
+        {
+            var candidates = activeInvoices
+                .Where(i => i.DueDate.HasValue && i.DueDate.Value < today && i.StatusCode != SalesInvoiceStatus.Paid)
+                .Select(i => new
+                {
+                    i.ID,
+                    i.InvoiceNo,
+                    CustomerName = i.CUSTOMER.Name,
+                    i.DueDate,
+                    i.InvoiceDate,
+                    i.CurrencyCode,
+                    Amount = i.TotalWithVAT ?? i.TotalAmount
+                })
+                .ToList();
+            if (candidates.Count == 0)
+            {
+                return new List<CRMInvoiceOverdueItem>();
+            }
+
+            var ids = candidates.Select(i => (int?)i.ID).ToList();
+            var paidById = db.FIN_TRANSACTIONS.AsNoTracking()
+                .Where(t => t.SourceDocType == "SalesInvoicePayment" && ids.Contains(t.SourceDocID)
+                            && (t.IsDeleted == null || t.IsDeleted == false))
+                .GroupBy(t => new { t.SourceDocID, t.CurrencyID, Day = DbFunctions.TruncateTime(t.TxnDate) })
+                .Select(g => new { g.Key.SourceDocID, g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(t => t.Amount) })
+                .ToList()
+                .GroupBy(x => (long)x.SourceDocID.Value)
+                .ToDictionary(g => g.Key, g => g.Sum(x => uzs.ToUzsOrZero(Math.Abs(x.Amount), x.CurrencyID, x.Day ?? today)));
+
+            return candidates
+                .Select(i =>
+                {
+                    decimal paid;
+                    paidById.TryGetValue(i.ID, out paid);
+                    var total = uzs.ToUzsOrZero(i.Amount, i.CurrencyCode, i.InvoiceDate);
+                    return new CRMInvoiceOverdueItem
+                    {
+                        InvoiceId = i.ID,
+                        InvoiceNo = i.InvoiceNo ?? "",
+                        CustomerName = i.CustomerName ?? "",
+                        DueDate = i.DueDate,
+                        DaysOverdue = (today - i.DueDate.Value.Date).Days,
+                        TotalAmount = total,
+                        PaidAmount = paid,
+                        RemainingAmount = Math.Max(0, total - paid)
+                    };
+                })
+                .Where(i => i.RemainingAmount > 0.01m)
+                .OrderBy(i => i.DueDate)
+                .ToList();
+        }
+
         private class OpeningContractReceivableRow
         {
             public int CounterpartyID { get; set; }
@@ -110,10 +168,11 @@ namespace tahsinERP.Controllers
                     .ToList();
 
                 // ——— Invoyslar (faqat faol) ———
-                // Muddati o'tgan: to'langanlar (PAID) chiqarib tashlanadi (CRM-B18 qisman; qisman to'lov hisobga olinmaydi)
-                var invoicesOverdueQ = activeInvoices.Where(i => i.DueDate.HasValue && i.DueDate.Value < today && i.StatusCode != "PAID");
+                // Muddati o'tgan: PAID chiqariladi, qolganlarida invoysga bog'langan to'lovlar
+                // (SalesInvoicePayment) ayiriladi — to'liq yopilgani ro'yxatga tushmaydi (CRM-B18)
+                var overdueInvoices = OverdueInvoicesWithBalance(db, activeInvoices, today, uzs);
                 model.TotalInvoices = activeInvoices.Count();
-                model.InvoicesOverdue = invoicesOverdueQ.Count();
+                model.InvoicesOverdue = overdueInvoices.Count;
                 model.InvoicesTotalAmount = activeInvoices
                     .GroupBy(i => new { i.CurrencyCode, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
                     .Select(g => new { g.Key.CurrencyCode, g.Key.Day, Amount = g.Sum(i => i.TotalAmount) })
@@ -200,21 +259,7 @@ namespace tahsinERP.Controllers
                     .ToList();
 
                 // ——— Muddati o'tgan invoyslar ———
-                model.InvoicesOverdueList = invoicesOverdueQ
-                    .OrderBy(i => i.DueDate)
-                    .Take(30)
-                    .Select(i => new { i.ID, i.InvoiceNo, CustomerName = i.CUSTOMER.Name, i.DueDate, i.TotalAmount })
-                    .ToList()
-                    .Select(i => new CRMInvoiceOverdueItem
-                    {
-                        InvoiceId = i.ID,
-                        InvoiceNo = i.InvoiceNo ?? "",
-                        CustomerName = i.CustomerName ?? "",
-                        DueDate = i.DueDate,
-                        DaysOverdue = i.DueDate.HasValue ? (today - i.DueDate.Value.Date).Days : 0,
-                        TotalAmount = i.TotalAmount
-                    })
-                    .ToList();
+                model.InvoicesOverdueList = overdueInvoices.Take(30).ToList();
 
                 // ——— Mijoz bo'yicha buyurtma summasi (top 10) ———
                 // Mijoz × valyuta × kun bo'yicha SQL'da yig'ilib, so'mga o'giriladi (CRM-B18)
