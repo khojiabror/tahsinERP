@@ -4,7 +4,8 @@ using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using OfficeOpenXml;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 
@@ -133,10 +134,10 @@ namespace tahsinERP.Services
                 StringComparer.OrdinalIgnoreCase);
             var fileWaybillNos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            using (var package = new ExcelPackage(stream))
+            using (var workbook = new XLWorkbook(stream))
             {
-                var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                if (worksheet == null || worksheet.Dimension == null)
+                var worksheet = workbook.Worksheets.FirstOrDefault();
+                if (worksheet == null || worksheet.LastRowNumber() == 0)
                 {
                     result.FatalError = "Excel fayl bo'sh.";
                     return result;
@@ -150,7 +151,7 @@ namespace tahsinERP.Services
                 }
 
                 var errors = result.Errors;
-                var lastRow = worksheet.Dimension.End.Row;
+                var lastRow = worksheet.LastRowNumber();
                 for (int row = 2; row <= lastRow; row++)
                 {
                     var waybillNo = cells.String(row, "WaybillNo");

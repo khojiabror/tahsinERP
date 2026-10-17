@@ -1718,17 +1718,6 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
         </EntityType>
-        <EntityType Name="SHOP_PLANNED_DTS">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="ShopID" Type="int" Nullable="false" />
-          <Property Name="StartTime" Type="time" Precision="7" Nullable="false" />
-          <Property Name="EndTime" Type="time" Precision="7" Nullable="false" />
-          <Property Name="Minutes" Type="int" Nullable="false" />
-          <Property Name="Description" Type="text" />
-        </EntityType>
         <EntityType Name="SHOPS">
           <Key>
             <PropertyRef Name="ID" />
@@ -2034,69 +2023,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="ItemName" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="AmountFact" Type="decimal" Precision="38" Scale="2" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_ADMIN_EXPENSES' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Year" Type="int" Nullable="false" />
-          <Property Name="Month" Type="int" Nullable="false" />
-          <Property Name="ActualAdministrativeExpenses" Type="decimal" Precision="38" Scale="6" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-          <Key>
-            <PropertyRef Name="ProductID" />
-          </Key>
-          <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Year" Type="int" />
-          <Property Name="Month" Type="int" />
-          <Property Name="ActualFinishedProductTransportCost" Type="float" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_LABOR_COSTS' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="V_TANNARX_ACTUAL_LABOR_COSTS">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Year" Type="int" Nullable="false" />
-          <Property Name="Month" Type="int" Nullable="false" />
-          <Property Name="ActualLaborCost" Type="decimal" Precision="38" Scale="8" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_COSTS' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_COSTS">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Year" Type="int" Nullable="false" />
-          <Property Name="Month" Type="int" Nullable="false" />
-          <Property Name="ActualMaterialPrice" Type="decimal" Precision="38" Scale="6" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Year" Type="int" Nullable="false" />
-          <Property Name="Month" Type="int" Nullable="false" />
-          <Property Name="ActualMaterialTransportCost" Type="float" />
         </EntityType>
         <Association Name="FK__F_WAYBILL__Curre__4979DDF4">
           <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
@@ -5004,18 +4930,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_SHOP_PLANNED_DTS_SHOPS">
-          <End Role="SHOPS" Type="Self.SHOPS" Multiplicity="1" />
-          <End Role="SHOP_PLANNED_DTS" Type="Self.SHOP_PLANNED_DTS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="SHOPS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="SHOP_PLANNED_DTS">
-              <PropertyRef Name="ShopID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_SORDER_DELIVERY_CreatedBy">
           <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
           <End Role="SORDER_DELIVERY_SCHEDULE" Type="Self.SORDER_DELIVERY_SCHEDULE" Multiplicity="*" />
@@ -5326,9 +5240,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Parameter Name="AsOfDate" Type="date" Mode="In" />
         </Function>
         <Function Name="sp_GenerateMaterialRequirement_FromSalesOrders" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" />
-        <Function Name="sp_Norm_PreviewCutMaterial" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ProductID" Type="int" Mode="In" />
-        </Function>
         <Function Name="sp_Norm_SaveCutMaterials" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ProductID" Type="int" Mode="In" />
           <Parameter Name="EffectiveFrom" Type="date" Mode="In" />
@@ -5453,7 +5364,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="SHAREHOLDER_CONTRIBUTIONS" EntityType="Self.SHAREHOLDER_CONTRIBUTIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDER_SHARE_PERIODS" EntityType="Self.SHAREHOLDER_SHARE_PERIODS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHAREHOLDERS" EntityType="Self.SHAREHOLDERS" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="SHOP_PLANNED_DTS" EntityType="Self.SHOP_PLANNED_DTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SHOPS" EntityType="Self.SHOPS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SORDER_DELIVERY_SCHEDULE" EntityType="Self.SORDER_DELIVERY_SCHEDULE" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="STD_COMPANY_STANDARDS" EntityType="Self.STD_COMPANY_STANDARDS" Schema="dbo" store:Type="Tables" />
@@ -5500,46 +5410,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
     [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[SortOrder] AS [SortOrder], 
     [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[AmountFact] AS [AmountFact]
     FROM [dbo].[V_FIN_PL_PLAN_VS_FACT_MONTHLY] AS [V_FIN_PL_PLAN_VS_FACT_MONTHLY]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES" EntityType="Self.V_TANNARX_ACTUAL_ADMIN_EXPENSES" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [V_TANNARX_ACTUAL_ADMIN_EXPENSES].[ProductID] AS [ProductID], 
-    [V_TANNARX_ACTUAL_ADMIN_EXPENSES].[Year] AS [Year], 
-    [V_TANNARX_ACTUAL_ADMIN_EXPENSES].[Month] AS [Month], 
-    [V_TANNARX_ACTUAL_ADMIN_EXPENSES].[ActualAdministrativeExpenses] AS [ActualAdministrativeExpenses]
-    FROM [dbo].[V_TANNARX_ACTUAL_ADMIN_EXPENSES] AS [V_TANNARX_ACTUAL_ADMIN_EXPENSES]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" EntityType="Self.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT].[ProductID] AS [ProductID], 
-    [V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT].[Year] AS [Year], 
-    [V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT].[Month] AS [Month], 
-    [V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT].[ActualFinishedProductTransportCost] AS [ActualFinishedProductTransportCost]
-    FROM [dbo].[V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT] AS [V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="V_TANNARX_ACTUAL_LABOR_COSTS" EntityType="Self.V_TANNARX_ACTUAL_LABOR_COSTS" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [V_TANNARX_ACTUAL_LABOR_COSTS].[ProductID] AS [ProductID], 
-    [V_TANNARX_ACTUAL_LABOR_COSTS].[Year] AS [Year], 
-    [V_TANNARX_ACTUAL_LABOR_COSTS].[Month] AS [Month], 
-    [V_TANNARX_ACTUAL_LABOR_COSTS].[ActualLaborCost] AS [ActualLaborCost]
-    FROM [dbo].[V_TANNARX_ACTUAL_LABOR_COSTS] AS [V_TANNARX_ACTUAL_LABOR_COSTS]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_COSTS" EntityType="Self.V_TANNARX_ACTUAL_MATERIAL_COSTS" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [V_TANNARX_ACTUAL_MATERIAL_COSTS].[ProductID] AS [ProductID], 
-    [V_TANNARX_ACTUAL_MATERIAL_COSTS].[Year] AS [Year], 
-    [V_TANNARX_ACTUAL_MATERIAL_COSTS].[Month] AS [Month], 
-    [V_TANNARX_ACTUAL_MATERIAL_COSTS].[ActualMaterialPrice] AS [ActualMaterialPrice]
-    FROM [dbo].[V_TANNARX_ACTUAL_MATERIAL_COSTS] AS [V_TANNARX_ACTUAL_MATERIAL_COSTS]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" EntityType="Self.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [V_TANNARX_ACTUAL_MATERIAL_TRANSPORT].[ProductID] AS [ProductID], 
-    [V_TANNARX_ACTUAL_MATERIAL_TRANSPORT].[Year] AS [Year], 
-    [V_TANNARX_ACTUAL_MATERIAL_TRANSPORT].[Month] AS [Month], 
-    [V_TANNARX_ACTUAL_MATERIAL_TRANSPORT].[ActualMaterialTransportCost] AS [ActualMaterialTransportCost]
-    FROM [dbo].[V_TANNARX_ACTUAL_MATERIAL_TRANSPORT] AS [V_TANNARX_ACTUAL_MATERIAL_TRANSPORT]</DefiningQuery>
           </EntitySet>
           <AssociationSet Name="FK__F_WAYBILL__Curre__4979DDF4" Association="Self.FK__F_WAYBILL__Curre__4979DDF4">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
@@ -6504,10 +6374,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <AssociationSet Name="FK_SHAREHOLDER_SHARE_PERIODS_SH" Association="Self.FK_SHAREHOLDER_SHARE_PERIODS_SH">
             <End Role="SHAREHOLDERS" EntitySet="SHAREHOLDERS" />
             <End Role="SHAREHOLDER_SHARE_PERIODS" EntitySet="SHAREHOLDER_SHARE_PERIODS" />
-          </AssociationSet>
-          <AssociationSet Name="FK_SHOP_PLANNED_DTS_SHOPS" Association="Self.FK_SHOP_PLANNED_DTS_SHOPS">
-            <End Role="SHOPS" EntitySet="SHOPS" />
-            <End Role="SHOP_PLANNED_DTS" EntitySet="SHOP_PLANNED_DTS" />
           </AssociationSet>
           <AssociationSet Name="FK_SORDER_DELIVERY_CreatedBy" Association="Self.FK_SORDER_DELIVERY_CreatedBy">
             <End Role="USERS" EntitySet="USERS" />
@@ -8645,18 +8511,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="SHAREHOLDER_CONTRIBUTIONS" Relationship="Self.FK_SHAREHOLDER_CONTRIBUTIONS_SH" FromRole="SHAREHOLDERS" ToRole="SHAREHOLDER_CONTRIBUTIONS" />
           <NavigationProperty Name="SHAREHOLDER_SHARE_PERIODS" Relationship="Self.FK_SHAREHOLDER_SHARE_PERIODS_SH" FromRole="SHAREHOLDERS" ToRole="SHAREHOLDER_SHARE_PERIODS" />
         </EntityType>
-        <EntityType Name="SHOP_PLANNED_DTS">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="ShopID" Type="Int32" Nullable="false" />
-          <Property Name="StartTime" Type="Time" Nullable="false" Precision="7" />
-          <Property Name="EndTime" Type="Time" Nullable="false" Precision="7" />
-          <Property Name="Minutes" Type="Int32" Nullable="false" />
-          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="SHOP" Relationship="Self.FK_SHOP_PLANNED_DTS_SHOPS" FromRole="SHOP_PLANNED_DTS" ToRole="SHOPS" />
-        </EntityType>
         <EntityType Name="SHOP">
           <Key>
             <PropertyRef Name="ID" />
@@ -8669,7 +8523,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_PRODUCTION_SHOPS_COMPANIES" FromRole="SHOPS" ToRole="COMPANIES" />
           <NavigationProperty Name="PRODUCT_PRODUCTION" Relationship="Self.FK_PRODUCT_PRODUCTION_SHOPS" FromRole="SHOPS" ToRole="PRODUCT_PRODUCTION" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_SHOPS" FromRole="SHOPS" ToRole="PRODUCTS" />
-          <NavigationProperty Name="SHOP_PLANNED_DTS" Relationship="Self.FK_SHOP_PLANNED_DTS_SHOPS" FromRole="SHOPS" ToRole="SHOP_PLANNED_DTS" />
           <NavigationProperty Name="WAREHOUSES" Relationship="Self.FK_PROD_WRHS_PROD_SHOPS" FromRole="SHOPS" ToRole="WAREHOUSES" />
         </EntityType>
         <EntityType Name="SORDER_DELIVERY_SCHEDULE">
@@ -9021,59 +8874,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Name="ItemName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="AmountFact" Type="Decimal" Precision="38" Scale="2" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" Nullable="false" />
-          <Property Name="Month" Type="Int32" Nullable="false" />
-          <Property Name="ActualAdministrativeExpenses" Type="Decimal" Precision="38" Scale="6" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-          <Key>
-            <PropertyRef Name="ProductID" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" />
-          <Property Name="Month" Type="Int32" />
-          <Property Name="ActualFinishedProductTransportCost" Type="Double" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_LABOR_COSTS">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" Nullable="false" />
-          <Property Name="Month" Type="Int32" Nullable="false" />
-          <Property Name="ActualLaborCost" Type="Decimal" Precision="38" Scale="8" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_COSTS">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" Nullable="false" />
-          <Property Name="Month" Type="Int32" Nullable="false" />
-          <Property Name="ActualMaterialPrice" Type="Decimal" Precision="38" Scale="6" />
-        </EntityType>
-        <EntityType Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-          <Key>
-            <PropertyRef Name="ProductID" />
-            <PropertyRef Name="Year" />
-            <PropertyRef Name="Month" />
-          </Key>
-          <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Year" Type="Int32" Nullable="false" />
-          <Property Name="Month" Type="Int32" Nullable="false" />
-          <Property Name="ActualMaterialTransportCost" Type="Double" />
         </EntityType>
         <Association Name="FK_ADM_COMPANY_ORDERS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
@@ -11883,18 +11683,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_SHOP_PLANNED_DTS_SHOPS">
-          <End Role="SHOPS" Type="Self.SHOP" Multiplicity="1" />
-          <End Role="SHOP_PLANNED_DTS" Type="Self.SHOP_PLANNED_DTS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="SHOPS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="SHOP_PLANNED_DTS">
-              <PropertyRef Name="ShopID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_PROD_WRHS_PROD_SHOPS">
           <End Role="SHOPS" Type="Self.SHOP" Multiplicity="0..1" />
           <End Role="WAREHOUSES" Type="Self.Warehouse" Multiplicity="*" />
@@ -12155,7 +11943,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="SHAREHOLDER_CONTRIBUTIONS" EntityType="Self.SHAREHOLDER_CONTRIBUTIONS" />
           <EntitySet Name="SHAREHOLDER_SHARE_PERIODS" EntityType="Self.SHAREHOLDER_SHARE_PERIODS" />
           <EntitySet Name="SHAREHOLDERS" EntityType="Self.SHAREHOLDER" />
-          <EntitySet Name="SHOP_PLANNED_DTS" EntityType="Self.SHOP_PLANNED_DTS" />
           <EntitySet Name="SHOPS" EntityType="Self.SHOP" />
           <EntitySet Name="SORDER_DELIVERY_SCHEDULE" EntityType="Self.SORDER_DELIVERY_SCHEDULE" />
           <EntitySet Name="STD_COMPANY_STANDARDS" EntityType="Self.STD_COMPANY_STANDARDS" />
@@ -12176,11 +11963,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <EntitySet Name="WRHS_INCOME_DOCS" EntityType="Self.WRHS_INCOME_DOCS" />
           <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="Self.V_FIN_PL_FACT_MONTHLY" />
           <EntitySet Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY" EntityType="Self.V_FIN_PL_PLAN_VS_FACT_MONTHLY" />
-          <EntitySet Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES" EntityType="Self.V_TANNARX_ACTUAL_ADMIN_EXPENSES" />
-          <EntitySet Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" EntityType="Self.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" />
-          <EntitySet Name="V_TANNARX_ACTUAL_LABOR_COSTS" EntityType="Self.V_TANNARX_ACTUAL_LABOR_COSTS" />
-          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_COSTS" EntityType="Self.V_TANNARX_ACTUAL_MATERIAL_COSTS" />
-          <EntitySet Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" EntityType="Self.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" />
           <AssociationSet Name="FK_ADM_COMPANY_ORDERS_Document" Association="Self.FK_ADM_COMPANY_ORDERS_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="ADM_COMPANY_ORDERS" EntitySet="ADM_COMPANY_ORDERS" />
@@ -13113,10 +12895,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
             <End Role="SHAREHOLDERS" EntitySet="SHAREHOLDERS" />
             <End Role="SHAREHOLDER_SHARE_PERIODS" EntitySet="SHAREHOLDER_SHARE_PERIODS" />
           </AssociationSet>
-          <AssociationSet Name="FK_SHOP_PLANNED_DTS_SHOPS" Association="Self.FK_SHOP_PLANNED_DTS_SHOPS">
-            <End Role="SHOPS" EntitySet="SHOPS" />
-            <End Role="SHOP_PLANNED_DTS" EntitySet="SHOP_PLANNED_DTS" />
-          </AssociationSet>
           <AssociationSet Name="FK_PROD_WRHS_PROD_SHOPS" Association="Self.FK_PROD_WRHS_PROD_SHOPS">
             <End Role="SHOPS" EntitySet="SHOPS" />
             <End Role="WAREHOUSES" EntitySet="WAREHOUSES" />
@@ -13205,9 +12983,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Parameter Name="AsOfDate" Mode="In" Type="DateTime" />
           </FunctionImport>
           <FunctionImport Name="sp_GenerateMaterialRequirement_FromSalesOrders" />
-          <FunctionImport Name="sp_Norm_PreviewCutMaterial" ReturnType="Collection(DBTHSNModel.sp_Norm_PreviewCutMaterial_Result)">
-          <Parameter Name="ProductID" Mode="In" Type="Int32" />
-          </FunctionImport>
           <FunctionImport Name="sp_Norm_SaveCutMaterials">
             <Parameter Name="ProductID" Mode="In" Type="Int32" />
             <Parameter Name="EffectiveFrom" Mode="In" Type="DateTime" />
@@ -13293,16 +13068,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           <Property Type="Decimal" Name="Income" Nullable="false" Precision="38" Scale="2" />
           <Property Type="Decimal" Name="Expense" Nullable="false" Precision="38" Scale="2" />
           <Property Type="Decimal" Name="ClosingBalance" Nullable="true" Precision="38" Scale="2" />
-        </ComplexType>
-        <ComplexType Name="sp_Norm_PreviewCutMaterial_Result">
-          <Property Type="Int32" Name="MaterialID" Nullable="false" />
-          <Property Type="String" Name="MaterialName" Nullable="true" MaxLength="50" />
-          <Property Type="Double" Name="StockLenMm" Nullable="true" />
-          <Property Type="Int32" Name="TotalCutMm" Nullable="true" />
-          <Property Type="Double" Name="BoardsNeeded" Nullable="true" />
-          <Property Type="Double" Name="TotalRawMm" Nullable="true" />
-          <Property Type="Double" Name="WasteMm" Nullable="true" />
-          <Property Type="Decimal" Name="WastePercent" Nullable="true" Precision="5" Scale="2" />
         </ComplexType>
         <EntityType Name="EXPENSE_PRODUCT_ALLOCATIONS">
           <Key>
@@ -15298,18 +15063,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="SHOP_PLANNED_DTS">
-            <EntityTypeMapping TypeName="DBTHSNModel.SHOP_PLANNED_DTS">
-              <MappingFragment StoreEntitySet="SHOP_PLANNED_DTS">
-                <ScalarProperty Name="ID" ColumnName="ID" />
-                <ScalarProperty Name="ShopID" ColumnName="ShopID" />
-                <ScalarProperty Name="StartTime" ColumnName="StartTime" />
-                <ScalarProperty Name="EndTime" ColumnName="EndTime" />
-                <ScalarProperty Name="Minutes" ColumnName="Minutes" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="SHOPS">
             <EntityTypeMapping TypeName="DBTHSNModel.SHOP">
               <MappingFragment StoreEntitySet="SHOPS">
@@ -15601,56 +15354,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_ADMIN_EXPENSES">
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="ActualAdministrativeExpenses" ColumnName="ActualAdministrativeExpenses" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT">
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="ActualFinishedProductTransportCost" ColumnName="ActualFinishedProductTransportCost" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_LABOR_COSTS">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_LABOR_COSTS">
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="ActualLaborCost" ColumnName="ActualLaborCost" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_MATERIAL_COSTS">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_MATERIAL_COSTS">
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="ActualMaterialPrice" ColumnName="ActualMaterialPrice" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-              <MappingFragment StoreEntitySet="V_TANNARX_ACTUAL_MATERIAL_TRANSPORT">
-                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="ActualMaterialTransportCost" ColumnName="ActualMaterialTransportCost" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <AssociationSetMapping Name="FIN_BALANCE_CATEGORY_CATEGORIES" TypeName="DBTHSNModel.FIN_BALANCE_CATEGORY_CATEGORIES" StoreEntitySet="FIN_BALANCE_CATEGORY_CATEGORIES">
             <EndProperty Name="FIN_BALANCE_CATEGORIES">
               <ScalarProperty Name="ID" ColumnName="BalanceCategoryID" />
@@ -15692,20 +15395,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_TANNARX_ACTUAL_MATERIAL_TRANSPO
           </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="sp_FIN_ShareholderValue_AsOf" FunctionName="DBTHSNModel.Store.sp_FIN_ShareholderValue_AsOf" />
           <FunctionImportMapping FunctionImportName="sp_GenerateMaterialRequirement_FromSalesOrders" FunctionName="DBTHSNModel.Store.sp_GenerateMaterialRequirement_FromSalesOrders" />
-          <FunctionImportMapping FunctionImportName="sp_Norm_PreviewCutMaterial" FunctionName="DBTHSNModel.Store.sp_Norm_PreviewCutMaterial">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="DBTHSNModel.sp_Norm_PreviewCutMaterial_Result">
-                <ScalarProperty Name="MaterialID" ColumnName="MaterialID" />
-                <ScalarProperty Name="MaterialName" ColumnName="MaterialName" />
-                <ScalarProperty Name="StockLenMm" ColumnName="StockLenMm" />
-                <ScalarProperty Name="TotalCutMm" ColumnName="TotalCutMm" />
-                <ScalarProperty Name="BoardsNeeded" ColumnName="BoardsNeeded" />
-                <ScalarProperty Name="TotalRawMm" ColumnName="TotalRawMm" />
-                <ScalarProperty Name="WasteMm" ColumnName="WasteMm" />
-                <ScalarProperty Name="WastePercent" ColumnName="WastePercent" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="sp_Norm_SaveCutMaterials" FunctionName="DBTHSNModel.Store.sp_Norm_SaveCutMaterials" />
           <FunctionImportMapping FunctionImportName="sp_SOrder_RecalcDeliveryShippedFromInvoices" FunctionName="DBTHSNModel.Store.sp_SOrder_RecalcDeliveryShippedFromInvoices" />
           <FunctionImportMapping FunctionImportName="SP_TANNARX_UPDATE_ACTUAL_COSTS" FunctionName="DBTHSNModel.Store.SP_TANNARX_UPDATE_ACTUAL_COSTS" />

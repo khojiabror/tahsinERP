@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using tahsinERP.Controllers;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Services.Stock;
 
 namespace tahsinERP.Services
 {
@@ -73,8 +74,6 @@ namespace tahsinERP.Services
                     MaterialPNo = summary.MaterialPno ?? material.PNo,
                     MaterialName = summary.MaterialName ?? material.Name,
                     RequiredQtyPieces = totalConsumption,
-                    RequiredQtyMeters = 0,
-                    WasteQty = 0,
                     TotalConsumption = totalConsumption,
                     UnitID = unitId,
                     RequiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false,
@@ -111,13 +110,6 @@ namespace tahsinERP.Services
                 var qty = await _conversionService.ConvertToUnitAsync(
                     req.MaterialID, (decimal)req.TotalConsumption, sourceUnitId.Value, invUnitId.Value);
                 req.TotalConsumption = (double)qty;
-
-                if (req.WasteQty > 0)
-                {
-                    var w = await _conversionService.ConvertToUnitAsync(
-                        req.MaterialID, (decimal)req.WasteQty, sourceUnitId.Value, invUnitId.Value);
-                    req.WasteQty = (double)w;
-                }
 
                 req.UnitID = invUnitId.Value;
                 req.TotalConsumptionIsInKg = false;
@@ -170,52 +162,148 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// FIFO: Gets piece price and total price for consuming given qty from oldest income batches first.
+        /// Xomashyo yetarliligini tekshiradi (ishlab chiqarish yaratish/tahrirlash va chiqimdan oldin - yagona joy, MES-D23).
+        /// <paramref name="credit"/>: tahrirlashda eski yozuv sarfi omborga qaytgandek qo'shiladigan miqdor (MaterialID -> qty).
+        /// Yetmasa foydalanuvchiga ko'rsatiladigan xabar, yetsa null qaytaradi.
         /// </summary>
-        private async Task<(double piecePrice, double totalPrice)> GetFifoPricesAsync(int materialId, int warehouseId, double requiredQty)
+        public async Task<string> FindStockShortageAsync(IList<ProductionRawMaterialRequirement> requirements, int warehouseId,
+            IDictionary<int, double> credit = null)
         {
-            var incomeProducts = await _db.INCOME_PRODUCTS
-                .Include(ip => ip.INCOME)
-                .Where(ip => ip.ProductID == materialId
-                    && ip.INCOME.ReceivingWHID == warehouseId
-                    && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false)
-                    && ip.Amount > 0)
-                .OrderBy(ip => ip.INCOME.IssueDateTime)
-                .ToListAsync();
+            if (requirements == null || requirements.Count == 0)
+                return null;
 
-            if (incomeProducts == null || !incomeProducts.Any())
+            foreach (var req in requirements)
             {
-                return (0, 0);
+                var availableQty = InventoryValuationService.GetQty(_db, warehouseId, req.MaterialID);
+                double extra;
+                if (credit != null && credit.TryGetValue(req.MaterialID, out extra))
+                    availableQty += extra;
+
+                if (availableQty + 1e-9 >= req.TotalConsumption)
+                    continue;
+
+                var unitName = await _db.PRODUCT_STOCKS.AsNoTracking()
+                    .Where(s => s.WHID == warehouseId && s.ProductID == req.MaterialID && s.UNIT != null)
+                    .Select(s => s.UNIT.ShortName ?? s.UNIT.UnitName)
+                    .FirstOrDefaultAsync();
+                unitName = (unitName ?? "").Trim();
+                var suffix = unitName.Length > 0 ? " " + unitName : "";
+
+                return $"Ishlab chiqarish natijasini saqlab bo'lmadi: xomashyo yetarli emas. Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, " +
+                       $"omborda {availableQty:N2}{suffix}, kerak {req.TotalConsumption:N2}{suffix}.";
             }
 
-            double remainingToConsume = requiredQty;
-            double totalPriceSum = 0;
-            double totalQtyTaken = 0;
+            return null;
+        }
 
-            foreach (var ip in incomeProducts)
+        /// <summary>
+        /// Ishlab chiqarish uchun xomashyo yetarliligi. oldProductId/oldProducedQty berilsa (tahrirlash),
+        /// eski yozuv sarfi omborga qaytgandek hisoblanadi.
+        /// </summary>
+        public async Task<string> ValidateStockForProductionAsync(int productId, double producedQty, int warehouseId,
+            int? oldProductId = null, double? oldProducedQty = null)
+        {
+            var requirements = await CalculateRequiredRawMaterialsAsync(productId, producedQty);
+            if (requirements.Count == 0)
+                return null;
+
+            var credit = new Dictionary<int, double>();
+            if (oldProductId.HasValue && oldProducedQty.HasValue && oldProducedQty.Value > 0)
             {
-                if (remainingToConsume <= 0) break;
-
-                var piecePrice = (ip.PiecePrice ?? 0);
-                if (piecePrice <= 0 && ip.TotalPrice.HasValue && ip.Amount > 0)
+                foreach (var req in await CalculateRequiredRawMaterialsAsync(oldProductId.Value, oldProducedQty.Value))
                 {
-                    piecePrice = (double)(ip.TotalPrice.Value / ip.Amount);
+                    double q;
+                    credit.TryGetValue(req.MaterialID, out q);
+                    credit[req.MaterialID] = q + req.TotalConsumption;
+                }
+            }
+
+            return await FindStockShortageAsync(requirements, warehouseId, credit);
+        }
+
+        private class IncomeLayer
+        {
+            public int ProductID { get; set; }
+            public double Amount { get; set; }
+            public double? PiecePrice { get; set; }
+            public double? TotalPrice { get; set; }
+        }
+
+        /// <summary>
+        /// FIFO narx (MES-B11): ombordagi joriy qoldiq eng so'nggi kirimlardan iborat deb olinadi, shuning uchun
+        /// (jami kirim - qoldiq) miqdordagi eng eski qatlamlar allaqachon sarflangan hisoblanib o'tkazib yuboriladi va
+        /// talab qilingan miqdor keyingi qatlamlar narxida baholanadi. Avval doim eng eski kirimlar narxi olinardi
+        /// (sarflangan miqdor hisobga olinmasdan). Barcha materiallar bitta so'rovda (avval material boshiga, MES-P11).
+        /// Qoldiq kamayishidan (chiqimdan) OLDIN chaqirilishi kerak.
+        /// </summary>
+        private async Task<Dictionary<int, double>> GetFifoPiecePricesAsync(
+            int warehouseId, IList<ProductionRawMaterialRequirement> requirements)
+        {
+            var result = new Dictionary<int, double>();
+            var materialIds = requirements.Select(r => r.MaterialID).Distinct().ToList();
+            if (materialIds.Count == 0)
+                return result;
+
+            var layers = (await _db.INCOME_PRODUCTS.AsNoTracking()
+                    .Where(ip => materialIds.Contains(ip.ProductID)
+                        && ip.INCOME.ReceivingWHID == warehouseId
+                        && (ip.INCOME.IsDeleted == null || ip.INCOME.IsDeleted == false)
+                        && ip.Amount > 0)
+                    .OrderBy(ip => ip.INCOME.IssueDateTime).ThenBy(ip => ip.ID)
+                    .Select(ip => new IncomeLayer { ProductID = ip.ProductID, Amount = ip.Amount, PiecePrice = ip.PiecePrice, TotalPrice = ip.TotalPrice })
+                    .ToListAsync())
+                .ToLookup(l => l.ProductID);
+            var onHand = StockLedger.GetOnHand(_db, warehouseId, materialIds);
+
+            foreach (var group in requirements.GroupBy(r => r.MaterialID))
+            {
+                var requiredQty = group.Sum(r => r.TotalConsumption);
+                var materialLayers = layers[group.Key].ToList();
+                if (materialLayers.Count == 0 || requiredQty <= 0)
+                {
+                    result[group.Key] = 0;
+                    continue;
                 }
 
-                var takeQty = Math.Min(ip.Amount, remainingToConsume);
-                totalPriceSum += takeQty * piecePrice;
-                totalQtyTaken += takeQty;
-                remainingToConsume -= takeQty;
+                double stock;
+                onHand.TryGetValue(group.Key, out stock);
+                var alreadyConsumed = Math.Max(0, materialLayers.Sum(l => l.Amount) - Math.Max(0, stock));
+
+                double remaining = requiredQty, priceSum = 0, qtyTaken = 0, lastPrice = 0;
+                foreach (var layer in materialLayers)
+                {
+                    var price = layer.PiecePrice ?? 0;
+                    if (price <= 0 && layer.TotalPrice.HasValue)
+                        price = layer.TotalPrice.Value / layer.Amount;
+                    lastPrice = price;
+
+                    var available = layer.Amount;
+                    if (alreadyConsumed > 0)
+                    {
+                        var skip = Math.Min(available, alreadyConsumed);
+                        alreadyConsumed -= skip;
+                        available -= skip;
+                    }
+                    if (available <= 0 || remaining <= 0)
+                        continue;
+
+                    var take = Math.Min(available, remaining);
+                    priceSum += take * price;
+                    qtyTaken += take;
+                    remaining -= take;
+                }
+
+                // Qatlamlar yetmasa (kirimsiz qoldiq) - qolgan miqdor eng so'nggi kirim narxida
+                if (remaining > 0)
+                {
+                    priceSum += remaining * lastPrice;
+                    qtyTaken += remaining;
+                }
+
+                result[group.Key] = qtyTaken > 0 ? priceSum / qtyTaken : 0;
             }
 
-            if (totalQtyTaken <= 0)
-            {
-                return (0, 0);
-            }
-
-            var avgPiecePrice = totalPriceSum / totalQtyTaken;
-            var totalPrice = avgPiecePrice * requiredQty;
-            return (avgPiecePrice, totalPrice);
+            return result;
         }
 
         /// <summary>
@@ -226,22 +314,16 @@ namespace tahsinERP.Services
         public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int warehouseId, int? productionProcessId = null, DateTime? productionDate = null)
         {
             var requirements = await CalculateRequiredRawMaterialsAsync(productId, producedQty);
-            var wasteService = new WasteHandlingService(_db);
-
-            if (requirements == null || !requirements.Any())
+            if (requirements.Count == 0)
             {
                 return;
             }
 
-            // Validate stock before creating expense (DLOC + umumiy qoldiq)
-            foreach (var req in requirements)
+            // Chiqimdan oldin qoldiq tekshiruvi (DLOC + umumiy qoldiq)
+            var shortage = await FindStockShortageAsync(requirements, warehouseId);
+            if (shortage != null)
             {
-                var availableQty = InventoryValuationService.GetQty(_db, warehouseId, req.MaterialID);
-                if (availableQty + 1e-9 < req.TotalConsumption)
-                {
-                    throw new InvalidOperationException(
-                        $"Omborda yetarli qoldiq yo'q. Mahsulot: {req.MaterialPNo}, Talab: {req.TotalConsumption}, Mavjud: {availableQty}");
-                }
+                throw new InvalidOperationException(shortage);
             }
 
             var currency = await _db.CURRENCIES
@@ -277,25 +359,26 @@ namespace tahsinERP.Services
                 ProductionID = productionProcessId.HasValue && productionProcessId.Value > 0 ? productionProcessId : null
             };
 
-            _db.EXPENSES.Add(expense);
-            await _db.SaveChangesAsync();
-
+            // Narxlar qoldiq kamayishidan oldin, bitta so'rovda (MES-B11/P11)
+            var piecePrices = await GetFifoPiecePricesAsync(warehouseId, requirements);
+            var lines = new List<EXPENSE_PRODUCTS>();
             double totalAmount = 0;
             double totalExpensePrice = 0;
 
             foreach (var req in requirements)
             {
-                var (piecePrice, totalPrice) = await GetFifoPricesAsync(req.MaterialID, warehouseId, req.TotalConsumption);
+                var piecePrice = piecePrices[req.MaterialID];
+                var totalPrice = piecePrice * req.TotalConsumption;
+
                 var displayUnitId = GetDisplayUnitFromIncome(req.MaterialID);
                 if (!displayUnitId.HasValue || displayUnitId.Value <= 0)
                 {
-                    var material = await _db.PRODUCTS.FindAsync(req.MaterialID);
-                    displayUnitId = material?.UnitID > 0 ? material.UnitID : (req.UnitID > 0 ? req.UnitID : 1);
+                    var materialUnitId = await _db.PRODUCTS.Where(p => p.ID == req.MaterialID).Select(p => (int?)p.UnitID).FirstOrDefaultAsync();
+                    displayUnitId = materialUnitId > 0 ? materialUnitId : (req.UnitID > 0 ? req.UnitID : 1);
                 }
 
-                var expenseProduct = new EXPENSE_PRODUCTS
+                var line = new EXPENSE_PRODUCTS
                 {
-                    ExpenseID = expense.ID,
                     ProductID = req.MaterialID,
                     Amount = req.TotalConsumption,
                     PiecePrice = piecePrice,
@@ -303,34 +386,26 @@ namespace tahsinERP.Services
                     UnitID = displayUnitId.Value,
                     Comment = "BOM/NORM sarfi"
                 };
-
-                _db.EXPENSE_PRODUCTS.Add(expenseProduct);
-                await _db.SaveChangesAsync();
+                expense.EXPENSE_PRODUCTS.Add(line);
+                lines.Add(line);
 
                 totalAmount += req.TotalConsumption;
                 totalExpensePrice += totalPrice;
-
-                await ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
-                    _db, warehouseId, req.MaterialID, req.TotalConsumption,
-                    displayUnitId.Value, expenseProduct.ID);
-
-                // Record waste if applicable
-                if (req.WasteQty > 0 && productionProcessId.HasValue)
-                {
-                    await wasteService.RecordWasteAsync(
-                        productId, 
-                        req.MaterialID, 
-                        req.WasteQty, 
-                        productionProcessId.Value, 
-                        warehouseId, 
-                        req.UnitID,
-                        $"Ishlab chiqarish chiqindisi: Mahsulot ID {productId}, Miqdor {producedQty}");
-                }
             }
 
             expense.Amount = totalAmount;
             expense.TotalPrice = totalExpensePrice;
+
+            // Hujjat + barcha qatorlar bitta SaveChanges'da (avval har qatorga alohida, MES-P11);
+            // chiqim (lot ajratmasi) qator ID'sini talab qiladi - shuning uchun undan keyin
+            _db.EXPENSES.Add(expense);
             await _db.SaveChangesAsync();
+
+            foreach (var line in lines)
+            {
+                await ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
+                    _db, warehouseId, line.ProductID, line.Amount, line.UnitID, line.ID);
+            }
 
             LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",
                 $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Mahsulot ID: {productId}, Miqdor: {producedQty}");
@@ -405,8 +480,6 @@ namespace tahsinERP.Services
         public string MaterialPNo { get; set; }
         public string MaterialName { get; set; }
         public double RequiredQtyPieces { get; set; }
-        public double RequiredQtyMeters { get; set; }
-        public double WasteQty { get; set; }
         public double TotalConsumption { get; set; }
         public int UnitID { get; set; }
         public bool RequiresCutting { get; set; }

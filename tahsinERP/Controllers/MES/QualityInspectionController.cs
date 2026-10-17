@@ -286,12 +286,7 @@ namespace tahsinERP.Controllers.MES
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        for (var innerEx = ex.InnerException; innerEx != null; innerEx = innerEx.InnerException)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        ModelState.AddModelError("", MesErrorMessage.From(ex));
                     }
                 }
             }

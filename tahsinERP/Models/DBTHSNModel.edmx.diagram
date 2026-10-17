@@ -108,7 +108,6 @@
         <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER_CONTRIBUTIONS" Width="1.5" PointX="29.75" PointY="137.375" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER_SHARE_PERIODS" Width="1.5" PointX="29.75" PointY="132.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.SHAREHOLDER" Width="1.5" PointX="27.5" PointY="132.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.SHOP_PLANNED_DTS" Width="1.5" PointX="5.25" PointY="186.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.SHOP" Width="1.5" PointX="3" PointY="169.25" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.SORDER_DELIVERY_SCHEDULE" Width="1.5" PointX="22.5" PointY="141.5" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.STD_COMPANY_STANDARDS" Width="1.5" PointX="21.5" PointY="98.5" IsExpanded="true" />
@@ -130,11 +129,6 @@
         <EntityTypeShape EntityType="DBTHSNModel.WRHS_INCOME_DOCS" Width="1.5" PointX="12.75" PointY="129.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_FACT_MONTHLY" Width="1.5" PointX="9.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_PLAN_VS_FACT_MONTHLY" Width="1.5" PointX="9.75" PointY="4.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_ADMIN_EXPENSES" Width="1.5" PointX="4.75" PointY="9.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT" Width="1.5" PointX="9.75" PointY="8.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_LABOR_COSTS" Width="1.5" PointX="6.75" PointY="10.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_COSTS" Width="1.5" PointX="11.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.V_TANNARX_ACTUAL_MATERIAL_TRANSPORT" Width="1.5" PointX="11.75" PointY="3.75" IsExpanded="true" />
         <AssociationConnector Association="DBTHSNModel.FK_ADM_COMPANY_ORDERS_Document" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_APP_TASKS_PRIORITY" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_APP_TASKS_PROJECT" ManuallyRouted="false" />
@@ -368,7 +362,6 @@
         <AssociationConnector Association="DBTHSNModel.FK_SALES_TTNK_LINES_Header" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_CONTRIBUTIONS_SH" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_SHAREHOLDER_SHARE_PERIODS_SH" ManuallyRouted="false" />
-        <AssociationConnector Association="DBTHSNModel.FK_SHOP_PLANNED_DTS_SHOPS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_PROD_SHOPS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_SORDER_DELIVERY_CreatedBy" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_TANNARX_ACTUAL_AUDIT_TANNARX" ManuallyRouted="false" />

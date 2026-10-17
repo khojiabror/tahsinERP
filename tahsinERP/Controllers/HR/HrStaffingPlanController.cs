@@ -4,12 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using System.Collections.Generic;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System.IO;
 
 namespace tahsinERP.Controllers.HR
@@ -438,10 +439,10 @@ namespace tahsinERP.Controllers.HR
 
             try
             {
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    var rowCount = worksheet.Dimension?.Rows ?? 0;
+                    var worksheet = workbook.Worksheet(1);
+                    var rowCount = worksheet.LastRowNumber();
 
                     var importedData = new List<Dictionary<string, object>>();
 
@@ -450,10 +451,10 @@ namespace tahsinERP.Controllers.HR
                     {
                         var rowData = new Dictionary<string, object>();
                         rowData["RowNumber"] = row;
-                        rowData["TabNo"] = worksheet.Cells[row, 3]?.Value?.ToString(); // ustun C - Таб.№
-                        rowData["FullName"] = worksheet.Cells[row, 2]?.Value?.ToString(); // ustun B - F.I.Sh
-                        rowData["Position"] = worksheet.Cells[row, 4]?.Value?.ToString(); // ustun D - Lavozim
-                        rowData["BaseSalary"] = worksheet.Cells[row, 5]?.Value?.ToString(); // ustun E - Начисление
+                        rowData["TabNo"] = worksheet.Cell(row, 3).GetRawValue()?.ToString(); // ustun C - Таб.№
+                        rowData["FullName"] = worksheet.Cell(row, 2).GetRawValue()?.ToString(); // ustun B - F.I.Sh
+                        rowData["Position"] = worksheet.Cell(row, 4).GetRawValue()?.ToString(); // ustun D - Lavozim
+                        rowData["BaseSalary"] = worksheet.Cell(row, 5).GetRawValue()?.ToString(); // ustun E - Начисление
 
                         if (!string.IsNullOrWhiteSpace(rowData["TabNo"]?.ToString()))
                         {
