@@ -247,59 +247,6 @@ namespace tahsinERP.Controllers.SRM
             }
         }
 
-        // FIFO: Berilgan ombor+mahsulot uchun mavjud Income lotlar (FIFO tartibida)
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public async Task<JsonResult> GetAvailableIncomeLots(int warehouseId, int productId)
-        {
-            try
-            {
-                using (var db = new DBTHSNEntities())
-                {
-                    var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-                    if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(warehouseId))
-                        return Json(new { success = false, message = "Ushbu omborga kirish huquqi yo'q" });
-
-                    var lots = await LotTrackingService.GetAvailableIncomeLotsAsync(warehouseId, productId, db);
-                    var data = lots.Select(l => new
-                    {
-                        l.IncomeID,
-                        l.DocNo,
-                        l.IssueDateTime,
-                        l.RemainingAmount,
-                        l.DisplayText,
-                        IsLegacy = false
-                    }).ToList();
-
-                    var legacyInfo = await ExpenseStockIssueHelper.GetLegacyIssueInfoAsync(db, warehouseId, productId);
-                    if (legacyInfo.CanUseLegacy)
-                    {
-                        data.Insert(0, new
-                        {
-                            IncomeID = ExpenseStockIssueHelper.LegacyIssueIncomeId,
-                            DocNo = "",
-                            IssueDateTime = DateTime.Now,
-                            RemainingAmount = legacyInfo.UnassignedQty,
-                            DisplayText = legacyInfo.Label,
-                            IsLegacy = true
-                        });
-                    }
-
-                    return Json(new
-                    {
-                        success = true,
-                        data,
-                        allowLegacy = legacyInfo.CanUseLegacy,
-                        legacyUnassignedQty = legacyInfo.UnassignedQty
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
         // POST so'rovi: Expenses/GetAvailableProducts
         [HttpPost]
         [ValidateAntiForgeryHeader]
@@ -483,9 +430,6 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var product in model.ExpenseProducts)
                                 {
-                                    var comment = product.IncomeID.HasValue && product.IncomeID.Value > 0
-                                        ? LotTrackingService.FormatIncomeIdComment(product.IncomeID.Value)
-                                        : (product.Comment ?? "");
                                     var expenseProduct = new EXPENSE_PRODUCTS
                                     {
                                         ExpenseID = expense.ID,
@@ -494,17 +438,20 @@ namespace tahsinERP.Controllers.SRM
                                         PiecePrice = product.PiecePrice,
                                         TotalPrice = product.Amount * product.PiecePrice,
                                         UnitID = product.UnitID,
-                                        Comment = comment
+                                        Comment = product.Comment ?? ""
                                     };
 
                                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
                                     await db.SaveChangesAsync();
 
+                                    // SRM-B13: chiqim har doim sof FIFO — DLOC omborda eng eski lotdan (ajratmalar
+                                    // EXPENSE_PRODUCT_ALLOCATIONS ga), oddiy omborda umumiy qoldiqdan. Foydalanuvchi
+                                    // lot tanlamaydi (avval tanlangan lot e'tiborsiz qolar yoki faqat izohga yozilardi).
                                     try
                                     {
-                                        await ExpenseStockIssueHelper.ApplyIssueForExpenseProductAsync(
+                                        await StockLedger.IssueLineAsync(
                                             db, expense.SenderWHID, product.ProductID, product.Amount,
-                                            product.UnitID, expenseProduct.ID, product.IncomeID);
+                                            product.UnitID, expenseProduct.ID);
                                     }
                                     catch (WarehouseDlocException wex)
                                     {
@@ -771,8 +718,8 @@ namespace tahsinERP.Controllers.SRM
                         UnitName = ep.UNIT != null ? ep.UNIT.ShortName : null,
                         PiecePrice = ep.PiecePrice,
                         TotalPrice = ep.TotalPrice,
+                        // Eski yozuvlardagi "IncomeID:n" lot markeri foydalanuvchiga izoh sifatida ko'rsatilmaydi
                         Comment = LotTrackingService.ParseIncomeIdFromComment(ep.Comment).HasValue ? "" : (ep.Comment ?? ""),
-                        IncomeID = LotTrackingService.ParseIncomeIdFromComment(ep.Comment),
                         AvailableStock = stockMap.FirstOrDefault(s => s.ProductID == ep.ProductID)?.Amount ?? 0
                     }).ToList()
                 };
@@ -879,9 +826,6 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var product in model.ExpenseProducts)
                                 {
-                                    var comment = product.IncomeID.HasValue && product.IncomeID.Value > 0
-                                        ? LotTrackingService.FormatIncomeIdComment(product.IncomeID.Value)
-                                        : (product.Comment ?? "");
                                     var expenseProduct = new EXPENSE_PRODUCTS
                                     {
                                         ExpenseID = expense.ID,
@@ -890,17 +834,20 @@ namespace tahsinERP.Controllers.SRM
                                         PiecePrice = product.PiecePrice,
                                         TotalPrice = product.Amount * product.PiecePrice,
                                         UnitID = product.UnitID,
-                                        Comment = comment
+                                        Comment = product.Comment ?? ""
                                     };
 
                                     db.EXPENSE_PRODUCTS.Add(expenseProduct);
                                     await db.SaveChangesAsync();
 
+                                    // SRM-B13: chiqim har doim sof FIFO — DLOC omborda eng eski lotdan (ajratmalar
+                                    // EXPENSE_PRODUCT_ALLOCATIONS ga), oddiy omborda umumiy qoldiqdan. Foydalanuvchi
+                                    // lot tanlamaydi (avval tanlangan lot e'tiborsiz qolar yoki faqat izohga yozilardi).
                                     try
                                     {
-                                        await ExpenseStockIssueHelper.ApplyIssueForExpenseProductAsync(
+                                        await StockLedger.IssueLineAsync(
                                             db, expense.SenderWHID, product.ProductID, product.Amount,
-                                            product.UnitID, expenseProduct.ID, product.IncomeID);
+                                            product.UnitID, expenseProduct.ID);
                                     }
                                     catch (WarehouseDlocException wex)
                                     {
