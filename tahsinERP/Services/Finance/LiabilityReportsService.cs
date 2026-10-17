@@ -75,24 +75,38 @@ namespace tahsinERP.Services.Finance
                 .ToList();
             model.TotalSupplierPayables = supplierSummary.Sum(x => x.Outstanding);
 
-            // 3) Oylik qarzi xodim kesimida
-            FillPayrollDebts(model, asOf);
+            // 3) Oylik qarzi xodim kesimida — balans bilan bir xil funksiya (FIN-B18)
+            var payroll = FinLiabilities.PayrollByEmployee(db, _counterparties, asOf);
+            var payrollDebts = payroll.Employees
+                .Where(e => e.Debt > 0)
+                .OrderByDescending(e => e.Debt)
+                .Select(e => new FinancePayrollDebtItem
+                {
+                    EmployeeID = e.EmployeeID,
+                    EmployeeName = e.EmployeeName,
+                    CalculatedAmount = e.Calculated,
+                    PaidAmount = e.TotalPaid,
+                    DebtAmount = e.Debt
+                })
+                .ToList();
+            // Jami — balansdagi oylik qarzi bilan bir xil (xodimga bog'lanmagan to'lovlar ham ayiriladi)
+            model.TotalPayrollDebt = payroll.Total;
+            model.PayrollDebtsByEmployee = payrollDebts.Take(30).ToList();
 
-            // 4) Oylik qarzi trendi: oxirgi 12 oy, har oy oxiridagi yig'ma (hisoblangan − to'langan).
+            // 4) Oylik qarzi trendi: oxirgi 12 oy, har oy oxiridagi qarz. Opening sanasidan keyingi oylar —
+            // opening + undan keyingi harakatlar (balans formulasi), oldingilari — boshidan yig'ma.
             var salaryCategoryIds = FinQueries.SalaryCategoryIds(db);
             var accrualByDate = FinQueries.ApprovedPayrollLines(db)
                 .Where(l => l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= asOf)
                 .GroupBy(l => l.HR_PAYROLL_HEADERS.ApprovedDT.Value)
                 .Select(g => new { Date = g.Key, Amount = g.Sum(l => l.NetSalary) })
                 .ToList();
-            var paidByDate = FinQueries.Active(db)
-                .Where(t => t.Direction == 2 &&
-                            t.TxnDate <= asOf &&
-                            (t.CounterpartyType == 6 ||
-                             (salaryCategoryIds.Count > 0 && salaryCategoryIds.Contains(t.CategoryID))))
+            var paidByDate = FinQueries.PayrollPayments(db, salaryCategoryIds, DateTime.MinValue, asOf)
                 .GroupBy(t => t.TxnDate)
                 .Select(g => new { Date = g.Key, Amount = g.Sum(t => t.Amount) })
                 .ToList();
+            var payrollOpening = payroll.OpeningDate;
+            var openingNet = payroll.OpeningNet;
 
             var monthCursor = new DateTime(asOf.Year, asOf.Month, 1).AddMonths(-11);
             while (monthCursor <= new DateTime(asOf.Year, asOf.Month, 1))
@@ -100,9 +114,20 @@ namespace tahsinERP.Services.Finance
                 var monthEnd = monthCursor.AddMonths(1).AddDays(-1);
                 if (monthEnd > asOf) monthEnd = asOf;
 
-                var accrued = accrualByDate.Where(x => x.Date <= monthEnd).Sum(x => x.Amount ?? 0m);
-                var paid = paidByDate.Where(x => x.Date <= monthEnd).Sum(x => x.Amount);
-                var debt = accrued - paid;
+                decimal debt;
+                if (payrollOpening.HasValue && monthEnd >= payrollOpening.Value)
+                {
+                    var od = payrollOpening.Value;
+                    var paidFrom = od.AddDays(1);
+                    debt = openingNet
+                        + accrualByDate.Where(x => x.Date > od && x.Date <= monthEnd).Sum(x => x.Amount ?? 0m)
+                        - paidByDate.Where(x => x.Date >= paidFrom && x.Date <= monthEnd).Sum(x => x.Amount);
+                }
+                else
+                {
+                    debt = accrualByDate.Where(x => x.Date <= monthEnd).Sum(x => x.Amount ?? 0m)
+                        - paidByDate.Where(x => x.Date <= monthEnd).Sum(x => x.Amount);
+                }
                 if (debt < 0) debt = 0m;
 
                 model.MonthlyPayrollDebtTrend.Add(new FinanceMonthlyPoint
@@ -145,95 +170,6 @@ namespace tahsinERP.Services.Finance
             model.TotalRecurringObligationDebt = model.RecurringObligationDebts.Sum(x => x.DebtAmount);
 
             return model;
-        }
-
-        private sealed class EmployeePayroll
-        {
-            public int EmployeeID { get; set; }
-            public string EmployeeName { get; set; }
-            public decimal Calculated { get; set; }
-        }
-
-        private void FillPayrollDebts(FinanceReportsHubViewModel model, DateTime asOf)
-        {
-            var db = _db;
-            var payrollByEmployee = FinQueries.ApprovedPayrollLines(db)
-                .Where(l => l.HR_EMPLOYEES != null && l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= asOf)
-                .GroupBy(l => new { l.EmployeeID, Name = l.HR_EMPLOYEES.FullName })
-                .Select(g => new EmployeePayroll
-                {
-                    EmployeeID = g.Key.EmployeeID,
-                    EmployeeName = g.Key.Name ?? "Noma'lum",
-                    Calculated = g.Sum(x => (decimal?)x.NetSalary) ?? 0m
-                })
-                .ToList();
-
-            var payrollPaidByEmployee = FinQueries.Active(db)
-                .Where(t => t.Direction == 2 &&
-                            t.TxnDate <= asOf &&
-                            t.CounterpartyType == 6 &&
-                            t.CounterpartyID.HasValue)
-                .GroupBy(t => t.CounterpartyID.Value)
-                .Select(g => new { EmployeeID = g.Key, Paid = g.Sum(x => (decimal?)x.Amount) ?? 0m })
-                .ToList()
-                .ToDictionary(x => x.EmployeeID, x => x.Paid);
-
-            var openingDate = _counterparties.LatestOpeningDate(asOf, CounterpartyBalanceService.BalanceTypePayroll);
-            var openingRows = openingDate.HasValue
-                ? _counterparties.OpeningContractBalances(openingDate.Value, CounterpartyBalanceService.BalanceTypePayroll).Where(x => x.CounterpartyID > 0).ToList()
-                : new List<OpeningContractBalance>();
-
-            // Opening'da bor, lekin payroll'da yo'q xodimlar nomi — bitta so'rov (avval har qatorga alohida, FIN-P10).
-            var missingIds = openingRows.Select(o => o.CounterpartyID).Where(id => payrollByEmployee.All(x => x.EmployeeID != id)).Distinct().ToList();
-            var employeeNames = missingIds.Count == 0
-                ? new Dictionary<int, string>()
-                : db.HR_EMPLOYEES.Where(e => missingIds.Contains(e.ID) && e.IsDeleted != true)
-                    .Select(e => new { e.ID, e.FullName })
-                    .ToList()
-                    .GroupBy(e => e.ID)
-                    .ToDictionary(g => g.Key, g => g.First().FullName);
-
-            foreach (var opening in openingRows)
-            {
-                var existing = payrollByEmployee.FirstOrDefault(x => x.EmployeeID == opening.CounterpartyID);
-                if (existing == null)
-                {
-                    payrollByEmployee.Add(new EmployeePayroll
-                    {
-                        EmployeeID = opening.CounterpartyID,
-                        EmployeeName = (employeeNames.TryGetValue(opening.CounterpartyID, out var n) ? n : null) ?? $"Xodim #{opening.CounterpartyID}",
-                        Calculated = opening.TotalAmount
-                    });
-                }
-                else
-                {
-                    existing.Calculated += opening.TotalAmount;
-                }
-
-                payrollPaidByEmployee[opening.CounterpartyID] =
-                    (payrollPaidByEmployee.ContainsKey(opening.CounterpartyID) ? payrollPaidByEmployee[opening.CounterpartyID] : 0m)
-                    + opening.PaidAmount;
-            }
-
-            var payrollDebts = payrollByEmployee
-                .Select(x =>
-                {
-                    var paid = payrollPaidByEmployee.ContainsKey(x.EmployeeID) ? payrollPaidByEmployee[x.EmployeeID] : 0m;
-                    return new FinancePayrollDebtItem
-                    {
-                        EmployeeID = x.EmployeeID,
-                        EmployeeName = x.EmployeeName,
-                        CalculatedAmount = x.Calculated,
-                        PaidAmount = paid,
-                        DebtAmount = x.Calculated - paid
-                    };
-                })
-                .Where(x => x.DebtAmount > 0)
-                .OrderByDescending(x => x.DebtAmount)
-                .ToList();
-            // FIN-B10: jami barcha qarzdor xodimlar bo'yicha (avval faqat ko'rsatiladigan 30 tasi qo'shilardi)
-            model.TotalPayrollDebt = payrollDebts.Sum(x => x.DebtAmount);
-            model.PayrollDebtsByEmployee = payrollDebts.Take(30).ToList();
         }
 
         #endregion
