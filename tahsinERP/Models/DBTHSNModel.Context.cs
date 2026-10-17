@@ -147,6 +147,7 @@ namespace tahsinERP.Models
         public virtual DbSet<USERIMAGE> USERIMAGES { get; set; }
         public virtual DbSet<USERLOG> USERLOGS { get; set; }
         public virtual DbSet<USER> USERS { get; set; }
+        public virtual DbSet<INVENTORY_ADJUSTMENTS> INVENTORY_ADJUSTMENTS { get; set; }
         public virtual DbSet<Warehouse> WAREHOUSES { get; set; }
         public virtual DbSet<WASTE_STOCKS> WASTE_STOCKS { get; set; }
         public virtual DbSet<WASTE> WASTES { get; set; }

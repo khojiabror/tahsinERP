@@ -817,6 +817,9 @@
     <Compile Include="Models\V_TANNARX_ACTUAL_MATERIAL_TRANSPORT.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\INVENTORY_ADJUSTMENTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Warehouse.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
