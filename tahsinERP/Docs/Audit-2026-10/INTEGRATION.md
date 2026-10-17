@@ -72,3 +72,11 @@ Bog'liq tartib:
 - MSBuild (Debug) — xatosiz. csproj ↔ fayllar mosligi asos bilan bir xil.
 - Razor view'lar build vaqtida kompilyatsiya qilinmaydi (`MvcBuildViews=false`); modul sessiyalari o'z sahifalarini
   alohida tekshirgan. Integratsiyadan keyin asosiy sahifalarni brauzerda bir marta ochib chiqish tavsiya etiladi.
+
+## Integratsiya sinovida topilgan muammo: `machineKey` yo'q
+- `web.config`da `<machineKey>` yo'q (AutoGenerate). Ilova qayta ishga tushganda (rebuild, `web.config` o'zgarishi,
+  ko'p view'ning birinchi kompilyatsiyasi, app pool recycle) kalitlar almashadi. Natijada ochiq turgan formalar
+  `HttpAntiForgeryException` (login'da 500) beradi va barcha foydalanuvchilar login'dan chiqib ketadi.
+- Lokal sinovda vaqtinchalik `machineKey` bilan menyudagi 109 sahifa xatosiz ochildi (2026-10-17).
+- Tavsiya: server `web.config`iga (repoga emas) aniq `validationKey`/`decryptionKey` qo'yish yoki IIS app pool'da
+  "Load User Profile = True" — kalitlar recycle'da saqlanadi.
