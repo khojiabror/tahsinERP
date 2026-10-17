@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using OfficeOpenXml;
 
-namespace tahsinERP.Services
+namespace tahsinERP.Services.Common
 {
     /// <summary>
-    /// Excel import uchun sarlavha xaritasi va katak o'qish (WaybillController'dan ajratildi, LOG-D05).
+    /// Excel import uchun sarlavha xaritasi va katak o'qish (umumiy; WaybillController'dan ajratildi, LOG-D05).
     /// LOG-B12: raqam va sanalar formatlangan matndan (cell.Text, madaniyatga bog'liq — "1,875,000.00"
     /// jimgina null bo'lardi) emas, katak qiymatidan (cell.Value) o'qiladi; matn bo'lsa InvariantCulture,
     /// so'ng joriy madaniyat bilan.
-    /// Boshqa modullardagi nusxalar (InventoryController va h.k.) bilan birga Services/Common'ga
-    /// ko'chirish taklif qilingan.
+    /// Sarlavha nomi o'zgaruvchan bo'lsa (masalan "PNo" / "Mahsulot") — <see cref="Alias"/> bilan
+    /// kanonik kalitga bog'lang.
     /// </summary>
     public sealed class ExcelCellReader
     {
@@ -32,6 +32,27 @@ namespace tahsinERP.Services
         }
 
         public bool Has(string key) => _map.ContainsKey(key);
+
+        /// <summary>
+        /// Sarlavhasida <paramref name="fragments"/> dan birortasi (katta-kichik harf farqsiz) bo'lgan
+        /// birinchi ustunni <paramref name="key"/> nomi bilan bog'laydi. Kalit allaqachon bo'lsa — o'zgarmaydi.
+        /// </summary>
+        public ExcelCellReader Alias(string key, params string[] fragments)
+        {
+            if (_map.ContainsKey(key)) return this;
+            int best = int.MaxValue;
+            foreach (var pair in _map)
+            {
+                foreach (var fragment in fragments)
+                {
+                    if (pair.Key.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0 && pair.Value < best)
+                        best = pair.Value;
+                }
+            }
+            if (best != int.MaxValue)
+                _map[key] = best;
+            return this;
+        }
 
         private object Value(int row, string key)
         {

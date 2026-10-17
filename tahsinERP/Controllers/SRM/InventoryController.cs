@@ -12,6 +12,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
 using tahsinERP.ViewModels;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers
 {
@@ -460,8 +461,10 @@ namespace tahsinERP.Controllers
                             return View(model);
                         }
 
-                        var headerMap = BuildHeaderMap(worksheet);
-                        if (!headerMap.ContainsKey("productpno") || !headerMap.ContainsKey("quantity"))
+                        var cells = new ExcelCellReader(worksheet)
+                            .Alias("productpno", "productpno", "pno", "mahsulot")
+                            .Alias("quantity", "quantity", "qty", "miqdor", "qoldiq");
+                        if (!cells.Has("productpno") || !cells.Has("quantity"))
                         {
                             ModelState.AddModelError("", "Excel format xato. Majburiy ustunlar: ProductPNo va Quantity.");
                             await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
@@ -476,16 +479,14 @@ namespace tahsinERP.Controllers
                                 p => p.PNo.Trim().ToUpperInvariant(),
                                 p => new { p.ID, p.PNo, p.Name, p.UnitID });
 
-                        var qtyCol = headerMap["quantity"];
-                        var pnoCol = headerMap["productpno"];
                         var parsedRows = new List<InventoryAdjustmentRow>();
                         var errorDetails = new List<string>();
                         var seenProducts = new HashSet<int>();
 
                         for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
                         {
-                            var pno = GetCellString(worksheet, row, pnoCol);
-                            var qtyValue = GetCellString(worksheet, row, qtyCol);
+                            var pno = cells.String(row, "productpno") ?? string.Empty;
+                            var qtyValue = cells.String(row, "quantity") ?? string.Empty;
 
                             if (string.IsNullOrWhiteSpace(pno))
                             {
@@ -779,44 +780,6 @@ namespace tahsinERP.Controllers
                     .ToListAsync(),
                 "ID", "WHName", selectedWarehouseId
             );
-        }
-
-        private static Dictionary<string, int> BuildHeaderMap(ExcelWorksheet worksheet)
-        {
-            var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            int endColumn = worksheet.Dimension.End.Column;
-
-            for (int col = 1; col <= endColumn; col++)
-            {
-                var header = (worksheet.Cells[1, col].Text ?? string.Empty).Trim().ToLowerInvariant();
-                if (string.IsNullOrEmpty(header))
-                {
-                    continue;
-                }
-
-                if (header.Contains("productpno") || header.Contains("pno") || header.Contains("mahsulot"))
-                {
-                    if (!map.ContainsKey("productpno"))
-                    {
-                        map["productpno"] = col;
-                    }
-                }
-
-                if (header.Contains("quantity") || header.Contains("qty") || header.Contains("miqdor") || header.Contains("qoldiq"))
-                {
-                    if (!map.ContainsKey("quantity"))
-                    {
-                        map["quantity"] = col;
-                    }
-                }
-            }
-
-            return map;
-        }
-
-        private static string GetCellString(ExcelWorksheet worksheet, int row, int col)
-        {
-            return (worksheet.Cells[row, col].Text ?? string.Empty).Trim();
         }
 
         private class InventoryAdjustmentRow

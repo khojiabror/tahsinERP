@@ -19,7 +19,7 @@ namespace tahsinERP.Services.Common
 
     /// <summary>
     /// Kam o'zgaradigan spravochniklar (valyuta, birlik, ombor, mijoz, yetkazib beruvchi,
-    /// ekspeditor, kategoriya, sex) uchun xotiradagi kesh. Avval har Create/Edit sahifasi
+    /// ekspeditor, kategoriya, sex, ekspeditor shartnomasi, transport turi) uchun xotiradagi kesh. Avval har Create/Edit sahifasi
     /// va har validatsiya xatosida bu jadvallar bazadan qayta o'qilardi (~600 joy).
     ///
     /// Invalidatsiya avtomatik: <see cref="DBTHSNEntities"/>.SaveChanges tegishli jadvaldagi
@@ -41,6 +41,9 @@ namespace tahsinERP.Services.Common
         public const string Forwarders = "Forwarders";
         public const string ProductCategories = "ProductCategories";
         public const string Shops = "Shops";
+        /// <summary>Ekspeditor shartnomalari: Name = ContractNo, ExtraId = ForwarderID.</summary>
+        public const string FContracts = "FContracts";
+        public const string TransportTypes = "TransportTypes";
 
         private static readonly Dictionary<Type, string> EntityKinds = new Dictionary<Type, string>
         {
@@ -52,6 +55,8 @@ namespace tahsinERP.Services.Common
             { typeof(FORWARDER), Forwarders },
             { typeof(PRODUCT_CATEGORIES), ProductCategories },
             { typeof(SHOP), Shops },
+            { typeof(F_CONTRACTS), FContracts },
+            { typeof(F_TRANSPORT_TYPES), TransportTypes },
         };
 
         private static readonly Dictionary<string, Func<DBTHSNEntities, List<RefItem>>> Loaders =
@@ -73,6 +78,10 @@ namespace tahsinERP.Services.Common
                     .Select(x => new RefItem { ID = x.ID, Name = x.Name, Extra = x.Code }).ToList() },
                 { Shops, db => db.SHOPS.AsNoTracking().Where(x => x.IsDeleted != true)
                     .Select(x => new RefItem { ID = x.ID, Name = x.ShopName }).ToList() },
+                { FContracts, db => db.F_CONTRACTS.AsNoTracking().Where(x => !x.IsDeleted)
+                    .Select(x => new RefItem { ID = x.ID, Name = x.ContractNo, ExtraId = x.ForwarderID }).ToList() },
+                { TransportTypes, db => db.F_TRANSPORT_TYPES.AsNoTracking().Where(x => x.IsDeleted != true)
+                    .Select(x => new RefItem { ID = x.ID, Name = x.TransportType }).ToList() },
             };
 
         /// <summary>Spravochnik ro'yxati (o'zgartirmang — umumiy nusxa).</summary>
