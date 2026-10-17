@@ -6,6 +6,8 @@ using System.Web.Mvc;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Filters;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
 using ClosedXML.Excel;
 using System.IO;
@@ -39,10 +41,8 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.Year = year;
                 ViewBag.Month = month;
                 ViewBag.ItemID = itemID;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
                 ViewBag.ItemList = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder).ToList(),
                     "ID", "Name", itemID);
@@ -61,10 +61,8 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.Year = year;
                 ViewBag.Month = month;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder).ToList(),
                     "ID", "Name", itemID);
@@ -123,10 +121,8 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.Year = plan.Year;
                 ViewBag.Month = plan.Month;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, plan.Year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                     "ID", "Name", plan.ItemID);
@@ -151,10 +147,8 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, plan.Year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                     "ID", "Name", plan.ItemID);
@@ -170,9 +164,6 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Declare years once at the beginning ga avoid scope conflicts
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
                 
                 if (ModelState.IsValid)
                 {
@@ -186,8 +177,8 @@ namespace tahsinERP.Controllers.Finance
                         if (existing != null)
                         {
                             ModelState.AddModelError("", "Bu oy va element uchun boshqa reja allaqachon mavjud.");
-                            ViewBag.YearList = new SelectList(years, plan.Year);
-                            ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                            ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                            ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                             ViewBag.ItemID = new SelectList(
                                 db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                                 "ID", "Name", plan.ItemID);
@@ -207,8 +198,8 @@ namespace tahsinERP.Controllers.Finance
                     }
                 }
 
-                ViewBag.YearList = new SelectList(years, plan.Year);
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                     "ID", "Name", plan.ItemID);
@@ -290,10 +281,8 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.Year = year;
                 ViewBag.Month = month;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
 
                 return View(model);
             }
@@ -363,31 +352,12 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(p => p.FIN_PL_ITEMS.SortOrder)
                     .ToList();
 
-                using (var workbook = new XLWorkbook())
-                {
-                    var worksheet = workbook.Worksheets.Add("P&L Plans");
-                    worksheet.Cell(1, 1).Value = "Kod";
-                    worksheet.Cell(1, 2).Value = "Nomi";
-                    worksheet.Cell(1, 3).Value = "Reja summasi";
-
-                    int row = 2;
-                    foreach (var plan in plans)
-                    {
-                        worksheet.Cell(row, 1).Value = plan.FIN_PL_ITEMS.Code;
-                        worksheet.Cell(row, 2).Value = plan.FIN_PL_ITEMS.Name;
-                        worksheet.Cell(row, 3).Value = plan.AmountPlan;
-                        row++;
-                    }
-
-                    worksheet.Columns().AdjustToContents();
-
-                    var stream = new MemoryStream();
-                    workbook.SaveAs(stream);
-                    stream.Position = 0;
-
-                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        $"P&L_Plans_{year}_{month}.xlsx");
-                }
+                // FIN-D22: umumiy ExcelExport
+                var bytes = ExcelExport.Create("P&L Plans", plans,
+                    ExcelExport.Col<FIN_PL_PLANS>("Kod", x => x.FIN_PL_ITEMS.Code),
+                    ExcelExport.Col<FIN_PL_PLANS>("Nomi", x => x.FIN_PL_ITEMS.Name),
+                    ExcelExport.Col<FIN_PL_PLANS>("Reja summasi", x => x.AmountPlan));
+                return File(bytes, ExcelExport.ContentType, $"P&L_Plans_{year}_{month}.xlsx");
             }
         }
     }
