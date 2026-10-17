@@ -1057,6 +1057,8 @@
     <Compile Include="Services\WaybillLedgerService.cs" />
     <Compile Include="Services\FreightCalculator.cs" />
     <Compile Include="Services\LogisticsAnalyticsService.cs" />
+    <Compile Include="Services\LogisticsLookups.cs" />
+    <Compile Include="Services\LogisticsEnums.cs" />
     <Compile Include="Services\ExcelCellReader.cs" />
     <Compile Include="Services\MaterialConsumptionService.cs" />
     <Compile Include="Services\OfficialLetterDataService.cs" />
@@ -1183,7 +1185,6 @@
     <Compile Include="ViewModels\TaskKanbanViewModel.cs" />
     <Compile Include="ViewModels\TaskViewModel.cs" />
     <Compile Include="ViewModels\TransportLoadResult.cs" />
-    <Compile Include="ViewModels\ProductSelectItem.cs" />
     <Compile Include="ViewModels\TransportSelectItem.cs" />
     <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
@@ -1193,9 +1194,8 @@
     <Compile Include="ViewModels\WaybillPaymentLinkedWaybillViewModel.cs" />
     <Compile Include="ViewModels\WaybillIndexItemViewModel.cs" />
     <Compile Include="ViewModels\LogisticsPageInfo.cs" />
+    <Compile Include="ViewModels\LogisticsReconciliationRowViewModel.cs" />
     <Compile Include="ViewModels\ContractTariffIndexItemViewModel.cs" />
-    <Compile Include="ViewModels\ForwarderDashboardStatViewModel.cs" />
-    <Compile Include="ViewModels\LaneDashboardStatViewModel.cs" />
     <Compile Include="ViewModels\LanePerformanceViewModel.cs" />
     <Compile Include="ViewModels\ForwarderComparisonViewModel.cs" />
     <Compile Include="ViewModels\TransportTypeViewModel.cs" />
@@ -3081,6 +3081,8 @@
     <Content Include="Views\FTransportType\Edit.cshtml" />
     <Content Include="Views\FTransportType\Delete.cshtml" />
     <Content Include="Views\Waybill\Index.cshtml" />
+    <Content Include="Views\Waybill\_WaybillForm.cshtml" />
+    <Content Include="Scripts\app\waybill-form.js" />
     <Content Include="Views\Logistic\Shared\_Pager.cshtml" />
     <Content Include="Views\Logistic\Shared\_Alerts.cshtml" />
     <Content Include="Views\Waybill\Create.cshtml" />

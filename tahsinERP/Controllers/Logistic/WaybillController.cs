@@ -30,63 +30,37 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.F_WAYBILLS
-                    .Include(w => w.F_CONTRACTS)
-                    .Include(w => w.F_CONTRACTS.FORWARDER)
-                    .Include(w => w.F_TRANSPORT_TYPES)
-                    .Include(w => w.CURRENCy)
-                    .Include(w => w.FORWARDER)
-                    .Where(w => w.IsDeleted != true);
+                var query = WaybillLedgerService.ActiveWaybills(db).AsNoTracking();
 
-                // Apply filters
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    query = query.Where(w => 
+                    query = query.Where(w =>
                         w.WaybillNo.Contains(searchTerm) ||
-                        (w.FromLocation != null && w.FromLocation.Contains(searchTerm)) ||
-                        (w.ToLocation != null && w.ToLocation.Contains(searchTerm)) ||
-                        (w.TruckNo != null && w.TruckNo.Contains(searchTerm)) ||
-                        (w.DriverName != null && w.DriverName.Contains(searchTerm)));
+                        w.FromLocation.Contains(searchTerm) ||
+                        w.ToLocation.Contains(searchTerm) ||
+                        w.TruckNo.Contains(searchTerm) ||
+                        w.DriverName.Contains(searchTerm));
                 }
-
                 if (direction.HasValue)
-                {
                     query = query.Where(w => w.Direction == direction.Value);
-                }
-
                 if (forwarderId.HasValue)
-                {
                     query = query.Where(w => w.ForwarderID == forwarderId.Value);
-                }
-
                 if (contractId.HasValue)
-                {
                     query = query.Where(w => w.ContractID == contractId.Value);
-                }
-
                 if (transportTypeId.HasValue)
-                {
                     query = query.Where(w => w.TransportTypeID == transportTypeId.Value);
-                }
-
                 if (startDate.HasValue)
-                {
                     query = query.Where(w => w.IssueDate >= startDate.Value);
-                }
-
                 if (endDate.HasValue)
                 {
-                    query = query.Where(w => w.IssueDate <= endDate.Value);
+                    var endExclusive = endDate.Value.Date.AddDays(1);
+                    query = query.Where(w => w.IssueDate < endExclusive);
                 }
 
-                // Sorting
                 switch (sortOrder)
                 {
-                    case "date_desc":
-                        query = query.OrderByDescending(w => w.IssueDate);
-                        break;
                     case "date":
-                        query = query.OrderBy(w => w.IssueDate);
+                        query = query.OrderBy(w => w.IssueDate).ThenBy(w => w.ID);
                         break;
                     case "waybillno":
                         query = query.OrderBy(w => w.WaybillNo);
@@ -95,31 +69,43 @@ namespace tahsinERP.Controllers
                         query = query.OrderByDescending(w => w.WaybillNo);
                         break;
                     default:
-                        query = query.OrderByDescending(w => w.IssueDate);
+                        query = query.OrderByDescending(w => w.IssueDate).ThenByDescending(w => w.ID);
                         break;
                 }
 
-                var waybillList = await query.ToListAsync();
+                // LOG-P02: server tomonida sahifalash va SQL proyeksiya (avval butun jadval 5 ta Include bilan
+                // yuklanib, brauzerda DataTables bilan sahifalanardi)
+                var paging = new LogisticsPageInfo(page, pageSize, await query.CountAsync());
+                var rows = await query
+                    .Skip(paging.Skip)
+                    .Take(paging.PageSize)
+                    .Select(w => new
+                    {
+                        w.ID, w.WaybillNo, w.IssueDate, w.Direction,
+                        ForwarderName = w.FORWARDER != null ? w.FORWARDER.ForwarderName : w.F_CONTRACTS.FORWARDER.ForwarderName,
+                        ContractNo = w.F_CONTRACTS.ContractNo,
+                        TransportType = w.F_TRANSPORT_TYPES.TransportType,
+                        w.FromLocation, w.ToLocation, w.TruckNo, w.DriverName, w.DistanceKm, w.GrWeight, w.CBM, w.Amount,
+                        Currency = w.CURRENCy.Shortname,
+                        w.SalesInvoiceID, w.SalesOrderID, w.TTNKID, w.InvoiceID, w.PurchaseOrderID
+                    })
+                    .ToListAsync();
 
-                var waybillIds = waybillList.Select(w => w.ID).ToList();
-                var paymentLookup = WaybillLedgerService.GetPaidLookup(db, waybillIds);
+                var paymentLookup = WaybillLedgerService.GetPaidLookup(db, rows.Select(r => r.ID).ToList());
 
-                var waybills = waybillList.Select(w =>
+                var waybills = rows.Select(w =>
                 {
                     var totalPaid = WaybillLedgerService.PaidOf(paymentLookup, w.ID);
                     var amount = w.Amount ?? 0;
-                    var outstanding = amount - totalPaid;
-                    var paymentStatus = WaybillLedgerService.StatusOf(amount, totalPaid).ToDisplay();
-
                     return new WaybillIndexItemViewModel
                     {
                         ID = w.ID,
                         WaybillNo = w.WaybillNo,
                         IssueDate = w.IssueDate,
                         Direction = w.Direction,
-                        ForwarderName = w.FORWARDER?.ForwarderName ?? w.F_CONTRACTS?.FORWARDER?.ForwarderName,
-                        ContractNo = w.F_CONTRACTS?.ContractNo,
-                        TransportType = w.F_TRANSPORT_TYPES?.TransportType,
+                        ForwarderName = w.ForwarderName,
+                        ContractNo = w.ContractNo,
+                        TransportType = w.TransportType,
                         FromLocation = w.FromLocation,
                         ToLocation = w.ToLocation,
                         TruckNo = w.TruckNo,
@@ -128,19 +114,18 @@ namespace tahsinERP.Controllers
                         GrWeight = w.GrWeight,
                         CBM = w.CBM,
                         Amount = w.Amount,
-                        Currency = w.CURRENCy?.Shortname,
+                        Currency = w.Currency,
                         TotalPaid = totalPaid,
-                        Outstanding = outstanding,
-                        PaymentStatus = paymentStatus,
-                        CargoTypeText = GetCargoTypeText(w),
-                        LinkedDoc = GetLinkedDocText(w)
+                        Outstanding = amount - totalPaid,
+                        PaymentStatus = WaybillLedgerService.StatusOf(amount, totalPaid).ToDisplay(),
+                        CargoTypeText = GetCargoTypeText(w.SalesInvoiceID, w.SalesOrderID, w.TTNKID, w.InvoiceID, w.PurchaseOrderID),
+                        LinkedDoc = GetLinkedDocText(w.SalesInvoiceID, w.SalesOrderID, w.TTNKID, w.InvoiceID, w.PurchaseOrderID)
                     };
                 }).ToList();
 
-                // Tayyorlash ViewBag uchun filters
-                ViewBag.Forwarders = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted != true).ToListAsync(), "ID", "ForwarderName", forwarderId);
-                ViewBag.Contracts = new SelectList(await db.F_CONTRACTS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "ContractNo", contractId);
-                ViewBag.TransportTypes = new SelectList(await db.F_TRANSPORT_TYPES.Where(t => t.IsDeleted != true).ToListAsync(), "ID", "TransportType", transportTypeId);
+                ViewBag.Forwarders = ReferenceDataCache.SelectList(ReferenceDataCache.Forwarders, forwarderId);
+                ViewBag.Contracts = new SelectList(LogisticsLookups.Contracts(db), "ID", "Name", contractId);
+                ViewBag.TransportTypes = new SelectList(LogisticsLookups.TransportTypes(db), "ID", "Name", transportTypeId);
                 ViewBag.Directions = new SelectList(new[]
                 {
                     new { Value = "0", Text = "Kiruvchi" },
@@ -152,6 +137,14 @@ namespace tahsinERP.Controllers
                 ViewBag.Direction = direction;
                 ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
                 ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+
+                paging.RouteValues = new System.Web.Routing.RouteValueDictionary
+                {
+                    { "searchTerm", searchTerm }, { "direction", direction }, { "forwarderId", forwarderId },
+                    { "contractId", contractId }, { "transportTypeId", transportTypeId },
+                    { "startDate", ViewBag.StartDate }, { "endDate", ViewBag.EndDate }, { "sortOrder", sortOrder }
+                };
+                ViewBag.Paging = paging;
 
                 return View(waybills);
             }
@@ -1019,47 +1012,41 @@ namespace tahsinERP.Controllers
             }
         }
 
+        /// <summary>
+        /// Forma dropdown'lari. LOG-P01: invoys/buyurtma/TTNK ro'yxatlari to'liq yuklanmaydi — faqat
+        /// tanlangan qiymat (agar bo'lsa) oldindan chiqariladi, qolgani SearchDocuments (select2 AJAX) orqali.
+        /// Yuk tashuvchi va valyutalar — ReferenceDataCache.
+        /// </summary>
         private static WaybillCreateViewModel BuildWaybillViewModel(DBTHSNEntities db, WaybillCreateViewModel model = null)
         {
             var viewModel = model ?? new WaybillCreateViewModel();
 
-            viewModel.Forwarders = db.FORWARDERS.Where(f => f.IsDeleted != true)
-                .Select(f => new SelectListItem { Value = f.ID.ToString(), Text = f.ForwarderName, Selected = f.ID == viewModel.ForwarderID })
-                .ToList();
-            viewModel.Contracts = db.F_CONTRACTS.Where(c => c.IsDeleted == false)
-                .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.ContractNo, Selected = c.ID == viewModel.ContractID })
-                .ToList();
-            viewModel.TransportTypes = db.F_TRANSPORT_TYPES.Where(t => t.IsDeleted != true || t.ID == viewModel.TransportTypeID)
-                .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TransportType, Selected = t.ID == viewModel.TransportTypeID })
-                .ToList();
-            viewModel.PurchaseInvoices = db.P_INVOICES.Where(i => i.IsDeleted == false)
-                .Select(i => new SelectListItem { Value = i.ID.ToString(), Text = i.InvoiceNo, Selected = i.ID == viewModel.InvoiceID })
-                .ToList();
-            viewModel.SalesInvoices = db.SALES_INVOICES
-                .Select(i => new SelectListItem { Value = i.ID.ToString(), Text = i.InvoiceNo, Selected = i.ID == viewModel.SalesInvoiceID })
-                .ToList();
-            viewModel.SalesOrders = db.S_ORDERS.Where(o => o.IsDeleted == false)
-                .Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == viewModel.SalesOrderID })
-                .ToList();
-            viewModel.PurchaseOrders = db.P_ORDERS.Where(o => o.IsDeleted == false)
-                .Select(o => new SelectListItem { Value = o.ID.ToString(), Text = o.OrderNo, Selected = o.ID == viewModel.PurchaseOrderID })
-                .ToList();
-            viewModel.TTNKs = db.SALES_TTNK_HEADERS
-                .Select(t => new SelectListItem { Value = t.ID.ToString(), Text = t.TTNKNumber, Selected = t.ID == viewModel.TTNKID })
-                .ToList();
-            viewModel.Currencies = db.CURRENCIES
-                .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Shortname, Selected = c.ID == viewModel.CurrencyID })
-                .ToList();
+            viewModel.Forwarders = ToItems(ReferenceDataCache.Get(ReferenceDataCache.Forwarders), viewModel.ForwarderID);
+            viewModel.Currencies = ToItems(ReferenceDataCache.Get(ReferenceDataCache.Currencies), viewModel.CurrencyID);
+            viewModel.Contracts = ToItems(LogisticsLookups.Contracts(db, viewModel.ContractID), viewModel.ContractID);
+            viewModel.TransportTypes = ToItems(LogisticsLookups.TransportTypes(db, viewModel.TransportTypeID), viewModel.TransportTypeID);
+
+            viewModel.PurchaseInvoices = SelectedOnly(viewModel.InvoiceID,
+                id => db.P_INVOICES.Where(i => i.ID == id).Select(i => i.InvoiceNo).FirstOrDefault());
+            viewModel.SalesInvoices = SelectedOnly(viewModel.SalesInvoiceID,
+                id => db.SALES_INVOICES.Where(i => i.ID == id).Select(i => i.InvoiceNo).FirstOrDefault());
+            viewModel.SalesOrders = SelectedOnly(viewModel.SalesOrderID,
+                id => db.S_ORDERS.Where(o => o.ID == id).Select(o => o.OrderNo).FirstOrDefault());
+            viewModel.PurchaseOrders = SelectedOnly(viewModel.PurchaseOrderID,
+                id => db.P_ORDERS.Where(o => o.ID == id).Select(o => o.OrderNo).FirstOrDefault());
+            viewModel.TTNKs = SelectedOnly(viewModel.TTNKID,
+                id => db.SALES_TTNK_HEADERS.Where(t => t.ID == id).Select(t => t.TTNKNumber).FirstOrDefault());
 
             viewModel.Tariffs = new List<SelectListItem>();
             if (viewModel.ContractID.HasValue)
             {
-                var tariffs = db.F_CONTRACT_TARIFFS
+                var tariffs = db.F_CONTRACT_TARIFFS.AsNoTracking()
                     .Include(t => t.F_TRANSPORT_TYPES)
-                    .Where(t => t.ContractID == viewModel.ContractID.Value && t.IsActive)
+                    .Where(t => t.ContractID == viewModel.ContractID.Value &&
+                                (t.IsActive || (viewModel.TariffID.HasValue && t.ID == viewModel.TariffID.Value)))
                     .OrderByDescending(t => t.CreatedDT)
                     .ToList();
-                
+
                 viewModel.Tariffs = tariffs.Select(t => new SelectListItem
                 {
                     Value = t.ID.ToString(),
@@ -1069,6 +1056,86 @@ namespace tahsinERP.Controllers
             }
 
             return viewModel;
+        }
+
+        private static List<SelectListItem> ToItems(IEnumerable<RefItem> items, int? selected)
+        {
+            return items.Select(x => new SelectListItem
+            {
+                Value = x.ID.ToString(),
+                Text = x.Name,
+                Selected = selected.HasValue && x.ID == selected.Value
+            }).ToList();
+        }
+
+        private static List<SelectListItem> SelectedOnly<TId>(TId? id, Func<TId, string> text) where TId : struct
+        {
+            var list = new List<SelectListItem>();
+            if (id.HasValue)
+            {
+                list.Add(new SelectListItem { Value = id.Value.ToString(), Text = text(id.Value) ?? ("#" + id.Value), Selected = true });
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// select2 AJAX qidiruvi: type = pinvoice | sinvoice | sorder | porder | ttnk; eng so'nggi 20 ta mos yozuv.
+        /// </summary>
+        [HttpGet]
+        public async Task<JsonResult> SearchDocuments(string type, string q)
+        {
+            const int take = 20;
+            q = (q ?? "").Trim();
+
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                List<SearchItem> items;
+                switch (type)
+                {
+                    case "pinvoice":
+                        items = await db.P_INVOICES.AsNoTracking()
+                            .Where(i => i.IsDeleted != true && i.InvoiceNo.Contains(q))
+                            .OrderByDescending(i => i.ID).Take(take)
+                            .Select(i => new SearchItem { id = i.ID, text = i.InvoiceNo }).ToListAsync();
+                        break;
+                    case "sinvoice":
+                        items = await db.SALES_INVOICES.AsNoTracking()
+                            .Where(i => i.InvoiceNo.Contains(q))
+                            .OrderByDescending(i => i.ID).Take(take)
+                            .Select(i => new SearchItem { id = i.ID, text = i.InvoiceNo }).ToListAsync();
+                        break;
+                    case "sorder":
+                        items = await db.S_ORDERS.AsNoTracking()
+                            .Where(o => o.IsDeleted != true && o.OrderNo.Contains(q))
+                            .OrderByDescending(o => o.ID).Take(take)
+                            .Select(o => new SearchItem { id = o.ID, text = o.OrderNo }).ToListAsync();
+                        break;
+                    case "porder":
+                        items = await db.P_ORDERS.AsNoTracking()
+                            .Where(o => o.IsDeleted != true && o.OrderNo.Contains(q))
+                            .OrderByDescending(o => o.ID).Take(take)
+                            .Select(o => new SearchItem { id = o.ID, text = o.OrderNo }).ToListAsync();
+                        break;
+                    case "ttnk":
+                        items = await db.SALES_TTNK_HEADERS.AsNoTracking()
+                            .Where(t => t.TTNKNumber.Contains(q))
+                            .OrderByDescending(t => t.ID).Take(take)
+                            .Select(t => new SearchItem { id = t.ID, text = t.TTNKNumber }).ToListAsync();
+                        break;
+                    default:
+                        items = new List<SearchItem>();
+                        break;
+                }
+
+                return Json(new { results = items }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public sealed class SearchItem
+        {
+            // select2 kutadigan nomlar
+            public long id { get; set; }
+            public string text { get; set; }
         }
 
         private static int MatchTariffScore(F_CONTRACT_TARIFFS tariff, string fromLocation, string toLocation)
@@ -1112,43 +1179,22 @@ namespace tahsinERP.Controllers
             return score;
         }
 
-        private static string GetCargoTypeText(F_WAYBILLS waybill)
+        private static string GetCargoTypeText(long? salesInvoiceId, int? salesOrderId, long? ttnkId, int? invoiceId, int? purchaseOrderId)
         {
-            if (waybill.SalesInvoiceID.HasValue || waybill.SalesOrderID.HasValue || waybill.TTNKID.HasValue)
-            {
+            if (salesInvoiceId.HasValue || salesOrderId.HasValue || ttnkId.HasValue)
                 return "Tayyor mahsulot";
-            }
-
-            if (waybill.InvoiceID.HasValue || waybill.PurchaseOrderID.HasValue)
-            {
+            if (invoiceId.HasValue || purchaseOrderId.HasValue)
                 return "Xomashyo/material";
-            }
-
             return "Boshqa";
         }
 
-        private static string GetLinkedDocText(F_WAYBILLS waybill)
+        private static string GetLinkedDocText(long? salesInvoiceId, int? salesOrderId, long? ttnkId, int? invoiceId, int? purchaseOrderId)
         {
-            if (waybill.SalesInvoiceID.HasValue)
-            {
-                return $"Sotuv hisob-fakturasi #{waybill.SalesInvoiceID}";
-            }
-            if (waybill.InvoiceID.HasValue)
-            {
-                return $"Xarid hisob-fakturasi #{waybill.InvoiceID}";
-            }
-            if (waybill.TTNKID.HasValue)
-            {
-                return $"TTNK #{waybill.TTNKID}";
-            }
-            if (waybill.SalesOrderID.HasValue)
-            {
-                return $"Sotuv buyurtmasi #{waybill.SalesOrderID}";
-            }
-            if (waybill.PurchaseOrderID.HasValue)
-            {
-                return $"Xarid buyurtmasi #{waybill.PurchaseOrderID}";
-            }
+            if (salesInvoiceId.HasValue) return $"Sotuv hisob-fakturasi #{salesInvoiceId}";
+            if (invoiceId.HasValue) return $"Xarid hisob-fakturasi #{invoiceId}";
+            if (ttnkId.HasValue) return $"TTNK #{ttnkId}";
+            if (salesOrderId.HasValue) return $"Sotuv buyurtmasi #{salesOrderId}";
+            if (purchaseOrderId.HasValue) return $"Xarid buyurtmasi #{purchaseOrderId}";
             return null;
         }
 

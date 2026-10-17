@@ -176,12 +176,13 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="@(changePermit ? 18 : 17)" class="text-center">Ma'lumot topilmadi</td>
+                                                        <td colspan="@(changePermit ? 19 : 18)" class="text-center">Ma'lumot topilmadi</td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
+                                    @Html.Partial("~/Views/Logistic/Shared/_Pager.cshtml", (tahsinERP.ViewModels.LogisticsPageInfo)ViewBag.Paging)
                                 </div>
                             </div>
                         </div>
@@ -195,41 +196,4 @@
 else
 {
     Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
-
-@section scripts {
-    <script>
-        $(document).ready(function() {
-            var tableConfig = {
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "pageLength": 25,
-                "order": [[1, "desc"]],
-                "scrollX": true
-            };
-
-            @if (canChangeWaybill)
-            {
-                <text>
-                tableConfig.columnDefs = [
-                    { "orderable": false, "targets": -1 }
-                ];
-                </text>
-            }
-
-            var table = $('#waybillDataTable').DataTable(tableConfig);
-        });
-    </script>
 }

@@ -43,21 +43,7 @@
                                         <div class="row">
                                             <div class="col-md-5 col-sm-12 form-group">
                                                 <label>Mahsulot</label>
-                                                <select id="productSelect" class="form-control select2">
-                                                    <option value="">---Tanlang---</option>
-                                                    @if (ViewBag.Products != null)
-                                                    {
-                                                        foreach (var product in ViewBag.Products)
-                                                        {
-                                                            <option value="@product.ID" 
-                                                                    data-length="@product.Length" 
-                                                                    data-width="@product.Width" 
-                                                                    data-height="@product.Height">
-                                                                @product.PNo - @product.Name
-                                                            </option>
-                                                        }
-                                                    }
-                                                </select>
+                                                <select id="productSelect" class="form-control" data-search-url="@Url.Action("SearchProducts", "TransportLoadSimulation")"></select>
                                             </div>
                                             <div class="col-md-5 col-sm-12 form-group">
                                                 <label>Transport turi</label>
@@ -67,10 +53,7 @@
                                                     {
                                                         foreach (var transport in ViewBag.TransportTypes)
                                                         {
-                                                            <option value="@transport.ID" 
-                                                                    data-length="@transport.IntLgth" 
-                                                                    data-width="@transport.IntWdth" 
-                                                                    data-height="@transport.IntHght">
+                                                            <option value="@transport.ID">
                                                                 @transport.TransportType
                                                             </option>
                                                         }
@@ -431,6 +414,20 @@ else
             }
 
             $(function () {
+                var productSelect = $('#productSelect');
+                productSelect.select2({
+                    width: '100%',
+                    placeholder: '---Tanlang---',
+                    minimumInputLength: 1,
+                    ajax: {
+                        url: productSelect.data('search-url'),
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) { return { q: params.term }; },
+                        processResults: function (data) { return { results: data.results || [] }; }
+                    }
+                });
+
                 // LOG-B11: bitta handler (avval jQuery click + btn.onclick — har bosishda 2 ta so'rov)
                 $('#simulateBtn').on('click', function (e) {
                     e.preventDefault();

@@ -91,95 +91,74 @@ namespace tahsinERP.Controllers
             
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var forwarder = await db.FORWARDERS.FindAsync(id);
+                var forwarder = await db.FORWARDERS.AsNoTracking().FirstOrDefaultAsync(f => f.ID == id);
                 if (forwarder == null)
                     return HttpNotFound();
 
-                // Calculate statistics
-                var waybills = await db.F_WAYBILLS
-                    .Where(w => w.ForwarderID == id && w.IsDeleted != true)
-                    .ToListAsync();
+                // LOG-P08: statistika SQL'da (avval barcha yo'l varaqalari va to'lovlar entity sifatida yuklanardi)
+                var waybills = WaybillLedgerService.ActiveWaybills(db).Where(w => w.ForwarderID == id);
+                var agg = await waybills
+                    .GroupBy(w => 1)
+                    .Select(g => new
+                    {
+                        Trips = g.Count(),
+                        Inbound = g.Count(w => w.Direction == 0),
+                        Outbound = g.Count(w => w.Direction == 1),
+                        Internal = g.Count(w => w.Direction == 2),
+                        Tonnage = g.Sum(w => w.GrWeight) ?? 0,
+                        Cbm = g.Sum(w => w.CBM) ?? 0,
+                        NetWeight = g.Sum(w => w.NetWeight) ?? 0,
+                        Cost = g.Sum(w => w.Amount) ?? 0,
+                        AvgPerKm = g.Where(w => w.DistanceKm > 0 && w.Amount != null).Average(w => w.Amount / w.DistanceKm),
+                        OnTime = g.Count(w => w.PlannedDeliveryDate != null && w.ActualDeliveryDate != null && w.ActualDeliveryDate <= w.PlannedDeliveryDate),
+                        Delivered = g.Count(w => w.PlannedDeliveryDate != null && w.ActualDeliveryDate != null)
+                    })
+                    .FirstOrDefaultAsync();
 
-                var payments = await db.F_WAYBILL_PAYMENTS
-                    .Where(p => p.ForwarderID == id && !p.IsDeleted)
-                    .ToListAsync();
-
+                // LOG-B04: qarz ta'rifi boshqa ekranlar bilan bir xil (qo'lda kiritilgan FIN to'lovlar ham)
                 var balance = WaybillLedgerService.GetForwarderBalance(db, forwarder.ID);
+                var today = DateTime.Today;
 
                 var statistics = new ForwarderStatisticsViewModel
                 {
                     Forwarder = forwarder,
-                    TotalTrips = waybills.Count,
-                    InboundTrips = waybills.Count(w => w.Direction == 0),
-                    OutboundTrips = waybills.Count(w => w.Direction == 1),
-                    InternalTrips = waybills.Count(w => w.Direction == 2),
-                    TotalTonnage = waybills.Where(w => w.GrWeight.HasValue).Sum(w => w.GrWeight.Value),
-                    TotalCBM = waybills.Where(w => w.CBM.HasValue).Sum(w => w.CBM.Value),
-                    TotalNetWeight = waybills.Where(w => w.NetWeight.HasValue).Sum(w => w.NetWeight.Value),
-                    TotalCost = waybills.Where(w => w.Amount.HasValue).Sum(w => w.Amount.Value),
-                    // LOG-B04: qarz ta'rifi boshqa ekranlar bilan bir xil (qo'lda kiritilgan FIN to'lovlar ham)
+                    TotalTrips = agg?.Trips ?? 0,
+                    InboundTrips = agg?.Inbound ?? 0,
+                    OutboundTrips = agg?.Outbound ?? 0,
+                    InternalTrips = agg?.Internal ?? 0,
+                    TotalTonnage = agg?.Tonnage ?? 0,
+                    TotalCBM = agg?.Cbm ?? 0,
+                    TotalNetWeight = agg?.NetWeight ?? 0,
+                    TotalCost = agg?.Cost ?? 0,
                     PaidAmount = balance.TotalPaid,
                     UnpaidAmount = balance.TotalFreight - balance.TotalPaid,
-                    ActiveContracts = await db.F_CONTRACTS
-                        .Where(c => c.ForwarderID == id && c.IsDeleted == false && c.DueDate >= DateTime.Now)
+                    AverageCostPerKm = agg?.AvgPerKm ?? 0,
+                    ActiveContracts = await db.F_CONTRACTS.AsNoTracking()
+                        .Where(c => c.ForwarderID == id && !c.IsDeleted && c.DueDate >= today)
                         .ToListAsync(),
-                    RecentWaybills = waybills.OrderByDescending(w => w.IssueDate).Take(10).ToList(),
-                    RecentPayments = payments.OrderByDescending(p => p.PaymentDate ?? DateTime.MinValue).Take(10).ToList()
+                    RecentWaybills = await waybills.AsNoTracking().OrderByDescending(w => w.IssueDate).Take(10).ToListAsync(),
+                    RecentPayments = await WaybillLedgerService.ActivePayments(db).AsNoTracking()
+                        .Where(p => p.ForwarderID == id)
+                        .OrderByDescending(p => p.PaymentDate)
+                        .Take(10)
+                        .ToListAsync(),
+                    TopLanes = LogisticsAnalyticsService.GetLaneStats(db, waybills, 10)
                 };
 
-                // Calculate averages
-                if (waybills.Any(w => w.DistanceKm.HasValue && w.DistanceKm > 0))
-                {
-                    statistics.AverageCostPerKm = waybills
-                        .Where(w => w.Amount.HasValue && w.DistanceKm.HasValue && w.DistanceKm > 0)
-                        .Average(w => w.Amount.Value / w.DistanceKm.Value);
-                }
-
                 if (statistics.TotalTonnage > 0)
-                {
                     statistics.AverageCostPerTon = statistics.TotalCost / statistics.TotalTonnage;
-                }
-
                 if (statistics.TotalTrips > 0)
-                {
                     statistics.AverageCostPerTrip = statistics.TotalCost / statistics.TotalTrips;
-                }
-
                 if (statistics.TotalCBM > 0)
-                {
                     statistics.AverageCostPerCBM = statistics.TotalCost / statistics.TotalCBM;
-                }
 
-                // Calculate OTIF
-                var waybillsWithDates = waybills.Where(w => w.PlannedDeliveryDate.HasValue && w.ActualDeliveryDate.HasValue).ToList();
-                if (waybillsWithDates.Any())
+                if (agg != null && agg.Delivered > 0)
                 {
-                    statistics.OnTimeDeliveries = waybillsWithDates.Count(w => w.ActualDeliveryDate <= w.PlannedDeliveryDate);
-                    statistics.LateDeliveries = waybillsWithDates.Count - statistics.OnTimeDeliveries;
-                    statistics.OTIFPercentage = (double)statistics.OnTimeDeliveries / waybillsWithDates.Count * 100;
+                    statistics.OnTimeDeliveries = agg.OnTime;
+                    statistics.TotalDeliveries = agg.Delivered;
+                    statistics.LateDeliveries = agg.Delivered - agg.OnTime;
+                    statistics.OTIFPercentage = (double)agg.OnTime / agg.Delivered * 100;
                 }
-
-                // Calculate top lanes
-                statistics.TopLanes = waybills
-                    .Where(w => !string.IsNullOrEmpty(w.FromLocation) && !string.IsNullOrEmpty(w.ToLocation))
-                    .GroupBy(w => new { w.FromLocation, w.ToLocation })
-                    .Select(g => new LanePerformance
-                    {
-                        FromLocation = g.Key.FromLocation,
-                        ToLocation = g.Key.ToLocation,
-                        TripCount = g.Count(),
-                        TotalTonnage = g.Where(w => w.GrWeight.HasValue).Sum(w => w.GrWeight.Value),
-                        TotalCost = g.Where(w => w.Amount.HasValue).Sum(w => w.Amount.Value),
-                        AverageCostPerTon = g.Where(w => w.GrWeight.HasValue && w.GrWeight > 0 && w.Amount.HasValue)
-                            .Any() ? g.Where(w => w.GrWeight.HasValue && w.GrWeight > 0 && w.Amount.HasValue)
-                            .Average(w => w.Amount.Value / w.GrWeight.Value) : 0,
-                        AverageCostPerKm = g.Where(w => w.DistanceKm.HasValue && w.DistanceKm > 0 && w.Amount.HasValue)
-                            .Any() ? g.Where(w => w.DistanceKm.HasValue && w.DistanceKm > 0 && w.Amount.HasValue)
-                            .Average(w => w.Amount.Value / w.DistanceKm.Value) : 0
-                    })
-                    .OrderByDescending(l => l.TripCount)
-                    .Take(10)
-                    .ToList();
 
                 return View(statistics);
             }

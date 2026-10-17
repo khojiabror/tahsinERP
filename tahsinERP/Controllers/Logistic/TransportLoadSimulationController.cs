@@ -1,45 +1,23 @@
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
-using tahsinERP.Controllers;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
     /// <summary>
-    /// Controller uchun Transport yuklash Simulation module
+    /// Transport yuklash simulyatsiyasi. Mahsulotlar select2 AJAX bilan qidiriladi (LOG-P13: avval barcha
+    /// mahsulotlar ishlatilmaydigan data-* atributlar bilan sahifaga chiqarilardi).
     /// </summary>
-    public class TransportLoadSimulationController : Controller
+    [Permission]
+    public class TransportLoadSimulationController : BaseController
     {
-        // Olish so'rovi: TransportLoadSimulation
         public ActionResult Index()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Olish products uchun dropdown (non-deleted faqat)
-                var products = db.PRODUCTS
-                    .Where(p => p.IsDeleted == false)
-                    .OrderBy(p => p.PNo)
-                    .Select(p => new ProductSelectItem
-                    {
-                        ID = p.ID,
-                        PNo = p.PNo,
-                        Name = p.Name,
-                        Length = p.Length ?? 0,
-                        Width = p.Width ?? 0,
-                        Height = p.Height ?? 0
-                    })
-                    .ToList();
-
-                ViewBag.Products = products;
-
-                // Olish transport types uchun dropdown
-                var transportTypes = db.F_TRANSPORT_TYPES
+                ViewBag.TransportTypes = db.F_TRANSPORT_TYPES.AsNoTracking()
                     .Where(t => t.IsDeleted != true)
                     .OrderBy(t => t.TransportType)
                     .Select(t => new TransportSelectItem
@@ -52,9 +30,24 @@ namespace tahsinERP.Controllers
                     })
                     .ToList();
 
-                ViewBag.TransportTypes = transportTypes;
-
                 return View("~/Views/Logistic/TransportLoadSimulation/Index.cshtml");
+            }
+        }
+
+        /// <summary>select2 AJAX: PNo yoki nomi bo'yicha 20 ta mahsulot.</summary>
+        [HttpGet]
+        public JsonResult SearchProducts(string q)
+        {
+            q = (q ?? "").Trim();
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var results = db.PRODUCTS.AsNoTracking()
+                    .Where(p => p.IsDeleted == false && (p.PNo.Contains(q) || p.Name.Contains(q)))
+                    .OrderBy(p => p.PNo)
+                    .Take(20)
+                    .Select(p => new { id = p.ID, text = p.PNo + " - " + p.Name })
+                    .ToList();
+                return Json(new { results }, JsonRequestBehavior.AllowGet);
             }
         }
     }

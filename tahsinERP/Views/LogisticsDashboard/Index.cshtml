@@ -208,7 +208,7 @@
 
                 <!-- Forwarder Performance -->
                 @{
-                    var forwarderStats = ViewBag.ForwarderStats as List<ForwarderDashboardStatViewModel>;
+                    var forwarderStats = ViewBag.ForwarderStats as List<ForwarderComparisonViewModel>;
                 }
                 @if (forwarderStats != null && forwarderStats.Any())
                 {
@@ -256,7 +256,7 @@
 
                 <!-- Lane Performance -->
                 @{
-                    var laneStats = ViewBag.LaneStats as List<LaneDashboardStatViewModel>;
+                    var laneStats = ViewBag.LaneStats as List<LanePerformanceViewModel>;
                 }
                 @if (laneStats != null && laneStats.Any())
                 {
