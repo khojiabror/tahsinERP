@@ -155,7 +155,7 @@
                                                                     <input type="number" name="lines[@lineIndex].UnitPrice" class="form-control price-input" step="0.01" min="0" value="@(line.ProductID > 0 ? line.UnitPrice.ToString(inv) : "")" required readonly />
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" name="lines[@lineIndex].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="@line.VATRate.ToString(inv)" required />
+                                                                    <input type="number" name="lines[@lineIndex].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="@line.VATRate.ToString(inv)" required readonly />
                                                                 </td>
                                                                 <td>
                                                                     <button type="button" class="btn btn-sm btn-danger remove-line">O'chirish</button>
@@ -400,7 +400,7 @@
                             inp.type = idx === 0 ? 'text' : 'number';
                             inp.name = 'lines[' + lineIndex + '].' + name;
                             if (idx === 1 || idx === 2) { inp.step = '0.01'; inp.min = '0'; inp.required = true; if (idx === 2) inp.readOnly = true; }
-                            if (idx === 3) { inp.step = '0.01'; inp.min = '0'; inp.max = '100'; inp.value = '0'; inp.required = true; }
+                            if (idx === 3) { inp.step = '0.01'; inp.min = '0'; inp.max = '100'; inp.value = '0'; inp.required = true; inp.readOnly = true; }
                             var td = document.createElement('td');
                             td.appendChild(inp);
                             newRow.appendChild(td);
