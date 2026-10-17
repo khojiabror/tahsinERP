@@ -4,7 +4,6 @@ using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
@@ -19,8 +18,6 @@ namespace tahsinERP.Controllers
     [Permission]
     public class SOrderController : BaseController
     {
-        private static readonly Regex IndexPattern = new Regex(@"\[(\d+)\]", RegexOptions.Compiled);
-
         // Olish so'rovi: SOrder | Index - List barcha orders
         public async Task<ActionResult> Index(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
@@ -532,23 +529,19 @@ namespace tahsinERP.Controllers
         /// </summary>
         private static List<ContractProductQuantity> ParseProductQuantities(FormCollection form)
         {
+            const string prefix = "ProductQuantities";
             var result = new List<ContractProductQuantity>();
-            foreach (var key in form.AllKeys.Where(k => k != null && k.StartsWith("ProductQuantities[") && k.EndsWith("].OrderQuantity")))
+            foreach (var i in FormRows.Indexes(form, prefix, "OrderQuantity"))
             {
-                var m = IndexPattern.Match(key);
-                if (!m.Success) continue;
-                var i = m.Groups[1].Value;
-
                 double quantity;
-                int contractProductId, productId;
-                if (!CrmNumber.TryDouble(form[key], out quantity) || quantity <= 0) continue;
-                if (!int.TryParse(form[$"ProductQuantities[{i}].ContractProductID"], out contractProductId)) continue;
-                int.TryParse(form[$"ProductQuantities[{i}].ProductID"], out productId);
+                int contractProductId;
+                if (!CrmNumber.TryDouble(FormRows.Value(form, prefix, i, "OrderQuantity"), out quantity) || quantity <= 0) continue;
+                if (!int.TryParse(FormRows.Value(form, prefix, i, "ContractProductID"), out contractProductId)) continue;
 
                 result.Add(new ContractProductQuantity
                 {
                     ContractProductID = contractProductId,
-                    ProductID = productId,
+                    ProductID = FormRows.Int(form, prefix, i, "ProductID"),
                     OrderQuantity = quantity
                 });
             }
@@ -558,28 +551,26 @@ namespace tahsinERP.Controllers
         /// <summary>Formadagi "ScheduleItems[i].*" qatorlari (indekslarda bo'shliq bo'lsa ham — kalitlar bo'yicha o'qiladi).</summary>
         private static List<DeliveryScheduleItem> ParseScheduleItems(FormCollection form)
         {
+            const string prefix = "ScheduleItems";
             var posted = new List<DeliveryScheduleItem>();
-            foreach (var key in form.AllKeys.Where(k => k != null && k.StartsWith("ScheduleItems[") && k.EndsWith("].DeliveryDate")))
+            foreach (var i in FormRows.Indexes(form, prefix, "DeliveryDate"))
             {
-                var m = IndexPattern.Match(key);
-                if (!m.Success) continue;
-                var i = m.Groups[1].Value;
-
+                var rawDate = FormRows.Value(form, prefix, i, "DeliveryDate");
                 DateTime deliveryDate;
                 decimal qtyPlanned;
                 int orderProductId;
-                long id;
-                if (!DateTime.TryParseExact(form[key], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out deliveryDate) &&
-                    !DateTime.TryParse(form[key], out deliveryDate))
+                if (!DateTime.TryParseExact(rawDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out deliveryDate) &&
+                    !DateTime.TryParse(rawDate, out deliveryDate))
                     continue;
-                if (!CrmNumber.TryDecimal(form[$"ScheduleItems[{i}].QtyPlanned"], out qtyPlanned) || qtyPlanned <= 0)
+                if (!CrmNumber.TryDecimal(FormRows.Value(form, prefix, i, "QtyPlanned"), out qtyPlanned) || qtyPlanned <= 0)
                     continue;
-                if (!int.TryParse(form[$"ScheduleItems[{i}].OrderProductID"], out orderProductId))
+                if (!int.TryParse(FormRows.Value(form, prefix, i, "OrderProductID"), out orderProductId))
                     continue;
 
+                var id = FormRows.Long(form, prefix, i, "ID");
                 posted.Add(new DeliveryScheduleItem
                 {
-                    ID = long.TryParse(form[$"ScheduleItems[{i}].ID"], out id) && id > 0 ? id : (long?)null,
+                    ID = id > 0 ? id : (long?)null,
                     SOrderProductID = orderProductId,
                     DeliveryDate = deliveryDate,
                     QtyPlanned = qtyPlanned

@@ -4,7 +4,6 @@ using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
@@ -22,8 +21,6 @@ namespace tahsinERP.Controllers
     [Permission]
     public class SContractController : BaseController
     {
-        private static readonly Regex IndexPattern = new Regex(@"^ProductList\[(\d+)\]\.ProductID$", RegexOptions.Compiled);
-
         // Olish so'rovi: SContract | Index
         public async Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
@@ -589,24 +586,18 @@ namespace tahsinERP.Controllers
             foreach (var key in ModelState.Keys.Where(k => k.StartsWith("ProductList")).ToList())
                 ModelState.Remove(key);
 
+            const string prefix = "ProductList";
             var result = new List<SContractProductViewModel>();
-            var indexes = form.AllKeys
-                .Where(k => k != null)
-                .Select(k => IndexPattern.Match(k))
-                .Where(m => m.Success)
-                .Select(m => int.Parse(m.Groups[1].Value))
-                .OrderBy(i => i);
-
-            foreach (var i in indexes)
+            foreach (var i in FormRows.Indexes(form, prefix, "ProductID"))
             {
-                int productId, unitId, lineId;
-                if (!int.TryParse(form[$"ProductList[{i}].ProductID"], out productId) || productId <= 0)
+                var productId = FormRows.Int(form, prefix, i, "ProductID");
+                if (productId <= 0)
                     continue;
-                int.TryParse(form[$"ProductList[{i}].UnitID"], out unitId);
-                int.TryParse(form[$"ProductList[{i}].ID"], out lineId);
-                var piecePrice = CrmNumber.Double(form[$"ProductList[{i}].PiecePrice"]);
-                var amount = CrmNumber.Double(form[$"ProductList[{i}].Amount"]);
-                var vatPercent = Math.Max(0, Math.Min(100, CrmNumber.Double(form[$"ProductList[{i}].VatPercent"])));
+                var unitId = FormRows.Int(form, prefix, i, "UnitID");
+                var lineId = FormRows.Int(form, prefix, i, "ID");
+                var piecePrice = CrmNumber.Double(FormRows.Value(form, prefix, i, "PiecePrice"));
+                var amount = CrmNumber.Double(FormRows.Value(form, prefix, i, "Amount"));
+                var vatPercent = Math.Max(0, Math.Min(100, CrmNumber.Double(FormRows.Value(form, prefix, i, "VatPercent"))));
 
                 if (amount <= 0 || piecePrice <= 0)
                 {
