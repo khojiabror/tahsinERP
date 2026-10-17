@@ -136,8 +136,7 @@ namespace tahsinERP.Controllers.Engineering
             }
             try
             {
-                var report = await _analyticsService.GetAnalyticsReportAsync(year, month, productID);
-                var productReport = report.Reports.FirstOrDefault();
+                var productReport = await _analyticsService.GetProductDetailsAsync(productID, year, month);
 
                 if (productReport == null)
                 {

@@ -1061,6 +1061,8 @@
     <Compile Include="Services\POrderGenerationService.cs" />
     <Compile Include="Services\ProductionConsumptionService.cs" />
     <Compile Include="Services\TannarxAnalyticsService.cs" />
+    <Compile Include="Services\Tannarx\TannarxActualCostEngine.cs" />
+    <Compile Include="Services\Tannarx\TannarxFinanceCategoryClassifier.cs" />
     <Compile Include="Services\SoftDeleteReferenceService.cs" />
     <Compile Include="Services\TannarxService.cs" />
     <Compile Include="Services\TextSuggestionService.cs" />
