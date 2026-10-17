@@ -336,22 +336,7 @@ namespace tahsinERP.Controllers.SRM
                 Dictionary<int, decimal> approvedRemaining = null;
                 if (isProductionToSales)
                 {
-                    var approvedByProduct = await db.QUALITY_INSPECTION
-                        .Where(q => q.StatusCode == "APPROVED" && q.IsDeleted == false)
-                        .GroupBy(q => q.ProductID)
-                        .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.QtyAccepted) ?? 0 })
-                        .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
-
-                    var transferredByProduct = await db.EXPENSE_PRODUCTS
-                        .Where(ep => ep.EXPENS.SenderWHID == productionWH.ID
-                            && ep.EXPENS.ReceiverWhID == salesWH.ID
-                            && ep.EXPENS.IsDeleted == false)
-                        .GroupBy(ep => ep.ProductID)
-                        .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.Amount) ?? 0 })
-                        .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
-
-                    approvedRemaining = approvedByProduct
-                        .ToDictionary(k => k.Key, k => k.Value - (transferredByProduct.ContainsKey(k.Key) ? transferredByProduct[k.Key] : 0));
+                    approvedRemaining = await GetApprovedRemainingForTransferAsync(db, productionWH.ID, salesWH.ID, null);
                 }
 
                 var products = await productsQuery
@@ -443,34 +428,23 @@ namespace tahsinERP.Controllers.SRM
 
                             if (isProductionToSales)
                             {
-                                var approvedByProduct = await db.QUALITY_INSPECTION
-                                    .Where(q => q.StatusCode == "APPROVED" && q.IsDeleted == false)
-                                    .GroupBy(q => q.ProductID)
-                                    .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.QtyAccepted) ?? 0 })
-                                    .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
+                                // Faqat so'ralgan mahsulotlar bo'yicha (avval barcha mahsulotlar skanerlanardi — SRM-P15);
+                                // bir mahsulot bir necha qatorda bo'lsa — jami miqdor tekshiriladi.
+                                var requested = model.ExpenseProducts
+                                    .GroupBy(p => p.ProductID)
+                                    .Select(g => new { ProductID = g.Key, Qty = (decimal)g.Sum(x => x.Amount), PNo = g.First().ProductPNo })
+                                    .ToList();
+                                var remainingByProduct = await GetApprovedRemainingForTransferAsync(
+                                    db, productionWH.ID, salesWH.ID, requested.Select(r => r.ProductID).ToList());
 
-                                var transferredByProduct = await db.EXPENSE_PRODUCTS
-                                    .Where(ep => ep.EXPENS.SenderWHID == productionWH.ID
-                                        && ep.EXPENS.ReceiverWhID == salesWH.ID
-                                        && ep.EXPENS.IsDeleted == false)
-                                    .GroupBy(ep => ep.ProductID)
-                                    .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.Amount) ?? 0 })
-                                    .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
-
-                                foreach (var product in model.ExpenseProducts)
+                                foreach (var r in requested)
                                 {
-                                    var approved = approvedByProduct.ContainsKey(product.ProductID)
-                                        ? approvedByProduct[product.ProductID]
-                                        : 0;
-                                    var transferred = transferredByProduct.ContainsKey(product.ProductID)
-                                        ? transferredByProduct[product.ProductID]
-                                        : 0;
-                                    var remaining = approved - transferred;
-
-                                    if ((decimal)product.Amount > remaining)
+                                    decimal remaining;
+                                    remainingByProduct.TryGetValue(r.ProductID, out remaining);
+                                    if (r.Qty > remaining)
                                     {
                                         ModelState.AddModelError("",
-                                            $"Mahsulot {product.ProductPNo} uchun sifat nazorati tasdiqlangan miqdor yetarli emas. Qoldiq: {remaining}, Talab: {product.Amount}");
+                                            $"Mahsulot {r.PNo} uchun sifat nazorati tasdiqlangan miqdor yetarli emas. Qoldiq: {remaining}, Talab: {r.Qty}");
                                         transaction.Rollback();
                                         goto RepopulateViewBag;
                                     }
@@ -614,6 +588,39 @@ namespace tahsinERP.Controllers.SRM
         private static Task<string> GenerateDocNo(DBTHSNEntities db)
         {
             return DocumentNumberService.NextAsync(db, "EXPENSES", "DocNo", DateTime.Now.ToString("yyyyMM") + "_");
+        }
+
+        /// <summary>
+        /// Ishlab chiqarish → sotuv o'tkazmasi uchun sifat nazoratidan o'tgan (APPROVED), lekin hali
+        /// o'tkazilmagan miqdor: mahsulot bo'yicha QtyAccepted − o'tkazilgan. <paramref name="productIds"/> null
+        /// bo'lsa — barcha mahsulotlar. (Avval GetAvailableProducts va Create'da bir xil kodning ikki nusxasi edi.)
+        /// </summary>
+        private static async Task<Dictionary<int, decimal>> GetApprovedRemainingForTransferAsync(
+            DBTHSNEntities db, int productionWhId, int salesWhId, List<int> productIds)
+        {
+            var approvedQuery = db.QUALITY_INSPECTION.Where(q => q.StatusCode == "APPROVED" && q.IsDeleted == false);
+            var transferredQuery = db.EXPENSE_PRODUCTS.Where(ep => ep.EXPENS.SenderWHID == productionWhId
+                && ep.EXPENS.ReceiverWhID == salesWhId
+                && ep.EXPENS.IsDeleted == false);
+            if (productIds != null)
+            {
+                approvedQuery = approvedQuery.Where(q => productIds.Contains(q.ProductID));
+                transferredQuery = transferredQuery.Where(ep => productIds.Contains(ep.ProductID));
+            }
+
+            var approvedByProduct = await approvedQuery
+                .GroupBy(q => q.ProductID)
+                .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.QtyAccepted) ?? 0 })
+                .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
+
+            var transferredByProduct = await transferredQuery
+                .GroupBy(ep => ep.ProductID)
+                .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => (decimal?)x.Amount) ?? 0 })
+                .ToDictionaryAsync(x => x.ProductID, x => x.Qty);
+
+            return approvedByProduct.ToDictionary(
+                k => k.Key,
+                k => k.Value - (transferredByProduct.ContainsKey(k.Key) ? transferredByProduct[k.Key] : 0));
         }
 
         /// <summary>
