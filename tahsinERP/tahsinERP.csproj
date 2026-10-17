@@ -283,6 +283,7 @@
     <Compile Include="Controllers\AdminSetting\UserManualController.cs" />
     <Compile Include="Controllers\Api\TransportLoadApiController.cs" />
     <Compile Include="Controllers\CompanyOrdersController.cs" />
+    <Compile Include="Controllers\DocTemplatesController.cs" />
     <Compile Include="Controllers\CRM\CRMDashboardController.cs" />
     <Compile Include="Controllers\CRM\CustomerBaseController.cs" />
     <Compile Include="Controllers\CRM\SalesInvoicesController.cs" />
@@ -854,6 +855,9 @@
     <Compile Include="Services\Norm\NormLineMath.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\Documents\DocFileService.cs" />
+    <Compile Include="Services\Documents\DocTemplateStore.cs" />
+    <Compile Include="Services\Documents\DocTemplateDataBuilder.cs" />
+    <Compile Include="Services\Documents\DocPlaceholders.cs" />
     <Compile Include="Services\Documents\CompanySettings.cs" />
     <Compile Include="Services\Documents\DocumentService.cs" />
     <Compile Include="Services\Tasks\TaskBadges.cs" />
@@ -2793,7 +2797,6 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
     <Content Include="app-assets\js\scripts\pdfMake\html2pdf.bundle.min.js" />
-    <Content Include="App_Data\Templates\CompanyStandardTemplate.docx" />
     <Content Include="App_Data\Templates\JobDescriptionTemplate.docx" />
     <EntityDeploy Include="Models\DBTHSNModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
@@ -3151,6 +3154,7 @@
     <Content Include="Views\QualityInspection\Index.cshtml" />
     <Content Include="Views\Tender\Index.cshtml" />
     <Content Include="Views\UserManual\Index.cshtml" />
+    <Content Include="Views\DocTemplates\Index.cshtml" />
     <Content Include="Views\Tasks\Create.cshtml" />
     <Content Include="Views\Tasks\Details.cshtml" />
     <Content Include="Views\Tasks\Edit.cshtml" />

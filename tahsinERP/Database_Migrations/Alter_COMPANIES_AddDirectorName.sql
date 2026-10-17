@@ -3,6 +3,7 @@
    Avval xat/buyruq generatsiyasida "X.M. Maxmudov" kodda qattiq yozilgan edi.
    Ustun EDMX'ga qo'shilmaydi: Services/Documents/CompanySettings uni raw SQL bilan o'qiydi
    (ustun hali yo'q bo'lsa — eski qiymatga qaytadi). Idempotent.
+   2026-10-17: lokal DBTHSN-IPACK bazasida ishga tushirildi.
    ===================================================================== */
 IF COL_LENGTH('dbo.COMPANIES', 'DirectorName') IS NULL
 BEGIN

@@ -295,6 +295,7 @@ namespace tahsinERP.Controllers
 
                 // Faqat metadata — avval Include(DOC_FILES) barcha versiyalar blob'ini o'qirdi (DOC-P01)
                 ViewBag.DocFiles = await DocFileService.ListMainAsync(db, doc.ID);
+                ViewBag.Templates = await DocTemplateStore.ListAsync(db, DocPlaceholders.OrderType, activeOnly: true);
 
                 return View(doc);
             }
@@ -326,14 +327,13 @@ namespace tahsinERP.Controllers
             return RedirectToAction("Index");
         }
 
-        // POST so'rovi: CompanyOrders/GenerateDoc/5
+        // POST so'rovi: CompanyOrders/GenerateDoc/5 — templateId: Details'da tanlangan shablon
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> GenerateDoc(long id)
+        public async Task<ActionResult> GenerateDoc(long id, int? templateId)
         {
             using (var db = new DBTHSNEntities())
             {
-                // DOC_TEMPLATES Include olib tashlandi — shablon blob'i ishlatilmasdan yuklanardi (DOC-P07)
                 var doc = await db.DOC_DOCUMENTS
                     .Include(d => d.ADM_COMPANY_ORDERS)
                     .Include(d => d.HR_ORG_UNITS)
@@ -345,78 +345,55 @@ namespace tahsinERP.Controllers
                 }
 
                 var order = doc.ADM_COMPANY_ORDERS;
-                var templateId = await db.DOC_TEMPLATES
-                    .Where(t => t.DocTypeID == doc.DocTypeID && t.IsActive)
-                    .Select(t => (int?)t.ID)
-                    .FirstOrDefaultAsync();
 
-                if (templateId == null)
+                // Tanlangan (yoki yagona/eng yangi faol) shablon — shablonlar bazada (DOC_TEMPLATES)
+                var resolvedTemplateId = await DocTemplateStore.ResolveActiveAsync(db, DocPlaceholders.OrderType, templateId);
+                if (resolvedTemplateId == null)
                 {
-                    TempData["ErrorMessage"] = "Shablon topilmadi";
+                    TempData["ErrorMessage"] = templateId.HasValue
+                        ? "Tanlangan shablon topilmadi yoki arxivlangan."
+                        : "Faol shablon yo'q. \"Shablonlar\" sahifasida Word shablon yuklang.";
                     return RedirectToAction("Details", new { id });
                 }
 
-                // Notes endi mini Word muharriridan HTML bo'lishi mumkin - oddiy matnga aylantiramiz
-                var notesText = OfficialLetterDataService.HtmlToPlainText(order.Notes);
+                var data = DocTemplateDataBuilder.ForOrder(doc, order, doc.HR_ORG_UNITS?.Name, await CompanySettings.DirectorNameAsync(db));
 
-                // Tayyorlash placeholders - matching template structure
-                var placeholders = new Dictionary<string, string>
+                GeneratedDocument generated;
+                try
                 {
-                    { "ORDER_NO", order.OrderNo }, // Template uses ORDER_NO
-                    { "ORDER NO", order.OrderNo }, // Also support space version
-                    { "ORDER_DATE", order.OrderDate.ToString("dd.MM.yyyy") },
-                    { "Order_date", order.OrderDate.ToString("dd.MM.yyyy") }, // Support lowercase variant
-                    { "ORDER_TOPIC", doc.Title ?? "" }, // Template uses ORDER_TOPIC, not ORDER_TITLE
-                    { "ORDER_BODY", notesText }, // Full body text without splitting
-                    { "ORG_UNIT_NAME", doc.HR_ORG_UNITS?.Name ?? "" },
-                    { "DIRECTOR_NAME", await CompanySettings.DirectorNameAsync(db) } // COMPANIES.DirectorName (DOC-B11)
-                };
-
-                // Tahlil qilish Notes into individual content items (ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.)
-                // Split by newlines va filtrlash out empty lines
-                if (!string.IsNullOrEmpty(notesText))
+                    generated = TemplateService.Generate(resolvedTemplateId.Value, data);
+                }
+                catch (Exception ex)
                 {
-                    var lines = notesText.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
-                        .Where(line => !string.IsNullOrWhiteSpace(line))
-                        .Select(line => line.Trim())
-                        .ToList();
-
-                    // O'chirish existing numbering patterns (1., 2., 3., etc.) dan the beginning of har bir line
-                    for (int i = 0; i < lines.Count; i++)
-                    {
-                        var line = lines[i];
-                        // O'chirish patterns like "1.", "1)", "1-", etc. at the start
-                        line = System.Text.RegularExpressions.Regex.Replace(line, @"^\s*\d+[\.\)\-\s]+\s*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                        lines[i] = line.Trim();
-                    }
-
-                    // Qo'shish har bir line as ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.
-                    // Template uses ORDER_DECREE_1_CONTENT_N format
-                    for (int i = 0; i < lines.Count; i++)
-                    {
-                        string key = $"ORDER_DECREE_1_CONTENT_{i + 1}";
-                        placeholders[key] = lines[i];
-                    }
+                    System.Diagnostics.Trace.TraceError("CompanyOrders GenerateDoc {0}: {1}", id, ex);
+                    TempData["ErrorMessage"] = "Hujjat yaratib bo'lmadi: " +
+                        (ex is InvalidOperationException ? ex.Message : "shablon faylini tekshiring (Word'da ochilishi kerak).");
+                    return RedirectToAction("Details", new { id });
                 }
 
-                // Yaratish hujjat
-                string fileName, fileExtension, mimeType;
-                byte[] fileContent = TemplateService.GenerateDocFromTemplate(
-                    templateId.Value, placeholders, out fileName, out fileExtension, out mimeType);
-
                 // Yangi asosiy versiya (VersionNo MAX va IsMain UPDATE SQL'da — blob'lar o'qilmaydi, DOC-P05)
+                DOC_FILES file;
                 using (var tx = db.Database.BeginTransaction())
                 {
-                    await DocFileService.AddMainVersionAsync(db, doc.ID, fileContent,
-                        $"{order.OrderNo}_{order.OrderDate:yyyyMMdd}{fileExtension}",
-                        fileExtension, mimeType, CurrentUserId);
+                    file = await DocFileService.AddMainVersionAsync(db, doc.ID, generated.Content,
+                        $"{order.OrderNo}_{order.OrderDate:yyyyMMdd}" + generated.FileExtension,
+                        generated.FileExtension, generated.MimeType, CurrentUserId);
+                    doc.TemplateID = resolvedTemplateId.Value;
                     await db.SaveChangesAsync();
                     tx.Commit();
                 }
 
                 LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "GenerateDoc", $"Buyruq uchun hujjat yaratildi: {order.OrderNo}");
 
-                TempData["Success"] = "Hujjat muvaffaqiyatli yaratildi";
+                TempData["Success"] = $"Hujjat yaratildi (versiya {file.VersionNo}) va yuklab olinmoqda.";
+                if (generated.UnknownPlaceholders.Count > 0)
+                {
+                    TempData["Warning"] = "Shablonda tanilmagan maydonlar o'zgarishsiz qoldi: " +
+                        string.Join(", ", generated.UnknownPlaceholders.Select(p => "{{" + p + "}}")) +
+                        ". To'g'ri nomlar \"Shablonlar\" sahifasida.";
+                }
+                // Details sahifasi faylni avtomatik yuklab beradi
+                TempData["DownloadFileId"] = file.ID;
                 return RedirectToAction("Details", new { id });
             }
         }

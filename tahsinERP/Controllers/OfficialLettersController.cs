@@ -334,6 +334,7 @@ namespace tahsinERP.Controllers
 
                 // Faqat metadata — avval Include(DOC_FILES) barcha versiyalar blob'ini o'qirdi (DOC-P01)
                 ViewBag.DocFiles = await DocFileService.ListMainAsync(db, doc.ID);
+                ViewBag.Templates = await DocTemplateStore.ListAsync(db, DocPlaceholders.LetterType, activeOnly: true);
 
                 // Saqlangan matn, salomlashish va mahsulotlarni ko'rsatish uchun yuklash
                 var letterData = await OfficialLetterDataService.LoadAsync(db, doc.ID);
@@ -371,10 +372,10 @@ namespace tahsinERP.Controllers
             return RedirectToAction("Index");
         }
 
-        // POST so'rovi: OfficialLetters/GenerateDoc/5
+        // POST so'rovi: OfficialLetters/GenerateDoc/5 — templateId: Details'da tanlangan shablon
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> GenerateDoc(long id)
+        public async Task<ActionResult> GenerateDoc(long id, int? templateId)
         {
             using (var db = new DBTHSNEntities())
             {
@@ -388,72 +389,57 @@ namespace tahsinERP.Controllers
                 }
 
                 var letter = doc.COM_OFFICIAL_LETTERS;
-                // Faqat ID — shablon blob'i DocumentTemplateService'da (keshdan) o'qiladi (DOC-P07)
-                var templateId = await db.DOC_TEMPLATES
-                    .Where(t => t.DocTypeID == doc.DocTypeID && t.IsActive)
-                    .Select(t => (int?)t.ID)
-                    .FirstOrDefaultAsync();
 
-                if (templateId == null)
+                // Tanlangan (yoki yagona/eng yangi faol) shablon — shablonlar bazada (DOC_TEMPLATES)
+                var resolvedTemplateId = await DocTemplateStore.ResolveActiveAsync(db, DocPlaceholders.LetterType, templateId);
+                if (resolvedTemplateId == null)
                 {
-                    TempData["ErrorMessage"] = "Shablon topilmadi";
+                    TempData["ErrorMessage"] = templateId.HasValue
+                        ? "Tanlangan shablon topilmadi yoki arxivlangan."
+                        : "Faol shablon yo'q. \"Shablonlar\" sahifasida Word shablon yuklang.";
                     return RedirectToAction("Details", new { id });
                 }
 
-                // Tayyorlash placeholders
-                var recipientBlock = letter.ExternalCompanyName ?? "";
-                if (!string.IsNullOrEmpty(letter.ExternalContactPosition))
-                {
-                    recipientBlock += "\n" + letter.ExternalContactPosition;
-                }
-                if (!string.IsNullOrEmpty(letter.ExternalContactName))
-                {
-                    recipientBlock += "\n" + letter.ExternalContactName;
-                }
-
-                // Saqlangan matn, salomlashish va mahsulotlarni yuklash
+                // Matn (formatlash bilan), salomlashish va mahsulotlar
                 var letterData = await OfficialLetterDataService.LoadAsync(db, doc.ID);
-                var bodyText = !string.IsNullOrWhiteSpace(letterData.BodyHtml)
-                    ? OfficialLetterDataService.HtmlToPlainText(letterData.BodyHtml)
-                    : (doc.Title ?? "");
-                var greetingLine = !string.IsNullOrWhiteSpace(letterData.GreetingLine)
-                    ? letterData.GreetingLine
-                    : $"Hurmatli {letter.ExternalContactName ?? "hamkor"}!";
+                var data = DocTemplateDataBuilder.ForLetter(doc, letter, letterData, await CompanySettings.DirectorNameAsync(db));
 
-                var placeholders = new Dictionary<string, string>
+                GeneratedDocument generated;
+                try
                 {
-                    { "LETTER_NO", letter.LetterNo },
-                    { "LETTER_DATE", letter.LetterDate.ToString("dd.MM.yyyy") },
-                    { "RECIPIENT_BLOCK", recipientBlock },
-                    { "GREETING_LINE", greetingLine },
-                    { "LETTER_BODY", bodyText },
-                    { "ITEMS_BLOCK", BuildItemsTextBlock(letterData.Items) },
-                    { "DIRECTOR_NAME", await CompanySettings.DirectorNameAsync(db) }, // COMPANIES.DirectorName (DOC-B11)
-                    { "OUR_REF_NO", letter.OurRefNo ?? "" },
-                    { "THEIR_REF_NO", letter.TheirRefNo ?? "" }
-                };
-
-                // Har bir mahsulot uchun alohida o'rin egallovchilar (shablon mosligi uchun)
-                AddItemPlaceholders(placeholders, letterData.Items);
-
-                // Yaratish hujjat
-                string fileName, fileExtension, mimeType;
-                byte[] fileContent = TemplateService.GenerateDocFromTemplate(
-                    templateId.Value, placeholders, out fileName, out fileExtension, out mimeType);
+                    generated = TemplateService.Generate(resolvedTemplateId.Value, data);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.TraceError("OfficialLetters GenerateDoc {0}: {1}", id, ex);
+                    TempData["ErrorMessage"] = "Hujjat yaratib bo'lmadi: " +
+                        (ex is InvalidOperationException ? ex.Message : "shablon faylini tekshiring (Word'da ochilishi kerak).");
+                    return RedirectToAction("Details", new { id });
+                }
 
                 // Yangi asosiy versiya (VersionNo MAX va IsMain UPDATE SQL'da — blob'lar o'qilmaydi, DOC-P05)
+                DOC_FILES file;
                 using (var tx = db.Database.BeginTransaction())
                 {
-                    await DocFileService.AddMainVersionAsync(db, doc.ID, fileContent,
-                        $"{letter.LetterNo}_{letter.LetterDate:yyyyMMdd}{fileExtension}",
-                        fileExtension, mimeType, CurrentUserId);
+                    file = await DocFileService.AddMainVersionAsync(db, doc.ID, generated.Content,
+                        $"{letter.LetterNo}_{letter.LetterDate:yyyyMMdd}" + generated.FileExtension,
+                        generated.FileExtension, generated.MimeType, CurrentUserId);
+                    doc.TemplateID = resolvedTemplateId.Value;
                     await db.SaveChangesAsync();
                     tx.Commit();
                 }
 
                 LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "GenerateDoc", $"Xat uchun hujjat yaratildi: {letter.LetterNo}");
 
-                TempData["Success"] = "Hujjat muvaffaqiyatli yaratildi";
+                TempData["Success"] = $"Hujjat yaratildi (versiya {file.VersionNo}) va yuklab olinmoqda.";
+                if (generated.UnknownPlaceholders.Count > 0)
+                {
+                    TempData["Warning"] = "Shablonda tanilmagan maydonlar o'zgarishsiz qoldi: " +
+                        string.Join(", ", generated.UnknownPlaceholders.Select(p => "{{" + p + "}}")) +
+                        ". To'g'ri nomlar \"Shablonlar\" sahifasida.";
+                }
+                // Details sahifasi faylni avtomatik yuklab beradi
+                TempData["DownloadFileId"] = file.ID;
                 return RedirectToAction("Details", new { id });
             }
         }
@@ -602,59 +588,6 @@ namespace tahsinERP.Controllers
                 }
             }
             return result;
-        }
-
-        // Mahsulotlarni hujjatga joylash uchun matn bloki sifatida shakllantiradi
-        private static string BuildItemsTextBlock(List<OfficialLetterItemData> items)
-        {
-            if (items == null || items.Count == 0)
-                return string.Empty;
-
-            var sb = new System.Text.StringBuilder();
-            int i = 1;
-            foreach (var it in items)
-            {
-                sb.Append(i + ". " + (it.ItemName ?? ""));
-                if (!string.IsNullOrWhiteSpace(it.ItemSize))
-                    sb.Append(" (" + it.ItemSize + ")");
-                sb.AppendLine();
-
-                if (it.PriceExw.HasValue)
-                    sb.AppendLine("   Narx EXW: " + it.PriceExw.Value.ToString("#,0.##"));
-                if (it.PriceVatExw.HasValue)
-                    sb.AppendLine("   Narx QQS bilan EXW: " + it.PriceVatExw.Value.ToString("#,0.##"));
-                if (it.PriceCip.HasValue)
-                    sb.AppendLine("   Narx CIP: " + it.PriceCip.Value.ToString("#,0.##"));
-                if (it.PriceVatCip.HasValue)
-                    sb.AppendLine("   Narx QQS bilan CIP: " + it.PriceVatCip.Value.ToString("#,0.##"));
-
-                i++;
-            }
-
-            return sb.ToString().TrimEnd();
-        }
-
-        // Har bir mahsulot uchun indeksli o'rin egallovchilarni qo'shadi (ITEM_NAME_1, ITEM_PRICE_EXW_1, ...)
-        private static void AddItemPlaceholders(Dictionary<string, string> placeholders, List<OfficialLetterItemData> items)
-        {
-            if (items == null)
-                return;
-
-            for (int idx = 0; idx < items.Count; idx++)
-            {
-                var it = items[idx];
-                int n = idx + 1;
-                placeholders["ITEM_NAME_" + n] = it.ItemName ?? "";
-                placeholders["ITEM_DIM_" + n] = it.ItemSize ?? "";
-                placeholders["ITEM_PRICE_EXW_" + n] = it.PriceExw.HasValue ? it.PriceExw.Value.ToString("#,0.##") : "";
-                placeholders["ITEM_PRICE_VAT_EXW_" + n] = it.PriceVatExw.HasValue ? it.PriceVatExw.Value.ToString("#,0.##") : "";
-                placeholders["ITEM_PRICE_CIP_" + n] = it.PriceCip.HasValue ? it.PriceCip.Value.ToString("#,0.##") : "";
-                placeholders["ITEM_PRICE_VAT_CIP_" + n] = it.PriceVatCip.HasValue ? it.PriceVatCip.Value.ToString("#,0.##") : "";
-
-                // Eski shablon mosligi: ITEM_PRICE_1 / ITEM_PRICE_VAT_1 = EXW narxlari
-                placeholders["ITEM_PRICE_" + n] = placeholders["ITEM_PRICE_EXW_" + n];
-                placeholders["ITEM_PRICE_VAT_" + n] = placeholders["ITEM_PRICE_VAT_EXW_" + n];
-            }
         }
 
         // Olish so'rovi: OfficialLetters/RegisterIncoming
