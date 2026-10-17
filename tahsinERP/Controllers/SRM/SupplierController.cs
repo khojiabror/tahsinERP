@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
@@ -137,7 +136,7 @@ namespace tahsinERP.Controllers
         [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(SUPPLIER supplier, FormCollection collection)
+        public async Task<ActionResult> Create(SUPPLIER supplier)
         {
             if (!CanChange("Supplier"))
             {
@@ -208,7 +207,7 @@ namespace tahsinERP.Controllers
         [ActionViewPermission(change: true)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(SUPPLIER supplier, FormCollection collection)
+        public async Task<ActionResult> Edit(SUPPLIER supplier)
         {
             if (!CanChange("Supplier"))
             {

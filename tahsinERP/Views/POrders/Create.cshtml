@@ -97,18 +97,7 @@
                                                 @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                             </div>
                                             @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? 0 })
-                                                                                            
-                                                @*<div class="col-md-3 col-12 form-group">
-                                                    <label for="SupplierID">Ta'minotchi</label>
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect" })
-                                                    @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="ContractID">Shartnoma</label>
-                                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
-                                                    @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                </div>*@
-                                            
+
                                             <div class="col-md-3 col-12 form-group">
                                                 <label for="CurrencyID">Valyuta</label>
                                                 @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
@@ -268,7 +257,6 @@
                     var isIndirect = @(isIndirecto ? "true" : "false");
                     var requisitionId = @(requisitionId.HasValue ? requisitionId.Value.ToString() : "null");
                     var $vatRateInput = $('#vatRateInput');
-                    var selectedContractId = '@(Model != null && Model.ContractID.HasValue ? Model.ContractID.Value.ToString() : "")';
 
                     function getVatRate() {
                         var vatRate = parseFloat($vatRateInput.val());
@@ -309,67 +297,10 @@
                         loadRequisitionProducts(requisitionId);
                     }
 
-                    function loadContractsBySupplier(supplierId, selectedId) {
-                        var $contractSelect = $('#contractSelect');
-                        $contractSelect.empty().append('<option value="">---Tanlang---</option>');
-
-                        if (!supplierId) {
-                            if (typeof $.fn.select2 !== 'undefined') {
-                                $contractSelect.select2();
-                            }
-                            return;
-                        }
-
-                        $.ajax({
-                            url: '@Url.Action("GetContractsBySupplier", "POrders")',
-                            type: 'POST',
-                            data: { supplierId: supplierId },
-                            success: function (response) {
-                                if (response && response.success && response.data && Array.isArray(response.data)) {
-                                    response.data.forEach(function (contract) {
-                                        var $option = $('<option>')
-                                            .attr('value', contract.ID)
-                                            .attr('data-vat-rate', contract.VatRate != null ? contract.VatRate : 0)
-                                            .text(contract.ContractNo);
-                                        if (selectedId && String(contract.ID) === String(selectedId)) {
-                                            $option.attr('selected', 'selected');
-                                        }
-                                        $contractSelect.append($option);
-                                    });
-                                }
-                                if (typeof $.fn.select2 !== 'undefined') {
-                                    $contractSelect.select2();
-                                }
-                                $contractSelect.trigger('change');
-                            }
-                        });
-                    }
-
-                    if (isIndirect && $('#supplierSelect').length > 0) {
-                        $('#supplierSelect').on('change', function () {
-                            loadContractsBySupplier($(this).val(), null);
-                        });
-                    }
-
-                    if (isIndirect && $('#contractSelect').length > 0) {
-                        $('#contractSelect').on('change', function () {
-                            var selected = $(this).find('option:selected');
-                            var vatRate = parseFloat(selected.attr('data-vat-rate'));
-                            if (!isNaN(vatRate)) {
-                                $vatRateInput.val(vatRate.toFixed(2));
-                            }
-                            updateTotal();
-                            $('.amount-input, .price-input').trigger('input');
-                        });
-                    }
-
                     $vatRateInput.on('input', function () {
                         updateTotal();
                         $('.amount-input, .price-input').trigger('input');
                     });
-                    if (isIndirect && $('#supplierSelect').length > 0) {
-                        loadContractsBySupplier($('#supplierSelect').val(), selectedContractId);
-                    }
 
                     // Function to load products from requisition
                     function loadRequisitionProducts(reqId) {
@@ -688,11 +619,6 @@
                             var selectedOption = $(this).find('option:selected');
                             var pno = selectedOption.attr('data-pno') || selectedOption.text() || '';
                             $row.find('.product-pno').val(pno);
-                            
-                            // Load product details via AJAX if needed
-                            if ($(this).val()) {
-                                // You can add AJAX call here to get product name
-                            }
                         });
 
                         productRowIndex++;
