@@ -215,7 +215,7 @@ namespace tahsinERP.Services.Finance
                     + opening.PaidAmount;
             }
 
-            model.PayrollDebtsByEmployee = payrollByEmployee
+            var payrollDebts = payrollByEmployee
                 .Select(x =>
                 {
                     var paid = payrollPaidByEmployee.ContainsKey(x.EmployeeID) ? payrollPaidByEmployee[x.EmployeeID] : 0m;
@@ -230,9 +230,10 @@ namespace tahsinERP.Services.Finance
                 })
                 .Where(x => x.DebtAmount > 0)
                 .OrderByDescending(x => x.DebtAmount)
-                .Take(30)
                 .ToList();
-            model.TotalPayrollDebt = model.PayrollDebtsByEmployee.Sum(x => x.DebtAmount);
+            // FIN-B10: jami barcha qarzdor xodimlar bo'yicha (avval faqat ko'rsatiladigan 30 tasi qo'shilardi)
+            model.TotalPayrollDebt = payrollDebts.Sum(x => x.DebtAmount);
+            model.PayrollDebtsByEmployee = payrollDebts.Take(30).ToList();
         }
 
         #endregion

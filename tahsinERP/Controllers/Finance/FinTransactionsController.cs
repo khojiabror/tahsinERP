@@ -551,14 +551,6 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        /// <summary>
-        /// Backward compatibility: eski endpoint (faqat ta'minotchi).
-        /// </summary>
-        [HttpGet]
-        public JsonResult GetContractsBySupplier(int supplierId)
-        {
-            return GetContractsByCounterparty(2, supplierId);
-        }
 
         // Olish so'rovi: FinTransactions/Edit/5
         public ActionResult Edit(int? id)
@@ -1406,11 +1398,12 @@ namespace tahsinERP.Controllers.Finance
                 case "PurchaseInvoice":
                     return Url.Action("Details", "PInvoices", new { id = sourceDocID });
                 case "IncomeDoc":
-                    return Url.Action("Details", "WhIncome", new { id = sourceDocID });
+                    return Url.Action("Details", "Incomes", new { id = sourceDocID });
                 case "ExpenseDoc":
-                    return Url.Action("Details", "WhExpense", new { id = sourceDocID });
+                    return Url.Action("Details", "Expenses", new { id = sourceDocID });
                 case "ShareholderContribution":
-                    return Url.Action("Details", "Shareholders", new { id = sourceDocID });
+                    // Aksiyador hissasi yozuvida SourceDocID aksiyador emas — ro'yxatga yo'naltiramiz
+                    return Url.Action("Index", "Shareholder");
                 case "WaybillPayment":
                     return Url.Action("Details", "WaybillPayment", new { id = sourceDocID });
                 default:

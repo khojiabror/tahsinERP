@@ -434,7 +434,7 @@ namespace tahsinERP.Services.Finance
                 .ToDictionary(x => x.ID, x => new HashSet<int>(x.Cats));
 
             var plans = db.FIN_PL_PLANS
-                .Where(p => p.Year == year && p.Month == month)
+                .Where(p => p.Year == year && p.Month == month && p.IsDeleted != true)
                 .ToDictionary(p => p.ItemID, p => p.AmountPlan);
 
             PLItemData CalculateItemData(FIN_PL_ITEMS item)

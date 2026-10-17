@@ -183,7 +183,8 @@ namespace tahsinERP.Services.Finance
         /// <summary>Faol aksiyadorlar va asOf sanasidagi ulushlari bo'yicha qiymat (ulush davrlari bitta so'rov bilan).</summary>
         public List<ShareholderValueData> ShareholderValues(DateTime asOfDate, decimal companyValue)
         {
-            var shareholders = _db.SHAREHOLDERS.AsNoTracking().Where(s => s.IsActive).ToList();
+            // FIN-B12: o'chirilgan aksiyador qiymatdan ulush olmaydi
+            var shareholders = _db.SHAREHOLDERS.AsNoTracking().Where(s => s.IsActive && s.IsDeleted != true).ToList();
             var ids = shareholders.Select(s => s.ID).ToList();
             var periods = ids.Count == 0
                 ? new List<SHAREHOLDER_SHARE_PERIODS>()
