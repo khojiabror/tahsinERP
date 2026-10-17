@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
@@ -7,7 +8,8 @@ namespace tahsinERP.Services.Tasks
     /// <summary>
     /// Status/prioritet ranglari — avval 7 ta view'da (Tasks Index/Details, TaskProject Details,
     /// Kanban, Dashboard) nom bo'yicha bir xil if-zanjiri nusxalangan edi (MNT-01).
-    /// Ranglar hozircha nomdan aniqlanadi; ref jadvallarga ColorHex/IsFinal qo'shilsa, shu yerda almashtiriladi.
+    /// Rang va "yopilgan" belgisi ref jadvallardan (ColorHex, IsFinal — MNT-01/TSK-B09); jadvalda bo'lmasa
+    /// (masalan, nomi o'zgargan eski yozuv) avvalgi nom qoidasi zaxira sifatida ishlaydi.
     /// </summary>
     public static class TaskBadges
     {
@@ -28,18 +30,47 @@ namespace tahsinERP.Services.Tasks
             return StatusKind.Other;
         }
 
-        /// <summary>Status nomi "bajarilgan"ni bildiradimi (muddati o'tganini belgilashda — TSK-B09).</summary>
+        /// <summary>Status nomi "bajarilgan"ni bildiradimi (ref jadvalda bo'lmagan nomlar uchun zaxira qoida).</summary>
         public static bool IsDoneName(string statusName) => Kind(statusName) == StatusKind.Done;
 
-        /// <summary>Muddati o'tgan va bajarilmagan.</summary>
+        private static readonly System.Text.RegularExpressions.Regex HexColor =
+            new System.Text.RegularExpressions.Regex("^#[0-9A-Fa-f]{6}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>Faqat #RRGGBB (rang style atributiga yoziladi — boshqa qiymat e'tiborsiz).</summary>
+        private static string ValidColor(string color) => color != null && HexColor.IsMatch(color) ? color : null;
+
+        private static TaskLookups.Item FindStatus(string statusName)
+        {
+            return statusName == null ? null : TaskLookups.AllStatuses().FirstOrDefault(st => st.Name == statusName);
+        }
+
+        private static TaskLookups.Item FindPriority(string priorityName)
+        {
+            return priorityName == null ? null : TaskLookups.Priorities().FirstOrDefault(p => p.Name == priorityName);
+        }
+
+        /// <summary>Yopilgan status (IsFinal); jadvalda topilmasa — nom bo'yicha "bajarildi"/"bekor".</summary>
+        public static bool IsClosedName(string statusName)
+        {
+            var status = FindStatus(statusName);
+            if (status != null)
+                return status.IsFinal;
+            var kind = Kind(statusName);
+            return kind == StatusKind.Done || kind == StatusKind.Cancelled;
+        }
+
+        /// <summary>Muddati o'tgan va yopilmagan (muddat kuni o'tmaguncha — "Muddatidan o'tgan" filtri bilan bir xil).</summary>
         public static bool IsOverdue(DateTime? dueDate, string statusName)
         {
-            return dueDate.HasValue && dueDate.Value < DateTime.Now && !IsDoneName(statusName);
+            return dueDate.HasValue && dueDate.Value < DateTime.Today && !IsClosedName(statusName);
         }
 
         /// <summary>Status rangi (grafik uchun; noma'lum — kulrang).</summary>
         public static string StatusColor(string statusName)
         {
+            var color = ValidColor(FindStatus(statusName)?.ColorHex);
+            if (!string.IsNullOrEmpty(color))
+                return color;
             switch (Kind(statusName))
             {
                 case StatusKind.Done: return DoneColor;
@@ -52,6 +83,9 @@ namespace tahsinERP.Services.Tasks
         /// <summary>Prioritet rangi; mos kelmasa null.</summary>
         public static string PriorityColorOrNull(string priorityName)
         {
+            var color = ValidColor(FindPriority(priorityName)?.ColorHex);
+            if (!string.IsNullOrEmpty(color))
+                return color;
             string n = priorityName?.ToLowerInvariant() ?? "";
             if (n.Contains("juda muhim") || n.Contains("critical")) return "#DC3545";
             if (n.Contains("muhim") || n.Contains("high")) return "#FF6666";
@@ -75,7 +109,8 @@ namespace tahsinERP.Services.Tasks
         /// <summary>Status uchun inline style ("" — rangsiz).</summary>
         public static string StatusStyle(string statusName)
         {
-            return Kind(statusName) == StatusKind.Other ? "" : ColorStyle(StatusColor(statusName));
+            bool hasColor = ValidColor(FindStatus(statusName)?.ColorHex) != null || Kind(statusName) != StatusKind.Other;
+            return hasColor ? ColorStyle(StatusColor(statusName)) : "";
         }
 
         public static IHtmlString TaskStatusBadge(this HtmlHelper html, string statusName, string emptyText = "", string extraClass = null)
