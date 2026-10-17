@@ -39,6 +39,78 @@ namespace tahsinERP.Services
             _db = db;
         }
 
+        private PRODUCT GetProduct(int productId)
+        {
+            PRODUCT product;
+            if (_products.TryGetValue(productId, out product))
+                return product;
+
+            product = _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Include(p => p.UNIT)
+                .FirstOrDefault(p => p.ID == productId);
+            _products[productId] = product;
+            return product;
+        }
+
+        private UNIT GetUnit(int unitId)
+        {
+            if (_units == null)
+            {
+                _units = _db.UNITS
+                    .Where(x => x.IsDeleted == null || x.IsDeleted == false)
+                    .OrderBy(x => x.ID)
+                    .ToList();
+            }
+            return _units.FirstOrDefault(u => u.ID == unitId) ?? _db.UNITS.Find(unitId);
+        }
+
+        private static bool RequiresCutting(PRODUCT product)
+        {
+            return product.CategoryID.HasValue && product.PRODUCT_CATEGORIES != null && product.PRODUCT_CATEGORIES.RequiresCutting;
+        }
+
+        /// <summary>
+        /// Qat'iy (sinxron) konversiya — ombor qoldig'i uchun (SRM-B14). Birliklar bir xil bo'lsa — o'zi;
+        /// dona↔kg (mahsulot Weight bo'yicha) va metr↔dona (kesiladigan mahsulot Length bo'yicha) qo'llab-quvvatlanadi.
+        /// Qo'llab-quvvatlanmasa yoki mahsulotda kerakli o'lcham yo'q bo'lsa — null (miqdor o'zgarmay qaytarilmaydi).
+        /// Sinxron: StockLedger tranzaksiya ichida sinxron ishlaydi (ASP.NET kontekstida .Result deadlock'idan qochish).
+        /// </summary>
+        public decimal? TryConvert(int productId, decimal quantity, int fromUnitId, int toUnitId)
+        {
+            if (fromUnitId == toUnitId)
+                return quantity;
+
+            var fromUnit = GetUnit(fromUnitId);
+            var toUnit = GetUnit(toUnitId);
+            var product = GetProduct(productId);
+            if (fromUnit == null || toUnit == null || product == null)
+                return null;
+
+            var weight = product.Weight.HasValue && product.Weight.Value > 0 ? (decimal)product.Weight.Value : 0m;
+            var lengthM = RequiresCutting(product) && product.Length.HasValue && product.Length.Value > 0
+                ? (decimal)(product.Length.Value / 1000.0)
+                : 0m;
+
+            if (IsKgUnit(fromUnit) && IsDonaUnit(toUnit))
+                return weight > 0 ? quantity / weight : (decimal?)null;
+            if (IsDonaUnit(fromUnit) && IsKgUnit(toUnit))
+                return weight > 0 ? quantity * weight : (decimal?)null;
+            if (IsMeterUnit(fromUnit) && IsDonaUnit(toUnit))
+                return lengthM > 0 ? Math.Ceiling(quantity / lengthM) : (decimal?)null;
+            if (IsDonaUnit(fromUnit) && IsMeterUnit(toUnit))
+                return lengthM > 0 ? quantity * lengthM : (decimal?)null;
+
+            return null;
+        }
+
+        /// <summary>Birlik nomi (xato xabarlari uchun).</summary>
+        public string UnitName(int unitId)
+        {
+            var u = GetUnit(unitId);
+            return u == null ? "#" + unitId : (u.ShortName ?? u.UnitName ?? "#" + unitId);
+        }
+
         /// <summary>
         /// Converts meter quantity to piece quantity for products that require cutting
         /// Formula: pieceQty = requiredMeter / (Length / 1000)
@@ -159,37 +231,6 @@ namespace tahsinERP.Services
             return product.CategoryID.HasValue && 
                    product.PRODUCT_CATEGORIES != null && 
                    product.PRODUCT_CATEGORIES.RequiresCutting;
-        }
-
-        /// <summary>
-        /// Gets the appropriate unit ID for a product based on whether it requires cutting
-        /// </summary>
-        /// <param name="productId">Product ID</param>
-        /// <param name="forPieces">If true, returns piece unit (1), if false returns meter unit (5) for cutting products</param>
-        /// <returns>Unit ID</returns>
-        public async Task<int> GetUnitIdAsync(int productId, bool forPieces = false)
-        {
-            var product = await GetProductAsync(productId);
-
-            if (product == null)
-            {
-                return 1; // Default to dona
-            }
-
-            bool requiresCutting = product.CategoryID.HasValue && 
-                                   product.PRODUCT_CATEGORIES != null && 
-                                   product.PRODUCT_CATEGORIES.RequiresCutting;
-
-            if (requiresCutting)
-            {
-                // For cutting products: 5 = meter, 1 = piece
-                return forPieces ? 1 : 5;
-            }
-            else
-            {
-                // For non-cutting products, use product's default unit or dona
-                return product.UnitID > 0 ? product.UnitID : 1;
-            }
         }
 
         /// <summary>
@@ -412,8 +453,6 @@ namespace tahsinERP.Services
         public Task<int?> FindKgUnitIdAsync() => FindFirstUnitIdAsync(IsKgUnit);
 
         public Task<int?> FindDonaUnitIdAsync() => FindFirstUnitIdAsync(IsDonaUnit);
-
-        public Task<int?> FindMeterUnitIdAsync() => FindFirstUnitIdAsync(IsMeterUnit);
 
         private static bool IsKgUnit(UNIT u)
         {

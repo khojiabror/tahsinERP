@@ -1005,6 +1005,7 @@
           <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" />
           <Property Name="Comment" Type="text" />
           <Property Name="UnitID" Type="int" Nullable="false" />
+          <Property Name="VATRate" Type="float" />
         </EntityType>
         <EntityType Name="INCOMES">
           <Key>
@@ -1014,7 +1015,6 @@
           <Property Name="DocNo" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="ReceivingWHID" Type="int" Nullable="false" />
           <Property Name="Amount" Type="float" />
-          <Property Name="Currency" Type="varchar" MaxLength="35" />
           <Property Name="TotalPrice" Type="float" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="Description" Type="text" />
@@ -1946,6 +1946,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.USERROLES' does not have a primar
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="CreatedAt" Type="datetime" Nullable="false" />
         </EntityType>
+        <EntityType Name="INVENTORY_ADJUSTMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="WarehouseID" Type="int" Nullable="false" />
+          <Property Name="Period" Type="date" Nullable="false" />
+          <Property Name="UserID" Type="int" />
+          <Property Name="IncomeID" Type="int" />
+          <Property Name="ExpenseID" Type="int" />
+          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="WAREHOUSES">
           <Key>
             <PropertyRef Name="ID" />
@@ -1957,6 +1969,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.USERROLES' does not have a primar
           <Property Name="MRP" Type="int" />
           <Property Name="ShopID" Type="int" />
           <Property Name="Account" Type="int" />
+          <Property Name="WarehouseType" Type="varchar" MaxLength="20" />
         </EntityType>
         <EntityType Name="WASTE_STOCKS">
           <Key>
@@ -5380,6 +5393,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="USERLOGS" EntityType="Self.USERLOGS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="USERS" EntityType="Self.USERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WAREHOUSE_LOCATIONS" EntityType="Self.WAREHOUSE_LOCATIONS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="INVENTORY_ADJUSTMENTS" EntityType="Self.INVENTORY_ADJUSTMENTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WAREHOUSES" EntityType="Self.WAREHOUSES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WASTE_STOCKS" EntityType="Self.WASTE_STOCKS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WASTES" EntityType="Self.WASTES" Schema="dbo" store:Type="Tables" />
@@ -7626,6 +7640,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="TotalPrice" Type="Double" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
+          <Property Name="VATRate" Type="Double" />
           <NavigationProperty Name="INCOME" Relationship="Self.FK_PROD_WRHS_INCOME_PRODS_PROD_WRHS_INCOMES" FromRole="INCOME_PRODUCTS" ToRole="INCOMES" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_PROD_WRHS_INCOME_PRODUCTS_PRODUCTS" FromRole="INCOME_PRODUCTS" ToRole="PRODUCTS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_PROD_WRHS_INCOME_PRODUCTS_UNITS" FromRole="INCOME_PRODUCTS" ToRole="UNITS" />
@@ -7639,7 +7654,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="DocNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="ReceivingWHID" Type="Int32" Nullable="false" />
           <Property Name="Amount" Type="Double" />
-          <Property Name="Currency" Type="String" MaxLength="35" FixedLength="false" Unicode="false" />
           <Property Name="TotalPrice" Type="Double" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
@@ -8786,6 +8800,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="ROLES" Relationship="Self.USERROLES" FromRole="USERS" ToRole="ROLES" />
           <NavigationProperty Name="USER_LICENSES" Relationship="DBTHSNModel.FK_UL_USERS" FromRole="USER" ToRole="USER_LICENSES" />
         </EntityType>
+        <EntityType Name="INVENTORY_ADJUSTMENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="WarehouseID" Type="Int32" Nullable="false" />
+          <Property Name="Period" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UserID" Type="Int32" />
+          <Property Name="IncomeID" Type="Int32" />
+          <Property Name="ExpenseID" Type="Int32" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
         <EntityType Name="Warehouse">
           <Key>
             <PropertyRef Name="ID" />
@@ -8797,6 +8823,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="MRP" Type="Int32" />
           <Property Name="ShopID" Type="Int32" />
           <Property Name="Account" Type="Int32" />
+          <Property Name="WarehouseType" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="EXPENSES" Relationship="Self.FK_PROD_WRHS_EXPENSES_PROD_WRHS" FromRole="WAREHOUSES" ToRole="EXPENSES" />
           <NavigationProperty Name="EXPENSES1" Relationship="Self.FK_PROD_WRHS_EXPENSES_PROD_WRHS2" FromRole="WAREHOUSES" ToRole="EXPENSES" />
           <NavigationProperty Name="INCOMES" Relationship="Self.FK_PROD_WRHS_INCOMES_PROD_WRHS" FromRole="WAREHOUSES" ToRole="INCOMES" />
@@ -11960,6 +11987,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="USERIMAGES" EntityType="Self.USERIMAGE" />
           <EntitySet Name="USERLOGS" EntityType="Self.USERLOG" />
           <EntitySet Name="USERS" EntityType="Self.USER" />
+          <EntitySet Name="INVENTORY_ADJUSTMENTS" EntityType="Self.INVENTORY_ADJUSTMENTS" />
           <EntitySet Name="WAREHOUSES" EntityType="Self.Warehouse" />
           <EntitySet Name="WASTE_STOCKS" EntityType="Self.WASTE_STOCKS" />
           <EntitySet Name="WASTES" EntityType="Self.WASTE" />
@@ -14327,6 +14355,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
                 <ScalarProperty Name="Comment" ColumnName="Comment" />
                 <ScalarProperty Name="UnitID" ColumnName="UnitID" />
+                <ScalarProperty Name="VATRate" ColumnName="VATRate" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14337,7 +14366,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="DocNo" ColumnName="DocNo" />
                 <ScalarProperty Name="ReceivingWHID" ColumnName="ReceivingWHID" />
                 <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="Currency" ColumnName="Currency" />
                 <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
@@ -15281,6 +15309,19 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="INVENTORY_ADJUSTMENTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.INVENTORY_ADJUSTMENTS">
+              <MappingFragment StoreEntitySet="INVENTORY_ADJUSTMENTS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="WarehouseID" ColumnName="WarehouseID" />
+                <ScalarProperty Name="Period" ColumnName="Period" />
+                <ScalarProperty Name="UserID" ColumnName="UserID" />
+                <ScalarProperty Name="IncomeID" ColumnName="IncomeID" />
+                <ScalarProperty Name="ExpenseID" ColumnName="ExpenseID" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="WAREHOUSES">
             <EntityTypeMapping TypeName="DBTHSNModel.Warehouse">
               <MappingFragment StoreEntitySet="WAREHOUSES">
@@ -15291,6 +15332,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="MRP" ColumnName="MRP" />
                 <ScalarProperty Name="ShopID" ColumnName="ShopID" />
                 <ScalarProperty Name="Account" ColumnName="Account" />
+                <ScalarProperty Name="WarehouseType" ColumnName="WarehouseType" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

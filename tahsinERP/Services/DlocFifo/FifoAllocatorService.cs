@@ -37,18 +37,5 @@ namespace tahsinERP.Services.DlocFifo
             return result;
         }
 
-        public static void ValidateStrictFifo(DBTHSNEntities db, int warehouseId, int productId, int? selectedLotId)
-        {
-            if (!DlocFifoSchema.IsEnabled(db) || !selectedLotId.HasValue)
-                return;
-
-            var oldest = DlocFifoDataAccess.GetAvailableFifoLines(db, warehouseId, productId).FirstOrDefault();
-            if (oldest == null)
-                return;
-
-            if (oldest.LotID != selectedLotId.Value)
-                throw new WarehouseDlocException("FIFO_VIOLATION_BLOCKED",
-                    "FIFO qoidasiga zid chiqim. Avval eng eski kirim lotidan chiqim qiling.");
-        }
     }
 }

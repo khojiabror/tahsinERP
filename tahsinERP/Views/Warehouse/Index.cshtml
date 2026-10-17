@@ -74,6 +74,7 @@
                                                 <tr>
                                                     <th>Ombor nomi</th>
                                                     <th>Tavsif</th>
+                                                    <th>Turi</th>
                                                     <th>Sex</th>
                                                     <th>MRP (Mas'ul shaxs)</th>
                                                     @if (dlocEnabled)
@@ -96,6 +97,7 @@
                                                             </a>
                                                         </td>
                                                         <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
+                                                        <td>@tahsinERP.Services.Stock.WarehouseRoles.DisplayName(item.WarehouseType)</td>
                                                         <td>@(item.SHOP?.ShopName ?? "-")</td>
                                                         <td>@(item.USER?.FullName ?? "-")</td>
                                                         @if (dlocEnabled)
