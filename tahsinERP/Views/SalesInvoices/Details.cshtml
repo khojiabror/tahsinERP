@@ -119,6 +119,13 @@
                                                                     <i class="bx bx-plus"></i> SF yaratish
                                                                 </a>
                                                             }
+                                                            @if (tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, "SalesTTNK", "CreateFromInvoices", true))
+                                                            {
+                                                                @* TTNK yaratishga yagona kirish nuqtasi (CRM-B17: avval havola yo'q edi) *@
+                                                                <a href="@Url.Action("CreateFromInvoices", "SalesTTNK", new { invoiceIDs = Model.ID })" class="btn btn-success">
+                                                                    <i class="bx bx-plus"></i> TTNK yaratish
+                                                                </a>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>

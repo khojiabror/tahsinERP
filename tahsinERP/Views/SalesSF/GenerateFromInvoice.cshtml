@@ -65,7 +65,7 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>SF raqami *</label>
-                                                        @Html.TextBoxFor(m => m.SFNumber, new { @class = "form-control", required = "required" })
+                                                        @Html.TextBoxFor(m => m.SFNumber, new { @class = "form-control", placeholder = "Bo'sh qoldiring — avtomatik (SF-yyyy-0001)" })
                                                         @Html.ValidationMessageFor(m => m.SFNumber, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
