@@ -30,7 +30,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var grades = await db.HR_SALARY_GRADES
+            var grades = await db.HR_SALARY_GRADES.AsNoTracking()
                 .Where(sg => sg.IsDeleted == false || sg.IsDeleted == null)
                 .OrderBy(sg => sg.GradeCode)
                 .ToListAsync();
