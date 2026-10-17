@@ -517,7 +517,6 @@
     <Compile Include="Controllers\JobDescController.cs" />
     <Compile Include="Controllers\Logistic\LogisticsDashboardController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
-    <Compile Include="Controllers\MES\DailyPlanUpdateItem.cs" />
     <Compile Include="Controllers\MES\MESDashboardController.cs" />
     <Compile Include="Controllers\MES\MESReportsController.cs" />
     <Compile Include="Controllers\MES\ProductProductionController.cs" />
@@ -3134,7 +3133,6 @@
     <Content Include="Views\Currency\Delete.cshtml" />
     <Content Include="Views\Currency\Edit.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
-    <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
     <Content Include="Views\PartStock\UploadWithExcel.cshtml" />
     <Content Include="Views\Norm\Edit.cshtml" />
     <Content Include="Views\Norm\Index.cshtml" />

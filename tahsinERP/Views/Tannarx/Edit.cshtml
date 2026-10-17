@@ -249,19 +249,6 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function () {
-            // Auto-recalculate when SetPriceEXWWithVAT changes
-            $('#SetPriceEXWWithVAT').on('input', function () {
-                var setPrice = parseFloat($(this).val()) || 0;
-                if (setPrice > 0) {
-                    // This will be recalculated on server side
-                    // Just show a message
-                    console.log('Narx o\'zgartirildi. Saqlashda qayta hisoblanadi.');
-                }
-            });
-        });
-    </script>
 }
 else
 {
