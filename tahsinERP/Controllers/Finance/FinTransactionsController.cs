@@ -15,154 +15,207 @@ namespace tahsinERP.Controllers.Finance
 {
     public class FinTransactionsController : Controller
     {
-        // Olish so'rovi: FinTransactions
-        public ActionResult Index(DateTime? fromDate, DateTime? toDate, int? accountID, int? categoryID, 
-            byte? direction, byte? counterpartyType, int? counterpartyID, string sourceDocType, 
-            string searchTerm, string sortOrder, int? page, int? pageSize)
+        /// <summary>Ro'yxat filtrlari (Index, IndexData va ExportExcel uchun umumiy).</summary>
+        public class FinTransactionFilter
+        {
+            public DateTime? FromDate { get; set; }
+            public DateTime? ToDate { get; set; }
+            public int? AccountID { get; set; }
+            public int? CategoryID { get; set; }
+            public byte? Direction { get; set; }
+            public byte? CounterpartyType { get; set; }
+            public int? CounterpartyID { get; set; }
+            public string SourceDocType { get; set; }
+            public string SearchTerm { get; set; }
+        }
+
+        private static IQueryable<FIN_TRANSACTIONS> ApplyFilter(IQueryable<FIN_TRANSACTIONS> query, FinTransactionFilter f)
+        {
+            if (f.FromDate.HasValue)
+            {
+                var from = f.FromDate.Value;
+                query = query.Where(t => t.TxnDate >= from);
+            }
+            if (f.ToDate.HasValue)
+            {
+                var to = f.ToDate.Value;
+                query = query.Where(t => t.TxnDate <= to);
+            }
+            if (f.AccountID.HasValue)
+            {
+                var accountId = f.AccountID.Value;
+                query = query.Where(t => t.AccountID == accountId);
+            }
+            if (f.CategoryID.HasValue)
+            {
+                var categoryId = f.CategoryID.Value;
+                query = query.Where(t => t.CategoryID == categoryId);
+            }
+            if (f.Direction.HasValue)
+            {
+                var direction = f.Direction.Value;
+                query = query.Where(t => t.Direction == direction);
+            }
+            if (f.CounterpartyType.HasValue)
+            {
+                var cpType = f.CounterpartyType.Value;
+                query = query.Where(t => t.CounterpartyType == cpType);
+            }
+            if (f.CounterpartyID.HasValue)
+            {
+                var cpId = f.CounterpartyID.Value;
+                query = query.Where(t => t.CounterpartyID == cpId);
+            }
+            if (!string.IsNullOrEmpty(f.SourceDocType))
+            {
+                var docType = f.SourceDocType;
+                query = query.Where(t => t.SourceDocType == docType);
+            }
+            if (!string.IsNullOrEmpty(f.SearchTerm))
+            {
+                var term = f.SearchTerm.Trim();
+                query = query.Where(t =>
+                    (t.Purpose != null && t.Purpose.Contains(term)) ||
+                    (t.Comment != null && t.Comment.Contains(term)) ||
+                    (t.CounterpartyName != null && t.CounterpartyName.Contains(term)) ||
+                    (t.ContractNo != null && t.ContractNo.Contains(term)));
+            }
+            return query;
+        }
+
+        private static IQueryable<FIN_TRANSACTIONS> ActiveTransactions(DBTHSNEntities db)
+        {
+            return db.FIN_TRANSACTIONS.AsNoTracking().Where(t => t.IsDeleted == false || t.IsDeleted == null);
+        }
+
+        // GET: FinTransactions
+        // Sahifa faqat filtrlarni chizadi; qatorlar IndexData orqali server tomonida sahifalab yuklanadi (FIN-P05).
+        // Sana berilmasa — oxirgi 3 oy (avval butun jadval Include'lar bilan yuklanardi).
+        public ActionResult Index(DateTime? fromDate, DateTime? toDate, int? accountID, int? categoryID,
+            byte? direction, byte? counterpartyType, int? counterpartyID, string sourceDocType, string searchTerm)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
             {
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
+            if (!fromDate.HasValue && !toDate.HasValue)
+            {
+                toDate = DateTime.Today;
+                fromDate = toDate.Value.AddMonths(-3);
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_TRANSACTIONS
-                    .Where(t => t.IsDeleted == false || t.IsDeleted == null)
-                    .Include(t => t.FIN_ACCOUNTS)
-                    .Include(t => t.FIN_CATEGORIES)
-                    .Include(t => t.CURRENCy)
-                    .Include(t => t.USER);
-
-                // Date range filtrlash
-                if (fromDate.HasValue)
-                {
-                    query = query.Where(t => t.TxnDate >= fromDate.Value);
-                }
-
-                if (toDate.HasValue)
-                {
-                    query = query.Where(t => t.TxnDate <= toDate.Value);
-                }
-
-                // Account filtrlash
-                if (accountID.HasValue)
-                {
-                    query = query.Where(t => t.AccountID == accountID.Value);
-                }
-
-                // Category filtrlash
-                if (categoryID.HasValue)
-                {
-                    query = query.Where(t => t.CategoryID == categoryID.Value);
-                }
-
-                // Direction filtrlash (1=In, 2=Out)
-                if (direction.HasValue)
-                {
-                    query = query.Where(t => t.Direction == direction.Value);
-                }
-
-                // Counterparty filters
-                if (counterpartyType.HasValue)
-                {
-                    query = query.Where(t => t.CounterpartyType == counterpartyType.Value);
-                }
-
-                if (counterpartyID.HasValue)
-                {
-                    query = query.Where(t => t.CounterpartyID == counterpartyID.Value);
-                }
-
-                // Source hujjat type filtrlash
-                if (!string.IsNullOrEmpty(sourceDocType))
-                {
-                    query = query.Where(t => t.SourceDocType == sourceDocType);
-                }
-
-                // Search term (purpose, comment, counterparty name, contract no)
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    query = query.Where(t =>
-                        (t.Purpose != null && t.Purpose.Contains(searchTerm)) ||
-                        (t.Comment != null && t.Comment.Contains(searchTerm)) ||
-                        (t.CounterpartyName != null && t.CounterpartyName.Contains(searchTerm)) ||
-                        (t.ContractNo != null && t.ContractNo.Contains(searchTerm)));
-                }
-
-                // standart sorting - DataTable will handle client-side sorting
-                query = query.OrderByDescending(t => t.TxnDate);
-
-                // Yuklash barcha transactions uchun client-side DataTable (no server-side pagination)
-                var transactions = query.ToList();
-
-                // Ensure navigation properties are loaded uchun barcha transactions
-                var accountIds = transactions.Where(t => t.AccountID > 0).Select(t => t.AccountID).Distinct().ToList();
-                var categoryIds = transactions.Where(t => t.CategoryID > 0).Select(t => t.CategoryID).Distinct().ToList();
-                var currencyIds = transactions.Where(t => t.CurrencyID > 0).Select(t => t.CurrencyID).Distinct().ToList();
-
-                var accounts = db.FIN_ACCOUNTS.Where(a => accountIds.Contains(a.ID)).ToDictionary(a => a.ID, a => a);
-                var categoriesDict = db.FIN_CATEGORIES.Where(c => categoryIds.Contains(c.ID)).ToDictionary(c => c.ID, c => c);
-                var currencies = db.CURRENCIES.Where(c => currencyIds.Contains(c.ID)).ToDictionary(c => c.ID, c => c);
-
-                foreach (var txn in transactions)
-                {
-                    if (txn.FIN_ACCOUNTS == null && txn.AccountID > 0 && accounts.ContainsKey(txn.AccountID))
-                    {
-                        txn.FIN_ACCOUNTS = accounts[txn.AccountID];
-                    }
-                    if (txn.FIN_CATEGORIES == null && txn.CategoryID > 0 && categoriesDict.ContainsKey(txn.CategoryID))
-                    {
-                        txn.FIN_CATEGORIES = categoriesDict[txn.CategoryID];
-                    }
-                    if (txn.CURRENCy == null && txn.CurrencyID > 0 && currencies.ContainsKey(txn.CurrencyID))
-                    {
-                        txn.CURRENCy = currencies[txn.CurrencyID];
-                    }
-                }
-
-                // ViewBag uchun filters
                 ViewBag.AccountList = new SelectList(
-                    db.FIN_ACCOUNTS.Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
+                    db.FIN_ACCOUNTS.AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Name).ToList(),
                     "ID", "Name", accountID);
+                ViewBag.CategoryList = new SelectList(
+                    db.FIN_CATEGORIES.AsNoTracking().Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
+                    "ID", "Name", categoryID);
+            }
 
-                // Build category tree uchun dropdown
-                var categories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList();
-                ViewBag.CategoryList = new SelectList(categories, "ID", "Name", categoryID);
+            ViewBag.DirectionList = new SelectList(new[] {
+                new { Value = (byte?)null, Text = "Barcha" },
+                new { Value = (byte?)1, Text = "Kirim" },
+                new { Value = (byte?)2, Text = "Chiqim" }
+            }, "Value", "Text", direction);
 
-                ViewBag.DirectionList = new SelectList(new[] {
-                    new { Value = (byte?)null, Text = "Barcha" },
-                    new { Value = (byte?)1, Text = "Kirim" },
-                    new { Value = (byte?)2, Text = "Chiqim" }
-                }, "Value", "Text", direction);
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.AccountID = accountID;
+            ViewBag.CategoryID = categoryID;
+            ViewBag.Direction = direction;
+            ViewBag.CounterpartyType = counterpartyType;
+            ViewBag.CounterpartyID = counterpartyID;
+            ViewBag.SourceDocType = sourceDocType;
+            ViewBag.SearchTerm = searchTerm;
 
-                ViewBag.CounterpartyTypeList = new SelectList(new[] {
-                    new { Value = (byte?)null, Text = "Barcha" },
-                    new { Value = (byte?)1, Text = "Mijoz" },
-                    new { Value = (byte?)2, Text = "Ta'minotchi" },
-                    new { Value = (byte?)3, Text = "Aksiyador" },
-                    new { Value = (byte?)4, Text = "Forwarder" },
-                    new { Value = (byte?)6, Text = "Xodim" },
-                    new { Value = (byte?)5, Text = "Boshqa" }
-                }, "Value", "Text", counterpartyType);
+            return View();
+        }
 
-                ViewBag.SourceDocTypeList = new SelectList(new[] {
-                    new { Value = "", Text = "Barcha" },
-                    new { Value = "SalesInvoice", Text = "Sotuv invoysi" },
-                    new { Value = "PurchaseInvoice", Text = "Xarid invoysi" },
-                    new { Value = "IncomeDoc", Text = "Ombor kirimi" },
-                    new { Value = "ExpenseDoc", Text = "Ombor chiqimi" },
-                    new { Value = "ShareholderContribution", Text = "Aksiyador hissasi" },
-                    new { Value = "WaybillPayment", Text = "Yo'l varaqasi to'lovi" },
-                    new { Value = "Manual", Text = "Qo'lda kiritilgan" }
-                }, "Value", "Text", sourceDocType);
+        // GET: FinTransactions/IndexData — DataTables server-side (draw/start/length/search/order).
+        [HttpGet]
+        public JsonResult IndexData(FinTransactionFilter filter, int draw = 1, int start = 0, int length = 25)
+        {
+            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
+            {
+                Response.StatusCode = 403;
+                return Json(new { error = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+            }
 
-                ViewBag.FromDate = fromDate;
-                ViewBag.ToDate = toDate;
-                ViewBag.SearchTerm = searchTerm;
-                ViewBag.SortOrder = sortOrder;
+            if (length <= 0 || length > 1000) length = 1000; // "Barchasi" ham 1000 qator bilan cheklanadi
+            if (start < 0) start = 0;
 
-                return View(transactions);
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var baseQuery = ApplyFilter(ActiveTransactions(db), filter ?? new FinTransactionFilter());
+                var recordsTotal = baseQuery.Count();
+
+                var query = baseQuery;
+                var search = Request.QueryString["search[value]"];
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var s = search.Trim();
+                    query = query.Where(t =>
+                        (t.Purpose != null && t.Purpose.Contains(s)) ||
+                        (t.CounterpartyName != null && t.CounterpartyName.Contains(s)) ||
+                        (t.ContractNo != null && t.ContractNo.Contains(s)) ||
+                        t.FIN_ACCOUNTS.Name.Contains(s) ||
+                        t.FIN_CATEGORIES.Name.Contains(s) ||
+                        t.CURRENCy.Shortname.Contains(s));
+                }
+                var recordsFiltered = string.IsNullOrWhiteSpace(search) ? recordsTotal : query.Count();
+
+                var desc = !string.Equals(Request.QueryString["order[0][dir]"], "asc", StringComparison.OrdinalIgnoreCase);
+                int.TryParse(Request.QueryString["order[0][column]"], out var orderColumn);
+                IOrderedQueryable<FIN_TRANSACTIONS> ordered;
+                switch (orderColumn)
+                {
+                    case 1: ordered = desc ? query.OrderByDescending(t => t.FIN_ACCOUNTS.Name) : query.OrderBy(t => t.FIN_ACCOUNTS.Name); break;
+                    case 2: ordered = desc ? query.OrderByDescending(t => t.FIN_CATEGORIES.Name) : query.OrderBy(t => t.FIN_CATEGORIES.Name); break;
+                    case 3: ordered = desc ? query.OrderByDescending(t => t.Direction) : query.OrderBy(t => t.Direction); break;
+                    case 4: ordered = desc ? query.OrderByDescending(t => t.Amount) : query.OrderBy(t => t.Amount); break;
+                    case 5: ordered = desc ? query.OrderByDescending(t => t.CURRENCy.Shortname) : query.OrderBy(t => t.CURRENCy.Shortname); break;
+                    case 6: ordered = desc ? query.OrderByDescending(t => t.CounterpartyName) : query.OrderBy(t => t.CounterpartyName); break;
+                    case 7: ordered = desc ? query.OrderByDescending(t => t.Purpose) : query.OrderBy(t => t.Purpose); break;
+                    default: ordered = desc ? query.OrderByDescending(t => t.TxnDate) : query.OrderBy(t => t.TxnDate); break;
+                }
+
+                var rows = ordered
+                    .ThenByDescending(t => t.ID)
+                    .Skip(start)
+                    .Take(length)
+                    .Select(t => new
+                    {
+                        t.ID,
+                        t.TxnDate,
+                        AccountName = t.FIN_ACCOUNTS.Name,
+                        CategoryName = t.FIN_CATEGORIES.Name,
+                        t.Direction,
+                        t.Amount,
+                        Currency = t.CURRENCy.Shortname,
+                        t.CounterpartyName,
+                        t.Purpose,
+                        t.SourceDocType
+                    })
+                    .ToList()
+                    .Select(t => new
+                    {
+                        id = t.ID,
+                        date = t.TxnDate.ToString("dd.MM.yyyy"),
+                        account = t.AccountName ?? "-",
+                        category = t.CategoryName ?? "-",
+                        direction = t.Direction,
+                        amount = t.Amount.ToString("N2"),
+                        currency = t.Currency ?? "-",
+                        counterparty = t.CounterpartyName ?? "-",
+                        purpose = t.Purpose ?? "-",
+                        editable = string.IsNullOrEmpty(t.SourceDocType) || t.SourceDocType == "Manual"
+                    })
+                    .ToList();
+
+                return Json(new { draw, recordsTotal, recordsFiltered, data = rows }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -745,7 +798,7 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinTransactions/ExportExcel
-        public ActionResult ExportExcel(DateTime? fromDate, DateTime? toDate, int? accountID, int? categoryID)
+        public ActionResult ExportExcel(FinTransactionFilter filter)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
             {
@@ -754,21 +807,10 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_TRANSACTIONS
+                var query = ApplyFilter(ActiveTransactions(db)
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
-                    .Include(t => t.CURRENCy)
-                    .Where(t => t.IsDeleted == false || t.IsDeleted == null)
-                    .AsQueryable();
-
-                if (fromDate.HasValue)
-                    query = query.Where(t => t.TxnDate >= fromDate.Value);
-                if (toDate.HasValue)
-                    query = query.Where(t => t.TxnDate <= toDate.Value);
-                if (accountID.HasValue)
-                    query = query.Where(t => t.AccountID == accountID.Value);
-                if (categoryID.HasValue)
-                    query = query.Where(t => t.CategoryID == categoryID.Value);
+                    .Include(t => t.CURRENCy), filter ?? new FinTransactionFilter());
 
                 var transactions = query.OrderByDescending(t => t.TxnDate).ToList();
 
