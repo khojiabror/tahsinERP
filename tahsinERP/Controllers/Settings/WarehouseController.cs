@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Services.Stock;
 using tahsinERP.Controllers;
 using tahsinERP.Filters;
 
@@ -53,8 +54,34 @@ namespace tahsinERP.Controllers.Settings
                         .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(),
                     "ID", "FullName");
+                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(null);
 
                 return View();
+            }
+        }
+
+        /// <summary>SRM-B12: tur faqat ruxsat etilgan qiymatlardan; PRODUCTION/SALES bittadan ortiq bo'lsa ogohlantiradi.</summary>
+        private static void ValidateWarehouseType(DBTHSNEntities db, Warehouse warehouse, ModelStateDictionary modelState)
+        {
+            if (string.IsNullOrWhiteSpace(warehouse.WarehouseType))
+            {
+                warehouse.WarehouseType = null;
+                return;
+            }
+
+            warehouse.WarehouseType = warehouse.WarehouseType.Trim().ToUpperInvariant();
+            if (warehouse.WarehouseType != WarehouseRoles.Supply
+                && warehouse.WarehouseType != WarehouseRoles.Production
+                && warehouse.WarehouseType != WarehouseRoles.Sales)
+            {
+                modelState.AddModelError("WarehouseType", "Ombor turi noto'g'ri.");
+                return;
+            }
+
+            if (warehouse.WarehouseType == WarehouseRoles.Sales
+                && db.WAREHOUSES.Any(w => w.ID != warehouse.ID && w.IsDeleted != true && w.WarehouseType == WarehouseRoles.Sales))
+            {
+                modelState.AddModelError("WarehouseType", "Savdo ombori allaqachon belgilangan — faqat bitta savdo ombori bo'lishi mumkin.");
             }
         }
 
@@ -67,11 +94,13 @@ namespace tahsinERP.Controllers.Settings
             {
                 try
                 {
+                    ValidateWarehouseType(db, warehouse, ModelState);
                     if (ModelState.IsValid)
                     {
                         warehouse.IsDeleted = false;
                         db.WAREHOUSES.Add(warehouse);
                         await db.SaveChangesAsync();
+                        WarehouseRoles.Invalidate();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", 
                             $"{warehouse.WHName} - omborini yaratdi");
@@ -95,6 +124,7 @@ namespace tahsinERP.Controllers.Settings
                         .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(), 
                     "ID", "FullName", warehouse.MRP);
+                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse.WarehouseType);
 
                 return View(warehouse);
             }
@@ -153,6 +183,7 @@ namespace tahsinERP.Controllers.Settings
                         .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(),
                     "ID", "FullName", warehouse.MRP);
+                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse.WarehouseType);
 
                 return View(warehouse);
             }
@@ -161,10 +192,11 @@ namespace tahsinERP.Controllers.Settings
         // POST so'rovi: Warehouse/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "ID,WHName,Description,IsDeleted,MRP,ShopID,Account")] Warehouse warehouse)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,WHName,Description,IsDeleted,MRP,ShopID,Account,WarehouseType")] Warehouse warehouse)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                ValidateWarehouseType(db, warehouse, ModelState);
                 if (ModelState.IsValid)
                 {
                     try
@@ -172,6 +204,7 @@ namespace tahsinERP.Controllers.Settings
                         warehouse.IsDeleted = false;
                         db.Entry(warehouse).State = EntityState.Modified;
                         await db.SaveChangesAsync();
+                        WarehouseRoles.Invalidate();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", 
                             $"{warehouse.WHName} - omborni tahrirladi");
@@ -195,6 +228,7 @@ namespace tahsinERP.Controllers.Settings
                         .Where(u => u.IsDeleted != true && u.IsActive == true)
                         .ToListAsync(),
                     "ID", "FullName", warehouse.MRP);
+                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse.WarehouseType);
 
                 return View(warehouse);
             }
@@ -288,6 +322,7 @@ namespace tahsinERP.Controllers.Settings
                         db.Entry(warehouse).State = EntityState.Modified;
                         await SoftDeleteReferenceService.AfterWarehouseSoftDeletedAsync(db, id);
                         await db.SaveChangesAsync();
+                        WarehouseRoles.Invalidate();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", 
                             $"{warehouse.WHName} - omborni o'chirdi");

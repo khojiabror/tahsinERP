@@ -16,20 +16,6 @@ namespace tahsinERP.Services
     /// </summary>
     public static class WarehouseFlowService
     {
-        // Warehouse type identification constants
-        private const string PRODUCTION_WH_KEYWORDS = "PRODUCTION,ISHLAB CHIQARISH,PROD";
-        private const string SALES_WH_KEYWORDS = "SALES,SOTUV,SALE,SAVDO";
-        private const string SUPPLY_WH_KEYWORDS = "SUPPLY,XOMASHYO,SUPPLIER";
-
-        private static string[] SplitKeywords(string keywords)
-        {
-            return (keywords ?? string.Empty)
-                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(k => k.Trim())
-                .Where(k => k.Length > 0)
-                .ToArray();
-        }
-
         /// <summary>
         /// CURRENCIES dan Shortname = "UZS" bo'lganini oladi, yo'q bo'lsa birinchi valyuta ID si.
         /// </summary>
@@ -40,77 +26,21 @@ namespace tahsinERP.Services
             return c != null ? c.ID : 1;
         }
 
-        private static bool NameMatchesKeywords(string name, string[] keywords)
-        {
-            if (string.IsNullOrWhiteSpace(name) || keywords == null || keywords.Length == 0)
-            {
-                return false;
-            }
-
-            return keywords.Any(k =>
-                name.IndexOf(k, StringComparison.OrdinalIgnoreCase) >= 0);
-        }
-
         /// <summary>
-        /// Get Production Warehouse (for finished goods from production)
+        /// Ishlab chiqarish ombori — WarehouseType = PRODUCTION (bir nechta bo'lsa, sexi mos kelgani).
+        /// Sozlanmagan bo'lsa null (SRM-B12: nom bo'yicha taxmin va "birinchi ombor" zaxirasi yo'q).
         /// </summary>
         public static Warehouse GetProductionWarehouse(DBTHSNEntities db, int? shopID = null)
         {
-            var query = db.WAREHOUSES.Where(w => w.IsDeleted != true);
-
-            // Try to find by name keywords
-            var productionKeywords = SplitKeywords(PRODUCTION_WH_KEYWORDS);
-            var productionWH = query
-                .AsEnumerable()
-                .FirstOrDefault(w => NameMatchesKeywords(w.WHName, productionKeywords));
-
-            if (productionWH != null)
-                return productionWH;
-
-            // If shopID provided, try to find warehouse for that shop
-            if (shopID.HasValue)
-            {
-                productionWH = query
-                    .Where(w => w.ShopID == shopID.Value)
-                    .FirstOrDefault();
-            }
-
-            // Fallback: get first active warehouse
-            if (productionWH == null)
-            {
-                productionWH = query.FirstOrDefault();
-            }
-
-            return productionWH;
+            var id = WarehouseRoles.GetWarehouseId(db, WarehouseRoles.Production, shopID);
+            return id.HasValue ? db.WAREHOUSES.Find(id.Value) : null;
         }
 
-        /// <summary>
-        /// Get Sales Warehouse (for finished goods ready for sale)
-        /// </summary>
+        /// <summary>Savdo ombori — WarehouseType = SALES; sozlanmagan bo'lsa null.</summary>
         public static Warehouse GetSalesWarehouse(DBTHSNEntities db)
         {
-            // Try to find by name keywords (Savdo Ombori, Sotuv ombori, Sales)
-            var salesKeywords = SplitKeywords(SALES_WH_KEYWORDS);
-            var salesWH = db.WAREHOUSES
-                .Where(w => w.IsDeleted != true)
-                .AsEnumerable()
-                .FirstOrDefault(w => NameMatchesKeywords(w.WHName, salesKeywords));
-
-            // Fallback: Warehouse ID 7 — odatda Savdo/Sotuv ombori
-            if (salesWH == null)
-            {
-                salesWH = db.WAREHOUSES.FirstOrDefault(w => w.ID == 7 && w.IsDeleted != true);
-            }
-
-            // Oxirgi fallback: birinchi faol ombor
-            if (salesWH == null)
-            {
-                salesWH = db.WAREHOUSES
-                    .Where(w => w.IsDeleted != true)
-                    .FirstOrDefault();
-            }
-
-            return salesWH;
+            var id = WarehouseRoles.GetWarehouseId(db, WarehouseRoles.Sales);
+            return id.HasValue ? db.WAREHOUSES.Find(id.Value) : null;
         }
 
         public const string AutoTransferIncomeMarker = "Chiqimdan avtomatik bog'langan:";
@@ -252,31 +182,6 @@ namespace tahsinERP.Services
                 $"ProductionID {productionId} uchun eski kirim/DLOC lot(lar) bekor qilindi.");
         }
 
-        public static bool IsProductionWarehouse(Warehouse warehouse)
-        {
-            return IsWarehouseNameMatch(warehouse, PRODUCTION_WH_KEYWORDS);
-        }
-
-        public static bool IsSalesWarehouse(Warehouse warehouse)
-        {
-            return IsWarehouseNameMatch(warehouse, SALES_WH_KEYWORDS);
-        }
-
-        public static bool IsSupplyWarehouse(Warehouse warehouse)
-        {
-            return IsWarehouseNameMatch(warehouse, SUPPLY_WH_KEYWORDS);
-        }
-
-        private static bool IsWarehouseNameMatch(Warehouse warehouse, string keywordsCsv)
-        {
-            if (warehouse == null)
-            {
-                return false;
-            }
-
-            return NameMatchesKeywords(warehouse.WHName, SplitKeywords(keywordsCsv));
-        }
-
         /// <summary>
         /// Chiqim (EXPENSE) dan avtomatik yaratilgan ichki o'tkazma kirimi.
         /// </summary>
@@ -309,13 +214,7 @@ namespace tahsinERP.Services
         /// </summary>
         public static bool CanCreateManualIncome(DBTHSNEntities db, int receivingWhId)
         {
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == receivingWhId && w.IsDeleted != true);
-            if (warehouse == null)
-            {
-                return false;
-            }
-
-            return IsSupplyWarehouse(warehouse);
+            return WarehouseRoles.GetType(db, receivingWhId) == WarehouseRoles.Supply;
         }
 
         /// <summary>
@@ -323,13 +222,12 @@ namespace tahsinERP.Services
         /// </summary>
         public static string ValidateManualIncomeCreate(DBTHSNEntities db, int receivingWhId, int? invoiceId)
         {
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == receivingWhId && w.IsDeleted != true);
-            if (warehouse == null)
+            if (!WarehouseRoles.Exists(db, receivingWhId))
             {
                 return "Ombor topilmadi.";
             }
 
-            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, receivingWhId)))
             {
                 return "Ishlab chiqarish va Savdo omborlariga qo'lda kirim yaratish mumkin emas. Faqat chiqim hujjatidan avtomatik yaratilgan kirimni qabul qiling.";
             }
@@ -347,13 +245,12 @@ namespace tahsinERP.Services
                 return "Kirim hujjati topilmadi.";
             }
 
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == income.ReceivingWHID && w.IsDeleted != true);
-            if (warehouse == null)
+            if (!WarehouseRoles.Exists(db, income.ReceivingWHID))
             {
                 return "Ombor topilmadi.";
             }
 
-            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
             {
                 if (!IsAutoLinkedTransferIncome(income))
                 {
@@ -374,13 +271,12 @@ namespace tahsinERP.Services
                 return "Kirim hujjati topilmadi.";
             }
 
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == income.ReceivingWHID && w.IsDeleted != true);
-            if (warehouse == null)
+            if (!WarehouseRoles.Exists(db, income.ReceivingWHID))
             {
                 return "Ombor topilmadi.";
             }
 
-            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
             {
                 return "Ishlab chiqarish va Savdo omborlaridagi kirimlarni qo'lda tahrirlash mumkin emas.";
             }
