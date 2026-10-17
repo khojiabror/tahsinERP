@@ -185,7 +185,7 @@ namespace tahsinERP.Controllers
                         // Sarlavha, qatorlar, hujjat — bitta tranzaksiyada (SRM-B12)
                         using (var tx = db.Database.BeginTransaction())
                         {
-                            var number = await ResolveContractNoAsync(db, model.ContractNo, model.SupplierID, excludeId: null);
+                            var number = await ResolveContractNoAsync(db, model.ContractNo, excludeId: null);
                             if (number != null)
                             {
                                 contract = new P_CONTRACTS
@@ -356,7 +356,7 @@ namespace tahsinERP.Controllers
                             return HttpNotFound();
                         }
 
-                        var number = await ResolveContractNoAsync(db, model.ContractNo, model.SupplierID, excludeId: contract.ID);
+                        var number = await ResolveContractNoAsync(db, model.ContractNo, excludeId: contract.ID);
                         if (number != null)
                         {
                             using (var tx = db.Database.BeginTransaction())
@@ -523,10 +523,10 @@ namespace tahsinERP.Controllers
 
         /// <summary>
         /// Shartnoma raqami: bo'sh bo'lsa PC-{yil}-NNNN (qulf bilan, o'chirilganlar ham hisobga olinadi — SRM-B14);
-        /// qo'lda kiritilsa — shu ta'minotchining faol shartnomalarida takrorlanmasligi tekshiriladi.
+        /// qo'lda kiritilsa — barcha shartnomalarda (o'chirilganlar ham) takrorlanmasligi tekshiriladi.
         /// Avtomatik raqam tranzaksiya ichida chaqirilishi kerak. Xato bo'lsa null (ModelState'ga yoziladi).
         /// </summary>
-        private async Task<string> ResolveContractNoAsync(DBTHSNEntities db, string requested, int supplierId, int? excludeId)
+        private async Task<string> ResolveContractNoAsync(DBTHSNEntities db, string requested, int? excludeId)
         {
             var number = string.IsNullOrWhiteSpace(requested) ? null : requested.Trim();
             if (number == null)
@@ -540,14 +540,13 @@ namespace tahsinERP.Controllers
                 return await DocumentNumberService.NextAsync(db, "P_CONTRACTS", "ContractNo", $"PC-{DateTime.Now.Year}-", 4);
             }
 
+            // Bazada ContractNo bo'yicha global UNIQUE indeks bor (o'chirilganlar ham) — tekshiruv ham global
             bool duplicate = await db.P_CONTRACTS.AnyAsync(c =>
-                c.IsDeleted != true &&
-                c.SupplierID == supplierId &&
                 c.ContractNo == number &&
                 (!excludeId.HasValue || c.ID != excludeId.Value));
             if (duplicate)
             {
-                ModelState.AddModelError("ContractNo", "Bu ta'minotchida shu raqamli shartnoma allaqachon mavjud.");
+                ModelState.AddModelError("ContractNo", "Shu raqamli shartnoma allaqachon mavjud (o'chirilganlar orasida ham bo'lishi mumkin).");
                 return null;
             }
 

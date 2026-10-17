@@ -384,7 +384,7 @@ namespace tahsinERP.Controllers.SRM
 
         /// <summary>
         /// Talabnoma raqami: bo'sh bo'lsa PR-{yil}-NNNN (qulf bilan, o'chirilganlar ham hisobga olinadi — SRM-B14);
-        /// qo'lda kiritilsa — faol talabnomalarda takrorlanmasligi tekshiriladi. Xato bo'lsa null.
+        /// qo'lda kiritilsa — barcha talabnomalarda (o'chirilganlar ham, bazada UNIQUE) takrorlanmasligi tekshiriladi.Xato bo'lsa null.
         /// </summary>
         private async Task<string> ResolveRequisitionNoAsync(DBTHSNEntities db, string requested)
         {
@@ -394,7 +394,7 @@ namespace tahsinERP.Controllers.SRM
                 return await DocumentNumberService.NextAsync(db, "P_REQUISITIONS", "RequisitionNo", $"PR-{DateTime.Now.Year}-", 4);
             }
 
-            if (await db.P_REQUISITIONS.AnyAsync(r => r.IsDeleted != true && r.RequisitionNo == number))
+            if (await db.P_REQUISITIONS.AnyAsync(r => r.RequisitionNo == number))
             {
                 ModelState.AddModelError("RequisitionNo", "Bu raqamli talabnoma allaqachon mavjud.");
                 return null;

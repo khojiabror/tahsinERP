@@ -291,7 +291,7 @@ namespace tahsinERP.Controllers
                             // Sarlavha, qatorlar, hujjat — bitta tranzaksiyada (SRM-B12)
                             using (var tx = db.Database.BeginTransaction())
                             {
-                                var number = await ResolveInvoiceNoAsync(db, model.InvoiceNo, model.SupplierID, excludeId: null);
+                                var number = await ResolveInvoiceNoAsync(db, model.InvoiceNo, excludeId: null);
                                 if (number != null)
                                 {
                                     invoice = new P_INVOICES
@@ -452,7 +452,7 @@ namespace tahsinERP.Controllers
                         string invoiceNo = null;
                         if (ModelState.IsValid)
                         {
-                            invoiceNo = await ResolveInvoiceNoAsync(db, model.InvoiceNo, model.SupplierID, excludeId: invoice.ID);
+                            invoiceNo = await ResolveInvoiceNoAsync(db, model.InvoiceNo, excludeId: invoice.ID);
                         }
 
                         if (ModelState.IsValid)
@@ -735,10 +735,10 @@ namespace tahsinERP.Controllers
 
         /// <summary>
         /// Invoys raqami: bo'sh bo'lsa PI-{yil}-NNNN (qulf bilan, o'chirilganlar ham hisobga olinadi — SRM-B14);
-        /// qo'lda kiritilsa — shu ta'minotchining faol invoyslarida takrorlanmasligi tekshiriladi.
+        /// qo'lda kiritilsa — barcha invoyslarda (o'chirilganlar ham) takrorlanmasligi tekshiriladi.
         /// Avtomatik raqam tranzaksiya ichida chaqirilishi kerak. Xato bo'lsa null (ModelState'ga yoziladi).
         /// </summary>
-        private async Task<string> ResolveInvoiceNoAsync(DBTHSNEntities db, string requested, int supplierId, int? excludeId)
+        private async Task<string> ResolveInvoiceNoAsync(DBTHSNEntities db, string requested, int? excludeId)
         {
             var number = string.IsNullOrWhiteSpace(requested) ? null : requested.Trim();
             if (number == null)
@@ -752,14 +752,13 @@ namespace tahsinERP.Controllers
                 return await DocumentNumberService.NextAsync(db, "P_INVOICES", "InvoiceNo", $"PI-{DateTime.Now.Year}-", 4);
             }
 
+            // Bazada InvoiceNo bo'yicha global UNIQUE indeks bor (o'chirilganlar ham) — tekshiruv ham global
             bool duplicate = await db.P_INVOICES.AnyAsync(i =>
-                i.IsDeleted != true &&
-                i.SupplierID == supplierId &&
                 i.InvoiceNo == number &&
                 (!excludeId.HasValue || i.ID != excludeId.Value));
             if (duplicate)
             {
-                ModelState.AddModelError("InvoiceNo", "Bu ta'minotchida shu raqamli invoys allaqachon mavjud.");
+                ModelState.AddModelError("InvoiceNo", "Shu raqamli invoys allaqachon mavjud (o'chirilganlar orasida ham bo'lishi mumkin).");
                 return null;
             }
 

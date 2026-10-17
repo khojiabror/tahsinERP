@@ -1,55 +1,54 @@
 /*
     TAKLIF — SRM xarid moduli indekslari (SRM-B14, SRM-P03/P05). ISHGA TUSHIRILMAGAN.
+    Qayta ishga tushirish xavfsiz: har indeks IF NOT EXISTS bilan.
 
-    - Avval jonli bazada mavjud indekslarni tekshiring:
-        SELECT t.name, i.name, i.is_unique, i.filter_definition
-        FROM sys.indexes i JOIN sys.tables t ON t.object_id = i.object_id
-        WHERE t.name IN ('P_ORDERS','P_ORDER_PRODUCTS','P_CONTRACTS','P_CONTRACT_PRODUCTS',
-                         'P_INVOICES','P_INVOICE_PRODUCTS','P_INVOICE_DOCS','P_CONTRACT_DOCS',
-                         'P_REQUISITIONS','P_REQUISITION_PRODUCTS','P_REQUISITION_APPROVALS');
-    - Unique indekslardan oldin DataFix_SRM_Procurement_02_DuplicateNumbers_Find.sql bo'sh
-      natija berishi kerak.
-    - Filtrlangan indeksda OR ishlatib bo'lmaydi, shuning uchun filtr "IsDeleted = 0".
-      Faol yozuvlarda IsDeleted NULL bo'lsa, ular indeksdan tashqarida qoladi — avval
-      NULL'larni 0 ga keltiring: UPDATE dbo.P_INVOICES SET IsDeleted = 0 WHERE IsDeleted IS NULL;
-      (P_ORDERS, P_CONTRACTS, P_REQUISITIONS uchun ham).
+    Lokal DBTHSN-IPACK holati (2026-10-18 tekshiruvi):
+    - Raqam ustunlarida allaqachon GLOBAL UNIQUE indekslar bor (o'chirilgan yozuvlar ham kiradi):
+        P_INVOICES.IX_P_INVOICES(InvoiceNo), P_CONTRACTS.IX_P_CONTRACTS(ContractNo),
+        P_ORDERS.IX_P_ORDERS_1(OrderNo), P_REQUISITIONS.IX_P_REQUISITIONS_RequisitionNo.
+      Shu sababli kod qo'lda kiritilgan raqamni barcha yozuvlarda tekshiradi, alohida
+      "faol yozuvlar orasida unique" (filtrlangan) indekslar KERAK EMAS.
+      Shu indekslar raqam generatorining LIKE 'PREFIX%' qidiruvini ham qamraydi.
+    - DataFix_SRM_Procurement_02_DuplicateNumbers_Find.sql — bo'sh natija.
+    - Faqat FK/filtr indekslari yo'q (pastdagilar).
 */
-
--- ---------- Unique (faol yozuvlar orasida) ----------
-CREATE UNIQUE INDEX UX_P_ORDERS_OrderNo_Active
-    ON dbo.P_ORDERS(OrderNo) WHERE IsDeleted = 0 AND OrderNo IS NOT NULL;
-
-CREATE UNIQUE INDEX UX_P_REQUISITIONS_No_Active
-    ON dbo.P_REQUISITIONS(RequisitionNo) WHERE IsDeleted = 0 AND RequisitionNo IS NOT NULL;
-
-CREATE UNIQUE INDEX UX_P_CONTRACTS_Supplier_No_Active
-    ON dbo.P_CONTRACTS(SupplierID, ContractNo) WHERE IsDeleted = 0 AND ContractNo IS NOT NULL;
-
-CREATE UNIQUE INDEX UX_P_INVOICES_Supplier_No_Active
-    ON dbo.P_INVOICES(SupplierID, InvoiceNo) WHERE IsDeleted = 0 AND InvoiceNo IS NOT NULL;
-
--- ---------- Raqam generatori (DocumentNumberService: WHERE col LIKE 'PREFIX%') ----------
--- Yuqoridagi unique indekslar faqat faol yozuvlarni qamraydi; MAX hisobi o'chirilganlarni ham oladi.
-CREATE INDEX IX_P_INVOICES_InvoiceNo   ON dbo.P_INVOICES(InvoiceNo);
-CREATE INDEX IX_P_CONTRACTS_ContractNo ON dbo.P_CONTRACTS(ContractNo);
+SET NOCOUNT ON;
 
 -- ---------- FK / issiq filtrlar ----------
-CREATE INDEX IX_P_ORDER_PRODUCTS_OrderID       ON dbo.P_ORDER_PRODUCTS(OrderID) INCLUDE (ProductID, Amount, Price, UnitID);
-CREATE INDEX IX_P_ORDER_PRODUCTS_ProductID     ON dbo.P_ORDER_PRODUCTS(ProductID);
-CREATE INDEX IX_P_CONTRACT_PRODUCTS_ContractID ON dbo.P_CONTRACT_PRODUCTS(ContractID) INCLUDE (ProductID, Quantity, Price, VATAmount);
-CREATE INDEX IX_P_CONTRACT_PRODUCTS_ProductID  ON dbo.P_CONTRACT_PRODUCTS(ProductID);
-CREATE INDEX IX_P_INVOICE_PRODUCTS_InvoiceID   ON dbo.P_INVOICE_PRODUCTS(InvoiceID) INCLUDE (ProductID, Quantity, Price, UnitID);
-CREATE INDEX IX_P_INVOICE_PRODUCTS_ProductID   ON dbo.P_INVOICE_PRODUCTS(ProductID) INCLUDE (InvoiceID, Quantity, UnitID);
-CREATE INDEX IX_P_INVOICE_DOCS_InvoiceID       ON dbo.P_INVOICE_DOCS(InvoiceID);
-CREATE INDEX IX_P_CONTRACT_DOCS_ContractID     ON dbo.P_CONTRACT_DOCS(ContractID);
-CREATE INDEX IX_P_REQUISITION_PRODUCTS_ReqID   ON dbo.P_REQUISITION_PRODUCTS(RequisitionID);
-CREATE INDEX IX_P_REQUISITION_APPROVALS_ReqID  ON dbo.P_REQUISITION_APPROVALS(RequisitionID, SortOrder);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_ORDER_PRODUCTS_OrderID' AND object_id = OBJECT_ID('dbo.P_ORDER_PRODUCTS'))
+    CREATE INDEX IX_P_ORDER_PRODUCTS_OrderID       ON dbo.P_ORDER_PRODUCTS(OrderID) INCLUDE (ProductID, Amount, Price, UnitID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_ORDER_PRODUCTS_ProductID' AND object_id = OBJECT_ID('dbo.P_ORDER_PRODUCTS'))
+    CREATE INDEX IX_P_ORDER_PRODUCTS_ProductID     ON dbo.P_ORDER_PRODUCTS(ProductID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_CONTRACT_PRODUCTS_ContractID' AND object_id = OBJECT_ID('dbo.P_CONTRACT_PRODUCTS'))
+    CREATE INDEX IX_P_CONTRACT_PRODUCTS_ContractID ON dbo.P_CONTRACT_PRODUCTS(ContractID) INCLUDE (ProductID, Quantity, Price, VATAmount);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_CONTRACT_PRODUCTS_ProductID' AND object_id = OBJECT_ID('dbo.P_CONTRACT_PRODUCTS'))
+    CREATE INDEX IX_P_CONTRACT_PRODUCTS_ProductID  ON dbo.P_CONTRACT_PRODUCTS(ProductID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_INVOICE_PRODUCTS_InvoiceID' AND object_id = OBJECT_ID('dbo.P_INVOICE_PRODUCTS'))
+    CREATE INDEX IX_P_INVOICE_PRODUCTS_InvoiceID   ON dbo.P_INVOICE_PRODUCTS(InvoiceID) INCLUDE (ProductID, Quantity, Price, UnitID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_INVOICE_PRODUCTS_ProductID' AND object_id = OBJECT_ID('dbo.P_INVOICE_PRODUCTS'))
+    CREATE INDEX IX_P_INVOICE_PRODUCTS_ProductID   ON dbo.P_INVOICE_PRODUCTS(ProductID) INCLUDE (InvoiceID, Quantity, UnitID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_INVOICE_DOCS_InvoiceID' AND object_id = OBJECT_ID('dbo.P_INVOICE_DOCS'))
+    CREATE INDEX IX_P_INVOICE_DOCS_InvoiceID       ON dbo.P_INVOICE_DOCS(InvoiceID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_CONTRACT_DOCS_ContractID' AND object_id = OBJECT_ID('dbo.P_CONTRACT_DOCS'))
+    CREATE INDEX IX_P_CONTRACT_DOCS_ContractID     ON dbo.P_CONTRACT_DOCS(ContractID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_REQUISITION_PRODUCTS_ReqID' AND object_id = OBJECT_ID('dbo.P_REQUISITION_PRODUCTS'))
+    CREATE INDEX IX_P_REQUISITION_PRODUCTS_ReqID   ON dbo.P_REQUISITION_PRODUCTS(RequisitionID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_REQUISITION_APPROVALS_ReqID' AND object_id = OBJECT_ID('dbo.P_REQUISITION_APPROVALS'))
+    CREATE INDEX IX_P_REQUISITION_APPROVALS_ReqID  ON dbo.P_REQUISITION_APPROVALS(RequisitionID, SortOrder);
 
-CREATE INDEX IX_P_INVOICES_Supplier_Date ON dbo.P_INVOICES(SupplierID, InvoiceDate) INCLUDE (Amount, ContractID, OrderID, IsDeleted);
-CREATE INDEX IX_P_INVOICES_ContractID    ON dbo.P_INVOICES(ContractID) INCLUDE (Amount, IsDeleted);
-CREATE INDEX IX_P_INVOICES_OrderID       ON dbo.P_INVOICES(OrderID) INCLUDE (IsDeleted);
-CREATE INDEX IX_P_INVOICES_InvoiceDate   ON dbo.P_INVOICES(InvoiceDate) INCLUDE (SupplierID, Amount, IsDeleted);
-CREATE INDEX IX_P_ORDERS_ContractID      ON dbo.P_ORDERS(ContractID) INCLUDE (Amount, IsDeleted);
-CREATE INDEX IX_P_ORDERS_IssuedDate      ON dbo.P_ORDERS(IssuedDate) INCLUDE (PurchaseType, SupplierID, IsDeleted);
-CREATE INDEX IX_P_CONTRACTS_Supplier     ON dbo.P_CONTRACTS(SupplierID, IssuedDate) INCLUDE (IsDeleted);
-CREATE INDEX IX_INCOMES_InvoiceID        ON dbo.INCOMES(InvoiceID) INCLUDE (IssueDateTime, IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_INVOICES_Supplier_Date' AND object_id = OBJECT_ID('dbo.P_INVOICES'))
+    CREATE INDEX IX_P_INVOICES_Supplier_Date ON dbo.P_INVOICES(SupplierID, InvoiceDate) INCLUDE (Amount, ContractID, OrderID, IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_INVOICES_ContractID' AND object_id = OBJECT_ID('dbo.P_INVOICES'))
+    CREATE INDEX IX_P_INVOICES_ContractID    ON dbo.P_INVOICES(ContractID) INCLUDE (Amount, IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_INVOICES_OrderID' AND object_id = OBJECT_ID('dbo.P_INVOICES'))
+    CREATE INDEX IX_P_INVOICES_OrderID       ON dbo.P_INVOICES(OrderID) INCLUDE (IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_INVOICES_InvoiceDate' AND object_id = OBJECT_ID('dbo.P_INVOICES'))
+    CREATE INDEX IX_P_INVOICES_InvoiceDate   ON dbo.P_INVOICES(InvoiceDate) INCLUDE (SupplierID, Amount, IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_ORDERS_ContractID' AND object_id = OBJECT_ID('dbo.P_ORDERS'))
+    CREATE INDEX IX_P_ORDERS_ContractID      ON dbo.P_ORDERS(ContractID) INCLUDE (Amount, IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_ORDERS_IssuedDate' AND object_id = OBJECT_ID('dbo.P_ORDERS'))
+    CREATE INDEX IX_P_ORDERS_IssuedDate      ON dbo.P_ORDERS(IssuedDate) INCLUDE (PurchaseType, SupplierID, IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_CONTRACTS_Supplier' AND object_id = OBJECT_ID('dbo.P_CONTRACTS'))
+    CREATE INDEX IX_P_CONTRACTS_Supplier     ON dbo.P_CONTRACTS(SupplierID, IssuedDate) INCLUDE (IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_INCOMES_InvoiceID' AND object_id = OBJECT_ID('dbo.INCOMES'))
+    CREATE INDEX IX_INCOMES_InvoiceID        ON dbo.INCOMES(InvoiceID) INCLUDE (IssueDateTime, IsDeleted);
