@@ -1,9 +1,12 @@
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Licensing;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.LicenseSync;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -89,6 +92,43 @@ namespace tahsinERP.Controllers
             return RedirectToAction("Index");
         }
 
+        // POST: /License/ConnectPanel — reg_token saqlanadi va darhol ro'yxatdan o'tiladi
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ConnectPanel(string regToken)
+        {
+            if (!CanManage())
+                return RedirectToAction("Index", "ViewNotAuthorized");
+
+            using (var db = new DBTHSNEntities())
+            {
+                var saved = LicenseSyncService.SaveRegToken(db, regToken);
+                if (!saved.Ok)
+                {
+                    TempData["Error"] = saved.Message;
+                    return RedirectToAction("Index");
+                }
+            }
+            return await RunSync();
+        }
+
+        // POST: /License/SyncNow — "Hozir tekshirish"
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SyncNow()
+        {
+            if (!CanManage())
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            return await RunSync();
+        }
+
+        private async Task<ActionResult> RunSync()
+        {
+            var result = await LicenseSyncService.SyncNowAsync(Request.Url.Host);
+            TempData[result.Ok ? "Success" : "Error"] = result.Message;
+            return RedirectToAction("Index");
+        }
+
         // POST: /License/AssignSeat
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -151,6 +191,15 @@ namespace tahsinERP.Controllers
 
             vm.InstallationId = status.InstallationId;
             vm.ClockProblem = status.ClockProblem;
+
+            vm.PanelEnabled = LicenseSyncService.IsEnabled;
+            vm.PanelConnected = !string.IsNullOrEmpty(LicenseService.ReadSyncState(db, LicenseService.STATE_PANEL_SECRET));
+            vm.HasRegToken = !string.IsNullOrEmpty(LicenseService.ReadSyncState(db, LicenseService.STATE_REG_TOKEN));
+            vm.LastSyncResult = LicenseService.ReadSyncState(db, LicenseService.STATE_LAST_SYNC_RESULT);
+            DateTime lastSync;
+            if (DateTime.TryParse(LicenseService.ReadSyncState(db, LicenseService.STATE_LAST_SYNC), CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind, out lastSync))
+                vm.LastSyncUtc = lastSync;
 
             if (lic == null)
             {

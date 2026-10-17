@@ -172,6 +172,41 @@ namespace tahsinERP.Services
                 name, value);
         }
 
+        // Panel sinxronlash holati (LicenseSyncService). InstallationId va LastSeenUtc bu ro'yxatda YO'Q —
+        // ularni faqat shu klass yozadi (HMAC muhri qoidasi).
+        public const string STATE_REG_TOKEN = "RegToken";
+        public const string STATE_PANEL_SECRET = "PanelSecret";
+        public const string STATE_LAST_SYNC = "LastSyncUtc";
+        public const string STATE_LAST_SYNC_RESULT = "LastSyncResult";
+        private static readonly string[] SyncStateNames = { STATE_REG_TOKEN, STATE_PANEL_SECRET, STATE_LAST_SYNC, STATE_LAST_SYNC_RESULT };
+
+        private static void EnsureSyncStateName(string name)
+        {
+            if (Array.IndexOf(SyncStateNames, name) < 0)
+                throw new ArgumentException("LICENSE_STATE." + name + " ni tashqaridan o'qish/yozish mumkin emas.", nameof(name));
+        }
+
+        /// <summary>Panel sinxronlash holatini o'qiydi (RegToken, PanelSecret, LastSyncUtc, LastSyncResult).</summary>
+        public static string ReadSyncState(DBTHSNEntities db, string name)
+        {
+            EnsureSyncStateName(name);
+            EnsureStateTable(db);
+            return ReadState(db, name);
+        }
+
+        /// <summary>Panel sinxronlash holatini yozadi; null/bo'sh — o'chiradi. Qiymat 400 belgigacha qisqartiriladi.</summary>
+        public static void WriteSyncState(DBTHSNEntities db, string name, string value)
+        {
+            EnsureSyncStateName(name);
+            EnsureStateTable(db);
+            if (string.IsNullOrEmpty(value))
+            {
+                db.Database.ExecuteSqlCommand("DELETE FROM dbo.LICENSE_STATE WHERE Name = @p0", name);
+                return;
+            }
+            WriteState(db, name, value.Length > 400 ? value.Substring(0, 400) : value);
+        }
+
         /// <summary>
         /// Shu o'rnatmaning noyob ID'si. Birinchi chaqiruvda yaratiladi.
         /// Vendor kalit yasash uchun shu qiymatni License sahifasidan oladi.

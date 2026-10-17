@@ -210,7 +210,9 @@
     <Compile Include="Security\LoginThrottleTests.cs" />
     <Compile Include="Security\PasswordHasherTests.cs" />
     <Compile Include="Licensing\LicenseHelperTests.cs" />
+    <Compile Include="Licensing\LicenseCompatTests.cs" />
     <Compile Include="Tenancy\TenantTests.cs" />
+    <Compile Include="LicenseSync\LicensePanelClientTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

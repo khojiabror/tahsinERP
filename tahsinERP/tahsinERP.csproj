@@ -1035,6 +1035,8 @@
     <Compile Include="Configuration\Tenancy\TenantRegistry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\LicenseService.cs" />
+    <Compile Include="Services\LicenseSync\LicensePanelClient.cs" />
+    <Compile Include="Services\LicenseSync\LicenseSyncService.cs" />
     <Compile Include="Filters\LicenseCheckAttribute.cs" />
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />
