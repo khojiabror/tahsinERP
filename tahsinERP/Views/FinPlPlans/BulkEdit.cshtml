@@ -51,8 +51,8 @@
                                     @using (Html.BeginForm("BulkEdit", "FinPlPlans", FormMethod.Post, new { @class = "form" }))
                                     {
                                         @Html.AntiForgeryToken()
-                                        @Html.Hidden("year", ViewBag.Year)
-                                        @Html.Hidden("month", ViewBag.Month)
+                                        @Html.Hidden("year", (object)ViewBag.Year)
+                                        @Html.Hidden("month", (object)ViewBag.Month)
                                         
                                         <div class="table-responsive">
                                             <table id="bulkPlansTable" class="table table-striped table-bordered" style="width:100%">
