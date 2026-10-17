@@ -17,8 +17,6 @@ namespace tahsinERP.Controllers
     [Permission]
     public class SalesInvoicesController : BaseController
     {
-        private const int DefaultPageSize = 25;
-        private const int MaxPageSize = 200;
 
         // Olish so'rovi: SalesInvoices
         public async Task<ActionResult> Index(string searchTerm, string invoiceNo, int? customerID, int? orderID, int? contractID, DateTime? fromDate, DateTime? toDate, string statusCode, string sortOrder, int? page, int? pageSize)
@@ -27,16 +25,8 @@ namespace tahsinERP.Controllers
             {
                 var query = BuildIndexQuery(db, searchTerm, invoiceNo, customerID, orderID, contractID, fromDate, toDate, statusCode, sortOrder);
 
-                // Server tomonida sahifalash — view'da pager bor (CRM-B05: avval faqat 25 ta yozuv ko'rinardi)
-                int itemsPerPage = Math.Min(Math.Max(pageSize ?? DefaultPageSize, 1), MaxPageSize);
-                int totalItems = await query.CountAsync();
-                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
-                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
-
-                var invoices = await query
-                    .Skip((currentPage - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToListAsync();
+                // Server tomonida sahifalash (CRM-P05, umumiy blok — D16)
+                var invoices = await query.ToPageAsync(page, pageSize, ViewData);
 
                 // Filtr ro'yxatlari: mijozlar keshdan, buyurtmalar — faqat ID/raqam (CRM-P04)
                 ViewBag.Customers = SalesLookups.Customers(customerID);
@@ -57,10 +47,6 @@ namespace tahsinERP.Controllers
                 ViewBag.ContractNumbers = await db.S_CONTRACTS
                     .Where(c => contractIds.Contains(c.ID))
                     .ToDictionaryAsync(c => c.ID, c => c.ContractNo);
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.InvoiceNo = invoiceNo;
                 ViewBag.CustomerID = customerID;

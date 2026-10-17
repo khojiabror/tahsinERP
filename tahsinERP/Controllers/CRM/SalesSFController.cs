@@ -66,15 +66,8 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
-                int totalItems = await query.CountAsync();
-                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
-                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
-
-                var sfHeaders = await query
-                    .Skip((currentPage - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToListAsync();
+                // Server tomonida sahifalash (CRM-P05, umumiy blok — D16)
+                var sfHeaders = await query.ToPageAsync(page, pageSize, ViewData);
 
                 // Filtr ro'yxatlari: proyeksiya, faqat faol invoyslar (CRM-P04)
                 ViewBag.Customers = SalesLookups.Customers(customerID);
@@ -82,10 +75,6 @@ namespace tahsinERP.Controllers
                     .OrderByDescending(i => i.InvoiceDate)
                     .Select(i => new { i.ID, i.InvoiceNo })
                     .ToListAsync(), "ID", "InvoiceNo", invoiceID);
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.SFNumber = sfNumber;
                 ViewBag.InvoiceID = invoiceID;

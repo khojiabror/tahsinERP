@@ -31,16 +31,8 @@ namespace tahsinERP.Controllers
             {
                 var query = BuildIndexQuery(db, searchTerm, contractNo, customerID, fromDate, toDate, sortOrder);
 
-                // Server tomonida sahifalash (CRM-P05: avval butun jadval Include bilan yuklanardi)
-                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
-                int totalItems = await query.CountAsync();
-                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
-                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
-                var contracts = await query.Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage).ToListAsync();
-                ViewBag.CurrentPage = currentPage;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalItems = totalItems;
-                ViewBag.PageSize = itemsPerPage;
+                // Server tomonida sahifalash (CRM-P05, umumiy blok — D16)
+                var contracts = await query.ToPageAsync(page, pageSize, ViewData);
 
                 ViewBag.Customers = SalesLookups.Customers(customerID);
                 ViewBag.SearchTerm = searchTerm;
