@@ -872,6 +872,13 @@
     <Compile Include="Services\Finance\FinAnalyticsService.cs" />
     <Compile Include="Services\Finance\FinLiabilities.cs" />
     <Compile Include="Services\Finance\FinQueries.cs" />
+    <Compile Include="Services\Finance\FinCounterpartyLookupService.cs" />
+    <Compile Include="Services\Finance\OpeningBalanceService.cs" />
+    <Compile Include="Services\Finance\OpeningBalanceExcelService.cs" />
+    <Compile Include="Services\Finance\FinCategoryTree.cs" />
+    <Compile Include="ViewModels\Finance\MapCategoriesViewModel.cs" />
+    <Compile Include="Services\Finance\FinSelectLists.cs" />
+    <Compile Include="Services\Finance\FinTransactionImportService.cs" />
     <Compile Include="Services\Finance\LiabilityReportsService.cs" />
     <Compile Include="Services\Finance\ValuationService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
@@ -3064,11 +3071,14 @@
     <Content Include="Views\FinPlPlans\Delete.cshtml" />
     <Content Include="Views\FinPlPlans\Edit.cshtml" />
     <Content Include="Views\FinPlPlans\Index.cshtml" />
+    <Content Include="Views\FinTransactions\_FormScripts.cshtml" />
+    <Content Include="Views\FinTransactions\_Form.cshtml" />
     <Content Include="Views\FinTransactions\Create.cshtml" />
     <Content Include="Views\FinTransactions\Delete.cshtml" />
     <Content Include="Views\FinTransactions\Details.cshtml" />
     <Content Include="Views\FinTransactions\Edit.cshtml" />
     <Content Include="Views\FinTransactions\Index.cshtml" />
+    <Content Include="Views\Shareholder\_Form.cshtml" />
     <Content Include="Views\Shareholder\AddContribution.cshtml" />
     <Content Include="Views\Shareholder\Create.cshtml" />
     <Content Include="Views\Shareholder\Delete.cshtml" />
@@ -3252,7 +3262,6 @@
     <Content Include="Views\STDCompanyStandards\_FormScripts.cshtml" />
     <Content Include="Views\STDCompanyStandards\_Form.cshtml" />
     <Content Include="Views\STDCompanyStandards\Index.cshtml" />
-    <Content Include="Views\FinBalanceCategories\MapCategories.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Index.cshtml" />
     <Content Include="Views\FinDashboard\AccountAnalytics.cshtml" />
     <Content Include="Views\FinDashboard\AccountBalances.cshtml" />
@@ -3289,6 +3298,7 @@
     <Content Include="Views\OpeningBalance\Delete.cshtml" />
     <Content Include="Views\OpeningBalance\Edit.cshtml" />
     <Content Include="Views\OpeningBalance\Index.cshtml" />
+    <Content Include="Views\FinRecurringObligations\_Form.cshtml" />
     <Content Include="Views\FinRecurringObligations\Create.cshtml" />
     <Content Include="Views\FinRecurringObligations\Edit.cshtml" />
     <Content Include="Views\FinRecurringObligations\Index.cshtml" />

@@ -5,6 +5,28 @@
     ViewBag.Title = "Opening balans — tahrir";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var canChange = ViewBag.CanChange as bool? ?? false;
+    // FIN-P12: har qatorda butun kontragent ro'yxati chizilmaydi — faqat tanlangan qiymat;
+    // qolgan variantlar select fokuslanganda sahifadagi JSON'dan to'ldiriladi.
+    Func<IEnumerable<SelectListItem>, Dictionary<string, string>> toNames = list => list
+        .Where(x => x.Value != null)
+        .GroupBy(x => x.Value)
+        .ToDictionary(g => g.Key, g => g.First().Text);
+    var customerNames = toNames(Model.CustomerList);
+    var supplierNames = toNames(Model.SupplierList);
+    var employeeNames = toNames(Model.EmployeeList);
+    var forwarderNames = toNames(Model.ForwarderList);
+}
+
+@helper LazySelect(string name, string optionsKey, string cssClass, int? selected, Dictionary<string, string> names)
+{
+    <select class="@cssClass lazy-options" data-options="@optionsKey" data-type="@optionsKey" name="@name">
+        <option value="">-- Tanlang --</option>
+        @if (selected.HasValue)
+        {
+            var key = selected.Value.ToString();
+            <option value="@key" selected="selected">@(names.ContainsKey(key) ? names[key] : "#" + key)</option>
+        }
+    </select>
 }
 
 <style>
@@ -14,8 +36,7 @@
     }
 </style>
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -128,11 +149,7 @@
                                                 {
                                                     <tr>
                                                         <td>
-                                                            @Html.DropDownListFor(
-                                                                m => m.CustomerReceivableLines[i].CounterpartyID,
-                                                                new SelectList(Model.CustomerList, "Value", "Text", Model.CustomerReceivableLines[i].CounterpartyID),
-                                                                "-- Tanlang --",
-                                                                new { @class = "form-control opening-counterparty", data_type = "customer" })
+                                                            @LazySelect("CustomerReceivableLines[" + i + "].CounterpartyID", "customer", "form-control opening-counterparty", Model.CustomerReceivableLines[i].CounterpartyID, customerNames)
                                                         </td>
                                                         <td>
                                                             @Html.HiddenFor(m => m.CustomerReceivableLines[i].ContractNo, new { @class = "opening-contract-no" })
@@ -197,11 +214,7 @@
                                                 {
                                                     <tr>
                                                         <td>
-                                                            @Html.DropDownListFor(
-                                                                m => m.SupplierPayableLines[i].CounterpartyID,
-                                                                new SelectList(Model.SupplierList, "Value", "Text", Model.SupplierPayableLines[i].CounterpartyID),
-                                                                "-- Tanlang --",
-                                                                new { @class = "form-control opening-counterparty", data_type = "supplier" })
+                                                            @LazySelect("SupplierPayableLines[" + i + "].CounterpartyID", "supplier", "form-control opening-counterparty", Model.SupplierPayableLines[i].CounterpartyID, supplierNames)
                                                         </td>
                                                         <td>
                                                             @Html.HiddenFor(m => m.SupplierPayableLines[i].ContractNo, new { @class = "opening-contract-no" })
@@ -265,11 +278,7 @@
                                                 {
                                                     <tr>
                                                         <td>
-                                                            @Html.DropDownListFor(
-                                                                m => m.EmployeePayrollLines[i].EmployeeID,
-                                                                new SelectList(Model.EmployeeList, "Value", "Text", Model.EmployeePayrollLines[i].EmployeeID),
-                                                                "-- Tanlang --",
-                                                                new { @class = "form-control" })
+                                                            @LazySelect("EmployeePayrollLines[" + i + "].EmployeeID", "employee", "form-control", Model.EmployeePayrollLines[i].EmployeeID, employeeNames)
                                                         </td>
                                                         <td class="text-right">
                                                             @Html.TextBoxFor(m => m.EmployeePayrollLines[i].TotalAmount, new { @class = "form-control text-right opening-total", type = "number", step = "0.01" })
@@ -320,11 +329,7 @@
                                                 {
                                                     <tr>
                                                         <td>
-                                                            @Html.DropDownListFor(
-                                                                m => m.ForwarderPayableLines[i].CounterpartyID,
-                                                                new SelectList(Model.ForwarderList, "Value", "Text", Model.ForwarderPayableLines[i].CounterpartyID),
-                                                                "-- Tanlang --",
-                                                                new { @class = "form-control opening-counterparty", data_type = "forwarder" })
+                                                            @LazySelect("ForwarderPayableLines[" + i + "].CounterpartyID", "forwarder", "form-control opening-counterparty", Model.ForwarderPayableLines[i].CounterpartyID, forwarderNames)
                                                         </td>
                                                         <td>
                                                             @Html.HiddenFor(m => m.ForwarderPayableLines[i].ContractNo, new { @class = "opening-contract-no" })
@@ -519,11 +524,6 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
 
 @section scripts
 {
@@ -622,19 +622,40 @@ else
                 var supplierOptionsHtml = buildOptionsHtml(supplierOptionsData);
                 var employeeOptionsHtml = buildOptionsHtml(employeeOptionsData);
                 var forwarderOptionsHtml = buildOptionsHtml(forwarderOptionsData);
+                var optionsHtmlByKey = {
+                    customer: customerOptionsHtml,
+                    supplier: supplierOptionsHtml,
+                    employee: employeeOptionsHtml,
+                    forwarder: forwarderOptionsHtml
+                };
+
+                // FIN-P12: server faqat tanlangan qiymatni chizadi; to'liq ro'yxat birinchi fokusda qo'yiladi
+                function ensureLazyOptions(sel) {
+                    if (!sel || sel.getAttribute('data-loaded') === '1') return;
+                    var html = optionsHtmlByKey[sel.getAttribute('data-options')];
+                    if (html === undefined) return;
+                    var current = sel.value;
+                    sel.innerHTML = '<option value="">-- Tanlang --</option>' + html;
+                    sel.value = current;
+                    sel.setAttribute('data-loaded', '1');
+                }
+                $(document).on('focus mousedown', 'select.lazy-options', function () {
+                    ensureLazyOptions(this);
+                });
+
+                // Shartnomalar kontragent bo'yicha keshlanadi (bir xil kontragentli qatorlar — bitta so'rov)
+                var contractRequests = {};
+                function fetchContracts(url) {
+                    if (!contractRequests[url]) {
+                        contractRequests[url] = fetch(url, { credentials: 'same-origin' })
+                            .then(function (r) { return r.json(); })
+                            .catch(function () { delete contractRequests[url]; return null; });
+                    }
+                    return contractRequests[url];
+                }
 
                 function createLineHtml(prefix, index, type) {
-                    var counterpartyOptions = '';
-                    if (type === 'customer') {
-                        var cSource = document.querySelector('select[name="CustomerReceivableLines[0].CounterpartyID"]');
-                        counterpartyOptions = cSource ? cSource.innerHTML : ('<option value="">-- Tanlang --</option>' + customerOptionsHtml);
-                    } else if (type === 'forwarder') {
-                        var fSource = document.querySelector('select[name="ForwarderPayableLines[0].CounterpartyID"]');
-                        counterpartyOptions = fSource ? fSource.innerHTML : ('<option value="">-- Tanlang --</option>' + forwarderOptionsHtml);
-                    } else {
-                        var sSource = document.querySelector('select[name="SupplierPayableLines[0].CounterpartyID"]');
-                        counterpartyOptions = sSource ? sSource.innerHTML : ('<option value="">-- Tanlang --</option>' + supplierOptionsHtml);
-                    }
+                    var counterpartyOptions = '<option value="">-- Tanlang --</option>' + (optionsHtmlByKey[type] || '');
                     if (type === 'payroll') {
                         return '<tr>'
                             + '<td><select class="form-control" name="' + prefix + '[' + index + '].EmployeeID"><option value="">-- Tanlang --</option>' + employeeOptionsHtml + '</select></td>'
@@ -680,6 +701,7 @@ else
                     var counterpartyId = parseInt($counterparty.val() || '0', 10);
                     var selectedId = $contract.attr('data-selected-id') || '';
                     var selectedText = $contract.attr('data-selected-text') || '';
+                    $contract.attr('data-loaded', '1');
 
                     $contract.empty().append('<option value="">-- Shartnoma tanlanmagan --</option>');
                     if (!counterpartyId || !type) {
@@ -698,8 +720,7 @@ else
                         url = supplierContractsUrl + '?supplierId=' + encodeURIComponent(counterpartyId);
                     }
 
-                    fetch(url, { credentials: 'same-origin' })
-                        .then(function (r) { return r.json(); })
+                    fetchContracts(url)
                         .then(function (res) {
                             if (!res || !res.success || !res.data) return;
                             res.data.forEach(function (x) {
@@ -709,8 +730,7 @@ else
                                 $contract.val(String(selectedId));
                             }
                             syncContractNo($row);
-                        })
-                        .catch(function () { });
+                        });
                 }
 
                 function syncContractNo($row) {
@@ -942,8 +962,13 @@ else
                 // Boshlang'ich yuklashda serverdan kelgan "Umumiy oldi-berdi"/"To'langan" qiymatlarini
                 // saqlab qolamiz. recalcSystemTotalForRow bu yerda chaqirilmaydi, chunki shartnoma ro'yxati
                 // asinxron yuklanadi va o'sha paytda contract qiymati bo'sh bo'lib, qiymatlarni 0 ga tushiradi.
+                // FIN-P12: shartnomalar sahifa yuklanganda har qator uchun emas, select birinchi ochilganda yuklanadi
+                // (avval AutoFill'dan keyin yuzlab so'rov ketardi). Saqlangan shartnoma serverdan tanlangan holda keladi.
+                $(document).on('focus mousedown', '.opening-contract-select', function () {
+                    if (this.getAttribute('data-loaded') === '1') return;
+                    loadContractsForRow($(this).closest('tr'));
+                });
                 $('#tblOpeningCustomerLines tbody tr, #tblOpeningSupplierLines tbody tr, #tblOpeningForwarderLines tbody tr').each(function () {
-                    loadContractsForRow($(this));
                     recalcRowBalance($(this));
                 });
                 $('#tblOpeningPayrollLines tbody tr').each(function () {

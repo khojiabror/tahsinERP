@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Akt-sverki tuzatishlari — DB jadvali (EDMX dan tashqari, SqlQuery).
+    /// Akt-sverki tuzatishlari (RECONCILIATION_ADJUSTMENTS, EDMX).
+    /// FIN-B20: avval xom SQL + SqlException yutilardi — jadval/ustun xatosi tuzatishlarni jimgina yo'q qilardi.
     /// Har bir yozuv bitta shartnomaga (ContractID) bog'langan.
     /// </summary>
     public static class ReconciliationAdjustmentService
@@ -43,36 +44,41 @@ namespace tahsinERP.Services
         /// </summary>
         public static List<ReconciliationAdjustmentRow> LoadForReport(DBTHSNEntities db, byte counterpartyType, int counterpartyId, int contractId, DateTime asOfDate)
         {
-            const string sql = @"
-SELECT ID, CounterpartyType, CounterpartyID, EntryYear, CutoffDate, Party1Debit, Party1Credit, Note
-FROM RECONCILIATION_ADJUSTMENTS
-WHERE CounterpartyType = {0} AND CounterpartyID = {1} AND ContractID = {2} AND CutoffDate <= {3}
-ORDER BY CutoffDate, EntryYear, ID";
-            try
-            {
-                return db.Database.SqlQuery<ReconciliationAdjustmentRow>(sql, counterpartyType, counterpartyId, contractId, asOfDate.Date).ToList();
-            }
-            catch (SqlException)
-            {
-                return new List<ReconciliationAdjustmentRow>();
-            }
+            var day = asOfDate.Date;
+            return Query(db, counterpartyType, counterpartyId, contractId)
+                .Where(a => a.CutoffDate <= day)
+                .OrderBy(a => a.CutoffDate).ThenBy(a => a.EntryYear).ThenBy(a => a.ID)
+                .Select(ToRow)
+                .ToList();
         }
 
         public static ReconciliationAdjustmentRow LoadForYear(DBTHSNEntities db, byte counterpartyType, int counterpartyId, int contractId, int entryYear)
         {
-            const string sql = @"
-SELECT TOP 1 ID, CounterpartyType, CounterpartyID, EntryYear, CutoffDate, Party1Debit, Party1Credit, Note
-FROM RECONCILIATION_ADJUSTMENTS
-WHERE CounterpartyType = {0} AND CounterpartyID = {1} AND ContractID = {2} AND EntryYear = {3}";
-            try
-            {
-                return db.Database.SqlQuery<ReconciliationAdjustmentRow>(sql, counterpartyType, counterpartyId, contractId, entryYear).FirstOrDefault();
-            }
-            catch (SqlException)
-            {
-                return null;
-            }
+            return Query(db, counterpartyType, counterpartyId, contractId)
+                .Where(a => a.EntryYear == entryYear)
+                .OrderBy(a => a.ID)
+                .Select(ToRow)
+                .FirstOrDefault();
         }
+
+        private static IQueryable<RECONCILIATION_ADJUSTMENTS> Query(DBTHSNEntities db, byte counterpartyType, int counterpartyId, int contractId)
+        {
+            return db.RECONCILIATION_ADJUSTMENTS.AsNoTracking()
+                .Where(a => a.CounterpartyType == counterpartyType && a.CounterpartyID == counterpartyId && a.ContractID == contractId);
+        }
+
+        private static readonly System.Linq.Expressions.Expression<Func<RECONCILIATION_ADJUSTMENTS, ReconciliationAdjustmentRow>> ToRow =
+            a => new ReconciliationAdjustmentRow
+            {
+                ID = a.ID,
+                CounterpartyType = a.CounterpartyType,
+                CounterpartyID = a.CounterpartyID,
+                EntryYear = a.EntryYear,
+                CutoffDate = a.CutoffDate,
+                Party1Debit = a.Party1Debit,
+                Party1Credit = a.Party1Credit,
+                Note = a.Note
+            };
 
         public static void Save(DBTHSNEntities db, byte counterpartyType, int counterpartyId, int contractId, int entryYear, DateTime cutoffDate, decimal party1Debit, decimal party1Credit, string note, int userId)
         {
@@ -83,21 +89,29 @@ WHERE CounterpartyType = {0} AND CounterpartyID = {1} AND ContractID = {2} AND E
             var now = DateTime.UtcNow;
             note = string.IsNullOrWhiteSpace(note) ? null : note.Trim().Substring(0, Math.Min(note.Trim().Length, 500));
 
-            if (existing != null)
+            var row = existing != null ? db.RECONCILIATION_ADJUSTMENTS.Find(existing.ID) : null;
+            if (row == null)
             {
-                const string upd = @"
-UPDATE RECONCILIATION_ADJUSTMENTS
-SET CutoffDate = {0}, Party1Debit = {1}, Party1Credit = {2}, Note = {3}, ModifiedDT = {4}
-WHERE ID = {5}";
-                db.Database.ExecuteSqlCommand(upd, cutoffDate.Date, party1Debit, party1Credit, (object)note ?? DBNull.Value, now, existing.ID);
+                row = new RECONCILIATION_ADJUSTMENTS
+                {
+                    CounterpartyType = counterpartyType,
+                    CounterpartyID = counterpartyId,
+                    ContractID = contractId,
+                    EntryYear = entryYear,
+                    CreatedDT = now,
+                    CreatedByUserID = userId
+                };
+                db.RECONCILIATION_ADJUSTMENTS.Add(row);
             }
             else
             {
-                const string ins = @"
-INSERT INTO RECONCILIATION_ADJUSTMENTS (CounterpartyType, CounterpartyID, ContractID, EntryYear, CutoffDate, Party1Debit, Party1Credit, Note, CreatedDT, CreatedByUserID)
-VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})";
-                db.Database.ExecuteSqlCommand(ins, counterpartyType, counterpartyId, contractId, entryYear, cutoffDate.Date, party1Debit, party1Credit, (object)note ?? DBNull.Value, now, userId);
+                row.ModifiedDT = now;
             }
+            row.CutoffDate = cutoffDate.Date;
+            row.Party1Debit = party1Debit;
+            row.Party1Credit = party1Credit;
+            row.Note = note;
+            db.SaveChanges();
         }
     }
 

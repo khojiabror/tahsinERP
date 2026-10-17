@@ -8,8 +8,7 @@
     var years = (int)(ViewBag.DcfYears ?? 3);
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -196,8 +195,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

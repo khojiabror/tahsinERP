@@ -13,6 +13,48 @@ namespace tahsinERP.Services
     public static class FinancePostingService
     {
         /// <summary>
+        /// Kontragent hisobini topadi: avval aniq kod bo'yicha (RECEIVABLES_{valyuta} / PAYABLES_{valyuta}),
+        /// so'ng eski ma'lumot uchun nom bo'yicha; topilmasa yangisi qo'shiladi (SaveChanges chaqiruvchida).
+        /// Nofaol hisob qayta faollashtiriladi.
+        /// </summary>
+        private static FIN_ACCOUNTS ResolveCounterpartyAccount(DBTHSNEntities db, string code, int currencyId,
+            string legacyName, string legacyNameEn, string newName, int userId)
+        {
+            var account = db.FIN_ACCOUNTS.FirstOrDefault(a => a.Code == code);
+            if (account == null)
+            {
+                account = db.FIN_ACCOUNTS
+                    .FirstOrDefault(a => a.IsActive && a.CurrencyID == currencyId && !a.IsCash && !a.IsBank &&
+                                         (a.Name.Contains(legacyName) || a.Name.Contains(legacyNameEn)));
+            }
+
+            if (account == null)
+            {
+                account = new FIN_ACCOUNTS
+                {
+                    Code = code,
+                    Name = newName,
+                    CurrencyID = currencyId,
+                    IsCash = false,
+                    IsBank = false,
+                    IsActive = true,
+                    CreatedByUserID = userId,
+                    CreatedDT = DateTime.Now
+                };
+                db.FIN_ACCOUNTS.Add(account);
+            }
+            else if (!account.IsActive)
+            {
+                account.IsActive = true;
+                if (account.CurrencyID <= 0)
+                {
+                    account.CurrencyID = currencyId;
+                }
+            }
+            return account;
+        }
+
+        /// <summary>
         /// Post transaction from Sales Invoice
         /// </summary>
         public static void PostSalesInvoice(int invoiceID, DBTHSNEntities db, int userId)
@@ -34,44 +76,10 @@ namespace tahsinERP.Services
             var currencyId = invoice.CurrencyID ?? 1;
             var receivableCode = "RECEIVABLES_" + currencyId;
 
-            // 1) Preferred: deterministic code-based lookup
-            var account = db.FIN_ACCOUNTS.FirstOrDefault(a => a.Code == receivableCode);
-
-            // 2) Fallback: legacy name-based lookup for old data
-            if (account == null)
+            var account = ResolveCounterpartyAccount(db, receivableCode, currencyId,
+                "Debitorlar", "Receivable", "Debitorlar qarzi", userId);
+            if (account.ID == 0)
             {
-                account = db.FIN_ACCOUNTS
-                    .FirstOrDefault(a =>
-                        a.IsActive &&
-                        a.CurrencyID == currencyId &&
-                        !a.IsCash &&
-                        !a.IsBank &&
-                        (a.Name.Contains("Debitorlar") || a.Name.Contains("Receivable")));
-            }
-
-            if (account == null)
-            {
-                account = new FIN_ACCOUNTS
-                {
-                    Code = receivableCode,
-                    Name = "Debitorlar qarzi",
-                    CurrencyID = currencyId,
-                    IsCash = false,
-                    IsBank = false,
-                    IsActive = true,
-                    CreatedByUserID = userId,
-                    CreatedDT = DateTime.Now
-                };
-                db.FIN_ACCOUNTS.Add(account);
-                db.SaveChanges();
-            }
-            else if (!account.IsActive)
-            {
-                account.IsActive = true;
-                if (account.CurrencyID <= 0)
-                {
-                    account.CurrencyID = currencyId;
-                }
                 db.SaveChanges();
             }
 
@@ -139,29 +147,16 @@ namespace tahsinERP.Services
 
             // Already posted bo'lsa, mavjud yozuvni yangilaymiz (edit oqimi uchun)
 
-            // Find or create account for payables
-            var account = db.FIN_ACCOUNTS
-                .FirstOrDefault(a => (a.Name.Contains("Kreditorlar") || a.Name.Contains("Creditor")) && a.IsActive && 
-                    (invoice.CurrencyID.HasValue ? a.CurrencyID == invoice.CurrencyID.Value : true));
-
-            if (account == null && invoice.CurrencyID.HasValue)
+            // FIN-B29: hisob kod bo'yicha (PAYABLES_{valyuta}), PostSalesInvoice kabi. Avval nom bo'yicha
+            // ("Kreditorlar") qidirilardi, CurrencyID bo'sh va hisob yo'q bo'lsa — posting jimgina o'tkazib yuborilardi.
+            var currencyId = invoice.CurrencyID ?? 1;
+            if (!invoice.CurrencyID.HasValue)
             {
-                account = new FIN_ACCOUNTS
-                {
-                    Code = "PAYABLES_" + invoice.CurrencyID.Value,
-                    Name = "Kreditorlar qarzi",
-                    CurrencyID = invoice.CurrencyID.Value,
-                    IsCash = false,
-                    IsBank = false,
-                    IsActive = true,
-                    CreatedByUserID = userId,
-                    CreatedDT = DateTime.Now
-                };
-                db.FIN_ACCOUNTS.Add(account);
-                db.SaveChanges();
+                LogHelper.LogToDatabase("System", "FinancePosting", "PostPurchaseInvoice",
+                    $"Xarid invoysi {invoiceID}: valyuta ko'rsatilmagan, standart valyuta (ID {currencyId}) olindi");
             }
-            
-            if (account == null) return; // Cannot proceed without account
+            var account = ResolveCounterpartyAccount(db, "PAYABLES_" + currencyId, currencyId,
+                "Kreditorlar", "Creditor", "Kreditorlar qarzi", userId);
 
             // Find purchase expense category
             var category = db.FIN_CATEGORIES
@@ -177,7 +172,6 @@ namespace tahsinERP.Services
                     SortOrder = 1
                 };
                 db.FIN_CATEGORIES.Add(category);
-                db.SaveChanges();
             }
 
             var transaction = existing ?? new FIN_TRANSACTIONS
@@ -189,13 +183,14 @@ namespace tahsinERP.Services
             };
 
             transaction.TxnDate = invoice.InvoiceDate;
-            transaction.AccountID = account.ID;
-            transaction.CategoryID = category.ID;
+            // Navigatsiya orqali: yangi hisob/kategoriya ham bitta SaveChanges'da yoziladi
+            transaction.FIN_ACCOUNTS = account;
+            transaction.FIN_CATEGORIES = category;
             transaction.Direction = 2; // Out
             // Yagona qoida (FIN-B08): kirim (INCOMES.TotalPrice) bo'lsa shu, aks holda P_INVOICES.Amount
             transaction.Amount = CounterpartyBalanceService.PurchaseInvoiceAmounts(db, db.P_INVOICES.Where(i => i.ID == invoiceID))
                 .TryGetValue(invoiceID, out var purchaseAmount) ? purchaseAmount : 0m;
-            transaction.CurrencyID = invoice.CurrencyID ?? 1;
+            transaction.CurrencyID = currencyId;
             transaction.CounterpartyType = 2; // Supplier
             transaction.CounterpartyID = invoice.SupplierID;
             transaction.CounterpartyName = invoice.SUPPLIER?.Name;

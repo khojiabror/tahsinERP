@@ -17,15 +17,8 @@ namespace tahsinERP.Services.Finance
 
         #region Oylik
 
-        public sealed class PayrollLiabilityResult
-        {
-            public decimal Accrued { get; set; }
-            public decimal Paid { get; set; }
-            public IQueryable<FIN_TRANSACTIONS> PaymentQuery { get; set; }
-        }
-
-        /// <summary>Tasdiqlangan oylik (ApprovedDT ∈ (opening; asOf]) va oylik to'lovlari ([opening+1 kun; asOf]).</summary>
-        public static PayrollLiabilityResult Payroll(DBTHSNEntities db, DateTime asOf, DateTime? openingDate)
+        /// <summary>Hisoblangan oylik qatorlari: ApprovedDT ∈ (opening; asOf].</summary>
+        private static IQueryable<HR_PAYROLL_LINES> PayrollLines(DBTHSNEntities db, DateTime asOf, DateTime? openingDate)
         {
             var linesQuery = FinQueries.ApprovedPayrollLines(db)
                 .Where(l => l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= asOf);
@@ -34,18 +27,122 @@ namespace tahsinERP.Services.Finance
                 var od = openingDate.Value;
                 linesQuery = linesQuery.Where(l => l.HR_PAYROLL_HEADERS.ApprovedDT.Value > od);
             }
-            var accrued = linesQuery.Sum(l => (decimal?)l.NetSalary) ?? 0m;
+            return linesQuery;
+        }
 
-            var paymentQuery = FinQueries.PayrollPayments(
+        /// <summary>Oylik to'lovlari: [opening+1 kun; asOf], "oylik" kategoriyasi / xodim (CP=6) / HR_PAYROLL.</summary>
+        private static IQueryable<FIN_TRANSACTIONS> PayrollPaymentQuery(DBTHSNEntities db, DateTime asOf, DateTime? openingDate)
+        {
+            return FinQueries.PayrollPayments(
                 db,
                 FinQueries.SalaryCategoryIds(db),
                 openingDate.HasValue ? openingDate.Value.AddDays(1) : DateTime.MinValue,
                 asOf);
+        }
 
-            return new PayrollLiabilityResult
+        public sealed class EmployeePayrollDebt
+        {
+            public int EmployeeID { get; set; }
+            public string EmployeeName { get; set; }
+            public decimal OpeningTotal { get; set; }
+            public decimal OpeningPaid { get; set; }
+            public decimal Accrued { get; set; }
+            public decimal Paid { get; set; }
+            public decimal Calculated => OpeningTotal + Accrued;
+            public decimal TotalPaid => OpeningPaid + Paid;
+            public decimal Debt => Calculated - TotalPaid;
+        }
+
+        public sealed class PayrollBreakdown
+        {
+            public DateTime? OpeningDate { get; set; }
+            public List<EmployeePayrollDebt> Employees { get; set; }
+            /// <summary>Xodimga bog'lanmagan oylik to'lovlari ("oylik" kategoriyasi / HR_PAYROLL, CounterpartyID yo'q).</summary>
+            public decimal UnattributedPaid { get; set; }
+            /// <summary>Opening'dan keyingi oylik to'lovlari (balans tafsilotidagi harakatlar statistikasi uchun).</summary>
+            public IQueryable<FIN_TRANSACTIONS> PaymentQuery { get; set; }
+            public decimal OpeningNet => Employees.Sum(e => e.OpeningTotal - e.OpeningPaid);
+            public decimal Accrued => Employees.Sum(e => e.Accrued);
+            public decimal Paid => Employees.Sum(e => e.Paid) + UnattributedPaid;
+            /// <summary>Oylik qarzi: opening + hisoblangan − barcha to'lovlar (manfiy bo'lsa 0).</summary>
+            public decimal Total => Math.Max(0m, OpeningNet + Accrued - Paid);
+        }
+
+        /// <summary>
+        /// Oylik qarzi (balans va ReportsHub uchun yagona funksiya, FIN-B18): oxirgi oylik opening'i
+        /// (FIN_OPENING_CONTRACT_BALANCES, BalanceType 3) + undan keyin tasdiqlangan oylik − undan keyingi
+        /// oylik to'lovlari ("oylik" kategoriyasi / CP=6 / HR_PAYROLL). Avval balans oylik opening'ini umuman
+        /// olmasdi (subledger snapshot'i o'chirilardi), ReportsHub esa barcha davr oyligiga opening'ni qo'shib
+        /// ikki marta sanardi va faqat CP=6 to'lovlarini ayirardi.
+        /// </summary>
+        public static PayrollBreakdown PayrollByEmployee(DBTHSNEntities db, CounterpartyBalanceService counterparties, DateTime asOf)
+        {
+            var openingDate = counterparties.LatestOpeningDate(asOf, CounterpartyBalanceService.BalanceTypePayroll);
+            var byEmployee = new Dictionary<int, EmployeePayrollDebt>();
+            EmployeePayrollDebt Get(int id)
             {
-                Accrued = accrued,
-                Paid = paymentQuery.Sum(t => (decimal?)t.Amount) ?? 0m,
+                if (!byEmployee.TryGetValue(id, out var e))
+                {
+                    e = new EmployeePayrollDebt { EmployeeID = id };
+                    byEmployee[id] = e;
+                }
+                return e;
+            }
+
+            if (openingDate.HasValue)
+            {
+                foreach (var row in counterparties.OpeningContractBalances(openingDate.Value, CounterpartyBalanceService.BalanceTypePayroll)
+                             .Where(x => x.CounterpartyID > 0))
+                {
+                    var e = Get(row.CounterpartyID);
+                    e.OpeningTotal += row.TotalAmount;
+                    e.OpeningPaid += row.PaidAmount;
+                }
+            }
+
+            var accrued = PayrollLines(db, asOf, openingDate)
+                .GroupBy(l => new { l.EmployeeID, Name = l.HR_EMPLOYEES.FullName })
+                .Select(g => new { g.Key.EmployeeID, g.Key.Name, Amount = g.Sum(x => (decimal?)x.NetSalary) ?? 0m })
+                .ToList();
+            foreach (var a in accrued)
+            {
+                var e = Get(a.EmployeeID);
+                e.Accrued += a.Amount;
+                e.EmployeeName = e.EmployeeName ?? a.Name;
+            }
+
+            var paymentQuery = PayrollPaymentQuery(db, asOf, openingDate);
+            var payments = paymentQuery
+                .GroupBy(t => t.CounterpartyType == 6 ? t.CounterpartyID : null)
+                .Select(g => new { EmployeeID = g.Key, Amount = g.Sum(t => t.Amount) })
+                .ToList();
+            decimal unattributed = 0m;
+            foreach (var p in payments)
+            {
+                if (p.EmployeeID.HasValue && p.EmployeeID.Value > 0)
+                    Get(p.EmployeeID.Value).Paid += p.Amount;
+                else
+                    unattributed += p.Amount;
+            }
+
+            var missingNames = byEmployee.Values.Where(e => e.EmployeeName == null).Select(e => e.EmployeeID).ToList();
+            if (missingNames.Count > 0)
+            {
+                var names = db.HR_EMPLOYEES.AsNoTracking()
+                    .Where(e => missingNames.Contains(e.ID))
+                    .Select(e => new { e.ID, e.FullName })
+                    .ToList();
+                foreach (var n in names)
+                    byEmployee[n.ID].EmployeeName = n.FullName;
+            }
+            foreach (var e in byEmployee.Values.Where(e => string.IsNullOrEmpty(e.EmployeeName)))
+                e.EmployeeName = $"Xodim #{e.EmployeeID}";
+
+            return new PayrollBreakdown
+            {
+                OpeningDate = openingDate,
+                Employees = byEmployee.Values.ToList(),
+                UnattributedPaid = unattributed,
                 PaymentQuery = paymentQuery
             };
         }
@@ -68,14 +165,16 @@ namespace tahsinERP.Services.Finance
         /// <summary>
         /// Faol majburiyatlar. Jadval bazada bo'lmasa (Scripts/Create_FIN_RECURRING_OBLIGATIONS.sql bajarilmagan) — bo'sh ro'yxat.
         /// </summary>
-        public static List<RecurringObligationRow> ActiveRecurringObligations(DBTHSNEntities db, int? balanceCategoryId = null)
+        public static List<RecurringObligationRow> ActiveRecurringObligations(DBTHSNEntities db, int? balanceCategoryId = null, bool includeUnassigned = false)
         {
             try
             {
                 const string baseSql = "SELECT ID, Name, MonthlyAmount, CurrencyID, StartYear, StartMonth FROM FIN_RECURRING_OBLIGATIONS WHERE (IsDeleted = 0 OR IsDeleted IS NULL) AND IsActive = 1";
-                return balanceCategoryId.HasValue
-                    ? db.Database.SqlQuery<RecurringObligationRow>(baseSql + " AND BalanceCategoryID = @p0", balanceCategoryId.Value).ToList()
-                    : db.Database.SqlQuery<RecurringObligationRow>(baseSql).ToList();
+                if (!balanceCategoryId.HasValue)
+                    return db.Database.SqlQuery<RecurringObligationRow>(baseSql).ToList();
+                return includeUnassigned
+                    ? db.Database.SqlQuery<RecurringObligationRow>(baseSql + " AND (BalanceCategoryID = @p0 OR BalanceCategoryID IS NULL)", balanceCategoryId.Value).ToList()
+                    : db.Database.SqlQuery<RecurringObligationRow>(baseSql + " AND BalanceCategoryID = @p0", balanceCategoryId.Value).ToList();
             }
             catch (System.Data.SqlClient.SqlException ex)
             {
@@ -120,11 +219,15 @@ namespace tahsinERP.Services.Finance
             public int Count { get; set; }
         }
 
-        /// <summary>Balans kategoriyasiga bog'langan doimiy harajatlar qarzi: Σ max(0, oylar × summa − to'lovlar).</summary>
-        public static RecurringLiabilityResult RecurringObligationsLiability(DBTHSNEntities db, int balanceCategoryId, DateTime asOf, DateTime? openingDate)
+        /// <summary>
+        /// Balans kategoriyasiga bog'langan doimiy harajatlar qarzi: Σ max(0, oylar × summa − to'lovlar).
+        /// FIN-B17: kategoriyasi tanlanmagan (NULL) majburiyatlar "Doimiy harajatlar qarzi" kategoriyasiga
+        /// tushadi (avval balansdan yo'qolib, faqat ReportsHub'da ko'rinardi).
+        /// </summary>
+        public static RecurringLiabilityResult RecurringObligationsLiability(DBTHSNEntities db, int balanceCategoryId, DateTime asOf, DateTime? openingDate, bool includeUnassigned = false)
         {
             var result = new RecurringLiabilityResult();
-            var obligations = ActiveRecurringObligations(db, balanceCategoryId);
+            var obligations = ActiveRecurringObligations(db, balanceCategoryId, includeUnassigned);
             var paidById = RecurringObligationPayments(db, obligations.Select(o => o.ID).ToList(), asOf, openingDate);
             var endDate = asOf.Date;
             foreach (var ob in obligations)

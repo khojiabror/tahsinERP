@@ -7,8 +7,7 @@
     var canChange = ViewBag.CanChange as bool? ?? false;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "OpeningBalance"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -99,8 +98,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

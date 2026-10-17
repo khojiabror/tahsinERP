@@ -3,8 +3,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinTransactions"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
+@{
     bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "FinTransactions");
     var fromDate = (DateTime?)ViewBag.FromDate;
     var toDate = (DateTime?)ViewBag.ToDate;
@@ -21,6 +21,7 @@
         sourceDocType = (string)ViewBag.SourceDocType,
         searchTerm = (string)ViewBag.SearchTerm
     };
+}
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -240,8 +241,3 @@
             }
         </style>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
