@@ -1014,6 +1014,7 @@
     <Compile Include="ViewModels\Tannarx\TannarxDetailsViewModel.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxEditViewModel.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxIndexViewModel.cs" />
+    <Compile Include="ViewModels\Tannarx\TannarxMapper.cs" />
     <Compile Include="ViewModels\Tannarx\TannarxMonthSourcesViewModel.cs" />
     <Compile Include="ViewModels\TaskChangeStatusViewModel.cs" />
     <Compile Include="ViewModels\TaskDashboardViewModel.cs" />
