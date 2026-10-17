@@ -206,6 +206,25 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
                 .ToDictionary(x => x.Key, x => x.Qty);
         }
 
+        private class ProductQtyRow
+        {
+            public int ProductID { get; set; }
+            public double Qty { get; set; }
+        }
+
+        /// <summary>
+        /// Ombordagi barcha mahsulotlar qoldig'i — tranzaksiya oxirigacha qulflangan holda (UPDLOCK+HOLDLOCK,
+        /// yo'q qatorlar oralig'i ham). Butun omborni qayta hisoblaydigan amallar uchun (inventarizatsiya).
+        /// </summary>
+        public static Dictionary<int, double> GetOnHandForUpdate(DBTHSNEntities db, int warehouseId)
+        {
+            return db.Database.SqlQuery<ProductQtyRow>(
+                    "SELECT ProductID, CAST(ISNULL(SUM(Amount), 0) AS FLOAT) AS Qty FROM dbo.PRODUCT_STOCKS WITH (UPDLOCK, HOLDLOCK) " +
+                    "WHERE WHID = @p0 GROUP BY ProductID", warehouseId)
+                .ToList()
+                .ToDictionary(r => r.ProductID, r => r.Qty);
+        }
+
         /// <summary>Omborda DLOC (joylashuv/lot) yuritiladimi.</summary>
         public static bool IsDlocWarehouse(DBTHSNEntities db, int warehouseId)
         {

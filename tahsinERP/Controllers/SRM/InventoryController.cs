@@ -355,16 +355,7 @@ namespace tahsinERP.Controllers
                     "ID", "WHName"
                 );
 
-                var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-                var lockedWarehouseIds = new List<int>();
-                foreach (var whId in assignedWarehouseIds)
-                {
-                    if (await HasAdjustmentThisMonthAsync(currentUserId, whId, db))
-                    {
-                        lockedWarehouseIds.Add(whId);
-                    }
-                }
-                ViewBag.LockedWarehouseIds = lockedWarehouseIds;
+                ViewBag.LockedWarehouseIds = await GetLockedWarehouseIdsAsync(db, assignedWarehouseIds);
 
                 return View(new ViewModels.InventoryAdjustmentViewModel());
             }
@@ -430,7 +421,8 @@ namespace tahsinERP.Controllers
                     }
 
                     var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-                    if (await HasAdjustmentThisMonthAsync(currentUserId, model.WarehouseId, db))
+                    var lockedWarehouseIds = await GetLockedWarehouseIdsAsync(db, assignedWarehouseIds);
+                    if (lockedWarehouseIds.Contains(model.WarehouseId))
                     {
                         ModelState.AddModelError("", "Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi.");
                     }
@@ -438,14 +430,6 @@ namespace tahsinERP.Controllers
                     if (!ModelState.IsValid)
                     {
                         await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
-                        var lockedWarehouseIds = new List<int>();
-                        foreach (var whId in assignedWarehouseIds)
-                        {
-                            if (await HasAdjustmentThisMonthAsync(currentUserId, whId, db))
-                            {
-                                lockedWarehouseIds.Add(whId);
-                            }
-                        }
                         ViewBag.LockedWarehouseIds = lockedWarehouseIds;
                         return View(model);
                     }
@@ -471,13 +455,15 @@ namespace tahsinERP.Controllers
                             return View(model);
                         }
 
-                        var productMap = db.PRODUCTS
-                            .AsNoTracking()
-                            .AsEnumerable()
+                        // SRM-P06: faqat kerakli ustunlar (avval PRODUCTS ning barcha ustunlari xotiraga olinardi)
+                        var productMap = (await db.PRODUCTS
+                                .AsNoTracking()
+                                .Where(p => p.PNo != null && p.PNo != "")
+                                .Select(p => new { p.ID, p.PNo, p.Name, p.UnitID })
+                                .ToListAsync())
                             .Where(p => !string.IsNullOrWhiteSpace(p.PNo))
-                            .ToDictionary(
-                                p => p.PNo.Trim().ToUpperInvariant(),
-                                p => new { p.ID, p.PNo, p.Name, p.UnitID });
+                            .GroupBy(p => p.PNo.Trim().ToUpperInvariant())
+                            .ToDictionary(g => g.Key, g => g.OrderBy(p => p.ID).First());
 
                         var parsedRows = new List<InventoryAdjustmentRow>();
                         var errorDetails = new List<string>();
@@ -550,6 +536,7 @@ namespace tahsinERP.Controllers
                             var unassignedErrors = new List<string>();
                             var onHandMap = StockLedger.GetOnHand(db, model.WarehouseId,
                                 parsedRows.Select(r => productMap[r.ProductPNo.Trim().ToUpperInvariant()].ID));
+                            var ledgerMap = DlocFifoDataAccess.GetLedgerQtyByProduct(db, model.WarehouseId);
                             foreach (var parsedRow in parsedRows)
                             {
                                 var product = productMap[parsedRow.ProductPNo.Trim().ToUpperInvariant()];
@@ -557,8 +544,9 @@ namespace tahsinERP.Controllers
                                 onHandMap.TryGetValue(product.ID, out onHand);
                                 if (onHand <= StockLedger.Epsilon)
                                     continue;
-                                var ledgerQty = (double)DlocFifoDataAccess.GetLedgerQty(db, model.WarehouseId, product.ID);
-                                var unassigned = onHand - ledgerQty;
+                                decimal ledger;
+                                ledgerMap.TryGetValue(product.ID, out ledger);
+                                var unassigned = onHand - (double)ledger;
                                 if (unassigned > StockLedger.Epsilon)
                                 {
                                     unassignedErrors.Add($"{parsedRow.RowNumber}-qator: {product.PNo} — DLOC ga joylashtirilmagan qoldiq {unassigned:N3}. Avval «DLOC ga joylashtirish» sahifasida joylashtiring.");
@@ -580,27 +568,59 @@ namespace tahsinERP.Controllers
                             {
                                 var currencyId = await GetDefaultCurrencyIdAsync(db);
                                 var now = DateTime.Now;
+                                var period = new DateTime(now.Year, now.Month, 1);
+
+                                // SRM-P07: oylik qulf — INVENTORY_ADJUSTMENTS (ombor + oy, unique). Tranzaksiya ichida birinchi
+                                // bo'lib yoziladi: parallel ikkinchi urinish unique indeksga uriladi va butunlay bekor bo'ladi
+                                // (avval USERLOGS'dagi commit'dan KEYIN yoziladigan log qatoriga tayanilardi).
+                                var adjustmentLock = new INVENTORY_ADJUSTMENTS
+                                {
+                                    WarehouseID = model.WarehouseId,
+                                    Period = period,
+                                    UserID = currentUserId > 0 ? (int?)currentUserId : null,
+                                    CreatedAt = now
+                                };
+                                db.INVENTORY_ADJUSTMENTS.Add(adjustmentLock);
+                                try
+                                {
+                                    await db.SaveChangesAsync();
+                                }
+                                catch (System.Data.Entity.Infrastructure.DbUpdateException)
+                                {
+                                    throw new InvalidOperationException("Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi.");
+                                }
+
                                 // Bitta inventarizatsiya = bitta INV kirim (ortiqcha) + bitta INV chiqim (kamomad), N qatorli
                                 // (avval har mahsulotga alohida hujjat va 2 ta SaveChanges — SRM-P06).
                                 var invToken = $"{now.Month:00}_{now.Day:00}_{{0}}_{model.WarehouseId}_{now:HHmmssfff}";
 
+                                // SRM-P06: ombor qoldig'i bitta qulflangan so'rovda (avval har qator uchun alohida so'rov)
+                                var lockedOnHand = StockLedger.GetOnHandForUpdate(db, model.WarehouseId);
+
                                 var plusLines = new List<Tuple<InventoryAdjustmentRow, int, double, double, int>>();
                                 var minusLines = new List<Tuple<InventoryAdjustmentRow, int, double, double, int>>();
+                                var diffs = new List<Tuple<InventoryAdjustmentRow, int, double, int>>();
                                 foreach (var parsedRow in parsedRows)
                                 {
                                     var product = productMap[parsedRow.ProductPNo.Trim().ToUpperInvariant()];
                                     var unitId = product.UnitID > 0 ? product.UnitID : 1;
 
-                                    // Qator tranzaksiya oxirigacha qulflanadi: hisoblangan farq parallel harakat bilan buzilmaydi
-                                    var oldQty = StockLedger.GetOnHand(db, model.WarehouseId, product.ID, lockForUpdate: true);
+                                    double oldQty;
+                                    lockedOnHand.TryGetValue(product.ID, out oldQty);
                                     var diff = parsedRow.Quantity - oldQty;
                                     if (Math.Abs(diff) < StockLedger.Epsilon)
                                         continue;
+                                    diffs.Add(Tuple.Create(parsedRow, product.ID, diff, unitId));
+                                }
 
-                                    // Baholash: oxirgi kirim (xarid) narxi — balans hisoboti ham shu narxda baholaydi.
-                                    var piecePrice = await GetLatestIncomePriceAsync(db, product.ID);
-                                    var line = Tuple.Create(parsedRow, product.ID, Math.Abs(diff), piecePrice, unitId);
-                                    if (diff > 0) plusLines.Add(line); else minusLines.Add(line);
+                                // Baholash: oxirgi kirim (xarid) narxi — barcha mahsulotlar uchun bitta so'rov
+                                var prices = await GetLatestIncomePricesAsync(db, diffs.Select(d => d.Item2).ToList());
+                                foreach (var d in diffs)
+                                {
+                                    double piecePrice;
+                                    prices.TryGetValue(d.Item2, out piecePrice);
+                                    var line = Tuple.Create(d.Item1, d.Item2, Math.Abs(d.Item3), piecePrice, d.Item4);
+                                    if (d.Item3 > 0) plusLines.Add(line); else minusLines.Add(line);
                                 }
 
                                 if (plusLines.Any())
@@ -631,7 +651,9 @@ namespace tahsinERP.Controllers
                                     }).ToList();
                                     db.INCOME_PRODUCTS.AddRange(incomeLines);
                                     await db.SaveChangesAsync();
+                                    adjustmentLock.IncomeID = income.ID;
 
+                                    var putaway = requireDloc ? new AutoPutawayPlanner(db, model.WarehouseId) : null;
                                     for (int i = 0; i < plusLines.Count; i++)
                                     {
                                         var l = plusLines[i];
@@ -639,7 +661,7 @@ namespace tahsinERP.Controllers
                                         if (requireDloc)
                                         {
                                             // Qo'shilgan miqdor DLOC ga avtomatik joylashtiriladi (ledger + umumiy qoldiq yangilanadi).
-                                            locationId = ResolveAutoPutawayLocation(db, model.WarehouseId, l.Item2, (decimal)l.Item3);
+                                            locationId = putaway.Resolve(l.Item2, (decimal)l.Item3);
                                             if (locationId <= 0)
                                             {
                                                 throw new Exception($"Mahsulot {l.Item1.ProductPNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
@@ -679,6 +701,7 @@ namespace tahsinERP.Controllers
                                     }).ToList();
                                     db.EXPENSE_PRODUCTS.AddRange(expenseLines);
                                     await db.SaveChangesAsync();
+                                    adjustmentLock.ExpenseID = expense.ID;
 
                                     // Kamomad DLOC omborda FIFO bo'yicha, oddiy omborda umumiy qoldiqdan chiqariladi.
                                     foreach (var ep in expenseLines)
@@ -690,6 +713,7 @@ namespace tahsinERP.Controllers
                                 await db.SaveChangesAsync();
                                 transaction.Commit();
 
+                                // Faqat audit uchun (qulf endi INVENTORY_ADJUSTMENTS'da)
                                 tahsinERP.Controllers.LogHelper.LogToDatabase(
                                     User.Identity.Name,
                                     "InventoryAdjustment",
@@ -725,16 +749,7 @@ namespace tahsinERP.Controllers
                 {
                     var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                     await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
-                    var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-                    var lockedWarehouseIds = new List<int>();
-                    foreach (var whId in assignedWarehouseIds)
-                    {
-                        if (await HasAdjustmentThisMonthAsync(currentUserId, whId, db))
-                        {
-                            lockedWarehouseIds.Add(whId);
-                        }
-                    }
-                    ViewBag.LockedWarehouseIds = lockedWarehouseIds;
+                    ViewBag.LockedWarehouseIds = await GetLockedWarehouseIdsAsync(db, assignedWarehouseIds);
                 }
                 return View(model);
             }
@@ -749,26 +764,21 @@ namespace tahsinERP.Controllers
                 .ToListAsync();
         }
 
-        private async Task<bool> HasAdjustmentThisMonthAsync(int userId, int warehouseId, DBTHSNEntities db)
+        /// <summary>
+        /// SRM-P07: joriy oyda inventarizatsiya qilingan omborlar — bitta so'rov (INVENTORY_ADJUSTMENTS).
+        /// Qulf ombor bo'yicha (avval foydalanuvchi bo'yicha va USERLOGS'ni xotiraga yuklab tekshirilardi).
+        /// </summary>
+        private static async Task<List<int>> GetLockedWarehouseIdsAsync(DBTHSNEntities db, List<int> warehouseIds)
         {
-            if (userId <= 0)
-            {
-                return false;
-            }
+            if (warehouseIds == null || warehouseIds.Count == 0)
+                return new List<int>();
 
-            var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            var actionName = $"Apply-WH-{warehouseId}";
-
-            // USERLOGS.ControllerName/ActionName bazada text bo'lsa, SQL da = varchar bilan mos kelmaydi.
-            // Shuning uchun matn solishtirishni SQL o'rniga xotirada qilamiz.
-            var logsThisMonth = await db.USERLOGS
+            var period = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            return await db.INVENTORY_ADJUSTMENTS
                 .AsNoTracking()
-                .Where(l => l.UserID == userId && l.DateTime >= startOfMonth)
+                .Where(a => a.Period == period && warehouseIds.Contains(a.WarehouseID))
+                .Select(a => a.WarehouseID)
                 .ToListAsync();
-
-            return logsThisMonth.Any(l =>
-                string.Equals(l.ControllerName, "InventoryAdjustment", StringComparison.Ordinal) &&
-                string.Equals(l.ActionName, actionName, StringComparison.Ordinal));
         }
 
         private async Task PopulateAdjustmentViewBags(DBTHSNEntities db, List<int> assignedWarehouseIds, int? selectedWarehouseId)
@@ -820,74 +830,95 @@ namespace tahsinERP.Controllers
         /// Mahsulot uchun oxirgi kirim (xarid) narxini qaytaradi. Balans hisoboti ham
         /// inventarizatsiya zaxirasini shu narxda baholaydi, shuning uchun mos keladi.
         /// </summary>
-        private async Task<double> GetLatestIncomePriceAsync(DBTHSNEntities db, int productId)
+        private static async Task<Dictionary<int, double>> GetLatestIncomePricesAsync(DBTHSNEntities db, List<int> productIds)
         {
-            var ip = await db.INCOME_PRODUCTS
-                .Include(x => x.INCOME)
-                .Where(x => x.ProductID == productId
-                    && (x.INCOME.IsDeleted == null || x.INCOME.IsDeleted == false))
-                .OrderByDescending(x => x.INCOME.IssueDateTime)
-                .FirstOrDefaultAsync();
+            var result = new Dictionary<int, double>();
+            if (productIds == null || productIds.Count == 0)
+                return result;
 
-            if (ip == null)
+            // Har mahsulotning eng so'nggi (o'chirilmagan) kirim qatori — bitta so'rov (avval har mahsulot uchun alohida)
+            var latest = await db.INCOME_PRODUCTS
+                .AsNoTracking()
+                .Where(x => productIds.Contains(x.ProductID) && (x.INCOME.IsDeleted == null || x.INCOME.IsDeleted == false))
+                .GroupBy(x => x.ProductID)
+                .Select(g => g.OrderByDescending(x => x.INCOME.IssueDateTime)
+                    .Select(x => new { x.ProductID, x.PiecePrice, x.TotalPrice, x.Amount, x.VATRate })
+                    .FirstOrDefault())
+                .ToListAsync();
+
+            foreach (var ip in latest.Where(x => x != null))
             {
-                return 0;
+                double price = 0;
+                if (ip.PiecePrice.HasValue && ip.PiecePrice.Value > 0)
+                    price = ip.PiecePrice.Value;
+                else if (ip.TotalPrice.HasValue && ip.Amount > 0)
+                    // TotalPrice QQS bilan — baholash QQSsiz (SRM-B19)
+                    price = ip.TotalPrice.Value / ip.Amount / (1.0 + Math.Max(0, ip.VATRate ?? 0) / 100.0);
+                result[ip.ProductID] = price;
             }
-
-            if (ip.PiecePrice.HasValue && ip.PiecePrice.Value > 0)
-            {
-                return ip.PiecePrice.Value;
-            }
-
-            if (ip.TotalPrice.HasValue && ip.Amount > 0)
-            {
-                return ip.TotalPrice.Value / ip.Amount;
-            }
-
-            return 0;
+            return result;
         }
 
         /// <summary>
         /// DLOC omborda qo'shimcha miqdorni joylashtirish uchun joy tanlaydi: avval mahsulot
         /// allaqachon turgan, sig'imi yetadigan joy; bo'lmasa bo'sh yoki aralash mahsulotga
-        /// ruxsat etilgan, sig'imi yetadigan joy. Mos joy topilmasa 0 qaytaradi.
+        /// ruxsat etilgan, sig'imi yetadigan joy. Mos joy topilmasa 0.
+        /// SRM-P06: joylar, ularning qoldig'i va mahsulot→joy xaritasi bir marta o'qiladi va har tanlovdan
+        /// keyin xotirada yangilanadi (avval har mahsulot uchun har joyga alohida so'rov — 500×20 ≈ 10k so'rov).
         /// </summary>
-        private int ResolveAutoPutawayLocation(DBTHSNEntities db, int warehouseId, int productId, decimal qty)
+        private sealed class AutoPutawayPlanner
         {
-            var locations = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: true);
-            if (locations == null || !locations.Any())
+            private readonly List<WarehouseLocationDto> _locations;
+            private readonly Dictionary<int, decimal> _qtyByLocation;
+            private readonly Dictionary<int, HashSet<int>> _locationsByProduct;
+
+            public AutoPutawayPlanner(DBTHSNEntities db, int warehouseId)
             {
-                return 0;
+                _locations = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: true);
+                _qtyByLocation = DlocFifoDataAccess.GetLocationQtyMap(db, warehouseId);
+                _locationsByProduct = DlocFifoDataAccess.GetProductLocationIds(db, warehouseId);
             }
 
-            var productLocationIds = new HashSet<int>(
-                DlocFifoDataAccess.GetInventoryByDloc(db, warehouseId, productId)
-                    .Select(r => r.LocationID));
-
-            int fallbackLocationId = 0;
-            foreach (var loc in locations)
+            public int Resolve(int productId, decimal qty)
             {
-                var currentQty = DlocFifoDataAccess.GetLocationCurrentQty(db, loc.ID);
-                var free = loc.MaxCapacity - currentQty;
-                if (free + 0.000001m < qty)
+                HashSet<int> productLocationIds;
+                if (!_locationsByProduct.TryGetValue(productId, out productLocationIds))
+                    productLocationIds = new HashSet<int>();
+
+                int chosen = 0;
+                int fallbackLocationId = 0;
+                foreach (var loc in _locations)
                 {
-                    continue; // sig'im yetmaydi
+                    decimal currentQty;
+                    _qtyByLocation.TryGetValue(loc.ID, out currentQty);
+                    var free = loc.MaxCapacity - currentQty;
+                    if (free + 0.000001m < qty)
+                        continue; // sig'im yetmaydi
+
+                    // Mahsulot allaqachon shu joyda bo'lsa — eng mos joy.
+                    if (productLocationIds.Contains(loc.ID))
+                    {
+                        chosen = loc.ID;
+                        break;
+                    }
+
+                    // Aks holda: bo'sh joy yoki aralash mahsulotga ruxsat etilgan joy.
+                    if (fallbackLocationId == 0 && (loc.AllowMixedProducts || currentQty <= 0.000001m))
+                        fallbackLocationId = loc.ID;
                 }
 
-                // Mahsulot allaqachon shu joyda bo'lsa — eng mos joy.
-                if (productLocationIds.Contains(loc.ID))
+                if (chosen == 0)
+                    chosen = fallbackLocationId;
+                if (chosen > 0)
                 {
-                    return loc.ID;
+                    decimal current;
+                    _qtyByLocation.TryGetValue(chosen, out current);
+                    _qtyByLocation[chosen] = current + qty;
+                    productLocationIds.Add(chosen);
+                    _locationsByProduct[productId] = productLocationIds;
                 }
-
-                // Aks holda: bo'sh joy yoki aralash mahsulotga ruxsat etilgan joy.
-                if (fallbackLocationId == 0 && (loc.AllowMixedProducts || currentQty <= 0.000001m))
-                {
-                    fallbackLocationId = loc.ID;
-                }
+                return chosen;
             }
-
-            return fallbackLocationId;
         }
 
     }
