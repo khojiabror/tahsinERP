@@ -6,13 +6,22 @@ using tahsinERP.Models;
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Soft delete (IsDeleted) — standart yondashuv. Nullable FKlarni tozalash — yangi operatsiyalarda
-    /// o‘chirilgan yozuvga tasodifiy bog‘lanishni kamaytiradi. Majburiy FKlar tarixiy hujjatlar uchun saqlanadi.
+    /// Soft delete (IsDeleted) dan keyingi bog'lanishlarni tartibga solish.
+    ///
+    /// SIYOSAT (audit 2026-10, CORE-B01 / LOG-B02 / SRM-B11):
+    ///  - Tarixiy/tranzaksion hujjatlardagi FK'lar (yuk xati, to'lov, invoys, buyurtma, kirim/chiqim,
+    ///    ish haqi, tabel, sifat nazorati va h.k.) NULL QILINMAYDI. Aks holda qarzdorlik, hisobotlar va
+    ///    "kim/qaysi valyutada" ma'lumoti yo'qolardi, DeletedRecords/Recover esa bog'lanishni tiklay olmasdi.
+    ///    O'chirilgan yozuv yangi hujjatlarda ko'rinmasligi dropdown'lardagi IsDeleted filtri bilan ta'minlanadi.
+    ///  - Faqat sozlama/ierarxiya bog'lanishlari tozalanadi (BOM, norma, bo'lim ierarxiyasi, xodimning
+    ///    joriy bo'limi/lavozimi, tariflar, rol a'zoligi, ochiq topshiriq ijrochisi) — ular kelajakdagi
+    ///    hisob-kitoblarga ta'sir qiladi.
     /// </summary>
     public static class SoftDeleteReferenceService
     {
         public static async Task AfterProductSoftDeletedAsync(DBTHSNEntities db, int productId)
         {
+            // Sozlama: BOM va normalar o'chirilgan mahsulotga tayanmasin
             var bomLines = await db.BOM_LINES.Where(x => x.ComponentID == productId).ToListAsync();
             foreach (var row in bomLines)
                 row.ComponentID = null;
@@ -25,17 +34,7 @@ namespace tahsinERP.Services
             foreach (var row in norms)
                 row.ProductID = null;
 
-            var tsLines = await db.HR_TIMESHEET_LINES.Where(x => x.ProductID == productId).ToListAsync();
-            foreach (var row in tsLines)
-                row.ProductID = null;
-
-            var ttnkLines = await db.SALES_TTNK_LINES.Where(x => x.ProductID == productId).ToListAsync();
-            foreach (var row in ttnkLines)
-                row.ProductID = null;
-
-            var sched = await db.SORDER_DELIVERY_SCHEDULE.Where(x => x.ProductID == productId).ToListAsync();
-            foreach (var row in sched)
-                row.ProductID = null;
+            // Tabel, TTNK va yetkazish jadvali qatorlari — tarix, saqlanadi
 
             var images = await db.PRODUCTIMAGES.Where(x => x.ProdID == productId && x.IsDeleted != true).ToListAsync();
             foreach (var img in images)
@@ -44,13 +43,9 @@ namespace tahsinERP.Services
 
         public static async Task AfterWarehouseSoftDeletedAsync(DBTHSNEntities db, int warehouseId)
         {
-            var exp = await db.EXPENSES.Where(x => x.ReceiverWhID == warehouseId).ToListAsync();
-            foreach (var row in exp)
-                row.ReceiverWhID = null;
-
-            var inc = await db.INCOMES.Where(x => x.SenderWHID == warehouseId).ToListAsync();
-            foreach (var row in inc)
-                row.SenderWHID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            // (EXPENSES.ReceiverWhID, INCOMES.SenderWHID — ko'chirish tarixi)
+            await Task.CompletedTask;
         }
 
         public static async Task AfterShopSoftDeletedAsync(DBTHSNEntities db, int shopId)
@@ -62,6 +57,7 @@ namespace tahsinERP.Services
 
         public static async Task AfterOrgUnitSoftDeletedAsync(DBTHSNEntities db, int orgUnitId)
         {
+            // Sozlama: ierarxiya va xodimning joriy bo'limi
             var children = await db.HR_ORG_UNITS.Where(x => x.ParentID == orgUnitId).ToListAsync();
             foreach (var row in children)
                 row.ParentID = null;
@@ -70,29 +66,7 @@ namespace tahsinERP.Services
             foreach (var row in emp)
                 row.OrgUnitID = null;
 
-            var ph = await db.HR_PAYROLL_HEADERS.Where(x => x.OrgUnitID == orgUnitId).ToListAsync();
-            foreach (var row in ph)
-                row.OrgUnitID = null;
-
-            var th = await db.HR_TIMESHEET_HEADERS.Where(x => x.OrgUnitID == orgUnitId).ToListAsync();
-            foreach (var row in th)
-                row.OrgUnitID = null;
-
-            var appr = await db.HR_PIECE_RATE_TIMESHEET_APPROVALS.Where(x => x.OrgUnitID == orgUnitId).ToListAsync();
-            foreach (var row in appr)
-                row.OrgUnitID = null;
-
-            var adm = await db.ADM_COMPANY_ORDERS.Where(x => x.OrgUnitID == orgUnitId).ToListAsync();
-            foreach (var row in adm)
-                row.OrgUnitID = null;
-
-            var docs = await db.DOC_DOCUMENTS.Where(x => x.OrgUnitID == orgUnitId).ToListAsync();
-            foreach (var row in docs)
-                row.OrgUnitID = null;
-
-            var jd = await db.HR_JOB_DESCRIPTIONS.Where(x => x.OrgUnitID == orgUnitId).ToListAsync();
-            foreach (var row in jd)
-                row.OrgUnitID = null;
+            // Ish haqi, tabel, tasdiqlar, buyruqlar, hujjatlar va yo'riqnomalar — tarix, saqlanadi
         }
 
         public static async Task AfterPositionSoftDeletedAsync(DBTHSNEntities db, int positionId)
@@ -119,68 +93,38 @@ namespace tahsinERP.Services
 
         public static async Task AfterCurrencySoftDeletedAsync(DBTHSNEntities db, int currencyId)
         {
-            var wp = await db.F_WAYBILL_PAYMENTS.Where(x => x.CurrencyID == currencyId).ToListAsync();
-            foreach (var row in wp)
-                row.CurrencyID = null;
-
-            var splits = await db.F_WAYBILL_PAYMENT_SPLITS.Where(x => x.CurrencyID == currencyId).ToListAsync();
-            foreach (var row in splits)
-                row.CurrencyID = null;
-
-            var t = await db.F_CONTRACT_TARIFFS.Where(x => x.CurrencyID == currencyId).ToListAsync();
-            foreach (var row in t)
-                row.CurrencyID = null;
-
-            var pl = await db.HR_PAYROLL_LINES.Where(x => x.CurrencyID == currencyId).ToListAsync();
-            foreach (var row in pl)
-                row.CurrencyID = null;
-
-            var prt = await db.HR_PIECE_RATE_TARIFFS.Where(x => x.CurrencyID == currencyId).ToListAsync();
-            foreach (var row in prt)
-                row.CurrencyID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            // (to'lovlar, tariflar, ish haqi summalari valyutasiz qolmasligi uchun)
+            await Task.CompletedTask;
         }
 
         public static async Task AfterTransportTypeSoftDeletedAsync(DBTHSNEntities db, int transportTypeId)
         {
+            // Sozlama: tariflar
             var t = await db.F_CONTRACT_TARIFFS.Where(x => x.TransportTypeID == transportTypeId).ToListAsync();
             foreach (var row in t)
                 row.TransportTypeID = null;
 
-            var w = await db.F_WAYBILLS.Where(x => x.TransportTypeID == transportTypeId).ToListAsync();
-            foreach (var row in w)
-                row.TransportTypeID = null;
+            // Yuk xatlari — tarix, saqlanadi
         }
 
         public static async Task AfterForwarderSoftDeletedAsync(DBTHSNEntities db, int forwarderId)
         {
-            var w = await db.F_WAYBILLS.Where(x => x.ForwarderID == forwarderId).ToListAsync();
-            foreach (var row in w)
-                row.ForwarderID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            // (yuk xatlari: ekspeditor qarzi hisobotlardan yo'qolmasligi uchun)
+            await Task.CompletedTask;
         }
 
         public static async Task AfterUserSoftDeletedAsync(DBTHSNEntities db, int userId)
         {
-            var tasks = await db.APP_TASKS.Where(x => x.AssigneeUserID == userId || x.ReporterUserID == userId).ToListAsync();
+            // Faqat yakunlanmagan topshiriqlar ijrochisiz qoladi (qayta tayinlash uchun).
+            // Muallif, yaratuvchi va tasdiqlovchi — tarix, saqlanadi.
+            var tasks = await db.APP_TASKS
+                .Where(x => x.AssigneeUserID == userId && x.IsDeleted == false &&
+                            (x.APP_TASK_STATUS_REF == null || x.APP_TASK_STATUS_REF.Code != "DONE"))
+                .ToListAsync();
             foreach (var row in tasks)
-            {
-                if (row.AssigneeUserID == userId)
-                    row.AssigneeUserID = null;
-                if (row.ReporterUserID == userId)
-                    row.ReporterUserID = null;
-            }
-
-            var he = await db.HR_EMPLOYEES.Where(x => x.CreatedByUserID == userId).ToListAsync();
-            foreach (var row in he)
-                row.CreatedByUserID = null;
-
-            var docs = await db.DOC_DOCUMENTS.Where(x => x.CreatedByUserID == userId || x.ApprovedByUserID == userId).ToListAsync();
-            foreach (var row in docs)
-            {
-                if (row.CreatedByUserID == userId)
-                    row.CreatedByUserID = null;
-                if (row.ApprovedByUserID == userId)
-                    row.ApprovedByUserID = null;
-            }
+                row.AssigneeUserID = null;
         }
 
         public static async Task AfterFinCategorySoftDeletedAsync(DBTHSNEntities db, int categoryId)
@@ -204,18 +148,15 @@ namespace tahsinERP.Services
         /// <summary>O‘lchov birligi: faqat nullable UnitID maydonlari.</summary>
         public static async Task AfterUnitSoftDeletedAsync(DBTHSNEntities db, int unitId)
         {
+            // Sozlama: BOM. Shartnoma/buyurtma qatorlari — tarix, saqlanadi
             foreach (var row in await db.BOM_LINES.Where(x => x.UnitID == unitId).ToListAsync())
-                row.UnitID = null;
-            foreach (var row in await db.P_CONTRACT_PRODUCTS.Where(x => x.UnitID == unitId).ToListAsync())
-                row.UnitID = null;
-            foreach (var row in await db.P_ORDER_PRODUCTS.Where(x => x.UnitID == unitId).ToListAsync())
                 row.UnitID = null;
         }
 
         public static async Task AfterSupplierSoftDeletedAsync(DBTHSNEntities db, int supplierId)
         {
-            foreach (var row in await db.P_ORDERS.Where(x => x.SupplierID == supplierId).ToListAsync())
-                row.SupplierID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         /// <summary>Rol: foydalanuvchilardan M2M bog‘lanishni uzadi (nullable FK yo‘q).</summary>
@@ -230,20 +171,20 @@ namespace tahsinERP.Services
 
         public static async Task AfterTaskProjectSoftDeletedAsync(DBTHSNEntities db, int projectId)
         {
-            foreach (var row in await db.APP_TASKS.Where(x => x.ProjectID == projectId).ToListAsync())
-                row.ProjectID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterDefectTypeSoftDeletedAsync(DBTHSNEntities db, int defectTypeId)
         {
-            foreach (var row in await db.QUALITY_INSPECTION.Where(x => x.DefectTypeID == defectTypeId).ToListAsync())
-                row.DefectTypeID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterProductCategorySoftDeletedAsync(DBTHSNEntities db, int categoryId)
         {
-            foreach (var row in await db.PRODUCTS.Where(x => x.CategoryID == categoryId).ToListAsync())
-                row.CategoryID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterFinTransactionSoftDeletedAsync(DBTHSNEntities db, int finTransactionId)
@@ -254,33 +195,26 @@ namespace tahsinERP.Services
 
         public static async Task AfterPContractSoftDeletedAsync(DBTHSNEntities db, int contractId)
         {
-            foreach (var row in await db.P_ORDERS.Where(x => x.ContractID == contractId).ToListAsync())
-                row.ContractID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterFContractSoftDeletedAsync(DBTHSNEntities db, int contractId)
         {
-            foreach (var row in await db.F_WAYBILLS.Where(x => x.ContractID == contractId).ToListAsync())
-                row.ContractID = null;
-            foreach (var row in await db.F_CONTRACT_DOCS.Where(x => x.ContractID == contractId).ToListAsync())
-                row.ContractID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterSContractSoftDeletedAsync(DBTHSNEntities db, int contractId)
         {
-            foreach (var row in await db.SALES_INVOICES.Where(x => x.ContractID == contractId).ToListAsync())
-                row.ContractID = null;
-            foreach (var row in await db.SALES_TTNK_HEADERS.Where(x => x.ContractID == contractId).ToListAsync())
-                row.ContractID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterPOrderSoftDeletedAsync(DBTHSNEntities db, int orderId)
         {
-            foreach (var row in await db.P_INVOICES.Where(x => x.OrderID == orderId).ToListAsync())
-                row.OrderID = null;
-            foreach (var row in await db.F_WAYBILLS.Where(x => x.PurchaseOrderID == orderId).ToListAsync())
-                row.PurchaseOrderID = null;
-
+            // Invoys va yuk xatlari — tarix, saqlanadi.
+            // Talabnoma qayta buyurtmaga aylantirilishi uchun bo'shatiladi.
             foreach (var req in await db.P_REQUISITIONS.Where(x => x.ConvertedToOrderID == orderId).ToListAsync())
             {
                 req.ConvertedToOrderID = null;
@@ -290,22 +224,14 @@ namespace tahsinERP.Services
 
         public static async Task AfterSOrderSoftDeletedAsync(DBTHSNEntities db, int orderId)
         {
-            foreach (var row in await db.SALES_INVOICES.Where(x => x.OrderID == orderId).ToListAsync())
-                row.OrderID = null;
-            foreach (var row in await db.SALES_TTNK_HEADERS.Where(x => x.OrderID == orderId).ToListAsync())
-                row.OrderID = null;
-            foreach (var row in await db.F_WAYBILLS.Where(x => x.SalesOrderID == orderId).ToListAsync())
-                row.SalesOrderID = null;
-            foreach (var row in await db.QUALITY_INSPECTION.Where(x => x.SOrderID == orderId).ToListAsync())
-                row.SOrderID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterPInvoiceSoftDeletedAsync(DBTHSNEntities db, int purchaseInvoiceId)
         {
-            foreach (var row in await db.INCOMES.Where(x => x.InvoiceID == purchaseInvoiceId).ToListAsync())
-                row.InvoiceID = null;
-            foreach (var row in await db.F_WAYBILLS.Where(x => x.InvoiceID == purchaseInvoiceId).ToListAsync())
-                row.InvoiceID = null;
+            // Tarixiy hujjatlardagi bog‘lanish saqlanadi (audit 2026-10, CORE-B01).
+            await Task.CompletedTask;
         }
 
         public static async Task AfterDocDocumentSoftDeletedAsync(DBTHSNEntities db, long documentId)
@@ -343,14 +269,12 @@ namespace tahsinERP.Services
 
         public static void AfterDefectTypeSoftDeleted(DBTHSNEntities db, int defectTypeId)
         {
-            foreach (var row in db.QUALITY_INSPECTION.Where(x => x.DefectTypeID == defectTypeId).ToList())
-                row.DefectTypeID = null;
+            // Sifat nazorati yozuvlari — tarix, saqlanadi (audit 2026-10, CORE-B01)
         }
 
         public static void AfterProductCategorySoftDeleted(DBTHSNEntities db, int categoryId)
         {
-            foreach (var row in db.PRODUCTS.Where(x => x.CategoryID == categoryId).ToList())
-                row.CategoryID = null;
+            // Mahsulotlar kategoriyasiz qolmaydi (kategoriya bayroqlari hisob-kitobga ta'sir qiladi) — saqlanadi
         }
 
         public static void AfterProductPlanSoftDeleted(DBTHSNEntities db, int planId)
