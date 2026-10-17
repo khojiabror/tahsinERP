@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.ViewModels;
 using tahsinERP.Services;
 using tahsinERP.Controllers;
 using tahsinERP.Filters;
@@ -350,24 +351,5 @@ namespace tahsinERP.Controllers.SRM
                 return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
-    }
-
-    // ViewModels
-    public class ProductionToSalesTransferViewModel
-    {
-        public DateTime TransferDate { get; set; }
-        public string TransferDocNo { get; set; }
-        public int ProductionWHID { get; set; }
-        public int SalesWHID { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class TransferLineViewModel
-    {
-        public int ProductID { get; set; }
-        public double Quantity { get; set; }
-        public int? IncomeID { get; set; }
-        /// <summary>ProdID:123:7|ProdID:124:3</summary>
-        public string LotAllocations { get; set; }
     }
 }

@@ -1090,6 +1090,8 @@
     <Compile Include="Services\DlocFifo\LegacyDlocAssignmentService.cs" />
     <Compile Include="Controllers\Settings\WarehouseLocationsController.cs" />
     <Compile Include="ViewModels\DataTablesPageRequest.cs" />
+    <Compile Include="ViewModels\Warehouse\InventoryDashboardViewModels.cs" />
+    <Compile Include="ViewModels\Warehouse\ProductionToSalesTransferViewModels.cs" />
     <Compile Include="ViewModels\WarehouseLocationEditViewModel.cs" />
     <Compile Include="ViewModels\LicenseViewModels.cs" />
     <Compile Include="Services\LotTrackingService.cs" />
