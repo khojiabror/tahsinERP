@@ -80,3 +80,13 @@ Bog'liq tartib:
 - Lokal sinovda vaqtinchalik `machineKey` bilan menyudagi 109 sahifa xatosiz ochildi (2026-10-17).
 - Tavsiya: server `web.config`iga (repoga emas) aniq `validationKey`/`decryptionKey` qo'yish yoki IIS app pool'da
   "Load User Profile = True" — kalitlar recycle'da saqlanadi.
+
+## Lokal bazaga (DBTHSN-IPACK) allaqachon qo'llanganlar (sessiyalar xabari, 2026-10-17)
+- CRM: `CURRENCY_RATES` jadvali, CRM indekslari; 22 ta sotuv invoysi finance'ga post qilindi —
+  tafsilot `Database_Migrations/CRM_2026_10_APPLIED.md`.
+- Tannarx: `TANNARX_FIN_CATEGORY_MAP` yaratildi, `SP_TANNARX_UPDATE_ACTUAL_COSTS` o'chirildi (kod chaqirmaydi).
+- Qolgan skriptlarni ishga tushirishdan oldin har birining "allaqachon qo'llanganmi" tekshiruvini ko'ring.
+
+## Core takliflari
+- `optimization/core-logistics` (d4042860) merge qilindi: ReferenceDataCache'ga FContracts/TransportTypes,
+  `Services/Common/ExcelCellReader`, `PostWaybillPayment` bool natija, `BaseController.SoftDeleteAsync<T>`.
