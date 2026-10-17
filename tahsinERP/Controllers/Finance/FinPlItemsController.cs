@@ -6,6 +6,8 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
+using tahsinERP.ViewModels.Finance;
+using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
@@ -46,22 +48,10 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        private List<PlItemTreeItem> BuildItemTree(List<FIN_PL_ITEMS> allItems, int? parentID)
+        private static List<PlItemTreeItem> BuildItemTree(List<FIN_PL_ITEMS> allItems, int? parentID)
         {
-            var result = new List<PlItemTreeItem>();
-            var children = allItems.Where(i => i.ParentID == parentID).OrderBy(i => i.SortOrder).ThenBy(i => i.Name);
-
-            foreach (var item in children)
-            {
-                var treeItem = new PlItemTreeItem
-                {
-                    Item = item,
-                    Children = BuildItemTree(allItems, item.ID)
-                };
-                result.Add(treeItem);
-            }
-
-            return result;
+            return FinCategoryTree.Build<FIN_PL_ITEMS, PlItemTreeItem>(allItems, i => i.ID, i => i.ParentID, parentID,
+                (i, children) => new PlItemTreeItem { Item = i, Children = children });
         }
 
         // Olish so'rovi: FinPlItems/Details/5
@@ -313,16 +303,18 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                var allCategories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList();
-                var mappedCategoryIds = db.FIN_CATEGORIES
-                    .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == id))
-                    .Select(c => c.ID)
-                    .ToList();
-
-                ViewBag.AllCategories = allCategories;
-                ViewBag.MappedCategoryIds = mappedCategoryIds;
-
-                return View(item);
+                return View(new MapCategoriesViewModel
+                {
+                    ID = item.ID,
+                    Name = item.Name,
+                    Controller = "FinPlItems",
+                    ListTitle = "P&L elementlar",
+                    AllCategories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
+                    MappedCategoryIds = db.FIN_CATEGORIES
+                        .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == id))
+                        .Select(c => c.ID)
+                        .ToList()
+                });
             }
         }
 
@@ -339,19 +331,7 @@ namespace tahsinERP.Controllers.Finance
 
                 if (item != null)
                 {
-                    // Clear existing mappings
-                    item.FIN_CATEGORIES.Clear();
-
-                    // Qo'shish new mappings
-                    if (categoryIds != null && categoryIds.Length > 0)
-                    {
-                        var categories = db.FIN_CATEGORIES.Where(c => categoryIds.Contains(c.ID)).ToList();
-                        foreach (var category in categories)
-                        {
-                            item.FIN_CATEGORIES.Add(category);
-                        }
-                    }
-
+                    FinCategoryTree.ReplaceMappings(db, item.FIN_CATEGORIES, categoryIds);
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "FinPlItems", "MapCategories", $"P&L element kategoriyalari yangilandi: {item.Name}");
@@ -361,16 +341,10 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        private List<int> GetDescendantIds(DBTHSNEntities db, int itemId)
+        // FIN-P16: (ID, ParentID) bir marta yuklanadi, daraxt xotirada aylanib chiqiladi
+        private static List<int> GetDescendantIds(DBTHSNEntities db, int itemId)
         {
-            var result = new List<int>();
-            var children = db.FIN_PL_ITEMS.Where(i => i.ParentID == itemId && i.IsActive).Select(i => i.ID).ToList();
-            result.AddRange(children);
-            foreach (var childId in children)
-            {
-                result.AddRange(GetDescendantIds(db, childId));
-            }
-            return result;
+            return FinCategoryTree.PlItemDescendants(db, itemId);
         }
     }
 

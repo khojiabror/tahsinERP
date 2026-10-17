@@ -871,6 +871,8 @@
     <Compile Include="Services\Finance\FinAnalyticsService.cs" />
     <Compile Include="Services\Finance\FinLiabilities.cs" />
     <Compile Include="Services\Finance\FinQueries.cs" />
+    <Compile Include="Services\Finance\FinCategoryTree.cs" />
+    <Compile Include="ViewModels\Finance\MapCategoriesViewModel.cs" />
     <Compile Include="Services\Finance\FinSelectLists.cs" />
     <Compile Include="Services\Finance\FinTransactionImportService.cs" />
     <Compile Include="Services\Finance\LiabilityReportsService.cs" />
@@ -3227,7 +3229,6 @@
     <Content Include="Views\STDCompanyStandards\Details.cshtml" />
     <Content Include="Views\STDCompanyStandards\Edit.cshtml" />
     <Content Include="Views\STDCompanyStandards\Index.cshtml" />
-    <Content Include="Views\FinBalanceCategories\MapCategories.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Index.cshtml" />
     <Content Include="Views\FinDashboard\AccountAnalytics.cshtml" />
     <Content Include="Views\FinDashboard\AccountBalances.cshtml" />

@@ -6,6 +6,7 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
+using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
@@ -64,22 +65,10 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        private List<CategoryTreeItem> BuildCategoryTree(List<FIN_CATEGORIES> allCategories, int? parentID)
+        private static List<CategoryTreeItem> BuildCategoryTree(List<FIN_CATEGORIES> allCategories, int? parentID)
         {
-            var result = new List<CategoryTreeItem>();
-            var children = allCategories.Where(c => c.ParentID == parentID).OrderBy(c => c.SortOrder).ThenBy(c => c.Name);
-
-            foreach (var category in children)
-            {
-                var item = new CategoryTreeItem
-                {
-                    Category = category,
-                    Children = BuildCategoryTree(allCategories, category.ID)
-                };
-                result.Add(item);
-            }
-
-            return result;
+            return FinCategoryTree.Build<FIN_CATEGORIES, CategoryTreeItem>(allCategories, c => c.ID, c => c.ParentID, parentID,
+                (c, children) => new CategoryTreeItem { Category = c, Children = children });
         }
 
         // Olish so'rovi: FinCategories/Details/5
@@ -317,16 +306,10 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
-        private List<int> GetDescendantIds(DBTHSNEntities db, int categoryId)
+        // FIN-P16: (ID, ParentID) bir marta yuklanadi, daraxt xotirada aylanib chiqiladi
+        private static List<int> GetDescendantIds(DBTHSNEntities db, int categoryId)
         {
-            var result = new List<int>();
-            var children = db.FIN_CATEGORIES.Where(c => c.ParentID == categoryId && c.IsActive).Select(c => c.ID).ToList();
-            result.AddRange(children);
-            foreach (var childId in children)
-            {
-                result.AddRange(GetDescendantIds(db, childId));
-            }
-            return result;
+            return FinCategoryTree.CategoryDescendants(db, categoryId);
         }
     }
 

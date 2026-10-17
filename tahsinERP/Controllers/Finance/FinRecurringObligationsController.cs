@@ -20,6 +20,7 @@ namespace tahsinERP.Controllers.Finance
 
         public ActionResult Index()
         {
+            ViewBag.Error = TempData["Error"] as string;
             try
             {
                 using (var db = new DBTHSNEntities())
@@ -123,9 +124,12 @@ namespace tahsinERP.Controllers.Finance
                     return View(item);
                 }
             }
-            catch
+            catch (SqlException ex)
             {
-                return HttpNotFound();
+                // FIN-B20: SQL xatosi "topilmadi" deb yashirilmaydi
+                LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Edit", "Doimiy harajatni o'qishda xatolik: " + ex.Message);
+                TempData["Error"] = "Doimiy harajatni o'qishda xatolik: " + ex.Message;
+                return RedirectToAction("Index");
             }
         }
 
@@ -181,7 +185,12 @@ namespace tahsinERP.Controllers.Finance
                     LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Delete", "Doimiy harajat o'chirildi, ID: " + id);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // FIN-B20: avval xato yutilib, o'chirilmagan yozuv "o'chirildi" kabi ko'rinardi
+                LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Delete", "O'chirishda xatolik, ID: " + id + ". " + ex.Message);
+                TempData["Error"] = "O'chirishda xatolik: " + ex.Message;
+            }
             return RedirectToAction("Index");
         }
     }
