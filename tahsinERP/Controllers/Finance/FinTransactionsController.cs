@@ -396,63 +396,13 @@ namespace tahsinERP.Controllers.Finance
                 return Json(new { success = true, items = new object[0] }, JsonRequestBehavior.AllowGet);
             }
 
+            // FIN-D17: OpeningBalance bilan umumiy ma'lumotnoma
             using (var db = new DBTHSNEntities())
             {
-                switch (type.Value)
-                {
-                    case 1: // Mijoz
-                        return Json(new
-                        {
-                            success = true,
-                            items = db.CUSTOMERS
-                                .Where(c => c.IsDeleted != true)
-                                .OrderBy(c => c.Name)
-                                .Select(c => new { id = c.ID, name = c.Name })
-                                .ToList()
-                        }, JsonRequestBehavior.AllowGet);
-                    case 2: // Ta'minotchi
-                        return Json(new
-                        {
-                            success = true,
-                            items = db.SUPPLIERS
-                                .Where(s => s.IsDeleted != true)
-                                .OrderBy(s => s.Name)
-                                .Select(s => new { id = s.ID, name = s.Name })
-                                .ToList()
-                        }, JsonRequestBehavior.AllowGet);
-                    case 3: // Aksiyador
-                        return Json(new
-                        {
-                            success = true,
-                            items = db.SHAREHOLDERS
-                                .Where(s => s.IsDeleted != true)
-                                .OrderBy(s => s.FullName)
-                                .Select(s => new { id = s.ID, name = s.FullName })
-                                .ToList()
-                        }, JsonRequestBehavior.AllowGet);
-                    case 4: // Forwarder
-                        return Json(new
-                        {
-                            success = true,
-                            items = db.FORWARDERS
-                                .Where(f => f.IsDeleted != true)
-                                .OrderBy(f => f.ForwarderName)
-                                .Select(f => new { id = f.ID, name = f.ForwarderName })
-                                .ToList()
-                        }, JsonRequestBehavior.AllowGet);
-                    case 6: // Xodim
-                        return Json(new
-                        {
-                            success = true,
-                            items = db.HR_EMPLOYEES
-                                .Where(e => e.IsDeleted != true && e.IsActive)
-                                .OrderBy(e => e.FullName)
-                                .Select(e => new { id = e.ID, name = e.FullName })
-                                .ToList()
-                        }, JsonRequestBehavior.AllowGet);
-                    default:
-                        return Json(new { success = true, items = new object[0] }, JsonRequestBehavior.AllowGet);
-                }
+                var items = new FinCounterpartyLookupService(db).Counterparties(type.Value)
+                    .Select(x => new { id = x.ID, name = x.Name })
+                    .ToList();
+                return Json(new { success = true, items = items }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -471,32 +421,10 @@ namespace tahsinERP.Controllers.Finance
 
             using (var db = new DBTHSNEntities())
             {
-                switch (type.Value)
-                {
-                    case 1: // Mijoz
-                        var salesContracts = db.S_CONTRACTS
-                            .Where(c => c.CustomerID == counterpartyId.Value && (c.IsDeleted == false || c.IsDeleted == null))
-                            .OrderByDescending(c => c.IssuedDate)
-                            .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
-                            .ToList();
-                        return Json(new { success = true, data = salesContracts }, JsonRequestBehavior.AllowGet);
-                    case 2: // Ta'minotchi
-                        var purchaseContracts = db.P_CONTRACTS
-                            .Where(c => c.SupplierID == counterpartyId.Value && c.IsDeleted != true)
-                            .OrderByDescending(c => c.IssuedDate)
-                            .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
-                            .ToList();
-                        return Json(new { success = true, data = purchaseContracts }, JsonRequestBehavior.AllowGet);
-                    case 4: // Forwarder
-                        var forwarderContracts = db.F_CONTRACTS
-                            .Where(c => c.ForwarderID == counterpartyId.Value && !c.IsDeleted)
-                            .OrderByDescending(c => c.IssueDate)
-                            .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
-                            .ToList();
-                        return Json(new { success = true, data = forwarderContracts }, JsonRequestBehavior.AllowGet);
-                    default:
-                        return Json(new { success = true, data = new object[0] }, JsonRequestBehavior.AllowGet);
-                }
+                var data = new FinCounterpartyLookupService(db).Contracts(type.Value, counterpartyId.Value)
+                    .Select(c => new { ID = c.ID, ContractNo = c.ContractNo })
+                    .ToList();
+                return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
             }
         }
 
