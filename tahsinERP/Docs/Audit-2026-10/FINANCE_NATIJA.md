@@ -150,9 +150,9 @@ Asosiy audit sessiyasi ro'yxati bo'yicha. Har qadam alohida commit, master va ma
 ## Qolganlar (bajarilmadi)
 
 - **B01 (valyuta):** qaror bor: konvertatsiya qilinadi (CBU + CURRENCY_RATES). Core `Services/Common/CurrencyRateService`'ni tayyorlagach Finance dashboardlari ulanadi.
-- **B16:** AccountBalances kategoriya snapshot'ini hisoblar soniga teng bo'ladi va `>=` ishlatadi. Hisob kesimidagi opening sxema o'zgarishini talab qiladi, shuning uchun foydalanuvchi qarori kerak.
-- **B27:** FinRecurringObligations'ga alohida ruxsat moduli kerak. Bu `PERMISSIONMODULES` yozuvini talab qiladi va foydalanuvchi qarori kerak. Hozircha `[Permission("FinDashboard")]`.
-- **Ekspeditor akt-sverkisi:** opening (BalanceType 4) ishlatilmaydi. Bu biznes qarori.
+- **B16 (bajarildi, `8ee0fa27`):** hisob kesimidagi opening sxemasiz saqlanadi: FIN_BALANCE_SNAPSHOTS, SourceType `OpeningBalanceAccount`, SourceID = AccountID. AccountBalances undan foydalanadi; eski opening uchun hisoblar soniga bo'lish ≈ belgisi bilan qoldi; `>` ishlatiladi.
+- **B27 (bajarildi, `249b8590`):** `[Permission("FinRecurringObligations")]`. `DataFix_Finance_RecurringObligationsPermission_Fix.sql` lokal bazada bajarildi: modul ID 478, 9 rolga FinDashboard'dagi huquqlar berildi.
+- **Ekspeditor akt-sverkisi (bajarildi, `17be6f35`):** opening (BalanceType 4) mijoz va ta'minotchidagidek ishlatiladi.
 - **P14:** SRM sessiyasi allaqachon qilgan (SRM-P05). **P18:** Chart.js CDN layout'da (core), unga tegilmadi.
 - **D15 qoldig'i:** uchta daraxt Index view'i hali alohida, umumiy `_TreeIndex` partial yo'q.
 - **D20:** auditda Finance tashqarisidagi qism (bajarilmadi).
