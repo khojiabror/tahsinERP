@@ -208,9 +208,9 @@ namespace tahsinERP.Services.Crm
                 ContractID = posted.ContractID,
                 OrderID = posted.OrderID,
                 CurrencyCode = posted.CurrencyCode,
-                // CRM-M02: CurrencyID hech qachon yozilmasdi — finance posting har doim 1-valyuta hisobiga tushardi.
+                // CRM-M02: CurrencyID hech qachon yozilmasdi — posting "CurrencyID ?? 1" bilan yiqilardi (bazada 1-valyuta yo'q).
                 // Kesh tranzaksiyadan OLDIN o'qiladi (scope ichida yangi ulanish DTC'ga olib keladi).
-                CurrencyID = CurrencyRateService.CurrencyIdByCode(posted.CurrencyCode),
+                CurrencyID = CurrencyRateService.CurrencyIdByCode(posted.CurrencyCode) ?? CurrencyRateService.BaseCurrencyId(),
                 DueDate = posted.DueDate,
                 // Biznes qoidasi: invoys yaratilganda darhol APPROVED
                 StatusCode = SalesInvoiceStatus.Approved,
@@ -252,7 +252,7 @@ namespace tahsinERP.Services.Crm
         {
             lines = NormalizeLines(lines);
             bool linesChanged, stockChanged;
-            var currencyId = CurrencyRateService.CurrencyIdByCode(posted.CurrencyCode);
+            var currencyId = CurrencyRateService.CurrencyIdByCode(posted.CurrencyCode) ?? CurrencyRateService.BaseCurrencyId();
 
             using (var db = new DBTHSNEntities())
             {

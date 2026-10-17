@@ -164,6 +164,10 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    @Html.Partial("~/Views/SalesInvoices/_Pager.cshtml")
+                                    <div class="text-right mt-1">
+                                        <a class="btn btn-sm btn-success" href="@(Url.Action("ExportExcel", "SOrder") + Request.Url.Query)"><i class="bx bxs-file-excel"></i> Excel (barchasi)</a>
+                                    </div>
 
                                 </div>
                             </div>
@@ -192,87 +196,15 @@
                 }
             
                 $('#orderDataTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
-                "paging": true,
-                "info": true,
-                "lengthChange": true,
-                "pageLength": 25,
-                "lengthMenu": [10, 25, 50, 100],
-                "order": [[3, "desc"]],
-                "columnDefs": columnDefs,
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Buyurtmalar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: changePermit ? ':not(:last-child)' : ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        titleAttr: 'PDFga yuklash',
-                        className: 'btn btn-danger',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Buyurtmalar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: changePermit ? ':not(:last-child)' : ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        },
-                        title: 'Buyurtmalar ro\'yxati',
-                        customize: function (doc) {
-                            doc.defaultStyle.fontSize = 9;
-                            doc.styles.tableHeader.fontSize = 10;
-                        }
-                    }
-                ],
-                "scrollX": true
-            });
+                    // Sahifalash serverda (pastdagi pager, CRM-P05); DataTables faqat joriy sahifada qidiradi/saralaydi
+                    "language": { "search": "Sahifada qidirish:", "zeroRecords": "Ma'lumot topilmadi" },
+                    "paging": false,
+                    "info": false,
+                    "order": [],
+                    "columnDefs": columnDefs,
+                    dom: 'frt',
+                    "scrollX": true
+                });
             }
 
             if (document.readyState === 'loading') {

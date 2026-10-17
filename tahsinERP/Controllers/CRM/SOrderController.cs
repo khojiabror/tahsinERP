@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels;
 
@@ -22,78 +23,22 @@ namespace tahsinERP.Controllers
         private static readonly Regex IndexPattern = new Regex(@"\[(\d+)\]", RegexOptions.Compiled);
 
         // Olish so'rovi: SOrder | Index - List barcha orders
-        public async Task<ActionResult> Index(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        public async Task<ActionResult> Index(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.S_ORDERS.AsNoTracking()
-                    .Include(o => o.CUSTOMER)
-                    .Include(o => o.S_CONTRACTS)
-                    .Include(o => o.CURRENCy1)
-                    .Where(o => o.IsDeleted == false || o.IsDeleted == null);
+                var query = BuildIndexQuery(db, searchTerm, orderNo, customerID, contractID, fromDate, toDate, sortOrder);
 
-                // Filters
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    query = query.Where(o =>
-                        o.OrderNo.Contains(searchTerm) ||
-                        (o.Description != null && o.Description.Contains(searchTerm)) ||
-                        (o.CUSTOMER != null && o.CUSTOMER.Name.Contains(searchTerm)));
-                }
-
-                if (!string.IsNullOrEmpty(orderNo))
-                {
-                    query = query.Where(o => o.OrderNo.Contains(orderNo));
-                }
-
-                if (customerID.HasValue && customerID.Value > 0)
-                {
-                    query = query.Where(o => o.CustomerID == customerID.Value);
-                }
-
-                if (contractID.HasValue && contractID.Value > 0)
-                {
-                    query = query.Where(o => o.ContractID == contractID.Value);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    var from = fromDate.Value.Date;
-                    query = query.Where(o => o.IssuedDate >= from);
-                }
-
-                if (toDate.HasValue)
-                {
-                    // Yarim ochiq oraliq — oxirgi kun to'liq kiradi
-                    var toExclusive = toDate.Value.Date.AddDays(1);
-                    query = query.Where(o => o.IssuedDate < toExclusive);
-                }
-
-                // Sorting
-                switch (sortOrder)
-                {
-                    case "orderNo_desc":
-                        query = query.OrderByDescending(o => o.OrderNo);
-                        break;
-                    case "orderNo":
-                        query = query.OrderBy(o => o.OrderNo);
-                        break;
-                    case "date":
-                        query = query.OrderBy(o => o.IssuedDate);
-                        break;
-                    case "customer":
-                        query = query.OrderBy(o => o.CUSTOMER.Name);
-                        break;
-                    case "customer_desc":
-                        query = query.OrderByDescending(o => o.CUSTOMER.Name);
-                        break;
-                    default:
-                        query = query.OrderByDescending(o => o.IssuedDate);
-                        break;
-                }
-
-                // Barcha mos yozuvlar (DataTable klientda sahifalaydi) — kuzatuvsiz
-                var orders = await query.ToListAsync();
+                // Server tomonida sahifalash (CRM-P05: avval butun jadval Include bilan yuklanardi)
+                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
+                int totalItems = await query.CountAsync();
+                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
+                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
+                var orders = await query.Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage).ToListAsync();
+                ViewBag.CurrentPage = currentPage;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalItems = totalItems;
+                ViewBag.PageSize = itemsPerPage;
 
                 ViewBag.Customers = SalesLookups.Customers(customerID);
                 ViewBag.Contracts = new SelectList(await db.S_CONTRACTS.AsNoTracking()
@@ -111,6 +56,94 @@ namespace tahsinERP.Controllers
 
                 return View(orders);
             }
+        }
+
+        /// <summary>Filtrlangan barcha buyurtmalar Excel'da.</summary>
+        public ActionResult ExportExcel(string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var rows = BuildIndexQuery(db, searchTerm, orderNo, customerID, contractID, fromDate, toDate, sortOrder).ToList();
+                var bytes = ExcelExport.Create("Buyurtmalar", rows,
+                    ExcelExport.Col<S_ORDERS>("Buyurtma raqami", o => o.OrderNo),
+                    ExcelExport.Col<S_ORDERS>("Mijoz", o => o.CUSTOMER?.Name),
+                    ExcelExport.Col<S_ORDERS>("Shartnoma", o => o.S_CONTRACTS?.ContractNo),
+                    ExcelExport.Col<S_ORDERS>("Sana", o => o.IssuedDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_ORDERS>("Summa", o => o.Amount, "#,##0.00"),
+                    ExcelExport.Col<S_ORDERS>("Valyuta", o => o.CURRENCy1 != null ? o.CURRENCy1.Shortname : o.Currency));
+                return File(bytes, ExcelExport.ContentType, $"Buyurtmalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+            }
+        }
+
+        private static IQueryable<S_ORDERS> BuildIndexQuery(DBTHSNEntities db, string searchTerm, string orderNo, int? customerID, int? contractID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        {
+            var query = db.S_ORDERS.AsNoTracking()
+                .Include(o => o.CUSTOMER)
+                .Include(o => o.S_CONTRACTS)
+                .Include(o => o.CURRENCy1)
+                .Where(o => o.IsDeleted == false || o.IsDeleted == null);
+
+            // Filters
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(o =>
+                    o.OrderNo.Contains(searchTerm) ||
+                    (o.Description != null && o.Description.Contains(searchTerm)) ||
+                    (o.CUSTOMER != null && o.CUSTOMER.Name.Contains(searchTerm)));
+            }
+
+            if (!string.IsNullOrEmpty(orderNo))
+            {
+                query = query.Where(o => o.OrderNo.Contains(orderNo));
+            }
+
+            if (customerID.HasValue && customerID.Value > 0)
+            {
+                query = query.Where(o => o.CustomerID == customerID.Value);
+            }
+
+            if (contractID.HasValue && contractID.Value > 0)
+            {
+                query = query.Where(o => o.ContractID == contractID.Value);
+            }
+
+            if (fromDate.HasValue)
+            {
+                var from = fromDate.Value.Date;
+                query = query.Where(o => o.IssuedDate >= from);
+            }
+
+            if (toDate.HasValue)
+            {
+                // Yarim ochiq oraliq — oxirgi kun to'liq kiradi
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(o => o.IssuedDate < toExclusive);
+            }
+
+            // Sorting
+            switch (sortOrder)
+            {
+                case "orderNo_desc":
+                    query = query.OrderByDescending(o => o.OrderNo);
+                    break;
+                case "orderNo":
+                    query = query.OrderBy(o => o.OrderNo);
+                    break;
+                case "date":
+                    query = query.OrderBy(o => o.IssuedDate);
+                    break;
+                case "customer":
+                    query = query.OrderBy(o => o.CUSTOMER.Name);
+                    break;
+                case "customer_desc":
+                    query = query.OrderByDescending(o => o.CUSTOMER.Name);
+                    break;
+                default:
+                    query = query.OrderByDescending(o => o.IssuedDate);
+                    break;
+            }
+
+            return query;
         }
 
         // Olish so'rovi: yaratish
