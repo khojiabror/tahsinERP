@@ -13,7 +13,7 @@ namespace tahsinERP.Controllers.Finance
     /// Doimiy harajatlar (ijara, buxgalteriya va h.k.) — har oy shakllanadigan majburiyat, to'lovda kamayadi.
     /// Balans hisobotida "Doimiy harajatlar qarzi" ostida ko'rsatiladi.
     /// </summary>
-    [Permission("FinDashboard")]
+    [Permission("FinRecurringObligations")]
     public class FinRecurringObligationsController : Controller
     {
         private const string TableName = "FIN_RECURRING_OBLIGATIONS";
