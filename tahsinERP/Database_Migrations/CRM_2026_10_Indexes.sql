@@ -34,6 +34,7 @@ ELSE
 GO
 
 -- 2) FK / filtr indekslari
+-- (SF/TTNK sarlavha va qator bo'yicha indekslar bazada UX_* va IX_SALES_SF_HEADERS_Invoice bilan qoplangan — qo'shilmaydi)
 IF OBJECT_ID('tempdb..#ix') IS NOT NULL DROP TABLE #ix;
 CREATE TABLE #ix (TableName sysname, IndexName sysname, KeyCols nvarchar(400), IncludeCols nvarchar(400) NULL);
 
@@ -45,11 +46,8 @@ INSERT INTO #ix VALUES
 ('SALES_INVOICES',           'IX_SALES_INVOICES_Contract',           'ContractID',                'StatusCode'),
 ('SALES_INVOICES',           'IX_SALES_INVOICES_Order',              'OrderID',                   'StatusCode'),
 ('SORDER_DELIVERY_SCHEDULE', 'IX_SORDER_DELIVERY_SCHEDULE_Order',    'SOrderID',                  'SOrderProductID, QtyPlanned, QtyShipped'),
-('SALES_SF_HEADERS',         'IX_SALES_SF_HEADERS_InvoiceID',        'InvoiceID',                 NULL),
-('SALES_SF_LINES',           'IX_SALES_SF_LINES_Header',             'SFHeaderID',                NULL),
 ('SALES_SF_LINES',           'IX_SALES_SF_LINES_InvoiceLine',        'InvoiceLineID',             NULL),
 ('SALES_TTNK_INVOICES',      'IX_SALES_TTNK_INVOICES_InvoiceID',     'InvoiceID',                 'TTNKHeaderID'),
-('SALES_TTNK_LINES',         'IX_SALES_TTNK_LINES_Header',           'TTNKHeaderID',              NULL),
 ('SALES_TTNK_LINES',         'IX_SALES_TTNK_LINES_InvoiceLine',      'InvoiceLineID',             NULL);
 
 DECLARE @t sysname, @i sysname, @k nvarchar(400), @inc nvarchar(400), @sql nvarchar(max);
