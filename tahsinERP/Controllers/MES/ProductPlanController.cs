@@ -726,9 +726,9 @@ namespace tahsinERP.Controllers.MES
 
         /// <summary>
         /// Kunlik reja + fakt (Details va GetDailyGridPartial uchun umumiy — dublikat #13).
-        /// Fakt: shu kunda fakt sanasi bo'lgan yoki [RejaSana:...] shu kunga teng ishlab chiqarishlar.
-        /// Avval mahsulotning BUTUN ishlab chiqarish tarixi yuklanardi (MES-P04); endi reja oralig'i ±31 kun
-        /// va reja oylaridagi [RejaSana:yyyy-MM-...] izohlari bo'yicha SQL'da filtrlanadi.
+        /// Fakt reja kuniga yagona qoida bo'yicha bog'lanadi: reja kuni = PlanDate ?? Date (Dashboard va hisobotlar bilan
+        /// bir xil, MES-B20). Avval mahsulotning butun ishlab chiqarish tarixi yuklanib (P04), izohdagi [RejaSana:] regex
+        /// bilan solishtirilardi va boshqa ekranlar boshqa qoida ishlatardi.
         /// </summary>
         private static async Task<List<ProductPlanDailyViewModel>> BuildDailyPlanViewModelsAsync(DBTHSNEntities db, int planId, int productId)
         {
@@ -741,21 +741,21 @@ namespace tahsinERP.Controllers.MES
             if (dailyPlans.Any())
             {
                 var firstDay = dailyPlans.First().Day.Date;
-                var lastDay = dailyPlans.Last().Day.Date;
-                var windowStart = firstDay.AddDays(-31);
-                var windowEnd = lastDay.AddDays(32);
-                var monthTokens = new List<string>();
-                for (var m = new DateTime(firstDay.Year, firstDay.Month, 1); m <= lastDay; m = m.AddMonths(1))
-                {
-                    monthTokens.Add("[RejaSana:" + m.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture) + "-");
-                }
+                var endExclusive = dailyPlans.Last().Day.Date.AddDays(1);
 
                 var productions = await db.PRODUCT_PRODUCTION.AsNoTracking()
-                    .Where(p => p.ProductID == productId && (p.IsDeleted == false || p.IsDeleted == null))
-                    .Where(ProductionDateOrPlanMonthPredicate(windowStart, windowEnd, monthTokens))
+                    .Where(p => p.ProductID == productId
+                        && (p.IsDeleted == false || p.IsDeleted == null)
+                        && (p.PlanDate ?? p.Date) >= firstDay
+                        && (p.PlanDate ?? p.Date) < endExclusive)
+                    .Select(p => new { PlanDay = p.PlanDate ?? p.Date, p.DayShift, p.NightShift, p.Total })
                     .ToListAsync();
 
-                actualProductions = AggregateActualProductionByPlanCalendarDay(dailyPlans.Select(d => d.Day.Date).ToList(), productions);
+                actualProductions = productions
+                    .GroupBy(p => p.PlanDay.Date)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => (g.Sum(p => p.DayShift), g.Sum(p => p.NightShift), g.Sum(p => p.Total)));
             }
 
             return dailyPlans.Select(d =>
@@ -774,55 +774,6 @@ namespace tahsinERP.Controllers.MES
                     ActualTotal = hasActual ? actual.Total : (double?)null
                 };
             }).ToList();
-        }
-
-        /// <summary>p.Date ∈ [start, end) YOKI Comment reja oylaridan birining tokenini o'z ichiga oladi.</summary>
-        private static System.Linq.Expressions.Expression<Func<PRODUCT_PRODUCTION, bool>> ProductionDateOrPlanMonthPredicate(
-            DateTime start, DateTime end, List<string> monthTokens)
-        {
-            var p = System.Linq.Expressions.Expression.Parameter(typeof(PRODUCT_PRODUCTION), "p");
-            var date = System.Linq.Expressions.Expression.Property(p, nameof(PRODUCT_PRODUCTION.Date));
-            System.Linq.Expressions.Expression body = System.Linq.Expressions.Expression.AndAlso(
-                System.Linq.Expressions.Expression.GreaterThanOrEqual(date, System.Linq.Expressions.Expression.Constant(start)),
-                System.Linq.Expressions.Expression.LessThan(date, System.Linq.Expressions.Expression.Constant(end)));
-
-            var comment = System.Linq.Expressions.Expression.Property(p, nameof(PRODUCT_PRODUCTION.Comment));
-            var containsMethod = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
-            foreach (var token in monthTokens)
-            {
-                var hasToken = System.Linq.Expressions.Expression.AndAlso(
-                    System.Linq.Expressions.Expression.NotEqual(comment, System.Linq.Expressions.Expression.Constant(null, typeof(string))),
-                    System.Linq.Expressions.Expression.Call(comment, containsMethod, System.Linq.Expressions.Expression.Constant(token)));
-                body = System.Linq.Expressions.Expression.OrElse(body, hasToken);
-            }
-
-            return System.Linq.Expressions.Expression.Lambda<Func<PRODUCT_PRODUCTION, bool>>(body, p);
-        }
-
-        /// <summary>
-        /// Har bir reja kalendar kuni uchun: shu kunda fakt sanasi bo'lgan yoki [RejaSana:...] shu kunga teng bo'lgan
-        /// PRODUCT_PRODUCTION qatorlarini yig'adi (kunlik ishlab chiqarish ekrani bilan bir xil bog'lanish).
-        /// </summary>
-        private static Dictionary<DateTime, (double DayShift, double NightShift, double Total)> AggregateActualProductionByPlanCalendarDay(
-            List<DateTime> planDates,
-            List<PRODUCT_PRODUCTION> productions)
-        {
-            var result = new Dictionary<DateTime, (double DayShift, double NightShift, double Total)>();
-            foreach (var day in planDates.Select(d => d.Date).Distinct())
-            {
-                var rows = productions.Where(p => ProductProductionPlanDateMeta.MatchesCalendarDay(p, day)).ToList();
-                if (rows.Count == 0)
-                {
-                    continue;
-                }
-
-                result[day] = (
-                    rows.Sum(p => p.DayShift),
-                    rows.Sum(p => p.NightShift),
-                    rows.Sum(p => p.Total));
-            }
-
-            return result;
         }
 
         /// <summary>Ustma-ust tushadigan (yopiq oraliqlar) faol reja — dublikat #11 (5 nusxa edi).</summary>

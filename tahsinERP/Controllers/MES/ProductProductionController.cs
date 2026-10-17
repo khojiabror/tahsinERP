@@ -119,20 +119,20 @@ namespace tahsinERP.Controllers.MES
                         // qoldiq qayta yozilishi mumkin edi (MES-B01, P03).
                         var productIds = itemsToProcess.Select(i => i.ProductID).Distinct().ToList();
                         var factDayEnd = factDay.AddDays(1);
-                        var planMeta = ProductProductionPlanDateMeta.FormatMeta(planDay);
+                        var planDayEnd = planDay.AddDays(1);
+                        // Reja kuni PlanDate ustunida (avval Comment'dagi "[RejaSana:]" matni LIKE bilan qidirilardi, MES-B20)
                         var candidateProductions = db.PRODUCT_PRODUCTION
                             .Where(p => p.ShopID == viewModel.ShopID
                                 && (p.IsDeleted == false || p.IsDeleted == null)
                                 && productIds.Contains(p.ProductID)
                                 && ((p.Date >= factDay && p.Date < factDayEnd)
-                                    || (p.Comment != null && p.Comment.Contains(planMeta))))
+                                    || (p.PlanDate >= planDay && p.PlanDate < planDayEnd)))
                             .ToList();
                         var existingByProduct = productIds.ToDictionary(
                             pid => pid,
                             pid => candidateProductions.FirstOrDefault(p =>
                                 p.ProductID == pid &&
-                                (p.Date.Date == factDay ||
-                                 ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment) == planDay)));
+                                (p.Date.Date == factDay || ProductProductionPlanDateMeta.PlanDay(p) == planDay)));
 
                         // Bog'langan (QI yoki lot o'tkazmasi bor) yozuvni Create orqali ham qayta yozib bo'lmaydi
                         var lockedProductIds = existingByProduct.Values
@@ -203,7 +203,8 @@ namespace tahsinERP.Controllers.MES
                                 existing.DayShift = item.DayShift;
                                 existing.NightShift = item.NightShift;
                                 existing.Total = item.Total;
-                                existing.Comment = ProductProductionPlanDateMeta.MergeIntoComment(item.Comment, viewModel.Date);
+                                existing.PlanDate = planDay;
+                                existing.Comment = ProductProductionPlanDateMeta.StripMeta(item.Comment);
                                 db.Entry(existing).State = EntityState.Modified;
                                 db.SaveChanges();
                             }
@@ -218,7 +219,8 @@ namespace tahsinERP.Controllers.MES
                                     DayShift = item.DayShift,
                                     NightShift = item.NightShift,
                                     Total = item.Total,
-                                    Comment = ProductProductionPlanDateMeta.MergeIntoComment(item.Comment, viewModel.Date)
+                                    PlanDate = planDay,
+                                    Comment = ProductProductionPlanDateMeta.StripMeta(item.Comment)
                                 };
                                 db.PRODUCT_PRODUCTION.Add(production);
                                 // ID olish uchun saqlash (xomashyo chiqimni ProductionID bilan bog'lash uchun)
@@ -389,11 +391,15 @@ namespace tahsinERP.Controllers.MES
                             // Yangilash production
                             production.ProductID = viewModel.ProductID;
                             production.ShopID = viewModel.ShopID;
+                            if (!production.PlanDate.HasValue || production.PlanDate.Value.Date == production.Date.Date)
+                            {
+                                production.PlanDate = viewModel.Date.Date;
+                            }
                             production.Date = viewModel.Date;
                             production.DayShift = viewModel.DayShift;
                             production.NightShift = viewModel.NightShift;
                             production.Total = viewModel.Total;
-                            production.Comment = viewModel.Comment;
+                            production.Comment = ProductProductionPlanDateMeta.StripMeta(viewModel.Comment);
 
                             WarehouseFlowService.IncreaseProductionStock(
                                 viewModel.ProductID,
@@ -472,21 +478,18 @@ namespace tahsinERP.Controllers.MES
                 var searchStart = production.Date.Date.AddDays(-30);
                 var searchEnd = production.Date.Date.AddDays(31);
 
-                // 0) Avval ProductionID marker bilan aniq topish (yangi yozuvlar uchun)
-                var prodMarker = WarehouseFlowService.ProductionIncomeMarker + production.ID;
-                var expensesByProdId = (await db.EXPENSES
-                    .Where(e => e.IsDeleted == false
-                        && e.Description != null
-                        && e.Description.Contains(prodMarker))
+                // 0) EXPENSES.ProductionID ustuni bo'yicha aniq topish (avval Description LIKE '%ProductionID:x%', MES-P12)
+                var productionId = production.ID;
+                var expensesByProdId = await db.EXPENSES
+                    .Where(e => e.IsDeleted == false && e.ProductionID == productionId)
                     .Include(e => e.EXPENSE_PRODUCTS)
                     .OrderByDescending(e => e.IssueDateTime)
-                    .ToListAsync())
-                    .Where(e => WarehouseFlowService.DescriptionMatchesProductionId(e.Description, production.ID))
-                    .ToList();
+                    .ToListAsync();
 
-                // 1) Sana oralig'ida barcha chiqimlarni yuklash (fallback: eski yozuvlar uchun)
-                var expensesInRange = await db.EXPENSES
+                // 1) Sana oralig'ida ishlab chiqarishga bog'lanmagan chiqimlar (fallback: marker'dan oldingi eski yozuvlar)
+                var expensesInRange = expensesByProdId.Any() ? new List<EXPENS>() : await db.EXPENSES
                     .Where(e => e.IsDeleted == false
+                        && e.ProductionID == null
                         && e.IssueDateTime >= searchStart
                         && e.IssueDateTime < searchEnd)
                     .Include(e => e.EXPENSE_PRODUCTS)
@@ -494,8 +497,9 @@ namespace tahsinERP.Controllers.MES
                     .ToListAsync();
 
                 // 1b) Izohda ishlab chiqarish sanasi va "kunlik reja asosida" bor chiqimlar (boshqa sana yaratilgan bo'lsa ham)
-                var expensesByDescDate = await db.EXPENSES
+                var expensesByDescDate = expensesByProdId.Any() ? new List<EXPENS>() : await db.EXPENSES
                     .Where(e => e.IsDeleted == false
+                        && e.ProductionID == null
                         && e.Description != null
                         && e.Description.Contains(productionDateStr)
                         && e.Description.Contains("kunlik reja asosida")
@@ -802,15 +806,12 @@ namespace tahsinERP.Controllers.MES
                             production.ProductID, production.Total);
                         var expectedTotal = requirements?.Sum(r => r.TotalConsumption) ?? 0d;
 
-                        var marker = WarehouseFlowService.ProductionIncomeMarker + production.ID;
-                        var existingExpenses = (await db.EXPENSES
+                        var productionId = production.ID;
+                        var existingExpenses = await db.EXPENSES
                             .Where(e => e.IsDeleted != true
                                 && e.ReceiverWhID == null
-                                && e.Description != null
-                                && e.Description.Contains(marker))
-                            .ToListAsync())
-                            .Where(e => WarehouseFlowService.DescriptionMatchesProductionId(e.Description, production.ID))
-                            .ToList();
+                                && e.ProductionID == productionId)
+                            .ToListAsync();
                         var actualTotal = existingExpenses.Sum(e => e.Amount ?? 0d);
 
                         // Allaqachon to'g'ri va bitta hujjat bo'lsa, tegmaymiz.
@@ -914,12 +915,11 @@ namespace tahsinERP.Controllers.MES
                 })
                 .ToList();
 
-            var planMeta = ProductProductionPlanDateMeta.FormatMeta(dateOnly);
             var existingProductions = db.PRODUCT_PRODUCTION.AsNoTracking()
                 .Where(p => p.ShopID == shopId
                     && (p.IsDeleted == false || p.IsDeleted == null)
                     && ((p.Date >= dateOnly && p.Date < nextDay)
-                        || (p.Comment != null && p.Comment.Contains(planMeta))))
+                        || (p.PlanDate >= dateOnly && p.PlanDate < nextDay)))
                 .Select(p => new
                 {
                     p.ID,
@@ -932,8 +932,6 @@ namespace tahsinERP.Controllers.MES
                     p.PRODUCT.PNo,
                     p.PRODUCT.Name
                 })
-                .ToList()
-                .Where(p => p.Date.Date == dateOnly || ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment) == dateOnly)
                 .ToList();
 
             foreach (var existing in existingProductions)

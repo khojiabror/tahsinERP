@@ -46,37 +46,20 @@ namespace tahsinERP.Controllers.MES
                     .Select(g => new { ProductID = g.Key, Reja = g.Sum(d => d.Total) })
                     .ToListAsync();
 
-                // Avval ±6 oylik oyna yuklanardi; oy ichidagi reja kuniga bog'langan boshqa sanadagi ishlab chiqarishlar
-                // linkedProductionIds orqali baribir olinadi, shuning uchun oyning o'zi yetarli (MES-P20).
+                // Yagona attribution qoidasi: reja kuni = PlanDate ?? Date (Dashboard va ProductPlan bilan bir xil, MES-B20).
                 var prodFrom = startDate;
                 var prodToExclusive = endDate.AddDays(1);
-                var linkedProductionIds = await (
-                    from qi in db.QUALITY_INSPECTION
-                    join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
-                    where qi.IsDeleted == false
-                          && qi.ProductionID.HasValue
-                          && pd.Day >= startDate
-                          && pd.Day <= endDate
-                    select qi.ProductionID.Value
-                ).Distinct().ToListAsync();
-
                 var productionCandidates = await db.PRODUCT_PRODUCTION.AsNoTracking()
                     .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
-                        && ((p.Date >= prodFrom && p.Date < prodToExclusive)
-                            || linkedProductionIds.Contains(p.ID)))
-                    .Select(p => new { p.ID, p.ProductID, p.Date, p.Total })
+                        && (p.PlanDate ?? p.Date) >= prodFrom
+                        && (p.PlanDate ?? p.Date) < prodToExclusive)
+                    .Select(p => new { p.ID, p.ProductID, PlanDay = p.PlanDate ?? p.Date, p.Total })
                     .ToListAsync();
 
-                var candidateIds = productionCandidates.Select(p => p.ID).ToList();
-                var attributionDateByProductionId = await BuildAttributionDateMapAsync(db, candidateIds);
                 var actualByProduct = productionCandidates
                     .Where(p =>
                     {
-                        DateTime attributedDate;
-                        if (!attributionDateByProductionId.TryGetValue(p.ID, out attributedDate))
-                        {
-                            attributedDate = p.Date.Date;
-                        }
+                        var attributedDate = p.PlanDay.Date;
                         return attributedDate.Year == selectedYear && attributedDate.Month == selectedMonth;
                     })
                     .GroupBy(p => p.ProductID)
@@ -159,37 +142,20 @@ namespace tahsinERP.Controllers.MES
 
             using (var db = new DBTHSNEntities())
             {
-                // Avval ±6 oylik oyna yuklanardi; oy ichidagi reja kuniga bog'langan boshqa sanadagi ishlab chiqarishlar
-                // linkedProductionIds orqali baribir olinadi, shuning uchun oyning o'zi yetarli (MES-P20).
+                // Yagona attribution qoidasi: reja kuni = PlanDate ?? Date (Dashboard va ProductPlan bilan bir xil, MES-B20).
                 var prodFromQ = startDate;
                 var prodToExclusiveQ = endDate.AddDays(1);
-                var linkedProductionIdsQ = await (
-                    from qi in db.QUALITY_INSPECTION
-                    join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
-                    where qi.IsDeleted == false
-                          && qi.ProductionID.HasValue
-                          && pd.Day >= startDate
-                          && pd.Day <= endDate
-                    select qi.ProductionID.Value
-                ).Distinct().ToListAsync();
-
                 var productionCandidatesQ = await db.PRODUCT_PRODUCTION.AsNoTracking()
                     .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
-                        && ((p.Date >= prodFromQ && p.Date < prodToExclusiveQ)
-                            || linkedProductionIdsQ.Contains(p.ID)))
-                    .Select(p => new { p.ID, p.ProductID, p.Date, p.Total })
+                        && (p.PlanDate ?? p.Date) >= prodFromQ
+                        && (p.PlanDate ?? p.Date) < prodToExclusiveQ)
+                    .Select(p => new { p.ID, p.ProductID, PlanDay = p.PlanDate ?? p.Date, p.Total })
                     .ToListAsync();
 
-                var candidateIdsQ = productionCandidatesQ.Select(p => p.ID).ToList();
-                var attributionDateByProductionIdQ = await BuildAttributionDateMapAsync(db, candidateIdsQ);
                 var producedByProduct = productionCandidatesQ
                     .Where(p =>
                     {
-                        DateTime attributedDate;
-                        if (!attributionDateByProductionIdQ.TryGetValue(p.ID, out attributedDate))
-                        {
-                            attributedDate = p.Date.Date;
-                        }
+                        var attributedDate = p.PlanDay.Date;
                         return attributedDate.Year == selectedYear && attributedDate.Month == selectedMonth;
                     })
                     .GroupBy(p => p.ProductID)
@@ -265,39 +231,6 @@ namespace tahsinERP.Controllers.MES
                 ViewBag.Months = Enumerable.Range(1, 12).ToList();
                 return View(viewModel);
             }
-        }
-
-        private static async Task<Dictionary<int, DateTime>> BuildAttributionDateMapAsync(DBTHSNEntities db, List<int> productionIds)
-        {
-            if (productionIds == null || productionIds.Count == 0)
-            {
-                return new Dictionary<int, DateTime>();
-            }
-
-            var links = await (
-                from qi in db.QUALITY_INSPECTION
-                join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
-                where qi.IsDeleted == false
-                      && qi.ProductionID.HasValue
-                      && productionIds.Contains(qi.ProductionID.Value)
-                select new
-                {
-                    ProductionID = qi.ProductionID.Value,
-                    PlanDay = DbFunctions.TruncateTime(pd.Day),
-                    Qty = (double?)qi.QtyInspected ?? 0
-                }
-            ).ToListAsync();
-
-            return links
-                .Where(x => x.PlanDay.HasValue)
-                .GroupBy(x => x.ProductionID)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.GroupBy(x => x.PlanDay.Value)
-                          .OrderByDescending(dayGroup => dayGroup.Sum(v => v.Qty))
-                          .ThenByDescending(dayGroup => dayGroup.Key)
-                          .Select(dayGroup => dayGroup.Key)
-                          .FirstOrDefault());
         }
     }
 }
