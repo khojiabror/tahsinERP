@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers
         // Avval 25 qatorli server sahifasi ustida mijoz DataTables ishlardi: qidiruv/saralash/eksport faqat joriy sahifaga ta'sir qilardi.
         public async Task<ActionResult> Index(int? assigneeUserID, int? statusID, int? priorityID, DateTime? dueDateFrom, DateTime? dueDateTo, string searchTerm, bool? showOverdue)
         {
-            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            bool isAdminOrDeveloper = RoleHelper.IsAdminOrDeveloper(CurrentUserName);
             if (!isAdminOrDeveloper)
             {
                 // Oddiy user - faqat o'z tasklari
@@ -50,7 +50,7 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var visible = TaskQueries.Visible(db, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName));
+                var visible = TaskQueries.Visible(db, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName));
                 int total = await visible.CountAsync();
                 var filtered = TaskQueries.Apply(visible, filter);
                 int filteredCount = await filtered.CountAsync();
@@ -92,7 +92,7 @@ namespace tahsinERP.Controllers
             var filter = BuildFilter(assigneeUserID, statusID, priorityID, dueDateFrom, dueDateTo, q, showOverdue);
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var visible = TaskQueries.Visible(db, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName));
+                var visible = TaskQueries.Visible(db, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName));
                 var rows = await TaskQueries.WithNamesAsync(db, await TaskQueries.Order(TaskQueries.Apply(visible, filter), 5, true)
                     .Select(TaskQueries.Projection)
                     .ToListAsync());
@@ -148,7 +148,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
-                if (!TaskRules.CanAccess(viewModel.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
+                if (!TaskRules.CanAccess(viewModel.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
                     return RedirectToAction("Index");
@@ -269,7 +269,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Oddiy user boshqalarning tasklarini tahrirlamasligi kerak
-                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
+                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin";
                     return RedirectToAction("Index");
@@ -300,7 +300,7 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(TaskViewModel viewModel)
         {
-            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            bool isAdminOrDeveloper = RoleHelper.IsAdminOrDeveloper(CurrentUserName);
 
             if (ModelState.IsValid)
             {
@@ -368,7 +368,7 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
+                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni o'chirishingiz mumkin";
                     return RedirectToAction("Index");

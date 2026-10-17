@@ -10,19 +10,13 @@ using tahsinERP.Models;
 namespace tahsinERP.Services.Tasks
 {
     /// <summary>
-    /// Tasks modulidagi umumiy qoidalar. Avval 13 joyda inline nusxa bo'lgan
-    /// "Admin yoki Developer" tekshiruvi va "bajarildi" predikati shu yerda.
+    /// Tasks modulidagi umumiy qoidalar ("bajarildi"/"yopilgan" predikatlari, egalik).
+    /// "Admin yoki Developer" tekshiruvi — core'dagi RoleHelper.IsAdminOrDeveloper (dublikat #1).
     /// </summary>
     public static class TaskRules
     {
         public const string DoneCode = "DONE";
         public const string CancelledCode = "CANCELLED";
-
-        /// <summary>Barcha topshiriqlarni ko'radigan/boshqaradigan rollar (RoleHelper snapshot keshidan).</summary>
-        public static bool IsAdminOrDeveloper(string username)
-        {
-            return RoleHelper.IsInRole(username, "Admin") || RoleHelper.IsInRole(username, "Developer");
-        }
 
         /// <summary>Oddiy foydalanuvchi faqat o'ziga biriktirilgan topshiriq bilan ishlaydi.</summary>
         public static bool CanAccess(int? assigneeUserId, int currentUserId, bool isAdminOrDeveloper)
