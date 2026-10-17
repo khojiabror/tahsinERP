@@ -1,5 +1,3 @@
-@using tahsinERP.Services.Tasks
-@model List<tahsinERP.ViewModels.TaskViewModel>
 @{
     ViewBag.Title = "Tasks";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -52,14 +50,11 @@
                                     <!-- Search and Filter -->
                                     <div class="users-list-filter px-1">
                                         <form method="get" action="@Url.Action("Index", "Tasks")" id="filterForm">
+                                            <input type="hidden" name="showOverdue" id="showOverdue" value="@(ViewBag.ShowOverdue ? "true" : "")" />
                                             <div class="row border rounded py-2 mb-2">
-                                                <div class="col-12 col-sm-6 col-lg-3">
-                                                    <label>Qidirish</label>
-                                                    <input type="text" name="searchTerm" class="form-control" placeholder="Title, Description, Key..." value="@ViewBag.SearchTerm" />
-                                                </div>
                                                 @if (isAdminOrDeveloper)
                                                 {
-                                                    <div class="col-12 col-sm-6 col-lg-2">
+                                                    <div class="col-12 col-sm-6 col-lg-3">
                                                         <label>Assignee</label>
                                                         @Html.DropDownList("assigneeUserID", (SelectList)ViewBag.AssigneeUserID, "All", new { @class = "form-control" })
                                                     </div>
@@ -80,21 +75,21 @@
                                                     <label>Muddati (gacha)</label>
                                                     <input type="date" name="dueDateTo" class="form-control" value="@(ViewBag.DueDateTo != null ? ((DateTime)ViewBag.DueDateTo).ToString("yyyy-MM-dd") : "")" />
                                                 </div>
-                                                <div class="col-12 col-sm-6 col-lg-3 mt-2">
+                                                <div class="col-12 mt-2">
                                                     <button type="submit" class="btn btn-primary">
                                                         <i class="bx bx-filter"></i> Filtrlash
                                                     </button>
-                                                    <a href="@Url.Action("Index", "Tasks", new { showOverdue = true })" class="btn btn-danger">
+                                                    <button type="button" id="btnOverdue" class="btn @(ViewBag.ShowOverdue ? "btn-danger" : "btn-outline-danger")">
                                                         <i class="bx bx-calendar-x"></i> Muddatidan o'tgan
-                                                    </a>
-                                                    <a href="@Url.Action("Index", "Tasks")" class="btn btn-secondary">
+                                                    </button>
+                                                    <button type="button" id="btnClear" class="btn btn-secondary">
                                                         <i class="bx bx-x"></i> Tozalash
-                                                    </a>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </form>
                                     </div>
-                                    
+
                                     <!-- datatable start -->
                                     <div class="card-datatable table-responsive">
                                         <table id="tasksDataTable" class="table table-striped table-bordered" style="width:100%">
@@ -110,83 +105,11 @@
                                                     <th class="text-center">Amallar</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                @if (Model != null && Model.Any())
-                                                {
-                                                    foreach (var item in Model)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                <a href="@Url.Action("Details", "Tasks", new { id = item.ID })">@(item.KeyCode ?? item.ID.ToString())</a>
-                                                            </td>
-                                                            <td>@(item.Title ?? "")</td>
-                                                            <td>@(item.AssigneeFullName ?? "-")</td>
-                                                            <td>
-                                                                @Html.TaskPriorityBadge(item.PriorityName, "")
-                                                            </td>
-                                                            <td>
-                                                                @Html.TaskStatusBadge(item.StatusName, "")
-                                                            </td>
-                                                            <td>@item.CreatedDT.ToString("yyyy-MM-dd")</td>
-                                                            <td>
-                                                                @if (item.DueDate.HasValue)
-                                                                {
-                                                                    <span class="@(TaskBadges.IsOverdue(item.DueDate, item.StatusName) ? "text-danger" : "")">
-                                                                        @item.DueDate.Value.ToString("yyyy-MM-dd")
-                                                                    </span>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span>-</span>
-                                                                }
-                                                            </td>
-                                                            <td class="text-center">
-                                                                <a href="@Url.Action("Details", "Tasks", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Ko'rish">
-                                                                    <i class="bx bx-show"></i>
-                                                                </a>
-                                                                <a href="@Url.Action("ChangeStatus", "TaskChangeStatus", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Status o'zgartirish">
-                                                                    <i class="bx bx-sync"></i>
-                                                                </a>
-                                                                @if (changePermit)
-                                                                {
-                                                                    <a href="@Url.Action("Edit", "Tasks", new { id = item.ID })" class="btn btn-sm btn-outline-warning" title="Tahrirlash">
-                                                                        <i class="bx bx-edit"></i>
-                                                                    </a>
-                                                                    <a href="#" data-post-url="@Url.Action("Delete", "Tasks", new { id = item.ID })" data-confirm="O'chirishni tasdiqlaysizmi?" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
-                                                                }
-                                                            </td>
-                                                        </tr>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <tr>
-                                                        <td colspan="8" class="text-center">Vazifalar topilmadi</td>
-                                                    </tr>
-                                                }
-                                            </tbody>
+                                            <tbody></tbody>
                                         </table>
                                     </div>
                                     <!-- datatable ends -->
                                     
-                                    <!-- Pagination -->
-                                    @if (ViewBag.TotalPages > 1)
-                                    {
-                                        <div class="row mt-2">
-                                            <div class="col-12">
-                                                <nav>
-                                                    <ul class="pagination justify-content-center">
-                                                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                                                        {
-                                                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                                                <a class="page-link" href="@Url.Action("Index", "Tasks", new { page = i, pageSize = ViewBag.PageSize, searchTerm = ViewBag.SearchTerm, assigneeUserID = ViewBag.AssigneeUserID_Selected, statusID = ViewBag.StatusID_Selected, priorityID = ViewBag.PriorityID_Selected, dueDateFrom = ViewBag.DueDateFrom, dueDateTo = ViewBag.DueDateTo, sortOrder = ViewBag.SortOrder, showOverdue = ViewBag.ShowOverdue })">@i</a>
-                                                            </li>
-                                                        }
-                                                    </ul>
-                                                </nav>
-                                            </div>
-                                        </div>
-                                    }
                                 </div>
                             </div>
                         </div>
@@ -197,91 +120,66 @@
     </div>
 
 
+    <script src="~/Scripts/srm/srm-server-table.js"></script>
     <script>
-        $(document).ready(function() {
-            var table = $('#tasksDataTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json",
-                    "lengthMenu": "Har sahifada _MENU_ ta yozuv ko'rsatish",
-                    "zeroRecords": "Hech qanday yozuv topilmadi",
-                    "info": "_START_ dan _END_ gacha, jami _TOTAL_ ta yozuv",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(_MAX_ ta yozuvdan filtrlangan)",
-                    "search": "Qidirish:",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    }
-                },
-                "pageLength": @ViewBag.PageSize,
-                "order": [[5, "desc"]],
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                "paging": true,
-                "pagingType": "full_numbers",
-                "info": true,
-                "searching": true,
-                "responsive": true,
-                "processing": true,
-                "dom": 'lBfrtip',
-                "buttons": [
+        $(document).ready(function () {
+            // Server-side (TSK-P10): qidiruv, saralash, sahifalash va Excel eksport butun filtr natijasiga ishlaydi
+            var detailsUrl = '@Url.Action("Details", "Tasks")/';
+            var statusUrl = '@Url.Action("ChangeStatus", "TaskChangeStatus")/';
+            var editUrl = '@Url.Action("Edit", "Tasks")/';
+            var deleteUrl = '@Url.Action("Delete", "Tasks")/';
+            var changePermit = @(changePermit ? "true" : "false");
+
+            function badge(text, cls, style) {
+                if (!text) return '';
+                return '<span class="badge ' + cls + '"' + (style ? ' style="' + srmEsc(style) + '"' : '') + '>' + srmEsc(text) + '</span>';
+            }
+            function colorStyle(c) { return c ? 'background-color: ' + c + ' !important; border-color: ' + c + ' !important;' : ''; }
+
+            var table = srmServerTable('#tasksDataTable', {
+                dataUrl: '@Url.Action("IndexData", "Tasks")',
+                exportUrl: '@Url.Action("ExportExcel", "Tasks")',
+                filterForm: '#filterForm',
+                order: [[5, 'desc']],
+                columns: [
+                    { data: 'code', render: function (v, t, r) { return '<a href="' + detailsUrl + r.id + '">' + srmEsc(v) + '</a>'; } },
+                    { data: 'title', render: function (v) { return srmEsc(v); } },
+                    { data: 'assignee', orderable: false, render: function (v) { return srmEsc(v); } },
+                    { data: 'priority', render: function (v, t, r) { return badge(v, 'badge-danger', colorStyle(r.priorityStyle)); } },
+                    { data: 'status', render: function (v, t, r) { return badge(v, r.statusClass, r.statusStyle); } },
+                    { data: 'created' },
+                    { data: 'due', render: function (v, t, r) { return v ? '<span class="' + (r.overdue ? 'text-danger' : '') + '">' + v + '</span>' : '<span>-</span>'; } },
                     {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Vazifalar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
+                        data: null, orderable: false, className: 'text-center', render: function (v, t, r) {
+                            var html = '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-outline-primary" title="Ko&#39;rish"><i class="bx bx-show"></i></a> '
+                                + '<a href="' + statusUrl + r.id + '" class="btn btn-sm btn-outline-info" title="Status o&#39;zgartirish"><i class="bx bx-sync"></i></a> ';
+                            if (changePermit) {
+                                html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-outline-warning" title="Tahrirlash"><i class="bx bx-edit"></i></a> '
+                                    + '<a href="#" data-post-url="' + deleteUrl + r.id + '" data-confirm="O&#39;chirishni tasdiqlaysizmi?" class="btn btn-sm btn-outline-danger" title="O&#39;chirish"><i class="bx bx-trash"></i></a>';
                             }
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        titleAttr: 'PDFga yuklash',
-                        className: 'btn btn-danger',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Vazifalar_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: ':visible',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        },
-                        title: 'Vazifalar ro\'yxati',
-                        customize: function (doc) {
-                            doc.defaultStyle.fontSize = 9;
-                            doc.styles.tableHeader.fontSize = 10;
+                            return html;
                         }
                     }
                 ]
+            });
+
+            var initialSearch = @Html.Raw(Json.Encode((string)ViewBag.SearchTerm ?? ""));
+            if (initialSearch) table.search(initialSearch).draw();
+
+            $('#filterForm').on('submit', function (e) { e.preventDefault(); table.ajax.reload(); });
+            $('#btnOverdue').on('click', function () {
+                var on = $('#showOverdue').val() !== 'true';
+                $('#showOverdue').val(on ? 'true' : '');
+                $(this).toggleClass('btn-danger', on).toggleClass('btn-outline-danger', !on);
+                table.ajax.reload();
+            });
+            $('#btnClear').on('click', function () {
+                var form = $('#filterForm');
+                form.find('select').val('');
+                form.find('input[type=date]').val('');
+                $('#showOverdue').val('');
+                $('#btnOverdue').removeClass('btn-danger').addClass('btn-outline-danger');
+                table.search('').ajax.reload();
             });
         });
     </script>

@@ -863,6 +863,7 @@
     <Compile Include="Services\Documents\DocumentService.cs" />
     <Compile Include="Services\Tasks\TaskBadges.cs" />
     <Compile Include="Services\Tasks\TaskLookups.cs" />
+    <Compile Include="Services\Tasks\TaskQueries.cs" />
     <Compile Include="Services\Tasks\TaskRefEntity.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\Finance\BalanceInventoryValuation.cs" />
