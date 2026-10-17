@@ -432,25 +432,6 @@
                         addProductRow(null, '', '', 0, null, null, null, '', '');
                     });
 
-                    // Helper function to escape HTML
-                    function escapeHtml(text) {
-                        if (text == null || text === undefined) return '';
-                        var div = document.createElement('div');
-                        div.textContent = text;
-                        return div.innerHTML;
-                    }
-
-                    // Helper function to escape attribute values (for HTML attributes)
-                    function escapeAttr(text) {
-                        if (text == null || text === undefined) return '';
-                        return String(text)
-                            .replace(/&/g, '&amp;')
-                            .replace(/"/g, '&quot;')
-                            .replace(/'/g, '&#x27;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;');
-                    }
-
                     function addProductRow(productId, productPNo, productName, amount, unitId, price, moq, calculationExplanation, calculationSummary) {
                         // Ensure all values are safe
                         var safeProductPNo = productPNo || '';

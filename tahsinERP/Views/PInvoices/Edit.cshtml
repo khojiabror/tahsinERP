@@ -208,6 +208,7 @@
 
 <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
 <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
+<script src="@Url.Content("~/Scripts/app/contract-picker.js")"></script>
 
 <script>
     (function () {
@@ -250,60 +251,7 @@ var $vatRateInput = $('#vatRateInput');
                 }
 
                 function loadContractsBySupplier(supplierId, selectedId) {
-                    var $contractSelect = $('#contractSelect');
-
-                    if (supplierId) {
-                        $contractSelect.prop('disabled', true);
-
-                        $.ajax({
-                            url: '@Url.Action("GetContractsBySupplier", "PInvoices")',
-                            type: 'POST',
-                            data: { supplierId: supplierId },
-                            success: function (response) {
-                                if (response && response.success) {
-                                    $contractSelect.empty().append('<option value="">---Tanlang---</option>');
-
-                                    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                                        response.data.forEach(function (contract) {
-                                            var $option = $('<option>')
-                                                .attr('value', contract.ID)
-                                                .attr('data-vat-rate', contract.VatRate != null ? contract.VatRate : 0)
-                                                .text(contract.ContractNo);
-                                            if (selectedId && String(contract.ID) === String(selectedId)) {
-                                                $option.attr('selected', 'selected');
-                                            }
-                                            $contractSelect.append($option);
-                                        });
-                                    }
-
-                                    $contractSelect.prop('disabled', false);
-
-                                    // Reinitialize Select2
-                                    if (typeof $.fn.select2 !== 'undefined') {
-                                        $contractSelect.select2();
-                                    }
-                                    $contractSelect.trigger('change');
-                                } else {
-                                    $contractSelect.prop('disabled', false);
-                                    if (typeof $.fn.select2 !== 'undefined') {
-                                        $contractSelect.select2();
-                                    }
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error('Contract loading error:', status, error, xhr);
-                                $contractSelect.prop('disabled', false);
-                                if (typeof $.fn.select2 !== 'undefined') {
-                                    $contractSelect.select2();
-                                }
-                            }
-                        });
-                    } else {
-                        $contractSelect.empty().append('<option value="">---Tanlang---</option>');
-                        if (typeof $.fn.select2 !== 'undefined') {
-                            $contractSelect.select2();
-                        }
-                    }
+                    ContractPicker.load($('#contractSelect'), '@Url.Action("GetContractsBySupplier", "PInvoices")', supplierId, selectedId, {});
                 }
 
                 // Load contracts when supplier changes

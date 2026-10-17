@@ -242,6 +242,7 @@
 
 <script src="@Url.Content("~/Scripts/app/indexed-rows.js")"></script>
 <script src="@Url.Content("~/Scripts/app/product-select.js")"></script>
+<script src="@Url.Content("~/Scripts/app/contract-picker.js")"></script>
 
 <script>
     (function () {
@@ -283,40 +284,7 @@
         }
 
         function loadContractsBySupplier(supplierId, selectedId) {
-            var $contractSelect = $('#contractSelect');
-            $contractSelect.empty().append('<option value="">---Tanlang---</option>');
-
-            if (!supplierId) {
-                if (typeof $.fn.select2 !== 'undefined') {
-                    $contractSelect.select2();
-                }
-                return;
-            }
-
-            $.ajax({
-                url: '@Url.Action("GetContractsBySupplier", "POrders")',
-                type: 'POST',
-                data: { supplierId: supplierId },
-                success: function (response) {
-                    if (response && response.success && response.data && Array.isArray(response.data)) {
-                        response.data.forEach(function (contract) {
-                            var $option = $('<option>')
-                                .attr('value', contract.ID)
-                                .attr('data-vat-rate', contract.VatRate != null ? contract.VatRate : 0)
-                                .text(contract.ContractNo);
-                            if (selectedId && String(contract.ID) === String(selectedId)) {
-                                $option.attr('selected', 'selected');
-                            }
-                            $contractSelect.append($option);
-                        });
-                    }
-
-                    if (typeof $.fn.select2 !== 'undefined') {
-                        $contractSelect.select2();
-                    }
-                    $contractSelect.trigger('change');
-                }
-            });
+            ContractPicker.load($('#contractSelect'), '@Url.Action("GetContractsBySupplier", "POrders")', supplierId, selectedId, {});
         }
 
         // Calculate totals for existing rows
@@ -361,22 +329,6 @@
             $('.amount-input, .price-input').trigger('input');
         });
 
-        function escapeHtmlEdit(text) {
-            if (text == null || text === undefined) return '';
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        function escapeAttrEdit(text) {
-            if (text == null || text === undefined) return '';
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#x27;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-        }
-
         function addProductRow(productId, productPNo, productName, amount, unitId, price, moq, calculationExplanation, calculationSummary) {
             var calc = calculationExplanation || '';
             var sum = calculationSummary || '';
@@ -404,9 +356,9 @@
                 '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
                 '<td><small class="text-muted d-block">QQS bilan: <span class="price-with-vat">0.00</span></small><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /><small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small></td>' +
                 '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
-                '<td class="align-top small">' + escapeHtmlEdit(calc || '—') +
-                '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + escapeAttrEdit(calc) + '" />' +
-                '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationSummary" value="' + escapeAttrEdit(sum) + '" /></td>' +
+                '<td class="align-top small">' + htmlEscape(calc || '—') +
+                '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + htmlEscape(calc) + '" />' +
+                '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationSummary" value="' + htmlEscape(sum) + '" /></td>' +
                 '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
                 '</tr>';
 
