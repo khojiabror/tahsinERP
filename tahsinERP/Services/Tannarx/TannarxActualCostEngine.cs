@@ -440,7 +440,8 @@ namespace tahsinERP.Services.Tannarx
 
             var coveredInvoiceIds = new HashSet<int>(chain.PiMatchedLines.Select(l => l.DocID));
             var coverage = (decimal)chain.PiInMonth.Count(h => coveredInvoiceIds.Contains(h.ID)) / chain.PiInMonth.Count;
-            var reconcile = r.PiHeaderAmount != 0 ? Math.Abs(r.PiMatchedAmount - r.PiHeaderAmount) / Math.Abs(r.PiHeaderAmount) : 0m;
+            // P_INVOICES.Amount QQS bilan saqlanadi (SRM-B25) — solishtirish faqat QQSsiz qatorlar yig'indisi bilan.
+            var reconcile = r.PiLinesAmount != 0 ? Math.Abs(r.PiMatchedAmount - r.PiLinesAmount) / Math.Abs(r.PiLinesAmount) : 0m;
             var amount = r.PiMatchedAllocatedAmount;
             if (amount <= 0)
                 return MaterialDecision.Fail("PATH1", "COVERAGE_OR_RECONCILE_FAIL", coverage, reconcile);

@@ -681,7 +681,7 @@ namespace tahsinERP.Services
             lines.Add($"Savdo buyurtmasi: {JoinOrDash(r.SalesOrderNos)}");
             lines.Add($"Unga bog'langan Xarid buyurtmasi: {JoinOrDash(r.PurchaseOrderNos)}");
             lines.Add($"Xarid buyurtmasiga bog'langan Invoice (shu oy): {JoinOrDash(r.PurchaseInvoiceNos)}");
-            lines.Add($"PI Header jami summasi: {r.PiHeaderAmount:N2}");
+            lines.Add($"PI Header jami summasi (QQS bilan bo'lishi mumkin, hisobda ishlatilmaydi): {r.PiHeaderAmount:N2}");
             lines.Add($"PI line jami summasi: {r.PiLinesAmount:N2}");
             lines.Add($"Bu maxsulot BOMiga mos material summasi: {r.PiMatchedAmount:N2}");
             lines.Add($"BOMga kirmaydigan line summasi (hisobga olinmadi): {(r.PiLinesAmount - r.PiMatchedAmount):N2}");
