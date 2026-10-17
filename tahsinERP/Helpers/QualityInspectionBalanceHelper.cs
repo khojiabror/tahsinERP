@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
@@ -31,6 +32,30 @@ namespace tahsinERP.Helpers
                     && q.ProductPlanDailyID == null
                     && DbFunctions.TruncateTime(q.InspectionDate) >= factDate)
                 .Sum(q => (decimal?)q.QtyAccepted) ?? 0m;
+        }
+
+        /// <summary>
+        /// <see cref="GetAcceptedQtyForProduction"/> ning ko'p ishlab chiqarishli varianti — bitta GROUP BY so'rov
+        /// (avval ro'yxatdagi har ishlab chiqarishga 2 ta so'rov ketardi, MES-P16).
+        /// </summary>
+        public static Dictionary<int, decimal> GetAcceptedQtyByProduction(IEnumerable<int> productionIds, DBTHSNEntities db)
+        {
+            var ids = productionIds.Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return new Dictionary<int, decimal>();
+            }
+
+            return (from q in db.QUALITY_INSPECTION
+                    join p in db.PRODUCT_PRODUCTION on q.ProductionID equals p.ID
+                    where ids.Contains(p.ID)
+                          && !q.IsDeleted
+                          && q.ProductPlanDailyID == null
+                          && DbFunctions.TruncateTime(q.InspectionDate) >= DbFunctions.TruncateTime(p.Date)
+                    group q by p.ID into g
+                    select new { ProductionID = g.Key, Qty = g.Sum(x => x.QtyAccepted) })
+                .ToList()
+                .ToDictionary(x => x.ProductionID, x => x.Qty);
         }
 
         /// <summary>
@@ -71,10 +96,35 @@ namespace tahsinERP.Helpers
                 return true;
             }
 
-            var remaining = GetRemainingQty(production, db);
+            return TryValidateInspectionQty(production, qtyAccepted, qtyRejected, GetAcceptedQtyForProduction(production, db), out errorMessage);
+        }
+
+        /// <summary>
+        /// Oldindan hisoblangan "qabul qilingan" miqdor bilan tekshirish (qo'shimcha so'rovsiz).
+        /// </summary>
+        public static bool TryValidateInspectionQty(
+            PRODUCT_PRODUCTION production,
+            decimal qtyAccepted,
+            decimal qtyRejected,
+            decimal acceptedSoFar,
+            out string errorMessage)
+        {
+            errorMessage = null;
+            if (production == null)
+            {
+                errorMessage = "Ishlab chiqarish topilmadi";
+                return false;
+            }
+
+            var inspectedQty = qtyAccepted + qtyRejected;
+            if (inspectedQty <= 0)
+            {
+                return true;
+            }
+
+            var remaining = (decimal)production.Total - acceptedSoFar;
             if (inspectedQty > remaining)
             {
-                var acceptedSoFar = GetAcceptedQtyForProduction(production, db);
                 errorMessage =
                     $"Tekshirilgan miqdor ishlab chiqarilgan qoldiqdan oshib ketdi. " +
                     $"Mahsulot: {production.PRODUCT?.PNo}, Ishlab chiqarildi: {production.Total:N3}, " +

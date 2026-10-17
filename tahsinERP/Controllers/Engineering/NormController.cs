@@ -10,10 +10,12 @@ using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using Newtonsoft.Json;
 using tahsinERP.Filters;
+using tahsinERP.Services.Norm;
 
 namespace tahsinERP.Controllers.Engineering
 {
-    public class NormController : Controller
+    [Permission]
+    public class NormController : BaseController
     {
         private DBTHSNEntities db = new DBTHSNEntities();
 
@@ -75,72 +77,68 @@ namespace tahsinERP.Controllers.Engineering
             }
 
             // Bu product uchun barcha norm versiyalari
-            var normVersions = await db.NORMVERSIONS
-                .Include(n => n.NORMLINES)
+            var normVersions = await db.NORMVERSIONS.AsNoTracking()
                 .Where(n => n.ProductID == id.Value && n.IsDeleted != true)
                 .OrderByDescending(n => n.EffectiveFrom)
+                .Select(n => new
+                {
+                    n.ID,
+                    n.EffectiveFrom,
+                    n.EffectiveTo,
+                    n.Comment,
+                    LineCount = n.NORMLINES.Count()
+                })
                 .ToListAsync();
+
+            // Barcha davrlarning NORM_INPUT_LINES qatorlari va material kategoriyalari bir martada
+            // (avval har versiyaga 2 ta so'rov ketardi, MES-P13).
+            var periods = normVersions
+                .Where(n => n.EffectiveFrom.HasValue)
+                .Select(n => n.EffectiveFrom.Value.ToString("yyyy-MM"))
+                .Distinct()
+                .ToList();
+            var allInputLines = await db.NORM_INPUT_LINES.AsNoTracking()
+                .Where(il => il.ProductID == id.Value && periods.Contains(il.Month))
+                .Select(il => new { il.Month, il.MaterialID, il.CutLengthMm, il.PiecesPerProduct, il.Consumption, il.WasteAmount, il.Price })
+                .ToListAsync();
+            var materialIdsAll = allInputLines.Select(il => il.MaterialID).Distinct().ToList();
+            var requiresCuttingByMaterial = await db.PRODUCTS.AsNoTracking()
+                .Where(p => materialIdsAll.Contains(p.ID))
+                .Select(p => new { p.ID, RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting })
+                .ToDictionaryAsync(p => p.ID, p => p.RequiresCutting);
+            var inputLinesByPeriod = allInputLines.GroupBy(il => il.Month).ToDictionary(g => g.Key, g => g.ToList());
 
             var viewModel = new ProductNormDetailsViewModel
             {
                 ProductID = product.ID,
                 ProductCode = product.PNo,
                 ProductName = product.Name,
-                NormVersions = normVersions.Select(n => 
+                NormVersions = normVersions.Select(n =>
                 {
                     var period = n.EffectiveFrom.HasValue ? n.EffectiveFrom.Value.ToString("yyyy-MM") : "";
-                    
-                    // Calculate sums dan NORM_INPUT_LINES uchun this period
-                    var inputLines = db.NORM_INPUT_LINES
-                        .Where(il => il.ProductID == id.Value && il.Month == period)
-                        .ToList();
-                    
-                    var materialIdsInPeriod = inputLines.Select(il => il.MaterialID).Distinct().ToList();
-                    var requiresCuttingByMaterial = db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .Where(p => materialIdsInPeriod.Contains(p.ID))
-                        .ToDictionary(
-                            p => p.ID,
-                            p => p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting);
 
                     decimal totalSarfSumma = 0;
                     decimal totalChiqindiSumma = 0;
-                    foreach (var il in inputLines)
+                    if (inputLinesByPeriod.TryGetValue(period, out var inputLines))
                     {
-                        if (il.Price <= 0)
+                        foreach (var il in inputLines)
                         {
-                            continue;
-                        }
+                            if (il.Price <= 0)
+                            {
+                                continue;
+                            }
 
-                        var requiresCutting = requiresCuttingByMaterial.ContainsKey(il.MaterialID) &&
-                                              requiresCuttingByMaterial[il.MaterialID];
+                            requiresCuttingByMaterial.TryGetValue(il.MaterialID, out var requiresCutting);
 
-                        decimal consumptionMeters = 0;
-                        if (il.Consumption.HasValue && il.Consumption.Value > 0)
-                        {
-                            // ViewDetails bilan bir xil mantiq:
-                            // kesish materialida (CutLengthMm > 0) DBdagi mm ni m ga o'tkazamiz,
-                            // qolganlarda saqlangan qiymatni as-is olamiz.
-                            consumptionMeters = NormInputLineConsumptionToDisplay(requiresCutting, il.CutLengthMm, il.Consumption);
-                        }
-                        else if (requiresCutting && il.CutLengthMm > 0)
-                        {
-                            consumptionMeters = (decimal)(il.CutLengthMm / 1000.0) * il.PiecesPerProduct;
-                        }
-                        else
-                        {
-                            consumptionMeters = il.PiecesPerProduct;
-                        }
+                            // ViewDetails bilan bir xil mantiq (NormLineMath)
+                            var consumptionMeters = NormLineMath.LineConsumption(requiresCutting, il.CutLengthMm, il.PiecesPerProduct, il.Consumption);
+                            var wasteMeters = NormLineMath.WasteToDisplay(il.WasteAmount);
 
-                        decimal wasteMeters = NormInputLineWasteToDisplay(il.WasteAmount);
-
-                        totalSarfSumma += consumptionMeters * il.Price;
-                        totalChiqindiSumma += wasteMeters * il.Price;
+                            totalSarfSumma += consumptionMeters * il.Price;
+                            totalChiqindiSumma += wasteMeters * il.Price;
+                        }
                     }
-                    
-                    // Umumiy summa: A + B
-                    decimal umumiySumma = totalSarfSumma + totalChiqindiSumma;
-                    
+
                     return new NormVersionItemViewModel
                     {
                         NormVersionID = n.ID,
@@ -148,10 +146,11 @@ namespace tahsinERP.Controllers.Engineering
                         EffectiveFrom = n.EffectiveFrom,
                         EffectiveTo = n.EffectiveTo,
                         Comment = n.Comment,
-                        LineCount = n.NORMLINES.Count,
+                        LineCount = n.LineCount,
                         TotalSarfSumma = totalSarfSumma,
                         TotalChiqindiSumma = totalChiqindiSumma,
-                        UmumiySumma = umumiySumma
+                        // Umumiy summa: A + B
+                        UmumiySumma = totalSarfSumma + totalChiqindiSumma
                     };
                 }).ToList()
             };
@@ -179,8 +178,6 @@ namespace tahsinERP.Controllers.Engineering
 
             var normVersion = await db.NORMVERSIONS
                 .Include(n => n.PRODUCT)
-                .Include(n => n.NORMLINES)
-                .Include("NORMLINES.PRODUCT")
                 .FirstOrDefaultAsync(n => n.ID == normVersionId.Value && n.IsDeleted != true);
 
             if (normVersion == null)
@@ -203,142 +200,14 @@ namespace tahsinERP.Controllers.Engineering
 
             // Yuklash NORM_INPUT_LINES (detailed cutting variants) instead of aggregated NORMLINES
             var period = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? "";
-            var inputLines = await db.NORM_INPUT_LINES
-                .Include("PRODUCT.PRODUCT_CATEGORIES")
-                .Include("UNIT")
-                .Where(il => il.ProductID == viewModel.ProductID && il.Month == period)
-                .OrderByDescending(il => il.PRODUCT.Name)
-                .ThenBy(il => il.MaterialID)
-                .ThenBy(il => il.CutLengthMm)
-                .ToListAsync();
+            await PopulateCuttingLinesFromPeriodAsync(viewModel, viewModel.ProductID, period);
 
-            foreach (var inputLine in inputLines)
-            {
-                // MaterialID — PRODUCTS (xomashyo); EDMX: PRODUCT (MaterialID). PRODUCT1 — ProductID (tayyor mahsulot).
-                var material = inputLine.PRODUCT;
-                if (material == null)
-                {
-                    material = await db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .FirstOrDefaultAsync(p => p.ID == inputLine.MaterialID);
-                }
+            // Umumiy norma/chiqindi faqat yog'och kategoriyasidagi materiallar uchun; summa — barcha materiallar
+            var woodByMaterial = await GetWoodFlagsAsync(viewModel.CuttingLines.Select(l => l.MaterialID));
+            ApplyTotals(viewModel, woodByMaterial);
 
-                if (material != null)
-                {
-                    // Use Price dan NORM_INPUT_LINES (saved price per product)
-                    decimal unitPrice = inputLine.Price;
-                    
-                    decimal totalAmount = 0;
-
-                    // Use Consumption va WasteAmount dan NORM_INPUT_LINES agar available, otherwise calculate
-                    bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                    var standardLengthMm = GetEffectiveStandardLengthMm(material);
-                    
-                    decimal consumption = 0;
-                    decimal waste = 0;
-                    
-                    // Avval, try ga use saved values dan NORM_INPUT_LINES
-                    if (inputLine.Consumption.HasValue && inputLine.Consumption.Value > 0)
-                    {
-                        consumption = NormInputLineConsumptionToDisplay(requiresCutting, inputLine.CutLengthMm, inputLine.Consumption);
-                    }
-                    else if (requiresCutting && inputLine.CutLengthMm > 0)
-                    {
-                        // uchun cutting materials: convert mm ga m
-                        consumption = (decimal)(inputLine.CutLengthMm / 1000.0) * inputLine.PiecesPerProduct;
-                    }
-                    else
-                    {
-                        // uchun non-cutting materials: use pieces as-is
-                        consumption = inputLine.PiecesPerProduct;
-                    }
-                    
-                    // Use WasteAmount dan NORM_INPUT_LINES agar available
-                    if (inputLine.WasteAmount.HasValue)
-                    {
-                        waste = NormInputLineWasteToDisplay(inputLine.WasteAmount);
-                    }
-                    else if (requiresCutting && standardLengthMm > 0 && inputLine.CutLengthMm > 0)
-                    {
-                        // Calculate waste agar not saved
-                        var wastePerBar = Math.Max(0, standardLengthMm - inputLine.CutLengthMm);
-                        var barsNeeded = inputLine.PiecesPerProduct; // 1 piece per bar
-                        waste = (decimal)(wastePerBar / 1000.0) * barsNeeded;
-                    }
-
-                    if (unitPrice > 0)
-                    {
-                        var cleanCost = consumption * unitPrice;
-                        var wasteCost = waste * unitPrice;
-                        totalAmount = cleanCost + wasteCost;
-                    }
-
-                    viewModel.CuttingLines.Add(new NormLineViewModel
-                    {
-                        ID = inputLine.ID,
-                        MaterialID = inputLine.MaterialID,
-                        MaterialCode = material.PNo ?? "",
-                        MaterialName = material.Name ?? "",
-                        StandardLengthMm = standardLengthMm > 0 ? (double?)standardLengthMm : null,
-                        CalculatedLengthMm = inputLine.CutLengthMm,
-                        Quantity = inputLine.PiecesPerProduct,
-                        PiecesPerBar = 1, // Always 1 (removed dan UI, PiecesPerProduct is stored as Quantity)
-                        ConsumptionPerProduct = consumption,
-                        WastePerProduct = waste,
-                        IsWasteManual = inputLine.WasteAmount.HasValue,
-                        UnitPrice = unitPrice > 0 ? (decimal?)unitPrice : null,
-                        TotalCostPerProduct = totalAmount > 0 ? totalAmount : (consumption * unitPrice),
-                        Norma = consumption,
-                        Chiqindi = waste,
-                        IsSelected = true,
-                        CuttingMethod = inputLine.Comment,
-                        UnitID = NormalizeUnitFk(inputLine.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
-                    });
-                }
-            }
-
-            // Calculate totals - Umumiy norma faqat yog'och kategoriyasidagi materiallar uchun
-            // Olish material categories ga tekshirish agar it's wood (yog'och)
-            var materialIds = viewModel.CuttingLines.Select(l => l.MaterialID).Distinct().ToList();
-            var materialCategories = await db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => materialIds.Contains(p.ID))
-                .Select(p => new { 
-                    p.ID, 
-                    RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting,
-                    IsWood = p.PRODUCT_CATEGORIES != null && (
-                        (p.PRODUCT_CATEGORIES.RawMaterialGroup != null && 
-                         (p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yo'goch") || 
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yog'och") ||
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yog'och") ||
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yo'goch"))) ||
-                        (p.PRODUCT_CATEGORIES.Name != null && 
-                         (p.PRODUCT_CATEGORIES.Name.Contains("Yo'goch") || 
-                          p.PRODUCT_CATEGORIES.Name.Contains("Yog'och") ||
-                          p.PRODUCT_CATEGORIES.Name.Contains("yog'och") ||
-                          p.PRODUCT_CATEGORIES.Name.Contains("yo'goch")))
-                    )
-                })
-                .ToDictionaryAsync(p => p.ID, p => new { p.RequiresCutting, p.IsWood });
-            
-            // TotalNorm: faqat yog'och kategoriyasidagi materiallar uchun
-            viewModel.TotalNorm = viewModel.CuttingLines
-                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID].IsWood)
-                .Sum(l => l.ConsumptionPerProduct);
-            
-            // TotalWaste: faqat yog'och kategoriyasidagi materiallar uchun
-            viewModel.TotalWaste = viewModel.CuttingLines
-                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID].IsWood)
-                .Sum(l => l.WastePerProduct);
-            
-            // TotalCost: barcha materiallar uchun
-            viewModel.TotalCost = viewModel.CuttingLines.Sum(l => l.TotalCostPerProduct);
-            
-            // Pass materialCategories ga view uchun sum calculations (convert ga simple bool dictionary uchun compatibility)
-            ViewBag.MaterialCategories = materialCategories.ToDictionary(
-                kvp => kvp.Key, 
-                kvp => kvp.Value.IsWood // Use IsWood instead of RequiresCutting
-            );
+            // View yog'och belgisini kutadi (MaterialID -> IsWood)
+            ViewBag.MaterialCategories = woodByMaterial;
 
             // UnitID -> unit short name map for ViewDetails table
             var unitIds = viewModel.CuttingLines
@@ -387,8 +256,7 @@ namespace tahsinERP.Controllers.Engineering
                     }
 
                     var productId = normVersion.ProductID;
-                    var product = await db.PRODUCTS.FindAsync(productId);
-                    var productCode = product?.PNo ?? "";
+                    var productCode = await db.PRODUCTS.Where(p => p.ID == productId).Select(p => p.PNo).FirstOrDefaultAsync() ?? "";
                     var period = normVersion.EffectiveFrom.HasValue ? normVersion.EffectiveFrom.Value.ToString("yyyy-MM") : "";
 
                     // O'chirish NORM_INPUT_LINES (detailed cutting variants) uchun this period
@@ -398,30 +266,18 @@ namespace tahsinERP.Controllers.Engineering
                         var inputLines = await db.NORM_INPUT_LINES
                             .Where(il => il.ProductID == productId && il.Month == period)
                             .ToListAsync();
-                        if (inputLines.Any())
-                        {
-                            deletedInputLinesCount = inputLines.Count;
-                            db.NORM_INPUT_LINES.RemoveRange(inputLines);
-                            await db.SaveChangesAsync();
-                            
-                            // Log deletion of NORM_INPUT_LINES
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm", 
-                                $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}) dan {deletedInputLinesCount} ta NORM_INPUT_LINE o'chirildi.");
-                        }
+                        deletedInputLinesCount = inputLines.Count;
+                        db.NORM_INPUT_LINES.RemoveRange(inputLines);
                     }
 
                     // O'chirish NORMLINES
-                    int deletedNormLinesCount = 0;
-                    if (normVersion.NORMLINES.Any())
-                    {
-                        deletedNormLinesCount = normVersion.NORMLINES.Count;
-                        db.NORMLINES.RemoveRange(normVersion.NORMLINES);
-                        await db.SaveChangesAsync();
-                        
-                        // Log deletion of NORMLINES
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}) dan {deletedNormLinesCount} ta NORMLINE o'chirildi.");
-                    }
+                    var deletedNormLinesCount = normVersion.NORMLINES.Count;
+                    db.NORMLINES.RemoveRange(normVersion.NORMLINES.ToList());
+
+                    // BOM ↔ norm bog'lanishi: avval BOMS_AND_NORMS qatorlari qolib ketardi (FK xatosi yoki yetim yozuv, MES-B08)
+                    // Jadval hamma bazada bo'lmasligi mumkin (lokal bazada yo'q) — mavjudligi tekshiriladi
+                    await db.Database.ExecuteSqlCommandAsync(
+                        "IF OBJECT_ID('dbo.BOMS_AND_NORMS', 'U') IS NOT NULL DELETE FROM dbo.BOMS_AND_NORMS WHERE NormID = {0}", normVersion.ID);
 
                     // Hard o'chirish NORMVERSION (entry.remove)
                     db.NORMVERSIONS.Remove(normVersion);
@@ -429,22 +285,28 @@ namespace tahsinERP.Controllers.Engineering
 
                     // Identity RESEED (DBCC CHECKIDENT) olib tashlandi: ID'lardagi "teshik" xato emas,
                     // reseed esa db_owner huquqini talab qiladi va parallel INSERT bilan PK to'qnashuviga olib keladi.
-                    
-                    // Note: BOM_HEADERS va BOM_LINES product ga bog'liq, norm versiyasiga emas
-                    // Shuning uchun ularni o'chirmaymiz, chunki keyingi norm versiyasi yaratilganda yangilanadi
 
-                    // Log final deletion
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                        $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}, Period: {period}) o'chirildi.");
+                    // BOM endi qolgan eng so'nggi norma bo'yicha qayta quriladi (o'chirilgan norma bo'yicha sarf davom etmaydi);
+                    // norma qolmasa BOM faolsizlantiriladi.
+                    string bomNote = null;
+                    if (productId.HasValue)
+                    {
+                        bomNote = await SyncBomToLatestNormAsync(productId.Value, productCode, null, null);
+                        await db.SaveChangesAsync();
+                    }
+
+                    LogHelper.LogToDatabase(User.Identity.Name, "Norm",
+                        $"Mahsulot PNo: {productCode} uchun NORM versiyasi (ID: {normVersionId.Value}, Period: {period}) o'chirildi: " +
+                        $"{deletedInputLinesCount} ta NORM_INPUT_LINE, {deletedNormLinesCount} ta NORMLINE. {bomNote}");
 
                     transaction.Complete();
 
-                    TempData["Success"] = "NORM muvaffaqiyatli o'chirildi.";
+                    TempData["Success"] = "NORM muvaffaqiyatli o'chirildi." + (string.IsNullOrEmpty(bomNote) ? "" : " " + bomNote);
                     return RedirectToAction("Details", new { id = productId });
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                    TempData["Error"] = BuildDetailedErrorMessage(ex);
                     return RedirectToAction("Index");
                 }
             }
@@ -471,29 +333,9 @@ namespace tahsinERP.Controllers.Engineering
                 }
 
                 var selectedPeriod = period ?? DateTime.Now.ToString("yyyy-MM");
-                
-                // Tahlil qilish selectedPeriod ga year va month uchun SQL-compatible comparison
-                var periodParts = selectedPeriod.Split('-');
-                int selectedYear = 0, selectedMonth = 0;
-                NORMVERSION existingNorm = null;
-                
-                if (periodParts.Length >= 2 && int.TryParse(periodParts[0], out selectedYear) && int.TryParse(periodParts[1], out selectedMonth))
-                {
-                    // Tekshirish agar norm already mavjud uchun this product va period
-                    // Use SQL-compatible date comparison instead of ToString
-                    var periodStart = new DateTime(selectedYear, selectedMonth, 1);
-                    var periodEnd = periodStart.AddMonths(1).AddDays(-1);
-                    
-                    existingNorm = await db.NORMVERSIONS
-                        .Where(n => n.ProductID == productId.Value && 
-                               n.IsDeleted == false &&
-                               n.EffectiveFrom.HasValue && 
-                               n.EffectiveFrom.Value >= periodStart &&
-                               n.EffectiveFrom.Value <= periodEnd)
-                        .FirstOrDefaultAsync();
-                }
-                
-                if (existingNorm != null)
+
+                // Tekshirish agar norm already mavjud uchun this product va period
+                if (await FindNormForPeriodAsync(productId.Value, selectedPeriod, null) != null)
                 {
                     TempData["Error"] = $"Bu mahsulot uchun {selectedPeriod} oyi uchun norm allaqachon mavjud. Iltimos, mavjud normni tahrirlang yoki boshqa oy tanlang.";
                     return RedirectToAction("Details", new { id = productId.Value });
@@ -519,46 +361,7 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index");
             }
 
-            // Yuklash materials (raw materials, components, va other materials)
-            var materials = await db.PRODUCTS
-                .Where(p => (p.IsRawMaterial == true || p.IsComponent == true) && p.IsDeleted == false)
-                .OrderBy(p => p.PNo)
-                .Select(p => new { ID = p.ID, PNo = p.PNo, Name = p.Name })
-                .ToListAsync();
-
-            // Ensure materials used in existing lines are included (even if not raw/component)
-            var lineMaterialIds = viewModel.CuttingLines
-                .Select(l => l.MaterialID)
-                .Distinct()
-                .ToList();
-            var missingMaterialIds = lineMaterialIds
-                .Where(id => !materials.Any(m => m.ID == id))
-                .ToList();
-            if (missingMaterialIds.Any())
-            {
-                var missingMaterials = await db.PRODUCTS
-                    .Where(p => missingMaterialIds.Contains(p.ID) && p.IsDeleted == false)
-                    .Select(p => new { ID = p.ID, PNo = p.PNo, Name = p.Name })
-                    .ToListAsync();
-                materials.AddRange(missingMaterials);
-            }
-
-            // Yaratish SelectList bilan "PNo - Name" format
-            var materialsSelectList = materials
-                .OrderBy(m => m.PNo)
-                .Select(m => new SelectListItem
-                {
-                    Value = m.ID.ToString(),
-                    Text = $"{m.PNo} - {m.Name ?? m.PNo}"
-                }).ToList();
-            
-            ViewBag.Materials = new SelectList(materialsSelectList, "Value", "Text", null);
-            
-            // Yaratish simple list uchun JSON serialization (avoid circular reference) - include Name uchun display
-            ViewBag.MaterialsJson = materials
-                .OrderBy(m => m.PNo)
-                .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
-                .ToList();
+            await PopulateMaterialsAsync(viewModel.CuttingLines);
 
             ViewBag.PreviousNorms = await GetPreviousNormOptionsAsync(viewModel.ProductID, null);
             ViewBag.SelectedTemplateNormVersionId = templateNormVersionId;
@@ -621,46 +424,8 @@ namespace tahsinERP.Controllers.Engineering
                 await RecalculateTotalsForViewModelAsync(viewModel);
             }
 
-            // Yuklash materials (raw materials, components, va other materials - selofan, karton, dona ketadigan maxsulotlar)
-            var materials = await db.PRODUCTS
-                .Where(p => (p.IsRawMaterial == true || p.IsComponent == true) && p.IsDeleted == false)
-                .OrderBy(p => p.PNo)
-                .Select(p => new { ID = p.ID, PNo = p.PNo, Name = p.Name })
-                .ToListAsync();
-
-            // Edit holatda mavjud satrdagi materiallar filterga tushmasa ham dropdownda ko'rinishi kerak
-            var lineMaterialIds = viewModel.CuttingLines
-                .Select(l => l.MaterialID)
-                .Distinct()
-                .ToList();
-            var missingMaterialIds = lineMaterialIds
-                .Where(id => !materials.Any(m => m.ID == id))
-                .ToList();
-            if (missingMaterialIds.Any())
-            {
-                var missingMaterials = await db.PRODUCTS
-                    .Where(p => missingMaterialIds.Contains(p.ID) && p.IsDeleted == false)
-                    .Select(p => new { ID = p.ID, PNo = p.PNo, Name = p.Name })
-                    .ToListAsync();
-                materials.AddRange(missingMaterials);
-            }
-
-            // Yaratish SelectList bilan "PNo - Name" format
-            var materialsSelectList = materials
-                .OrderBy(m => m.PNo)
-                .Select(m => new SelectListItem
-                {
-                    Value = m.ID.ToString(),
-                    Text = $"{m.PNo} - {m.Name ?? m.PNo}"
-                }).ToList();
-            
-            ViewBag.Materials = new SelectList(materialsSelectList, "Value", "Text", null);
-            
-            // Yaratish simple list uchun JSON serialization (avoid circular reference) - include Name uchun display
-            ViewBag.MaterialsJson = materials
-                .OrderBy(m => m.PNo)
-                .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
-                .ToList();
+            // Materiallar (xomashyo, komponent va satrlardagi boshqa materiallar)
+            await PopulateMaterialsAsync(viewModel.CuttingLines);
 
             ViewBag.PreviousNorms = await GetPreviousNormOptionsAsync(viewModel.ProductID, null);
             ViewBag.SelectedTemplateNormVersionId = templateNormVersionId;
@@ -684,41 +449,7 @@ namespace tahsinERP.Controllers.Engineering
                 return await Confirm(viewModel);
             }
 
-            var materialsError = await db.PRODUCTS
-                .Where(p => (p.IsRawMaterial == true || p.IsComponent == true) && p.IsDeleted == false)
-                .OrderBy(p => p.PNo)
-                .Select(p => new { ID = p.ID, PNo = p.PNo, Name = p.Name })
-                .ToListAsync();
-
-            var lineMaterialIdsError = (viewModel.CuttingLines ?? new List<NormLineViewModel>())
-                .Select(l => l.MaterialID)
-                .Distinct()
-                .ToList();
-            var missingMaterialIdsError = lineMaterialIdsError
-                .Where(id => !materialsError.Any(m => m.ID == id))
-                .ToList();
-            if (missingMaterialIdsError.Any())
-            {
-                var missingMaterialsError = await db.PRODUCTS
-                    .Where(p => missingMaterialIdsError.Contains(p.ID) && p.IsDeleted == false)
-                    .Select(p => new { ID = p.ID, PNo = p.PNo, Name = p.Name })
-                    .ToListAsync();
-                materialsError.AddRange(missingMaterialsError);
-            }
-
-            var materialsErrorSelectList = materialsError
-                .OrderBy(m => m.PNo)
-                .Select(m => new SelectListItem
-                {
-                    Value = m.ID.ToString(),
-                    Text = $"{m.PNo} - {m.Name ?? m.PNo}"
-                }).ToList();
-
-            ViewBag.Materials = new SelectList(materialsErrorSelectList, "Value", "Text", null);
-            ViewBag.MaterialsJson = materialsError
-                .OrderBy(m => m.PNo)
-                .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
-                .ToList();
+            await PopulateMaterialsAsync(viewModel.CuttingLines);
 
             ViewBag.PreviousNorms = await GetPreviousNormOptionsAsync(viewModel.ProductID, viewModel.NormVersionID);
             ViewBag.SelectedTemplateNormVersionId = null;
@@ -732,53 +463,28 @@ namespace tahsinERP.Controllers.Engineering
         {
             try
             {
-                var material = await db.PRODUCTS
+                var material = await db.PRODUCTS.AsNoTracking()
                     .Include(p => p.PRODUCT_CATEGORIES)
                     .FirstOrDefaultAsync(p => p.ID == materialId);
-                    
+
                 if (material == null)
                 {
                     return Json(new { success = false, message = "Material topilmadi" }, JsonRequestBehavior.AllowGet);
                 }
 
                 // Olish latest price dan INCOME_PRODUCTS
-                var latestIncome = await db.INCOME_PRODUCTS
-                    .Include(ip => ip.INCOME)
+                var latestIncome = await db.INCOME_PRODUCTS.AsNoTracking()
                     .Where(ip => ip.ProductID == materialId && ip.PiecePrice.HasValue)
                     .OrderByDescending(ip => ip.INCOME.IssueDateTime)
                     .Select(ip => new { Price = ip.PiecePrice.Value })
                     .FirstOrDefaultAsync();
 
-                // Tekshirish agar material requires cutting (dan category)
-                bool requiresCutting = false;
-                if (material.PRODUCT_CATEGORIES != null)
-                {
-                    requiresCutting = material.PRODUCT_CATEGORIES.RequiresCutting;
-                }
-
-                // Yog'och turini aniqlash (faqat shu tur uchun kirim narxini metrga aylantiramiz)
-                bool isWoodMaterial = false;
-                if (material.PRODUCT_CATEGORIES != null)
-                {
-                    var rawGroup = material.PRODUCT_CATEGORIES.RawMaterialGroup ?? "";
-                    var catName = material.PRODUCT_CATEGORIES.Name ?? "";
-                    isWoodMaterial =
-                        rawGroup.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        rawGroup.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        catName.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        catName.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0;
-                }
+                // Kesish talab qilinadimi (kategoriya) va yog'och turi (faqat shu tur uchun kirim narxini metrga aylantiramiz)
+                bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
+                bool isWoodMaterial = NormLineMath.IsWoodCategory(material.PRODUCT_CATEGORIES);
 
                 // Use StandardLengthMm agar available, otherwise use Length
-                double standardLengthMm = 0;
-                if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-                {
-                    standardLengthMm = material.StandardLengthMm.Value;
-                }
-                else if (material.Length.HasValue && material.Length.Value > 0)
-                {
-                    standardLengthMm = material.Length.Value;
-                }
+                double standardLengthMm = NormLineMath.EffectiveStandardLengthMm(material);
 
                 double? unitPrice = latestIncome != null ? latestIncome.Price : (double?)null;
                 if (isWoodMaterial && unitPrice.HasValue && standardLengthMm > 0)
@@ -812,7 +518,7 @@ namespace tahsinERP.Controllers.Engineering
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return JsonError(ex);
             }
         }
 
@@ -846,9 +552,10 @@ namespace tahsinERP.Controllers.Engineering
                     // Use Newtonsoft.Json uchun deserialization
                     viewModel = JsonConvert.DeserializeObject<ProductNormViewModel>(json);
                 }
-                catch (Exception ex)
+                catch (JsonException)
                 {
-                    return Json(new { success = false, message = $"JSON deserialization xatosi: {ex.Message}. JSON: {json.Substring(0, Math.Min(200, json.Length))}" }, JsonRequestBehavior.AllowGet);
+                    // Xom JSON foydalanuvchiga qaytarilmaydi (MES-B16)
+                    return Json(new { success = false, message = "Ma'lumotlar formati noto'g'ri (JSON)." }, JsonRequestBehavior.AllowGet);
                 }
                 
                 // Tekshirish agar viewModel is null
@@ -883,13 +590,18 @@ namespace tahsinERP.Controllers.Engineering
                 // Barcha optimizatsiya qilingan qatorlar — jadvalda ko'rsatish uchun.
                 var allOptimizedLines = new List<object>();
 
+                // Materiallar bir so'rovda (avval har guruhga alohida so'rov)
+                var groupMaterialIds = materialGroups.Select(g => g.Key).ToList();
+                var materialsById = await db.PRODUCTS.AsNoTracking()
+                    .Include(p => p.PRODUCT_CATEGORIES)
+                    .Where(p => groupMaterialIds.Contains(p.ID))
+                    .ToDictionaryAsync(p => p.ID);
+
                 foreach (var group in materialGroups)
                 {
                     var materialId = group.Key;
                     var lines = group.ToList();
-                    var material = await db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .FirstOrDefaultAsync(p => p.ID == materialId);
+                    materialsById.TryGetValue(materialId, out var material);
 
                     bool requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
 
@@ -950,14 +662,7 @@ namespace tahsinERP.Controllers.Engineering
             }
             catch (Exception ex)
             {
-                // To'liq xatolik tafsilotini diagnostika uchun yozamiz
-                System.Diagnostics.Debug.WriteLine($"Hisoblash xatoligi: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack izi: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Ichki xatolik: {ex.InnerException.Message}");
-                }
-                return Json(new { success = false, message = $"Xatolik: {ex.Message}" }, JsonRequestBehavior.AllowGet);
+                return JsonError(ex, "Hisoblashda xatolik yuz berdi.");
             }
         }
 
@@ -971,47 +676,13 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Tekshirish agar norm already mavjud uchun this product va period (faqat uchun new norms, not updates)
-            if (!viewModel.NormVersionID.HasValue)
+            // Shu davr uchun boshqa norma bormi — yangi normada ham, tahrirda ham (davr o'zgartirilishi mumkin).
+            // Avval faqat yangi normalar tekshirilardi va tahrirda boshqa versiya qatorlari o'chib ketardi (MES-B06).
+            if (await FindNormForPeriodAsync(viewModel.ProductID, viewModel.Period, viewModel.NormVersionID) != null)
             {
-                // Tahlil qilish viewModel.Period ga year va month uchun SQL-compatible comparison
-                var periodParts = viewModel.Period?.Split('-');
-                int selectedYear = 0, selectedMonth = 0;
-                NORMVERSION existingNorm = null;
-                
-                if (periodParts != null && periodParts.Length >= 2 && 
-                    int.TryParse(periodParts[0], out selectedYear) && 
-                    int.TryParse(periodParts[1], out selectedMonth))
-                {
-                    var periodStart = new DateTime(selectedYear, selectedMonth, 1);
-                    var periodEnd = periodStart.AddMonths(1).AddDays(-1);
-                    
-                    existingNorm = await db.NORMVERSIONS
-                        .Where(n => n.ProductID == viewModel.ProductID && 
-                               n.IsDeleted == false &&
-                               n.ID != viewModel.NormVersionID &&
-                               n.EffectiveFrom.HasValue && 
-                               n.EffectiveFrom.Value >= periodStart &&
-                               n.EffectiveFrom.Value <= periodEnd)
-                        .FirstOrDefaultAsync();
-                }
-                
-                if (existingNorm != null)
-                {
-                    TempData["Error"] = $"Bu mahsulot uchun {viewModel.Period} oyi uchun norm allaqachon mavjud. Iltimos, mavjud normni tahrirlang yoki boshqa oy tanlang.";
-                    return RedirectToAction("Details", new { id = viewModel.ProductID });
-                }
+                TempData["Error"] = $"Bu mahsulot uchun {viewModel.Period} oyi uchun norm allaqachon mavjud. Iltimos, mavjud normni tahrirlang yoki boshqa oy tanlang.";
+                return RedirectToAction("Details", new { id = viewModel.ProductID });
             }
-
-            // Tekshirish agar optimization was performed (dan hidden input)
-            bool isOptimized = false;
-            var isOptimizedValue = Request.Form["IsOptimized"];
-            if (!string.IsNullOrEmpty(isOptimizedValue))
-            {
-                bool.TryParse(isOptimizedValue, out isOptimized);
-            }
-            
-            System.Diagnostics.Debug.WriteLine($"Confirm action - IsOptimized: {isOptimized}");
 
             using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -1083,47 +754,42 @@ namespace tahsinERP.Controllers.Engineering
                     }
                     
                     // STRICT mode: UI dan kelgan qiymatlar as-is saqlanadi, avtomatik recalculate qilinmaydi.
+                    // Samaradorlik (MES-P14): materiallar va foydalanuvchi ID bir marta olinadi, NORMLINES xotiradagi
+                    // yangi qatorlardan yig'iladi, bitta yakuniy log yoziladi.
+                    var productPNo = await db.PRODUCTS.Where(p => p.ID == viewModel.ProductID).Select(p => p.PNo).FirstOrDefaultAsync()
+                        ?? viewModel.ProductCode ?? "Noma'lum";
+                    var userId = RoleHelper.GetUserId(CurrentUserName);
+                    var linesToSave = viewModel.CuttingLines.Where(l => l.MaterialID > 0).ToList();
+                    var materials = await LoadMaterialInfoAsync(linesToSave.Select(l => l.MaterialID));
 
-                    // Olish product PNo uchun logging
-                    var product = await db.PRODUCTS.FindAsync(viewModel.ProductID);
-                    var productPNo = product?.PNo ?? viewModel.ProductCode ?? "Noma'lum";
-                    
                     // Olish yoki yaratish NORMVERSION
                     NORMVERSION normVersion;
                     bool isUpdate = false;
+                    string oldPeriod = null;
                     if (viewModel.NormVersionID.HasValue)
                     {
                         normVersion = await db.NORMVERSIONS
                             .Include(n => n.NORMLINES)
                             .FirstOrDefaultAsync(n => n.ID == viewModel.NormVersionID.Value && n.IsDeleted != true);
-                        
+
                         if (normVersion == null)
                         {
                             TempData["Error"] = "Norm versiyasi topilmadi.";
                             return RedirectToAction("Index");
                         }
 
-                        // Yangilash existing
+                        // Davr o'zgarishidan OLDINGI qiymat — eski NORM_INPUT_LINES shu bo'yicha o'chiriladi
                         isUpdate = true;
+                        oldPeriod = normVersion.EffectiveFrom?.ToString("yyyy-MM");
                         normVersion.EffectiveFrom = ParsePeriod(viewModel.Period);
                         normVersion.EffectiveTo = viewModel.EffectiveTo;
                         normVersion.Comment = viewModel.Comment;
 
                         // O'chirish existing lines
-                        var deletedLinesCount = normVersion.NORMLINES.Count;
-                        db.NORMLINES.RemoveRange(normVersion.NORMLINES);
-                        await db.SaveChangesAsync();
-                        
-                        // Log deletion of old NORMLINES
-                        if (deletedLinesCount > 0)
-                        {
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm", 
-                                $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {viewModel.NormVersionID.Value}) yangilandi. {deletedLinesCount} ta eski NORMLINE o'chirildi.");
-                        }
+                        db.NORMLINES.RemoveRange(normVersion.NORMLINES.ToList());
                     }
                     else
                     {
-                        // Yaratish new
                         normVersion = new NORMVERSION
                         {
                             ProductID = viewModel.ProductID,
@@ -1133,56 +799,29 @@ namespace tahsinERP.Controllers.Engineering
                             IsDeleted = false
                         };
                         db.NORMVERSIONS.Add(normVersion);
-                        await db.SaveChangesAsync();
-                        
-                        // Log creation of new NORMVERSION
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot PNo: {productPNo} uchun yangi NORM versiyasi yaratildi. Period: {viewModel.Period}");
                     }
 
-                    // O'chirish existing NORM_INPUT_LINES uchun this period (agar updating)
-                    if (isUpdate)
-                    {
-                        var period2 = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? viewModel.Period;
-                        var existingInputLines = await db.NORM_INPUT_LINES
-                            .Where(il => il.ProductID == viewModel.ProductID && il.Month == period2)
-                            .ToListAsync();
-                        if (existingInputLines.Any())
-                        {
-                            db.NORM_INPUT_LINES.RemoveRange(existingInputLines);
-                            await db.SaveChangesAsync();
-                            
-                            // Log deletion of old NORM_INPUT_LINES
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm", 
-                                $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {normVersion.ID}) dan {existingInputLines.Count} ta eski NORM_INPUT_LINE o'chirildi.");
-                        }
-                    }
+                    // Eski davr (o'z qatorlari) va yangi davr (boshqa versiya yo'qligi yuqorida tekshirildi —
+                    // u yerdagi qatorlar yetim va NORMLINES yig'indisiga aralashib qolardi) qatorlarini tozalaymiz.
+                    var newPeriod = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? viewModel.Period;
+                    var periodsToClear = new[] { oldPeriod, newPeriod, viewModel.Period }
+                        .Where(p => !string.IsNullOrEmpty(p))
+                        .Distinct()
+                        .ToList();
+                    var existingInputLines = await db.NORM_INPUT_LINES
+                        .Where(il => il.ProductID == viewModel.ProductID && periodsToClear.Contains(il.Month))
+                        .ToListAsync();
+                    db.NORM_INPUT_LINES.RemoveRange(existingInputLines);
 
                     // Saqlash detailed cutting variants ga NORM_INPUT_LINES
                     // IMPORTANT: saqlash barcha lines dan viewModel, not just IsSelected ones
-                    // This ensures barcha datatable qatorlar are saved, even agar checkbox was not checked
-                    int inputLinesCount = 0;
-                    foreach (var line in viewModel.CuttingLines.Where(l => l.MaterialID > 0))
+                    var newInputLines = new List<NORM_INPUT_LINES>();
+                    foreach (var line in linesToSave)
                     {
-                        // Olish material ga tekshirish agar it requires cutting va get standard length
-                        var material = await db.PRODUCTS
-                            .Include(p => p.PRODUCT_CATEGORIES)
-                            .FirstOrDefaultAsync(p => p.ID == line.MaterialID);
-                        
-                        bool requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                        double standardLengthMm = 0;
-                        if (material != null)
-                        {
-                            if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-                            {
-                                standardLengthMm = material.StandardLengthMm.Value;
-                            }
-                            else if (material.Length.HasValue && material.Length.Value > 0)
-                            {
-                                standardLengthMm = material.Length.Value;
-                            }
-                        }
-                        
+                        materials.TryGetValue(line.MaterialID, out var material);
+                        bool requiresCutting = material?.RequiresCutting ?? false;
+                        double standardLengthMm = material?.StandardLengthMm ?? 0;
+
                         // Sarf va chiqindi: UI (Create/Edit) dagi ConsumptionPerProduct / WastePerProduct — asosiy manba (1:1).
                         // Consumption DB: kesish uchun jami mm; VM da sarflanish (m) = ConsumptionPerProduct.
                         double consumption;
@@ -1217,10 +856,8 @@ namespace tahsinERP.Controllers.Engineering
                         {
                             wasteAmount = 0;
                         }
-                        
-                        // Ensure Price is set correctly (price per product)
-                        decimal price = line.UnitPrice ?? 0;
-                        
+
+                        // Note: TotalAmount — DB'da hisoblanadigan ustun (((CutLengthMm / 1000.0) * PiecesPerProduct) * Price)
                         var inputLine = new NORM_INPUT_LINES
                         {
                             ProductID = viewModel.ProductID,
@@ -1228,63 +865,36 @@ namespace tahsinERP.Controllers.Engineering
                             CutLengthMm = (int)(line.CalculatedLengthMm ?? 0),
                             PiecesPerProduct = line.Quantity,
                             Month = viewModel.Period,
-                            CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                            CreatedByUserID = userId,
                             CreatedDT = DateTime.Now,
-                            Price = price,
+                            Price = line.UnitPrice ?? 0,
                             Consumption = consumption > 0 ? (double?)consumption : null,
                             WasteAmount = line.IsWasteManual ? (double?)wasteAmount : (wasteAmount > 0 ? (double?)wasteAmount : null),
-                            UnitID = NormalizeUnitFk(line.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null),
+                            // material topilmasa (o'chirilgan) — NRE emas, birliksiz saqlanadi (MES-B21)
+                            UnitID = NormalizeUnitFk(line.UnitID) ?? NormalizeUnitFk(material != null && material.UnitID > 0 ? material.UnitID : (int?)null),
                             Comment = string.IsNullOrWhiteSpace(line.CuttingMethod) ? null : line.CuttingMethod.Trim()
                         };
-                        
-                        // Note: TotalAmount is a computed ustun in the database:
-                        // TotalAmount = (((CutLengthMm / 1000.0) * PiecesPerProduct) * Price)
-                        // It will be calculated automatically by SQL Server
 
                         db.NORM_INPUT_LINES.Add(inputLine);
-                        inputLinesCount++;
+                        newInputLines.Add(inputLine);
                     }
 
                     await db.SaveChangesAsync();
-                    
-                    // Log creation of NORM_INPUT_LINES
-                    if (inputLinesCount > 0)
-                    {
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {normVersion.ID}) ga {inputLinesCount} ta NORM_INPUT_LINE qo'shildi.");
-                    }
 
-                    // Now yangilash NORM_LINES based on NORM_INPUT_LINES ma'lumot
-                    // Group by MaterialID va aggregate - use barcha lines, not just IsSelected
-                    var materialGroups = viewModel.CuttingLines
-                        .Where(l => l.MaterialID > 0)
-                        .GroupBy(l => l.MaterialID)
-                        .ToList();
-
-                    // Yangilash aggregated NORMLINE uchun har bir material based on NORM_INPUT_LINES
-                    var period = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? viewModel.Period;
+                    // Aggregated NORMLINE har material uchun — yangi NORM_INPUT_LINES dan (xotirada)
+                    var materialGroups = newInputLines.GroupBy(il => il.MaterialID).ToList();
                     foreach (var group in materialGroups)
                     {
-                        var materialId = group.Key;
-                        var materialRowNl = await db.PRODUCTS.AsNoTracking().FirstOrDefaultAsync(p => p.ID == materialId);
-                        
-                        // Calculate QtyPerUnit va WastePercent dan NORM_INPUT_LINES
-                        var inputLinesForMaterial = await db.NORM_INPUT_LINES
-                            .Where(il => il.ProductID == viewModel.ProductID 
-                                && il.MaterialID == materialId 
-                                && il.Month == period)
-                            .ToListAsync();
-                        
-                        // QtyPerUnit = Sum of Consumption dan NORM_INPUT_LINES
-                        var qtyPerUnit = inputLinesForMaterial
+                        // QtyPerUnit = Sum of Consumption
+                        var qtyPerUnit = group
                             .Where(il => il.Consumption.HasValue)
                             .Sum(il => (decimal)il.Consumption.Value);
-                        
+
                         // WastePercent = Sum of WasteAmount / QtyPerUnit (as percentage)
-                        var totalWasteAmount = inputLinesForMaterial
+                        var totalWasteAmount = group
                             .Where(il => il.WasteAmount.HasValue)
                             .Sum(il => (decimal)il.WasteAmount.Value);
-                        
+
                         decimal wastePercent = 0;
                         if (qtyPerUnit > 0 && totalWasteAmount > 0)
                         {
@@ -1294,164 +904,38 @@ namespace tahsinERP.Controllers.Engineering
                                 wastePercent = 999.99m;
                         }
 
+                        materials.TryGetValue(group.Key, out var materialNl);
                         int? normLineUnitId = NormalizeUnitFk(
-                            inputLinesForMaterial.Select(il => il.UnitID).FirstOrDefault(u => u.HasValue && u.Value > 0))
-                            ?? NormalizeUnitFk(materialRowNl != null && materialRowNl.UnitID > 0 ? materialRowNl.UnitID : null);
+                            group.Select(il => il.UnitID).FirstOrDefault(u => u.HasValue && u.Value > 0))
+                            ?? NormalizeUnitFk(materialNl != null && materialNl.UnitID > 0 ? materialNl.UnitID : (int?)null);
 
-                        // Tekshirish agar NORMLINE already mavjud uchun this material
-                        var existingNormLine = await db.NORMLINES
-                            .FirstOrDefaultAsync(nl => nl.NormID == normVersion.ID && nl.MaterialID == materialId);
-                        
-                        if (existingNormLine != null)
+                        db.NORMLINES.Add(new NORMLINE
                         {
-                            // Yangilash existing
-                            existingNormLine.QtyPerUnit = qtyPerUnit;
-                            existingNormLine.WastePercent = wastePercent;
-                            existingNormLine.UnitID = normLineUnitId;
-                        }
-                        else
-                        {
-                            // Yaratish new
-                            var aggregatedLine = new NORMLINE
-                            {
-                                NormID = normVersion.ID,
-                                MaterialID = materialId,
-                                QtyPerUnit = qtyPerUnit,
-                                WastePercent = wastePercent,
-                                UnitID = normLineUnitId
-                            };
-                            db.NORMLINES.Add(aggregatedLine);
-                        }
+                            NormID = normVersion.ID,
+                            MaterialID = group.Key,
+                            QtyPerUnit = qtyPerUnit,
+                            WastePercent = wastePercent,
+                            UnitID = normLineUnitId
+                        });
                     }
 
                     await db.SaveChangesAsync();
-                    
-                    // Log creation/yangilash of NORMLINES
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                        $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {normVersion.ID}) ga {materialGroups.Count} ta NORMLINE yangilandi/yaratildi.");
 
-                    // Yaratish/yangilash BOM_HEADERS va BOM_LINES
-                    var bomHeader = await db.BOM_HEADERS
-                        .FirstOrDefaultAsync(b => b.ProductID == viewModel.ProductID);
-
-                    if (bomHeader == null)
-                    {
-                        bomHeader = new BOM_HEADERS
-                        {
-                            ProductID = viewModel.ProductID,
-                            VersionNo = viewModel.Period,
-                            IsActive = true,
-                            CreatedAt = DateTime.Now
-                        };
-                        db.BOM_HEADERS.Add(bomHeader);
-                        await db.SaveChangesAsync();
-
-                        // Log creation of BOM_HEADERS
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot PNo: {productPNo} uchun yangi BOM_HEADERS yaratildi (ID: {bomHeader.ID}).");
-                    }
-                    else
-                    {
-                        // Yangilash version agar needed
-                        bomHeader.VersionNo = viewModel.Period;
-                        await db.SaveChangesAsync();
-                    }
-
-                    // O'chirish existing BOM_LINES
-                    var existingBomLines = await db.BOM_LINES
-                        .Where(b => b.BOMID == bomHeader.ID)
-                        .ToListAsync();
-                    var deletedBomLinesCount = existingBomLines.Count;
-                    db.BOM_LINES.RemoveRange(existingBomLines);
+                    // BOM faqat mahsulotning ENG SO'NGGI normasi bo'yicha quriladi. Avval har saqlashda (eski oy bo'lsa ham)
+                    // yagona BOM_HEADERS ustidan yozilardi va sarf oxirgi tahrirlangan oy normasiga o'tib qolardi (MES-B07).
+                    var bomNote = await SyncBomToLatestNormAsync(
+                        viewModel.ProductID, productPNo, normVersion, BomSourceLinesFromViewModel(linesToSave));
                     await db.SaveChangesAsync();
-                    
-                    // Log deletion of old BOM_LINES
-                    if (deletedBomLinesCount > 0)
-                    {
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot PNo: {productPNo} uchun BOM_HEADERS (ID: {bomHeader.ID}) dan {deletedBomLinesCount} ta eski BOM_LINE o'chirildi.");
-                    }
 
-                    // Yaratish new BOM_LINES dan aggregated norms
-                    foreach (var group in materialGroups)
-                    {
-                        var materialId = group.Key;
-                        var lines = group.ToList();
-                        
-                        // Yuklash material bilan category ga tekshirish RequiresCutting
-                        var material = await db.PRODUCTS
-                            .Include(p => p.PRODUCT_CATEGORIES)
-                            .FirstOrDefaultAsync(p => p.ID == materialId);
-
-                        if (material == null) continue;
-
-                        // UI dan tanlangan birlik (birinchi qator), bo'lmasa mahsulot kartasi; UNITS FK — 0 yoki noto'g'ri ID ishlatilmaydi
-                        var firstLineUnit = lines.Select(l => l.UnitID).FirstOrDefault(u => u.HasValue && u.Value > 0);
-                        int? bomUnitId = NormalizeUnitFk(firstLineUnit)
-                            ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null);
-
-                        var requiresCuttingBom = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-
-                        decimal bomQty;
-                        if (requiresCuttingBom)
-                        {
-                            // Kesiladigan material (yog'och, selofan, karton...): real ishlatiladigan dona =
-                            //   Σ(kesim uzunligi × dona) / standart uzunlik, yuqoriga yaxlitlangan.
-                            // Bir xil material bir nechta qatorda kelsa, hammasi sum qilinadi — shunda kesish
-                            // davomida qayta ishlatiladigan chiqindi (offcut) ham hisobga olinadi va miqdor oshib ketmaydi.
-                            // Jami uzunlik = Σ((kesim + chiqindi) × dona) → standart uzunlikka bo'lib, yuqoriga yaxlitlanadi.
-                            // Chiqindi (offcut) ham hisobga olinadi, shunda real ishlatiladigan taxta soni chiqadi.
-                            // Masalan: 4000mm taxta, kesim 1140×12 (chiqindi 2320) + ... = 28000mm → ceil(28000/4000) = 7 dona.
-                            // DIQQAT: StandardLengthMm bazada 0 (null emas) bo'lishi mumkin — bunda Length ishlatiladi.
-                            var standardLengthMm = (decimal)GetEffectiveStandardLengthMm(material);
-                            // WastePerProduct (VM) metrda, qator bo'yicha jami — mm ga o'tkazamiz (×1000).
-                            var totalLengthMm = lines.Sum(l =>
-                                (decimal)(l.CalculatedLengthMm ?? 0) * l.Quantity + l.WastePerProduct * 1000m);
-
-                            if (standardLengthMm > 0 && totalLengthMm > 0)
-                                bomQty = Math.Ceiling(totalLengthMm / standardLengthMm);
-                            else
-                                bomQty = lines.Sum(l => l.Quantity);
-                        }
-                        else
-                        {
-                            // Kesilmaydigan material: dona asosida (sarf + chiqindi metr/dona) as-is.
-                            var totalMetersPerFg = lines.Sum(l => l.ConsumptionPerProduct + l.WastePerProduct);
-                            bomQty = BomQtyFromNormAggregatedMeters(material, false, totalMetersPerFg);
-                        }
-
-                        var bomLine = new BOM_LINES
-                        {
-                            BOMID = bomHeader.ID,
-                            ComponentID = materialId,
-                            Qty = bomQty,
-                            UnitID = bomUnitId
-                        };
-
-                        db.BOM_LINES.Add(bomLine);
-                    }
-
-                    await db.SaveChangesAsync();
-                    
-                    // Log creation of BOM_LINES
-                    if (materialGroups.Count > 0)
-                    {
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                            $"Mahsulot PNo: {productPNo} uchun BOM_HEADERS (ID: {bomHeader.ID}) ga {materialGroups.Count} ta yangi BOM_LINE qo'shildi.");
-                    }
-
-                    // Ishlab chiqarish: ProductionConsumptionService NORMLINES ni BOMS_AND_NORMS orqali bog‘langan norm bilan ishlatadi.
-                    // Bu bog'lash muvaffaqiyatsiz bo'lsa ham NORM saqlashni to'xtatmaymiz.
-                    await TryUpsertBomNormLinkAsync(bomHeader.ID, normVersion.ID, User.Identity.Name, productPNo);
-
-                    // Log final summary
                     var actionType = isUpdate ? "yangilandi" : "yaratildi";
-                            LogHelper.LogToDatabase(User.Identity.Name, "Norm",
-                        $"Mahsulot PNo: {productPNo} uchun NORM versiyasi {actionType}. Period: {viewModel.Period}, {materialGroups.Count} ta material, {viewModel.CuttingLines.Count(l => l.IsSelected)} ta kesish variantlari.");
+                    LogHelper.LogToDatabase(User.Identity.Name, "Norm",
+                        $"Mahsulot PNo: {productPNo} uchun NORM versiyasi (ID: {normVersion.ID}) {actionType}. Period: {viewModel.Period}" +
+                        (isUpdate && oldPeriod != newPeriod ? $" (avval {oldPeriod})" : "") +
+                        $", {newInputLines.Count} ta NORM_INPUT_LINE ({existingInputLines.Count} ta eski o'chirildi), {materialGroups.Count} ta material. {bomNote}");
 
                     transaction.Complete();
 
-                    TempData["Success"] = "NORM muvaffaqiyatli saqlandi.";
+                    TempData["Success"] = "NORM muvaffaqiyatli saqlandi." + (string.IsNullOrEmpty(bomNote) ? "" : " " + bomNote);
                     return RedirectToAction("Index", new { productId = viewModel.ProductID });
                 }
                 catch (Exception ex)
@@ -1478,77 +962,305 @@ namespace tahsinERP.Controllers.Engineering
             return null;
         }
 
-        /// <summary>
-        /// NORM_INPUT_LINES.Consumption: kesish qatori (CutLengthMm &gt; 0) bo'lsa jami mm saqlanadi → m ga /1000.
-        /// Dona/metiz va h.k. (uzunlik 0): UI dagi ConsumptionPerProduct o'zicha saqlanadi — /1000 qilinmaydi.
-        /// </summary>
-        private static decimal NormInputLineConsumptionToDisplay(bool requiresCutting, int cutLengthMm, double? consumptionDb)
+        /// <summary>Material ma'lumoti (Confirm/BOM qurish uchun bir martada yuklanadi).</summary>
+        private sealed class MaterialInfo
         {
-            if (!consumptionDb.HasValue || consumptionDb.Value <= 0)
-                return 0;
-            if (requiresCutting && cutLengthMm > 0)
-                return (decimal)(consumptionDb.Value / 1000.0);
-            return (decimal)consumptionDb.Value;
+            public int ID { get; set; }
+            public string PNo { get; set; }
+            public string Name { get; set; }
+            public int UnitID { get; set; }
+            public bool RequiresCutting { get; set; }
+            public double StandardLengthMm { get; set; }
+        }
+
+        /// <summary>BOM qatorini hisoblash uchun manba (VM qatori yoki DB'dagi NORM_INPUT_LINES).</summary>
+        private sealed class BomSourceLine
+        {
+            public int MaterialID { get; set; }
+            public decimal CutLengthMm { get; set; }
+            public decimal Quantity { get; set; }
+            public decimal ConsumptionMeters { get; set; }
+            public decimal WasteMeters { get; set; }
+            public int? UnitID { get; set; }
+        }
+
+        private async Task<Dictionary<int, MaterialInfo>> LoadMaterialInfoAsync(IEnumerable<int> materialIds)
+        {
+            var ids = materialIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return new Dictionary<int, MaterialInfo>();
+
+            var rows = await db.PRODUCTS.AsNoTracking()
+                .Where(p => ids.Contains(p.ID))
+                .Select(p => new
+                {
+                    p.ID,
+                    p.PNo,
+                    p.Name,
+                    p.UnitID,
+                    p.StandardLengthMm,
+                    p.Length,
+                    RequiresCutting = p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.RequiresCutting
+                })
+                .ToListAsync();
+
+            return rows.ToDictionary(p => p.ID, p => new MaterialInfo
+            {
+                ID = p.ID,
+                PNo = p.PNo,
+                Name = p.Name,
+                UnitID = p.UnitID,
+                RequiresCutting = p.RequiresCutting,
+                StandardLengthMm = NormLineMath.EffectiveStandardLengthMm(p.StandardLengthMm, p.Length)
+            });
+        }
+
+        /// <summary>Shu mahsulot va davr (yyyy-MM) uchun boshqa (excludeId dan farqli) aktiv norma (dublikat #5).</summary>
+        private async Task<NORMVERSION> FindNormForPeriodAsync(int productId, string period, int? excludeNormVersionId)
+        {
+            var parts = period?.Split('-');
+            if (parts == null || parts.Length < 2 ||
+                !int.TryParse(parts[0], out var year) || !int.TryParse(parts[1], out var month) ||
+                month < 1 || month > 12 || year < 1900 || year > 2100)
+            {
+                return null;
+            }
+
+            var periodStart = new DateTime(year, month, 1);
+            var periodEnd = periodStart.AddMonths(1);
+            return await db.NORMVERSIONS
+                .Where(n => n.ProductID == productId &&
+                       n.IsDeleted != true &&
+                       (!excludeNormVersionId.HasValue || n.ID != excludeNormVersionId.Value) &&
+                       n.EffectiveFrom.HasValue &&
+                       n.EffectiveFrom.Value >= periodStart &&
+                       n.EffectiveFrom.Value < periodEnd)
+                .FirstOrDefaultAsync();
         }
 
         /// <summary>
-        /// NORM_INPUT_LINES.WasteAmount DBda mm sifatida saqlanadi (manual/non-manual farqidan qat'i nazar),
-        /// ViewDetailsdagi "Summa hisoblar" bilan bir xil ko'rinish uchun har doim m ga o'tkaziladi.
+        /// Materiallar dropdowni (xomashyo + komponent + satrlarda ishlatilgan boshqa materiallar) — avval Create/Edit GET va
+        /// Edit POST xatosida uch marta nusxalangan edi (dublikat #4).
         /// </summary>
-        private static decimal NormInputLineWasteToDisplay(double? wasteAmountDb)
+        private async Task PopulateMaterialsAsync(IEnumerable<NormLineViewModel> lines)
         {
-            if (!wasteAmountDb.HasValue || wasteAmountDb.Value <= 0)
-                return 0;
-            return (decimal)(wasteAmountDb.Value / 1000.0);
+            var materials = await db.PRODUCTS.AsNoTracking()
+                .Where(p => (p.IsRawMaterial == true || p.IsComponent == true) && p.IsDeleted == false)
+                .Select(p => new { p.ID, p.PNo, p.Name })
+                .ToListAsync();
+
+            // Satrdagi materiallar filterga tushmasa ham dropdownda ko'rinishi kerak
+            var known = new HashSet<int>(materials.Select(m => m.ID));
+            var missingMaterialIds = (lines ?? Enumerable.Empty<NormLineViewModel>())
+                .Select(l => l.MaterialID)
+                .Where(id => id > 0 && !known.Contains(id))
+                .Distinct()
+                .ToList();
+            if (missingMaterialIds.Any())
+            {
+                materials.AddRange(await db.PRODUCTS.AsNoTracking()
+                    .Where(p => missingMaterialIds.Contains(p.ID) && p.IsDeleted == false)
+                    .Select(p => new { p.ID, p.PNo, p.Name })
+                    .ToListAsync());
+            }
+
+            var ordered = materials.OrderBy(m => m.PNo).ToList();
+
+            // SelectList "PNo - Name" formatida
+            ViewBag.Materials = new SelectList(
+                ordered.Select(m => new SelectListItem { Value = m.ID.ToString(), Text = $"{m.PNo} - {m.Name ?? m.PNo}" }).ToList(),
+                "Value", "Text", null);
+
+            // JSON uchun oddiy ro'yxat (circular reference bo'lmasligi uchun)
+            ViewBag.MaterialsJson = ordered
+                .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
+                .ToList();
+        }
+
+        /// <summary>MaterialID → yog'och kategoriyasimi.</summary>
+        private async Task<Dictionary<int, bool>> GetWoodFlagsAsync(IEnumerable<int> materialIds)
+        {
+            var ids = materialIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return new Dictionary<int, bool>();
+
+            var rows = await db.PRODUCTS.AsNoTracking()
+                .Where(p => ids.Contains(p.ID))
+                .Select(p => new
+                {
+                    p.ID,
+                    HasCategory = p.PRODUCT_CATEGORIES != null,
+                    p.PRODUCT_CATEGORIES.RawMaterialGroup,
+                    CategoryName = p.PRODUCT_CATEGORIES.Name
+                })
+                .ToListAsync();
+            return rows.ToDictionary(p => p.ID, p => p.HasCategory && NormLineMath.IsWoodCategory(p.RawMaterialGroup, p.CategoryName));
+        }
+
+        /// <summary>Umumiy norma/chiqindi — faqat yog'och materiallar; umumiy summa — barchasi.</summary>
+        private static void ApplyTotals(ProductNormViewModel viewModel, Dictionary<int, bool> woodByMaterial)
+        {
+            var lines = viewModel.CuttingLines ?? new List<NormLineViewModel>();
+            Func<NormLineViewModel, bool> isWood = l => woodByMaterial.TryGetValue(l.MaterialID, out var w) && w;
+            viewModel.TotalNorm = lines.Where(isWood).Sum(l => l.ConsumptionPerProduct);
+            viewModel.TotalWaste = lines.Where(isWood).Sum(l => l.WastePerProduct);
+            viewModel.TotalCost = lines.Sum(l => l.TotalCostPerProduct);
+        }
+
+        private static List<BomSourceLine> BomSourceLinesFromViewModel(IEnumerable<NormLineViewModel> lines)
+        {
+            return lines.Select(l => new BomSourceLine
+            {
+                MaterialID = l.MaterialID,
+                CutLengthMm = (decimal)(l.CalculatedLengthMm ?? 0),
+                Quantity = l.Quantity,
+                ConsumptionMeters = l.ConsumptionPerProduct,
+                WasteMeters = l.WastePerProduct,
+                UnitID = l.UnitID
+            }).ToList();
         }
 
         /// <summary>
-        /// Materialning amaldagi standart uzunligi (mm): StandardLengthMm (> 0 bo'lsa), aks holda Length (> 0 bo'lsa), aks holda 0.
-        /// DIQQAT: StandardLengthMm bazada null emas, 0 bo'lishi mumkin — shuning uchun "?? " emas, > 0 tekshiruvi ishlatiladi.
-        /// GetMaterialData (UI dagi "Standart uzunlik") bilan bir xil mantiq.
+        /// BOM'ni mahsulotning eng so'nggi (EffectiveFrom bo'yicha) normasiga moslaydi (MES-B07/B08):
+        ///  - eng so'nggi norma hozir saqlangan bo'lsa — uning UI qatorlaridan;
+        ///  - boshqa norma eng so'nggi bo'lsa va BOM allaqachon o'sha davrda bo'lsa — tegilmaydi, aks holda
+        ///    o'sha normaning NORM_INPUT_LINES qatorlaridan qayta quriladi;
+        ///  - norma qolmagan bo'lsa — BOM faolsizlantiriladi.
+        /// Qaytaradi: foydalanuvchiga ko'rsatiladigan izoh (yoki null). SaveChanges'ni chaqiruvchi qiladi.
         /// </summary>
-        private static double GetEffectiveStandardLengthMm(PRODUCT material)
+        private async Task<string> SyncBomToLatestNormAsync(int productId, string productPNo, NORMVERSION current, List<BomSourceLine> currentLines)
         {
-            if (material == null)
-                return 0;
-            if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-                return material.StandardLengthMm.Value;
-            if (material.Length.HasValue && material.Length.Value > 0)
-                return material.Length.Value;
-            return 0;
+            var versions = await db.NORMVERSIONS
+                .Where(n => n.ProductID == productId && n.IsDeleted != true)
+                .Select(n => new { n.ID, n.EffectiveFrom })
+                .ToListAsync();
+            var latest = versions
+                .OrderByDescending(n => n.EffectiveFrom ?? DateTime.MinValue)
+                .ThenByDescending(n => n.ID)
+                .FirstOrDefault();
+
+            var bomHeader = await db.BOM_HEADERS.FirstOrDefaultAsync(b => b.ProductID == productId);
+
+            if (latest == null)
+            {
+                if (bomHeader != null && bomHeader.IsActive == true)
+                {
+                    bomHeader.IsActive = false;
+                    await db.Database.ExecuteSqlCommandAsync(
+                        "IF OBJECT_ID('dbo.BOMS_AND_NORMS', 'U') IS NOT NULL UPDATE dbo.BOMS_AND_NORMS SET IsActive = 0 WHERE BOMID = {0}", bomHeader.ID);
+                    return "Mahsulotda norma qolmadi — BOM faolsizlantirildi.";
+                }
+                return null;
+            }
+
+            var latestPeriod = latest.EffectiveFrom?.ToString("yyyy-MM");
+            List<BomSourceLine> sourceLines;
+            string versionNo;
+            if (current != null && latest.ID == current.ID)
+            {
+                sourceLines = currentLines ?? new List<BomSourceLine>();
+                versionNo = current.EffectiveFrom?.ToString("yyyy-MM") ?? latestPeriod;
+            }
+            else
+            {
+                if (bomHeader != null && bomHeader.IsActive == true && bomHeader.VersionNo == latestPeriod)
+                {
+                    return current != null
+                        ? $"BOM o'zgarmadi: u eng so'nggi norma ({latestPeriod}) bo'yicha qoladi."
+                        : null;
+                }
+
+                var latestLines = await db.NORM_INPUT_LINES.AsNoTracking()
+                    .Where(il => il.ProductID == productId && il.Month == latestPeriod)
+                    .ToListAsync();
+                var latestMaterials = await LoadMaterialInfoAsync(latestLines.Select(il => il.MaterialID));
+                sourceLines = latestLines.Select(il =>
+                {
+                    latestMaterials.TryGetValue(il.MaterialID, out var m);
+                    var requiresCutting = m?.RequiresCutting ?? false;
+                    return new BomSourceLine
+                    {
+                        MaterialID = il.MaterialID,
+                        CutLengthMm = il.CutLengthMm,
+                        Quantity = il.PiecesPerProduct,
+                        ConsumptionMeters = NormLineMath.LineConsumption(requiresCutting, il.CutLengthMm, il.PiecesPerProduct, il.Consumption),
+                        WasteMeters = NormLineMath.LineWaste(requiresCutting, m?.StandardLengthMm ?? 0, il.CutLengthMm, il.PiecesPerProduct, il.WasteAmount),
+                        UnitID = il.UnitID
+                    };
+                }).ToList();
+                versionNo = latestPeriod;
+            }
+
+            if (bomHeader == null)
+            {
+                bomHeader = new BOM_HEADERS
+                {
+                    ProductID = productId,
+                    VersionNo = versionNo,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+                db.BOM_HEADERS.Add(bomHeader);
+                await db.SaveChangesAsync();
+            }
+            else
+            {
+                bomHeader.VersionNo = versionNo;
+                bomHeader.IsActive = true;
+            }
+
+            await ReplaceBomLinesAsync(bomHeader.ID, sourceLines);
+
+            // Ishlab chiqarish: ProductionConsumptionService NORMLINES ni BOMS_AND_NORMS orqali bog'langan norm bilan ishlatadi.
+            await TryUpsertBomNormLinkAsync(bomHeader.ID, latest.ID, User.Identity.Name, productPNo);
+
+            return current != null && latest.ID != current.ID
+                ? $"BOM eng so'nggi norma ({latestPeriod}) bo'yicha yangilandi."
+                : null;
         }
 
-        /// <summary>
-        /// BOM qatori: kesish bo'lgan yog'och/plastik uchun normadagi jami metr (sarf + chiqindi) → taxta uzunligi bo'yicha dona.
-        /// UnitConversionService.ConvertMeterToPieceAsync bilan mos: piece = ceil(m / (LengthMm/1000)).
-        /// </summary>
-        private static decimal BomQtyFromNormAggregatedMeters(PRODUCT material, bool requiresCutting, decimal totalMeters)
+        /// <summary>BOM qatorlarini manba qatorlardan qayta yozadi (material bo'yicha guruhlab).</summary>
+        private async Task ReplaceBomLinesAsync(int bomId, List<BomSourceLine> sourceLines)
         {
-            if (!requiresCutting || totalMeters <= 0)
-                return totalMeters;
+            var existingBomLines = await db.BOM_LINES.Where(b => b.BOMID == bomId).ToListAsync();
+            db.BOM_LINES.RemoveRange(existingBomLines);
 
-            var lengthMm = GetEffectiveStandardLengthMm(material);
-            if (lengthMm <= 0)
-                return totalMeters;
+            var materials = await LoadMaterialInfoAsync(sourceLines.Select(l => l.MaterialID));
+            foreach (var group in sourceLines.Where(l => l.MaterialID > 0).GroupBy(l => l.MaterialID))
+            {
+                if (!materials.TryGetValue(group.Key, out var material))
+                    continue;
 
-            var lengthM = (decimal)(lengthMm / 1000.0);
-            if (lengthM <= 0)
-                return totalMeters;
+                var lines = group.ToList();
 
-            return Math.Ceiling(totalMeters / lengthM);
-        }
+                // UI dan tanlangan birlik (birinchi qator), bo'lmasa mahsulot kartasi; UNITS FK — 0 yoki noto'g'ri ID ishlatilmaydi
+                var firstLineUnit = lines.Select(l => l.UnitID).FirstOrDefault(u => u.HasValue && u.Value > 0);
+                int? bomUnitId = NormalizeUnitFk(firstLineUnit)
+                    ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : (int?)null);
 
-        private static bool IsWoodProductCategory(PRODUCT_CATEGORIES category)
-        {
-            if (category == null)
-                return false;
+                decimal bomQty;
+                if (material.RequiresCutting)
+                {
+                    // Kesiladigan material: real ishlatiladigan taxta soni = ceil(Σ(kesim × dona + chiqindi) / standart uzunlik).
+                    // Bir xil material bir nechta qatorda kelsa, hammasi sum qilinadi (offcut ham hisobga olinadi).
+                    bomQty = NormLineMath.BarQuantity(
+                        lines.Select(l => new CutPiece(l.CutLengthMm, l.Quantity, l.WasteMeters * 1000m)),
+                        material.StandardLengthMm);
+                }
+                else
+                {
+                    // Kesilmaydigan material: sarf + chiqindi as-is.
+                    bomQty = lines.Sum(l => l.ConsumptionMeters + l.WasteMeters);
+                }
 
-            var rawGroup = category.RawMaterialGroup ?? "";
-            var catName = category.Name ?? "";
-            return rawGroup.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
-                || rawGroup.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0
-                || catName.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
-                || catName.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0;
+                db.BOM_LINES.Add(new BOM_LINES
+                {
+                    BOMID = bomId,
+                    ComponentID = group.Key,
+                    Qty = bomQty,
+                    UnitID = bomUnitId
+                });
+            }
         }
 
         /// <summary>
@@ -1691,9 +1403,8 @@ namespace tahsinERP.Controllers.Engineering
                 return;
             }
 
-            var inputLines = await db.NORM_INPUT_LINES
+            var inputLines = await db.NORM_INPUT_LINES.AsNoTracking()
                 .Include("PRODUCT.PRODUCT_CATEGORIES")
-                .Include("UNIT")
                 .Where(il => il.ProductID == productId && il.Month == period)
                 .OrderByDescending(il => il.PRODUCT.Name)
                 .ThenBy(il => il.MaterialID)
@@ -1702,14 +1413,8 @@ namespace tahsinERP.Controllers.Engineering
 
             foreach (var inputLine in inputLines)
             {
+                // MaterialID — PRODUCTS (xomashyo); EDMX: PRODUCT (MaterialID). PRODUCT1 — ProductID (tayyor mahsulot).
                 var material = inputLine.PRODUCT;
-                if (material == null)
-                {
-                    material = await db.PRODUCTS
-                        .Include(p => p.PRODUCT_CATEGORIES)
-                        .FirstOrDefaultAsync(p => p.ID == inputLine.MaterialID);
-                }
-
                 if (material == null)
                 {
                     continue;
@@ -1717,37 +1422,13 @@ namespace tahsinERP.Controllers.Engineering
 
                 var unitPrice = inputLine.Price;
                 var requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-                var standardLengthMm = GetEffectiveStandardLengthMm(material);
+                var standardLengthMm = NormLineMath.EffectiveStandardLengthMm(material);
 
-                decimal consumption;
-                if (inputLine.Consumption.HasValue && inputLine.Consumption.Value > 0)
-                {
-                    consumption = NormInputLineConsumptionToDisplay(requiresCutting, inputLine.CutLengthMm, inputLine.Consumption);
-                }
-                else if (requiresCutting && inputLine.CutLengthMm > 0)
-                {
-                    consumption = (decimal)(inputLine.CutLengthMm / 1000.0) * inputLine.PiecesPerProduct;
-                }
-                else
-                {
-                    consumption = inputLine.PiecesPerProduct;
-                }
+                // Saqlangan Consumption/WasteAmount, bo'lmasa kesim bo'yicha hisob (NormLineMath)
+                var consumption = NormLineMath.LineConsumption(requiresCutting, inputLine.CutLengthMm, inputLine.PiecesPerProduct, inputLine.Consumption);
+                var waste = NormLineMath.LineWaste(requiresCutting, standardLengthMm, inputLine.CutLengthMm, inputLine.PiecesPerProduct, inputLine.WasteAmount);
 
-                decimal waste = 0;
-                if (inputLine.WasteAmount.HasValue)
-                {
-                    waste = NormInputLineWasteToDisplay(inputLine.WasteAmount);
-                }
-                else if (requiresCutting && standardLengthMm > 0 && inputLine.CutLengthMm > 0)
-                {
-                    var wastePerBar = Math.Max(0, standardLengthMm - inputLine.CutLengthMm);
-                    var barsNeeded = inputLine.PiecesPerProduct;
-                    waste = (decimal)(wastePerBar / 1000.0) * barsNeeded;
-                }
-
-                var cleanCost = consumption * unitPrice;
-                var wasteCost = waste * unitPrice;
-                var totalAmount = cleanCost + wasteCost;
+                var totalAmount = consumption * unitPrice + waste * unitPrice;
 
                 viewModel.CuttingLines.Add(new NormLineViewModel
                 {
@@ -1758,7 +1439,7 @@ namespace tahsinERP.Controllers.Engineering
                     StandardLengthMm = standardLengthMm > 0 ? (double?)standardLengthMm : null,
                     CalculatedLengthMm = inputLine.CutLengthMm,
                     Quantity = inputLine.PiecesPerProduct,
-                    PiecesPerBar = 1,
+                    PiecesPerBar = 1, // Always 1 (UI dan olib tashlangan, PiecesPerProduct Quantity sifatida saqlanadi)
                     ConsumptionPerProduct = consumption,
                     WastePerProduct = waste,
                     IsWasteManual = inputLine.WasteAmount.HasValue,
@@ -1768,71 +1449,27 @@ namespace tahsinERP.Controllers.Engineering
                     Chiqindi = waste,
                     IsSelected = true,
                     CuttingMethod = inputLine.Comment,
-                    UnitID = NormalizeUnitFk(inputLine.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
+                    UnitID = NormalizeUnitFk(inputLine.UnitID) ?? NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : (int?)null)
                 });
             }
         }
 
         private async Task RecalculateTotalsForViewModelAsync(ProductNormViewModel viewModel)
         {
-            var materialIds = (viewModel.CuttingLines ?? new List<NormLineViewModel>())
-                .Select(l => l.MaterialID)
-                .Distinct()
-                .ToList();
-
-            if (!materialIds.Any())
-            {
-                viewModel.TotalNorm = 0;
-                viewModel.TotalWaste = 0;
-                viewModel.TotalCost = 0;
-                return;
-            }
-
-            var materialCategories = await db.PRODUCTS
-                .Include(p => p.PRODUCT_CATEGORIES)
-                .Where(p => materialIds.Contains(p.ID))
-                .Select(p => new
-                {
-                    p.ID,
-                    IsWood = p.PRODUCT_CATEGORIES != null && (
-                        (p.PRODUCT_CATEGORIES.RawMaterialGroup != null &&
-                         (p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yo'goch") ||
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("Yog'och") ||
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yog'och") ||
-                          p.PRODUCT_CATEGORIES.RawMaterialGroup.Contains("yo'goch"))) ||
-                        (p.PRODUCT_CATEGORIES.Name != null &&
-                         (p.PRODUCT_CATEGORIES.Name.Contains("Yo'goch") ||
-                          p.PRODUCT_CATEGORIES.Name.Contains("Yog'och") ||
-                          p.PRODUCT_CATEGORIES.Name.Contains("yog'och") ||
-                          p.PRODUCT_CATEGORIES.Name.Contains("yo'goch")))
-                    )
-                })
-                .ToDictionaryAsync(p => p.ID, p => p.IsWood);
-
-            viewModel.TotalNorm = viewModel.CuttingLines
-                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID])
-                .Sum(l => l.ConsumptionPerProduct);
-
-            viewModel.TotalWaste = viewModel.CuttingLines
-                .Where(l => materialCategories.ContainsKey(l.MaterialID) && materialCategories[l.MaterialID])
-                .Sum(l => l.WastePerProduct);
-
-            viewModel.TotalCost = viewModel.CuttingLines.Sum(l => l.TotalCostPerProduct);
+            var woodByMaterial = await GetWoodFlagsAsync((viewModel.CuttingLines ?? new List<NormLineViewModel>()).Select(l => l.MaterialID));
+            ApplyTotals(viewModel, woodByMaterial);
         }
 
-        private async Task SetUnitsViewBagAsync()
+        private Task SetUnitsViewBagAsync()
         {
-            var units = await db.UNITS
-                .Where(u => u.IsDeleted == null || u.IsDeleted == false)
-                .OrderBy(u => u.ShortName)
-                .ToListAsync();
-            var items = units.Select(u => new SelectListItem
-            {
-                Value = u.ID.ToString(),
-                Text = !string.IsNullOrEmpty(u.ShortName) ? u.ShortName : (u.UnitName ?? u.ID.ToString())
-            }).ToList();
-            ViewBag.UnitsList = items;
-            ViewBag.UnitsJson = units.Select(u => new { id = u.ID, text = !string.IsNullOrEmpty(u.ShortName) ? u.ShortName : (u.UnitName ?? "") }).ToList();
+            // Birliklar keshdan (ReferenceDataCache: Name = UnitName, Extra = ShortName)
+            var units = tahsinERP.Services.Common.ReferenceDataCache.Get(tahsinERP.Services.Common.ReferenceDataCache.Units)
+                .Select(u => new { u.ID, Text = !string.IsNullOrEmpty(u.Extra) ? u.Extra : (u.Name ?? u.ID.ToString()) })
+                .OrderBy(u => u.Text)
+                .ToList();
+            ViewBag.UnitsList = units.Select(u => new SelectListItem { Value = u.ID.ToString(), Text = u.Text }).ToList();
+            ViewBag.UnitsJson = units.Select(u => new { id = u.ID, text = u.Text }).ToList();
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -1884,15 +1521,7 @@ namespace tahsinERP.Controllers.Engineering
         private static List<NormLineViewModel> OptimizeMaterialCutting(List<NormLineViewModel> lines, PRODUCT material)
         {
             bool requiresCutting = material?.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
-
-            double standardLengthMm = 0;
-            if (material != null)
-            {
-                if (material.StandardLengthMm.HasValue && material.StandardLengthMm.Value > 0)
-                    standardLengthMm = material.StandardLengthMm.Value;
-                else if (material.Length.HasValue && material.Length.Value > 0)
-                    standardLengthMm = material.Length.Value;
-            }
+            double standardLengthMm = NormLineMath.EffectiveStandardLengthMm(material);
 
             // Har bir qatorga material ma'lumotlarini va bazaviy sarf/chiqindini qo'yamiz.
             foreach (var line in lines)

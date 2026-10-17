@@ -13,7 +13,12 @@ using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.MES
 {
-    public class QualityInspectionController : Controller
+    /// <summary>
+    /// Sifat nazorati. Ish oqimi: Create (kunlik) yozuvni darhol APPROVED/REJECTED qiladi va brakni
+    /// DAMAGED_PRODUCTS ga yozadi. Edit/Approve/Delete GET sahifalari (view'lari) hech qachon mavjud bo'lmagan —
+    /// ular olib tashlandi; tasdiqlash va o'chirish faqat POST tugmalar orqali (audit MES-B04).
+    /// </summary>
+    public class QualityInspectionController : BaseController
     {
         // Olish so'rovi: QualityInspection
         public async Task<ActionResult> Index(string searchTerm, int? productID, string statusCode, DateTime? fromDate, DateTime? toDate)
@@ -24,11 +29,13 @@ namespace tahsinERP.Controllers.MES
             }
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.QUALITY_INSPECTION
+                // Parametrsiz ochilganda ham ko'rsatilgan "oxirgi 30 kun" filtri qo'llanadi (avval butun jadval yuklanardi, MES-P18)
+                var effectiveFrom = (fromDate ?? DateTime.Now.AddDays(-30)).Date;
+
+                var query = db.QUALITY_INSPECTION.AsNoTracking()
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
-                    .Where(q => !q.IsDeleted)
-                    .AsQueryable();
+                    .Where(q => !q.IsDeleted && q.InspectionDate >= effectiveFrom);
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -55,14 +62,11 @@ namespace tahsinERP.Controllers.MES
                     query = query.Where(q => q.StatusCode == statusCode);
                 }
 
-                if (fromDate.HasValue)
-                {
-                    query = query.Where(q => q.InspectionDate >= fromDate.Value);
-                }
-
                 if (toDate.HasValue)
                 {
-                    query = query.Where(q => q.InspectionDate <= toDate.Value);
+                    // Tanlangan kun to'liq kirishi uchun < toDate+1
+                    var toExclusive = toDate.Value.Date.AddDays(1);
+                    query = query.Where(q => q.InspectionDate < toExclusive);
                 }
 
                 var inspections = await query
@@ -70,14 +74,15 @@ namespace tahsinERP.Controllers.MES
                     .ThenByDescending(q => q.ID)
                     .ToListAsync();
 
-                var products = await db.PRODUCTS
+                var products = await db.PRODUCTS.AsNoTracking()
                     .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
                     .OrderBy(p => p.PNo)
+                    .Select(p => new { p.ID, p.PNo, p.Name })
                     .ToListAsync();
                 ViewBag.Products = new SelectList(
-                    products.Select(p => new { p.ID, DisplayText = $"{p.PNo} - {p.Name}" }), 
-                    "ID", 
-                    "DisplayText", 
+                    products.Select(p => new { p.ID, DisplayText = p.PNo + " - " + p.Name }),
+                    "ID",
+                    "DisplayText",
                     productID
                 );
                 ViewBag.StatusCodes = new SelectList(new[] {
@@ -85,8 +90,7 @@ namespace tahsinERP.Controllers.MES
                     new { Value = "APPROVED", Text = "Tasdiqlangan" },
                     new { Value = "REJECTED", Text = "Rad etilgan" }
                 }, "Value", "Text", statusCode);
-                ViewBag.DefectTypes = new SelectList(await db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToListAsync(), "ID", "DefectType");
-                ViewBag.FromDate = fromDate ?? DateTime.Now.AddDays(-30);
+                ViewBag.FromDate = effectiveFrom;
                 ViewBag.ToDate = toDate ?? DateTime.Now;
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.ChangePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Index");
@@ -109,7 +113,7 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var inspection = db.QUALITY_INSPECTION
+                var inspection = db.QUALITY_INSPECTION.AsNoTracking()
                     .Where(q => q.ID == id && !q.IsDeleted)
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
@@ -141,7 +145,7 @@ namespace tahsinERP.Controllers.MES
                 var inspectionDate = ResolveInspectionCalendarDate(date);
                 var viewModel = BuildDailyInspectionViewModel(inspectionDate, db);
 
-                ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
+                SetDefectTypesViewBag(db);
                 return View(viewModel);
             }
         }
@@ -187,29 +191,34 @@ namespace tahsinERP.Controllers.MES
                     try
                     {
                         var createdCount = 0;
+                        var userId = RoleHelper.GetUserId(CurrentUserName);
 
-                        foreach (var item in viewModel.Items)
+                        var itemsToSave = (viewModel.Items ?? new List<QualityInspectionDailyItemViewModel>())
+                            .Where(i => i.QtyAccepted + i.QtyRejected > 0)
+                            .ToList();
+
+                        // Ishlab chiqarishlar va ularning qabul qilingan miqdori bir martada (avval har qatorga 3–4 so'rov, MES-P16)
+                        var productionIds = itemsToSave.Select(i => i.ProductionID).Distinct().ToList();
+                        var productions = db.PRODUCT_PRODUCTION
+                            .Include(p => p.PRODUCT)
+                            .Where(p => productionIds.Contains(p.ID) && (p.IsDeleted == false || p.IsDeleted == null))
+                            .ToDictionary(p => p.ID);
+                        var acceptedByProduction = QualityInspectionBalanceHelper.GetAcceptedQtyByProduction(productionIds, db);
+
+                        foreach (var item in itemsToSave)
                         {
                             var inspectedQty = item.QtyAccepted + item.QtyRejected;
-                            if (inspectedQty <= 0)
-                            {
-                                continue;
-                            }
 
                             // GET ro'yxat bilan bir xil: IsDeleted == null ham faol yozuv
-                            var production = db.PRODUCT_PRODUCTION
-                                .Include(p => p.PRODUCT)
-                                .FirstOrDefault(p => p.ID == item.ProductionID
-                                    && (p.IsDeleted == false || p.IsDeleted == null));
-
-                            if (production == null)
+                            if (!productions.TryGetValue(item.ProductionID, out var production))
                             {
                                 ModelState.AddModelError("", $"Ishlab chiqarish topilmadi: ID {item.ProductionID}");
                                 continue;
                             }
 
+                            acceptedByProduction.TryGetValue(production.ID, out var acceptedSoFar);
                             if (!QualityInspectionBalanceHelper.TryValidateInspectionQty(
-                                    production, item.QtyAccepted, item.QtyRejected, db, out var qtyError))
+                                    production, item.QtyAccepted, item.QtyRejected, acceptedSoFar, out var qtyError))
                             {
                                 ModelState.AddModelError("", qtyError);
                                 continue;
@@ -233,7 +242,7 @@ namespace tahsinERP.Controllers.MES
                                 InspectionDate = viewModel.InspectionDate,
                                 CreatedDT = DateTime.Now,
                                 IsDeleted = false,
-                                InspectedByUserID = UserHelper.GetUserId(User.Identity.Name)
+                                InspectedByUserID = userId
                             };
 
                             db.QUALITY_INSPECTION.Add(inspection);
@@ -256,14 +265,14 @@ namespace tahsinERP.Controllers.MES
                         if (!ModelState.IsValid)
                         {
                             viewModel = BuildDailyInspectionViewModel(viewModel.InspectionDate, db);
-                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
+                            SetDefectTypesViewBag(db);
                             return View(viewModel);
                         }
 
                         if (createdCount == 0)
                         {
                             ModelState.AddModelError("", "Tekshiruv uchun miqdor kiritilmadi");
-                            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
+                            SetDefectTypesViewBag(db);
                             return View(viewModel);
                         }
 
@@ -278,11 +287,9 @@ namespace tahsinERP.Controllers.MES
                     catch (Exception ex)
                     {
                         var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
+                        for (var innerEx = ex.InnerException; innerEx != null; innerEx = innerEx.InnerException)
                         {
                             errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
                         }
                         ModelState.AddModelError("", errorMessage);
                     }
@@ -295,40 +302,36 @@ namespace tahsinERP.Controllers.MES
                 {
                     viewModel = BuildDailyInspectionViewModel(viewModel.InspectionDate, db);
                 }
-                ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType");
+                SetDefectTypesViewBag(db);
             }
 
             return View(viewModel);
         }
 
-        private QualityInspectionDailyViewModel BuildDailyInspectionViewModel(DateTime inspectionDate, DBTHSNEntities db)
+        private static QualityInspectionDailyViewModel BuildDailyInspectionViewModel(DateTime inspectionDate, DBTHSNEntities db)
         {
             var dateOnly = inspectionDate.Date;
-            var y = dateOnly.Year;
-            var m = dateOnly.Month;
-            var d = dateOnly.Day;
+            var nextDay = dateOnly.AddDays(1);
 
-            // Faqat fakt: tanlangan KALENDAR kuni — yil/oy/kun SQL DATEPART bilan (vaqt/zona format farqlari uchun barqaror)
-            // IsDeleted: null ham faol deb hisoblanadi
-            var productionsQuery = db.PRODUCT_PRODUCTION
-                .Include(p => p.PRODUCT)
+            // Faqat fakt: tanlangan kalendar kuni. IsDeleted: null ham faol deb hisoblanadi.
+            var productions = db.PRODUCT_PRODUCTION.AsNoTracking()
                 .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
-                    && p.Date.Year == y
-                    && p.Date.Month == m
-                    && p.Date.Day == d
+                    && p.Date >= dateOnly
+                    && p.Date < nextDay
                     && p.PRODUCT.IsFinishedGood == true
-                    && p.PRODUCT.IsDeleted == false);
+                    && p.PRODUCT.IsDeleted == false)
+                .Select(p => new { p.ID, p.ProductID, p.Total, p.PRODUCT.PNo, p.PRODUCT.Name })
+                .ToList();
 
-            var productions = productionsQuery.ToList();
-            var productionRowCount = productions.Count;
+            // Qabul qilingan miqdorlar bitta guruhlangan so'rovda (avval har ishlab chiqarishga 2 ta so'rov, MES-P16)
+            var acceptedByProduction = QualityInspectionBalanceHelper.GetAcceptedQtyByProduction(productions.Select(p => p.ID), db);
 
             var items = new List<QualityInspectionDailyItemViewModel>();
-
             foreach (var production in productions)
             {
                 var producedQty = (decimal)production.Total;
-                var alreadyAccepted = QualityInspectionBalanceHelper.GetAcceptedQtyForProduction(production, db);
-                var remaining = QualityInspectionBalanceHelper.GetRemainingQty(production, db);
+                acceptedByProduction.TryGetValue(production.ID, out var alreadyAccepted);
+                var remaining = producedQty - alreadyAccepted;
 
                 if (remaining <= 0)
                 {
@@ -339,8 +342,8 @@ namespace tahsinERP.Controllers.MES
                 {
                     ProductionID = production.ID,
                     ProductID = production.ProductID,
-                    ProductNo = production.PRODUCT?.PNo,
-                    ProductName = production.PRODUCT?.Name,
+                    ProductNo = production.PNo,
+                    ProductName = production.Name,
                     ProducedQty = producedQty,
                     AlreadyInspectedQty = alreadyAccepted,
                     RemainingQty = remaining,
@@ -353,162 +356,14 @@ namespace tahsinERP.Controllers.MES
             {
                 InspectionDate = dateOnly,
                 Items = items,
-                ProductionRowCountForDay = productionRowCount
+                ProductionRowCountForDay = productions.Count
             };
         }
 
-        // Olish so'rovi: QualityInspection/Edit/5
-        public ActionResult Edit(long? id)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Edit"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var inspection = db.QUALITY_INSPECTION
-                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
-                if (inspection == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // Prevent editing agar approved
-                if (inspection.StatusCode == "APPROVED")
-                {
-                    TempData["ErrorMessage"] = "Tasdiqlangan sifat nazoratini tahrirlash mumkin emas";
-                    return RedirectToAction("Details", new { id = id });
-                }
-
-                var viewModel = new QualityInspectionViewModel
-                {
-                    ID = inspection.ID,
-                    SOrderID = inspection.SOrderID,
-                    DeliveryScheduleID = inspection.DeliveryScheduleID,
-                    ProductPlanDailyID = inspection.ProductPlanDailyID,
-                    ProductionID = inspection.ProductionID,
-                    ProductID = inspection.ProductID,
-                    QtyInspected = inspection.QtyInspected,
-                    QtyAccepted = inspection.QtyAccepted,
-                    QtyRejected = inspection.QtyRejected,
-                    DefectTypeID = inspection.DefectTypeID,
-                    StatusCode = inspection.StatusCode,
-                    Notes = inspection.Notes,
-                    InspectionDate = inspection.InspectionDate,
-                    ApprovalDate = inspection.ApprovalDate
-                };
-
-                PopulateViewBags(viewModel, db);
-                return View(viewModel);
-            }
-        }
-
-        // POST so'rovi: QualityInspection/Edit/5
+        // POST so'rovi: QualityInspection/Approve/5 (GET tasdiqlash sahifasi yo'q edi)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(QualityInspectionViewModel viewModel)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Edit"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-            if (ModelState.IsValid)
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    var inspection = db.QUALITY_INSPECTION
-                        .FirstOrDefault(q => q.ID == viewModel.ID && !q.IsDeleted);
-                    if (inspection == null)
-                    {
-                        return HttpNotFound();
-                    }
-
-                    // Prevent editing agar approved
-                    if (inspection.StatusCode == "APPROVED")
-                    {
-                        ModelState.AddModelError("", "Tasdiqlangan sifat nazoratini tahrirlash mumkin emas");
-                        PopulateViewBags(viewModel, db);
-                        return View(viewModel);
-                    }
-
-                    // Tekshirish quantities
-                    if (viewModel.QtyAccepted + viewModel.QtyRejected != viewModel.QtyInspected)
-                    {
-                        ModelState.AddModelError("", "Qabul qilingan va rad etilgan miqdorlar tekshirilgan miqdorga teng bo'lishi kerak");
-                        PopulateViewBags(viewModel, db);
-                        return View(viewModel);
-                    }
-
-                    inspection.QtyInspected = viewModel.QtyInspected;
-                    inspection.QtyAccepted = viewModel.QtyAccepted;
-                    inspection.QtyRejected = viewModel.QtyRejected;
-                    inspection.DefectTypeID = viewModel.DefectTypeID;
-                    inspection.StatusCode = viewModel.StatusCode;
-                    inspection.Notes = viewModel.Notes;
-                    inspection.InspectionDate = viewModel.InspectionDate;
-                    inspection.UpdatedDT = DateTime.Now;
-
-                    db.Entry(inspection).State = EntityState.Modified;
-                    db.SaveChanges();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController", $"Sifat nazorati tahrirlandi: ID {viewModel.ID}");
-
-                    TempData["Success"] = "Sifat nazorati muvaffaqiyatli yangilandi";
-                    return RedirectToAction("Index");
-                }
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                PopulateViewBags(viewModel, db);
-            }
-
-            return View(viewModel);
-        }
-
-        // Olish so'rovi: QualityInspection/Approve/5
-        public ActionResult Approve(long? id)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Approve"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var inspection = db.QUALITY_INSPECTION
-                    .Include(q => q.PRODUCT)
-                    .Include(q => q.DEFECT_TYPES)
-                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
-
-                if (inspection == null)
-                {
-                    return HttpNotFound();
-                }
-
-                if (inspection.StatusCode == "APPROVED")
-                {
-                    TempData["ErrorMessage"] = "Bu sifat nazorati allaqachon tasdiqlangan";
-                    return RedirectToAction("Details", new { id = id });
-                }
-
-                return View(inspection);
-            }
-        }
-
-        // POST so'rovi: QualityInspection/Approve/5
-        [HttpPost, ActionName("Approve")]
-        [ValidateAntiForgeryToken]
-        public ActionResult ApproveConfirmed(long id)
+        public ActionResult Approve(long id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Approve"))
             {
@@ -531,35 +386,37 @@ namespace tahsinERP.Controllers.MES
 
                 inspection.StatusCode = "APPROVED";
                 inspection.ApprovalDate = DateTime.Now;
-                inspection.ApprovedByUserID = UserHelper.GetUserId(User.Identity.Name);
+                inspection.ApprovedByUserID = RoleHelper.GetUserId(CurrentUserName);
                 inspection.UpdatedDT = DateTime.Now;
 
-                db.Entry(inspection).State = EntityState.Modified;
-                db.SaveChanges();
-
-                // Move rejected qty ga DAMAGED_PRODUCTS agar not already done
+                // Brak DAMAGED_PRODUCTS ga — agar Create paytida yozilmagan bo'lsa. Create brakni CreatedDT kuni yozadi.
+                // Avval LINQ ichida d.IssueDateTime.Date ishlatilgan va QtyRejected > 0 bo'lganda NotSupportedException berardi.
                 if (inspection.QtyRejected > 0 && inspection.DefectTypeID.HasValue)
                 {
-                    var existingDamaged = db.DAMAGED_PRODUCTS
-                        .FirstOrDefault(d => d.ProductID == inspection.ProductID 
-                            && d.DefectTypeID == inspection.DefectTypeID.Value
-                            && d.IssueDateTime.Date == inspection.InspectionDate.Date
+                    var createdDay = inspection.CreatedDT.Date;
+                    var createdNextDay = createdDay.AddDays(1);
+                    var defectTypeId = inspection.DefectTypeID.Value;
+                    var alreadyRecorded = db.DAMAGED_PRODUCTS
+                        .Any(d => d.ProductID == inspection.ProductID
+                            && d.DefectTypeID == defectTypeId
+                            && d.IssueDateTime >= createdDay
+                            && d.IssueDateTime < createdNextDay
                             && d.IsDeleted == false);
 
-                    if (existingDamaged == null)
+                    if (!alreadyRecorded)
                     {
-                        var damagedProduct = new DAMAGED_PRODUCTS
+                        db.DAMAGED_PRODUCTS.Add(new DAMAGED_PRODUCTS
                         {
                             ProductID = inspection.ProductID,
-                            DefectTypeID = inspection.DefectTypeID.Value,
+                            DefectTypeID = defectTypeId,
                             Quantity = (double)inspection.QtyRejected,
                             IssueDateTime = DateTime.Now,
                             IsDeleted = false
-                        };
-                        db.DAMAGED_PRODUCTS.Add(damagedProduct);
-                        db.SaveChanges();
+                        });
                     }
                 }
+
+                db.SaveChanges();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController", $"Sifat nazorati tasdiqlandi: ID {id}");
 
@@ -568,45 +425,10 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // Olish so'rovi: QualityInspection/o'chirish/5
-        public ActionResult Delete(long? id)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Delete"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var inspection = db.QUALITY_INSPECTION
-                    .Include(q => q.PRODUCT)
-                    .Include(q => q.DEFECT_TYPES)
-                    .FirstOrDefault(q => q.ID == id && !q.IsDeleted);
-
-                if (inspection == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // Prevent deleting agar approved
-                if (inspection.StatusCode == "APPROVED")
-                {
-                    TempData["ErrorMessage"] = "Tasdiqlangan sifat nazoratini o'chirish mumkin emas";
-                    return RedirectToAction("Details", new { id = id });
-                }
-
-                return View(inspection);
-            }
-        }
-
-        // POST so'rovi: QualityInspection/o'chirish/5
-        [HttpPost, ActionName("Delete")]
+        // POST so'rovi: QualityInspection/Delete/5 (GET tasdiqlash sahifasi yo'q edi)
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(long id)
+        public ActionResult Delete(long id)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "QualityInspection", "Delete"))
             {
@@ -630,7 +452,6 @@ namespace tahsinERP.Controllers.MES
 
                 inspection.IsDeleted = true;
                 inspection.UpdatedDT = DateTime.Now;
-                db.Entry(inspection).State = EntityState.Modified;
                 db.SaveChanges();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController", $"Sifat nazorati o'chirildi: ID {id}");
@@ -640,42 +461,14 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // yordamchi method ga populate ViewBag
-        private void PopulateViewBags(QualityInspectionViewModel viewModel, DBTHSNEntities db)
+        private void SetDefectTypesViewBag(DBTHSNEntities db)
         {
-            ViewBag.Products = new SelectList(
-                db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).ToList(),
-                "ID",
-                "PNo",
-                viewModel.ProductID);
-            ViewBag.DefectTypes = new SelectList(db.DEFECT_TYPES.Where(x => x.IsDeleted != true).ToList(), "ID", "DefectType", viewModel.DefectTypeID);
-            ViewBag.SOrders = new SelectList(db.S_ORDERS.Where(o => o.IsDeleted == false).ToList(), "ID", "OrderNo", viewModel.SOrderID);
-            ViewBag.DeliverySchedules = new SelectList(db.SORDER_DELIVERY_SCHEDULE.ToList(), "ID", "ID", viewModel.DeliveryScheduleID);
-        }
-
-        // AJAX so'rovi: Get available quantity uchun invoicing
-        [HttpGet]
-        public JsonResult GetAvailableQtyForInvoicing(int productID)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                // Olish total accepted qty dan approved inspections
-                var totalAccepted = db.QUALITY_INSPECTION
-                    .Where(q => q.ProductID == productID
-                        && q.StatusCode == "APPROVED"
-                        && !q.IsDeleted)
-                    .Sum(q => (decimal?)q.QtyAccepted) ?? 0;
-
-                // Olish total already invoiced
-                var totalInvoiced = db.SALES_INVOICE_LINES
-                    .Where(l => l.ProductID == productID)
-                    .Sum(l => (decimal?)l.Qty) ?? 0;
-
-                var available = totalAccepted - totalInvoiced;
-
-                return Json(new { availableQty = available, totalAccepted = totalAccepted, totalInvoiced = totalInvoiced }, JsonRequestBehavior.AllowGet);
-            }
+            ViewBag.DefectTypes = new SelectList(
+                db.DEFECT_TYPES.AsNoTracking()
+                    .Where(x => x.IsDeleted != true)
+                    .Select(x => new { x.ID, x.DefectType })
+                    .ToList(),
+                "ID", "DefectType");
         }
     }
 }
-

@@ -23,96 +23,65 @@ namespace tahsinERP.Controllers.Engineering
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            // Query finished goods that are not deleted
-            var finishedGoods = await db.PRODUCTS
+            // Tayyor mahsulotlar, normalar va faol BOM headerlar — 3 ta proyeksiyalangan so'rov
+            // (avval har mahsulotga alohida BOM_HEADERS so'rovi ketardi, MES-P22)
+            var finishedGoods = await db.PRODUCTS.AsNoTracking()
                 .Where(p => p.IsFinishedGood == true && p.IsDeleted == false)
+                .Select(p => new { p.ID, p.PNo, p.Name })
                 .ToListAsync();
 
             var productIds = finishedGoods.Select(p => p.ID).ToList();
-            var normVersions = await db.NORMVERSIONS
+            var normVersions = await db.NORMVERSIONS.AsNoTracking()
                 .Where(n => n.ProductID.HasValue
                     && productIds.Contains(n.ProductID.Value)
                     && (n.IsDeleted == null || n.IsDeleted == false))
+                .Select(n => new { ProductID = n.ProductID.Value, n.ID, n.EffectiveFrom })
                 .ToListAsync();
 
-            var latestNormByProduct = normVersions
-                .GroupBy(n => n.ProductID.Value)
+            var latestNormPeriodByProduct = normVersions
+                .GroupBy(n => n.ProductID)
                 .ToDictionary(
                     g => g.Key,
                     g => g.OrderByDescending(n => n.EffectiveFrom ?? DateTime.MinValue)
                           .ThenByDescending(n => n.ID)
+                          .Select(n => n.EffectiveFrom.HasValue ? n.EffectiveFrom.Value.ToString("yyyy-MM") : null)
                           .FirstOrDefault());
 
-            // Olish the latest BOM version uchun har bir product
-            var bomIndexList = new List<BomIndexViewModel>();
+            var activeHeaders = await db.BOM_HEADERS.AsNoTracking()
+                .Where(bh => bh.ProductID.HasValue && productIds.Contains(bh.ProductID.Value) && bh.IsActive == true)
+                .Select(bh => new { ProductID = bh.ProductID.Value, bh.VersionNo, bh.CreatedAt })
+                .ToListAsync();
+            var headersByProduct = activeHeaders.GroupBy(h => h.ProductID).ToDictionary(g => g.Key, g => g.ToList());
 
+            var bomIndexList = new List<BomIndexViewModel>();
             foreach (var product in finishedGoods)
             {
-                // Olish the latest faol BOM header uchun this product
-                // Sort by VersionNo as date (YYYY-MM format) descending, so'ng by CreatedAt
-                var latestBomHeader = await db.BOM_HEADERS
-                    .Where(bh => bh.ProductID == product.ID && bh.IsActive == true)
-                    .ToListAsync();
+                if (!headersByProduct.TryGetValue(product.ID, out var headers))
+                {
+                    continue;
+                }
 
-                // Tahlil qilish VersionNo as date uchun proper sorting (YYYY-MM format)
-                // VersionNo format: '2024-12' (year-month)
-                var sortedBomHeaders = latestBomHeader
+                // Eng so'nggi faol BOM: VersionNo (yyyy-MM) bo'yicha, bo'lmasa CreatedAt bo'yicha
+                var latestHeader = headers
                     .Where(bh => !string.IsNullOrEmpty(bh.VersionNo))
-                    .OrderByDescending(bh =>
-                    {
-                        // Urinish ga tahlil VersionNo as YYYY-MM date
-                        string versionNo = bh.VersionNo.Trim();
-                        if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
-                        {
-                            return parsedDate;
-                        }
-                        // agar parsing fails, try ga extract year va month manually
-                        var parts = versionNo.Split('-');
-                        if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month))
-                        {
-                            if (month >= 1 && month <= 12 && year > 1900 && year < 2100)
-                            {
-                                return new DateTime(year, month, 1);
-                            }
-                        }
-                        // Fallback ga minimal date
-                        return DateTime.MinValue;
-                    })
+                    .OrderByDescending(bh => ParseVersionNoDate(bh.VersionNo))
                     .ThenByDescending(bh => bh.CreatedAt)
-                    .FirstOrDefault();
+                    .FirstOrDefault()
+                    ?? headers.OrderByDescending(bh => bh.CreatedAt).First();
 
-                // agar no BOM bilan VersionNo found, fallback ga latest by CreatedAt
-                if (sortedBomHeaders == null)
+                latestNormPeriodByProduct.TryGetValue(product.ID, out var normVersion);
+                if (string.IsNullOrEmpty(normVersion))
                 {
-                    sortedBomHeaders = latestBomHeader
-                        .OrderByDescending(bh => bh.CreatedAt)
-                        .FirstOrDefault();
+                    normVersion = latestHeader.VersionNo ?? "N/A";
                 }
 
-                if (sortedBomHeaders != null)
+                bomIndexList.Add(new BomIndexViewModel
                 {
-                    string normVersion = null;
-                    if (latestNormByProduct.TryGetValue(product.ID, out var latestNorm) && latestNorm != null)
-                    {
-                        if (latestNorm.EffectiveFrom.HasValue)
-                        {
-                            normVersion = latestNorm.EffectiveFrom.Value.ToString("yyyy-MM");
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(normVersion))
-                    {
-                        normVersion = sortedBomHeaders.VersionNo ?? "N/A";
-                    }
-
-                    bomIndexList.Add(new BomIndexViewModel
-                    {
-                        ProductId = product.ID,
-                        ProductPno = product.PNo,
-                        ProductName = product.Name,
-                        NormVersion = normVersion
-                    });
-                }
+                    ProductId = product.ID,
+                    ProductPno = product.PNo,
+                    ProductName = product.Name,
+                    NormVersion = normVersion
+                });
             }
 
             // Order by product number
@@ -161,16 +130,8 @@ namespace tahsinERP.Controllers.Engineering
             var normVersion = bomHeader.VersionNo ?? "N/A";
             summaryService.ApplyWoodQuantitiesFromNorm(rootNode, product.ID, normVersion);
 
-            // Yuklash product image
-            string imageUrl = null;
-            var productImage = await db.PRODUCTIMAGES
-                .Where(pi => pi.ProdID == productId && (pi.IsDeleted == null || pi.IsDeleted == false))
-                .FirstOrDefaultAsync();
-
-            if (productImage != null && productImage.Image != null)
-            {
-                imageUrl = "data:image/jpeg;base64," + Convert.ToBase64String(productImage.Image);
-            }
+            // Mahsulot rasmi daraxt bilan birga yuklangan (avval ikkinchi marta alohida so'ralardi, MES-P23)
+            string imageUrl = rootNode.ImageUrl;
 
             var viewModel = new BomDetailsViewModel
             {
@@ -184,6 +145,24 @@ namespace tahsinERP.Controllers.Engineering
             };
 
             return View(viewModel);
+        }
+
+        private static DateTime ParseVersionNoDate(string versionNo)
+        {
+            if (string.IsNullOrWhiteSpace(versionNo))
+                return DateTime.MinValue;
+
+            versionNo = versionNo.Trim();
+            if (DateTime.TryParseExact(versionNo, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                return parsedDate;
+
+            var parts = versionNo.Split('-');
+            if (parts.Length >= 2 && int.TryParse(parts[0], out int year) && int.TryParse(parts[1], out int month)
+                && month >= 1 && month <= 12 && year > 1900 && year < 2100)
+            {
+                return new DateTime(year, month, 1);
+            }
+            return DateTime.MinValue;
         }
 
         protected override void Dispose(bool disposing)

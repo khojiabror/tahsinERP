@@ -517,7 +517,6 @@
     <Compile Include="Controllers\JobDescController.cs" />
     <Compile Include="Controllers\Logistic\LogisticsDashboardController.cs" />
     <Compile Include="Controllers\Logistic\WaybillPaymentController.cs" />
-    <Compile Include="Controllers\MES\DailyPlanUpdateItem.cs" />
     <Compile Include="Controllers\MES\MESDashboardController.cs" />
     <Compile Include="Controllers\MES\MESReportsController.cs" />
     <Compile Include="Controllers\MES\ProductProductionController.cs" />
@@ -533,7 +532,7 @@
     <Compile Include="Controllers\AdminSetting\CookieHelper.cs" />
     <Compile Include="Controllers\CRM\CustomerController.cs" />
     <Compile Include="Controllers\DefectTypeController.cs" />
-    <Compile Include="Controllers\DamagedPartController.cs" />
+    <Compile Include="Controllers\LookupCrudController.cs" />
     <Compile Include="Controllers\DamagedProductController.cs" />
     <Compile Include="Controllers\Logistic\FContractController.cs" />
     <Compile Include="Controllers\Logistic\ForwarderController.cs" />
@@ -985,6 +984,7 @@
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\ProductProductionPlanDateMeta.cs" />
+    <Compile Include="Helpers\MesLookups.cs" />
     <Compile Include="Helpers\QualityInspectionBalanceHelper.cs" />
     <Compile Include="Models\RoleHelper.cs" />
     <Compile Include="Models\USER_ENTRIES.cs">
@@ -1042,6 +1042,7 @@
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
+    <Compile Include="Services\Norm\NormLineMath.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\Finance\BalanceInventoryValuation.cs" />
@@ -1073,9 +1074,7 @@
     <Compile Include="Services\LogisticsLookups.cs" />
     <Compile Include="Services\LogisticsEnums.cs" />
     <Compile Include="Services\ExcelCellReader.cs" />
-    <Compile Include="Services\MaterialConsumptionService.cs" />
     <Compile Include="Services\OfficialLetterDataService.cs" />
-    <Compile Include="Services\MaterialConsumptionServiceDTOs.cs" />
     <Compile Include="Services\POrderGenerationService.cs" />
     <Compile Include="Services\ProductionConsumptionService.cs" />
     <Compile Include="Services\TannarxAnalyticsService.cs" />
@@ -1124,7 +1123,6 @@
     <Compile Include="ViewModels\CompanyOrderEditVm.cs" />
     <Compile Include="ViewModels\CompanyOrderIndexVm.cs" />
     <Compile Include="ViewModels\CRMDashboardViewModel.cs" />
-    <Compile Include="ViewModels\DamagedPartIndexViewModel.cs" />
     <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
     <Compile Include="ViewModels\FinanceReportsHubViewModel.cs" />
@@ -3156,9 +3154,10 @@
     <Content Include="Views\Currency\Delete.cshtml" />
     <Content Include="Views\Currency\Edit.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
-    <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
     <Content Include="Views\PartStock\UploadWithExcel.cshtml" />
     <Content Include="Views\Norm\Edit.cshtml" />
+    <Content Include="Views\Norm\_NormForm.cshtml" />
+    <Content Include="Views\Norm\_NormFormScripts.cshtml" />
     <Content Include="Views\Norm\Index.cshtml" />
     <Content Include="Views\UserEntries\Index.cshtml" />
     <Content Include="Views\Norm\Details.cshtml" />
