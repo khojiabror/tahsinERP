@@ -102,7 +102,7 @@ namespace tahsinERP.Services.Editions
                 } },
             { ProductModule.Logistics, new[]
                 {
-                    "LogisticsDashboard", "Forwarder", "FContract", "FContractTariff", "FTransportType", "Waybill",
+                    "LogisticsDashboard", "Forwarder", "FContract", "FContractTariff", "FTransportType", "Waybill", "WaybillImport", "WaybillLookup",
                     "WaybillPayment", "TransportLoadSimulation", "TransportLoadApi"
                 } },
             { ProductModule.Docs, new[] { "OfficialLetters", "CompanyOrders", "STDCompanyStandards", "JobDesc", "DocTemplates" } },

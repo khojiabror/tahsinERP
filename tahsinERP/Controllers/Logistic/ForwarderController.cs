@@ -229,42 +229,11 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                if (ModelState.IsValid)
-                {
-                    FORWARDER forwarderToDelete = await db.FORWARDERS.FirstOrDefaultAsync(f => f.ID == ID && f.IsDeleted != true);
-                    if (forwarderToDelete != null)
-                    {
-                        forwarderToDelete.IsDeleted = true;
-                        
-                        try
-                        {
-                            await SoftDeleteReferenceService.AfterForwarderSoftDeletedAsync(db, forwarderToDelete.ID);
-                            await db.SaveChangesAsync();
-
-                            var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "ForwarderController", "Delete", $"{forwarderToDelete.ForwarderName} - yuk tashuvchi o'chirildi.");
-
-                            return RedirectToAction("Index");
-                        }
-                        catch (RetryLimitExceededException)
-                        {
-                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        }
-                        catch (Exception ex)
-                        {
-                            ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
-                            LogHelper.LogToDatabase(User.Identity.Name, "ForwarderController", "Delete", $"Xatolik: {ex.Message}");
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "Yuk tashuvchi topilmadi.");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Ma'lumotlar noto'g'ri yuborildi. Qayta urinib ko'ring.");
-                }
+                if (await SoftDeleteAsync<FORWARDER>(db, ID,
+                        (ctx, f) => SoftDeleteReferenceService.AfterForwarderSoftDeletedAsync(ctx, f.ID),
+                        f => $"{f.ForwarderName} - yuk tashuvchi o'chirildi.",
+                        "Yuk tashuvchi topilmadi."))
+                    return RedirectToAction("Index");
 
                 // LOG-B09: view null model bilan ochilmasin
                 var model = await db.FORWARDERS.AsNoTracking().FirstOrDefaultAsync(f => f.ID == ID && f.IsDeleted != true);
