@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Data.Entity;
 using tahsinERP.Models;
+using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Services
@@ -32,36 +33,16 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Inventory/Adjust yaratgan hujjatlar: Description/Comment yoki INV_MM_DD_IN|OUT DocNo.
+        /// Inventory/Adjust yaratgan hujjatlar: Description/Comment'da "inventarizatsiya" yoki INV_..._IN_|_OUT_ DocNo.
         /// </summary>
-        private static bool IsInventarizatsiyaIncome(INCOME income, string lineComment)
+        private static bool IsInventarizatsiyaDoc(string docNo, string description, string lineComment, bool isIncome)
         {
-            if (income == null)
-            {
-                return false;
-            }
-
-            if (ContainsInventarizatsiya(income.Description) || ContainsInventarizatsiya(lineComment))
+            if (ContainsInventarizatsiya(description) || ContainsInventarizatsiya(lineComment))
             {
                 return true;
             }
 
-            return IsInventoryAdjustmentDocNo(income.DocNo, isIncome: true);
-        }
-
-        private static bool IsInventarizatsiyaExpense(EXPENS expense, string lineComment)
-        {
-            if (expense == null)
-            {
-                return false;
-            }
-
-            if (ContainsInventarizatsiya(expense.Description) || ContainsInventarizatsiya(lineComment))
-            {
-                return true;
-            }
-
-            return IsInventoryAdjustmentDocNo(expense.DocNo, isIncome: false);
+            return IsInventoryAdjustmentDocNo(docNo, isIncome);
         }
 
         private static bool IsInventoryAdjustmentDocNo(string docNo, bool isIncome)
@@ -90,16 +71,25 @@ namespace tahsinERP.Services
 
             GetPeriodBounds(year, month, out var periodStart, out var periodEndExclusive);
 
-            // Oldingi qoldiq = faqat oldingi oydan qolib o'tgan (oy 1-kuni oldidagi barcha harakatlardan hisoblangan qoldiq)
-            // Ya'ni: oy boshidagi qoldiq = (1-kungacha bo'lgan barcha kirim) − (1-kungacha bo'lgan barcha chiqim)
+            // Oldingi qoldiq = oy 1-kunigacha bo'lgan barcha kirim − chiqim. Miqdor va summa bitta agregatda
+            // (avval bir xil satrlar ustidan 4 ta alohida to'liq tarix so'rovi — SRM-P09).
+            // "DLOC-ASN-" kirimlari qoldiqni oshirmaydi (mavjud qoldiqni joyga bog'lash) — hisobga olinmaydi.
+            var assignmentPrefix = LegacyDlocAssignmentService.AssignmentDocNoPrefix;
+
             var incomeBefore = await (from ip in db.INCOME_PRODUCTS
                                      join i in db.INCOMES on ip.IncomeID equals i.ID
                                      where i.ReceivingWHID == warehouseId
                                            && i.IssueDateTime < periodStart
                                            && (i.IsDeleted == null || i.IsDeleted == false)
                                            && i.RecieveStatus == true
+                                           && (i.DocNo == null || !i.DocNo.StartsWith(assignmentPrefix))
                                      group ip by ip.ProductID into g
-                                     select new { ProductId = g.Key, Total = g.Sum(x => x.Amount) }).ToListAsync();
+                                     select new
+                                     {
+                                         ProductId = g.Key,
+                                         Total = g.Sum(x => x.Amount),
+                                         TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0))
+                                     }).ToListAsync();
 
             var expenseBefore = await (from ep in db.EXPENSE_PRODUCTS
                                       join e in db.EXPENSES on ep.ExpenseID equals e.ID
@@ -107,119 +97,73 @@ namespace tahsinERP.Services
                                             && e.IssueDateTime < periodStart
                                             && e.IsDeleted == false
                                       group ep by ep.ProductID into g
-                                      select new { ProductId = g.Key, Total = g.Sum(x => x.Amount) }).ToListAsync();
+                                      select new { ProductId = g.Key, Total = g.Sum(x => x.Amount), TotalSum = g.Sum(x => x.TotalPrice) })
+                .ToListAsync();
 
             var openingByProduct = new Dictionary<int, double>();
+            var openingSumByProduct = new Dictionary<int, decimal>();
             foreach (var x in incomeBefore)
+            {
                 openingByProduct[x.ProductId] = x.Total;
+                openingSumByProduct[x.ProductId] = (decimal)x.TotalSum;
+            }
             foreach (var x in expenseBefore)
             {
-                if (!openingByProduct.ContainsKey(x.ProductId))
-                    openingByProduct[x.ProductId] = 0;
-                openingByProduct[x.ProductId] -= x.Total;
+                double q;
+                openingByProduct.TryGetValue(x.ProductId, out q);
+                openingByProduct[x.ProductId] = q - x.Total;
+                decimal s;
+                openingSumByProduct.TryGetValue(x.ProductId, out s);
+                openingSumByProduct[x.ProductId] = s - (decimal)x.TotalSum;
             }
 
-            // Oy ichidagi barcha kirim/chiqim (keyin operatsion vs inventarizatsiya ajratiladi)
-            var incomeLinesInPeriod = await (from ip in db.INCOME_PRODUCTS
-                                            join i in db.INCOMES on ip.IncomeID equals i.ID
-                                            where i.ReceivingWHID == warehouseId
-                                                  && i.IssueDateTime >= periodStart
-                                                  && i.IssueDateTime < periodEndExclusive
-                                                  && (i.IsDeleted == null || i.IsDeleted == false)
-                                                  && i.RecieveStatus == true
-                                            select new { ip.ProductID, ip.Amount, ip.Comment, ip.TotalPrice, ip.PiecePrice, Income = i })
-                .ToListAsync();
-
-            var expenseLinesInPeriod = await (from ep in db.EXPENSE_PRODUCTS
-                                           join e in db.EXPENSES on ep.ExpenseID equals e.ID
-                                           where e.SenderWHID == warehouseId
-                                                 && e.IssueDateTime >= periodStart
-                                                 && e.IssueDateTime < periodEndExclusive
-                                                 && e.IsDeleted == false
-                                           select new { ep.ProductID, ep.Amount, ep.Comment, ep.TotalPrice, Expense = e })
-                .ToListAsync();
-
-            var incomeInPeriod = incomeLinesInPeriod
-                .Where(x => !IsInventarizatsiyaIncome(x.Income, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, Total = g.Sum(x => x.Amount) })
+            // Oy ichidagi kirim/chiqim qatorlari: to'liq INCOME/EXPENS entity o'rniga faqat kerakli ustunlar
+            var incomeLinesInPeriod = (await (from ip in db.INCOME_PRODUCTS
+                                             join i in db.INCOMES on ip.IncomeID equals i.ID
+                                             where i.ReceivingWHID == warehouseId
+                                                   && i.IssueDateTime >= periodStart
+                                                   && i.IssueDateTime < periodEndExclusive
+                                                   && (i.IsDeleted == null || i.IsDeleted == false)
+                                                   && i.RecieveStatus == true
+                                                   && (i.DocNo == null || !i.DocNo.StartsWith(assignmentPrefix))
+                                             select new { ip.ProductID, ip.Amount, ip.Comment, ip.TotalPrice, ip.PiecePrice, i.DocNo, i.Description })
+                .ToListAsync())
+                .Select(x => new
+                {
+                    x.ProductID,
+                    x.Amount,
+                    Sum = (decimal)(x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)),
+                    IsAdjustment = IsInventarizatsiyaDoc(x.DocNo, x.Description, x.Comment, isIncome: true)
+                })
                 .ToList();
 
-            var expenseInPeriod = expenseLinesInPeriod
-                .Where(x => !IsInventarizatsiyaExpense(x.Expense, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, Total = g.Sum(x => x.Amount) })
+            var expenseLinesInPeriod = (await (from ep in db.EXPENSE_PRODUCTS
+                                              join e in db.EXPENSES on ep.ExpenseID equals e.ID
+                                              where e.SenderWHID == warehouseId
+                                                    && e.IssueDateTime >= periodStart
+                                                    && e.IssueDateTime < periodEndExclusive
+                                                    && e.IsDeleted == false
+                                              select new { ep.ProductID, ep.Amount, ep.Comment, ep.TotalPrice, e.DocNo, e.Description })
+                .ToListAsync())
+                .Select(x => new
+                {
+                    x.ProductID,
+                    x.Amount,
+                    Sum = (decimal)x.TotalPrice,
+                    IsAdjustment = IsInventarizatsiyaDoc(x.DocNo, x.Description, x.Comment, isIncome: false)
+                })
                 .ToList();
 
-            // Inventarizatsiya: shu oy ichidagi adjustment (net = qo'shimcha kirim - kamaytirish chiqimi)
-            var adjustmentIncomeInPeriod = incomeLinesInPeriod
-                .Where(x => IsInventarizatsiyaIncome(x.Income, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, Total = g.Sum(x => x.Amount) })
-                .ToList();
+            // Operatsion harakat va inventarizatsiya (net = qo'shimcha kirim − kamaytirish chiqimi) alohida
+            var incomeByProduct = incomeLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+            var expenseByProduct = expenseLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+            var adjustmentInByProduct = incomeLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+            var adjustmentOutByProduct = expenseLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
-            var adjustmentExpenseInPeriod = expenseLinesInPeriod
-                .Where(x => IsInventarizatsiyaExpense(x.Expense, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, Total = g.Sum(x => x.Amount) })
-                .ToList();
-
-            var incomeByProduct = incomeInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
-            var expenseByProduct = expenseInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
-            var adjustmentInByProduct = adjustmentIncomeInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
-            var adjustmentOutByProduct = adjustmentExpenseInPeriod.ToDictionary(x => x.ProductId, x => x.Total);
-
-            // Summa bo'yicha: har bir harakatda TotalPrice (yoki Amount*PiecePrice) yig'indisi
-            var incomeBeforeSum = await (from ip in db.INCOME_PRODUCTS
-                                        join i in db.INCOMES on ip.IncomeID equals i.ID
-                                        where i.ReceivingWHID == warehouseId
-                                              && i.IssueDateTime < periodStart
-                                              && (i.IsDeleted == null || i.IsDeleted == false)
-                                              && i.RecieveStatus == true
-                                        group ip by ip.ProductID into g
-                                        select new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)) }).ToListAsync();
-            var expenseBeforeSum = await (from ep in db.EXPENSE_PRODUCTS
-                                         join e in db.EXPENSES on ep.ExpenseID equals e.ID
-                                         where e.SenderWHID == warehouseId && e.IssueDateTime < periodStart && e.IsDeleted == false
-                                         group ep by ep.ProductID into g
-                                         select new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice) }).ToListAsync();
-            var incomeInPeriodSum = incomeLinesInPeriod
-                .Where(x => !IsInventarizatsiyaIncome(x.Income, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)) })
-                .ToList();
-
-            var expenseInPeriodSum = expenseLinesInPeriod
-                .Where(x => !IsInventarizatsiyaExpense(x.Expense, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice) })
-                .ToList();
-
-            var adjustmentIncomeInPeriodSum = incomeLinesInPeriod
-                .Where(x => IsInventarizatsiyaIncome(x.Income, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)) })
-                .ToList();
-
-            var adjustmentExpenseInPeriodSum = expenseLinesInPeriod
-                .Where(x => IsInventarizatsiyaExpense(x.Expense, x.Comment))
-                .GroupBy(x => x.ProductID)
-                .Select(g => new { ProductId = g.Key, TotalSum = g.Sum(x => x.TotalPrice) })
-                .ToList();
-
-            var openingSumByProduct = new Dictionary<int, decimal>();
-            foreach (var x in incomeBeforeSum)
-                openingSumByProduct[x.ProductId] = (decimal)x.TotalSum;
-            foreach (var x in expenseBeforeSum)
-            {
-                if (!openingSumByProduct.ContainsKey(x.ProductId))
-                    openingSumByProduct[x.ProductId] = 0;
-                openingSumByProduct[x.ProductId] -= (decimal)x.TotalSum;
-            }
-            var incomeSumByProduct = incomeInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
-            var expenseSumByProduct = expenseInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
-            var adjustmentInSumByProduct = adjustmentIncomeInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
-            var adjustmentOutSumByProduct = adjustmentExpenseInPeriodSum.ToDictionary(x => x.ProductId, x => (decimal)x.TotalSum);
+            var incomeSumByProduct = incomeLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Sum));
+            var expenseSumByProduct = expenseLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Sum));
+            var adjustmentInSumByProduct = incomeLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Sum));
+            var adjustmentOutSumByProduct = expenseLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Sum));
 
             var allProductIds = new HashSet<int>();
             foreach (var k in openingByProduct.Keys) allProductIds.Add(k);
