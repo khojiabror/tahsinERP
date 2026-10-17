@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "Balans";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var balanceData = ViewBag.BalanceData as List<tahsinERP.Controllers.Finance.BalanceCategoryData> ?? new List<tahsinERP.Controllers.Finance.BalanceCategoryData>();
+    var balanceData = ViewBag.BalanceData as List<tahsinERP.ViewModels.Finance.BalanceCategoryData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryData>();
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))

@@ -1,9 +1,9 @@
 @{
     ViewBag.Title = "Kompaniya qiymati";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var shareholderValues = ViewBag.ShareholderValues as List<tahsinERP.Controllers.Finance.ShareholderValueData> ?? new List<tahsinERP.Controllers.Finance.ShareholderValueData>();
+    var shareholderValues = ViewBag.ShareholderValues as List<tahsinERP.ViewModels.Finance.ShareholderValueData> ?? new List<tahsinERP.ViewModels.Finance.ShareholderValueData>();
     var method = (ViewBag.Method as string) ?? "ebitda";
-    var breakdown = ViewBag.Breakdown as tahsinERP.Controllers.Finance.CompanyValuationBreakdown;
+    var breakdown = ViewBag.Breakdown as tahsinERP.ViewModels.Finance.CompanyValuationBreakdown;
     var multiple = (decimal)(ViewBag.EbitdaMultiple ?? 3m);
     var years = (int)(ViewBag.DcfYears ?? 3);
 }

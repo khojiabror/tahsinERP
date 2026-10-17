@@ -2,6 +2,7 @@ using System;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Services
@@ -104,7 +105,7 @@ namespace tahsinERP.Services
             transaction.AccountID = account.ID;
             transaction.CategoryID = category.ID;
             transaction.Direction = 1; // In
-            transaction.Amount = invoice.TotalAmount;
+            transaction.Amount = CounterpartyBalanceService.SalesInvoiceAmount(invoice); // QQS bilan (AR bilan bir xil, FIN-B08)
             transaction.CurrencyID = currencyId;
             transaction.CounterpartyType = 1; // Customer
             transaction.CounterpartyID = invoice.CustomerID;
@@ -192,7 +193,9 @@ namespace tahsinERP.Services
             transaction.AccountID = account.ID;
             transaction.CategoryID = category.ID;
             transaction.Direction = 2; // Out
-            transaction.Amount = (decimal)invoice.Amount; // P_INVOICES.Amount is double
+            // Yagona qoida (FIN-B08): kirim (INCOMES.TotalPrice) bo'lsa shu, aks holda P_INVOICES.Amount
+            transaction.Amount = CounterpartyBalanceService.PurchaseInvoiceAmounts(db, db.P_INVOICES.Where(i => i.ID == invoiceID))
+                .TryGetValue(invoiceID, out var purchaseAmount) ? purchaseAmount : 0m;
             transaction.CurrencyID = invoice.CurrencyID ?? 1;
             transaction.CounterpartyType = 2; // Supplier
             transaction.CounterpartyID = invoice.SupplierID;
