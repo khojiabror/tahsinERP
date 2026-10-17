@@ -4,144 +4,137 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PRequisitions"))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/PRequisitions/Index">Xarid arizalari</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Yangi ariza
-                                    </li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="~/PRequisitions/Index">Xarid arizalari</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Yangi ariza
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <section id="form-repeater-wrapper">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        @using (Html.BeginForm("Create", "PRequisitions", FormMethod.Post, new { @class = "form", @id = "requisitionForm", data_renumber = "RequisitionProducts" }))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+        <div class="content-body">
+            <section id="form-repeater-wrapper">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    @using (Html.BeginForm("Create", "PRequisitions", FormMethod.Post, new { @class = "form", @id = "requisitionForm", data_renumber = "RequisitionProducts" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <!-- Requisition Header -->
-                                            <div class="row">
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="RequisitionNo">Ariza raqami</label>
-                                                    @Html.TextBoxFor(model => model.RequisitionNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
-                                                    @Html.ValidationMessageFor(model => model.RequisitionNo, "", new { @class = "text-danger" })
-                                                    <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="RequisitionDate">Ariza sanasi</label>
-                                                    @Html.TextBoxFor(model => model.RequisitionDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.RequisitionDate, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="DepartmentID">Bo'lim</label>
-                                                    @Html.DropDownListFor(model => model.DepartmentID, ViewBag.DepartmentList as SelectList, "---Tanlang---", new { @class = "form-control select2" })
-                                                    @Html.ValidationMessageFor(model => model.DepartmentID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="RequesterID">So'rovchi</label>
-                                                    @Html.DropDownListFor(model => model.RequesterID, ViewBag.RequesterList as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
-                                                    @Html.ValidationMessageFor(model => model.RequesterID, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-3 col-12 form-group">
-                                                    <label for="ContactPhone">Aloqa telefon</label>
-                                                    @Html.TextBoxFor(model => model.ContactPhone, new { @class = "form-control", @placeholder = "+998 90 123 45 67" })
-                                                    @Html.ValidationMessageFor(model => model.ContactPhone, "", new { @class = "text-danger" })
-                                                </div>
-                                                <div class="col-md-9 col-12 form-group">
-                                                    <label for="Purpose">Xarid qilish maqsadi</label>
-                                                    @Html.TextAreaFor(model => model.Purpose, new { @class = "form-control", @rows = "3", @placeholder = "Xarid qilish maqsadini batafsil yozing..." })
-                                                    @Html.ValidationMessageFor(model => model.Purpose, "", new { @class = "text-danger" })
-                                                </div>
+                                        <!-- Requisition Header -->
+                                        <div class="row">
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="RequisitionNo">Ariza raqami</label>
+                                                @Html.TextBoxFor(model => model.RequisitionNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                @Html.ValidationMessageFor(model => model.RequisitionNo, "", new { @class = "text-danger" })
+                                                <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
                                             </div>
-
-                                            <br />
-                                            <h5>Xarid qilinadigan mahsulotlar</h5>
-
-                                            <!-- Products Table -->
-                                            <div class="table-responsive">
-                                                <table id="requisitionProductsTable" class="table table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Mahsulot</th>
-                                                            <th>Miqdor</th>
-                                                            <th>Birlik</th>
-                                                            <th>Tahminiy narx</th>
-                                                            <th>Summa</th>
-                                                            <th>Prioritet</th>
-                                                            <th>Kerak bo'lgan sana</th>
-                                                            <th>Izoh</th>
-                                                            <th>Amallar</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <!-- Rows will be added dynamically -->
-                                                    </tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <td colspan="4" class="text-right"><strong>Jami:</strong></td>
-                                                            <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
-                                                            <td colspan="3"></td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="RequisitionDate">Ariza sanasi</label>
+                                                @Html.TextBoxFor(model => model.RequisitionDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.RequisitionDate, "", new { @class = "text-danger" })
                                             </div>
-
-                                            <div class="row mt-2">
-                                                <div class="col-12">
-                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                        <i class="bx bx-plus"></i> Mahsulot qo'shish
-                                                    </button>
-                                                </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="DepartmentID">Bo'lim</label>
+                                                @Html.DropDownListFor(model => model.DepartmentID, ViewBag.DepartmentList as SelectList, "---Tanlang---", new { @class = "form-control select2" })
+                                                @Html.ValidationMessageFor(model => model.DepartmentID, "", new { @class = "text-danger" })
                                             </div>
-
-                                            <div class="row mt-3">
-                                                <div class="col-12">
-                                                    <button type="submit" class="btn btn-success">
-                                                        <i class="bx bx-save"></i> Saqlash
-                                                    </button>
-                                                    <a href="@Url.Action("Index", "PRequisitions")" class="btn btn-secondary">
-                                                        <i class="bx bx-x"></i> Bekor qilish
-                                                    </a>
-                                                </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="RequesterID">So'rovchi</label>
+                                                @Html.DropDownListFor(model => model.RequesterID, ViewBag.RequesterList as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.RequesterID, "", new { @class = "text-danger" })
                                             </div>
-                                        }
-                                    </div>
+                                            <div class="col-md-3 col-12 form-group">
+                                                <label for="ContactPhone">Aloqa telefon</label>
+                                                @Html.TextBoxFor(model => model.ContactPhone, new { @class = "form-control", @placeholder = "+998 90 123 45 67" })
+                                                @Html.ValidationMessageFor(model => model.ContactPhone, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-9 col-12 form-group">
+                                                <label for="Purpose">Xarid qilish maqsadi</label>
+                                                @Html.TextAreaFor(model => model.Purpose, new { @class = "form-control", @rows = "3", @placeholder = "Xarid qilish maqsadini batafsil yozing..." })
+                                                @Html.ValidationMessageFor(model => model.Purpose, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+
+                                        <br />
+                                        <h5>Xarid qilinadigan mahsulotlar</h5>
+
+                                        <!-- Products Table -->
+                                        <div class="table-responsive">
+                                            <table id="requisitionProductsTable" class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mahsulot</th>
+                                                        <th>Miqdor</th>
+                                                        <th>Birlik</th>
+                                                        <th>Tahminiy narx</th>
+                                                        <th>Summa</th>
+                                                        <th>Prioritet</th>
+                                                        <th>Kerak bo'lgan sana</th>
+                                                        <th>Izoh</th>
+                                                        <th>Amallar</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Rows will be added dynamically -->
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td colspan="4" class="text-right"><strong>Jami:</strong></td>
+                                                        <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
+                                                        <td colspan="3"></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <button type="button" class="btn btn-outline-primary" id="addRowBtn">
+                                                    <i class="bx bx-plus"></i> Mahsulot qo'shish
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="bx bx-save"></i> Saqlash
+                                                </button>
+                                                <a href="@Url.Action("Index", "PRequisitions")" class="btn btn-secondary">
+                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>
 
 @{
     // Prepare data for JavaScript

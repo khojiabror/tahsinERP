@@ -344,6 +344,7 @@
     <Compile Include="Controllers\Logistic\TransportLoadSimulationController.cs" />
     <Compile Include="Controllers\Settings\WarehouseController.cs" />
     <Compile Include="Controllers\SRM\ExpensesController.cs" />
+    <Compile Include="Controllers\SRM\ActionViewPermissionAttribute.cs" />
     <Compile Include="Controllers\SRM\HSCodeController.cs" />
     <Compile Include="Controllers\AdminSetting\LogHelper.cs" />
     <Compile Include="Controllers\AdminSetting\NetworkHelper.cs" />
@@ -841,6 +842,13 @@
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\VatMath.cs" />
     <Compile Include="Services\Procurement\ProcurementLookups.cs" />
+    <Compile Include="Services\Procurement\ServerTablePage.cs" />
+    <Compile Include="Services\Procurement\POrderService.cs" />
+    <Compile Include="ViewModels\PInvoice\PInvoiceFormViewModels.cs" />
+    <Compile Include="Services\Procurement\PInvoiceService.cs" />
+    <Compile Include="ViewModels\PContract\PContractFormViewModels.cs" />
+    <Compile Include="Services\Procurement\ProcurementErrors.cs" />
+    <Compile Include="Services\Procurement\PContractService.cs" />
     <Compile Include="Services\Procurement\PdfUpload.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
@@ -2723,6 +2731,7 @@
     </Content>
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
+    <Content Include="Scripts\app\contract-picker.js" />
     <Content Include="Scripts\app\indexed-rows.js" />
     <Content Include="Scripts\crm\contract-products.js" />
     <Content Include="Scripts\crm\crm-dashboard.js" />
