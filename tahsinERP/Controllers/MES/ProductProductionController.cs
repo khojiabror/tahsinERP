@@ -11,30 +11,37 @@ using tahsinERP.Controllers;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Helpers;
+using tahsinERP.Filters;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers.MES
 {
-    public class ProductProductionController : Controller
+    [Permission]
+    public class ProductProductionController : BaseController
     {
+        private const string LockedMessageEdit = "Bu ishlab chiqarish sifat nazorati yoki lot o'tkazmasi (sotuvga transfer) bilan bog'langan. O'zgartirish mumkin emas.";
+        private const string LockedMessageDelete = "Bu ishlab chiqarish sifat nazorati yoki lot o'tkazmasi (sotuvga transfer) bilan bog'langan. O'chirish mumkin emas.";
+
         // Olish so'rovi: ProductProduction
         public async Task<ActionResult> Index(DateTime? fromDate, DateTime? toDate, int? shopID, int? productID)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.PRODUCT_PRODUCTION
+                // Parametrsiz ochilganda ham ko'rsatilgan "oxirgi 30 kun" filtri so'rovga qo'llanadi
+                // (avval butun jadval yuklanardi).
+                var effectiveFrom = (fromDate ?? DateTime.Now.AddDays(-30)).Date;
+
+                var query = db.PRODUCT_PRODUCTION.AsNoTracking()
                     .Where(p => p.IsDeleted == false || p.IsDeleted == null)
                     .Include(p => p.PRODUCT)
                     .Include(p => p.SHOP)
-                    .AsQueryable();
-
-                if (fromDate.HasValue)
-                {
-                    query = query.Where(p => p.Date >= fromDate.Value);
-                }
+                    .Where(p => p.Date >= effectiveFrom);
 
                 if (toDate.HasValue)
                 {
-                    query = query.Where(p => p.Date <= toDate.Value);
+                    // Date vaqt qismi bilan saqlanadi — tanlangan kun to'liq kirishi uchun < toDate+1
+                    var toExclusive = toDate.Value.Date.AddDays(1);
+                    query = query.Where(p => p.Date < toExclusive);
                 }
 
                 if (shopID.HasValue)
@@ -52,9 +59,13 @@ namespace tahsinERP.Controllers.MES
                     .ThenBy(p => p.PRODUCT.PNo)
                     .ToListAsync();
 
-                ViewBag.Shops = new SelectList(await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), "ID", "ShopName", shopID);
-                ViewBag.Products = new SelectList(await db.PRODUCTS.Where(p => p.IsDeleted == false && p.IsFinishedGood == true).OrderBy(p => p.PNo).ToListAsync(), "ID", "PNo", productID);
-                ViewBag.FromDate = fromDate ?? DateTime.Now.AddDays(-30);
+                ViewBag.Shops = ReferenceDataCache.SelectList(ReferenceDataCache.Shops, shopID);
+                ViewBag.Products = new SelectList(await db.PRODUCTS.AsNoTracking()
+                    .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
+                    .OrderBy(p => p.PNo)
+                    .Select(p => new { p.ID, p.PNo })
+                    .ToListAsync(), "ID", "PNo", productID);
+                ViewBag.FromDate = effectiveFrom;
                 ViewBag.ToDate = toDate ?? DateTime.Now;
 
                 return View(productions);
@@ -78,8 +89,7 @@ namespace tahsinERP.Controllers.MES
                     LoadPlannedProducts(viewModel, db);
                 }
 
-                ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.Shops = ReferenceDataCache.SelectList(ReferenceDataCache.Shops, viewModel.ShopID);
 
                 return View(viewModel);
             }
@@ -100,12 +110,42 @@ namespace tahsinERP.Controllers.MES
                     {
                         var planDay = viewModel.Date.Date;
                         var factDay = viewModel.ProductionDate.Date;
-                        var allProductionsForShop = db.PRODUCT_PRODUCTION
-                            .Where(p => p.ShopID == viewModel.ShopID)
-                            .ToList();
                         var itemsToProcess = (viewModel.ProductionItems ?? new List<ProductionEntryItem>())
                             .Where(i => i.Total > 0)
                             .ToList();
+
+                        // Faqat kerakli qatorlar: o'chirilmagan, shu sex/mahsulotlar, fakt kuni yoki reja meta kuni.
+                        // Avval sexning butun tarixi (o'chirilganlari ham) yuklanardi — o'chirilgan yashirin yozuvga
+                        // qoldiq qayta yozilishi mumkin edi (MES-B01, P03).
+                        var productIds = itemsToProcess.Select(i => i.ProductID).Distinct().ToList();
+                        var factDayEnd = factDay.AddDays(1);
+                        var planMeta = ProductProductionPlanDateMeta.FormatMeta(planDay);
+                        var candidateProductions = db.PRODUCT_PRODUCTION
+                            .Where(p => p.ShopID == viewModel.ShopID
+                                && (p.IsDeleted == false || p.IsDeleted == null)
+                                && productIds.Contains(p.ProductID)
+                                && ((p.Date >= factDay && p.Date < factDayEnd)
+                                    || (p.Comment != null && p.Comment.Contains(planMeta))))
+                            .ToList();
+                        var existingByProduct = productIds.ToDictionary(
+                            pid => pid,
+                            pid => candidateProductions.FirstOrDefault(p =>
+                                p.ProductID == pid &&
+                                (p.Date.Date == factDay ||
+                                 ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment) == planDay)));
+
+                        // Bog'langan (QI yoki lot o'tkazmasi bor) yozuvni Create orqali ham qayta yozib bo'lmaydi
+                        var lockedProductIds = existingByProduct.Values
+                            .Where(p => p != null && ProductionLockGuard.IsLocked(db, p.ID))
+                            .Select(p => p.ProductID)
+                            .ToList();
+                        if (lockedProductIds.Any())
+                        {
+                            var pnos = db.PRODUCTS.Where(p => lockedProductIds.Contains(p.ID)).Select(p => p.PNo).ToList();
+                            ModelState.AddModelError("", LockedMessageEdit + " Mahsulot(lar): " + string.Join(", ", pnos));
+                            transaction.Rollback();
+                            goto RepopulateAfterCreateError;
+                        }
 
                         if (!itemsToProcess.Any())
                         {
@@ -118,10 +158,7 @@ namespace tahsinERP.Controllers.MES
                         // reja yaratishda emas. Avval tekshirib olamiz, keyin yozishlarni boshlaymiz.
                         foreach (var item in itemsToProcess)
                         {
-                            var existingForCheck = allProductionsForShop.FirstOrDefault(p =>
-                                p.ProductID == item.ProductID &&
-                                (p.Date.Date == factDay ||
-                                 ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment)?.Date == planDay));
+                            var existingForCheck = existingByProduct[item.ProductID];
 
                             var stockError = await ValidateRawMaterialStockForProductionAsync(
                                 item.ProductID,
@@ -143,10 +180,7 @@ namespace tahsinERP.Controllers.MES
                         {
                             var productForLog = db.PRODUCTS.Find(item.ProductID);
                             // Bir xil reja kuni + mahsulot bo'yicha yangilash (fakt sanasi boshqacha bo'lishi mumkin)
-                            var existing = allProductionsForShop.FirstOrDefault(p =>
-                                p.ProductID == item.ProductID &&
-                                (p.Date.Date == factDay ||
-                                 ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment)?.Date == planDay));
+                            var existing = existingByProduct[item.ProductID];
 
                             // Mavjud yozuvni to'liq bekor qilib, joriy to'liq miqdor bo'yicha qayta yozamiz
                             // (delta o'rniga). Shunday qilib avtomatik kirim/chiqim doim
@@ -221,15 +255,7 @@ namespace tahsinERP.Controllers.MES
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        var errorMessage = ex is WarehouseDlocException dlocEx
-                            ? dlocEx.Message
-                            : $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
+                        var errorMessage = BuildErrorMessage(ex);
                         ModelState.AddModelError("", errorMessage);
                         TempData["Error"] = errorMessage;
                     }
@@ -239,8 +265,7 @@ namespace tahsinERP.Controllers.MES
                     if (!ModelState.IsValid || ModelState.Values.SelectMany(v => v.Errors).Any())
                     {
                         LoadPlannedProducts(viewModel, db);
-                        ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                        ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                        ViewBag.Shops = ReferenceDataCache.SelectList(ReferenceDataCache.Shops, viewModel.ShopID);
                         return View(viewModel);
                     }
                 }
@@ -253,8 +278,7 @@ namespace tahsinERP.Controllers.MES
                 {
                     LoadPlannedProducts(viewModel, db);
                 }
-                ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo");
+                ViewBag.Shops = ReferenceDataCache.SelectList(ReferenceDataCache.Shops, viewModel.ShopID);
             }
 
             return View(viewModel);
@@ -273,21 +297,16 @@ namespace tahsinERP.Controllers.MES
                 var production = db.PRODUCT_PRODUCTION
                     .Include(p => p.PRODUCT)
                     .Include(p => p.SHOP)
-                    .FirstOrDefault(p => p.ID == id);
+                    .FirstOrDefault(p => p.ID == id && (p.IsDeleted == false || p.IsDeleted == null));
 
                 if (production == null)
                 {
                     return HttpNotFound();
                 }
 
-                // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
-                var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == id && q.IsDeleted == false);
-                var hasSalesInvoice = db.SALES_INVOICE_LINES
-                    .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == id && p.ProductID == l.ProductID));
-
-                if (hasQualityInspection || hasSalesInvoice)
+                if (ProductionLockGuard.IsLocked(db, production.ID))
                 {
-                    TempData["ErrorMessage"] = "Bu ishlab chiqarish sifat nazorati yoki sotuv fakturasi bilan bog'langan. O'zgartirish mumkin emas.";
+                    TempData["ErrorMessage"] = LockedMessageEdit;
                     return RedirectToAction("Index");
                 }
 
@@ -305,8 +324,7 @@ namespace tahsinERP.Controllers.MES
                     Shop = production.SHOP
                 };
 
-                ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+                PopulateEditLookups(db, viewModel);
 
                 return View(viewModel);
             }
@@ -322,21 +340,15 @@ namespace tahsinERP.Controllers.MES
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     var production = db.PRODUCT_PRODUCTION.Find(viewModel.ID);
-                    if (production == null)
+                    if (production == null || production.IsDeleted == true)
                     {
                         return HttpNotFound();
                     }
 
-                    // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
-                    var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == viewModel.ID && q.IsDeleted == false);
-                    var hasSalesInvoice = db.SALES_INVOICE_LINES
-                        .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == viewModel.ID && p.ProductID == l.ProductID));
-
-                    if (hasQualityInspection || hasSalesInvoice)
+                    if (ProductionLockGuard.IsLocked(db, production.ID))
                     {
-                        ModelState.AddModelError("", "Bu ishlab chiqarish sifat nazorati yoki sotuv fakturasi bilan bog'langan. O'zgartirish mumkin emas.");
-                        ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                        ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+                        ModelState.AddModelError("", LockedMessageEdit);
+                        PopulateEditLookups(db, viewModel);
                         return View(viewModel);
                     }
 
@@ -352,8 +364,7 @@ namespace tahsinERP.Controllers.MES
                     if (!string.IsNullOrEmpty(stockError))
                     {
                         ModelState.AddModelError("", stockError);
-                        ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                        ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+                        PopulateEditLookups(db, viewModel);
                         return View(viewModel);
                     }
 
@@ -401,18 +412,8 @@ namespace tahsinERP.Controllers.MES
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            var errorMessage = ex is WarehouseDlocException dlocEx
-                                ? dlocEx.Message
-                                : $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
-                            ModelState.AddModelError("", errorMessage);
-                            ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                            ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+                            ModelState.AddModelError("", BuildErrorMessage(ex));
+                            PopulateEditLookups(db, viewModel);
                             return View(viewModel);
                         }
                     }
@@ -426,8 +427,7 @@ namespace tahsinERP.Controllers.MES
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.Shops = new SelectList(db.SHOPS.Where(s => s.IsDeleted == false).ToList(), "ID", "ShopName", viewModel.ShopID);
-                ViewBag.Products = new SelectList(db.PRODUCTS.Where(p => p.IsDeleted == false).ToList(), "ID", "PNo", viewModel.ProductID);
+                PopulateEditLookups(db, viewModel);
             }
 
             return View(viewModel);
@@ -530,7 +530,12 @@ namespace tahsinERP.Controllers.MES
                 // BOM/Norm bo'yicha sarf hisoblash va narx qo'shish
                 var consumptionService = new ProductionConsumptionService(db);
                 var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(production.ProductID, production.Total);
-                var displayUnitIds = requirements.Select(r => consumptionService.GetDisplayUnitFromIncome(r.MaterialID)).Where(u => u.HasValue).Select(u => u.Value).Distinct().ToList();
+                // Har material uchun ko'rsatish birligi bir marta olinadi (avval ikki marta so'ralardi, MES-P10)
+                var displayUnitByMaterial = requirements
+                    .Select(r => r.MaterialID)
+                    .Distinct()
+                    .ToDictionary(mid => mid, mid => consumptionService.GetDisplayUnitFromIncome(mid));
+                var displayUnitIds = displayUnitByMaterial.Values.Where(u => u.HasValue).Select(u => u.Value).Distinct().ToList();
                 var units = displayUnitIds.Any() 
                     ? await db.UNITS.Where(u => displayUnitIds.Contains(u.ID)).ToDictionaryAsync(u => u.ID, u => u.ShortName ?? u.UnitName ?? "-")
                     : new Dictionary<int, string>();
@@ -543,7 +548,7 @@ namespace tahsinERP.Controllers.MES
                         piecePrice = materialPrices[req.MaterialID].Item1;
                         totalPrice = materialPrices[req.MaterialID].Item2;
                     }
-                    var displayUnitId = consumptionService.GetDisplayUnitFromIncome(req.MaterialID);
+                    var displayUnitId = displayUnitByMaterial[req.MaterialID];
                     var unitName = displayUnitId.HasValue && units.ContainsKey(displayUnitId.Value) ? units[displayUnitId.Value] : "-";
                     viewModel.BomConsumptionLines.Add(new BomConsumptionLineViewModel
                     {
@@ -579,6 +584,9 @@ namespace tahsinERP.Controllers.MES
                     });
                 }
 
+                ViewBag.ChangePermit = RoleHelper.IsChangePermitted(CurrentUserName, "ProductProduction", "Index")
+                    && !ProductionLockGuard.IsLocked(db, production.ID);
+
                 return View(viewModel);
             }
             }
@@ -590,78 +598,54 @@ namespace tahsinERP.Controllers.MES
             }
         }
 
-        // Olish so'rovi: ProductProduction/o'chirish/5
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var production = db.PRODUCT_PRODUCTION
-                    .Include(p => p.PRODUCT)
-                    .Include(p => p.SHOP)
-                    .FirstOrDefault(p => p.ID == id);
-
-                if (production == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
-                var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == id && q.IsDeleted == false);
-                var hasSalesInvoice = db.SALES_INVOICE_LINES
-                    .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == id && p.ProductID == l.ProductID));
-
-                if (hasQualityInspection || hasSalesInvoice)
-                {
-                    TempData["ErrorMessage"] = "Bu ishlab chiqarish sifat nazorati yoki sotuv fakturasi bilan bog'langan. O'chirish mumkin emas.";
-                    return RedirectToAction("Index");
-                }
-
-                return View(production);
-            }
-        }
-
-        // POST so'rovi: ProductProduction/o'chirish/5
-        [HttpPost, ActionName("Delete")]
+        // POST so'rovi: ProductProduction/Delete/5
+        // GET tasdiqlash sahifasi (Delete.cshtml) mavjud emas edi — o'chirish faqat POST tugma orqali (MES-B04).
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmed(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var production = db.PRODUCT_PRODUCTION.Find(id);
-                if (production == null)
+                if (production == null || production.IsDeleted == true)
                 {
                     return HttpNotFound();
                 }
 
-                // Tekshirish agar production is tied ga Quality Inspection yoki Sales Invoice
-                var hasQualityInspection = db.QUALITY_INSPECTION.Any(q => q.ProductionID == id && q.IsDeleted == false);
-                var hasSalesInvoice = db.SALES_INVOICE_LINES
-                    .Any(l => db.PRODUCT_PRODUCTION.Any(p => p.ID == id && p.ProductID == l.ProductID));
-
-                if (hasQualityInspection || hasSalesInvoice)
+                if (ProductionLockGuard.IsLocked(db, id))
                 {
-                    TempData["ErrorMessage"] = "Bu ishlab chiqarish sifat nazorati yoki sotuv fakturasi bilan bog'langan. O'chirish mumkin emas.";
+                    TempData["ErrorMessage"] = LockedMessageDelete;
                     return RedirectToAction("Index");
                 }
 
-                var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
-                if (productionWH != null)
+                // Kirim/chiqimni bekor qilish va soft delete bitta tranzaksiyada (MES-B02):
+                // o'rtada xato bo'lsa qoldiq yarim-bekor holatda qolmaydi.
+                using (var transaction = db.Database.BeginTransaction())
                 {
-                    // Tayyor mahsulot kirimini (kirim hujjati + DLOC lot + qoldiq) to'liq bekor qilamiz.
-                    WarehouseFlowService.ReverseProductionIncome(
-                        db, production.ID, production.ProductID, productionWH.ID, User.Identity.Name);
-                }
-                await ReverseProductionConsumption(production.ID, db);
+                    try
+                    {
+                        var productionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
+                        if (productionWH != null)
+                        {
+                            // Tayyor mahsulot kirimini (kirim hujjati + DLOC lot + qoldiq) to'liq bekor qilamiz.
+                            WarehouseFlowService.ReverseProductionIncome(
+                                db, production.ID, production.ProductID, productionWH.ID, User.Identity.Name);
+                        }
+                        await ReverseProductionConsumption(production.ID, db);
 
-                production.IsDeleted = true;
-                db.Entry(production).State = System.Data.Entity.EntityState.Modified;
-                await SoftDeleteReferenceService.AfterProductProductionSoftDeletedAsync(db, id);
-                db.SaveChanges();
+                        production.IsDeleted = true;
+                        db.Entry(production).State = EntityState.Modified;
+                        await SoftDeleteReferenceService.AfterProductProductionSoftDeletedAsync(db, id);
+                        db.SaveChanges();
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        TempData["ErrorMessage"] = BuildErrorMessage(ex);
+                        return RedirectToAction("Index");
+                    }
+                }
 
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", $"Ishlab chiqarish o'chirildi: ID {id}");
 
@@ -776,6 +760,8 @@ namespace tahsinERP.Controllers.MES
         /// tayyor mahsulot kirimi tegilmaydi). Har bir yozuv alohida tranzaksiyada, xatolar
         /// yig'ib hisobot beriladi.
         /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> ReconcileProductionConsumption()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
@@ -887,95 +873,35 @@ namespace tahsinERP.Controllers.MES
 
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    var dateOnly = date.Value.Date;
-                    
-                    // Olish products uchun this shop dan production plans
-                    // Yuklash ma'lumot birinchi, so'ng filtrlash in memory ga avoid LINQ ga Entities Date issues
-                    var allDailyPlans = db.PRODUCTPLANS_DAILY
-                        .Include(d => d.PRODUCTPLAN)
-                        .Include(d => d.PRODUCTPLAN.PRODUCT)
-                        .Where(d => d.PRODUCTPLAN.IsDeleted == false)
-                        .ToList();
-
-                    var dailyPlans = allDailyPlans
-                        .Where(d => d.Day.Date == dateOnly 
-                            && d.PRODUCTPLAN.PRODUCT.ShopID == shopID.Value)
-                        .Select(d => new ProductionEntryItem
-                        {
-                            ProductID = d.PRODUCTPLAN.ProductID,
-                            ProductNo = d.PRODUCTPLAN.PRODUCT.PNo,
-                            ProductName = d.PRODUCTPLAN.PRODUCT.Name,
-                            PlannedDayShift = d.DayShift,
-                            PlannedNightShift = d.NightShift,
-                            PlannedTotal = d.Total,
-                            IsPlanned = true
-                        })
-                        .ToList();
-
-                    // Also get existing production entries
-                    var allProductions = db.PRODUCT_PRODUCTION
-                        .Include(p => p.PRODUCT)
-                        .Where(p => p.ShopID == shopID.Value)
-                        .ToList();
-
-                    var existingProductions = allProductions
-                        .Where(p => ProductProductionPlanDateMeta.MatchesCalendarDay(p, dateOnly))
-                        .ToList();
-
-                    foreach (var existing in existingProductions)
-                    {
-                        var item = dailyPlans.FirstOrDefault(d => d.ProductID == existing.ProductID);
-                        if (item != null)
-                        {
-                            item.ID = existing.ID;
-                            item.DayShift = existing.DayShift;
-                            item.NightShift = existing.NightShift;
-                            item.Total = existing.Total;
-                            item.Comment = existing.Comment;
-                        }
-                        else
-                        {
-                            // Unplanned production
-                            dailyPlans.Add(new ProductionEntryItem
-                            {
-                                ID = existing.ID,
-                                ProductID = existing.ProductID,
-                                ProductNo = existing.PRODUCT.PNo,
-                                ProductName = existing.PRODUCT.Name,
-                                DayShift = existing.DayShift,
-                                NightShift = existing.NightShift,
-                                Total = existing.Total,
-                                Comment = existing.Comment,
-                                IsPlanned = false
-                            });
-                        }
-                    }
-
-                    return Json(dailyPlans, JsonRequestBehavior.AllowGet);
+                    return Json(BuildPlannedProducts(db, date.Value, shopID.Value), JsonRequestBehavior.AllowGet);
                 }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"Xatolik: {ex.Message}" }, JsonRequestBehavior.AllowGet);
+                return JsonError(ex);
             }
         }
 
         // yordamchi method ga yuklash planned products
-        private void LoadPlannedProducts(ProductProductionDailyEntryViewModel viewModel, DBTHSNEntities db)
+        private static void LoadPlannedProducts(ProductProductionDailyEntryViewModel viewModel, DBTHSNEntities db)
         {
-            var dateOnly = viewModel.Date.Date;
-            
-            // Olish products uchun this shop dan production plans
-            // Yuklash ma'lumot birinchi, so'ng filtrlash in memory ga avoid LINQ ga Entities Date issues
-            var allDailyPlans = db.PRODUCTPLANS_DAILY
-                .Include(d => d.PRODUCTPLAN)
-                .Include(d => d.PRODUCTPLAN.PRODUCT)
-                .Where(d => d.PRODUCTPLAN.IsDeleted == false)
-                .ToList();
+            viewModel.ProductionItems = BuildPlannedProducts(db, viewModel.Date, viewModel.ShopID);
+        }
 
-            var dailyPlans = allDailyPlans
-                .Where(d => d.Day.Date == dateOnly 
-                    && d.PRODUCTPLAN.PRODUCT.ShopID == viewModel.ShopID)
+        /// <summary>
+        /// Kun + sex bo'yicha rejalashtirilgan mahsulotlar va shu kunga tegishli mavjud ishlab chiqarishlar.
+        /// Avval butun PRODUCTPLANS_DAILY va sexning butun PRODUCT_PRODUCTION tarixi (o'chirilganlari ham)
+        /// xotiraga yuklanib filtrlanardi (MES-P02/P03, B01) — endi filtr SQL'da.
+        /// </summary>
+        private static List<ProductionEntryItem> BuildPlannedProducts(DBTHSNEntities db, DateTime date, int shopId)
+        {
+            var dateOnly = date.Date;
+            var nextDay = dateOnly.AddDays(1);
+
+            var dailyPlans = db.PRODUCTPLANS_DAILY.AsNoTracking()
+                .Where(d => d.Day >= dateOnly && d.Day < nextDay
+                    && d.PRODUCTPLAN.IsDeleted == false
+                    && d.PRODUCTPLAN.PRODUCT.ShopID == shopId)
                 .Select(d => new ProductionEntryItem
                 {
                     ProductID = d.PRODUCTPLAN.ProductID,
@@ -988,14 +914,26 @@ namespace tahsinERP.Controllers.MES
                 })
                 .ToList();
 
-            // Also get existing production entries
-            var allProductions = db.PRODUCT_PRODUCTION
-                .Include(p => p.PRODUCT)
-                .Where(p => p.ShopID == viewModel.ShopID)
-                .ToList();
-
-            var existingProductions = allProductions
-                .Where(p => ProductProductionPlanDateMeta.MatchesCalendarDay(p, dateOnly))
+            var planMeta = ProductProductionPlanDateMeta.FormatMeta(dateOnly);
+            var existingProductions = db.PRODUCT_PRODUCTION.AsNoTracking()
+                .Where(p => p.ShopID == shopId
+                    && (p.IsDeleted == false || p.IsDeleted == null)
+                    && ((p.Date >= dateOnly && p.Date < nextDay)
+                        || (p.Comment != null && p.Comment.Contains(planMeta))))
+                .Select(p => new
+                {
+                    p.ID,
+                    p.ProductID,
+                    p.Date,
+                    p.DayShift,
+                    p.NightShift,
+                    p.Total,
+                    p.Comment,
+                    p.PRODUCT.PNo,
+                    p.PRODUCT.Name
+                })
+                .ToList()
+                .Where(p => p.Date.Date == dateOnly || ProductProductionPlanDateMeta.TryParsePlanDate(p.Comment) == dateOnly)
                 .ToList();
 
             foreach (var existing in existingProductions)
@@ -1011,12 +949,13 @@ namespace tahsinERP.Controllers.MES
                 }
                 else
                 {
+                    // Rejadan tashqari ishlab chiqarish
                     dailyPlans.Add(new ProductionEntryItem
                     {
                         ID = existing.ID,
                         ProductID = existing.ProductID,
-                        ProductNo = existing.PRODUCT.PNo,
-                        ProductName = existing.PRODUCT.Name,
+                        ProductNo = existing.PNo,
+                        ProductName = existing.Name,
                         DayShift = existing.DayShift,
                         NightShift = existing.NightShift,
                         Total = existing.Total,
@@ -1026,9 +965,28 @@ namespace tahsinERP.Controllers.MES
                 }
             }
 
-            viewModel.ProductionItems = dailyPlans;
+            return dailyPlans;
         }
 
+        private void PopulateEditLookups(DBTHSNEntities db, ProductProductionViewModel viewModel)
+        {
+            ViewBag.Shops = ReferenceDataCache.SelectList(ReferenceDataCache.Shops, viewModel.ShopID);
+            ViewBag.Products = new SelectList(db.PRODUCTS.AsNoTracking()
+                .Where(p => p.IsDeleted == false)
+                .OrderBy(p => p.PNo)
+                .Select(p => new { p.ID, p.PNo })
+                .ToList(), "ID", "PNo", viewModel.ProductID);
+        }
+
+        private static string BuildErrorMessage(Exception ex)
+        {
+            if (ex is WarehouseDlocException)
+                return ex.Message;
+            var errorMessage = $"Xatolik: {ex.Message}";
+            for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
+                errorMessage += $" | Ichki xatolik: {inner.Message}";
+            return errorMessage;
+        }
     }
 }
 

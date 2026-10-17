@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -82,8 +82,9 @@ namespace tahsinERP.Controllers.MES
 
                 var effectiveStart = new[] { startDate, secondaryStart, chartStartDate }.Min();
                 var effectiveEnd = new[] { endDate, secondaryEnd, chartEndDate }.Max();
-                var loadStart = effectiveStart.AddMonths(-6);
-                var loadEnd = effectiveEnd.AddMonths(6);
+                // Avval ±6 oy oynasi yuklanardi. Bu kerak emas: sanasi davrdan tashqaridagi, lekin davr ichidagi
+                // reja kuniga bog'langan ishlab chiqarishlar linkedProductionIds orqali baribir olinadi.
+                var loadEndExclusive = effectiveEnd.Date.AddDays(1);
 
                 var linkedProductionIds = await (
                     from qi in db.QUALITY_INSPECTION
@@ -95,11 +96,18 @@ namespace tahsinERP.Controllers.MES
                     select qi.ProductionID.Value
                 ).Distinct().ToListAsync();
 
-                var productionCandidates = await db.PRODUCT_PRODUCTION
-                    .Include(p => p.SHOP)
+                var productionCandidates = await db.PRODUCT_PRODUCTION.AsNoTracking()
                     .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
-                        && ((p.Date >= loadStart && p.Date <= loadEnd)
+                        && ((p.Date >= effectiveStart && p.Date < loadEndExclusive)
                             || linkedProductionIds.Contains(p.ID)))
+                    .Select(p => new ProductionFact
+                    {
+                        ID = p.ID,
+                        ShopID = p.ShopID,
+                        ShopName = p.SHOP.ShopName,
+                        Date = p.Date,
+                        Total = p.Total
+                    })
                     .ToListAsync();
 
                 var attributionDateByProductionId = await BuildAttributionDateMapAsync(
@@ -144,8 +152,9 @@ namespace tahsinERP.Controllers.MES
                 viewModel.MonthPlanVsActualPercent = secondaryPlanned > 0 ? (secondaryActual / secondaryPlanned) * 100 : 0;
 
                 // Daily Plan vs Actual Chart (selected period)
-                var dailyPlans = await db.PRODUCTPLANS_DAILY
+                var dailyPlans = await db.PRODUCTPLANS_DAILY.AsNoTracking()
                     .Where(d => d.Day >= chartStartDate && d.Day <= chartEndDate && d.PRODUCTPLAN.IsDeleted == false)
+                    .Select(d => new { d.Day, d.Total })
                     .ToListAsync();
 
                 var dailyActuals = productionCandidates
@@ -203,7 +212,7 @@ namespace tahsinERP.Controllers.MES
                         }
                         return attributedDate >= startDate.Date && attributedDate <= endDate.Date;
                     })
-                    .GroupBy(p => new { p.ShopID, ShopName = p.SHOP != null ? p.SHOP.ShopName : null })
+                    .GroupBy(p => new { p.ShopID, p.ShopName })
                     .Select(g => new { g.Key.ShopID, g.Key.ShopName, Total = g.Sum(p => p.Total) })
                     .ToList();
 
@@ -215,9 +224,18 @@ namespace tahsinERP.Controllers.MES
                 }).ToList();
 
                 // Quality Summary
-                var qualityInspections = await db.QUALITY_INSPECTION
-                    .Include(q => q.DEFECT_TYPES)
-                    .Where(q => q.IsDeleted == false && q.InspectionDate >= startDate && q.InspectionDate <= endDate)
+                // endDate — kun boshi (00:00); oxirgi kun tekshiruvlari ham kirishi uchun < endDate+1
+                var qualityEndExclusive = endDate.Date.AddDays(1);
+                var qualityInspections = await db.QUALITY_INSPECTION.AsNoTracking()
+                    .Where(q => q.IsDeleted == false && q.InspectionDate >= startDate && q.InspectionDate < qualityEndExclusive)
+                    .Select(q => new
+                    {
+                        q.StatusCode,
+                        q.QtyAccepted,
+                        q.QtyRejected,
+                        q.DefectTypeID,
+                        DefectName = q.DEFECT_TYPES.DefectType
+                    })
                     .ToListAsync();
 
                 viewModel.TotalInspections = qualityInspections.Count;
@@ -237,7 +255,7 @@ namespace tahsinERP.Controllers.MES
                     .GroupBy(q => new
                     {
                         q.DefectTypeID,
-                        DefectName = (q.DEFECT_TYPES != null ? q.DEFECT_TYPES.DefectType : null)
+                        q.DefectName
                     })
                     .Select(g => new TopDefectData
                     {
@@ -251,70 +269,97 @@ namespace tahsinERP.Controllers.MES
                     .Take(3)
                     .ToList();
 
-                // Order Bottlenecks (remaining qty ga fulfill)
-                var orders = await db.S_ORDERS
-                    .Include(o => o.S_ORDER_PRODUCTS)
-                    .Where(o => o.IsDeleted == false)
+                // Order Bottlenecks (remaining qty ga fulfill).
+                // Avval har buyurtma qatoriga 4 ta so'rov ketardi (N+1); endi 4 ta guruhlangan so'rov.
+                var orderLines = await db.S_ORDER_PRODUCTS.AsNoTracking()
+                    .Where(op => op.S_ORDERS.IsDeleted == false)
+                    .Select(op => new
+                    {
+                        op.OrderID,
+                        op.S_ORDERS.OrderNo,
+                        op.ProductID,
+                        PNo = op.PRODUCT.PNo,
+                        op.Amount
+                    })
                     .ToListAsync();
+
+                var invoicedByOrderProduct = (await db.SALES_INVOICE_LINES.AsNoTracking()
+                        .Where(l => l.SALES_INVOICES.OrderID.HasValue)
+                        .GroupBy(l => new { OrderID = l.SALES_INVOICES.OrderID.Value, l.ProductID })
+                        .Select(g => new { g.Key.OrderID, g.Key.ProductID, Qty = g.Sum(x => x.Qty) })
+                        .ToListAsync())
+                    .ToDictionary(x => Tuple.Create(x.OrderID, x.ProductID), x => (double)x.Qty);
+
+                var openLines = orderLines
+                    .Select(l =>
+                    {
+                        double invoiced;
+                        invoicedByOrderProduct.TryGetValue(Tuple.Create(l.OrderID, l.ProductID), out invoiced);
+                        return new { Line = l, InvoicedQty = invoiced, RemainingQty = l.Amount - invoiced };
+                    })
+                    .Where(x => x.RemainingQty > 0)
+                    .ToList();
+
+                var openProductIds = openLines.Select(x => x.Line.ProductID).Distinct().ToList();
+
+                var producedByProduct = openProductIds.Count == 0
+                    ? new Dictionary<int, double>()
+                    : (await db.PRODUCT_PRODUCTION.AsNoTracking()
+                            .Where(p => openProductIds.Contains(p.ProductID) && (p.IsDeleted == false || p.IsDeleted == null))
+                            .GroupBy(p => p.ProductID)
+                            .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Total) })
+                            .ToListAsync())
+                        .ToDictionary(x => x.ProductID, x => x.Qty);
+
+                var inspectedByProduct = openProductIds.Count == 0
+                    ? new Dictionary<int, double>()
+                    : (await db.QUALITY_INSPECTION.AsNoTracking()
+                            .Where(q => openProductIds.Contains(q.ProductID) && q.StatusCode == "APPROVED" && q.IsDeleted == false)
+                            .GroupBy(q => q.ProductID)
+                            .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.QtyAccepted) })
+                            .ToListAsync())
+                        .ToDictionary(x => x.ProductID, x => (double)x.Qty);
 
                 var bottlenecks = new List<OrderBottleneck>();
 
-                foreach (var order in orders)
+                foreach (var item in openLines)
                 {
-                    foreach (var orderProduct in order.S_ORDER_PRODUCTS)
+                    var line = item.Line;
+                    double producedQty;
+                    producedByProduct.TryGetValue(line.ProductID, out producedQty);
+                    double inspectedQty;
+                    inspectedByProduct.TryGetValue(line.ProductID, out inspectedQty);
+                    var remainingQty = item.RemainingQty;
+
+                    var needToProduce = Math.Max(0, remainingQty - producedQty);
+                    var needToInspect = Math.Max(0, remainingQty - inspectedQty);
+                    string note;
+                    if (needToProduce > 0)
                     {
-                        var producedQty = await db.PRODUCT_PRODUCTION
-                            .Where(p => p.ProductID == orderProduct.ProductID
-                                && (p.IsDeleted == false || p.IsDeleted == null))
-                            .SumAsync(p => (double?)p.Total) ?? 0;
-
-                        var inspectedQty = await db.QUALITY_INSPECTION
-                            .Where(q => q.ProductID == orderProduct.ProductID 
-                                && q.StatusCode == "APPROVED" 
-                                && q.IsDeleted == false)
-                            .SumAsync(q => (double?)q.QtyAccepted) ?? 0;
-
-                        var invoicedQty = await db.SALES_INVOICE_LINES
-                            .Where(l => l.ProductID == orderProduct.ProductID 
-                                && l.SALES_INVOICES.OrderID == order.ID)
-                            .SumAsync(l => (double?)l.Qty) ?? 0;
-
-                        var remainingQty = (double)orderProduct.Amount - invoicedQty;
-
-                        if (remainingQty > 0)
-                        {
-                            var product = await db.PRODUCTS.FindAsync(orderProduct.ProductID);
-                            var needToProduce = Math.Max(0, remainingQty - producedQty);
-                            var needToInspect = Math.Max(0, remainingQty - inspectedQty);
-                            string note;
-                            if (needToProduce > 0)
-                            {
-                                note = $"Ishlab chiqarish kerak: {needToProduce:N3}";
-                            }
-                            else if (needToInspect > 0)
-                            {
-                                note = $"Sifat nazoratdan o'tkazish kerak: {needToInspect:N3}";
-                            }
-                            else
-                            {
-                                note = $"Sotuv hujjatini qilish / jo'natish mumkin: {remainingQty:N3}";
-                            }
-
-                            bottlenecks.Add(new OrderBottleneck
-                            {
-                                OrderID = order.ID,
-                                OrderNo = order.OrderNo,
-                                ProductID = orderProduct.ProductID,
-                                ProductNo = product?.PNo ?? "",
-                                OrderedQty = (double)orderProduct.Amount,
-                                ProducedQty = producedQty,
-                                InspectedQty = inspectedQty,
-                                InvoicedQty = invoicedQty,
-                                RemainingQty = remainingQty,
-                                Note = note
-                            });
-                        }
+                        note = $"Ishlab chiqarish kerak: {needToProduce:N3}";
                     }
+                    else if (needToInspect > 0)
+                    {
+                        note = $"Sifat nazoratdan o'tkazish kerak: {needToInspect:N3}";
+                    }
+                    else
+                    {
+                        note = $"Sotuv hujjatini qilish / jo'natish mumkin: {remainingQty:N3}";
+                    }
+
+                    bottlenecks.Add(new OrderBottleneck
+                    {
+                        OrderID = line.OrderID,
+                        OrderNo = line.OrderNo,
+                        ProductID = line.ProductID,
+                        ProductNo = line.PNo ?? "",
+                        OrderedQty = line.Amount,
+                        ProducedQty = producedQty,
+                        InspectedQty = inspectedQty,
+                        InvoicedQty = item.InvoicedQty,
+                        RemainingQty = remainingQty,
+                        Note = note
+                    });
                 }
 
                 viewModel.OrderBottlenecks = bottlenecks
@@ -332,6 +377,15 @@ namespace tahsinERP.Controllers.MES
 
                 return View(viewModel);
             }
+        }
+
+        private sealed class ProductionFact
+        {
+            public int ID { get; set; }
+            public int ShopID { get; set; }
+            public string ShopName { get; set; }
+            public DateTime Date { get; set; }
+            public double Total { get; set; }
         }
 
         private static async Task<Dictionary<int, DateTime>> BuildAttributionDateMapAsync(DBTHSNEntities db, List<int> productionIds)
