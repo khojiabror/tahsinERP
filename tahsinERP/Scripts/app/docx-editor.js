@@ -52,10 +52,10 @@
             if (source === 'user') changed = true;
         });
 
+        // Quill 1.3: convert() HTML satrini oladi (DOM element berilsa bo'sh natija qaytaradi —
+        // eski STD/JobDesc skriptlarida shu sababli Word/shablon muharrirga tushmasdi)
         function setHtml(html) {
-            var div = document.createElement('div');
-            div.innerHTML = html;
-            quill.setContents(quill.clipboard.convert(div), 'silent');
+            quill.setContents(quill.clipboard.convert(html || ''), 'silent');
         }
 
         function loadArrayBuffer(buffer, markChanged) {
