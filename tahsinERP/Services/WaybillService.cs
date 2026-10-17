@@ -103,11 +103,14 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Yo'l varaqasida TariffID ustuni yo'q (sxema taklifi: Database_Migrations/Proposal_Logistics_Schema.sql),
-        /// shuning uchun shartnoma + transport turi bo'yicha eng so'nggi faol tarif taxmin qilinadi.
+        /// LOG-B05: yo'l varaqasida saqlangan tarif (F_WAYBILLS.TariffID, Logistics_2026_10_B05_WaybillTariffID.sql).
+        /// Ustun bo'sh bo'lgan eski yozuvlar uchun — shartnoma + transport turi bo'yicha eng so'nggi faol tarif.
         /// </summary>
-        public static int? GuessTariffId(DBTHSNEntities db, F_WAYBILLS waybill)
+        public static int? ResolveTariffId(DBTHSNEntities db, F_WAYBILLS waybill)
         {
+            if (waybill.TariffID.HasValue)
+                return waybill.TariffID;
+
             return db.F_CONTRACT_TARIFFS
                 .Where(t => t.ContractID == waybill.ContractID && t.TransportTypeID == waybill.TransportTypeID && t.IsActive)
                 .OrderByDescending(t => t.CreatedDT)
@@ -169,6 +172,7 @@ namespace tahsinERP.Services
             waybill.ForwarderID = viewModel.ForwarderID ?? contractForwarder;
             waybill.ContractID = viewModel.ContractID;
             waybill.TransportTypeID = viewModel.TransportTypeID;
+            waybill.TariffID = viewModel.TariffID;
             waybill.FromLocation = viewModel.FromLocation;
             waybill.ToLocation = viewModel.ToLocation;
             waybill.DistanceKm = viewModel.DistanceKm;

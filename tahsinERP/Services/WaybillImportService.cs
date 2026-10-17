@@ -312,6 +312,7 @@ namespace tahsinERP.Services
                 if (mismatches.Count > 0 && !hasReason)
                     return $"tarif #{tariff.ID} dan farq qiladi: {string.Join(", ", mismatches)} — ManualCorrectionReason kiriting.";
 
+                waybill.TariffID = tariff.ID;
                 waybill.FreightBasis = waybill.FreightBasis ?? tariff.FreightBasis;
                 waybill.Rate = waybill.Rate ?? tariff.Rate;
                 waybill.CurrencyID = waybill.CurrencyID ?? tariff.CurrencyID;
