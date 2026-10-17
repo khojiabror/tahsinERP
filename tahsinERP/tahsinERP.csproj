@@ -586,6 +586,7 @@
     <Compile Include="Controllers\TasksController.cs" />
     <Compile Include="Controllers\TaskSettings\TaskPriorityController.cs" />
     <Compile Include="Controllers\TaskSettings\TaskProjectController.cs" />
+    <Compile Include="Controllers\TaskSettings\TaskRefDataController.cs" />
     <Compile Include="Controllers\TaskSettings\TaskStatusController.cs" />
     <Compile Include="Models\ADM_COMPANY_ORDERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
@@ -1047,6 +1048,7 @@
     <Compile Include="Services\Documents\DocumentService.cs" />
     <Compile Include="Services\Tasks\TaskBadges.cs" />
     <Compile Include="Services\Tasks\TaskLookups.cs" />
+    <Compile Include="Services\Tasks\TaskRefEntity.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
     <Compile Include="Services\HrTimesheetSettingsService.cs" />
