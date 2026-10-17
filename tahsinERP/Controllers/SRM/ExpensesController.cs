@@ -435,8 +435,7 @@ namespace tahsinERP.Controllers.SRM
                                         ExpenseID = expense.ID,
                                         ProductID = product.ProductID,
                                         Amount = product.Amount,
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
+                                        PiecePrice = 0,
                                         UnitID = product.UnitID,
                                         Comment = product.Comment ?? ""
                                     };
@@ -458,8 +457,15 @@ namespace tahsinERP.Controllers.SRM
                                         throw new Exception(wex.Message);
                                     }
 
+                                    // SRM-B19: narx — FIFO tannarxi (QQSsiz); formadagi narx e'tiborga olinmaydi
+                                    var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
+                                        product.ProductID, product.Amount, product.UnitID, expenseProduct.ID);
+                                    expenseProduct.PiecePrice = unitCost;
+                                    product.PiecePrice = unitCost;
+                                    product.TotalPrice = product.Amount * unitCost;
+
                                     totalAmount += product.Amount;
-                                    totalPrice += expenseProduct.TotalPrice;
+                                    totalPrice += product.TotalPrice;
                                     // Ichki o'tkazmada qabul qiluvchi qoldig'i faqat kirim "Qabul qilish"da oshadi.
                                 }
 
@@ -831,8 +837,7 @@ namespace tahsinERP.Controllers.SRM
                                         ExpenseID = expense.ID,
                                         ProductID = product.ProductID,
                                         Amount = product.Amount,
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
+                                        PiecePrice = 0,
                                         UnitID = product.UnitID,
                                         Comment = product.Comment ?? ""
                                     };
@@ -854,8 +859,15 @@ namespace tahsinERP.Controllers.SRM
                                         throw new Exception(wex.Message);
                                     }
 
+                                    // SRM-B19: narx — FIFO tannarxi (QQSsiz); formadagi narx e'tiborga olinmaydi
+                                    var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
+                                        product.ProductID, product.Amount, product.UnitID, expenseProduct.ID);
+                                    expenseProduct.PiecePrice = unitCost;
+                                    product.PiecePrice = unitCost;
+                                    product.TotalPrice = product.Amount * unitCost;
+
                                     totalAmount += product.Amount;
-                                    totalPrice += expenseProduct.TotalPrice;
+                                    totalPrice += product.TotalPrice;
                                 }
                             }
 

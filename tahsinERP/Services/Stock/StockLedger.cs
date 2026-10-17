@@ -129,8 +129,9 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         ///  - aks holda <see cref="UnitConversionService.TryConvert"/>; konversiya yo'q bo'lsa — xato (jimgina qo'shilmaydi).
         /// </summary>
         /// <param name="stockUnitId">Natija birligi (qoldiq qatori birligi).</param>
+        /// <param name="allowReunit">false — faqat hisob (tannarx va h.k.), bo'sh qator birligi o'zgartirilmaydi.</param>
         public static double ToStockUnit(DBTHSNEntities db, int warehouseId, int productId, double qty, int lineUnitId,
-            out int stockUnitId)
+            out int stockUnitId, bool allowReunit = true)
         {
             stockUnitId = lineUnitId;
             if (lineUnitId <= 0)
@@ -143,7 +144,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
                 return qty;
 
             var ledgerQty = DlocFifoSchema.IsEnabled(db) ? DlocFifoDataAccess.GetLedgerQty(db, warehouseId, productId) : 0m;
-            if (Math.Abs(row.Amount) < Epsilon && ledgerQty <= 0.000001m)
+            if (allowReunit && Math.Abs(row.Amount) < Epsilon && ledgerQty <= 0.000001m)
             {
                 db.Database.ExecuteSqlCommand(
                     "UPDATE dbo.PRODUCT_STOCKS SET UnitID = @p2 WHERE WHID = @p0 AND ProductID = @p1",
