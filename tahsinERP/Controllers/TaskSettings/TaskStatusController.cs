@@ -9,7 +9,7 @@ namespace tahsinERP.Controllers.TaskSettings
 {
     public class TaskStatusController : TaskRefDataController<APP_TASK_STATUS_REF>
     {
-        private static readonly string[] Fields = { "Code", "Name", "SortOrder", "IsActive" };
+        private static readonly string[] Fields = { "Code", "Name", "SortOrder", "IsActive", "IsFinal", "ColorHex" };
 
         protected override DbSet<APP_TASK_STATUS_REF> Set(DBTHSNEntities db) => db.APP_TASK_STATUS_REF;
 

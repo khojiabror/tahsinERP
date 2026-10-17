@@ -36,11 +36,8 @@ namespace tahsinERP.Controllers
                 if (!showClosed)
                 {
                     var closedSince = DateTime.Now.AddDays(-ClosedVisibleDays);
-                    query = query.Where(t =>
-                        !(t.APP_TASK_STATUS_REF.Code == TaskRules.DoneCode ||
-                          t.APP_TASK_STATUS_REF.Code == TaskRules.CancelledCode ||
-                          t.APP_TASK_STATUS_REF.Name.Contains("bajarildi")) ||
-                        (t.UpdatedDT ?? t.CreatedDT) >= closedSince);
+                    var closedIds = TaskRules.ClosedStatusIds();
+                    query = query.Where(t => !closedIds.Contains(t.StatusID) || (t.UpdatedDT ?? t.CreatedDT) >= closedSince);
                 }
 
                 // SQL'da proyeksiya: faqat kartochka maydonlari, tavsif 101 belgigacha (view 100 tasini ko'rsatadi)

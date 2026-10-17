@@ -84,7 +84,7 @@ namespace tahsinERP.Services.Documents
                 v["ORDER_BODY"] = "";
 
             // Bandlar (ORDER_DECREE_1_CONTENT_N): bo'sh bo'lmagan qatorlar, boshidagi "1." / "1)" raqamsiz
-            var lines = OfficialLetterDataService.HtmlToPlainText(order.Notes)
+            var lines = HtmlToDocxConverter.HtmlToPlainText(order.Notes)
                 .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(l => Regex.Replace(l, @"^\s*(\d+[\.\)\-]\s*|•\s*)", "").Trim())
                 .Where(l => l.Length > 0)

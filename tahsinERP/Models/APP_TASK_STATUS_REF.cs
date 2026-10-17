@@ -26,6 +26,8 @@ namespace tahsinERP.Models
         public bool IsActive { get; set; }
         public int SortOrder { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
+        public bool IsFinal { get; set; }
+        public string ColorHex { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<APP_TASKS> APP_TASKS { get; set; }

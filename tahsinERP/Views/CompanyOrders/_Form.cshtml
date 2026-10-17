@@ -1,0 +1,143 @@
+@model tahsinERP.ViewModels.CompanyOrderCreateVm
+@* CompanyOrders Create va Edit uchun umumiy forma (dublikat #15). Edit modelda DocumentId bor — tahrirlash. *@
+@{
+    var editVm = Model as tahsinERP.ViewModels.CompanyOrderEditVm;
+    bool isEdit = editVm != null;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item"><a href="@Url.Action("Index")">Kompaniya Buyruqlari</a></li>
+                                <li class="breadcrumb-item active">@(isEdit ? "Tahrirlash" : "Yangi Buyruq")</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <section class="invoice-list-wrapper">
+                <div class="col-md-12 col-sm-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                @using (Html.BeginForm(isEdit ? "Edit" : "Create", "CompanyOrders", FormMethod.Post, new { @class = "form" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    if (editVm != null)
+                                    {
+                                        @Html.Hidden("DocumentId", editVm.DocumentId)
+                                    }
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.OrderNo, new { @class = "control-label" })
+                                                @Html.TextBoxFor(m => m.OrderNo, isEdit ? (object)new { @class = "form-control" } : new { @class = "form-control", @readonly = "readonly" })
+                                                @Html.ValidationMessageFor(m => m.OrderNo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.OrderDate, new { @class = "control-label" })
+                                                @Html.TextBoxFor(m => m.OrderDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
+                                                @Html.ValidationMessageFor(m => m.OrderDate, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.OrderTypeCode, new { @class = "control-label" })
+                                                @Html.DropDownListFor(m => m.OrderTypeCode, Model.OrderTypes, "Tanlang", new { @class = "form-control" })
+                                                @Html.ValidationMessageFor(m => m.OrderTypeCode, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.OrgUnitId, new { @class = "control-label" })
+                                                @Html.DropDownListFor(m => m.OrgUnitId, Model.OrgUnits, "Tanlang", new { @class = "form-control" })
+                                                @Html.ValidationMessageFor(m => m.OrgUnitId, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        @Html.LabelFor(m => m.Title, new { @class = "control-label" })
+                                        @Html.TextBoxFor(m => m.Title, new { @class = "form-control", @id = "TopicInput" })
+                                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label">Matn</label>
+                                        <div class="text-right mb-1">
+                                            <button type="button" class="btn btn-sm btn-info" id="btnSuggestText">
+                                                <i class="bx bx-bulb"></i> Matn taklif qilish
+                                            </button>
+                                        </div>
+                                        <div id="order-body-toolbar">
+                                            <span class="ql-formats">
+                                                <select class="ql-font"></select>
+                                                <select class="ql-size"></select>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-bold"></button>
+                                                <button class="ql-italic"></button>
+                                                <button class="ql-underline"></button>
+                                                <button class="ql-strike"></button>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <select class="ql-color"></select>
+                                                <select class="ql-background"></select>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-header" value="1"></button>
+                                                <button class="ql-header" value="2"></button>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-list" value="ordered"></button>
+                                                <button class="ql-list" value="bullet"></button>
+                                                <button class="ql-indent" value="-1"></button>
+                                                <button class="ql-indent" value="+1"></button>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <select class="ql-align"></select>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-link"></button>
+                                                <button class="ql-clean"></button>
+                                            </span>
+                                        </div>
+                                        <div id="order-body-editor" style="height: 300px; background: white;"></div>
+                                        @Html.HiddenFor(m => m.BodyText, new { @id = "BodyTextHidden" })
+                                        @Html.ValidationMessageFor(m => m.BodyText, "", new { @class = "text-danger" })
+                                    </div>
+
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bx bx-save"></i> Saqlash
+                                        </button>
+                                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                            <i class="bx bx-x"></i> Bekor qilish
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
