@@ -43,7 +43,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
-                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
+                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
                     TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
                     return RedirectToAction("Index", "Tasks");
@@ -90,7 +90,7 @@ namespace tahsinERP.Controllers
                     }
 
                     // Oddiy user boshqalarning tasklarini o'zgartirmasligi kerak
-                    if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, TaskRules.IsAdminOrDeveloper(CurrentUserName)))
+                    if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                     {
                         TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni o'zgartirishingiz mumkin";
                         return RedirectToAction("Index", "Tasks");

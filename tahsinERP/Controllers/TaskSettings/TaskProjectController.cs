@@ -43,7 +43,7 @@ namespace tahsinERP.Controllers.TaskSettings
             }
 
             // Oddiy user uchun faqat o'z tasklarini ko'rsatish
-            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            bool isAdminOrDeveloper = RoleHelper.IsAdminOrDeveloper(CurrentUserName);
             int currentUserId = CurrentUserId;
 
             using (DBTHSNEntities db = new DBTHSNEntities())

@@ -52,10 +52,10 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <p><b>Status:</b> 
-                                                            @Html.TaskStatusBadge(Model.StatusName, "-")
+                                                            @Html.TaskStatusBadge(Model.StatusID, "-")
                                                         </p>
                                                         <p><b>Prioritet:</b> 
-                                                            @Html.TaskPriorityBadge(Model.PriorityName, "-")
+                                                            @Html.TaskPriorityBadge(Model.PriorityID, "-")
                                                         </p>
                                                         <p><b>Mas'ul:</b> @(Model.AssigneeFullName ?? "Tayinlanmagan")</p>
                                                         <p><b>Hisobot beruvchi:</b> @(Model.ReporterFullName ?? "-")</p>
@@ -79,10 +79,7 @@
                                                         <p><b>Muddati:</b> 
                                                             @if (Model.DueDate.HasValue)
                                                             {
-                                                                bool isOverdue = Model.DueDate.Value < DateTime.Now;
-                                                                string dueDateStatusLower = Model.StatusName?.ToLower() ?? "";
-                                                                bool isNotDone = dueDateStatusLower != "done" && !dueDateStatusLower.Contains("bajarildi");
-                                                                <span class="@(isOverdue && isNotDone ? "text-danger font-weight-bold" : "")">
+                                                                <span class="@(tahsinERP.Services.Tasks.TaskBadges.IsOverdue(Model.DueDate, Model.StatusID) ? "text-danger font-weight-bold" : "")">
                                                                     @Model.DueDate.Value.ToString("yyyy-MM-dd")
                                                                 </span>
                                                             }
