@@ -40,7 +40,7 @@ namespace tahsinERP.Services.HR
                 { SalaryGrades, db => db.HR_SALARY_GRADES.AsNoTracking()
                     .Where(g => g.IsDeleted != true)
                     .OrderBy(g => g.GradeCode)
-                    .Select(g => new RefItem { ID = g.ID, Name = g.GradeCode + " - " + g.Name, Extra = g.CurrencyCode }).ToList() },
+                    .Select(g => new RefItem { ID = g.ID, Name = g.Name, Extra = g.GradeCode }).ToList() },
                 { Operations, db => db.HR_PIECE_RATE_OPERATIONS.AsNoTracking()
                     .Where(o => o.IsActive)
                     .OrderBy(o => o.SortOrder).ThenBy(o => o.Name)

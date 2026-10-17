@@ -1048,6 +1048,7 @@
     <Compile Include="Services\HrTimesheetSettingsService.cs" />
     <Compile Include="Services\ReconciliationService.cs" />
     <Compile Include="Services\ReconciliationAdjustmentService.cs" />
+    <Compile Include="Services\HR\EmployeeHistoryService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
     <Compile Include="Services\HR\HrLookups.cs" />
     <Compile Include="Services\HR\HrPayrollCalculator.cs" />
