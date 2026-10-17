@@ -361,16 +361,30 @@ namespace tahsinERP.Services
                 AgreementInfo = $"Shartnoma №{contractNo} — yuk tashish xizmatlari bo'yicha o'zaro hisob-kitoblar"
             };
 
-            var waybills = db.F_WAYBILLS
+            // Foydalanuvchi qarori (2026-10-18): ta'minotchi/mijoz kabi — ekspeditor opening'i (BalanceType 4) bo'lsa,
+            // shu sanadagi qoldiq boshlang'ich qator, keyin faqat opening sanasidan keyingi yo'l varaqalari va to'lovlar.
+            var openingDate = GetLatestOpeningDate(db, asOfDate, 4);
+            var contractWaybills = db.F_WAYBILLS
                 .Where(w => w.ForwarderID == forwarderId && w.ContractID == contractId && w.IssueDate <= asOfDate && (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue)
                 .OrderBy(w => w.IssueDate)
                 .Select(w => new { w.ID, w.WaybillNo, w.IssueDate, w.Amount })
                 .ToList();
+            var waybills = openingDate.HasValue
+                ? contractWaybills.Where(w => w.IssueDate > openingDate.Value).ToList()
+                : contractWaybills;
 
-            var wbIds = new HashSet<int>(waybills.Select(w => w.ID));
+            // To'lovlar shartnomaning barcha yo'l varaqalari bo'yicha (opening'gacha chiqarilgan varaqaga keyin to'langani ham)
+            var wbIds = new HashSet<int>(contractWaybills.Select(w => w.ID));
 
-            var payments = db.F_WAYBILL_PAYMENTS
-                .Where(p => p.ForwarderID == forwarderId && wbIds.Contains(p.WaybillID) && (p.PaymentDate ?? DateTime.MinValue) <= asOfDate && !p.IsDeleted)
+            var paymentQuery = db.F_WAYBILL_PAYMENTS
+                .Where(p => p.ForwarderID == forwarderId && wbIds.Contains(p.WaybillID) && (p.PaymentDate ?? DateTime.MinValue) <= asOfDate && !p.IsDeleted);
+            if (openingDate.HasValue)
+            {
+                // Sanasiz to'lov opening'ga kirgan (AutoFill ham shunday hisoblaydi)
+                var od = openingDate.Value;
+                paymentQuery = paymentQuery.Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value > od);
+            }
+            var payments = paymentQuery
                 .OrderBy(p => p.PaymentDate)
                 .Select(p => new { p.ID, p.PaymentDate, p.Payment_Amount, p.WaybillID })
                 .ToList();
@@ -384,6 +398,7 @@ namespace tahsinERP.Services
                     && t.Direction == 2
                     && (t.IsDeleted == null || t.IsDeleted == false)
                     && t.TxnDate <= asOfDate
+                    && (!openingDate.HasValue || t.TxnDate > openingDate.Value)
                     && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment")
                     && (string.IsNullOrEmpty(contractNoNorm)
                         || (!string.IsNullOrEmpty(t.ContractNo)
@@ -393,6 +408,15 @@ namespace tahsinERP.Services
                 .ToList();
 
             var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
+            var opening = openingDate.HasValue
+                ? GetOpeningContractBalance(db, openingDate.Value, 4, forwarderId, contractId, contractNo)
+                : null;
+            if (opening != null && opening.Amount != 0)
+            {
+                allItems.Add((openingDate.Value.Date, "open",
+                    "Opening balansdan boshlangan qarzdorlik",
+                    0, opening.Amount, opening.Amount, 0));
+            }
 
             foreach (var wb in waybills)
             {
@@ -425,7 +449,7 @@ namespace tahsinERP.Services
                     a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
             }
 
-            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "wb" ? 0 : (x.type == "pay" || x.type == "fin") ? 1 : 2))
+            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "open" ? -1 : x.type == "wb" ? 0 : (x.type == "pay" || x.type == "fin") ? 1 : 2))
             {
                 vm.Rows.Add(new ReconciliationRowViewModel
                 {
@@ -440,6 +464,7 @@ namespace tahsinERP.Services
             }
 
             var totalWb = waybills.Sum(w => Convert.ToDecimal(w.Amount ?? 0));
+            if (opening != null) totalWb += opening.Amount;
             var totalPay = payments.Sum(p => Convert.ToDecimal(p.Payment_Amount))
                 + finPayments.Sum(p => p.Amount);
             var adjDr = adjList.Sum(a => a.Party1Debit);
