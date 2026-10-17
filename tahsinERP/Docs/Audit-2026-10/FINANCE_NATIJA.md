@@ -102,7 +102,7 @@ Kategoriya turlari tuzatilsa, DCF sof aktivi lokal bazada taxminan 1 635,5 mln b
 
 Finance kodi Amount'ga QQS qo'shmaydi (61fe60d3), shuning uchun ikki marta QQS bo'lmaydi.
 
-Ikki branch merge qilinganda `FinancePostingService.PostPurchaseInvoice` dagi `transaction.Amount` qatorida ziddiyat bo'ladi. Finance variantini (`PurchaseInvoiceAmounts`) qoldirish tavsiya etiladi.
+SRM xarid branch'i `FinancePostingService.cs` ni o'zgartirmagan, shuning uchun merge ziddiyati bo'lmaydi (SRM sessiyasi tasdiqladi).
 
 ## Tuzatilgan ID'lar
 
