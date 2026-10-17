@@ -18,7 +18,6 @@ namespace tahsinERP
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             GlobalFilters.Filters.Add(new AuthorizeAttribute());
             GlobalFilters.Filters.Add(new tahsinERP.Filters.LicenseCheckAttribute()); // Litsenziya (company muddat) tekshiruvi
-            tahsinERP.Services.Common.ExcelExport.Configure(); // EPPlus litsenziyasi bir marta (avval 20 joyda)
         }
 
         // Har so'rovda yangi CultureInfo yaratilmaydi — keshlangan, faqat o'qiladigan nusxa

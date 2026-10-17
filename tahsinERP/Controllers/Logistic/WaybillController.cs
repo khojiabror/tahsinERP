@@ -7,7 +7,8 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using OfficeOpenXml;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -484,10 +485,10 @@ namespace tahsinERP.Controllers
                     StringComparer.OrdinalIgnoreCase);
                 var fileWaybillNos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                using (var package = new ExcelPackage(file.InputStream))
+                using (var workbook = new XLWorkbook(file.InputStream))
                 {
-                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                    if (worksheet == null || worksheet.Dimension == null)
+                    var worksheet = workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null || worksheet.LastRowNumber() == 0)
                     {
                         ViewBag.Error = "Excel fayl bo'sh.";
                         return View();
@@ -500,7 +501,7 @@ namespace tahsinERP.Controllers
                         return View();
                     }
 
-                    var lastRow = worksheet.Dimension.End.Row;
+                    var lastRow = worksheet.LastRowNumber();
                     for (int row = 2; row <= lastRow; row++)
                     {
                         var waybillNo = cells.String(row, "WaybillNo");

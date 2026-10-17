@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -10,6 +10,7 @@ using System.Runtime.Caching;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.HR;
@@ -480,48 +481,48 @@ namespace tahsinERP.Controllers.HR
             var vm = await BuildTimesheetVmAsync(id);
             if (vm == null) return HttpNotFound();
 
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var ws = package.Workbook.Worksheets.Add($"Tabel {vm.Year}-{vm.Month:D2}");
-                ws.Cells[1, 1].Value = "№";
-                ws.Cells[1, 2].Value = "Tab.№";
-                ws.Cells[1, 3].Value = "F.I.Sh.";
-                ws.Cells[1, 4].Value = "Lavozim";
+                var ws = workbook.Worksheets.Add($"Tabel {vm.Year}-{vm.Month:D2}");
+                ws.Cell(1, 1).Value = "№";
+                ws.Cell(1, 2).Value = "Tab.№";
+                ws.Cell(1, 3).Value = "F.I.Sh.";
+                ws.Cell(1, 4).Value = "Lavozim";
 
                 var daysInMonth = DateTime.DaysInMonth(vm.Year, vm.Month);
                 int col = 5;
-                for (int d = 1; d <= daysInMonth; d++) ws.Cells[1, col++].Value = d;
-                ws.Cells[1, col++].Value = "Ishlangan kun";
-                ws.Cells[1, col++].Value = "Ishlangan soat";
-                ws.Cells[1, col++].Value = "Qo'shimcha soat";
-                ws.Cells[1, col++].Value = "Kelmagan kun";
+                for (int d = 1; d <= daysInMonth; d++) ws.Cell(1, col++).Value = d;
+                ws.Cell(1, col++).Value = "Ishlangan kun";
+                ws.Cell(1, col++).Value = "Ishlangan soat";
+                ws.Cell(1, col++).Value = "Qo'shimcha soat";
+                ws.Cell(1, col++).Value = "Kelmagan kun";
 
                 int row = 2; int n = 1;
                 foreach (var line in vm.Lines)
                 {
-                    ws.Cells[row, 1].Value = n++;
-                    ws.Cells[row, 2].Value = line.EmployeeTabNo;
-                    ws.Cells[row, 3].Value = line.EmployeeFullName;
-                    ws.Cells[row, 4].Value = line.PositionName;
+                    ws.Cell(row, 1).Value = n++;
+                    ws.Cell(row, 2).Value = line.EmployeeTabNo;
+                    ws.Cell(row, 3).Value = line.EmployeeFullName;
+                    ws.Cell(row, 4).Value = line.PositionName;
                     col = 5;
                     for (int d = 1; d <= daysInMonth; d++)
                     {
-                        ws.Cells[row, col++].Value = TimesheetLineAccessor.GetHours(line, d) ?? 0;
+                        ws.Cell(row, col++).Value = TimesheetLineAccessor.GetHours(line, d) ?? 0;
                     }
-                    ws.Cells[row, col++].Value = line.TotalWorkedDays;
-                    ws.Cells[row, col++].Value = line.TotalWorkedHours;
-                    ws.Cells[row, col++].Value = line.OvertimeHours;
-                    ws.Cells[row, col++].Value = line.AbsentDays;
+                    ws.Cell(row, col++).Value = line.TotalWorkedDays;
+                    ws.Cell(row, col++).Value = line.TotalWorkedHours;
+                    ws.Cell(row, col++).Value = line.OvertimeHours;
+                    ws.Cell(row, col++).Value = line.AbsentDays;
                     row++;
                 }
 
-                ws.Cells[row + 1, 1].Value = "Oylik fond soati";
-                ws.Cells[row + 1, 2].Value = vm.FundHours;
-                ws.Cells[row + 2, 1].Value = "Jami qo'shimcha soat";
-                ws.Cells[row + 2, 2].Value = vm.Lines.Sum(l => l.OvertimeHours);
+                ws.Cell(row + 1, 1).Value = "Oylik fond soati";
+                ws.Cell(row + 1, 2).Value = vm.FundHours;
+                ws.Cell(row + 2, 1).Value = "Jami qo'shimcha soat";
+                ws.Cell(row + 2, 2).Value = vm.Lines.Sum(l => l.OvertimeHours);
 
-                ws.Cells[ws.Dimension.Address].AutoFitColumns();
-                return File(package.GetAsByteArray(),
+                ws.Columns().AdjustToContents();
+                return File(workbook.ToByteArray(),
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     $"Tabel_{vm.Year}_{vm.Month:D2}.xlsx");
             }
@@ -558,12 +559,12 @@ namespace tahsinERP.Controllers.HR
             var fileToken = Guid.NewGuid().ToString("N");
             UploadCache.Set(UploadKey(fileToken), bytes, DateTimeOffset.Now.Add(UploadTtl));
 
-            using (var package = new ExcelPackage(new MemoryStream(bytes)))
+            using (var workbook = new XLWorkbook(new MemoryStream(bytes)))
             {
                 ViewBag.Year = year;
                 ViewBag.OrgUnitId = orgUnitId;
                 ViewBag.FileToken = fileToken;
-                ViewBag.SheetNames = new SelectList(package.Workbook.Worksheets.Select(w => w.Name));
+                ViewBag.SheetNames = new SelectList(workbook.Worksheets.Select(w => w.Name));
                 PopulateOrgUnits(orgUnitId);
                 return View("ImportSheets");
             }
@@ -583,9 +584,11 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Import");
             }
 
-            using (var package = new ExcelPackage(new MemoryStream(bytes)))
+            using (var workbook = new XLWorkbook(new MemoryStream(bytes)))
             {
-                var ws = package.Workbook.Worksheets[sheetName];
+                IXLWorksheet ws = null;
+                if (!string.IsNullOrEmpty(sheetName))
+                    workbook.Worksheets.TryGetWorksheet(sheetName, out ws);
                 if (ws == null)
                 {
                     TempData["Error"] = "Tanlangan varaq topilmadi";
@@ -606,7 +609,7 @@ namespace tahsinERP.Controllers.HR
                 }
 
                 var daysInMonth = DateTime.DaysInMonth(sheetYear, month);
-                var lastRow = ws.Dimension?.End.Row ?? 0;
+                var lastRow = ws.LastRowNumber();
 
                 using (var tx = db.Database.BeginTransaction())
                 {
@@ -633,7 +636,7 @@ namespace tahsinERP.Controllers.HR
 
                     for (int row = 3; row <= lastRow; row++)
                     {
-                        var tabNo = (ws.Cells[row, 2].Value ?? "").ToString().Trim();
+                        var tabNo = (ws.Cell(row, 2).GetRawValue() ?? "").ToString().Trim();
                         if (string.IsNullOrWhiteSpace(tabNo)) continue;
 
                         var employeeId = FindEmployeeIdByTabNo(employeeIdByTabNo, tabNo);
@@ -652,7 +655,7 @@ namespace tahsinERP.Controllers.HR
 
                         for (int d = 1; d <= daysInMonth; d++)
                         {
-                            var val = (ws.Cells[row, 5 + d]?.Value ?? "").ToString().Trim();
+                            var val = (ws.Cell(row, 5 + d).GetRawValue() ?? "").ToString().Trim();
                             decimal parsed;
                             decimal? h = decimal.TryParse(val, NumberStyles.Any, CultureInfo.InvariantCulture, out parsed) ? (decimal?)parsed : null;
                             TimesheetLineAccessor.SetHours(line, d, ClampHours(h));

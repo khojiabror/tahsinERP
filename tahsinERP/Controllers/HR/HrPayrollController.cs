@@ -4,12 +4,13 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.HR
@@ -861,42 +862,42 @@ namespace tahsinERP.Controllers.HR
                 return HttpNotFound();
             }
 
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var worksheet = package.Workbook.Worksheets.Add($"Hisob {vm.Year}-{vm.Month:D2}");
+                var worksheet = workbook.Worksheets.Add($"Hisob {vm.Year}-{vm.Month:D2}");
 
                 string[] headers = { "№", "Tab.№", "F.I.O.", "Lavozim", "Asosiy maosh", "Ishlangan soatlar", "Hisoblangan", "Mukofotlar", "Jarimalar", "To'lovga", "Valyuta" };
-                for (int c = 0; c < headers.Length; c++) worksheet.Cells[1, c + 1].Value = headers[c];
+                for (int c = 0; c < headers.Length; c++) worksheet.Cell(1, c + 1).Value = headers[c];
 
                 int row = 2;
                 int lineNum = 1;
                 foreach (var line in vm.Lines)
                 {
-                    worksheet.Cells[row, 1].Value = lineNum++;
-                    worksheet.Cells[row, 2].Value = line.EmployeeTabNo;
-                    worksheet.Cells[row, 3].Value = line.EmployeeFullName;
-                    worksheet.Cells[row, 4].Value = line.PositionName;
-                    worksheet.Cells[row, 5].Value = line.BaseSalary;
-                    worksheet.Cells[row, 6].Value = line.HoursWorked;
-                    worksheet.Cells[row, 7].Value = line.GrossSalary;
-                    worksheet.Cells[row, 8].Value = line.Bonuses;
-                    worksheet.Cells[row, 9].Value = line.Penalties;
-                    worksheet.Cells[row, 10].Value = line.NetSalary;
-                    worksheet.Cells[row, 11].Value = line.CurrencyCode;
+                    worksheet.Cell(row, 1).Value = lineNum++;
+                    worksheet.Cell(row, 2).Value = line.EmployeeTabNo;
+                    worksheet.Cell(row, 3).Value = line.EmployeeFullName;
+                    worksheet.Cell(row, 4).Value = line.PositionName;
+                    worksheet.Cell(row, 5).Value = line.BaseSalary;
+                    worksheet.Cell(row, 6).Value = line.HoursWorked;
+                    worksheet.Cell(row, 7).Value = line.GrossSalary;
+                    worksheet.Cell(row, 8).Value = line.Bonuses;
+                    worksheet.Cell(row, 9).Value = line.Penalties;
+                    worksheet.Cell(row, 10).Value = line.NetSalary;
+                    worksheet.Cell(row, 11).Value = line.CurrencyCode;
                     row++;
                 }
 
-                worksheet.Cells[row, 5].Value = "JAMI:";
-                worksheet.Cells[row, 7].Value = vm.TotalGrossSalary;
-                worksheet.Cells[row, 8].Value = vm.Lines.Sum(l => l.Bonuses);
-                worksheet.Cells[row, 9].Value = vm.Lines.Sum(l => l.Penalties);
-                worksheet.Cells[row, 10].Value = vm.TotalNetSalary;
+                worksheet.Cell(row, 5).Value = "JAMI:";
+                worksheet.Cell(row, 7).Value = vm.TotalGrossSalary;
+                worksheet.Cell(row, 8).Value = vm.Lines.Sum(l => l.Bonuses);
+                worksheet.Cell(row, 9).Value = vm.Lines.Sum(l => l.Penalties);
+                worksheet.Cell(row, 10).Value = vm.TotalNetSalary;
 
-                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+                worksheet.Columns().AdjustToContents();
 
                 var fileName = $"Hisob_{vm.Year}_{vm.Month:D2}.xlsx";
                 logger.Log("HrPayroll", "Export", $"Hisob: {vm.Year}-{vm.Month:D2}, Bo'lim: {vm.OrgUnitName ?? "Butun kompaniya"}, Tur: {TypeLabel(vm.PayrollType)}");
-                return File(package.GetAsByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                return File(workbook.ToByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
         }
 
