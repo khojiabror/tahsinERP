@@ -487,6 +487,7 @@
     <Compile Include="Controllers\CRM\SalesInvoicesController.cs" />
     <Compile Include="Controllers\CRM\SalesReportsController.cs" />
     <Compile Include="Controllers\CRM\SalesSFController.cs" />
+    <Compile Include="Controllers\CRM\CurrencyRatesController.cs" />
     <Compile Include="Controllers\CRM\SalesTTNKController.cs" />
     <Compile Include="Controllers\Engineering\NormController.cs" />
     <Compile Include="Controllers\Engineering\ProductCategoryController.cs" />
@@ -1042,6 +1043,7 @@
     <Compile Include="Services\Crm\SalesInvoiceService.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
     <Compile Include="Services\Crm\CrmNumber.cs" />
+    <Compile Include="Services\Crm\CurrencyRateService.cs" />
     <Compile Include="ViewModels\Sales\SalesLineViewModels.cs" />
     <Compile Include="Services\PContractVatHelper.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
@@ -3152,6 +3154,7 @@
     <Content Include="Views\SalesSF\Edit.cshtml" />
     <Content Include="Views\SalesSF\GenerateFromInvoice.cshtml" />
     <Content Include="Views\SalesSF\Index.cshtml" />
+    <Content Include="Views\CurrencyRates\Index.cshtml" />
     <Content Include="Views\SalesInvoices\Create.cshtml" />
     <Content Include="Views\SalesInvoices\Delete.cshtml" />
     <Content Include="Views\SalesInvoices\Details.cshtml" />
