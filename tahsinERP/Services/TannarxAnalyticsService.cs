@@ -505,6 +505,18 @@ namespace tahsinERP.Services
                 return string.Join(Environment.NewLine, lines);
             }
 
+            lines.Add($"Algoritmlar (tartib bilan): {string.Join("; ", r.PathAttempts)}");
+            var issue = r.WarehouseIssue;
+            if (issue != null)
+            {
+                lines.Add($"PATH0 — ombordan chiqim: {issue.ExpenseCount} hujjat, {issue.LineCount} qator, summa {issue.Amount:N2}; " +
+                          $"ishlab chiqarish yozuvlari {issue.CoveredProductionCount}/{issue.ProductionCount}, qamrab olingan miqdor {issue.CoveredQty:N2}" +
+                          (issue.ZeroPriceLineCount > 0 ? $"; narxsiz (0) qatorlar: {issue.ZeroPriceLineCount}" : ""));
+            }
+            else
+            {
+                lines.Add("PATH0 — ombordan chiqim: shu oy ishlab chiqarishiga bog'langan chiqim hujjati yo'q");
+            }
             lines.Add($"BOM komponentlar soni: {r.BomComponentCount}");
             lines.Add($"Savdo buyurtmasi: {JoinOrDash(r.SalesOrderNos)}");
             lines.Add($"Unga bog'langan Xarid buyurtmasi: {JoinOrDash(r.PurchaseOrderNos)}");
@@ -529,7 +541,7 @@ namespace tahsinERP.Services
 
             if (d.MethodCode != null && d.MethodCode.Contains("FORCED"))
             {
-                lines.Add("Izoh: PATH1/PATH2/PATH3 manbasi yetarli bo'lmagani uchun policy bo'yicha majburiy fallback qo'llandi (NONE yo'q).");
+                lines.Add("Izoh: PATH0/PATH1/PATH2/PATH3 manbasi yetarli bo'lmagani uchun policy bo'yicha majburiy fallback qo'llandi (NONE yo'q).");
             }
 
             return string.Join(Environment.NewLine, lines);

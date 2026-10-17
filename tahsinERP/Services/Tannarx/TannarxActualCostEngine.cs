@@ -17,19 +17,22 @@ namespace tahsinERP.Services.Tannarx
     internal class TannarxActualCostEngine
     {
         internal const decimal VatMultiplier = 1.12m;
+        private const decimal Path0CoverageThreshold = 0.50m;
         private const decimal Path1CoverageThreshold = 0.85m;
         private const decimal Path2CoverageThreshold = 0.80m;
         private const decimal Path3CoverageThreshold = 0.60m;
         private const decimal ReconcileThreshold = 0.03m;
 
+        private static readonly Regex ProductionIdRegex = new Regex(@"ProductionID:\s*(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex BuyTokenRegex = new Regex(@"(?:Buy#|B:)\s*(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly string[] AccrualSourceDocTypes = { "PurchaseInvoice", "SalesInvoice" };
+        private static readonly string[] CoveredElsewhereSourceDocTypes = { "PurchaseInvoicePayment", "WaybillPayment", "HR_PAYROLL", "ShareholderContribution" };
 
         private readonly DBTHSNEntities _db;
 
         // Bitta ishga tushirish davomida o'zgarmaydigan ma'lumotlar (bir marta yuklanadi).
         private Dictionary<string, HashSet<int>> _poIdsByBuyToken;
-        private Dictionary<int, TannarxFinanceBucket> _financeBuckets;
+        private Dictionary<int, TannarxFinanceClass> _financeClasses;
         private Dictionary<int, string> _financeCategoryNames;
         private Dictionary<int, string> _currencyCodes;
         private int? _baseCurrencyId;
@@ -64,6 +67,9 @@ namespace tahsinERP.Services.Tannarx
 
             // 2) Finance (soliq+bank, boshqa, material) — oy jami.
             result.Finance = await LoadFinanceTotalsAsync(start, end);
+
+            // 2b) PATH0: ishlab chiqarish uchun ombordan haqiqiy xomashyo chiqimi (EXPENSES, FIFO narx, "ProductionID:{id}").
+            var warehouseIssue = await LoadWarehouseIssuesAsync(start, end, producedIds);
 
             // 3) BOM komponentlari (har mahsulotning aktiv, bo'lmasa oxirgi BOM i).
             var bomByProduct = await LoadBomComponentsAsync(producedIds);
@@ -302,26 +308,34 @@ namespace tahsinERP.Services.Tannarx
                 r.PiMatchedAllocatedAmount = Allocate(chain.PiMatchedLines, piLineClaimQty, qty);
                 r.PiSharedLineCount = chain.PiMatchedLines.Count(l => piLineClaimQty[l.ID] > qty);
 
-                var path2 = EvaluatePath2(chain, incomeLinesByIncome, incomeLineClaimQty);
-                var path1 = path2.Passed ? null : EvaluatePath1(chain, r);
-                MaterialDecision path3 = null;
-                if (path2.Passed)
-                    r.Material = path2;
-                else if (path1.Passed)
-                    r.Material = path1;
-                else
+                // Material algoritmlari ustuvorlik tartibida; birinchi o'tgani olinadi, barcha urinishlar izohga yoziladi:
+                // PATH0 ombordan haqiqiy chiqim (FIFO) → PATH2 SO→PO→PI→kirim → PATH1 SO→PO→PI → PATH3 Finance "Material" → reja.
+                warehouseIssue.TryGetValue(productId, out var issue);
+                r.WarehouseIssue = issue;
+                var evaluators = new Func<MaterialDecision>[]
                 {
-                    path3 = EvaluatePath3(qty, result.Finance.Material, path3Weights[productId], path3WeightTotal, path3DriverCoverage);
-                    if (path3.Passed)
-                        r.Material = path3;
-                    else
+                    () => EvaluatePath0(issue, qty),
+                    () => EvaluatePath2(chain, incomeLinesByIncome, incomeLineClaimQty),
+                    () => EvaluatePath1(chain, r),
+                    () => EvaluatePath3(qty, result.Finance.Material, path3Weights[productId], path3WeightTotal, path3DriverCoverage)
+                };
+                foreach (var evaluate in evaluators)
+                {
+                    var decision = evaluate();
+                    r.PathAttempts.Add($"{decision.Path}: {(decision.Passed ? "OK (" + decision.MethodCode + ")" : decision.ReasonCode)}");
+                    if (decision.Passed)
                     {
-                        var planned = plannedMaterialByProduct[productId];
-                        // NONE bo'lmasin: manba topilmasa reja material narxi olinadi (policy).
-                        r.Material = planned > 0
-                            ? MaterialDecision.Pass("PATH2", "INCOME_FALLBACK_FORCED_PLANNED", planned, planned * qty, qty, 0m, 0m)
-                            : MaterialDecision.Pass("PATH2", "INCOME_FALLBACK_FORCED_ZERO", 0m, 0m, qty, 0m, 0m);
+                        r.Material = decision;
+                        break;
                     }
+                }
+                if (r.Material == null)
+                {
+                    var planned = plannedMaterialByProduct[productId];
+                    // NONE bo'lmasin: manba topilmasa reja material narxi olinadi (policy).
+                    r.Material = planned > 0
+                        ? MaterialDecision.Pass("PLAN", "FORCED_PLANNED", planned, planned * qty, qty, 0m, 0m)
+                        : MaterialDecision.Pass("PLAN", "FORCED_ZERO", 0m, 0m, qty, 0m, 0m);
                 }
 
                 // Material tashuvi
@@ -384,6 +398,28 @@ namespace tahsinERP.Services.Tannarx
         }
 
         // ---------------- Material yo'llari ----------------
+
+        /// <summary>
+        /// PATH0: shu oydagi ishlab chiqarish yozuvlari uchun ombordan avtomatik chiqarilgan xomashyo (FIFO kirim narxida).
+        /// SO/PO bog'lanishi kerak emas. Chiqim hujjati bo'lmagan ishlab chiqarish qismi uchun birlik narx
+        /// hujjatli qism bo'yicha olinadi (qamrov izohda ko'rsatiladi).
+        /// </summary>
+        private static MaterialDecision EvaluatePath0(WarehouseIssueInfo issue, decimal producedQty)
+        {
+            if (issue == null || issue.ExpenseCount == 0)
+                return MaterialDecision.Fail("PATH0", "NO_WAREHOUSE_ISSUE");
+            if (issue.Amount <= 0 || issue.CoveredQty <= 0)
+                return MaterialDecision.Fail("PATH0", "WAREHOUSE_ISSUE_ZERO_PRICE");
+
+            var coverage = Math.Min(1m, issue.CoveredQty / producedQty);
+            if (coverage < Path0CoverageThreshold)
+                return MaterialDecision.Fail("PATH0", "WAREHOUSE_ISSUE_LOW_COVERAGE", coverage, 0m);
+
+            var unitCost = issue.Amount / issue.CoveredQty;
+            // Qamrov to'liq bo'lmasa ham butun ishlab chiqarilgan miqdorga shu birlik narx qo'llanadi.
+            return MaterialDecision.Pass("PATH0", coverage >= 1m ? "WAREHOUSE_ISSUE_FIFO" : "WAREHOUSE_ISSUE_FIFO_PARTIAL",
+                unitCost, unitCost * producedQty, producedQty, coverage, 0m);
+        }
 
         private static MaterialDecision EvaluatePath1(ProductChain chain, TannarxProductActualResult r)
         {
@@ -553,7 +589,7 @@ namespace tahsinERP.Services.Tannarx
                 .Where(c => c.IsDeleted != true)
                 .Select(c => new TannarxFinanceCategoryClassifier.CategoryRow { ID = c.ID, Name = c.Name, Type = c.Type, ParentID = c.ParentID })
                 .ToListAsync();
-            _financeBuckets = TannarxFinanceCategoryClassifier.Classify(categories);
+            _financeClasses = TannarxFinanceCategoryClassifier.Classify(categories);
             _financeCategoryNames = categories.ToDictionary(c => c.ID, c => c.Name);
 
             var currencies = await _db.CURRENCIES.Select(c => new { c.ID, c.Shortname }).ToListAsync();
@@ -567,11 +603,14 @@ namespace tahsinERP.Services.Tannarx
         }
 
         /// <summary>
-        /// Finance xarajatlari (oy bo'yicha, guruhlab):
+        /// Finance xarajatlari (oy bo'yicha): BARCHA xarajat kategoriyalari (Type = 2) olinadi va har biri
+        /// TannarxFinanceCategoryClassifier bo'yicha guruhga tushadi yoki sababi bilan chiqariladi.
         /// - Direction 2 (chiqim) qo'shiladi, Direction 1 (shu xarajat kategoriyasiga qaytgan pul) ayiriladi — Finance P&amp;L bilan bir xil;
         /// - "PurchaseInvoice"/"SalesInvoice" hisoblash (accrual) yozuvlari olinmaydi — ular pul harakati emas,
-        ///   ularning to'lovi alohida tranzaksiya bo'lib keladi (aks holda ikki marta sanalardi);
-        /// - faqat milliy valyuta (UZS); boshqa valyutadagilar konvertatsiya qilinmaydi, izohda alohida ko'rsatiladi.
+        ///   to'lovi alohida tranzaksiya bo'lib keladi (aks holda ikki marta sanalardi);
+        /// - aniqlanmagan ("Boshqa"ga avtomatik tushadigan) kategoriyada boshqa joyda hisoblanadigan to'lovlar
+        ///   (ta'minotchiga, yo'l varaqasi, ish haqi, aksiyador) olinmaydi;
+        /// - faqat milliy valyuta (UZS); boshqa valyutadagilar konvertatsiya qilinmaydi, alohida ko'rsatiladi.
         /// </summary>
         private async Task<TannarxFinanceTotals> LoadFinanceTotalsAsync(DateTime start, DateTime end)
         {
@@ -579,59 +618,171 @@ namespace tahsinERP.Services.Tannarx
             {
                 BaseCurrencyCode = _baseCurrencyId.HasValue ? _currencyCodes[_baseCurrencyId.Value] : null
             };
-            var categoryIds = _financeBuckets.Keys.ToList();
+            var categoryIds = _financeClasses.Keys.ToList();
             if (!categoryIds.Any())
                 return totals;
-            var accrualTypes = AccrualSourceDocTypes.ToList();
 
             var rows = await _db.FIN_TRANSACTIONS
                 .Where(t => t.IsDeleted != true
                     && t.TxnDate >= start
                     && t.TxnDate < end
                     && categoryIds.Contains(t.CategoryID)
-                    && (t.Direction == 1 || t.Direction == 2)
-                    && (t.SourceDocType == null || !accrualTypes.Contains(t.SourceDocType)))
-                .GroupBy(t => new { t.CategoryID, t.CurrencyID, t.Direction })
-                .Select(g => new { g.Key.CategoryID, g.Key.CurrencyID, g.Key.Direction, Amount = g.Sum(x => x.Amount), Count = g.Count() })
+                    && (t.Direction == 1 || t.Direction == 2))
+                .GroupBy(t => new { t.CategoryID, t.CurrencyID, t.Direction, t.SourceDocType })
+                .Select(g => new { g.Key.CategoryID, g.Key.CurrencyID, g.Key.Direction, g.Key.SourceDocType, Amount = g.Sum(x => x.Amount), Count = g.Count() })
                 .ToListAsync();
+
+            var lines = new Dictionary<string, TannarxFinanceCategoryLine>();
+            void AddLine(int categoryId, string bucketName, string reason, decimal amount, int count)
+            {
+                var key = categoryId + "|" + reason;
+                if (!lines.TryGetValue(key, out var line))
+                {
+                    line = new TannarxFinanceCategoryLine
+                    {
+                        CategoryID = categoryId,
+                        CategoryName = _financeCategoryNames[categoryId],
+                        Bucket = bucketName,
+                        Reason = reason
+                    };
+                    lines[key] = line;
+                }
+                line.Amount += amount;
+                line.TransactionCount += count;
+            }
 
             foreach (var row in rows)
             {
                 var signed = row.Direction == 2 ? row.Amount : -row.Amount;
-                var bucket = _financeBuckets[row.CategoryID];
+                var cls = _financeClasses[row.CategoryID];
+
+                if (row.SourceDocType != null && AccrualSourceDocTypes.Contains(row.SourceDocType))
+                {
+                    AddLine(row.CategoryID, "Chiqarildi", "Invoys hisoblash yozuvi (to'lovi alohida keladi)", signed, row.Count);
+                    continue;
+                }
                 if (_baseCurrencyId.HasValue && row.CurrencyID != _baseCurrencyId.Value)
                 {
                     var code = _currencyCodes.TryGetValue(row.CurrencyID, out var c) && c.Length > 0 ? c : ("#" + row.CurrencyID);
                     totals.SkippedForeignCount += row.Count;
                     totals.SkippedForeignByCurrency.TryGetValue(code, out var prev);
                     totals.SkippedForeignByCurrency[code] = prev + signed;
+                    AddLine(row.CategoryID, "Chiqarildi", "Boshqa valyuta (" + code + ") — konvertatsiya qilinmaydi", signed, row.Count);
                     continue;
                 }
 
                 var name = _financeCategoryNames[row.CategoryID];
-                switch (bucket)
+                switch (cls.Bucket)
                 {
                     case TannarxFinanceBucket.Material:
                         totals.Material += signed;
                         totals.MaterialCategories.Add(name);
+                        AddLine(row.CategoryID, "Material (PATH3)", cls.Reason, signed, row.Count);
                         break;
                     case TannarxFinanceBucket.TaxBank:
                         totals.TaxBank += signed;
                         totals.TaxBankCategories.Add(name);
+                        AddLine(row.CategoryID, "B — Soliq va bank", cls.Reason, signed, row.Count);
                         break;
                     case TannarxFinanceBucket.Other:
                         totals.Other += signed;
                         totals.OtherCategories.Add(name);
+                        AddLine(row.CategoryID, "D — Boshqa", cls.Reason, signed, row.Count);
+                        break;
+                    case TannarxFinanceBucket.OtherAuto:
+                        if (row.SourceDocType != null && CoveredElsewhereSourceDocTypes.Contains(row.SourceDocType))
+                        {
+                            AddLine(row.CategoryID, "Chiqarildi", "Boshqa joyda hisoblanadi (" + row.SourceDocType + ")", signed, row.Count);
+                            break;
+                        }
+                        totals.Other += signed;
+                        totals.OtherCategories.Add(name);
+                        AddLine(row.CategoryID, "D — Boshqa", cls.Reason, signed, row.Count);
+                        break;
+                    default:
+                        AddLine(row.CategoryID, "Chiqarildi", cls.Reason, signed, row.Count);
                         break;
                 }
-                totals.TransactionCount += row.Count;
+                if (cls.Bucket != TannarxFinanceBucket.Excluded)
+                    totals.TransactionCount += row.Count;
             }
 
             // Qaytarishlar chiqimdan oshib ketsa, manfiy xarajat tannarxga yozilmaydi.
             totals.Material = Math.Max(0m, totals.Material);
             totals.TaxBank = Math.Max(0m, totals.TaxBank);
             totals.Other = Math.Max(0m, totals.Other);
+            totals.Lines.AddRange(lines.Values.OrderBy(l => l.Bucket == "Chiqarildi").ThenBy(l => l.Bucket).ThenByDescending(l => l.Amount));
             return totals;
+        }
+
+
+        /// <summary>
+        /// Ishlab chiqarish uchun avtomatik yaratilgan xomashyo chiqimlari (ProductionConsumptionService):
+        /// EXPENSES.Description da "ProductionID:{PRODUCT_PRODUCTION.ID}", EXPENSE_PRODUCTS.TotalPrice — FIFO kirim narxi (UZS).
+        /// Chiqim hujjati ishlab chiqarish sanasida emas, kiritilgan/qayta hisoblangan kunda yaratiladi,
+        /// shuning uchun sana bo'yicha emas, ProductionID bo'yicha bog'lanadi (oy boshidan 1 oy oldingi hujjatlardan qidiriladi).
+        /// </summary>
+        private async Task<Dictionary<int, WarehouseIssueInfo>> LoadWarehouseIssuesAsync(DateTime start, DateTime end, List<int> productIds)
+        {
+            var result = new Dictionary<int, WarehouseIssueInfo>();
+            if (!productIds.Any())
+                return result;
+
+            var productions = await _db.PRODUCT_PRODUCTION
+                .Where(p => p.IsDeleted != true && p.Date >= start && p.Date < end && productIds.Contains(p.ProductID))
+                .Select(p => new { p.ID, p.ProductID, p.Total })
+                .ToListAsync();
+            if (!productions.Any())
+                return result;
+            var productionById = productions.ToDictionary(p => p.ID);
+
+            var searchFrom = start.AddMonths(-1);
+            var expenseHeaders = await _db.EXPENSES
+                .Where(e => !e.IsDeleted
+                    && e.IssueDateTime >= searchFrom
+                    && e.Description != null
+                    && e.Description.Contains("ProductionID:"))
+                .Select(e => new { e.ID, e.Description })
+                .ToListAsync();
+
+            var expenseToProduction = new Dictionary<int, int>();
+            foreach (var e in expenseHeaders)
+            {
+                var m = ProductionIdRegex.Match(e.Description);
+                if (m.Success && int.TryParse(m.Groups[1].Value, out var productionId) && productionById.ContainsKey(productionId))
+                    expenseToProduction[e.ID] = productionId;
+            }
+            if (!expenseToProduction.Any())
+                return result;
+
+            var expenseIds = expenseToProduction.Keys.ToList();
+            var lineSums = await _db.EXPENSE_PRODUCTS
+                .Where(l => expenseIds.Contains(l.ExpenseID))
+                .GroupBy(l => l.ExpenseID)
+                .Select(g => new
+                {
+                    ExpenseID = g.Key,
+                    Amount = g.Sum(x => x.TotalPrice),
+                    Lines = g.Count(),
+                    ZeroPriceLines = g.Count(x => x.TotalPrice <= 0)
+                })
+                .ToListAsync();
+
+            foreach (var group in lineSums.GroupBy(s => productionById[expenseToProduction[s.ExpenseID]].ProductID))
+            {
+                var coveredProductionIds = group.Select(s => expenseToProduction[s.ExpenseID]).Distinct().ToList();
+                result[group.Key] = new WarehouseIssueInfo
+                {
+                    ExpenseCount = group.Count(),
+                    LineCount = group.Sum(s => s.Lines),
+                    ZeroPriceLineCount = group.Sum(s => s.ZeroPriceLines),
+                    Amount = group.Sum(s => Convert.ToDecimal(s.Amount)),
+                    CoveredQty = coveredProductionIds.Sum(id => Convert.ToDecimal(productionById[id].Total)),
+                    ProductionCount = productions.Count(p => p.ProductID == group.Key),
+                    CoveredProductionCount = coveredProductionIds.Count
+                };
+            }
+            return result;
         }
 
         private async Task<Dictionary<int, HashSet<int>>> LoadBomComponentsAsync(List<int> productIds)
@@ -796,6 +947,17 @@ namespace tahsinERP.Services.Tannarx
         }
     }
 
+    internal class WarehouseIssueInfo
+    {
+        public int ExpenseCount { get; set; }
+        public int LineCount { get; set; }
+        public int ZeroPriceLineCount { get; set; }
+        public decimal Amount { get; set; }
+        public decimal CoveredQty { get; set; }
+        public int ProductionCount { get; set; }
+        public int CoveredProductionCount { get; set; }
+    }
+
     internal class TannarxFinanceTotals
     {
         public decimal Material { get; set; }
@@ -808,6 +970,18 @@ namespace tahsinERP.Services.Tannarx
         public string BaseCurrencyCode { get; set; }
         public int SkippedForeignCount { get; set; }
         public Dictionary<string, decimal> SkippedForeignByCurrency { get; } = new Dictionary<string, decimal>();
+        /// <summary>Kategoriya bo'yicha: qaysi guruhga tushdi yoki nima uchun chiqarildi (oy manbalari sahifasi uchun).</summary>
+        public List<TannarxFinanceCategoryLine> Lines { get; } = new List<TannarxFinanceCategoryLine>();
+    }
+
+    internal class TannarxFinanceCategoryLine
+    {
+        public int CategoryID { get; set; }
+        public string CategoryName { get; set; }
+        public string Bucket { get; set; }
+        public string Reason { get; set; }
+        public decimal Amount { get; set; }
+        public int TransactionCount { get; set; }
     }
 
     internal class TannarxMonthActualResult
@@ -836,6 +1010,8 @@ namespace tahsinERP.Services.Tannarx
         public decimal OtherPerUnit { get; set; }
 
         // Izoh (calculation note) uchun iz
+        public List<string> PathAttempts { get; } = new List<string>();
+        public WarehouseIssueInfo WarehouseIssue { get; set; }
         public int BomComponentCount { get; set; }
         public List<string> SalesOrderNos { get; set; } = new List<string>();
         public List<string> PurchaseOrderNos { get; set; } = new List<string>();
