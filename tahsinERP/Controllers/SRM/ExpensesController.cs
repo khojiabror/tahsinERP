@@ -9,14 +9,18 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Services.Stock;
 using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.SRM
 {
     public class ExpensesController : Controller
     {
-        private const string LinkedExpenseIdMarker = "EXPENSE_ID:";
+        private const string LinkedExpenseIdMarker = DocumentMarkers.LinkedExpenseId;
+        /// <summary>Ishlab chiqarish → sotuv o'tkazmasi kirimidagi eski marker ("... EXPENS ID: 123").</summary>
+        private const string LegacyExpenseIdMarker = "EXPENS ID: ";
 
         // Olish so'rovi: Expenses
         // status: null/"" = barchasi, "pending" = Kutilmoqda, "sent" = Yuborilgan
@@ -125,25 +129,7 @@ namespace tahsinERP.Controllers.SRM
                     return View();
                 }
 
-                ViewBag.SenderWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.ID == assignedWarehouseId.Value).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName"
-                );
-
-                ViewBag.ReceiverWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName"
-                );
-
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname"
-                );
-
-                ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
-                    "ID", "ShortName"
-                );
+                PopulateFormLookups(new[] { assignedWarehouseId.Value }, null, null, null);
 
                 return View();
             }
@@ -324,18 +310,14 @@ namespace tahsinERP.Controllers.SRM
                                 model.ExpenseProducts = new List<ViewModels.ExpenseProductViewModel>();
                             }
 
-                            // Tekshirish stock availability
-                            foreach (var product in model.ExpenseProducts)
+                            // Qoldiq tekshiruvi: bir mahsulot bir necha qatorda bo'lsa — jami miqdor bo'yicha (SRM-B08).
+                            // Yakuniy kafolat — StockLedger'dagi atomik yozuv (yetmasa xato, hech narsa yozilmaydi).
+                            var stockError = CheckStockAvailability(db, model.SenderWHID, model.ExpenseProducts);
+                            if (stockError != null)
                             {
-                                var stock = await db.PRODUCT_STOCKS
-                                    .FirstOrDefaultAsync(s => s.WHID == model.SenderWHID && s.ProductID == product.ProductID);
-
-                                if (stock == null || stock.Amount < product.Amount)
-                                {
-                                    ModelState.AddModelError("", $"Mahsulot {product.ProductPNo} uchun yetarli qoldiq yo'q. Mavjud: {(stock?.Amount ?? 0)}, Talab: {product.Amount}");
-                                    transaction.Rollback();
-                                    goto RepopulateViewBag;
-                                }
+                                ModelState.AddModelError("", stockError);
+                                transaction.Rollback();
+                                goto RepopulateViewBag;
                             }
 
                             var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
@@ -445,13 +427,7 @@ namespace tahsinERP.Controllers.SRM
 
                                     totalAmount += product.Amount;
                                     totalPrice += expenseProduct.TotalPrice;
-
-                                    // agar receiver warehouse specified va immediate receive is allowed, increase stock there
-                                    if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
-                                    {
-                                        WarehouseFlowService.ApplyIncomeReceiveToStock(
-                                            db, expense.ReceiverWhID.Value, product.ProductID, product.Amount, product.UnitID);
-                                    }
+                                    // Ichki o'tkazmada qabul qiluvchi qoldig'i faqat kirim "Qabul qilish"da oshadi.
                                 }
 
                             expense.Amount = totalAmount;
@@ -508,73 +484,98 @@ namespace tahsinERP.Controllers.SRM
             }
 
             RepopulateViewBag:
-            // Qayta ga'ldirish ViewBag on xatolik
+            // Xato bilan qaytishda forma to'liq qayta to'ldiriladi (SRM-B24: Units yo'q edi)
             using (var db = new DBTHSNEntities())
             {
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                ViewBag.SenderWarehouses = new SelectList(
-                    await db.WAREHOUSES
-                        .Where(w => assignedWarehouseId.HasValue ? w.ID == assignedWarehouseId.Value : w.IsDeleted != true)
-                        .OrderBy(w => w.WHName)
-                        .ToListAsync(),
-                    "ID", "WHName", model.SenderWHID
-                );
-
-                ViewBag.ReceiverWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName", model.ReceiverWhID
-                );
-
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname", model.CurrencyID
-                );
+                PopulateFormLookups(assignedWarehouseId.HasValue ? new[] { assignedWarehouseId.Value } : null,
+                    model.SenderWHID, model.ReceiverWhID, model.CurrencyID);
             }
 
             return View(model);
         }
 
-        // Yaratish DocNo
-        private async Task<string> GenerateDocNo(DBTHSNEntities db)
+        /// <summary>
+        /// Keyingi chiqim raqami: {yyyyMM}_{n}, tranzaksiya ichida qulf bilan (SRM-B07: avval yilsiz
+        /// "{oy}_" prefiksi, satr bo'yicha saralash va parallel so'rovlarda takroriy raqam).
+        /// </summary>
+        private static Task<string> GenerateDocNo(DBTHSNEntities db)
         {
-            var month = DateTime.Now.Month;
-            var prefix = $"{month}_";
-
-            var lastExpense = await db.EXPENSES
-                .Where(e => e.IsDeleted == false && e.DocNo != null && e.DocNo.StartsWith(prefix))
-                .OrderByDescending(e => e.DocNo)
-                .FirstOrDefaultAsync();
-
-            int nextNumber = 1;
-            if (lastExpense != null)
-            {
-                var lastNumberStr = lastExpense.DocNo.Substring(prefix.Length);
-                if (int.TryParse(lastNumberStr, out int lastNumber))
-                {
-                    nextNumber = lastNumber + 1;
-                }
-            }
-
-            return $"{prefix}{nextNumber}";
+            return DocumentNumberService.NextAsync(db, "EXPENSES", "DocNo", DateTime.Now.ToString("yyyyMM") + "_");
         }
 
-        private bool ShouldUpdateReceiverStockImmediately(DBTHSNEntities db, int? receiverWhId)
+        /// <summary>
+        /// Chiqim qatorlari uchun qoldiq yetarliligi (mahsulot bo'yicha jami). null — yetarli.
+        /// </summary>
+        private static string CheckStockAvailability(DBTHSNEntities db, int warehouseId,
+            IEnumerable<ViewModels.ExpenseProductViewModel> lines)
         {
-            _ = db;
-            if (!receiverWhId.HasValue)
+            var requested = (lines ?? Enumerable.Empty<ViewModels.ExpenseProductViewModel>())
+                .GroupBy(p => p.ProductID)
+                .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Amount), PNo = g.First().ProductPNo })
+                .ToList();
+            var onHand = StockLedger.GetOnHand(db, warehouseId, requested.Select(r => r.ProductID));
+
+            foreach (var r in requested)
             {
-                return false;
+                double available;
+                onHand.TryGetValue(r.ProductID, out available);
+                if (available + StockLedger.Epsilon < r.Qty)
+                    return $"Mahsulot {r.PNo} uchun yetarli qoldiq yo'q. Mavjud: {available}, Talab: {r.Qty}";
             }
-            // Ichki o‘tkazmalar pending income orqali qabul qilinadi.
-            // Shu sabab receiver qoldig'ini chiqim paytida darhol oshirmaymiz
-            // (aks holda Receive vaqtida ikki marta qo'shilib qoladi).
-            return false;
+            return null;
         }
 
+        /// <summary>Chiqim formasi spravochniklari (keshdan): yuboruvchi (ruxsat etilgan) va qabul qiluvchi omborlar, valyuta, birlik.</summary>
+        private void PopulateFormLookups(IEnumerable<int> allowedSenderIds, int? senderId, int? receiverId, int? currencyId)
+        {
+            var warehouses = ReferenceDataCache.Get(ReferenceDataCache.Warehouses);
+            var senders = warehouses.AsEnumerable();
+            if (allowedSenderIds != null)
+            {
+                var allowed = new HashSet<int>(allowedSenderIds);
+                senders = senders.Where(w => allowed.Contains(w.ID));
+            }
+
+            ViewBag.SenderWarehouses = new SelectList(senders.ToList(), "ID", "Name", senderId);
+            ViewBag.ReceiverWarehouses = new SelectList(warehouses, "ID", "Name", receiverId);
+            ViewBag.Currencies = ReferenceDataCache.SelectList(ReferenceDataCache.Currencies, currencyId);
+            ViewBag.Units = new SelectList(
+                ReferenceDataCache.Get(ReferenceDataCache.Units)
+                    .Select(u => new { u.ID, ShortName = u.Extra ?? u.Name })
+                    .ToList(),
+                "ID", "ShortName");
+        }
+
+        /// <summary>
+        /// Chiqimdan avtomatik yaratilgan (o'chirilmagan) kirim: "EXPENSE_ID:n" yoki eski "EXPENS ID: n"
+        /// markeri bo'yicha ANIQ moslik (SRM-B06: avval LIKE '%EXPENSE_ID:12%' 120, 121... ga ham mos kelardi
+        /// va boshqa chiqimning kirimi qayta yozilardi).
+        /// </summary>
+        private static async Task<INCOME> FindLinkedIncomeAsync(DBTHSNEntities db, int expenseId, bool includeLines)
+        {
+            var marker = DocumentMarkers.For(LinkedExpenseIdMarker, expenseId);
+            var legacyMarker = DocumentMarkers.For(LegacyExpenseIdMarker, expenseId);
+
+            IQueryable<INCOME> query = db.INCOMES;
+            if (includeLines)
+                query = query.Include(i => i.INCOME_PRODUCTS);
+
+            var candidates = await query
+                .Where(i => i.IsDeleted != true && i.Description != null
+                    && (i.Description.Contains(marker) || i.Description.Contains(legacyMarker)))
+                .ToListAsync();
+
+            return candidates.FirstOrDefault(i =>
+                DocumentMarkers.Matches(i.Description, LinkedExpenseIdMarker, expenseId)
+                || DocumentMarkers.Matches(i.Description, LegacyExpenseIdMarker, expenseId));
+        }
+
+        /// <summary>Foydalanuvchiga biriktirilgan birinchi ombor; biriktirilmagan bo'lsa null (SRM-B16).</summary>
         private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)
         {
             var ids = await GetAssignedWarehouseIdsAsync(db);
-            return ids.FirstOrDefault();
+            return ids.Count == 0 ? (int?)null : ids[0];
         }
 
         private async Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
@@ -657,25 +658,7 @@ namespace tahsinERP.Controllers.SRM
                     }).ToList()
                 };
 
-                ViewBag.SenderWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.ID == expense.SenderWHID).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName", model.SenderWHID
-                );
-
-                ViewBag.ReceiverWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName", model.ReceiverWhID
-                );
-
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname", model.CurrencyID
-                );
-
-                ViewBag.Units = new SelectList(
-                    await db.UNITS.ToListAsync(),
-                    "ID", "ShortName"
-                );
+                PopulateFormLookups(new[] { expense.SenderWHID }, model.SenderWHID, model.ReceiverWhID, model.CurrencyID);
 
                 return View(model);
             }
@@ -717,21 +700,29 @@ namespace tahsinERP.Controllers.SRM
                                 return RedirectToAction("Index");
                             }
 
-                            // Revert old stock changes
+                            // Bog'langan kirim qabul qilingan bo'lsa, chiqimni o'zgartirib bo'lmaydi (qabul qiluvchi
+                            // ombordagi qoldiq eski qatorlar bo'yicha kirgan).
+                            var linkedIncome = await FindLinkedIncomeAsync(db, expense.ID, includeLines: false);
+                            if (linkedIncome != null && linkedIncome.RecieveStatus == true)
+                            {
+                                TempData["Error"] = "Bog'langan kirim allaqachon qabul qilingan — chiqimni tahrirlash mumkin emas.";
+                                return RedirectToAction("Details", new { id = expense.ID });
+                            }
+
+                            // SRM-B15: yuboruvchi ombor o'zgartirilmaydi (avval model.SenderWHID tekshiruvsiz yozilardi)
+                            model.SenderWHID = expense.SenderWHID;
+
+                            // SRM-B05: eski qatorlar to'liq bekor qilinadi — PRODUCT_STOCKS bilan birga DLOC lot
+                            // ajratmalari (EXPENSE_PRODUCT_ALLOCATIONS, LOT_LOCATIONS, INCOME_LOTS.QtyConsumed) ham.
+                            // Avval faqat PRODUCT_STOCKS qaytarilardi va har tahrirda lot miqdori ikki marta "yeyilardi".
                             var oldProducts = await db.EXPENSE_PRODUCTS
                                 .Where(ep => ep.ExpenseID == expense.ID)
                                 .ToListAsync();
 
                             foreach (var oldProduct in oldProducts)
                             {
-                                WarehouseFlowService.ApplyIncomeReceiveToStock(
-                                    db, expense.SenderWHID, oldProduct.ProductID, oldProduct.Amount, oldProduct.UnitID);
-
-                                if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
-                                {
-                                    WarehouseFlowService.ApplyIncomeIssueFromStock(
-                                        db, expense.ReceiverWhID.Value, oldProduct.ProductID, oldProduct.Amount, oldProduct.UnitID);
-                                }
+                                StockLedger.ReverseIssueLine(db, expense.SenderWHID, oldProduct.ProductID, oldProduct.Amount,
+                                    oldProduct.UnitID > 0 ? oldProduct.UnitID : 1, oldProduct.ID);
                             }
 
                             // Tekshirish new stock availability
@@ -740,23 +731,17 @@ namespace tahsinERP.Controllers.SRM
                                 model.ExpenseProducts = new List<ViewModels.ExpenseProductViewModel>();
                             }
 
-                            foreach (var product in model.ExpenseProducts)
+                            var stockError = CheckStockAvailability(db, expense.SenderWHID, model.ExpenseProducts);
+                            if (stockError != null)
                             {
-                                var stock = await db.PRODUCT_STOCKS
-                                    .FirstOrDefaultAsync(s => s.WHID == model.SenderWHID && s.ProductID == product.ProductID);
-
-                                if (stock == null || stock.Amount < product.Amount)
-                                {
-                                    ModelState.AddModelError("", $"Mahsulot {product.ProductPNo} uchun yetarli qoldiq yo'q. Mavjud: {(stock?.Amount ?? 0)}, Talab: {product.Amount}");
-                                    transaction.Rollback();
-                                    goto RepopulateViewBag;
-                                }
+                                ModelState.AddModelError("", stockError);
+                                transaction.Rollback();
+                                goto RepopulateViewBag;
                             }
 
                             // Yangilash expense header
                             expense.DocNo = model.DocNo;
                             expense.IssueDateTime = model.IssueDateTime;
-                            expense.SenderWHID = model.SenderWHID;
                             expense.ReceiverWhID = model.ReceiverWhID;
                             expense.CurrencyID = model.CurrencyID;
                             expense.Description = model.Description;
@@ -805,12 +790,6 @@ namespace tahsinERP.Controllers.SRM
 
                                     totalAmount += product.Amount;
                                     totalPrice += expenseProduct.TotalPrice;
-
-                                    if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
-                                    {
-                                        WarehouseFlowService.ApplyIncomeReceiveToStock(
-                                            db, expense.ReceiverWhID.Value, product.ProductID, product.Amount, product.UnitID);
-                                    }
                                 }
                             }
 
@@ -850,6 +829,12 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 await CreateLinkedIncomeDocumentForExpenseAsync(expense, model.ExpenseProducts, db);
                             }
+                            else if (linkedIncome != null)
+                            {
+                                // Endi ichki o'tkazma emas — kutilayotgan bog'langan kirim bekor qilinadi
+                                linkedIncome.IsDeleted = true;
+                                await db.SaveChangesAsync();
+                            }
                             transaction.Commit();
 
                             // Log the action
@@ -874,24 +859,8 @@ namespace tahsinERP.Controllers.SRM
             }
 
             RepopulateViewBag:
-            // Qayta ga'ldirish ViewBag on xatolik
-            using (var db = new DBTHSNEntities())
-            {
-                ViewBag.SenderWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName", model.SenderWHID
-                );
-
-                ViewBag.ReceiverWarehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName", model.ReceiverWhID
-                );
-
-                ViewBag.Currencies = new SelectList(
-                    await db.CURRENCIES.ToListAsync(),
-                    "ID", "Shortname", model.CurrencyID
-                );
-            }
+            // Xato bilan qaytishda forma to'liq qayta to'ldiriladi (SRM-B24: Units yo'qligi sababli Edit yiqilardi)
+            PopulateFormLookups(new[] { model.SenderWHID }, model.SenderWHID, model.ReceiverWhID, model.CurrencyID);
 
             return View(model);
         }
@@ -923,14 +892,37 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                if (!assignedWarehouseIds.Contains(expense.SenderWHID))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
                 }
 
+                var blockReason = await GetDeleteBlockReasonAsync(db, expense);
+                if (blockReason != null)
+                {
+                    TempData["Error"] = blockReason;
+                    return RedirectToAction("Details", new { id = expense.ID });
+                }
+
                 return View(expense);
             }
+        }
+
+        /// <summary>
+        /// SRM-B04: yuborilgan (qabul qilingan) chiqimni yoki bog'langan kirimi qabul qilingan
+        /// o'tkazmani o'chirib bo'lmaydi — aks holda tovar ikki omborda birdan "mavjud" bo'lib qolardi.
+        /// </summary>
+        private static async Task<string> GetDeleteBlockReasonAsync(DBTHSNEntities db, EXPENS expense)
+        {
+            if (expense.SendStatus == true)
+                return "Bu chiqim hujjati yuborilgan (qabul qilingan) — o'chirib bo'lmaydi. Kerak bo'lsa, qabul qiluvchi ombor kirimini bekor qiling.";
+
+            var linkedIncome = await FindLinkedIncomeAsync(db, expense.ID, includeLines: false);
+            if (linkedIncome != null && linkedIncome.RecieveStatus == true)
+                return $"Bog'langan kirim «{linkedIncome.DocNo}» allaqachon qabul qilingan — chiqimni o'chirib bo'lmaydi.";
+
+            return null;
         }
 
         // POST so'rovi: Expenses/o'chirish/5
@@ -950,29 +942,50 @@ namespace tahsinERP.Controllers.SRM
                     try
                     {
                         var expense = await db.EXPENSES.FindAsync(id);
-                        if (expense != null)
+                        if (expense != null && expense.IsDeleted != true)
                         {
-                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                            if (assignedWarehouseId.HasValue && expense.SenderWHID != assignedWarehouseId.Value)
+                            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                            if (!assignedWarehouseIds.Contains(expense.SenderWHID))
                             {
                                 return RedirectToAction("Index", "ViewNotAuthorized");
                             }
 
-                            // Revert stock changes
+                            // Kirim qabul qilinishi bilan poyga bo'lmasligi uchun bog'langan kirim qatori qulflanadi
+                            var blockReason = await GetDeleteBlockReasonAsync(db, expense);
+                            if (blockReason != null)
+                            {
+                                transaction.Rollback();
+                                TempData["Error"] = blockReason;
+                                return RedirectToAction("Details", new { id = expense.ID });
+                            }
+
+                            var linkedIncome = await FindLinkedIncomeAsync(db, expense.ID, includeLines: false);
+                            if (linkedIncome != null)
+                            {
+                                var receivedNow = await db.Database.SqlQuery<int>(
+                                    "SELECT CAST(ISNULL(RecieveStatus, 0) AS INT) FROM dbo.INCOMES WITH (UPDLOCK, HOLDLOCK) WHERE ID = @p0",
+                                    linkedIncome.ID).FirstOrDefaultAsync();
+                                if (receivedNow == 1)
+                                {
+                                    transaction.Rollback();
+                                    TempData["Error"] = $"Bog'langan kirim «{linkedIncome.DocNo}» allaqachon qabul qilingan — chiqimni o'chirib bo'lmaydi.";
+                                    return RedirectToAction("Details", new { id = expense.ID });
+                                }
+
+                                // Kutilayotgan bog'langan kirim ham bekor qilinadi (aks holda qabul qiluvchi uni
+                                // "Qabul qilish" bilan yo'qdan qoldiq yaratardi)
+                                linkedIncome.IsDeleted = true;
+                            }
+
+                            // Yuboruvchi ombor qoldig'i DLOC lot ajratmalari bilan birga qaytariladi (SRM-B04/B05)
                             var expenseProducts = await db.EXPENSE_PRODUCTS
                                 .Where(ep => ep.ExpenseID == expense.ID)
                                 .ToListAsync();
 
                             foreach (var product in expenseProducts)
                             {
-                                WarehouseFlowService.ApplyIncomeReceiveToStock(
-                                    db, expense.SenderWHID, product.ProductID, product.Amount, product.UnitID);
-
-                                if (expense.ReceiverWhID.HasValue && ShouldUpdateReceiverStockImmediately(db, expense.ReceiverWhID))
-                                {
-                                    WarehouseFlowService.ApplyIncomeIssueFromStock(
-                                        db, expense.ReceiverWhID.Value, product.ProductID, product.Amount, product.UnitID);
-                                }
+                                StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, product.Amount,
+                                    product.UnitID > 0 ? product.UnitID : 1, product.ID);
                             }
 
                             expense.IsDeleted = true;
@@ -1016,8 +1029,11 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
-        /// Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratadi (mavjud ma'lumotlarni tuzatish)
+        /// Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratadi (mavjud ma'lumotlarni tuzatish).
+        /// POST + antiforgery (SRM-B18); qabul qilingan kirimlarga tegilmaydi; har chiqim o'z tranzaksiyasida.
         /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RepairMissingLinkedIncomes()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
@@ -1038,36 +1054,43 @@ namespace tahsinERP.Controllers.SRM
 
                 foreach (var exp in pendingExpenses)
                 {
-                    try
+                    using (var transaction = db.Database.BeginTransaction())
                     {
-                        var products = exp.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
+                        try
                         {
-                            ProductID = ep.ProductID,
-                            Amount = ep.Amount,
-                            PiecePrice = ep.PiecePrice,
-                            TotalPrice = ep.TotalPrice,
-                            UnitID = ep.UnitID
-                        }).ToList();
+                            var products = exp.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
+                            {
+                                ProductID = ep.ProductID,
+                                Amount = ep.Amount,
+                                PiecePrice = ep.PiecePrice,
+                                TotalPrice = ep.TotalPrice,
+                                UnitID = ep.UnitID
+                            }).ToList();
 
-                        if (!products.Any())
-                        {
-                            skipped++;
-                            continue;
+                            if (!products.Any())
+                            {
+                                skipped++;
+                                continue;
+                            }
+
+                            var existing = await FindLinkedIncomeAsync(db, exp.ID, includeLines: false);
+                            if (existing != null && existing.RecieveStatus == true)
+                            {
+                                // Qabul qilingan kirim qatorlari qayta yozilmaydi (qoldiq ular bo'yicha kirgan)
+                                skipped++;
+                                continue;
+                            }
+
+                            await CreateLinkedIncomeDocumentForExpenseAsync(exp, products, db);
+                            transaction.Commit();
+                            if (existing != null) updated++;
+                            else created++;
                         }
-
-                        var marker = LinkedExpenseIdMarker + exp.ID;
-                        var existedBefore = await db.INCOMES.AnyAsync(i =>
-                            i.IsDeleted != true
-                            && i.Description != null
-                            && i.Description.Contains(marker));
-
-                        await CreateLinkedIncomeDocumentForExpenseAsync(exp, products, db);
-                        if (existedBefore) updated++;
-                        else created++;
-                    }
-                    catch (Exception ex)
-                    {
-                        errors.Add($"{exp.DocNo}: {ex.Message}");
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            errors.Add($"{exp.DocNo}: {ex.Message}");
+                        }
                     }
                 }
             }
@@ -1091,6 +1114,8 @@ namespace tahsinERP.Controllers.SRM
         /// kirimlariga bog'langan chiqimlarni "yuborilgan" (SendStatus = true) deb belgilaydi.
         /// Shu sabab chiqim qilgan ombor ham qabul qilingan holatni ko'rsatadi.
         /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RepairTransferExpenseStatuses()
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Expenses"))
@@ -1112,14 +1137,13 @@ namespace tahsinERP.Controllers.SRM
                 {
                     try
                     {
-                        var match = System.Text.RegularExpressions.Regex.Match(
-                            income.Description, @"EXPENSE_ID\s*:\s*(\d+)",
-                            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var expenseId))
+                        var parsedId = DocumentMarkers.Parse(income.Description, LinkedExpenseIdMarker);
+                        if (!parsedId.HasValue)
                         {
                             skipped++;
                             continue;
                         }
+                        var expenseId = parsedId.Value;
 
                         var expense = await db.EXPENSES.FirstOrDefaultAsync(e => e.ID == expenseId && e.IsDeleted != true);
                         if (expense == null)
@@ -1170,13 +1194,15 @@ namespace tahsinERP.Controllers.SRM
             if (expense.ReceiverWhID.Value == expense.SenderWHID)
                 return;
 
-            var marker = LinkedExpenseIdMarker + expense.ID;
-            var linkedIncome = await db.INCOMES
-                .Include(i => i.INCOME_PRODUCTS)
-                .FirstOrDefaultAsync(i =>
-                    i.IsDeleted != true
-                    && i.Description != null
-                    && i.Description.Contains(marker));
+            var marker = DocumentMarkers.For(LinkedExpenseIdMarker, expense.ID);
+            var linkedIncome = await FindLinkedIncomeAsync(db, expense.ID, includeLines: true);
+
+            if (linkedIncome != null && linkedIncome.RecieveStatus == true)
+            {
+                // Qabul qilingan kirimni qayta yozish qoldiqni buzadi (qatorlar bo'yicha allaqachon kirgan)
+                throw new InvalidOperationException(
+                    $"Bog'langan kirim «{linkedIncome.DocNo}» allaqachon qabul qilingan — uni o'zgartirib bo'lmaydi.");
+            }
 
             if (linkedIncome == null)
             {
@@ -1202,10 +1228,7 @@ namespace tahsinERP.Controllers.SRM
                 linkedIncome.SenderWHID = expense.SenderWHID;
                 linkedIncome.CurrencyID = expense.CurrencyID;
                 linkedIncome.Description = $"Chiqimdan avtomatik bog'langan: {expense.DocNo} - {expense.Description} | {marker}";
-                if (linkedIncome.RecieveStatus != true)
-                {
-                    linkedIncome.RecieveStatus = false;
-                }
+                linkedIncome.RecieveStatus = false;
 
                 if (linkedIncome.INCOME_PRODUCTS != null && linkedIncome.INCOME_PRODUCTS.Any())
                 {
@@ -1245,28 +1268,11 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
-        /// Generates Income DocNo
+        /// Bog'langan kirim raqami: INC-{yyyyMM}_{n}, tranzaksiya ichida qulf bilan (SRM-B07).
         /// </summary>
-        private async Task<string> GenerateIncomeDocNo(DBTHSNEntities db)
+        private static Task<string> GenerateIncomeDocNo(DBTHSNEntities db)
         {
-            var month = DateTime.Now.Month;
-            var prefix = $"INC-{month}_";
-
-            var numbers = await db.INCOMES
-                .Where(i => i.IsDeleted != true && i.DocNo != null && i.DocNo.StartsWith(prefix))
-                .Select(i => i.DocNo.Substring(prefix.Length))
-                .ToListAsync();
-
-            int maxNumber = 0;
-            foreach (var numberStr in numbers)
-            {
-                if (int.TryParse(numberStr, out int number) && number > maxNumber)
-                {
-                    maxNumber = number;
-                }
-            }
-
-            return $"{prefix}{maxNumber + 1}";
+            return DocumentNumberService.NextAsync(db, "INCOMES", "DocNo", "INC-" + DateTime.Now.ToString("yyyyMM") + "_");
         }
     }
 

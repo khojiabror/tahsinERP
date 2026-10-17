@@ -56,6 +56,18 @@
                 }
 
                 <div class="users-list-filter px-1">
+                    @if (changePermit)
+                    {
+                        @* Ma'lumotni o'zgartiruvchi tuzatish amallari faqat POST + antiforgery bilan (SRM-B18) *@
+                        using (Html.BeginForm("RepairMissingLinkedIncomes", "Expenses", FormMethod.Post, new { id = "repairLinkedIncomesForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                        }
+                        using (Html.BeginForm("RepairTransferExpenseStatuses", "Expenses", FormMethod.Post, new { id = "repairTransferStatusesForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                        }
+                    }
                     @using (Html.BeginForm("Index", "Expenses", FormMethod.Get, new { @class = "form" }))
                     {
                         <div class="row border rounded py-2 mb-2">
@@ -79,14 +91,14 @@
                             @if (changePermit)
                             {
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
-                                    <a href="@Url.Action("RepairMissingLinkedIncomes", "Expenses")" class="btn btn-outline-secondary w-100" onclick="return confirm('Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratishni xohlaysizmi?');" title="Kutilmoqdagi chiqimlar uchun Ishlab chiqarish/Sotuv omborida kirim hujjatlarini yaratish">
+                                    <button type="submit" form="repairLinkedIncomesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratishni xohlaysizmi?');" title="Kutilmoqdagi chiqimlar uchun Ishlab chiqarish/Sotuv omborida kirim hujjatlarini yaratish">
                                         <i class="bx bx-wrench"></i> Tuzatish
-                                    </a>
+                                    </button>
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
-                                    <a href="@Url.Action("RepairTransferExpenseStatuses", "Expenses")" class="btn btn-outline-secondary w-100" onclick="return confirm('Qabul qilingan o\'tkazmalarga bog\'langan chiqimlar statusini «Yuborilgan» ga moslashtirishni xohlaysizmi?');" title="Qabul qilingan kirimlarga bog'langan chiqimlar statusini tuzatish">
+                                    <button type="submit" form="repairTransferStatusesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('Qabul qilingan o\'tkazmalarga bog\'langan chiqimlar statusini «Yuborilgan» ga moslashtirishni xohlaysizmi?');" title="Qabul qilingan kirimlarga bog'langan chiqimlar statusini tuzatish">
                                         <i class="bx bx-check-circle"></i> Status tuzatish
-                                    </a>
+                                    </button>
                                 </div>
                             }
                         </div>

@@ -30,6 +30,10 @@
                 </div>
             </div>
             <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
