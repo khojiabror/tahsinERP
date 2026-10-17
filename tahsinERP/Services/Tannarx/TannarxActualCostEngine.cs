@@ -596,7 +596,8 @@ namespace tahsinERP.Services.Tannarx
                 .Where(c => c.IsDeleted != true)
                 .Select(c => new TannarxFinanceCategoryClassifier.CategoryRow { ID = c.ID, Name = c.Name, Type = c.Type, ParentID = c.ParentID })
                 .ToListAsync();
-            _financeClasses = TannarxFinanceCategoryClassifier.Classify(categories);
+            var manualMap = await new TannarxFinanceCategoryMapStore(_db).LoadAsync();
+            _financeClasses = TannarxFinanceCategoryClassifier.Classify(categories, manualMap);
             _financeCategoryNames = categories.ToDictionary(c => c.ID, c => c.Name);
 
             var currencies = await _db.CURRENCIES.Select(c => new { c.ID, c.Shortname }).ToListAsync();
@@ -679,6 +680,16 @@ namespace tahsinERP.Services.Tannarx
                 }
 
                 var name = _financeCategoryNames[row.CategoryID];
+                // Ta'minotchi / yo'l varaqasi / ish haqi / aksiyador to'lovlari o'z modulida hisoblanadi — B va D ga qo'shilmaydi
+                // (Material — PATH3 havzasi, u faqat PI/ombor manbasi bo'lmagan mahsulotlarga ketadi).
+                if (cls.Bucket != TannarxFinanceBucket.Material
+                    && cls.Bucket != TannarxFinanceBucket.Excluded
+                    && row.SourceDocType != null
+                    && CoveredElsewhereSourceDocTypes.Contains(row.SourceDocType))
+                {
+                    AddLine(row.CategoryID, "Chiqarildi", "Boshqa joyda hisoblanadi (" + row.SourceDocType + ")", signed, row.Count);
+                    continue;
+                }
                 switch (cls.Bucket)
                 {
                     case TannarxFinanceBucket.Material:
@@ -697,11 +708,6 @@ namespace tahsinERP.Services.Tannarx
                         AddLine(row.CategoryID, "D — Boshqa", cls.Reason, signed, row.Count);
                         break;
                     case TannarxFinanceBucket.OtherAuto:
-                        if (row.SourceDocType != null && CoveredElsewhereSourceDocTypes.Contains(row.SourceDocType))
-                        {
-                            AddLine(row.CategoryID, "Chiqarildi", "Boshqa joyda hisoblanadi (" + row.SourceDocType + ")", signed, row.Count);
-                            break;
-                        }
                         totals.Other += signed;
                         totals.OtherCategories.Add(name);
                         AddLine(row.CategoryID, "D — Boshqa", cls.Reason, signed, row.Count);

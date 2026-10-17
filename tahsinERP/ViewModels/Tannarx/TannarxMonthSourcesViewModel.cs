@@ -62,6 +62,36 @@ namespace tahsinERP.ViewModels.Tannarx
         public bool Included { get; set; }
     }
 
+    /// <summary>Finance xarajat kategoriyalari → tannarx guruhi (qo'lda belgilash sahifasi).</summary>
+    public class TannarxFinanceCategoryMapViewModel
+    {
+        public bool TableExists { get; set; }
+        public List<TannarxFinanceCategoryMapRow> Rows { get; set; } = new List<TannarxFinanceCategoryMapRow>();
+        /// <summary>Tanlov qiymatlari: "" = avtomatik, 0 = chiqarilsin, 1 = Material, 2 = Soliq va bank, 3 = Boshqa.</summary>
+        public static readonly IReadOnlyList<KeyValuePair<string, string>> Options = new List<KeyValuePair<string, string>>
+        {
+            new KeyValuePair<string, string>("", "Avtomatik (nom bo'yicha)"),
+            new KeyValuePair<string, string>("1", "Material (PATH3)"),
+            new KeyValuePair<string, string>("2", "B — Soliq va bank"),
+            new KeyValuePair<string, string>("3", "D — Boshqa"),
+            new KeyValuePair<string, string>("0", "Tannarxga kirmaydi")
+        };
+    }
+
+    public class TannarxFinanceCategoryMapRow
+    {
+        public int CategoryID { get; set; }
+        public string Name { get; set; }
+        public string ParentName { get; set; }
+        public bool IsActive { get; set; }
+        public string AutoBucket { get; set; }
+        public string AutoReason { get; set; }
+        /// <summary>null — avtomatik.</summary>
+        public int? ManualBucket { get; set; }
+        public string EffectiveBucket { get; set; }
+        public int TransactionCount { get; set; }
+    }
+
     public class TannarxProducedWithoutTannarxRow
     {
         public int ProductID { get; set; }

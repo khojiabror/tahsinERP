@@ -393,6 +393,8 @@ namespace tahsinERP.Services
             }
 
             await _db.SaveChangesAsync();
+            LastUpdateWarnings.Clear();
+            LastUpdateWarnings.AddRange(BuildMonthWarnings(monthResult));
             return rowsInMonth.Count;
         }
 
@@ -581,22 +583,102 @@ namespace tahsinERP.Services
                     .Select(p => new TannarxProducedWithoutTannarxRow { ProductID = p.ID, ProductPNo = p.PNo, ProductName = p.Name, ProducedQty = m.ProducedWithoutTannarx[p.ID] })
                     .OrderBy(p => p.ProductPNo)
                     .ToList();
-                var qty = m.ProducedWithoutTannarx.Values.Sum();
-                vm.Warnings.Add($"Shu oyda {ids.Count} ta mahsulot ({qty:N2} dona) ishlab chiqarilgan, lekin ular uchun tannarx qatori yo'q — " +
-                                "B/C/D xarajatlarining ularga tegishli ulushi hech qaysi tannarxga yozilmaydi. Tannarx sahifasida shu oy uchun qator yarating.");
             }
-            if (m.Finance.BaseCurrencyCode == null)
-                vm.Warnings.Add("CURRENCIES da 'UZS' topilmadi — Finance summalari barcha valyutalarda konvertatsiyasiz qo'shildi.");
-            if (m.Finance.SkippedForeignCount > 0)
-                vm.Warnings.Add($"Boshqa valyutadagi {m.Finance.SkippedForeignCount} ta Finance tranzaksiyasi hisobga olinmadi ({string.Join(", ", m.Finance.SkippedForeignByCurrency.Select(kv => $"{kv.Key}: {kv.Value:N2}"))}).");
-            var forced = produced.Count(p => p.Material.Path == "PLAN");
-            if (forced > 0)
-                vm.Warnings.Add($"{forced} ta mahsulotda material uchun hech bir manba topilmadi — reja narxi olindi (ombordan chiqim hujjatlari yoki PI zanjirini tekshiring).");
-            var zeroPriceIssues = produced.Where(p => p.WarehouseIssue != null && p.WarehouseIssue.ZeroPriceLineCount > 0).ToList();
-            if (zeroPriceIssues.Any())
-                vm.Warnings.Add($"{zeroPriceIssues.Count} ta mahsulotning ombordan chiqimida narxsiz (0) qatorlar bor ({zeroPriceIssues.Sum(p => p.WarehouseIssue.ZeroPriceLineCount)} qator) — kirim narxi kiritilmagan materiallar.");
+            vm.Warnings.AddRange(BuildMonthWarnings(m));
 
             return vm;
+        }
+
+        /// <summary>Fakt hisobidan keyingi ogohlantirishlar ("Fakt xarajatlarni yangilash" dan keyin ham ko'rsatiladi).</summary>
+        private static List<string> BuildMonthWarnings(TannarxMonthActualResult m)
+        {
+            var warnings = new List<string>();
+            var produced = m.Products.Values.Where(p => p.ProducedQty > 0).ToList();
+
+            var forced = produced.Count(p => p.Material.Path == "PLAN");
+            if (forced > 0)
+                warnings.Add($"{forced} ta mahsulotda material uchun hech bir manba (ombordan chiqim, xarid invoysi, Finance) topilmadi — REJA narxi olindi. " +
+                             "Ishlab chiqarish uchun ombordan chiqim hujjatlarini yoki SO → PO bog'lanishini tekshiring.");
+            var partial = produced.Count(p => p.Material.MethodCode == "WAREHOUSE_ISSUE_FIFO_PARTIAL");
+            if (partial > 0)
+                warnings.Add($"{partial} ta mahsulotda ishlab chiqarishning bir qismi uchun ombordan chiqim hujjati yo'q — birlik narx hujjatli qism bo'yicha olindi.");
+            var zeroPriceIssues = produced.Where(p => p.WarehouseIssue != null && p.WarehouseIssue.ZeroPriceLineCount > 0).ToList();
+            if (zeroPriceIssues.Any())
+                warnings.Add($"{zeroPriceIssues.Count} ta mahsulotning ombordan chiqimida narxsiz (0) qatorlar bor ({zeroPriceIssues.Sum(p => p.WarehouseIssue.ZeroPriceLineCount)} qator) — kirim narxi kiritilmagan materiallar, material narxi past chiqadi.");
+            if (m.ProducedWithoutTannarx.Any())
+                warnings.Add($"Shu oyda {m.ProducedWithoutTannarx.Count} ta mahsulot ({m.ProducedWithoutTannarx.Values.Sum():N2} dona) ishlab chiqarilgan, lekin ular uchun tannarx qatori yo'q — " +
+                             "B/C/D xarajatlarining ularga tegishli ulushi hech qaysi tannarxga yozilmaydi. Tannarx sahifasida shu oy uchun qator yarating.");
+            if (m.Finance.BaseCurrencyCode == null)
+                warnings.Add("CURRENCIES da 'UZS' topilmadi — Finance summalari barcha valyutalarda konvertatsiyasiz qo'shildi.");
+            if (m.Finance.SkippedForeignCount > 0)
+                warnings.Add($"Boshqa valyutadagi {m.Finance.SkippedForeignCount} ta Finance tranzaksiyasi hisobga olinmadi ({string.Join(", ", m.Finance.SkippedForeignByCurrency.Select(kv => $"{kv.Key}: {kv.Value:N2}"))}).");
+            return warnings;
+        }
+
+        /// <summary>Oxirgi "Fakt xarajatlarni yangilash" ogohlantirishlari (controller TempData ga chiqaradi).</summary>
+        public List<string> LastUpdateWarnings { get; } = new List<string>();
+
+        // ---------------- Finance kategoriya → tannarx guruhi ----------------
+
+        public async Task<TannarxFinanceCategoryMapViewModel> GetFinanceCategoryMapAsync()
+        {
+            var store = new TannarxFinanceCategoryMapStore(_db);
+            var vm = new TannarxFinanceCategoryMapViewModel { TableExists = await store.TableExistsAsync() };
+            var manual = await store.LoadAsync();
+
+            var categories = await _db.FIN_CATEGORIES
+                .Where(c => c.IsDeleted != true)
+                .Select(c => new TannarxFinanceCategoryClassifier.CategoryRow { ID = c.ID, Name = c.Name, Type = c.Type, ParentID = c.ParentID })
+                .ToListAsync();
+            var extra = await _db.FIN_CATEGORIES
+                .Where(c => c.IsDeleted != true && c.Type == TannarxFinanceCategoryClassifier.ExpenseCategoryType)
+                .Select(c => new { c.ID, c.IsActive, c.SortOrder, TxnCount = c.FIN_TRANSACTIONS.Count(t => t.IsDeleted != true) })
+                .ToDictionaryAsync(c => c.ID);
+            var names = categories.ToDictionary(c => c.ID, c => c.Name);
+
+            var auto = TannarxFinanceCategoryClassifier.Classify(categories);
+            var effective = TannarxFinanceCategoryClassifier.Classify(categories, manual);
+
+            vm.Rows = categories
+                .Where(c => c.Type == TannarxFinanceCategoryClassifier.ExpenseCategoryType)
+                .Select(c => new TannarxFinanceCategoryMapRow
+                {
+                    CategoryID = c.ID,
+                    Name = c.Name,
+                    ParentName = c.ParentID.HasValue && names.ContainsKey(c.ParentID.Value) ? names[c.ParentID.Value] : null,
+                    IsActive = extra[c.ID].IsActive,
+                    AutoBucket = TannarxFinanceCategoryClassifier.BucketTitle(auto[c.ID].Bucket),
+                    AutoReason = auto[c.ID].Reason,
+                    ManualBucket = manual.TryGetValue(c.ID, out var b) ? (int?)b : null,
+                    EffectiveBucket = TannarxFinanceCategoryClassifier.BucketTitle(effective[c.ID].Bucket),
+                    TransactionCount = extra[c.ID].TxnCount
+                })
+                .OrderBy(r => r.ParentName ?? r.Name)
+                .ThenBy(r => r.ParentName == null ? 0 : 1)
+                .ThenBy(r => r.Name)
+                .ToList();
+            return vm;
+        }
+
+        /// <param name="selection">CategoryID → tanlov ("" = avtomatik, 0..3 = guruh).</param>
+        public async Task SaveFinanceCategoryMapAsync(IDictionary<int, string> selection, int? userId)
+        {
+            var expenseIds = new HashSet<int>(await _db.FIN_CATEGORIES
+                .Where(c => c.IsDeleted != true && c.Type == TannarxFinanceCategoryClassifier.ExpenseCategoryType)
+                .Select(c => c.ID)
+                .ToListAsync());
+
+            var map = new Dictionary<int, TannarxFinanceBucket>();
+            foreach (var kv in selection)
+            {
+                if (!expenseIds.Contains(kv.Key) || string.IsNullOrWhiteSpace(kv.Value))
+                    continue;
+                if (!int.TryParse(kv.Value, out var v) || v < 0 || v > 3)
+                    throw new ArgumentException($"Noto'g'ri guruh qiymati: {kv.Value}");
+                map[kv.Key] = (TannarxFinanceBucket)v;
+            }
+
+            await new TannarxFinanceCategoryMapStore(_db).SaveAsync(map, userId);
         }
 
         private static string MaterialPathTitle(string path)
@@ -631,6 +713,13 @@ namespace tahsinERP.Services
                 report.ActualMaterialTransportCalculationNote = BuildMaterialTransportNote(month, r);
                 report.ActualFinishedTransportCalculationNote = BuildFinishedTransportNote(month, r);
                 report.ActualOverheadCalculationNote = BuildOverheadNote(month, r);
+
+                if (r.ProducedQty > 0 && r.Material.Path == "PLAN")
+                    report.ActualMaterialWarning = "Diqqat: bu mahsulot uchun material manbasi (ombordan chiqim, xarid invoysi, Finance) topilmadi — fakt material o'rniga REJA narxi olingan.";
+                else if (r.Material.MethodCode == "WAREHOUSE_ISSUE_FIFO_PARTIAL")
+                    report.ActualMaterialWarning = $"Diqqat: ishlab chiqarishning faqat {r.Material.CoveragePercent:P0} qismi uchun ombordan chiqim hujjati bor — birlik narx shu qism bo'yicha olingan.";
+                else if (r.WarehouseIssue != null && r.WarehouseIssue.ZeroPriceLineCount > 0 && r.Material.Path == "PATH0")
+                    report.ActualMaterialWarning = $"Diqqat: ombordan chiqimda {r.WarehouseIssue.ZeroPriceLineCount} ta narxsiz (0) qator bor — material narxi past chiqishi mumkin.";
             }
             catch (Exception ex)
             {

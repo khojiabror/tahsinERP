@@ -19,6 +19,7 @@ namespace tahsinERP.Services.Tannarx
     {
         public TannarxFinanceBucket Bucket { get; set; }
         public string Reason { get; set; }
+        public bool IsManual { get; set; }
     }
 
     /// <summary>
@@ -92,11 +93,38 @@ namespace tahsinERP.Services.Tannarx
             return null;
         }
 
-        /// <summary>Har xarajat kategoriyasi (Type = 2) → sinf.</summary>
-        internal static Dictionary<int, TannarxFinanceClass> Classify(IList<CategoryRow> categories)
+        internal static string BucketTitle(TannarxFinanceBucket bucket)
+        {
+            switch (bucket)
+            {
+                case TannarxFinanceBucket.Material: return "Material (PATH3)";
+                case TannarxFinanceBucket.TaxBank: return "B — Soliq va bank";
+                case TannarxFinanceBucket.Other: return "D — Boshqa";
+                case TannarxFinanceBucket.OtherAuto: return "D — Boshqa (avtomatik)";
+                default: return "Chiqarilsin";
+            }
+        }
+
+        /// <summary>
+        /// Har xarajat kategoriyasi (Type = 2) → sinf. Qo'lda belgilangan guruh (TANNARX_FIN_CATEGORY_MAP) nom qoidasidan ustun;
+        /// kategoriyaning o'zida hech narsa bo'lmasa eng yaqin ota kategoriyaning belgisi yoki nom qoidasi olinadi.
+        /// </summary>
+        internal static Dictionary<int, TannarxFinanceClass> Classify(IList<CategoryRow> categories, IDictionary<int, TannarxFinanceBucket> manual = null)
         {
             var byId = categories.ToDictionary(c => c.ID);
-            var own = categories.ToDictionary(c => c.ID, c => ClassifyOwn(c.Name));
+            var own = categories.ToDictionary(c => c.ID, c =>
+            {
+                if (manual != null && manual.TryGetValue(c.ID, out var bucket))
+                {
+                    return new TannarxFinanceClass
+                    {
+                        Bucket = bucket,
+                        Reason = bucket == TannarxFinanceBucket.Excluded ? "Qo'lda: tannarxga kirmaydi" : "Qo'lda belgilangan",
+                        IsManual = true
+                    };
+                }
+                return ClassifyOwn(c.Name);
+            });
             var result = new Dictionary<int, TannarxFinanceClass>();
 
             foreach (var cat in categories)

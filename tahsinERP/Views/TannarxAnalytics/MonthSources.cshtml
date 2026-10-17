@@ -188,7 +188,12 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title">Finance kategoriyalari (shu oy)</h4></div>
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Finance kategoriyalari (shu oy)</h4>
+                                <a href="@Url.Action("FinanceCategories", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-sm btn-outline-primary">
+                                    <i class="bx bx-cog"></i> Kategoriya guruhlarini sozlash
+                                </a>
+                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-sm mb-0">

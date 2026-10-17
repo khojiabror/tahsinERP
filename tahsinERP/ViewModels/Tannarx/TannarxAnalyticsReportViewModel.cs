@@ -64,6 +64,7 @@ namespace tahsinERP.ViewModels.Tannarx
         public string ActualFinishedTransportCalculationNote { get; set; }
         public string ActualMaterialTransportCalculationNote { get; set; }
         public string ActualOverheadCalculationNote { get; set; }
+        public string ActualMaterialWarning { get; set; }
     }
     
     public class TannarxAnalyticsReportListViewModel

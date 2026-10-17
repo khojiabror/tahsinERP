@@ -37,6 +37,11 @@
                     </div>
                 }
 
+                @if (TempData["Warning"] != null)
+                {
+                    <div class="alert alert-warning" role="alert" style="white-space:pre-line">@TempData["Warning"]</div>
+                }
+
                 @if (TempData["Error"] != null)
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
