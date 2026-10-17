@@ -32,6 +32,13 @@ namespace tahsinERP.ViewModels
         /// <summary>Kalit boshqa o'rnatmaga bog'langan bo'lsa true.</summary>
         public bool WrongInstallation { get; set; }
 
+        // Markaziy panel bilan sinxronlash (LicenseSyncService)
+        public bool PanelEnabled { get; set; }
+        public bool PanelConnected { get; set; }
+        public bool HasRegToken { get; set; }
+        public DateTime? LastSyncUtc { get; set; }
+        public string LastSyncResult { get; set; }
+
         public List<SeatRow> Users { get; set; } = new List<SeatRow>();
         public List<LicenseHistoryRow> History { get; set; } = new List<LicenseHistoryRow>();
     }

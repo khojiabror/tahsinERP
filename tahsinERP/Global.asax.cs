@@ -18,7 +18,8 @@ namespace tahsinERP
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             GlobalFilters.Filters.Add(new AuthorizeAttribute());
             GlobalFilters.Filters.Add(new tahsinERP.Filters.LicenseCheckAttribute()); // Litsenziya (company muddat) tekshiruvi
-            tahsinERP.Services.Common.ExcelExport.Configure(); // EPPlus litsenziyasi bir marta (avval 20 joyda)
+            GlobalFilters.Filters.Add(new tahsinERP.Filters.EditionCheckAttribute()); // Paket (Edition) bo'yicha modul cheklovi
+            tahsinERP.Services.LicenseSync.LicenseSyncService.Start(); // panel URL bo'sh bo'lsa (on-prem offline) hech narsa qilmaydi
         }
 
         // Har so'rovda yangi CultureInfo yaratilmaydi — keshlangan, faqat o'qiladigan nusxa
@@ -28,6 +29,11 @@ namespace tahsinERP
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = AppCulture;
             System.Threading.Thread.CurrentThread.CurrentUICulture = AppCulture;
+            tahsinERP.Configuration.Tenancy.TenantHttp.BeginRequest(Context); // host → tenant bazasi (reestr bo'sh bo'lsa hech narsa qilmaydi)
+        }
+        protected void Application_PostAuthenticateRequest()
+        {
+            tahsinERP.Configuration.Tenancy.TenantHttp.PostAuthenticateRequest(Context); // cookie boshqa tenant'niki bo'lsa — anonim
         }
     }
 }
