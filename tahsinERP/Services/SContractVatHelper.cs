@@ -1,17 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data.Entity;
 using System.Linq;
-using System.Threading.Tasks;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
 {
+    /// <summary>
+    /// Sotuv shartnomasi QQS hisobi. PContractVatHelper bilan qatorma-qator bir xil (D3) — umumiy
+    /// Services/VatMath.cs (SRM-Xarid sessiyasi) birlashtirilgach, bu sinf faqat qator bazasi
+    /// (PiecePrice*Amount) adapteri bo'lib qolishi kerak.
+    /// </summary>
     public static class SContractVatHelper
     {
-        public const double DefaultVatPercent = 12d;
-
         public static double GetLineBaseAmount(S_CONTRACT_PRODUCTS product)
         {
             if (product == null)
@@ -133,18 +134,6 @@ namespace tahsinERP.Services
                         g.Sum(p => p.vatamount ?? 0)));
         }
 
-        public static async Task<Dictionary<int, double>> GetProductVatRatesByContractAsync(DBTHSNEntities db, int contractId)
-        {
-            var products = await db.S_CONTRACT_PRODUCTS
-                .Where(p => p.ContractID == contractId)
-                .Select(p => new { p.ProductID, p.PiecePrice, p.Amount, p.vatamount })
-                .ToListAsync();
-
-            return products.ToDictionary(
-                p => p.ProductID,
-                p => GetVatPercentFromLine(p.PiecePrice * p.Amount, p.vatamount));
-        }
-
         public static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
         {
             if (products == null)
@@ -175,47 +164,6 @@ namespace tahsinERP.Services
                 .ToDictionary(
                     g => g.Key,
                     g => CalculateContractVatRateFromLines(g));
-        }
-
-        public static double CalculateContractTotalWithVatFromForm(NameValueCollection form, string listPrefix = "ProductList")
-        {
-            double total = 0;
-            int index = 0;
-            while (form[$"{listPrefix}[{index}].ProductID"] != null)
-            {
-                var productIdStr = form[$"{listPrefix}[{index}].ProductID"];
-                if (!string.IsNullOrEmpty(productIdStr) && productIdStr != "0")
-                {
-                    double piecePrice;
-                    double quantity;
-                    double.TryParse(form[$"{listPrefix}[{index}].PiecePrice"], out piecePrice);
-                    double.TryParse(form[$"{listPrefix}[{index}].Amount"], out quantity);
-                    var vatPercent = ParseVatPercentFromForm(form, index, listPrefix);
-                    var lineBase = GetLineBaseAmount(piecePrice, quantity);
-                    total += lineBase + CalculateVatAmount(lineBase, vatPercent);
-                }
-
-                index++;
-            }
-
-            return Math.Round(total, MidpointRounding.AwayFromZero);
-        }
-
-        public static double ParseVatPercentFromForm(NameValueCollection form, int index, string listPrefix = "ProductList")
-        {
-            var raw = form[$"{listPrefix}[{index}].VatPercent"];
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-                return 0;
-            }
-
-            double vatPercent;
-            if (!double.TryParse(raw, out vatPercent))
-            {
-                return 0;
-            }
-
-            return Math.Max(0, Math.Min(100, vatPercent));
         }
 
         public class ContractProductVatLine
