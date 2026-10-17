@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Caching;
+using tahsinERP.Configuration.Tenancy;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
 
@@ -73,7 +74,9 @@ namespace tahsinERP.Services
         private const string STATE_INSTALLATION_ID = "InstallationId";
         private const string STATE_LAST_SEEN = "LastSeenUtc";
 
-        private static volatile bool _stateTableEnsured;
+        // LICENSE_STATE jadvali yaratilganmi — har tenant bazasi uchun alohida ("" = bitta-baza rejimi)
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _stateTableEnsured =
+            new System.Collections.Concurrent.ConcurrentDictionary<string, bool>(StringComparer.Ordinal);
         private static readonly object _stateLock = new object();
 
         public static string PublicKey
@@ -81,10 +84,17 @@ namespace tahsinERP.Services
             get { return LicenseHelper.PublicKeyXml; }
         }
 
+        /// <summary>
+        /// Shu o'rnatmaning CompanyID'si: ko'p-tenant rejimida tenant reestridagi companyId (berilgan bo'lsa),
+        /// aks holda Web.config'dagi companyID.
+        /// </summary>
         public static int InstallationCompanyId
         {
             get
             {
+                var tenant = TenantContext.Current;
+                if (tenant != null && tenant.CompanyId.HasValue)
+                    return tenant.CompanyId.Value;
                 int id;
                 return int.TryParse(ConfigurationManager.AppSettings["companyID"], out id) ? id : 0;
             }
@@ -98,7 +108,8 @@ namespace tahsinERP.Services
         /// </summary>
         public static LicenseStatus GetCachedStatus()
         {
-            var cached = MemoryCache.Default.Get(CACHE_KEY) as LicenseStatus;
+            string cacheKey = TenantContext.CacheKey(CACHE_KEY);
+            var cached = MemoryCache.Default.Get(cacheKey) as LicenseStatus;
             if (cached != null)
                 return cached;
 
@@ -118,14 +129,14 @@ namespace tahsinERP.Services
                 ttl = ErrorCacheDuration;
             }
 
-            MemoryCache.Default.Set(CACHE_KEY, status, DateTimeOffset.Now.Add(ttl));
+            MemoryCache.Default.Set(cacheKey, status, DateTimeOffset.Now.Add(ttl));
             return status;
         }
 
         /// <summary>Kalit faollashtirilganda (yoki holat o'zgarganda) keshni tozalaydi.</summary>
         public static void InvalidateCache()
         {
-            MemoryCache.Default.Remove(CACHE_KEY);
+            MemoryCache.Default.Remove(TenantContext.CacheKey(CACHE_KEY));
         }
 
         #endregion
@@ -134,7 +145,8 @@ namespace tahsinERP.Services
 
         private static void EnsureStateTable(DBTHSNEntities db)
         {
-            if (_stateTableEnsured)
+            string tenantKey = TenantContext.CacheKeyPrefix;
+            if (_stateTableEnsured.ContainsKey(tenantKey))
                 return;
 
             db.Database.ExecuteSqlCommand(
@@ -143,7 +155,7 @@ namespace tahsinERP.Services
                       Name      NVARCHAR(50)  NOT NULL CONSTRAINT PK_LICENSE_STATE PRIMARY KEY,
                       Value     NVARCHAR(400) NOT NULL,
                       UpdatedAt DATETIME      NOT NULL CONSTRAINT DF_LS_UpdatedAt DEFAULT(GETDATE()));");
-            _stateTableEnsured = true;
+            _stateTableEnsured[tenantKey] = true;
         }
 
         private static string ReadState(DBTHSNEntities db, string name)

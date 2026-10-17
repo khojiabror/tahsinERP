@@ -24,6 +24,11 @@ namespace tahsinERP
             System.Globalization.CultureInfo culture = new System.Globalization.CultureInfo("en-US");
             System.Threading.Thread.CurrentThread.CurrentCulture = culture;
             System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+            tahsinERP.Configuration.Tenancy.TenantHttp.BeginRequest(Context); // host → tenant bazasi (reestr bo'sh bo'lsa hech narsa qilmaydi)
+        }
+        protected void Application_PostAuthenticateRequest()
+        {
+            tahsinERP.Configuration.Tenancy.TenantHttp.PostAuthenticateRequest(Context); // cookie boshqa tenant'niki bo'lsa — anonim
         }
     }
 }

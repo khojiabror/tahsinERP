@@ -17,11 +17,15 @@ namespace tahsinERP.Models
         private const int CACHE_DURATION_MINUTES = 10;
 
         #region Cache Keys
-        private static string GetUserRolesCacheKey(string username) => $"UserRoles_{username}";
-        private static string GetUserFullNameCacheKey(string username) => $"UserFullName_{username}";
-        private static string GetUserPositionCacheKey(string username) => $"UserPosition_{username}";
-        private static string GetPermissionCacheKey(string username, string module) => $"Permission_{username}_{module}";
-        private static string GetPermissionCacheKey(string username, string controller, string action) => $"Permission_{username}_{controller}_{action}";
+        // T = tenant prefiksi ("" bitta-baza rejimida) — HttpRuntime.Cache barcha tenantlar uchun umumiy,
+        // ikki tenantdagi bir xil "admin" huquqlari aralashib ketmasligi kerak. Tur prefiksi boshida
+        // qoladi (ClearAllCache StartsWith bilan ishlaydi).
+        private static string T => tahsinERP.Configuration.Tenancy.TenantContext.CacheKeyPrefix;
+        private static string GetUserRolesCacheKey(string username) => $"UserRoles_{T}{username}";
+        private static string GetUserFullNameCacheKey(string username) => $"UserFullName_{T}{username}";
+        private static string GetUserPositionCacheKey(string username) => $"UserPosition_{T}{username}";
+        private static string GetPermissionCacheKey(string username, string module) => $"Permission_{T}{username}_{module}";
+        private static string GetPermissionCacheKey(string username, string controller, string action) => $"Permission_{T}{username}_{controller}_{action}";
         #endregion
 
         #region Cache Helper
@@ -65,10 +69,11 @@ namespace tahsinERP.Models
                 if (authCookie != null)
                 {
                     var authTicket = FormsAuthentication.Decrypt(authCookie.Value);
-                    if (authTicket != null && !string.IsNullOrEmpty(authTicket.UserData))
+                    var ticketName = authTicket != null ? tahsinERP.Configuration.Tenancy.TenantHttp.StripTenant(authTicket.UserData) : null;
+                    if (!string.IsNullOrEmpty(ticketName))
                     {
-                        SetCache(cacheKey, authTicket.UserData);
-                        return authTicket.UserData;
+                        SetCache(cacheKey, ticketName);
+                        return ticketName;
                     }
                 }
             }
@@ -232,7 +237,7 @@ namespace tahsinERP.Models
         {
             if (string.IsNullOrEmpty(username)) return false;
 
-            var cacheKey = $"Permission_{username}_{controller}_{action}_{parameter}";
+            var cacheKey = $"Permission_{T}{username}_{controller}_{action}_{parameter}";
             var cached = GetCache(cacheKey) as PermissionCache;
             
             if (cached != null)
@@ -289,7 +294,7 @@ namespace tahsinERP.Models
         {
             if (string.IsNullOrEmpty(username)) return false;
 
-            var cacheKey = $"Permission_{username}_{controller}_{action}_{parameter}";
+            var cacheKey = $"Permission_{T}{username}_{controller}_{action}_{parameter}";
             var cached = GetCache(cacheKey) as PermissionCache;
             
             if (cached != null)

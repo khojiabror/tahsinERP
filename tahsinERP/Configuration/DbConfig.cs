@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Data.Entity.Core.EntityClient;
+using System.Data.SqlClient;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using tahsinERP.Configuration.Tenancy;
 
 namespace tahsinERP.Configuration
 {
@@ -57,26 +59,66 @@ namespace tahsinERP.Configuration
         /// <summary>
         /// Entity Framework DbContext uchun to'liq EntityConnection string qaytaradi.
         /// DBTHSNEntities context ana shu qiymatdan foydalanadi.
+        ///
+        /// Ko'p-tenant rejimida joriy tenant bazasi (<see cref="TenantContext"/>) qaytariladi;
+        /// reestr bo'sh bo'lsa — avvalgidek bitta baza.
         /// </summary>
         public static string GetEntityConnectionString()
+        {
+            var tenant = TenantContext.Current;
+            if (tenant == null)
+                return _entity.Value;
+
+            // Har "new DBTHSNEntities()" da qayta qurmaslik uchun TenantInfo obyektida keshlanadi
+            // (reestr qayta yuklansa yangi obyektlar — kesh ham yangilanadi)
+            string cached = tenant.CachedEntityConnectionString;
+            if (cached != null)
+                return cached;
+            cached = BuildEntityConnectionString(BuildTenantSqlConnectionString(_sql.Value, tenant));
+            tenant.CachedEntityConnectionString = cached;
+            return cached;
+        }
+
+        /// <summary>
+        /// Faqat SQL (provider) connection string — shifrdan ochilgan holda (joriy tenant uchun).
+        /// Kelajakda xom ADO.NET (SqlConnection) kerak bo'lsa shundan foydalaning.
+        /// </summary>
+        public static string GetSqlConnectionString()
+        {
+            var tenant = TenantContext.Current;
+            return tenant == null ? _sql.Value : BuildTenantSqlConnectionString(_sql.Value, tenant);
+        }
+
+        /// <summary>
+        /// Tenant connection string: tenant o'zining to'liq connection string'iga ega bo'lsa — u,
+        /// aks holda umumiy connection string'da faqat Initial Catalog almashtiriladi.
+        /// </summary>
+        public static string BuildTenantSqlConnectionString(string baseSql, TenantInfo tenant)
+        {
+            if (tenant == null) throw new ArgumentNullException(nameof(tenant));
+            if (string.IsNullOrWhiteSpace(tenant.Database))
+                throw new InvalidOperationException("Tenant '" + tenant.Slug + "' uchun baza nomi berilmagan.");
+
+            var builder = new SqlConnectionStringBuilder(
+                string.IsNullOrWhiteSpace(tenant.ConnectionString) ? baseSql : tenant.ConnectionString)
+            {
+                InitialCatalog = tenant.Database
+            };
+            return builder.ConnectionString;
+        }
+
+        private static string BuildEntityConnectionString(string sql)
         {
             var builder = new EntityConnectionStringBuilder
             {
                 Metadata = Metadata,
                 Provider = ProviderName,
-                ProviderConnectionString = GetSqlConnectionString()
+                ProviderConnectionString = sql
             };
             return builder.ToString();
         }
 
-        /// <summary>
-        /// Faqat SQL (provider) connection string — shifrdan ochilgan holda.
-        /// Kelajakda xom ADO.NET (SqlConnection) kerak bo'lsa shundan foydalaning.
-        /// </summary>
-        public static string GetSqlConnectionString()
-        {
-            return _sql.Value;
-        }
+        private static readonly Lazy<string> _entity = new Lazy<string>(() => BuildEntityConnectionString(_sql.Value));
 
         /// <summary>Muhit o'zgaruvchisi: ochiq SQL connection string (AWS SSM → env).</summary>
         public const string EnvConnectionString = "TAHSINERP_DB";
