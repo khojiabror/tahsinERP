@@ -3039,9 +3039,8 @@
     <Content Include="Views\Expenses\Details.cshtml" />
     <Content Include="Views\Expenses\Edit.cshtml" />
     <Content Include="Views\Expenses\Index.cshtml" />
+    <Content Include="Views\FinDashboard\BalanceSheetDetails.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheet.cshtml" />
-    <Content Include="Views\FinDashboard\BalanceSheetAssetDetails.cshtml" />
-    <Content Include="Views\FinDashboard\BalanceSheetLiabilityDetails.cshtml" />
     <Content Include="Views\FinDashboard\Cashflow.cshtml" />
     <Content Include="Views\FinDashboard\PL.cshtml" />
     <Content Include="Views\FinDashboard\ShareholderValue.cshtml" />
