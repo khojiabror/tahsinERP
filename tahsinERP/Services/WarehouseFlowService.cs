@@ -441,15 +441,6 @@ namespace tahsinERP.Services
                     int currencyId = GetDefaultCurrencyId(db);
                     var pnoList = string.Join(", ", activeLines.Select(l => products[l.ProductID].PNo).Distinct());
 
-                    // Narx: oxirgi sotuv shartnomasidan (mahsulotlar bo'yicha bitta so'rov)
-                    var prices = db.S_CONTRACT_PRODUCTS
-                        .Where(cp => productIds.Contains(cp.ProductID)
-                            && (cp.S_CONTRACTS.IsDeleted == false || cp.S_CONTRACTS.IsDeleted == null))
-                        .Select(cp => new { cp.ProductID, cp.PiecePrice, cp.S_CONTRACTS.IssuedDate })
-                        .ToList()
-                        .GroupBy(x => x.ProductID)
-                        .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.IssuedDate).First().PiecePrice);
-
                     expense = new EXPENS
                     {
                         DocNo = transferDocNo,
@@ -467,15 +458,12 @@ namespace tahsinERP.Services
                     foreach (var line in activeLines)
                     {
                         var product = products[line.ProductID];
-                        double piecePrice;
-                        prices.TryGetValue(line.ProductID, out piecePrice);
                         var ep = new EXPENSE_PRODUCTS
                         {
                             EXPENS = expense,
                             ProductID = line.ProductID,
                             Amount = line.Quantity,
-                            PiecePrice = piecePrice,
-                            TotalPrice = line.Quantity * piecePrice,
+                            PiecePrice = 0, // chiqimdan keyin FIFO tannarxi bilan to'ldiriladi
                             UnitID = product.UnitID > 0 ? product.UnitID : 1,
                             Comment = ProductionLotService.BuildLotAllocationsComment(line.LotAllocations)
                         };
@@ -483,15 +471,20 @@ namespace tahsinERP.Services
                         expenseLines.Add(ep);
                     }
                     expense.Amount = expenseLines.Sum(x => x.Amount);
-                    expense.TotalPrice = expenseLines.Sum(x => x.TotalPrice);
 
                     if (transferDocument != null)
                         db.WRHS_EXPENSE_DOCS.Add(new WRHS_EXPENSE_DOCS { EXPENS = expense, Doc = transferDocument });
 
                     db.SaveChanges();
 
+                    // SRM-B19: o'tkazma tannarxda (FIFO, QQSsiz) — avval sotuv shartnomasi narxi (sotish narxi) olinardi
                     foreach (var ep in expenseLines)
+                    {
                         StockLedger.IssueLine(db, productionWH.ID, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
+                        ep.PiecePrice = StockCostService.IssuedLineUnitCost(db, productionWH.ID, ep.ProductID,
+                            ep.Amount, ep.UnitID, ep.ID);
+                    }
+                    expense.TotalPrice = expenseLines.Sum(x => x.Amount * x.PiecePrice);
 
                     // Sotuv omboriga kutilayotgan kirim (MRP "Qabul qilish" bilan tasdiqlaydi)
                     var income = new INCOME
@@ -516,7 +509,6 @@ namespace tahsinERP.Services
                             ProductID = ep.ProductID,
                             Amount = ep.Amount,
                             PiecePrice = ep.PiecePrice,
-                            TotalPrice = ep.TotalPrice,
                             UnitID = ep.UnitID
                         });
                     }

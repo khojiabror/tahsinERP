@@ -111,7 +111,7 @@
                                                             <th>Mavjud qoldiq</th>
                                                             <th>Chiqim miqdori</th>
                                                             <th>Birlik</th>
-                                                            <th>Dona narxi</th>
+                                                            <th title="Saqlashda FIFO bo'yicha avtomatik hisoblanadi (QQSsiz)">Tannarx (FIFO)</th>
                                                             <th>Jami</th>
                                                             <th>Izoh</th>
                                                             <th>Amallar</th>
@@ -146,7 +146,7 @@
                                                                         @Html.DropDownListFor(m => m.ExpenseProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select select2", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].PiecePrice, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0" })
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].PiecePrice, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @readonly = "readonly", @title = "Saqlashda FIFO tannarxi bilan qayta hisoblanadi" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.ExpenseProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
@@ -368,7 +368,7 @@
                                     buildUnitOptions(null) +
                                 '</select>' +
                             '</td>' +
-                            '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].PiecePrice" class="form-control price-input" step="0.01" min="0" /></td>' +
+                            '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].PiecePrice" class="form-control price-input" step="0.01" min="0" readonly title="Saqlashda FIFO tannarxi bilan hisoblanadi" /></td>' +
                             '<td><input type="number" name="ExpenseProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" readonly /></td>' +
                             '<td><input type="text" name="ExpenseProducts[' + productRowIndex + '].Comment" class="form-control" /></td>' +
                             '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +

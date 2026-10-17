@@ -704,10 +704,14 @@ namespace tahsinERP.Controllers
                                     adjustmentLock.ExpenseID = expense.ID;
 
                                     // Kamomad DLOC omborda FIFO bo'yicha, oddiy omborda umumiy qoldiqdan chiqariladi.
+                                    // Kamomad tannarxi — FIFO, QQSsiz (SRM-B19)
                                     foreach (var ep in expenseLines)
                                     {
                                         await StockLedger.IssueLineAsync(db, model.WarehouseId, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
+                                        ep.PiecePrice = StockCostService.IssuedLineUnitCost(db, model.WarehouseId, ep.ProductID,
+                                            ep.Amount, ep.UnitID, ep.ID);
                                     }
+                                    expense.TotalPrice = expenseLines.Sum(ep => ep.Amount * ep.PiecePrice);
                                 }
 
                                 await db.SaveChangesAsync();
