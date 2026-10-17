@@ -25,7 +25,9 @@ namespace tahsinERP.Controllers.SRM
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // Olish so'rovi: Incomes
-        public async Task<ActionResult> Index(int? status, int? warehouseId)
+        // SRM-P04: sahifa faqat filtr va jadval "qobig'ini" qaytaradi; qatorlar IndexData orqali sahifalab
+        // (SQL'da paging/saralash/qidiruv, AsNoTracking proyeksiya) yuklanadi. Standart sana filtri — oxirgi 30 kun.
+        public async Task<ActionResult> Index(int? status, int? warehouseId, DateTime? fromDate, DateTime? toDate)
         {
             if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
             {
@@ -35,48 +37,155 @@ namespace tahsinERP.Controllers.SRM
             using (var db = new DBTHSNEntities())
             {
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-                var incomesQuery = db.INCOMES
-                    .Include(i => i.Warehouse)
-                    .Include(i => i.Warehouse1)
-                    .Include(i => i.CURRENCy1)
-                    .Include(i => i.P_INVOICES)
-                    .Where(i => i.IsDeleted != true);
 
-                // View barcha uchun ochiq - faqat filtr bo'yicha (ombor, status tanlansa)
-                if (warehouseId.HasValue)
-                {
-                    incomesQuery = incomesQuery.Where(i => i.ReceivingWHID == warehouseId.Value);
-                }
-
-                if (status.HasValue)
-                {
-                    if (status.Value == 1)
-                    {
-                        incomesQuery = incomesQuery.Where(i => i.RecieveStatus == true);
-                    }
-                    else if (status.Value == 0)
-                    {
-                        incomesQuery = incomesQuery.Where(i => i.RecieveStatus != true);
-                    }
-                }
-
-                var incomes = await incomesQuery
-                    .OrderByDescending(i => i.IssueDateTime)
-                    .ToListAsync();
-
-                ViewBag.Warehouses = new SelectList(
-                    await db.WAREHOUSES.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToListAsync(),
-                    "ID", "WHName", warehouseId
-                );
+                ViewBag.Warehouses = ReferenceDataCache.SelectList(ReferenceDataCache.Warehouses, warehouseId);
                 ViewBag.Status = status;
                 ViewBag.WarehouseId = warehouseId;
+                ViewBag.FromDate = DataTablesPageRequest.DefaultFromDate(Request, fromDate);
+                ViewBag.ToDate = toDate;
                 ViewBag.AssignedWarehouseIds = assignedWarehouseIds;
-                var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
-                bool isMES = userRoles != null && userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
-                bool isSales = userRoles != null && userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
-                ViewBag.ChangePermit = !isMES && !isSales && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes");
+                ViewBag.ChangePermit = !IsMesOrSalesRestrictedUser() && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes");
                 ViewBag.CanCreateManualIncome = assignedWarehouseIds.Any(wid => WarehouseFlowService.CanCreateManualIncome(db, wid));
-                return View(incomes);
+                return View();
+            }
+        }
+
+        /// <summary>Kirimlar ro'yxati qatori (proyeksiya — to'liq entity va Include'larsiz).</summary>
+        private sealed class IncomeIndexRow
+        {
+            public int ID { get; set; }
+            public string DocNo { get; set; }
+            public int? InvoiceID { get; set; }
+            public string InvoiceNo { get; set; }
+            public int ReceivingWHID { get; set; }
+            public string WarehouseName { get; set; }
+            public double? TotalPrice { get; set; }
+            public bool Received { get; set; }
+            public DateTime IssueDateTime { get; set; }
+        }
+
+        private static IQueryable<IncomeIndexRow> BuildIndexQuery(DBTHSNEntities db, int? status, int? warehouseId,
+            DateTime? fromDate, DateTime? toDate, string search)
+        {
+            var query = db.INCOMES.AsNoTracking().Where(i => i.IsDeleted != true);
+
+            if (warehouseId.HasValue)
+                query = query.Where(i => i.ReceivingWHID == warehouseId.Value);
+            if (status == 1)
+                query = query.Where(i => i.RecieveStatus == true);
+            else if (status == 0)
+                query = query.Where(i => i.RecieveStatus != true);
+            if (fromDate.HasValue)
+            {
+                var from = fromDate.Value.Date;
+                query = query.Where(i => i.IssueDateTime >= from);
+            }
+            if (toDate.HasValue)
+            {
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(i => i.IssueDateTime < toExclusive);
+            }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                query = query.Where(i => i.DocNo.Contains(s) || i.P_INVOICES.InvoiceNo.Contains(s) || i.Warehouse.WHName.Contains(s));
+            }
+
+            return query.Select(i => new IncomeIndexRow
+            {
+                ID = i.ID,
+                DocNo = i.DocNo,
+                InvoiceID = i.InvoiceID,
+                InvoiceNo = i.P_INVOICES.InvoiceNo,
+                ReceivingWHID = i.ReceivingWHID,
+                WarehouseName = i.Warehouse.WHName,
+                TotalPrice = i.TotalPrice,
+                Received = i.RecieveStatus == true,
+                IssueDateTime = i.IssueDateTime
+            });
+        }
+
+        private static IOrderedQueryable<IncomeIndexRow> OrderIndexQuery(IQueryable<IncomeIndexRow> query, int column, bool desc)
+        {
+            switch (column)
+            {
+                case 0: return desc ? query.OrderByDescending(r => r.DocNo) : query.OrderBy(r => r.DocNo);
+                case 1: return desc ? query.OrderByDescending(r => r.InvoiceNo) : query.OrderBy(r => r.InvoiceNo);
+                case 2: return desc ? query.OrderByDescending(r => r.WarehouseName) : query.OrderBy(r => r.WarehouseName);
+                case 3: return desc ? query.OrderByDescending(r => r.TotalPrice) : query.OrderBy(r => r.TotalPrice);
+                case 4: return desc ? query.OrderByDescending(r => r.Received) : query.OrderBy(r => r.Received);
+                default: return desc ? query.OrderByDescending(r => r.IssueDateTime).ThenByDescending(r => r.ID)
+                                     : query.OrderBy(r => r.IssueDateTime).ThenBy(r => r.ID);
+            }
+        }
+
+        // Olish so'rovi: Incomes/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(int? status, int? warehouseId, DateTime? fromDate, DateTime? toDate)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 5);
+            using (var db = new DBTHSNEntities())
+            {
+                var assigned = new HashSet<int>(await GetAssignedWarehouseIdsAsync(db));
+                var total = await BuildIndexQuery(db, status, warehouseId, fromDate, toDate, null).CountAsync();
+                var filteredQuery = BuildIndexQuery(db, status, warehouseId, fromDate, toDate, page.Search);
+                var filtered = page.Search == null ? total : await filteredQuery.CountAsync();
+
+                var rows = await OrderIndexQuery(filteredQuery, page.OrderColumn, page.OrderDescending)
+                    .Skip(page.Start)
+                    .Take(page.Length)
+                    .ToListAsync();
+
+                return Json(new
+                {
+                    draw = page.Draw,
+                    recordsTotal = total,
+                    recordsFiltered = filtered,
+                    data = rows.Select(r => new
+                    {
+                        id = r.ID,
+                        docNo = r.DocNo,
+                        invoiceId = r.InvoiceID,
+                        invoiceNo = r.InvoiceNo,
+                        warehouse = r.WarehouseName,
+                        total = (r.TotalPrice ?? 0).ToString("N2"),
+                        received = r.Received,
+                        date = r.IssueDateTime.ToString("dd.MM.yyyy"),
+                        canModify = assigned.Contains(r.ReceivingWHID)
+                    })
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Olish so'rovi: Incomes/ExportExcel — filtr bo'yicha barcha yozuvlar (server-side jadvalda brauzer
+        // faqat joriy sahifani biladi, shuning uchun eksport serverda)
+        [HttpGet]
+        public async Task<ActionResult> ExportExcel(int? status, int? warehouseId, DateTime? fromDate, DateTime? toDate, string q)
+        {
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Index"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var rows = await OrderIndexQuery(BuildIndexQuery(db, status, warehouseId, fromDate, toDate, q), 5, true)
+                    .ToListAsync();
+
+                var bytes = ExcelExport.Create("Ombor kirimlari", rows,
+                    ExcelExport.Col<IncomeIndexRow>("Hujjat raqami", r => r.DocNo),
+                    ExcelExport.Col<IncomeIndexRow>("Invoys raqami", r => r.InvoiceNo),
+                    ExcelExport.Col<IncomeIndexRow>("Ombor", r => r.WarehouseName),
+                    ExcelExport.Col<IncomeIndexRow>("Jami summa", r => r.TotalPrice ?? 0, "#,##0.00"),
+                    ExcelExport.Col<IncomeIndexRow>("Status", r => r.Received ? "Qabul qilingan" : "Kutilmoqda"),
+                    ExcelExport.Col<IncomeIndexRow>("Sana", r => r.IssueDateTime, "dd.MM.yyyy"));
+
+                return File(bytes, ExcelExport.ContentType, $"Ombor_kirimlari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -102,13 +211,15 @@ namespace tahsinERP.Controllers.SRM
                     .Include(i => i.P_INVOICES)
                     .Include(i => i.INCOME_PRODUCTS.Select(p => p.PRODUCT))
                     .Include(i => i.INCOME_PRODUCTS.Select(p => p.UNIT))
-                    .Include(i => i.WRHS_INCOME_DOCS)
                     .FirstOrDefaultAsync(i => i.ID == id && i.IsDeleted != true);
 
                 if (income == null)
                 {
                     return HttpNotFound();
                 }
+
+                // Ilovalar: faqat ID (avval havola uchun butun fayl blob'i yuklanardi — SRM-P12)
+                ViewBag.DocIds = await db.WRHS_INCOME_DOCS.Where(d => d.IncomeID == income.ID).Select(d => d.ID).ToListAsync();
 
                 // View barcha uchun ochiq; Edit/Delete/Receive faqat MRP uchun
                 // Bir foydalanuvchi bir nechta omborga MRP bo'lishi mumkin,
@@ -1245,6 +1356,12 @@ namespace tahsinERP.Controllers.SRM
         // Olish so'rovi: Incomes/DownloadDoc/5
         public async Task<ActionResult> DownloadDoc(int? id)
         {
+            // SRM-S04: avval istalgan foydalanuvchi ketma-ket ID bilan istalgan hujjatni yuklab olardi
+            if (!tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Incomes", "Details"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             if (id == null)
             {
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
@@ -1258,7 +1375,9 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                return File(doc.Doc, "application/pdf", $"Income_{doc.IncomeID}.pdf");
+                string extension;
+                var contentType = WarehouseAttachments.ContentType(doc.Doc, out extension);
+                return File(doc.Doc, contentType, $"Income_{doc.IncomeID}{extension}");
             }
         }
 

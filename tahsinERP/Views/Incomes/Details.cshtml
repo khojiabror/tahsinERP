@@ -9,7 +9,8 @@
         ?? new System.Collections.Generic.Dictionary<int, DlocFifoReporting.IncomePutawayRow>();
     var dlocList = ViewBag.DlocLocations as SelectList;
     var hasProducts = Model.INCOME_PRODUCTS != null && Model.INCOME_PRODUCTS.Count > 0;
-    var hasIncomeDocs = Model.WRHS_INCOME_DOCS != null && Model.WRHS_INCOME_DOCS.Count > 0;
+    var incomeDocIds = ViewBag.DocIds as List<int> ?? new List<int>();
+    var hasIncomeDocs = incomeDocIds.Count > 0;
     var productColSpan = dlocEnabled ? 9 : 7;
 }
 
@@ -351,11 +352,11 @@
                                         <hr />
                                         <h5>Kirim hujjatlari</h5>
                                         <ul>
-                                            @foreach (var doc in Model.WRHS_INCOME_DOCS)
+                                            @foreach (var docId in incomeDocIds)
                                             {
                                                 <li>
-                                                    <a href="@Url.Action("DownloadDoc", "Incomes", new { id = doc.ID })" target="_blank">
-                                                        <i class="bx bx-file"></i> Hujjat #@doc.ID
+                                                    <a href="@Url.Action("DownloadDoc", "Incomes", new { id = docId })" target="_blank">
+                                                        <i class="bx bx-file"></i> Hujjat #@docId
                                                     </a>
                                                 </li>
                                             }

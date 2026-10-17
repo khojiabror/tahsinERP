@@ -1075,6 +1075,7 @@
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
     <Compile Include="Services\Stock\StockLedger.cs" />
+    <Compile Include="Services\WarehouseAttachments.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\ExpenseStockIssueHelper.cs" />
     <Compile Include="Services\DlocFifo\DlocFifoSchema.cs" />
@@ -1089,6 +1090,7 @@
     <Compile Include="Services\DlocFifo\ProductionDlocGuard.cs" />
     <Compile Include="Services\DlocFifo\LegacyDlocAssignmentService.cs" />
     <Compile Include="Controllers\Settings\WarehouseLocationsController.cs" />
+    <Compile Include="ViewModels\DataTablesPageRequest.cs" />
     <Compile Include="ViewModels\WarehouseLocationEditViewModel.cs" />
     <Compile Include="ViewModels\LicenseViewModels.cs" />
     <Compile Include="Services\LotTrackingService.cs" />
@@ -2883,6 +2885,7 @@
       <LastGenOutput>DBTHSNModel.cs</LastGenOutput>
     </Content>
     <Content Include="Scripts\404.js" />
+    <Content Include="Scripts\srm\srm-server-table.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />
     <Content Include="app-assets\data\citynames.json" />

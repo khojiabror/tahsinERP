@@ -23,23 +23,23 @@ namespace tahsinERP.Controllers.SRM
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
+                // SRM-P04: sahifada ko'rsatiladigan standart 30 kunlik oraliq endi so'rovga ham qo'llanadi
+                // (avval sana bo'sh bo'lsa butun tarix Include'lar bilan yuklanardi); AsNoTracking.
+                var from = (fromDate ?? DateTime.Today.AddDays(-30)).Date;
                 var query = db.EXPENSES
+                    .AsNoTracking()
                     .Include(e => e.Warehouse) // Sender (Production WH)
                     .Include(e => e.Warehouse1) // Receiver (Sales WH)
                     .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.PRODUCT))
                     .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.UNIT))
-                    .Where(e => e.IsDeleted == false 
-                        && (e.DocNo.StartsWith("TRNSF_") || e.DocNo.Contains("TRANSFER-")))
-                    .AsQueryable();
-
-                if (fromDate.HasValue)
-                {
-                    query = query.Where(e => e.IssueDateTime >= fromDate.Value);
-                }
+                    .Where(e => e.IsDeleted == false
+                        && (e.DocNo.StartsWith("TRNSF_") || e.DocNo.Contains("TRANSFER-"))
+                        && e.IssueDateTime >= from);
 
                 if (toDate.HasValue)
                 {
-                    query = query.Where(e => e.IssueDateTime <= toDate.Value);
+                    var toExclusive = toDate.Value.Date.AddDays(1);
+                    query = query.Where(e => e.IssueDateTime < toExclusive);
                 }
 
                 if (productID.HasValue)
@@ -53,12 +53,14 @@ namespace tahsinERP.Controllers.SRM
 
                 ViewBag.Products = new SelectList(
                     await db.PRODUCTS
+                        .AsNoTracking()
                         .Where(p => p.IsDeleted == false && p.IsFinishedGood == true)
                         .OrderBy(p => p.PNo)
+                        .Select(p => new { p.ID, p.PNo })
                         .ToListAsync(),
                     "ID", "PNo", productID);
 
-                ViewBag.FromDate = fromDate ?? DateTime.Now.AddDays(-30);
+                ViewBag.FromDate = from;
                 ViewBag.ToDate = toDate ?? DateTime.Now;
 
                 return View(transfers);
@@ -264,13 +266,15 @@ namespace tahsinERP.Controllers.SRM
                     .Include(e => e.Warehouse1)
                     .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.PRODUCT))
                     .Include(e => e.EXPENSE_PRODUCTS.Select(p => p.UNIT))
-                    .Include(e => e.WRHS_EXPENSE_DOCS)
                     .FirstOrDefaultAsync(e => e.ID == id);
 
                 if (expense == null)
                 {
                     return HttpNotFound();
                 }
+
+                // Ilovalar: faqat ID (fayl blob'i yuklanmaydi — SRM-P12)
+                ViewBag.DocIds = await db.WRHS_EXPENSE_DOCS.Where(d => d.ExpenseID == expense.ID).Select(d => d.ID).ToListAsync();
 
                 // Olish corresponding INCOME hujjat (INCOME with INCOME_PRODUCTS and UNIT)
                 // Bog'langan kirim izohdagi "EXPENS ID: n" bo'yicha aniq topiladi

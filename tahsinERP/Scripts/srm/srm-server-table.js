@@ -1,0 +1,81 @@
+/*
+ * SRM ombor ro'yxatlari uchun server-side DataTables (Incomes, Expenses).
+ * Sahifalash, saralash va qidiruv serverda (SQL) — brauzerga butun jadval yuklanmaydi.
+ * Filtr formasi (ombor, status, sana) har so'rovga qo'shiladi; Excel tugmasi filtr bo'yicha
+ * BARCHA yozuvlarni server eksport amali orqali yuklaydi.
+ *
+ *   srmServerTable('#incomesTable', {
+ *       dataUrl: '/Incomes/IndexData', exportUrl: '/Incomes/ExportExcel',
+ *       filterForm: '#incomesFilter', order: [[5, 'desc']], columns: [...]
+ *   });
+ */
+(function (window) {
+    'use strict';
+
+    window.srmEsc = function (value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    };
+
+    window.srmServerTable = function (selector, options) {
+        var $ = window.jQuery;
+        var $form = $(options.filterForm);
+
+        function filterParams() {
+            var params = {};
+            $.each($form.serializeArray(), function (_, f) { params[f.name] = f.value; });
+            return params;
+        }
+
+        var table;
+        var buttons = [];
+        if (options.exportUrl) {
+            buttons.push({
+                text: '<i class="bx bxs-file-excel"></i> Excel',
+                titleAttr: "Filtr bo'yicha barcha yozuvlarni Excelga yuklash",
+                className: 'btn btn-success mr-1',
+                action: function () {
+                    var params = filterParams();
+                    params.q = table ? table.search() : '';
+                    window.location.href = options.exportUrl + '?' + $.param(params);
+                }
+            });
+        }
+
+        table = $(selector).DataTable({
+            processing: true,
+            serverSide: true,
+            searchDelay: 400,
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100, 500], [10, 25, 50, 100, 500]],
+            order: options.order || [[0, 'desc']],
+            scrollX: true,
+            dom: buttons.length ? 'lBfrtip' : 'lfrtip',
+            buttons: buttons,
+            ajax: {
+                url: options.dataUrl,
+                type: 'GET',
+                data: function (d) { $.extend(d, filterParams()); },
+                error: function (xhr) {
+                    var msg = xhr.status === 403 ? "Ruxsat yo'q." : "Ro'yxatni yuklashda xatolik.";
+                    $(selector).find('tbody').html('<tr><td colspan="20" class="text-danger">' + msg + '</td></tr>');
+                }
+            },
+            columns: options.columns,
+            language: {
+                search: 'Qidirish:',
+                lengthMenu: "_MENU_ ta ko'rsatish",
+                info: '_TOTAL_ ta yozuvdan _START_ dan _END_ gacha',
+                infoEmpty: "Yozuvlar yo'q",
+                infoFiltered: '(jami _MAX_ ta yozuvdan filtrlangan)',
+                processing: 'Yuklanmoqda...',
+                paginate: { first: 'Birinchi', last: 'Oxirgi', next: 'Keyingi', previous: 'Oldingi' },
+                zeroRecords: "Ma'lumot topilmadi"
+            }
+        });
+
+        return table;
+    };
+})(window);
