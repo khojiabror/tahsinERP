@@ -6,9 +6,11 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class SalesTTNKController : Controller
     {
         // Olish so'rovi: SalesTTNK

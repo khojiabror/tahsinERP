@@ -8,12 +8,14 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Controllers;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.SRM
 {
     /// <summary>
     /// Controller uchun transferring finished goods dan Production Warehouse ga Sales Warehouse
     /// </summary>
+    [Permission]
     public class ProductionToSalesTransferController : Controller
     {
         // Olish so'rovi: ProductionToSalesTransfer

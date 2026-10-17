@@ -16,6 +16,7 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class CustomerController : Controller
     {
         

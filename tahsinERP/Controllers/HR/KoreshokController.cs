@@ -8,10 +8,12 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.HR
 {
     // Xodimlar maoshi ko'rsatiladi — login va ruxsat talab qilinadi (avval anonim edi)
+    [Permission]
     public class KoreshokController : Controller
     {
         private readonly DBTHSNEntities db = new DBTHSNEntities();

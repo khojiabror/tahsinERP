@@ -11,9 +11,11 @@ using tahsinERP.Models;
 using tahsinERP.Controllers;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class SalesInvoicesController : Controller
     {
         // Olish so'rovi: SalesInvoices

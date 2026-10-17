@@ -3,12 +3,14 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
     /// <summary>
     /// API controller uchun transport yuklash simulation calculations
     /// </summary>
+    [Permission(Controller = "TransportLoadSimulation")]
     public class TransportLoadApiController : Controller
     {
         /// <summary>

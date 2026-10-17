@@ -9,6 +9,7 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission(Controller = "DamagedProduct")]
     public class DamagedPartController : Controller
     {
         public ActionResult Index()

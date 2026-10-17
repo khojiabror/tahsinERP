@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.MES
 {
+    [Permission]
     public class MESDashboardController : Controller
     {
         // Olish so'rovi: MES/Dashboard

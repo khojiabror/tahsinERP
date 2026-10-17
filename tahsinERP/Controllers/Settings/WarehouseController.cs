@@ -8,9 +8,11 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Controllers;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.Settings
 {
+    [Permission]
     public class WarehouseController : Controller
     {
         // Olish so'rovi: Warehouse
