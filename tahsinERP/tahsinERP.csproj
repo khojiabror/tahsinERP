@@ -277,12 +277,6 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-0be35864-1cd4-482e-add6-81c3139c77b3.png" />
-    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-171b759d-a840-41f4-96da-b4d52aff00a9.png" />
-    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-228275a6-d730-4d8d-a891-b1de698f7adb.png" />
-    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-484e5147-caf6-4992-9d39-aa96bafadb93.png" />
-    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-b271860b-e9f2-48f8-b160-6c24df9fc8cc.png" />
-    <Content Include="assets\c__Users_khoji_AppData_Roaming_Cursor_User_workspaceStorage_d3977c4f89c0c879aca5568a81560d4d_images_image-fcb5b63b-44ef-4456-8410-02aa9f45cba9.png" />
     <Content Include="assets\manual\bootstrap.min.css" />
     <Content Include="assets\manual\images\.3.png" />
     <Content Include="assets\manual\images\.4.png" />
@@ -583,6 +577,7 @@
     <Compile Include="Controllers\TasksController.cs" />
     <Compile Include="Controllers\TaskSettings\TaskPriorityController.cs" />
     <Compile Include="Controllers\TaskSettings\TaskProjectController.cs" />
+    <Compile Include="Controllers\TaskSettings\TaskRefDataController.cs" />
     <Compile Include="Controllers\TaskSettings\TaskStatusController.cs" />
     <Compile Include="Models\ADM_COMPANY_ORDERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
@@ -1049,6 +1044,12 @@
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\Norm\NormLineMath.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
+    <Compile Include="Services\Documents\DocFileService.cs" />
+    <Compile Include="Services\Documents\CompanySettings.cs" />
+    <Compile Include="Services\Documents\DocumentService.cs" />
+    <Compile Include="Services\Tasks\TaskBadges.cs" />
+    <Compile Include="Services\Tasks\TaskLookups.cs" />
+    <Compile Include="Services\Tasks\TaskRefEntity.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\Finance\BalanceInventoryValuation.cs" />
     <Compile Include="Services\Finance\BalanceSheetService.cs" />
@@ -3140,7 +3141,6 @@
     <Content Include="Views\DamagedProduct\Details.cshtml" />
     <Content Include="Views\Log\Index.cshtml" />
     <Content Include="Views\Reports\Coverage.cshtml" />
-    <Content Include="Views\Manual\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\WaybillPayment\Index.cshtml" />
     <Content Include="Views\WaybillPayment\Create.cshtml" />

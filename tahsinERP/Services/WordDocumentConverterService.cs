@@ -16,42 +16,17 @@ namespace tahsinERP.Services
     public class WordDocumentConverterService
     {
         /// <summary>
-        /// HTML kontentni .docx formatiga konvertatsiya qilish
+        /// HTML kontentni .docx formatiga konvertatsiya qilish. Yagona konverterga (HtmlToDocxConverter) yo'naltiriladi:
+        /// avvalgi nusxa formatlashni tashlab, '&amp;' ni ikki marta escape qilardi (Word'da "&amp;amp;" ko'rinardi, DOC-B10).
         /// </summary>
         public static byte[] ConvertHtmlToDocx(string htmlContent)
         {
             if (string.IsNullOrWhiteSpace(htmlContent))
             {
-                // Bo'sh .docx yaratish
                 return CreateEmptyDocx();
             }
 
-            using (var stream = new MemoryStream())
-            {
-                using (var wordDocument = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
-                {
-                    // Main document part yaratish
-                    var mainPart = wordDocument.AddMainDocumentPart();
-                    mainPart.Document = new Document();
-                    var body = mainPart.Document.AppendChild(new Body());
-
-                    // HTML ni parchalash va Paragraph larga aylantirish
-                    var paragraphs = ParseHtmlToParagraphs(htmlContent);
-                    foreach (var paraText in paragraphs)
-                    {
-                        var paragraph = new Paragraph();
-                        var run = new Run();
-                        var text = new Text(SanitizeText(paraText));
-                        run.Append(text);
-                        paragraph.Append(run);
-                        body.Append(paragraph);
-                    }
-
-                    mainPart.Document.Save();
-                }
-
-                return stream.ToArray();
-            }
+            return HtmlToDocxConverter.ConvertHtmlToDocx(htmlContent);
         }
 
         /// <summary>
@@ -122,55 +97,6 @@ namespace tahsinERP.Services
             }
         }
 
-        /// <summary>
-        /// Template .docx faylni yuklash yoki bo'sh yaratish
-        /// </summary>
-        public static byte[] LoadTemplateDocx(string templatePath)
-        {
-            if (File.Exists(templatePath))
-            {
-                return File.ReadAllBytes(templatePath);
-            }
-            return CreateEmptyDocx();
-        }
-
-        private static string[] ParseHtmlToParagraphs(string html)
-        {
-            if (string.IsNullOrWhiteSpace(html))
-            {
-                return new string[0];
-            }
-
-            // HTML teglardan matnni ajratib olish
-            // <p>, <div> va boshqa block elementlarni paragraflarga aylantirish
-            var paragraphs = new List<string>();
-            
-            // <p> va </p> teglar orasidagi kontentni ajratish
-            var pMatches = Regex.Matches(html, @"<p[^>]*>(.*?)</p>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            foreach (Match match in pMatches)
-            {
-                var content = match.Groups[1].Value;
-                // Ichki HTML teglarni olib tashlash
-                content = Regex.Replace(content, "<[^>]+>", "", RegexOptions.IgnoreCase);
-                content = System.Net.WebUtility.HtmlDecode(content).Trim();
-                if (!string.IsNullOrWhiteSpace(content))
-                {
-                    paragraphs.Add(content);
-                }
-            }
-
-            // Agar <p> teglar topilmasa, barcha HTML teglarni olib tashlash
-            if (paragraphs.Count == 0)
-            {
-                var textOnly = Regex.Replace(html, "<[^>]+>", "", RegexOptions.IgnoreCase);
-                textOnly = System.Net.WebUtility.HtmlDecode(textOnly);
-                var lines = textOnly.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                paragraphs.AddRange(lines.Where(l => !string.IsNullOrWhiteSpace(l.Trim())));
-            }
-
-            return paragraphs.ToArray();
-        }
-
         private static string GetTextFromParagraph(Paragraph paragraph)
         {
             var textBuilder = new StringBuilder();
@@ -186,18 +112,6 @@ namespace tahsinERP.Services
             }
 
             return textBuilder.ToString();
-        }
-
-        private static string SanitizeText(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-            // XML uchun xavfli belgilarni almashtirish
-            return text
-                .Replace("&", "&amp;")
-                .Replace("<", "&lt;")
-                .Replace(">", "&gt;");
         }
 
         private static string EscapeHtml(string text)

@@ -231,6 +231,25 @@
                         placeholder: 'Hujjat kontentini kiriting...'
                     });
 
+                    // Matn foydalanuvchi tomonidan o'zgartirilmasa, yangi fayl versiyasi yaratilmaydi:
+                    // Quill -> docx konvertatsiyasi formatlashni soddalashtiradi, faqat metadata
+                    // tahrirlanganda asosiy fayl shu sababli buzilmasin.
+                    var contentChanged = false;
+                    quill.on('text-change', function (delta, oldDelta, source) {
+                        if (source === 'user') contentChanged = true;
+                    });
+
+                    // Validatsiya xatosidan keyin qaytganda foydalanuvchi matnini tiklash
+                    var postedContent = $('#documentContent').val();
+                    if (postedContent) {
+                        try {
+                            quill.clipboard.dangerouslyPasteHTML(decodeURIComponent(escape(atob(postedContent))), 'silent');
+                            contentChanged = true;
+                        } catch (e) {
+                            console.error('Matnni tiklashda xatolik:', e);
+                        }
+                    }
+
                     // Joriy versiyani yuklash
                     $('#loadCurrentDocxBtn').on('click', function() {
                         @if (ViewBag.DocumentFileId != null)
@@ -358,7 +377,8 @@
                                     // Quill delta formatiga konvertatsiya qilish
                                     var delta = quill.clipboard.convert(tempDiv);
                                     quill.setContents(delta, 'silent');
-                                    
+                                    contentChanged = true;
+
                                     console.log('Word fayl yuklandi');
                                 })
                                 .catch(function(error) {
@@ -369,8 +389,8 @@
                         reader.readAsArrayBuffer(file);
                     }
 
-                    // Avtomatik joriy versiyani yuklash
-                    @if (ViewBag.DocumentFileId != null)
+                    // Avtomatik joriy versiyani yuklash (tiklangan matn bo'lmasa)
+                    @if (ViewBag.DocumentFileId != null && string.IsNullOrEmpty(Model.DocumentContent))
                     {
                         <text>
                         loadDocxFromUrl('@Url.Action("DownloadFile", "STDCompanyStandards", new { fileId = ViewBag.DocumentFileId })');
@@ -380,7 +400,14 @@
                     // Form submit - HTML ni .docx ga konvertatsiya qilish
                     $('#editForm').on('submit', function(e) {
                         e.preventDefault();
-                        
+
+                        if (!contentChanged) {
+                            // Faqat metadata saqlanadi, fayl versiyasi o'zgarmaydi
+                            $('#documentContent').val('');
+                            $('#editForm')[0].submit();
+                            return false;
+                        }
+
                         // Quill content ni olish
                         var htmlContent = quill.root.innerHTML;
                         
@@ -404,7 +431,6 @@
                         }
                     });
                 });
-            });
             });
         })();
         </script>

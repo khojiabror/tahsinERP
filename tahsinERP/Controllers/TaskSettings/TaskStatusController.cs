@@ -1,202 +1,34 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 using tahsinERP.Models;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
-    public class TaskStatusController : Controller
+    public class TaskStatusController : TaskRefDataController<APP_TASK_STATUS_REF>
     {
-        // Olish so'rovi: TaskStatus
-        public async Task<ActionResult> Index()
+        private static readonly string[] Fields = { "Code", "Name", "SortOrder", "IsActive" };
+
+        protected override DbSet<APP_TASK_STATUS_REF> Set(DBTHSNEntities db) => db.APP_TASK_STATUS_REF;
+
+        protected override IQueryable<APP_TASK_STATUS_REF> Ordered(IQueryable<APP_TASK_STATUS_REF> query) => query.OrderBy(s => s.SortOrder);
+
+        protected override string[] EditableFields => Fields;
+
+        protected override Expression<Func<APP_TASKS, bool>> UsedBy(int id) => t => t.StatusID == id;
+
+        protected override string LogLabel => "Status";
+
+        protected override string InUseMessage => "Bu status vazifalarda ishlatilmoqda. O'chirish mumkin emas.";
+
+        protected override async Task OnCreatingAsync(DBTHSNEntities db, APP_TASK_STATUS_REF entity)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
+            // SortOrder kiritilmasa — oxiriga
+            if (entity.SortOrder == 0)
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var statuses = await db.APP_TASK_STATUS_REF
-                    .Where(s => s.IsDeleted == false || s.IsDeleted == null)
-                    .OrderBy(s => s.SortOrder)
-                    .ToListAsync();
-                return View(statuses);
-            }
-        }
-
-        // Olish so'rovi: TaskStatus/Details/5
-        public async Task<ActionResult> Details(int? id)
-        {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var status = await db.APP_TASK_STATUS_REF
-                    .Where(s => s.ID == id && (s.IsDeleted == false || s.IsDeleted == null))
-                    .FirstOrDefaultAsync();
-                if (status == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(status);
-            }
-        }
-
-        // Olish so'rovi: TaskStatus/yaratish
-        public ActionResult Create()
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            return View();
-        }
-
-        // POST so'rovi: TaskStatus/yaratish
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(APP_TASK_STATUS_REF status)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    // Tekshirish agar code already mavjud
-                    var existing = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == status.Code);
-                    if (existing != null)
-                    {
-                        ModelState.AddModelError("Code", "Bu kod allaqachon mavjud");
-                        return View(status);
-                    }
-
-                    // Olish max SortOrder agar not provided
-                    if (status.SortOrder == 0)
-                    {
-                        var maxSort = await db.APP_TASK_STATUS_REF
-                            .Select(s => (int?)s.SortOrder)
-                            .DefaultIfEmpty(0)
-                            .MaxAsync();
-                        status.SortOrder = (maxSort ?? 0) + 1;
-                    }
-
-                    db.APP_TASK_STATUS_REF.Add(status);
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "TaskStatusController", $"Status {status.Code} - {status.Name} yaratdi");
-                    return RedirectToAction("Index");
-                }
-            }
-
-            return View(status);
-        }
-
-        // Olish so'rovi: TaskStatus/Edit/5
-        public async Task<ActionResult> Edit(int? id)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var status = await db.APP_TASK_STATUS_REF.FindAsync(id);
-                if (status == null)
-                {
-                    return HttpNotFound();
-                }
-                return View(status);
-            }
-        }
-
-        // POST so'rovi: TaskStatus/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(APP_TASK_STATUS_REF status)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (DBTHSNEntities db = new DBTHSNEntities())
-                {
-                    // Tekshirish agar code already mavjud (excluding current record)
-                    var existing = await db.APP_TASK_STATUS_REF.FirstOrDefaultAsync(s => s.Code == status.Code && s.ID != status.ID);
-                    if (existing != null)
-                    {
-                        ModelState.AddModelError("Code", "Bu kod allaqachon mavjud");
-                        return View(status);
-                    }
-
-                    db.Entry(status).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "TaskStatusController", $"Status {status.Code} - {status.Name} tahrirladi");
-                    return RedirectToAction("Index");
-                }
-            }
-
-            return View(status);
-        }
-
-        // POST so'rovi: TaskStatus/o'chirish/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int id)
-        {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var status = await db.APP_TASK_STATUS_REF.FindAsync(id);
-                if (status == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // Tekshirish agar holat is used in tasks
-                var usedInTasks = await db.APP_TASKS.AnyAsync(t => t.StatusID == id && t.IsDeleted == false);
-                if (usedInTasks)
-                {
-                    TempData["Error"] = "Bu status vazifalarda ishlatilmoqda. O'chirish mumkin emas.";
-                    return RedirectToAction("Index");
-                }
-
-                status.IsDeleted = true;
-                db.Entry(status).State = System.Data.Entity.EntityState.Modified;
-                await db.SaveChangesAsync();
-
-                LogHelper.LogToDatabase(User.Identity.Name, "TaskStatusController", $"Status {status.Code} - {status.Name} o'chirildi");
-                return RedirectToAction("Index");
+                entity.SortOrder = (await db.APP_TASK_STATUS_REF.MaxAsync(s => (int?)s.SortOrder) ?? 0) + 1;
             }
         }
     }

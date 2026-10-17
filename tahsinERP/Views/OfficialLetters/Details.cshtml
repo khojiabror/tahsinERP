@@ -8,7 +8,7 @@
 {
     bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
     var letter = Model.COM_OFFICIAL_LETTERS;
-    var files = Model.DOC_FILES?.Where(f => f.IsMain).OrderByDescending(f => f.VersionNo).ToList();
+    var files = ViewBag.DocFiles as System.Collections.Generic.List<tahsinERP.Services.Documents.DocFileListItem>;
 
     <div class="app-content content">
         <div class="content-overlay"></div>

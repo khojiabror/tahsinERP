@@ -4,42 +4,45 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
-using tahsinERP.ViewModels;
 using tahsinERP.Services;
-using tahsinERP.Controllers;
-using tahsinERP.Filters;
+using tahsinERP.Services.Documents;
+using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
 {
-    public class OfficialLettersController : Controller
+    /// <summary>
+    /// Rasmiy maktublar. Ruxsat — [Permission]: GET = ko'rish, POST/Create/Edit/Delete = o'zgartirish.
+    /// </summary>
+    [Permission]
+    public class OfficialLettersController : BaseController
     {
-        private readonly IDocumentTemplateService _templateService;
-        private readonly ITextSuggestionService _textSuggestionService;
+        private static readonly object[] DirectionItems = { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } };
+        private static readonly string[] ChannelItems = { "EMAIL", "LETTER", "COURIER", "FAX" };
 
-        public OfficialLettersController()
-        {
-            _templateService = new DocumentTemplateService();
-            _textSuggestionService = new TextSuggestionService();
-        }
+        // Servislar faqat kerak bo'lganda yaratiladi (avval har so'rovda, Index'da ham — yangi HttpClient bilan)
+        private IDocumentTemplateService _templateService;
+        private ITextSuggestionService _textSuggestionService;
+        private IDocumentTemplateService TemplateService => _templateService ?? (_templateService = new DocumentTemplateService());
+        private ITextSuggestionService TextSuggestion => _textSuggestionService ?? (_textSuggestionService = new TextSuggestionService());
+
+        private static SelectList Directions(string selected) => new SelectList(DirectionItems, "Code", "Name", selected);
+
+        private static SelectList Channels(string selected) => new SelectList(ChannelItems, selected);
 
         // Olish so'rovi: OfficialLetters
         public async Task<ActionResult> Index(int? year, string directionCode, string topicSearch)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Index"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
-                var query = from doc in db.DOC_DOCUMENTS
+                var query = from doc in db.DOC_DOCUMENTS.AsNoTracking()
                             join letter in db.COM_OFFICIAL_LETTERS on doc.ID equals letter.DocumentID
-                            join docType in db.DOC_DOCUMENT_TYPES on doc.DocTypeID equals docType.ID
-                            where docType.Code == "OFFICIAL_LETTER" && doc.IsDeleted != true && letter.IsDeleted != true
-                            select new { doc, letter, docType };
+                            where doc.DOC_DOCUMENT_TYPES.Code == DocumentService.OfficialLetterType && doc.IsDeleted != true && letter.IsDeleted != true
+                            select new { doc, letter };
 
                 if (year.HasValue)
                 {
@@ -57,57 +60,58 @@ namespace tahsinERP.Controllers
                                              x.letter.ExternalCompanyName.Contains(topicSearch));
                 }
 
-                var results = await query
+                // SQL'da proyeksiya — avval to'liq entity'lar olinib, status har hujjatga lazy-load qilinardi (DOC-P11)
+                var viewModel = await query
                     .OrderByDescending(x => x.letter.LetterDate)
                     .ThenByDescending(x => x.doc.ID)
+                    .Select(x => new OfficialLetterIndexVm
+                    {
+                        DocumentId = x.doc.ID,
+                        LetterNo = x.letter.LetterNo,
+                        LetterDate = x.letter.LetterDate,
+                        DirectionCode = x.letter.DirectionCode,
+                        ExternalCompanyName = x.letter.ExternalCompanyName,
+                        ExternalContactName = x.letter.ExternalContactName,
+                        Topic = x.letter.Topic,
+                        StatusName = x.doc.DOC_DOCUMENT_STATUS_REF.Name,
+                        CreatedDT = x.doc.CreatedDT
+                    })
                     .ToListAsync();
-
-                var viewModel = results.Select(x => new OfficialLetterIndexVm
-                {
-                    DocumentId = x.doc.ID,
-                    LetterNo = x.letter.LetterNo,
-                    LetterDate = x.letter.LetterDate,
-                    DirectionCode = x.letter.DirectionCode,
-                    ExternalCompanyName = x.letter.ExternalCompanyName,
-                    ExternalContactName = x.letter.ExternalContactName,
-                    Topic = x.letter.Topic,
-                    StatusName = x.doc.DOC_DOCUMENT_STATUS_REF != null ? x.doc.DOC_DOCUMENT_STATUS_REF.Name : null,
-                    CreatedDT = x.doc.CreatedDT
-                }).ToList();
 
                 ViewBag.Year = year;
                 ViewBag.DirectionCode = directionCode;
                 ViewBag.TopicSearch = topicSearch;
+                // O'chirilganlar yillari ko'rinmasin (DOC-B12)
                 ViewBag.Years = new SelectList(await db.COM_OFFICIAL_LETTERS
+                    .Where(l => l.IsDeleted != true && l.DOC_DOCUMENTS.IsDeleted != true)
                     .Select(l => l.LetterDate.Year)
                     .Distinct()
                     .OrderByDescending(y => y)
                     .ToListAsync(), year);
-                ViewBag.Directions = new SelectList(new[] { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } }, "Code", "Name", directionCode);
+                ViewBag.Directions = Directions(directionCode);
 
                 return View(viewModel);
             }
         }
 
         // Olish so'rovi: OfficialLetters/yaratish
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "Create"))
+            using (var db = new DBTHSNEntities())
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                var vm = new OfficialLetterCreateVm
+                {
+                    LetterDate = DateTime.Now,
+                    DirectionCode = "OUT",
+                    // Taxminiy raqam; saqlashda qulf ostida qayta tekshiriladi
+                    LetterNo = await DocNumbering.PeekLetterNoAsync(db)
+                };
+
+                vm.Directions = Directions("OUT");
+                vm.Channels = Channels("EMAIL");
+
+                return View(vm);
             }
-
-            var vm = new OfficialLetterCreateVm
-            {
-                LetterDate = DateTime.Now,
-                DirectionCode = "OUT",
-                LetterNo = GenerateNextLetterNo()
-            };
-
-            vm.Directions = new SelectList(new[] { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } }, "Code", "Name", "OUT");
-            vm.Channels = new SelectList(new[] { "EMAIL", "LETTER", "COURIER", "FAX" }, "EMAIL");
-
-            return View(vm);
         }
 
         // POST so'rovi: OfficialLetters/yaratish
@@ -115,77 +119,77 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(OfficialLetterCreateVm vm)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "Create"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
                     using (var db = new DBTHSNEntities())
+                    using (var tx = db.Database.BeginTransaction())
                     {
-                        var docType = await db.DOC_DOCUMENT_TYPES.FirstOrDefaultAsync(dt => dt.Code == "OFFICIAL_LETTER");
-                        var statusDraft = await db.DOC_DOCUMENT_STATUS_REF.FirstOrDefaultAsync(s => s.Code == "DRAFT");
-
-                        if (docType == null || statusDraft == null)
+                        var ids = await DocumentService.DraftHeaderIdsAsync(db, DocumentService.OfficialLetterType);
+                        if (ids == null)
                         {
                             TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.";
                             return RedirectToAction("Index");
                         }
 
+                        // Chiquvchi xat raqami qulf ostida: band bo'lsa keyingisi beriladi (DOC-B06)
+                        string letterNo = vm.DirectionCode == "OUT"
+                            ? await DocNumbering.EnsureOutgoingLetterNoAsync(db, vm.LetterNo)
+                            : vm.LetterNo;
+                        int userId = CurrentUserId;
+
+                        // Hujjat va xat bitta tranzaksiyada — xato bo'lsa yetim DOC_DOCUMENTS qolmaydi (DOC-B05)
                         var document = new DOC_DOCUMENTS
                         {
-                            DocTypeID = docType.ID,
-                            StatusID = statusDraft.ID,
-                            Code = vm.LetterNo,
+                            DocTypeID = ids.Item1,
+                            StatusID = ids.Item2,
+                            Code = letterNo,
                             Title = vm.Topic,
-                            CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
+                            CreatedByUserID = userId,
                             CreatedDT = DateTime.Now,
-                            IntegrationUID = Guid.NewGuid()
+                            IntegrationUID = Guid.NewGuid(),
+                            COM_OFFICIAL_LETTERS = new COM_OFFICIAL_LETTERS
+                            {
+                                DirectionCode = vm.DirectionCode,
+                                LetterNo = letterNo,
+                                LetterDate = vm.LetterDate,
+                                ExternalCompanyName = vm.ExternalCompanyName,
+                                ExternalContactName = vm.ExternalContactName,
+                                ExternalContactPosition = vm.ExternalContactPosition,
+                                OurRefNo = vm.OurRefNo,
+                                TheirRefNo = vm.TheirRefNo,
+                                ChannelCode = vm.ChannelCode,
+                                Topic = vm.Topic
+                            }
                         };
 
                         db.DOC_DOCUMENTS.Add(document);
                         await db.SaveChangesAsync();
 
-                        var letter = new COM_OFFICIAL_LETTERS
-                        {
-                            DocumentID = document.ID,
-                            DirectionCode = vm.DirectionCode,
-                            LetterNo = vm.LetterNo,
-                            LetterDate = vm.LetterDate,
-                            ExternalCompanyName = vm.ExternalCompanyName,
-                            ExternalContactName = vm.ExternalContactName,
-                            ExternalContactPosition = vm.ExternalContactPosition,
-                            OurRefNo = vm.OurRefNo,
-                            TheirRefNo = vm.TheirRefNo,
-                            ChannelCode = vm.ChannelCode,
-                            Topic = vm.Topic
-                        };
-
-                        db.COM_OFFICIAL_LETTERS.Add(letter);
-                        await db.SaveChangesAsync();
-
                         // Matn, salomlashish va mahsulot/narx satrlarini DOC_FILES'ga JSON sifatida saqlash
                         var letterData = BuildLetterData(vm.BodyText, vm.GreetingLine, vm.Items);
-                        await OfficialLetterDataService.SaveAsync(db, document.ID, letterData, UserHelper.GetUserId(User.Identity.Name));
+                        await OfficialLetterDataService.SaveAsync(db, document.ID, letterData, userId);
                         await db.SaveChangesAsync();
+                        tx.Commit();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Create", $"Xat yaratildi: {vm.LetterNo}");
+                        LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "Create", $"Xat yaratildi: {letterNo}");
 
-                        TempData["Success"] = "Maktub muvaffaqiyatli yaratildi";
+                        TempData["Success"] = letterNo == vm.LetterNo?.Trim()
+                            ? "Maktub muvaffaqiyatli yaratildi"
+                            : $"Maktub yaratildi. {vm.LetterNo} raqami band bo'lgani uchun {letterNo} raqami berildi";
                         return RedirectToAction("Index");
                     }
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + (ex.InnerException?.Message ?? ex.Message));
+                    System.Diagnostics.Trace.TraceError("OfficialLetters Create: {0}", ex);
+                    ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
                 }
             }
 
-            vm.Directions = new SelectList(new[] { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } }, "Code", "Name", vm.DirectionCode);
-            vm.Channels = new SelectList(new[] { "EMAIL", "LETTER", "COURIER", "FAX" }, vm.ChannelCode);
+            vm.Directions = Directions(vm.DirectionCode);
+            vm.Channels = Channels(vm.ChannelCode);
 
             return View(vm);
         }
@@ -193,11 +197,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: OfficialLetters/Edit/5
         public async Task<ActionResult> Edit(long? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "Edit"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -205,8 +204,8 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
-                    .Where(d => d.ID == id && (d.IsDeleted == false || d.IsDeleted == null))
+                var doc = await db.DOC_DOCUMENTS.AsNoTracking()
+                    .Where(d => d.ID == id && d.IsDeleted != true)
                     .Include(d => d.COM_OFFICIAL_LETTERS)
                     .FirstOrDefaultAsync();
 
@@ -240,8 +239,8 @@ namespace tahsinERP.Controllers
                     Items = MapItems(letterData.Items)
                 };
 
-                vm.Directions = new SelectList(new[] { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } }, "Code", "Name", letter.DirectionCode);
-                vm.Channels = new SelectList(new[] { "EMAIL", "LETTER", "COURIER", "FAX" }, letter.ChannelCode);
+                vm.Directions = Directions(letter.DirectionCode);
+                vm.Channels = Channels(letter.ChannelCode);
 
                 return View(vm);
             }
@@ -252,11 +251,6 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(OfficialLetterEditVm vm)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "Edit"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (string.IsNullOrWhiteSpace(vm.LetterNo))
             {
                 ModelState.AddModelError("LetterNo", "Maktub raqami kiritilishi shart");
@@ -270,9 +264,9 @@ namespace tahsinERP.Controllers
                     {
                         var doc = await db.DOC_DOCUMENTS
                             .Include(d => d.COM_OFFICIAL_LETTERS)
-                            .FirstOrDefaultAsync(d => d.ID == vm.DocumentId);
+                            .FirstOrDefaultAsync(d => d.ID == vm.DocumentId && d.IsDeleted != true);
 
-                        if (doc == null || doc.COM_OFFICIAL_LETTERS == null)
+                        if (doc == null || doc.COM_OFFICIAL_LETTERS == null || doc.COM_OFFICIAL_LETTERS.IsDeleted == true)
                         {
                             return HttpNotFound();
                         }
@@ -295,11 +289,11 @@ namespace tahsinERP.Controllers
 
                         // Matn, salomlashish va mahsulot/narx satrlarini yangilash
                         var letterData = BuildLetterData(vm.BodyText, vm.GreetingLine, vm.Items);
-                        await OfficialLetterDataService.SaveAsync(db, doc.ID, letterData, UserHelper.GetUserId(User.Identity.Name));
+                        await OfficialLetterDataService.SaveAsync(db, doc.ID, letterData, CurrentUserId);
 
                         await db.SaveChangesAsync();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Edit", $"Xat yangilandi: {vm.LetterNo}");
+                        LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "Edit", $"Xat yangilandi: {vm.LetterNo}");
 
                         TempData["Success"] = "Maktub muvaffaqiyatli yangilandi";
                         return RedirectToAction("Index");
@@ -307,12 +301,13 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + (ex.InnerException?.Message ?? ex.Message));
+                    System.Diagnostics.Trace.TraceError("OfficialLetters Edit {0}: {1}", vm.DocumentId, ex);
+                    ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
                 }
             }
 
-            vm.Directions = new SelectList(new[] { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } }, "Code", "Name", vm.DirectionCode);
-            vm.Channels = new SelectList(new[] { "EMAIL", "LETTER", "COURIER", "FAX" }, vm.ChannelCode);
+            vm.Directions = Directions(vm.DirectionCode);
+            vm.Channels = Channels(vm.ChannelCode);
 
             return View(vm);
         }
@@ -320,11 +315,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: OfficialLetters/Details/5
         public async Task<ActionResult> Details(long? id)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "Details"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -332,16 +322,18 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
+                var doc = await db.DOC_DOCUMENTS.AsNoTracking()
                     .Include(d => d.COM_OFFICIAL_LETTERS)
                     .Include(d => d.DOC_DOCUMENT_STATUS_REF)
-                    .Include(d => d.DOC_FILES)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                    .FirstOrDefaultAsync(d => d.ID == id && d.IsDeleted != true);
 
-                if (doc == null || doc.COM_OFFICIAL_LETTERS == null)
+                if (doc == null || doc.COM_OFFICIAL_LETTERS == null || doc.COM_OFFICIAL_LETTERS.IsDeleted == true)
                 {
                     return HttpNotFound();
                 }
+
+                // Faqat metadata — avval Include(DOC_FILES) barcha versiyalar blob'ini o'qirdi (DOC-P01)
+                ViewBag.DocFiles = await DocFileService.ListMainAsync(db, doc.ID);
 
                 // Saqlangan matn, salomlashish va mahsulotlarni ko'rsatish uchun yuklash
                 var letterData = await OfficialLetterDataService.LoadAsync(db, doc.ID);
@@ -358,35 +350,19 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(long id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "Delete"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
-                    .Include(d => d.COM_OFFICIAL_LETTERS)
-                    .Include(d => d.DOC_FILES)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                var code = await db.COM_OFFICIAL_LETTERS
+                    .Where(l => l.DocumentID == id && l.IsDeleted != true && l.DOC_DOCUMENTS.IsDeleted != true)
+                    .Select(l => l.DOC_DOCUMENTS.Code)
+                    .FirstOrDefaultAsync();
 
-                if (doc != null)
+                if (code != null)
                 {
-                    await SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync(db, doc.ID);
+                    // Set-based: hujjat, xat va fayllar blob'larini yuklamasdan (DOC-P06)
+                    await DocumentService.SoftDeleteAsync(db, id);
 
-                    // So'ng soft o'chirish the official letter record
-                    if (doc.COM_OFFICIAL_LETTERS != null)
-                    {
-                        doc.COM_OFFICIAL_LETTERS.IsDeleted = true;
-                        db.Entry(doc.COM_OFFICIAL_LETTERS).State = System.Data.Entity.EntityState.Modified;
-                    }
-
-                    // Oxirida, soft o'chirish the hujjat record
-                    doc.IsDeleted = true;
-                    db.Entry(doc).State = System.Data.Entity.EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Delete", $"Xat o'chirildi: {doc.Code}");
+                    LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "Delete", $"Xat o'chirildi: {code}");
 
                     TempData["Success"] = "Maktub muvaffaqiyatli o'chirildi";
                 }
@@ -400,27 +376,25 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> GenerateDoc(long id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "GenerateDoc"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var doc = await db.DOC_DOCUMENTS
                     .Include(d => d.COM_OFFICIAL_LETTERS)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                    .FirstOrDefaultAsync(d => d.ID == id && d.IsDeleted != true);
 
-                if (doc == null || doc.COM_OFFICIAL_LETTERS == null)
+                if (doc == null || doc.COM_OFFICIAL_LETTERS == null || doc.COM_OFFICIAL_LETTERS.IsDeleted == true)
                 {
                     return HttpNotFound();
                 }
 
                 var letter = doc.COM_OFFICIAL_LETTERS;
-                var template = await db.DOC_TEMPLATES
-                    .FirstOrDefaultAsync(t => t.DocTypeID == doc.DocTypeID && t.IsActive);
+                // Faqat ID — shablon blob'i DocumentTemplateService'da (keshdan) o'qiladi (DOC-P07)
+                var templateId = await db.DOC_TEMPLATES
+                    .Where(t => t.DocTypeID == doc.DocTypeID && t.IsActive)
+                    .Select(t => (int?)t.ID)
+                    .FirstOrDefaultAsync();
 
-                if (template == null)
+                if (templateId == null)
                 {
                     TempData["ErrorMessage"] = "Shablon topilmadi";
                     return RedirectToAction("Details", new { id });
@@ -454,7 +428,7 @@ namespace tahsinERP.Controllers
                     { "GREETING_LINE", greetingLine },
                     { "LETTER_BODY", bodyText },
                     { "ITEMS_BLOCK", BuildItemsTextBlock(letterData.Items) },
-                    { "DIRECTOR_NAME", "X.M. Maxmudov" }, // TODO: Get dan settings
+                    { "DIRECTOR_NAME", await CompanySettings.DirectorNameAsync(db) }, // COMPANIES.DirectorName (DOC-B11)
                     { "OUR_REF_NO", letter.OurRefNo ?? "" },
                     { "THEIR_REF_NO", letter.TheirRefNo ?? "" }
                 };
@@ -464,47 +438,20 @@ namespace tahsinERP.Controllers
 
                 // Yaratish hujjat
                 string fileName, fileExtension, mimeType;
-                byte[] fileContent = _templateService.GenerateDocFromTemplate(
-                    template.ID, placeholders, out fileName, out fileExtension, out mimeType);
+                byte[] fileContent = TemplateService.GenerateDocFromTemplate(
+                    templateId.Value, placeholders, out fileName, out fileExtension, out mimeType);
 
-                // Olish next version number
-                int nextVersion = 1;
-                var existingFiles = await db.DOC_FILES
-                    .Where(f => f.DocumentID == doc.ID)
-                    .OrderByDescending(f => f.VersionNo)
-                    .FirstOrDefaultAsync();
-                if (existingFiles != null)
+                // Yangi asosiy versiya (VersionNo MAX va IsMain UPDATE SQL'da — blob'lar o'qilmaydi, DOC-P05)
+                using (var tx = db.Database.BeginTransaction())
                 {
-                    nextVersion = existingFiles.VersionNo + 1;
-                    // Belgilash previous main fayl as not main
-                    var prevMain = await db.DOC_FILES
-                        .Where(f => f.DocumentID == doc.ID && f.IsMain)
-                        .ToListAsync();
-                    foreach (var prev in prevMain)
-                    {
-                        prev.IsMain = false;
-                    }
+                    await DocFileService.AddMainVersionAsync(db, doc.ID, fileContent,
+                        $"{letter.LetterNo}_{letter.LetterDate:yyyyMMdd}{fileExtension}",
+                        fileExtension, mimeType, CurrentUserId);
+                    await db.SaveChangesAsync();
+                    tx.Commit();
                 }
 
-                // Saqlash fayl - use letter date instead of current date
-                var docFile = new DOC_FILES
-                {
-                    DocumentID = doc.ID,
-                    VersionNo = nextVersion,
-                    FileName = $"{letter.LetterNo}_{letter.LetterDate:yyyyMMdd}{fileExtension}",
-                    FileExtension = fileExtension,
-                    MimeType = mimeType,
-                    FileSizeBytes = fileContent.Length,
-                    FileContent = fileContent,
-                    IsMain = true,
-                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                    CreatedDT = DateTime.Now
-                };
-
-                db.DOC_FILES.Add(docFile);
-                await db.SaveChangesAsync();
-
-                LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "GenerateDoc", $"Xat uchun hujjat yaratildi: {letter.LetterNo}");
+                LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "GenerateDoc", $"Xat uchun hujjat yaratildi: {letter.LetterNo}");
 
                 TempData["Success"] = "Hujjat muvaffaqiyatli yaratildi";
                 return RedirectToAction("Details", new { id });
@@ -516,50 +463,25 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangeStatus(long id, string statusCode)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "ChangeStatus"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
-                    .Include(d => d.COM_OFFICIAL_LETTERS)
-                    .FirstOrDefaultAsync(d => d.ID == id);
-
-                if (doc == null)
+                // Hujjat turi, o'chirilmaganligi va ruxsat etilgan o'tish tekshiriladi (DOC-B08)
+                var result = await DocumentService.ChangeStatusAsync(db, id, DocumentService.OfficialLetterType, statusCode, CurrentUserId);
+                if (result == null)
                 {
                     return HttpNotFound();
                 }
 
-                var status = await db.DOC_DOCUMENT_STATUS_REF
-                    .FirstOrDefaultAsync(s => s.Code == statusCode && s.IsActive);
-
-                if (status == null)
+                if (!result.Success)
                 {
-                    TempData["ErrorMessage"] = "Noto'g'ri holat kodi";
+                    TempData["ErrorMessage"] = result.Error;
                     return RedirectToAction("Details", new { id });
                 }
 
-                doc.StatusID = status.ID;
-                doc.UpdatedDT = DateTime.Now;
+                LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "ChangeStatus",
+                    $"Xat holati '{result.StatusName}' ga o'zgartirildi: {result.DocumentCode}");
 
-                // agar approving, set ApprovedByUserID
-                if (statusCode == "APPROVED")
-                {
-                    var currentUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
-                    if (currentUser != null)
-                    {
-                        doc.ApprovedByUserID = currentUser.ID;
-                    }
-                }
-
-                await db.SaveChangesAsync();
-
-                LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "ChangeStatus", 
-                    $"Xat holati '{status.Name}' ga o'zgartirildi: {doc.COM_OFFICIAL_LETTERS?.LetterNo}");
-
-                TempData["Success"] = $"Holat '{status.Name}' ga o'zgartirildi";
+                TempData["Success"] = $"Holat '{result.StatusName}' ga o'zgartirildi";
                 return RedirectToAction("Details", new { id });
             }
         }
@@ -567,11 +489,6 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: OfficialLetters/DownloadFile/5
         public async Task<ActionResult> DownloadFile(long fileId)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "OfficialLetters", "DownloadFile"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 var file = await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.OfficialLetter);
@@ -580,14 +497,17 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
+                // DOC_FILES qatori o'zgarmaydi (yangi versiya = yangi ID) — brauzer keshlay oladi
+                Response.Cache.SetCacheability(HttpCacheability.Private);
+                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
                 return File(file.FileContent, file.MimeType ?? "application/octet-stream", file.FileName);
             }
         }
 
-        // AJAX so'rovi: Suggest text
+        // AJAX so'rovi: Suggest text (ruxsat — [Permission], POST = o'zgartirish; avval tekshiruv yo'q edi, DOC-S04)
         [HttpPost]
         [ValidateAntiForgeryHeader]
-        public JsonResult SuggestText(string directionCode, string externalCompanyName, string externalContactName, string topic, string letterDate, string ourRefNo, string theirRefNo)
+        public async Task<JsonResult> SuggestText(string directionCode, string externalCompanyName, string externalContactName, string topic, string letterDate, string ourRefNo, string theirRefNo)
         {
             try
             {
@@ -611,12 +531,14 @@ namespace tahsinERP.Controllers
                     TheirRefNo = theirRefNo ?? string.Empty
                 };
 
-                var suggestedText = _textSuggestionService.SuggestLetterBody(meta);
-                return Json(new { success = true, text = suggestedText }, JsonRequestBehavior.AllowGet);
+                // Async — avval .Result bilan kutilardi (AI yoqilganda deadlock, DOC-B09)
+                var suggestedText = await TextSuggestion.SuggestLetterBodyAsync(meta);
+                return Json(new { success = true, text = suggestedText });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
+                System.Diagnostics.Trace.TraceError("OfficialLetters SuggestText: {0}", ex);
+                return Json(new { success = false, error = "Matn taklif qilib bo'lmadi." });
             }
         }
 
@@ -735,47 +657,10 @@ namespace tahsinERP.Controllers
             }
         }
 
-        private string GenerateNextLetterNo()
-        {
-            using (var db = new DBTHSNEntities())
-            {
-                // Olish barcha letter numbers va find the maksimal numeric value
-                var allLetters = db.COM_OFFICIAL_LETTERS
-                    .Where(l => l.IsDeleted != true)
-                    .Select(l => l.LetterNo)
-                    .ToList();
-
-                int maxLetterNo = 0;
-                
-                foreach (var letterNo in allLetters)
-                {
-                    // Urinish ga tahlil as pure number (e.g., "0005", "0122")
-                    if (int.TryParse(letterNo, out int num))
-                    {
-                        if (num > maxLetterNo)
-                            maxLetterNo = num;
-                    }
-                    // Urinish ga tahlil as year + number (e.g., "20250005")
-                    else if (letterNo.Length >= 4 && int.TryParse(letterNo.Substring(4), out int yearNum))
-                    {
-                        if (yearNum > maxLetterNo)
-                            maxLetterNo = yearNum;
-                    }
-                }
-
-                // Qaytarish next number in format "0123", "0124", etc.
-                return (maxLetterNo + 1).ToString("D4");
-            }
-        }
-
         // Olish so'rovi: OfficialLetters/RegisterIncoming
+        [Permission(Change = true)]
         public ActionResult RegisterIncoming()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "RegisterIncoming"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             var vm = new IncomingLetterRegisterVm
             {
                 LetterDate = DateTime.Now
@@ -789,123 +674,100 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> RegisterIncoming(IncomingLetterRegisterVm vm)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "OfficialLetters", "RegisterIncoming"))
+            // Fayl hujjat yozilishidan OLDIN tekshiriladi — avval DOC_DOCUMENTS saqlanib, keyin validatsiya
+            // xatosida yetim hujjat qolardi (DOC-B04)
+            string fileExtension = null;
+            bool hasFile = vm.AttachmentFile != null && vm.AttachmentFile.ContentLength > 0;
+            if (hasFile)
             {
-                return RedirectToAction("Index", "ViewNotAuthorized");
+                fileExtension = System.IO.Path.GetExtension(vm.AttachmentFile.FileName).ToLower();
+                if (fileExtension != ".pdf")
+                {
+                    ModelState.AddModelError("AttachmentFile", "Faqat PDF fayllarni yuklash mumkin");
+                }
+                else if (vm.AttachmentFile.ContentLength > 10 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("AttachmentFile", "Fayl hajmi 10 MB dan oshmasligi kerak");
+                }
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                using (var db = new DBTHSNEntities())
+                return View(vm);
+            }
+
+            using (var db = new DBTHSNEntities())
+            {
+                var docTypeId = await db.DOC_DOCUMENT_TYPES
+                    .Where(dt => dt.Code == DocumentService.OfficialLetterType)
+                    .Select(dt => (int?)dt.ID)
+                    .FirstOrDefaultAsync();
+                var statusDraftId = await db.DOC_DOCUMENT_STATUS_REF
+                    .Where(s => s.Code == DocumentService.Draft && s.IsActive)
+                    .Select(s => (int?)s.ID)
+                    .FirstOrDefaultAsync();
+
+                if (docTypeId == null || statusDraftId == null)
                 {
-                    // Olish hujjat type uchun OFFICIAL_LETTER
-                    var docType = await db.DOC_DOCUMENT_TYPES
-                        .FirstOrDefaultAsync(dt => dt.Code == "OFFICIAL_LETTER");
+                    TempData["ErrorMessage"] = docTypeId == null ? "Hujjat turi topilmadi" : "Holat topilmadi";
+                    return View(vm);
+                }
 
-                    if (docType == null)
+                int userId = CurrentUserId;
+
+                // Kiruvchi xat raqami tashqi (jo'natuvchiniki) — chiquvchi ketma-ketlikka qo'shilmaydi
+                var doc = new DOC_DOCUMENTS
+                {
+                    DocTypeID = docTypeId.Value,
+                    StatusID = statusDraftId.Value,
+                    Code = $"IN-{vm.LetterNo}",
+                    Title = $"Kiruvchi xat: {vm.CompanyOrPersonName}",
+                    CreatedDT = DateTime.Now,
+                    IntegrationUID = Guid.NewGuid(),
+                    CreatedByUserID = userId,
+                    COM_OFFICIAL_LETTERS = new COM_OFFICIAL_LETTERS
                     {
-                        TempData["ErrorMessage"] = "Hujjat turi topilmadi";
-                        return View(vm);
-                    }
-
-                    // Olish qoralama holat
-                    var statusDraft = await db.DOC_DOCUMENT_STATUS_REF
-                        .FirstOrDefaultAsync(s => s.Code == "DRAFT" && s.IsActive);
-
-                    if (statusDraft == null)
-                    {
-                        TempData["ErrorMessage"] = "Holat topilmadi";
-                        return View(vm);
-                    }
-
-                    // Olish current user
-                    var currentUser = await db.USERS
-                        .FirstOrDefaultAsync(u => u.Uname == User.Identity.Name);
-
-                    // Yaratish hujjat
-                    var doc = new DOC_DOCUMENTS
-                    {
-                        DocTypeID = docType.ID,
-                        StatusID = statusDraft.ID,
-                        Code = $"IN-{vm.LetterNo}",
-                        Title = $"Kiruvchi xat: {vm.CompanyOrPersonName}",
-                        CreatedDT = DateTime.Now,
-                        IntegrationUID = Guid.NewGuid(),
-                        CreatedByUserID = currentUser?.ID
-                    };
-
-                    db.DOC_DOCUMENTS.Add(doc);
-                    await db.SaveChangesAsync();
-
-                    // Yaratish official letter record
-                    var letter = new COM_OFFICIAL_LETTERS
-                    {
-                        DocumentID = doc.ID,
                         DirectionCode = "IN",
                         LetterNo = vm.LetterNo,
                         LetterDate = vm.LetterDate ?? DateTime.Now,
                         ExternalCompanyName = vm.CompanyOrPersonName,
                         ExternalContactName = null,
                         Topic = $"Kiruvchi xat: {vm.CompanyOrPersonName}"
-                    };
+                    }
+                };
 
-                    db.COM_OFFICIAL_LETTERS.Add(letter);
-
-                    // Handle fayl upload
-                    if (vm.AttachmentFile != null && vm.AttachmentFile.ContentLength > 0)
+                if (hasFile)
+                {
+                    byte[] fileContent;
+                    using (var binaryReader = new System.IO.BinaryReader(vm.AttachmentFile.InputStream))
                     {
-                        // Tekshirish fayl type (PDF faqat)
-                        string fileExtension = System.IO.Path.GetExtension(vm.AttachmentFile.FileName).ToLower();
-                        if (fileExtension != ".pdf")
-                        {
-                            ModelState.AddModelError("AttachmentFile", "Faqat PDF fayllarni yuklash mumkin");
-                            return View(vm);
-                        }
-
-                        // Tekshirish fayl size (max 10MB)
-                        if (vm.AttachmentFile.ContentLength > 10 * 1024 * 1024)
-                        {
-                            ModelState.AddModelError("AttachmentFile", "Fayl hajmi 10 MB dan oshmasligi kerak");
-                            return View(vm);
-                        }
-
-                        // O'qish fayl content
-                        byte[] fileContent;
-                        using (var binaryReader = new System.IO.BinaryReader(vm.AttachmentFile.InputStream))
-                        {
-                            fileContent = binaryReader.ReadBytes(vm.AttachmentFile.ContentLength);
-                        }
-
-                        // Saqlash fayl ga DOC_FILES
-                        var docFile = new DOC_FILES
-                        {
-                            DocumentID = doc.ID,
-                            VersionNo = 1,
-                            FileName = vm.AttachmentFile.FileName,
-                            FileExtension = fileExtension,
-                            MimeType = vm.AttachmentFile.ContentType ?? "application/pdf",
-                            FileSizeBytes = vm.AttachmentFile.ContentLength,
-                            FileContent = fileContent,
-                            IsMain = true,
-                            CreatedByUserID = currentUser?.ID,
-                            CreatedDT = DateTime.Now
-                        };
-
-                        db.DOC_FILES.Add(docFile);
+                        fileContent = binaryReader.ReadBytes(vm.AttachmentFile.ContentLength);
                     }
 
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "RegisterIncoming", 
-                        $"Kiruvchi xat ro'yxatga olindi: {vm.LetterNo} - {vm.CompanyOrPersonName}");
-
-                    TempData["Success"] = "Kiruvchi xat muvaffaqiyatli ro'yxatga olindi";
-                    return RedirectToAction("Index");
+                    doc.DOC_FILES.Add(new DOC_FILES
+                    {
+                        VersionNo = 1,
+                        FileName = vm.AttachmentFile.FileName,
+                        FileExtension = fileExtension,
+                        MimeType = vm.AttachmentFile.ContentType ?? "application/pdf",
+                        FileSizeBytes = vm.AttachmentFile.ContentLength,
+                        FileContent = fileContent,
+                        IsMain = true,
+                        CreatedByUserID = userId,
+                        CreatedDT = DateTime.Now
+                    });
                 }
-            }
 
-            return View(vm);
+                // Hujjat, xat va fayl — bitta SaveChanges (bitta tranzaksiya)
+                db.DOC_DOCUMENTS.Add(doc);
+                await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "RegisterIncoming",
+                    $"Kiruvchi xat ro'yxatga olindi: {vm.LetterNo} - {vm.CompanyOrPersonName}");
+
+                TempData["Success"] = "Kiruvchi xat muvaffaqiyatli ro'yxatga olindi";
+                return RedirectToAction("Index");
+            }
         }
     }
 }
-

@@ -1,3 +1,4 @@
+@using tahsinERP.Services.Tasks
 @model tahsinERP.ViewModels.TaskViewModel
 @{
     ViewBag.Title = "Vazifa ma'lumotlari";
@@ -51,55 +52,10 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <p><b>Status:</b> 
-                                                            @{
-                                                                string statusBadgeClass = "badge-secondary";
-                                                                string statusStyle = "";
-                                                                string statusNameLower = Model.StatusName?.ToLower() ?? "";
-                                                                if (statusNameLower.Contains("bajarildi") || statusNameLower.Contains("done"))
-                                                                {
-                                                                    statusBadgeClass = "badge-success";
-                                                                    statusStyle = "background-color: #28A745 !important; border-color: #28A745 !important;";
-                                                                }
-                                                                else if (statusNameLower.Contains("jarayonda") || statusNameLower.Contains("in_progress") || statusNameLower.Contains("in progress"))
-                                                                {
-                                                                    statusBadgeClass = "badge-warning";
-                                                                    statusStyle = "background-color: #FFC107 !important; border-color: #FFC107 !important;";
-                                                                }
-                                                                else if (statusNameLower.Contains("bekor") || statusNameLower.Contains("cancelled") || statusNameLower.Contains("cancel"))
-                                                                {
-                                                                    statusBadgeClass = "badge-danger";
-                                                                    statusStyle = "background-color: #DC3545 !important; border-color: #DC3545 !important;";
-                                                                }
-                                                                else if (statusNameLower.Contains("rejada") || statusNameLower.Contains("todo") || statusNameLower.Contains("planned"))
-                                                                {
-                                                                    statusBadgeClass = "badge-secondary";
-                                                                    statusStyle = "background-color: #6C757D !important; border-color: #6C757D !important;";
-                                                                }
-                                                            }
-                                                            <span class="badge @statusBadgeClass" style="@statusStyle">@(Model.StatusName ?? "-")</span>
+                                                            @Html.TaskStatusBadge(Model.StatusName, "-")
                                                         </p>
                                                         <p><b>Prioritet:</b> 
-                                                            @{
-                                                                string priorityBadgeClass = "badge-danger";
-                                                                string priorityStyle = "";
-                                                                string priorityNameLower = Model.PriorityName?.ToLower() ?? "";
-                                                                if (priorityNameLower.Contains("juda muhim") || priorityNameLower.Contains("critical"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #DC3545 !important; border-color: #DC3545 !important;";
-                                                                }
-                                                                else if (priorityNameLower.Contains("muhim") || priorityNameLower.Contains("high"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #FF6666 !important; border-color: #FF6666 !important;";
-                                                                }
-                                                                else if (priorityNameLower.Contains("normal") || priorityNameLower.Contains("medium"))
-                                                                {
-                                                                    priorityBadgeClass = "badge-danger";
-                                                                    priorityStyle = "background-color: #FFCCCC !important; border-color: #FFCCCC !important;";
-                                                                }
-                                                            }
-                                                            <span class="badge @priorityBadgeClass" style="@priorityStyle">@(Model.PriorityName ?? "-")</span>
+                                                            @Html.TaskPriorityBadge(Model.PriorityName, "-")
                                                         </p>
                                                         <p><b>Mas'ul:</b> @(Model.AssigneeFullName ?? "Tayinlanmagan")</p>
                                                         <p><b>Hisobot beruvchi:</b> @(Model.ReporterFullName ?? "-")</p>
