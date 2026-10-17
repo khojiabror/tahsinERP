@@ -1264,8 +1264,7 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-                if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(income.ReceivingWHID))
+                if (!await CanDeleteIncomeAsync(db, income.ReceivingWHID))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
                 }
@@ -1294,8 +1293,7 @@ namespace tahsinERP.Controllers.SRM
                             .FirstOrDefaultAsync(i => i.ID == id && i.IsDeleted != true);
                         if (income != null)
                         {
-                            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-                            if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(income.ReceivingWHID))
+                            if (!await CanDeleteIncomeAsync(db, income.ReceivingWHID))
                             {
                                 return RedirectToAction("Index", "ViewNotAuthorized");
                             }
@@ -1564,6 +1562,20 @@ namespace tahsinERP.Controllers.SRM
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// SRM-S05: kirimni o'chirish — faqat Admin/Developer yoki qabul qiluvchi ombor biriktirilgan foydalanuvchi.
+        /// MES/Sales foydalanuvchilari (Admin bo'lmasa) va omborsiz foydalanuvchilar bloklanadi.
+        /// </summary>
+        private async Task<bool> CanDeleteIncomeAsync(DBTHSNEntities db, int receivingWarehouseId)
+        {
+            if (tahsinERP.Models.RoleHelper.CanManageLicense(User.Identity.Name))
+                return true;
+            if (IsMesOrSalesRestrictedUser())
+                return false;
+            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+            return assignedWarehouseIds.Contains(receivingWarehouseId);
         }
 
         private bool IsMesOrSalesRestrictedUser()
