@@ -1,0 +1,212 @@
+@model tahsinERP.ViewModels.JobDescEditViewModel
+@* JobDesc Create va Edit uchun umumiy forma (HRM-D13). ViewBag.IsEdit = true — tahrirlash. Skriptlar: _FormScripts.cshtml *@
+@{
+    bool isEdit = ViewBag.IsEdit == true;
+}
+        <!-- Quill.js -->
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+        
+        <!-- mammoth.js - .docx ni HTML ga konvertatsiya qilish -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+        
+        <script>
+        (function() {
+            // jQuery yuklanishini kutish
+            function waitForJQuery(callback) {
+                if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                    callback();
+                } else {
+                    setTimeout(function() {
+                        waitForJQuery(callback);
+                    }, 100);
+                }
+            }
+            
+            waitForJQuery(function() {
+                $(document).ready(function () {
+                    var quill = new Quill('#quill-editor', {
+                        modules: {
+                            toolbar: '#quill-toolbar'
+                        },
+                        theme: 'snow',
+                        placeholder: 'Hujjat kontentini kiriting...'
+                    });
+
+                    // Joriy versiyani yuklash
+                    $('#loadCurrentDocxBtn').on('click', function() {
+                        @if (!isEdit)
+                        {
+                            <text>
+                            loadDocxFromUrl('@Url.Action("GetTemplate", "JobDesc")');
+                            </text>
+                        }
+                        else if (ViewBag.DocumentFileId != null)
+                        {
+                            <text>
+                            loadDocxFromUrl('@Url.Action("DownloadFile", "JobDesc", new { fileId = ViewBag.DocumentFileId })');
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                            alert('Joriy versiya fayli topilmadi');
+                            </text>
+                        }
+                    });
+
+                    // Word fayl yuklash
+                    $('#loadDocxBtn').on('click', function() {
+                        var fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = '.docx';
+                        fileInput.onchange = function(e) {
+                            var file = e.target.files[0];
+                            if (file) {
+                                loadDocxFile(file);
+                            }
+                        };
+                        fileInput.click();
+                    });
+
+                    function loadDocxFromUrl(url) {
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            xhrFields: {
+                                responseType: 'blob'
+                            },
+                            success: function(blob) {
+                                var reader = new FileReader();
+                                reader.onload = function(e) {
+                                    var arrayBuffer = e.target.result;
+                                    var options = {
+                                        arrayBuffer: arrayBuffer,
+                                        styleMap: [
+                                            "p[style-name='Heading 1'] => h1:fresh",
+                                            "p[style-name='Heading 2'] => h2:fresh",
+                                            "p[style-name='Heading 3'] => h3:fresh",
+                                            "p[style-name='Title'] => h1.title:fresh",
+                                            "r[style-name='Strong'] => strong",
+                                            "p[style-name='Quote'] => blockquote:fresh",
+                                            "p[style-name='Intense Quote'] => blockquote.intense:fresh",
+                                            "r[style-name='Emphasis'] => em",
+                                            "r[style-name='Code'] => code"
+                                        ],
+                                        includeDefaultStyleMap: true,
+                                        convertImage: mammoth.images.imgElement(function(image) {
+                                            return image.read("base64").then(function(imageBuffer) {
+                                                return {
+                                                    src: "data:" + image.contentType + ";base64," + imageBuffer
+                                                };
+                                            });
+                                        })
+                                    };
+                                    
+                                    mammoth.convertToHtml(options)
+                                        .then(function(result) {
+                                            var tempDiv = document.createElement('div');
+                                            tempDiv.innerHTML = result.value;
+                                            var delta = quill.clipboard.convert(tempDiv);
+                                            quill.setContents(delta, 'silent');
+                                            console.log('Joriy versiya yuklandi');
+                                            alert('Joriy versiya muvaffaqiyatli yuklandi!');
+                                        })
+                                        .catch(function(error) {
+                                            console.error('Fayl yuklashda xatolik:', error);
+                                            alert('Fayl yuklashda xatolik yuz berdi');
+                                        });
+                                };
+                                reader.readAsArrayBuffer(blob);
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Fayl yuklashda xatolik:', error);
+                                alert('Fayl yuklashda xatolik yuz berdi');
+                            }
+                        });
+                    }
+
+                    function loadDocxFile(file) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            var arrayBuffer = e.target.result;
+                            var options = {
+                                arrayBuffer: arrayBuffer,
+                                styleMap: [
+                                    "p[style-name='Heading 1'] => h1:fresh",
+                                    "p[style-name='Heading 2'] => h2:fresh",
+                                    "p[style-name='Heading 3'] => h3:fresh",
+                                    "p[style-name='Title'] => h1.title:fresh",
+                                    "r[style-name='Strong'] => strong",
+                                    "p[style-name='Quote'] => blockquote:fresh",
+                                    "p[style-name='Intense Quote'] => blockquote.intense:fresh",
+                                    "r[style-name='Emphasis'] => em",
+                                    "r[style-name='Code'] => code"
+                                ],
+                                includeDefaultStyleMap: true,
+                                convertImage: mammoth.images.imgElement(function(image) {
+                                    return image.read("base64").then(function(imageBuffer) {
+                                        return {
+                                            src: "data:" + image.contentType + ";base64," + imageBuffer
+                                        };
+                                    });
+                                })
+                            };
+                            
+                            mammoth.convertToHtml(options)
+                                .then(function(result) {
+                                    var tempDiv = document.createElement('div');
+                                    tempDiv.innerHTML = result.value;
+                                    var delta = quill.clipboard.convert(tempDiv);
+                                    quill.setContents(delta, 'silent');
+                                    console.log('Word fayl yuklandi');
+                                    alert('Word fayl muvaffaqiyatli yuklandi!');
+                                })
+                                .catch(function(error) {
+                                    console.error('Word fayl yuklashda xatolik:', error);
+                                    alert('Word fayl yuklashda xatolik yuz berdi: ' + error.message);
+                                });
+                        };
+                        reader.readAsArrayBuffer(file);
+                    }
+
+                    // Mavjud kontentni yuklash (agar mavjud bo'lsa)
+                    @if (!string.IsNullOrEmpty(Model.DocumentContent))
+                    {
+                        <text>
+                        try {
+                            var existingContent = @Html.Raw(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(Model.DocumentContent));
+                            if (existingContent && existingContent !== '') {
+                                quill.root.innerHTML = existingContent;
+                                $('#documentContent').val(existingContent);
+                            }
+                        } catch(e) {
+                            console.error('Error loading existing content:', e);
+                        }
+                        </text>
+                    }
+
+                    // Editor o'zgarganda HTML ni hidden fieldga saqlash
+                    quill.on('text-change', function() {
+                        var html = quill.root.innerHTML;
+                        $('#documentContent').val(html);
+                    });
+
+                    // Form submit
+                    $('#jobDescForm').on('submit', function(e) {
+                        // HTML kontentni saqlash
+                        var html = quill.root.innerHTML;
+                        $('#documentContent').val(html);
+
+                        if (!html || html.trim() === '' || html.trim() === '<p><br></p>') {
+                            e.preventDefault();
+                            alert('Iltimos, hujjat kontentini kiriting');
+                            return false;
+                        }
+
+                        // Saqlash tugmasini o'chirish (double submit oldini olish)
+                        $('#saveBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Saqlanmoqda...');
+                    });
+                });
+            });
+        })();
+        </script>

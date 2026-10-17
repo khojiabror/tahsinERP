@@ -5,8 +5,7 @@
     int daysInMonth = DateTime.DaysInMonth(Model.Year, Model.Month);
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
-{
+@* Ruxsat controller'da tekshiriladi (HRM-M04: view ichidagi Response.Redirect olib tashlandi) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -211,7 +210,7 @@
         </div>
     </div>
 
-    if (Model.Status == "Draft")
+    @if (Model.Status == "Draft")
     {
         <div class="modal fade" id="addEmployeesModal" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
@@ -270,11 +269,6 @@
         #timesheetGrid .freeze-col-4 { left: 160px; min-width: 200px; }
         #timesheetGrid .freeze-col-5 { left: 360px; min-width: 150px; }
     </style>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
 
 @section Scripts
 {

@@ -4,9 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees"))
-{
-    var employee = ViewBag.Employee as tahsinERP.Models.HR_EMPLOYEES;
+@* Ruxsat controller'da tekshiriladi (HRM-M04: view ichidagi Response.Redirect olib tashlandi) *@
+    @{ var employee = ViewBag.Employee as tahsinERP.Models.HR_EMPLOYEES; }
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -128,9 +127,4 @@
             });
         })();
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
 
