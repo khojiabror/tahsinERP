@@ -2727,6 +2727,7 @@
     </Content>
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
+    <Content Include="Scripts\app\contract-picker.js" />
     <Content Include="Scripts\app\indexed-rows.js" />
     <Content Include="Scripts\app\product-select.js" />
     <Content Include="app-assets\.DS_Store" />
