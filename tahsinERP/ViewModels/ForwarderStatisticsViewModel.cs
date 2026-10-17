@@ -45,20 +45,6 @@ namespace tahsinERP.ViewModels
         public List<F_WAYBILL_PAYMENTS> RecentPayments { get; set; }
         
         // Lane performance (top routes)
-        public List<LanePerformance> TopLanes { get; set; }
-    }
-    
-    /// <summary>
-    /// Lane performance metrics
-    /// </summary>
-    public class LanePerformance
-    {
-        public string FromLocation { get; set; }
-        public string ToLocation { get; set; }
-        public int TripCount { get; set; }
-        public double TotalTonnage { get; set; }
-        public double TotalCost { get; set; }
-        public double AverageCostPerTon { get; set; }
-        public double AverageCostPerKm { get; set; }
+        public List<LanePerformanceViewModel> TopLanes { get; set; }
     }
 }
