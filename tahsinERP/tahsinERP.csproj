@@ -927,6 +927,7 @@
     <Compile Include="Services\Stock\IncomeDocumentService.cs" />
     <Compile Include="Services\Stock\StockCostService.cs" />
     <Compile Include="Services\Stock\StockLedger.cs" />
+    <Compile Include="Services\Stock\WarehouseAccess.cs" />
     <Compile Include="Services\Stock\WarehouseRoles.cs" />
     <Compile Include="Services\WarehouseAttachments.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />

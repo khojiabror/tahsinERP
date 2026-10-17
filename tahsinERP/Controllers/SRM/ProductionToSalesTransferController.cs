@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Stock;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
 using tahsinERP.Controllers;
@@ -198,13 +199,7 @@ namespace tahsinERP.Controllers.SRM
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
+                        var errorMessage = WarehouseAccess.ErrorMessage(ex);
                         ModelState.AddModelError("", errorMessage);
                     }
                 }

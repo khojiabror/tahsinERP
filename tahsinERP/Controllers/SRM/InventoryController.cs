@@ -741,13 +741,7 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Xatolik: {ex.Message}";
-                var innerEx = ex.InnerException;
-                while (innerEx != null)
-                {
-                    errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                    innerEx = innerEx.InnerException;
-                }
+                var errorMessage = WarehouseAccess.ErrorMessage(ex);
                 ModelState.AddModelError("", errorMessage);
                 using (var db = new DBTHSNEntities())
                 {
@@ -759,13 +753,9 @@ namespace tahsinERP.Controllers
             }
         }
 
-        private async Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
+        private Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
         {
-            var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-            return await db.WAREHOUSES
-                .Where(w => w.IsDeleted != true && w.MRP == currentUserId)
-                .Select(w => w.ID)
-                .ToListAsync();
+            return WarehouseAccess.AssignedWarehouseIdsAsync(db, User.Identity.Name);
         }
 
         /// <summary>
@@ -822,12 +812,9 @@ namespace tahsinERP.Controllers
             return false;
         }
 
-        private async Task<int> GetDefaultCurrencyIdAsync(DBTHSNEntities db)
+        private static Task<int> GetDefaultCurrencyIdAsync(DBTHSNEntities db)
         {
-            var uzs = await db.CURRENCIES.FirstOrDefaultAsync(c => c.Shortname != null && c.Shortname.Trim().ToUpper() == "UZS");
-            if (uzs != null) return uzs.ID;
-            var first = await db.CURRENCIES.OrderBy(c => c.ID).FirstOrDefaultAsync();
-            return first?.ID ?? 1;
+            return Task.FromResult(WarehouseAccess.DefaultCurrencyId(db));
         }
 
         /// <summary>

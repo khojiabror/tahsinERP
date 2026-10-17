@@ -21,9 +21,7 @@ namespace tahsinERP.Services
         /// </summary>
         private static int GetDefaultCurrencyId(DBTHSNEntities db)
         {
-            var c = db.CURRENCIES.FirstOrDefault(x => x.Shortname != null && x.Shortname.Trim().ToUpper() == "UZS")
-                ?? db.CURRENCIES.OrderBy(x => x.ID).FirstOrDefault();
-            return c != null ? c.ID : 1;
+            return WarehouseAccess.DefaultCurrencyId(db);
         }
 
         /// <summary>

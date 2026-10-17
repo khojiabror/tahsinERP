@@ -221,9 +221,7 @@ namespace tahsinERP.Controllers.SRM
                 // Bir foydalanuvchi bir nechta omborga MRP bo'lishi mumkin,
                 // shuning uchun bitta emas, barcha biriktirilgan omborlarni tekshiramiz.
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-                var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
-                bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
-                bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+                bool isReadOnlyRole = WarehouseAccess.IsMesOrSalesReadOnly(User.Identity.Name);
                 bool isMrpForWarehouse = assignedWarehouseIds.Contains(income.ReceivingWHID);
                 var isTransferIncome = WarehouseFlowService.IsAutoLinkedTransferIncome(income);
                 var receivePolicyError = WarehouseFlowService.ValidateIncomeReceive(db, income);
@@ -243,7 +241,7 @@ namespace tahsinERP.Controllers.SRM
                         .Select(l => new { l.ID, l.LocationCode }).ToList());
                 ViewBag.CanRepairTransferStock = isMrpForWarehouse && income.RecieveStatus == true && isTransferIncome
                     && (income.Description == null || !income.Description.Contains("| STOCK_REPAIRED"));
-                ViewBag.CanEdit = !isMES && !isSales
+                ViewBag.CanEdit = !isReadOnlyRole
                     && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes")
                     && isMrpForWarehouse
                     && income.RecieveStatus != true
@@ -545,11 +543,7 @@ namespace tahsinERP.Controllers.SRM
                             // Upload income hujjat agar provided
                             if (incomeFile != null && incomeFile.ContentLength > 0)
                             {
-                                byte[] fileData = null;
-                                using (var binaryReader = new BinaryReader(incomeFile.InputStream))
-                                {
-                                    fileData = binaryReader.ReadBytes(incomeFile.ContentLength);
-                                }
+                                var fileData = WarehouseAccess.ReadUpload(incomeFile);
 
                                 var incomeDoc = new WRHS_INCOME_DOCS
                                 {
@@ -576,13 +570,7 @@ namespace tahsinERP.Controllers.SRM
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            var errorMessage = $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
+                            var errorMessage = WarehouseAccess.ErrorMessage(ex);
                             ModelState.AddModelError("", errorMessage);
                         }
                     }
@@ -633,11 +621,9 @@ namespace tahsinERP.Controllers.SRM
         public async Task<ActionResult> Edit(int? id)
         {
             // MES va Sales xodimlari faqat ko'radi, Edit qila olmaydi
-            var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
-            bool isMES = userRoles.Any(r => r.Contains("MES") || r.Contains("Production"));
-            bool isSales = userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+            bool isReadOnlyRole = WarehouseAccess.IsMesOrSalesReadOnly(User.Identity.Name);
             
-            if (isMES || isSales)
+            if (isReadOnlyRole)
             {
                 TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Tahrirlash huquqi yo'q.";
                 return RedirectToAction("Index");
@@ -840,11 +826,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
 
                                 // Qo'shish new doc
-                                byte[] fileData = null;
-                                using (var binaryReader = new BinaryReader(incomeFile.InputStream))
-                                {
-                                    fileData = binaryReader.ReadBytes(incomeFile.ContentLength);
-                                }
+                                var fileData = WarehouseAccess.ReadUpload(incomeFile);
 
                                 var incomeDoc = new WRHS_INCOME_DOCS
                                 {
@@ -871,13 +853,7 @@ namespace tahsinERP.Controllers.SRM
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            var errorMessage = $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
+                            var errorMessage = WarehouseAccess.ErrorMessage(ex);
                             ModelState.AddModelError("", errorMessage);
                         }
                     }
@@ -1448,14 +1424,7 @@ namespace tahsinERP.Controllers.SRM
 
         private bool IsMesOrSalesRestrictedUser()
         {
-            var userRoles = tahsinERP.Models.RoleHelper.GetUserRoles(User.Identity.Name);
-            if (userRoles == null)
-            {
-                return false;
-            }
-
-            return userRoles.Any(r => r.Contains("MES") || r.Contains("Production"))
-                || userRoles.Any(r => r.Contains("Sales") || r.Contains("CRM"));
+            return WarehouseAccess.IsMesOrSalesReadOnly(User.Identity.Name);
         }
 
         private async Task PopulateInvoiceSelectListAsync(DBTHSNEntities db, bool requireInvoice, int? selectedInvoiceId = null)
@@ -1555,13 +1524,9 @@ namespace tahsinERP.Controllers.SRM
             return ids.Count == 0 ? (int?)null : ids[0];
         }
 
-        private async Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
+        private Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
         {
-            var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-            return await db.WAREHOUSES
-                .Where(w => w.IsDeleted != true && w.MRP == currentUserId)
-                .Select(w => w.ID)
-                .ToListAsync();
+            return WarehouseAccess.AssignedWarehouseIdsAsync(db, User.Identity.Name);
         }
     }
 
