@@ -22,37 +22,83 @@ namespace tahsinERP.Services.Finance
             _balanceSheet = balanceSheet ?? new BalanceSheetService(db);
         }
 
-        /// <summary>EBITDA = operatsion foyda + foiz + soliq + amortizatsiya (xarajat kategoriyasi nomi bo'yicha).</summary>
-        public EbitdaData Ebitda(DateTime fromDate, DateTime toDate)
+        /// <summary>
+        /// P&amp;L bandlariga bog'langan kategoriyalar: daromad (Sign=1) va operatsion xarajat (Sign=2, dividendsiz).
+        /// FIN-B05: avval barcha kirimlar daromad edi (qarz olish, ichki o'tkazma, aksiyador hissasi ham).
+        /// </summary>
+        private void OperatingCategories(out HashSet<int> incomeCategoryIds, out HashSet<int> expenseCategoryIds)
         {
-            var period = FinQueries.Active(_db).InPeriod(fromDate, toDate).RealCash();
-
-            var operatingIncome = period
-                .Where(t => t.Direction == 1)
-                .Sum(t => (decimal?)t.Amount) ?? 0m;
-
-            var expensesByCategory = period
-                .Where(t => t.Direction == 2)
-                .GroupBy(t => t.FIN_CATEGORIES.Name)
-                .Select(g => new { Name = g.Key, Amount = g.Sum(x => (decimal?)x.Amount) ?? 0m })
+            var items = _db.FIN_PL_ITEMS
+                .Where(i => i.IsActive && (i.IsDeleted == null || i.IsDeleted == false))
+                .Select(i => new { i.Sign, i.Name, Cats = i.FIN_CATEGORIES.Select(c => c.ID) })
                 .ToList();
 
+            incomeCategoryIds = new HashSet<int>(items.Where(i => i.Sign == 1).SelectMany(i => i.Cats));
+            var income = incomeCategoryIds;
+            expenseCategoryIds = new HashSet<int>(items
+                .Where(i => i.Sign != 1 && !IsDividendItem(i.Name))
+                .SelectMany(i => i.Cats)
+                .Where(id => !income.Contains(id)));
+        }
+
+        private static bool IsDividendItem(string name)
+        {
+            return !string.IsNullOrEmpty(name) && name.ToLower().Contains("divid");
+        }
+
+        /// <summary>Davrdagi operatsion daromad: P&amp;L daromad kategoriyalari bo'yicha (kirim +, chiqim −).</summary>
+        public decimal OperatingIncome(DateTime fromDate, DateTime toDate)
+        {
+            OperatingCategories(out var incomeIds, out _);
+            if (incomeIds.Count == 0) return 0m;
+            var ids = incomeIds.ToList();
+            return FinQueries.Active(_db).InPeriod(fromDate, toDate).RealCash()
+                .Where(t => ids.Contains(t.CategoryID))
+                .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+        }
+
+        /// <summary>
+        /// EBITDA = operatsion foyda + foiz + soliq + amortizatsiya.
+        /// Daromad/xarajat — P&amp;L bandlari bo'yicha (FIN-B05); soliq/foiz/amortizatsiya xarajat kategoriyasi nomidan aniqlanadi.
+        /// </summary>
+        public EbitdaData Ebitda(DateTime fromDate, DateTime toDate)
+        {
+            OperatingCategories(out var incomeIds, out var expenseIds);
+            var allIds = incomeIds.Concat(expenseIds).ToList();
+
+            var sums = allIds.Count == 0
+                ? new List<CategorySum>()
+                : FinQueries.Active(_db).InPeriod(fromDate, toDate).RealCash()
+                    .Where(t => allIds.Contains(t.CategoryID))
+                    .GroupBy(t => new { t.CategoryID, t.FIN_CATEGORIES.Name })
+                    .Select(g => new CategorySum
+                    {
+                        CategoryID = g.Key.CategoryID,
+                        Name = g.Key.Name,
+                        In = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
+                        Out = g.Sum(t => t.Direction == 1 ? 0m : t.Amount)
+                    })
+                    .ToList();
+
+            var operatingIncome = sums.Where(s => incomeIds.Contains(s.CategoryID)).Sum(s => s.In - s.Out);
+
             decimal totalExpenses = 0m, taxExpense = 0m, interestExpense = 0m, depreciationExpense = 0m;
-            foreach (var e in expensesByCategory)
+            foreach (var e in sums.Where(s => expenseIds.Contains(s.CategoryID)))
             {
-                totalExpenses += e.Amount;
+                var amount = e.Out - e.In;
+                totalExpenses += amount;
                 var name = (e.Name ?? string.Empty).ToLower();
                 if (name.Contains("soliq") || name.Contains("qqs") || name.Contains("nds"))
                 {
-                    taxExpense += e.Amount;
+                    taxExpense += amount;
                 }
                 else if (name.Contains("foiz") || name.Contains("kredit") || name.Contains("ssuda"))
                 {
-                    interestExpense += e.Amount;
+                    interestExpense += amount;
                 }
                 else if (name.Contains("amortizatsiya") || name.Contains("eskirish") || name.Contains("iznos"))
                 {
-                    depreciationExpense += e.Amount;
+                    depreciationExpense += amount;
                 }
             }
 
@@ -66,6 +112,14 @@ namespace tahsinERP.Services.Finance
                 InterestExpense = interestExpense,
                 DepreciationExpense = depreciationExpense
             };
+        }
+
+        private sealed class CategorySum
+        {
+            public int CategoryID { get; set; }
+            public string Name { get; set; }
+            public decimal In { get; set; }
+            public decimal Out { get; set; }
         }
 
         /// <summary>1-uslub: oxirgi 12 oy EBITDA × multiplikator.</summary>
@@ -82,23 +136,21 @@ namespace tahsinERP.Services.Finance
         }
 
         /// <summary>
-        /// 2-uslub: sof aktivlar (Type 1 aktivlar − Type 2/3 passiv ustuni) + (yillik daromad × o'rtacha Tannarx marjasi) × N yil.
+        /// 2-uslub: sof aktivlar (aktiv ustuni − Type 2 majburiyatlar) + (yillik daromad × o'rtacha Tannarx marjasi) × N yil.
         /// </summary>
         public CompanyValuationBreakdown DcfValuation(DateTime asOfDate, int years)
         {
+            // FIN-B04: aktivlar = balansning aktiv ustuni (Type 1 va aktiv nomli Type 2),
+            // passivlar = Type 2 majburiyatlar; kapital (Type 3) sof aktivdan ayirilmaydi.
             var balance = _balanceSheet.Compute(asOfDate);
-            var totalAssets = balance.Where(d => d.Category.Type == 1 && d.IsAssetColumn).Sum(d => d.Amount);
-            var totalLiabilities = balance.Where(d => (d.Category.Type == 2 || d.Category.Type == 3) && !d.IsAssetColumn).Sum(d => d.Amount);
+            var totalAssets = balance.Where(d => d.IsAssetColumn).Sum(d => d.Amount);
+            var totalLiabilities = balance.Where(d => d.Category.Type == 2 && !d.IsAssetColumn).Sum(d => d.Amount);
             var netAssets = totalAssets - totalLiabilities;
 
             var avgMarginPercent = AverageTannarxMarginPercent();
 
-            var yearStart = asOfDate.AddYears(-1).AddDays(1);
-            var annualRevenue = FinQueries.Active(_db)
-                .Where(t => t.Direction == 1)
-                .InPeriod(yearStart, asOfDate)
-                .RealCash()
-                .Sum(t => (decimal?)t.Amount) ?? 0m;
+            // Yillik daromad — EBITDA bilan bir xil asosda (P&L daromad kategoriyalari, FIN-B05)
+            var annualRevenue = OperatingIncome(asOfDate.AddYears(-1).AddDays(1), asOfDate);
 
             var annualProfit = annualRevenue * avgMarginPercent / 100m;
             var futureProfit = annualProfit * years;
