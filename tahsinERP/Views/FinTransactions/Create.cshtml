@@ -55,7 +55,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.AccountID, "Hisob *", new { @class = "control-label" })
-                                                    @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountsSelectList as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required", onchange = "loadAccountCurrency()" })
+                                                    @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountsSelectList as SelectList, "Tanlang...", new { @class = "form-control select2", required = "required" })
                                                     @Html.ValidationMessageFor(m => m.AccountID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
@@ -192,10 +192,6 @@ else
             /** Parallel AJAX (change + select2:select) oldini olish uchun */
             var counterpartyLoadSeq = 0;
 
-            function loadAccountCurrency() {
-                // Kelajakda: hisob tanlanganda valyutani AJAX bilan yuklash
-            }
-            window.loadAccountCurrency = loadAccountCurrency;
 
             function itemId(it) {
                 if (!it) return '';

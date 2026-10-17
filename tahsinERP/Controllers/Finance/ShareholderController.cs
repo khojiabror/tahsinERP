@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.SHAREHOLDERS.Where(s => s.IsActive);
+                var query = db.SHAREHOLDERS.Where(s => s.IsActive && s.IsDeleted != true); // FIN-B12: o'chirilganlar ro'yxatda qolmasin
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {

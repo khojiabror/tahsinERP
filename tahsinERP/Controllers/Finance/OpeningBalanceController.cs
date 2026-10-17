@@ -12,6 +12,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Helpers;
 using tahsinERP.Services;
+using tahsinERP.Services.Finance;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -27,7 +28,6 @@ namespace tahsinERP.Controllers.Finance
 
             using (var db = new DBTHSNEntities())
             {
-                EnsureOpeningContractBalanceTable(db);
                 var snapshotRows = db.FIN_BALANCE_SNAPSHOTS
                     .AsNoTracking()
                     .Where(s => s.SourceType == "OpeningBalance" || s.SourceType == null)
@@ -115,10 +115,11 @@ namespace tahsinERP.Controllers.Finance
             }
 
             using (var db = new DBTHSNEntities())
+            using (var tx = db.Database.BeginTransaction())
             {
               try
               {
-                EnsureOpeningContractBalanceTable(db);
+                // O'chirish va qayta yozish bitta tranzaksiyada (FIN-B06): xato bo'lsa eski opening saqlanib qoladi.
                 var date = model.SnapshotDate.Date;
                 var userId = UserHelper.GetUserId(User.Identity.Name);
 
@@ -171,8 +172,6 @@ namespace tahsinERP.Controllers.Finance
 
                         db.FIN_BALANCE_SNAPSHOTS.Add(snap);
                     }
-
-                    db.SaveChanges();
                 }
 
                 var contractRows = new List<OpeningContractBalanceRow>();
@@ -292,25 +291,9 @@ namespace tahsinERP.Controllers.Finance
                     }
                 }
 
-                foreach (var row in contractRows)
-                {
-                    db.Database.ExecuteSqlCommand(
-                        "INSERT INTO FIN_OPENING_CONTRACT_BALANCES (SnapshotDate, BalanceType, CounterpartyID, ContractID, ContractNo, TotalAmount, PaidAmount, Amount, CurrencyID, CreatedByUserID, CreatedDT) " +
-                        "VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10)",
-                        new SqlParameter("@p0", row.SnapshotDate),
-                        new SqlParameter("@p1", row.BalanceType),
-                        new SqlParameter("@p2", row.CounterpartyID),
-                        new SqlParameter("@p3", (object)row.ContractID ?? DBNull.Value),
-                        new SqlParameter("@p4", (object)row.ContractNo ?? DBNull.Value),
-                        new SqlParameter("@p5", row.TotalAmount),
-                        new SqlParameter("@p6", row.PaidAmount),
-                        new SqlParameter("@p7", row.Amount),
-                        new SqlParameter("@p8", row.CurrencyID),
-                        new SqlParameter("@p9", (object)row.CreatedByUserID ?? DBNull.Value),
-                        new SqlParameter("@p10", DateTime.Now));
-                }
-
-                UpsertDetailedOpeningSnapshots(db, date, userId, resolvedDefaultCurrencyId, contractRows);
+                AddContractRows(db, contractRows);
+                db.SaveChanges();
+                tx.Commit();
               }
               catch (Exception ex)
               {
@@ -343,8 +326,8 @@ namespace tahsinERP.Controllers.Finance
             {
                 var date = snapshotDate.Date;
                 using (var db = new DBTHSNEntities())
+                using (var tx = db.Database.BeginTransaction())
                 {
-                    EnsureOpeningContractBalanceTable(db);
                     var userId = UserHelper.GetUserId(User.Identity.Name);
                     // Bu sahifada standart valyuta ID = 5 (mavjud bo'lmasa, birinchi valyuta).
                     var defaultCurrencyId = db.CURRENCIES.Any(c => c.ID == 5)
@@ -415,33 +398,17 @@ namespace tahsinERP.Controllers.Finance
                     .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
                 // 2) Supplier payables by contract.
-                // QQS faqat P_CONTRACT da saqlanadi: invoice summasini bog'langan shartnomaning
-                // QQS stavkasi bo'yicha QQS bilan hisoblaymiz (QQS bo'lmasa, stavka 0 va summa o'zgarmaydi).
-                var pInvoicesRaw = db.P_INVOICES
-                    .Where(i => i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false))
-                    .Select(i => new { i.ID, i.SupplierID, i.ContractID, i.Amount })
+                // Xarid summasi — dashboard/balans/Akt-sverki bilan bir xil qoida (FIN-B08):
+                // invoysga bog'langan kirimlar (INCOMES.TotalPrice) bo'lsa shu, aks holda P_INVOICES.Amount.
+                var pInvoiceQuery = db.P_INVOICES
+                    .Where(i => i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false));
+                var pAmountById = CounterpartyBalanceService.PurchaseInvoiceAmounts(db, pInvoiceQuery, date);
+                var pInvoices = pInvoiceQuery
+                    .Select(i => new { i.ID, i.SupplierID, i.ContractID })
+                    .ToList()
+                    .Select(i => new { i.ID, i.SupplierID, i.ContractID, Amount = pAmountById.TryGetValue(i.ID, out var a) ? a : 0m })
                     .ToList();
-                var pContractIds = pInvoicesRaw.Where(i => i.ContractID > 0).Select(i => i.ContractID).Distinct().ToList();
-                var pVatRateByContract = pContractIds.Count == 0
-                    ? new Dictionary<int, double>()
-                    : PContractVatHelper.BuildContractVatRates(
-                        db.P_CONTRACT_PRODUCTS
-                            .Where(p => pContractIds.Contains(p.ContractID))
-                            .Select(p => new PContractVatHelper.ContractProductVatLine
-                            {
-                                ContractID = p.ContractID,
-                                Amount = p.Amount,
-                                VATAmount = p.VATAmount
-                            })
-                            .ToList());
-                var pInvoices = pInvoicesRaw
-                    .Select(i =>
-                    {
-                        var baseAmt = Convert.ToDecimal(i.Amount);
-                        var rate = pVatRateByContract.ContainsKey(i.ContractID) ? pVatRateByContract[i.ContractID] : 0d;
-                        return new { i.ID, i.SupplierID, i.ContractID, Amount = baseAmt + baseAmt * (decimal)rate / 100m };
-                    })
-                    .ToList();
+                var pContractIds = pInvoices.Where(i => i.ContractID > 0).Select(i => i.ContractID).Distinct().ToList();
                 var pContractNoById = pContractIds.Count == 0
                     ? new Dictionary<int, string>()
                     : db.P_CONTRACTS.Where(c => pContractIds.Contains(c.ID))
@@ -625,25 +592,9 @@ namespace tahsinERP.Controllers.Finance
                     });
                 }
 
-                    foreach (var row in rows)
-                    {
-                        db.Database.ExecuteSqlCommand(
-                            "INSERT INTO FIN_OPENING_CONTRACT_BALANCES (SnapshotDate, BalanceType, CounterpartyID, ContractID, ContractNo, TotalAmount, PaidAmount, Amount, CurrencyID, CreatedByUserID, CreatedDT) " +
-                            "VALUES (@p0,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10)",
-                            new SqlParameter("@p0", row.SnapshotDate),
-                            new SqlParameter("@p1", row.BalanceType),
-                            new SqlParameter("@p2", row.CounterpartyID),
-                            new SqlParameter("@p3", (object)row.ContractID ?? DBNull.Value),
-                            new SqlParameter("@p4", (object)row.ContractNo ?? DBNull.Value),
-                            new SqlParameter("@p5", row.TotalAmount),
-                            new SqlParameter("@p6", row.PaidAmount),
-                            new SqlParameter("@p7", row.Amount),
-                            new SqlParameter("@p8", row.CurrencyID),
-                            new SqlParameter("@p9", (object)row.CreatedByUserID ?? DBNull.Value),
-                            new SqlParameter("@p10", DateTime.Now));
-                    }
-
-                    UpsertDetailedOpeningSnapshots(db, date, userId, defaultCurrencyId, rows);
+                    AddContractRows(db, rows);
+                    db.SaveChanges();
+                    tx.Commit();
                 }
 
                 TempData["Success"] = "Auto-fill bajarildi: current balances asosida detailed opening qatorlari yangilandi.";
@@ -783,15 +734,11 @@ namespace tahsinERP.Controllers.Finance
             {
                 Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
 
-                // QQS faqat P_CONTRACT da: invoice bazasini shartnoma QQS stavkasi bilan QQS bilan olamiz.
-                var vatRate = PContractVatHelper.CalculateContractVatRate(
-                    db.P_CONTRACT_PRODUCTS.Where(p => p.ContractID == contractId.Value).ToList());
-                var vatMultiplier = 1m + (decimal)vatRate / 100m;
-                var invoices = db.P_INVOICES
-                    .Where(i => i.SupplierID == supplierId && i.ContractID == contractId.Value && i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false))
-                    .Select(i => new { i.ID, i.Amount })
-                    .ToList()
-                    .Select(i => new { i.ID, Amount = Convert.ToDecimal(i.Amount) * vatMultiplier })
+                // Xarid summasi — yagona qoida (FIN-B08): kirim (INCOMES.TotalPrice) yoki invoys summasi.
+                var invoiceQuery = db.P_INVOICES
+                    .Where(i => i.SupplierID == supplierId && i.ContractID == contractId.Value && i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false));
+                var invoices = CounterpartyBalanceService.PurchaseInvoiceAmounts(db, invoiceQuery, date)
+                    .Select(kv => new { ID = kv.Key, Amount = kv.Value })
                     .ToList();
 
                 var contractNo = db.P_CONTRACTS
@@ -1019,14 +966,10 @@ namespace tahsinERP.Controllers.Finance
                 };
                 Func<int, int, decimal> calcSupplierTotal = (supplierId, contractId) =>
                 {
-                    var baseTotal = db.P_INVOICES
-                        .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= snapshotDate && (i.IsDeleted == null || i.IsDeleted == false))
-                        .Select(i => (decimal?)i.Amount)
-                        .DefaultIfEmpty(0m).Sum() ?? 0m;
-                    // QQS faqat P_CONTRACT da: shartnoma QQS stavkasi bilan QQS bilan olamiz.
-                    var vatRate = PContractVatHelper.CalculateContractVatRate(
-                        db.P_CONTRACT_PRODUCTS.Where(p => p.ContractID == contractId).ToList());
-                    return baseTotal + baseTotal * (decimal)vatRate / 100m;
+                    // Yagona qoida (FIN-B08): kirim (INCOMES.TotalPrice) yoki invoys summasi.
+                    var invoiceQuery = db.P_INVOICES
+                        .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= snapshotDate && (i.IsDeleted == null || i.IsDeleted == false));
+                    return CounterpartyBalanceService.PurchaseInvoiceAmounts(db, invoiceQuery, snapshotDate).Values.Sum();
                 };
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -1168,7 +1111,6 @@ namespace tahsinERP.Controllers.Finance
             var date = snapshotDate.Value.Date;
             using (var db = new DBTHSNEntities())
             {
-                EnsureOpeningContractBalanceTable(db);
                 var lineCount = db.FIN_BALANCE_SNAPSHOTS.Count(s =>
                     DbFunctions.TruncateTime(s.SnapshotDate) == date &&
                     (s.SourceType == "OpeningBalance" || s.SourceType == null));
@@ -1202,20 +1144,11 @@ namespace tahsinERP.Controllers.Finance
 
             var date = snapshotDate.Date;
             using (var db = new DBTHSNEntities())
+            using (var tx = db.Database.BeginTransaction())
             {
-                EnsureOpeningContractBalanceTable(db);
-                var existing = db.FIN_BALANCE_SNAPSHOTS
-                    .Where(s => DbFunctions.TruncateTime(s.SnapshotDate) == date &&
-                                (s.SourceType == "OpeningBalance" || s.SourceType == null))
-                    .ToList();
-
-                if (existing.Any())
-                {
-                    db.FIN_BALANCE_SNAPSHOTS.RemoveRange(existing);
-                    db.SaveChanges();
-                }
-
+                // DeleteOpeningByDate OpeningBalance/NULL snapshot'larni ham o'chiradi.
                 DeleteOpeningByDate(db, date);
+                tx.Commit();
             }
 
             TempData["Success"] = $"Opening balans ({date:yyyy-MM-dd}) o'chirildi.";
@@ -1224,7 +1157,6 @@ namespace tahsinERP.Controllers.Finance
 
         private static OpeningBalanceViewModel BuildOpeningBalanceViewModel(DBTHSNEntities db, DateTime date)
         {
-            EnsureOpeningContractBalanceTable(db);
             var categories = db.FIN_BALANCE_CATEGORIES
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.Type)
@@ -1409,34 +1341,6 @@ namespace tahsinERP.Controllers.Finance
             return model;
         }
 
-        private static void EnsureOpeningContractBalanceTable(DBTHSNEntities db)
-        {
-            const string sql = @"
-IF OBJECT_ID('dbo.FIN_OPENING_CONTRACT_BALANCES', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.FIN_OPENING_CONTRACT_BALANCES(
-        ID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        SnapshotDate DATE NOT NULL,
-        BalanceType TINYINT NOT NULL, -- 1: Customer receivable, 2: Supplier payable
-        CounterpartyID INT NOT NULL,
-        ContractID INT NULL,
-        ContractNo NVARCHAR(100) NULL,
-        TotalAmount DECIMAL(19,2) NOT NULL CONSTRAINT DF_FIN_OPENING_CONTRACT_BALANCES_TotalAmount DEFAULT(0),
-        PaidAmount DECIMAL(19,2) NOT NULL CONSTRAINT DF_FIN_OPENING_CONTRACT_BALANCES_PaidAmount DEFAULT(0),
-        Amount DECIMAL(19,2) NOT NULL,
-        CurrencyID INT NOT NULL,
-        CreatedByUserID INT NULL,
-        CreatedDT DATETIME NOT NULL DEFAULT(GETDATE())
-    );
-    CREATE INDEX IX_FIN_OPENING_CONTRACT_BALANCES_SnapshotDate ON dbo.FIN_OPENING_CONTRACT_BALANCES(SnapshotDate);
-    CREATE INDEX IX_FIN_OPENING_CONTRACT_BALANCES_TypeCounterparty ON dbo.FIN_OPENING_CONTRACT_BALANCES(BalanceType, CounterpartyID);
-END";
-            db.Database.ExecuteSqlCommand(sql);
-            db.Database.ExecuteSqlCommand("IF COL_LENGTH('dbo.FIN_OPENING_CONTRACT_BALANCES','TotalAmount') IS NULL ALTER TABLE dbo.FIN_OPENING_CONTRACT_BALANCES ADD TotalAmount DECIMAL(19,2) NOT NULL CONSTRAINT DF_FIN_OPENING_CONTRACT_BALANCES_TotalAmount_2 DEFAULT(0)");
-            db.Database.ExecuteSqlCommand("IF COL_LENGTH('dbo.FIN_OPENING_CONTRACT_BALANCES','PaidAmount') IS NULL ALTER TABLE dbo.FIN_OPENING_CONTRACT_BALANCES ADD PaidAmount DECIMAL(19,2) NOT NULL CONSTRAINT DF_FIN_OPENING_CONTRACT_BALANCES_PaidAmount_2 DEFAULT(0)");
-            db.Database.ExecuteSqlCommand("UPDATE dbo.FIN_OPENING_CONTRACT_BALANCES SET TotalAmount = Amount, PaidAmount = 0 WHERE TotalAmount = 0 AND PaidAmount = 0");
-        }
-
         private static bool IsDetailedSubledgerCategory(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return false;
@@ -1452,69 +1356,27 @@ END";
                 || n.Contains("oylik");
         }
 
-        private static void UpsertDetailedOpeningSnapshots(
-            DBTHSNEntities db,
-            DateTime date,
-            int userId,
-            int defaultCurrencyId,
-            List<OpeningContractBalanceRow> contractRows)
+        /// <summary>Kontragent opening qatorlarini EF orqali qo'shadi (SaveChanges chaqiruvchida, bitta tranzaksiyada).</summary>
+        private static void AddContractRows(DBTHSNEntities db, IEnumerable<OpeningContractBalanceRow> rows)
         {
-            if (contractRows == null) return;
-
-            var arTotal = contractRows.Where(x => x.BalanceType == 1).Sum(x => x.Amount);
-            var apTotal = contractRows.Where(x => x.BalanceType == 2).Sum(x => x.Amount);
-            var payrollTotal = contractRows.Where(x => x.BalanceType == 3).Sum(x => x.Amount);
-
-            var categories = db.FIN_BALANCE_CATEGORIES
-                .Where(c => c.IsActive)
-                .ToList();
-
-            Func<string, string> norm = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToLowerInvariant();
-            int? ResolveCategoryId(params string[] keywords)
+            var now = DateTime.Now;
+            foreach (var row in rows)
             {
-                return categories
-                    .Where(c =>
-                    {
-                        var n = norm(c.Name);
-                        return keywords.Any(k => n.Contains(k));
-                    })
-                    .OrderBy(c => c.SortOrder)
-                    .Select(c => (int?)c.ID)
-                    .FirstOrDefault();
-            }
-
-            var arCategoryId = ResolveCategoryId("debitor", "xaridor", "mijoz", "haqq");
-            var apCategoryId = ResolveCategoryId("kreditor", "ta'minot", "qarz");
-            var payrollCategoryId = ResolveCategoryId("oylik", "ish haqi", "salary");
-
-            void Upsert(int? categoryId, decimal amount)
-            {
-                if (!categoryId.HasValue || categoryId.Value <= 0) return;
-
-                db.Database.ExecuteSqlCommand(
-                    "DELETE FROM FIN_BALANCE_SNAPSHOTS WHERE CONVERT(date, SnapshotDate) = @p0 AND CategoryID = @p1 AND (SourceType = 'OpeningBalance' OR SourceType IS NULL OR SourceType LIKE 'OpeningBalance%')",
-                    new SqlParameter("@p0", date.Date),
-                    new SqlParameter("@p1", categoryId.Value));
-
-                if (amount == 0m) return;
-
-                db.FIN_BALANCE_SNAPSHOTS.Add(new FIN_BALANCE_SNAPSHOTS
+                db.FIN_OPENING_CONTRACT_BALANCES.Add(new FIN_OPENING_CONTRACT_BALANCES
                 {
-                    SnapshotDate = date.Date,
-                    CategoryID = categoryId.Value,
-                    Amount = amount,
-                    CurrencyID = defaultCurrencyId > 0 ? defaultCurrencyId : 1,
-                    SourceType = "OpeningBalanceDetailed",
-                    SourceID = null,
-                    CreatedByUserID = userId,
-                    CreatedDT = DateTime.Now
+                    SnapshotDate = row.SnapshotDate.Date,
+                    BalanceType = row.BalanceType,
+                    CounterpartyID = row.CounterpartyID,
+                    ContractID = row.ContractID,
+                    ContractNo = row.ContractNo,
+                    TotalAmount = row.TotalAmount,
+                    PaidAmount = row.PaidAmount,
+                    Amount = row.Amount,
+                    CurrencyID = row.CurrencyID,
+                    CreatedByUserID = row.CreatedByUserID,
+                    CreatedDT = now
                 });
-                db.SaveChanges();
             }
-
-            Upsert(arCategoryId, arTotal);
-            Upsert(apCategoryId, apTotal);
-            Upsert(payrollCategoryId, payrollTotal);
         }
 
         private static void DeleteOpeningByDate(DBTHSNEntities db, DateTime date)

@@ -80,7 +80,7 @@
                                                                     var accountUsageList = ViewBag.AccountUsage as System.Collections.IEnumerable;
                                                                     if (accountUsageList != null)
                                                                     {
-                                                                    foreach (tahsinERP.Controllers.Finance.AccountUsageData item in accountUsageList)
+                                                                    foreach (tahsinERP.ViewModels.Finance.AccountUsageData item in accountUsageList)
                                                                     {
                                                                         <tr>
                                                                             <td>@(item.AccountCode ?? "-")</td>
