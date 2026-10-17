@@ -9,6 +9,7 @@ using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
+using tahsinERP.Services.Documents;
 using tahsinERP.Controllers;
 using tahsinERP.Filters;
 
@@ -335,13 +336,15 @@ namespace tahsinERP.Controllers
                 var doc = await db.DOC_DOCUMENTS
                     .Include(d => d.COM_OFFICIAL_LETTERS)
                     .Include(d => d.DOC_DOCUMENT_STATUS_REF)
-                    .Include(d => d.DOC_FILES)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                    .FirstOrDefaultAsync(d => d.ID == id && d.IsDeleted != true);
 
-                if (doc == null || doc.COM_OFFICIAL_LETTERS == null)
+                if (doc == null || doc.COM_OFFICIAL_LETTERS == null || doc.COM_OFFICIAL_LETTERS.IsDeleted == true)
                 {
                     return HttpNotFound();
                 }
+
+                // Faqat metadata — avval Include(DOC_FILES) barcha versiyalar blob'ini o'qirdi (DOC-P01)
+                ViewBag.DocFiles = await DocFileService.ListMainAsync(db, doc.ID);
 
                 // Saqlangan matn, salomlashish va mahsulotlarni ko'rsatish uchun yuklash
                 var letterData = await OfficialLetterDataService.LoadAsync(db, doc.ID);
@@ -365,28 +368,17 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
-                    .Include(d => d.COM_OFFICIAL_LETTERS)
-                    .Include(d => d.DOC_FILES)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                var code = await db.COM_OFFICIAL_LETTERS
+                    .Where(l => l.DocumentID == id && l.IsDeleted != true && l.DOC_DOCUMENTS.IsDeleted != true)
+                    .Select(l => l.DOC_DOCUMENTS.Code)
+                    .FirstOrDefaultAsync();
 
-                if (doc != null)
+                if (code != null)
                 {
-                    await SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync(db, doc.ID);
+                    // Set-based: hujjat, xat va fayllar blob'larini yuklamasdan (DOC-P06)
+                    await DocumentService.SoftDeleteAsync(db, id);
 
-                    // So'ng soft o'chirish the official letter record
-                    if (doc.COM_OFFICIAL_LETTERS != null)
-                    {
-                        doc.COM_OFFICIAL_LETTERS.IsDeleted = true;
-                        db.Entry(doc.COM_OFFICIAL_LETTERS).State = System.Data.Entity.EntityState.Modified;
-                    }
-
-                    // Oxirida, soft o'chirish the hujjat record
-                    doc.IsDeleted = true;
-                    db.Entry(doc).State = System.Data.Entity.EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Delete", $"Xat o'chirildi: {doc.Code}");
+                    LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "Delete", $"Xat o'chirildi: {code}");
 
                     TempData["Success"] = "Maktub muvaffaqiyatli o'chirildi";
                 }
@@ -417,10 +409,13 @@ namespace tahsinERP.Controllers
                 }
 
                 var letter = doc.COM_OFFICIAL_LETTERS;
-                var template = await db.DOC_TEMPLATES
-                    .FirstOrDefaultAsync(t => t.DocTypeID == doc.DocTypeID && t.IsActive);
+                // Faqat ID — shablon blob'i DocumentTemplateService'da (keshdan) o'qiladi (DOC-P07)
+                var templateId = await db.DOC_TEMPLATES
+                    .Where(t => t.DocTypeID == doc.DocTypeID && t.IsActive)
+                    .Select(t => (int?)t.ID)
+                    .FirstOrDefaultAsync();
 
-                if (template == null)
+                if (templateId == null)
                 {
                     TempData["ErrorMessage"] = "Shablon topilmadi";
                     return RedirectToAction("Details", new { id });
@@ -465,44 +460,17 @@ namespace tahsinERP.Controllers
                 // Yaratish hujjat
                 string fileName, fileExtension, mimeType;
                 byte[] fileContent = _templateService.GenerateDocFromTemplate(
-                    template.ID, placeholders, out fileName, out fileExtension, out mimeType);
+                    templateId.Value, placeholders, out fileName, out fileExtension, out mimeType);
 
-                // Olish next version number
-                int nextVersion = 1;
-                var existingFiles = await db.DOC_FILES
-                    .Where(f => f.DocumentID == doc.ID)
-                    .OrderByDescending(f => f.VersionNo)
-                    .FirstOrDefaultAsync();
-                if (existingFiles != null)
+                // Yangi asosiy versiya (VersionNo MAX va IsMain UPDATE SQL'da — blob'lar o'qilmaydi, DOC-P05)
+                using (var tx = db.Database.BeginTransaction())
                 {
-                    nextVersion = existingFiles.VersionNo + 1;
-                    // Belgilash previous main fayl as not main
-                    var prevMain = await db.DOC_FILES
-                        .Where(f => f.DocumentID == doc.ID && f.IsMain)
-                        .ToListAsync();
-                    foreach (var prev in prevMain)
-                    {
-                        prev.IsMain = false;
-                    }
+                    await DocFileService.AddMainVersionAsync(db, doc.ID, fileContent,
+                        $"{letter.LetterNo}_{letter.LetterDate:yyyyMMdd}{fileExtension}",
+                        fileExtension, mimeType, UserHelper.GetUserId(User.Identity.Name));
+                    await db.SaveChangesAsync();
+                    tx.Commit();
                 }
-
-                // Saqlash fayl - use letter date instead of current date
-                var docFile = new DOC_FILES
-                {
-                    DocumentID = doc.ID,
-                    VersionNo = nextVersion,
-                    FileName = $"{letter.LetterNo}_{letter.LetterDate:yyyyMMdd}{fileExtension}",
-                    FileExtension = fileExtension,
-                    MimeType = mimeType,
-                    FileSizeBytes = fileContent.Length,
-                    FileContent = fileContent,
-                    IsMain = true,
-                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                    CreatedDT = DateTime.Now
-                };
-
-                db.DOC_FILES.Add(docFile);
-                await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "OfficialLetters", "GenerateDoc", $"Xat uchun hujjat yaratildi: {letter.LetterNo}");
 

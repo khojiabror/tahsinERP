@@ -9,6 +9,7 @@ using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
+using tahsinERP.Services.Documents;
 using System.Web;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -562,11 +563,8 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Versiya tarixini olish (faqat .docx fayllar)
-                var docxFiles = await db.DOC_FILES
-                    .Where(f => f.DocumentID == id && f.FileExtension == ".docx")
-                    .OrderByDescending(f => f.VersionNo)
-                    .ToListAsync();
+                // Versiya tarixi (faqat .docx) — metadata proyeksiyasi, blob'lar o'qilmaydi (DOC-P03)
+                var docxFiles = await DocFileService.ListVersionsAsync(db, id.Value, ".docx");
 
                 var versionHistory = docxFiles.Select((f, index) => new VersionHistoryItem
                 {
@@ -662,31 +660,18 @@ namespace tahsinERP.Controllers
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    var standard = await db.STD_COMPANY_STANDARDS
-                        .Include(s => s.DOC_DOCUMENTS)
-                        .FirstOrDefaultAsync(s => s.DocumentID == id);
+                    var standardCode = await db.STD_COMPANY_STANDARDS
+                        .Where(s => s.DocumentID == id && s.IsDeleted != true && s.DOC_DOCUMENTS.IsDeleted != true)
+                        .Select(s => s.StandardCode)
+                        .FirstOrDefaultAsync();
 
-                    if (standard == null)
+                    if (standardCode == null)
                     {
                         return HttpNotFound();
                     }
 
-                    var standardCode = standard.StandardCode;
-
-                    // DOC_DOCUMENTS ni soft o'chirish qilish
-                    if (standard.DOC_DOCUMENTS != null)
-                    {
-                        standard.DOC_DOCUMENTS.IsDeleted = true;
-                        db.Entry(standard.DOC_DOCUMENTS).State = System.Data.Entity.EntityState.Modified;
-                        await SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync(db, standard.DocumentID);
-                    }
-                    else
-                    {
-                        standard.IsDeleted = true;
-                        db.Entry(standard).State = System.Data.Entity.EntityState.Modified;
-                    }
-
-                    await db.SaveChangesAsync();
+                    // Hujjat, standart (avval faqat DOC_DOCUMENTS — DOC-B01) va fayllar set-based (DOC-P06)
+                    await DocumentService.SoftDeleteAsync(db, id);
 
                     LogHelper.LogToDatabase(User.Identity.Name, "STDCompanyStandards", $"Standart o'chirildi: {standardCode}");
                     TempData["Success"] = "Standart muvaffaqiyatli o'chirildi";

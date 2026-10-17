@@ -1043,6 +1043,8 @@
     <Compile Include="Services\ContractBalanceService.cs" />
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
+    <Compile Include="Services\Documents\DocFileService.cs" />
+    <Compile Include="Services\Documents\DocumentService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
     <Compile Include="Services\HrTimesheetSettingsService.cs" />

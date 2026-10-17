@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Text;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -12,6 +13,54 @@ namespace tahsinERP.Services
 {
     public class DocumentTemplateService : IDocumentTemplateService
     {
+        // Shablonlar kam o'zgaradi (SQL orqali yuklanadi) — har hujjat yaratishda blob qayta o'qilmasin (DOC-P07)
+        private static readonly MemoryCache TemplateCache = new MemoryCache("tahsinERP.DocTemplates");
+        private static readonly TimeSpan TemplateTtl = TimeSpan.FromMinutes(10);
+
+        private sealed class CachedTemplate
+        {
+            public string FileName;
+            public string FileExtension;
+            public string MimeType;
+            public byte[] FileContent;
+        }
+
+        private static CachedTemplate GetTemplate(int templateId)
+        {
+            string key = templateId.ToString();
+            var cached = TemplateCache.Get(key) as CachedTemplate;
+            if (cached != null)
+                return cached;
+
+            using (var db = new DBTHSNEntities())
+            {
+                cached = db.DOC_TEMPLATES
+                    .Where(t => t.ID == templateId && t.IsActive)
+                    .Select(t => new CachedTemplate
+                    {
+                        FileName = t.FileName,
+                        FileExtension = t.FileExtension,
+                        MimeType = t.MimeType,
+                        FileContent = t.FileContent
+                    })
+                    .FirstOrDefault();
+            }
+
+            if (cached == null || cached.FileContent == null)
+            {
+                throw new Exception($"Template with ID {templateId} not found or inactive");
+            }
+
+            TemplateCache.Set(key, cached, DateTimeOffset.Now.Add(TemplateTtl));
+            return cached;
+        }
+
+        /// <summary>Shablon yangilanganda chaqiring (hozircha shablonlar SQL skript bilan yuklanadi).</summary>
+        public static void InvalidateTemplate(int templateId)
+        {
+            TemplateCache.Remove(templateId.ToString());
+        }
+
         public byte[] GenerateDocFromTemplate(
             int templateId,
             IDictionary<string, string> placeholders,
@@ -19,22 +68,16 @@ namespace tahsinERP.Services
             out string fileExtension,
             out string mimeType)
         {
-            using (var db = new DBTHSNEntities())
             {
-                var template = db.DOC_TEMPLATES.FirstOrDefault(t => t.ID == templateId && t.IsActive);
-                if (template == null || template.FileContent == null)
-                {
-                    throw new Exception($"Template with ID {templateId} not found or inactive");
-                }
+                var template = GetTemplate(templateId);
 
                 fileName = template.FileName ?? "document";
                 fileExtension = template.FileExtension ?? ".docx";
                 mimeType = template.MimeType ?? "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-                // Create a copy of template content
-                byte[] templateBytes = new byte[template.FileContent.Length];
-                Array.Copy(template.FileContent, templateBytes, template.FileContent.Length);
-                
+                // Keshdagi baytlar umumiy — ustida ishlash uchun nusxa
+                byte[] templateBytes = (byte[])template.FileContent.Clone();
+
                 using (var stream = new MemoryStream())
                 {
                     stream.Write(templateBytes, 0, templateBytes.Length);

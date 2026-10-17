@@ -9,6 +9,7 @@ using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
+using tahsinERP.Services.Documents;
 using tahsinERP.Controllers;
 using tahsinERP.Filters;
 
@@ -322,13 +323,15 @@ namespace tahsinERP.Controllers
                     .Include(d => d.ADM_COMPANY_ORDERS)
                     .Include(d => d.HR_ORG_UNITS)
                     .Include(d => d.DOC_DOCUMENT_STATUS_REF)
-                    .Include(d => d.DOC_FILES)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                    .FirstOrDefaultAsync(d => d.ID == id && d.IsDeleted != true);
 
-                if (doc == null || doc.ADM_COMPANY_ORDERS == null)
+                if (doc == null || doc.ADM_COMPANY_ORDERS == null || doc.ADM_COMPANY_ORDERS.IsDeleted == true)
                 {
                     return HttpNotFound();
                 }
+
+                // Faqat metadata — avval Include(DOC_FILES) barcha versiyalar blob'ini o'qirdi (DOC-P01)
+                ViewBag.DocFiles = await DocFileService.ListMainAsync(db, doc.ID);
 
                 return View(doc);
             }
@@ -346,28 +349,17 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var doc = await db.DOC_DOCUMENTS
-                    .Include(d => d.ADM_COMPANY_ORDERS)
-                    .Include(d => d.DOC_FILES)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                var code = await db.ADM_COMPANY_ORDERS
+                    .Where(o => o.DocumentID == id && o.IsDeleted != true && o.DOC_DOCUMENTS.IsDeleted != true)
+                    .Select(o => o.DOC_DOCUMENTS.Code)
+                    .FirstOrDefaultAsync();
 
-                if (doc != null)
+                if (code != null)
                 {
-                    await SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync(db, doc.ID);
+                    // Set-based: hujjat, buyruq va fayllar blob'larini yuklamasdan (DOC-P06)
+                    await DocumentService.SoftDeleteAsync(db, id);
 
-                    // So'ng soft o'chirish the company order record
-                    if (doc.ADM_COMPANY_ORDERS != null)
-                    {
-                        doc.ADM_COMPANY_ORDERS.IsDeleted = true;
-                        db.Entry(doc.ADM_COMPANY_ORDERS).State = System.Data.Entity.EntityState.Modified;
-                    }
-
-                    // Oxirida, soft o'chirish the hujjat record
-                    doc.IsDeleted = true;
-                    db.Entry(doc).State = System.Data.Entity.EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Delete", $"Buyruq o'chirildi: {doc.Code}");
+                    LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "Delete", $"Buyruq o'chirildi: {code}");
 
                     TempData["Success"] = "Buyruq muvaffaqiyatli o'chirildi";
                 }
@@ -388,11 +380,11 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
+                // DOC_TEMPLATES Include olib tashlandi — shablon blob'i ishlatilmasdan yuklanardi (DOC-P07)
                 var doc = await db.DOC_DOCUMENTS
                     .Include(d => d.ADM_COMPANY_ORDERS)
                     .Include(d => d.HR_ORG_UNITS)
-                    .Include(d => d.DOC_TEMPLATES)
-                    .FirstOrDefaultAsync(d => d.ID == id);
+                    .FirstOrDefaultAsync(d => d.ID == id && d.IsDeleted != true);
 
                 if (doc == null || doc.ADM_COMPANY_ORDERS == null)
                 {
@@ -400,10 +392,12 @@ namespace tahsinERP.Controllers
                 }
 
                 var order = doc.ADM_COMPANY_ORDERS;
-                var template = await db.DOC_TEMPLATES
-                    .FirstOrDefaultAsync(t => t.DocTypeID == doc.DocTypeID && t.IsActive);
+                var templateId = await db.DOC_TEMPLATES
+                    .Where(t => t.DocTypeID == doc.DocTypeID && t.IsActive)
+                    .Select(t => (int?)t.ID)
+                    .FirstOrDefaultAsync();
 
-                if (template == null)
+                if (templateId == null)
                 {
                     TempData["ErrorMessage"] = "Shablon topilmadi";
                     return RedirectToAction("Details", new { id });
@@ -455,44 +449,17 @@ namespace tahsinERP.Controllers
                 // Yaratish hujjat
                 string fileName, fileExtension, mimeType;
                 byte[] fileContent = _templateService.GenerateDocFromTemplate(
-                    template.ID, placeholders, out fileName, out fileExtension, out mimeType);
+                    templateId.Value, placeholders, out fileName, out fileExtension, out mimeType);
 
-                // Olish next version number
-                int nextVersion = 1;
-                var existingFiles = await db.DOC_FILES
-                    .Where(f => f.DocumentID == doc.ID)
-                    .OrderByDescending(f => f.VersionNo)
-                    .FirstOrDefaultAsync();
-                if (existingFiles != null)
+                // Yangi asosiy versiya (VersionNo MAX va IsMain UPDATE SQL'da — blob'lar o'qilmaydi, DOC-P05)
+                using (var tx = db.Database.BeginTransaction())
                 {
-                    nextVersion = existingFiles.VersionNo + 1;
-                    // Belgilash previous main fayl as not main
-                    var prevMain = await db.DOC_FILES
-                        .Where(f => f.DocumentID == doc.ID && f.IsMain)
-                        .ToListAsync();
-                    foreach (var prev in prevMain)
-                    {
-                        prev.IsMain = false;
-                    }
+                    await DocFileService.AddMainVersionAsync(db, doc.ID, fileContent,
+                        $"{order.OrderNo}_{order.OrderDate:yyyyMMdd}{fileExtension}",
+                        fileExtension, mimeType, UserHelper.GetUserId(User.Identity.Name));
+                    await db.SaveChangesAsync();
+                    tx.Commit();
                 }
-
-                // Saqlash fayl - use order date instead of current date
-                var docFile = new DOC_FILES
-                {
-                    DocumentID = doc.ID,
-                    VersionNo = nextVersion,
-                    FileName = $"{order.OrderNo}_{order.OrderDate:yyyyMMdd}{fileExtension}",
-                    FileExtension = fileExtension,
-                    MimeType = mimeType,
-                    FileSizeBytes = fileContent.Length,
-                    FileContent = fileContent,
-                    IsMain = true,
-                    CreatedByUserID = UserHelper.GetUserId(User.Identity.Name),
-                    CreatedDT = DateTime.Now
-                };
-
-                db.DOC_FILES.Add(docFile);
-                await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(User.Identity.Name, "CompanyOrders", "GenerateDoc", $"Buyruq uchun hujjat yaratildi: {order.OrderNo}");
 
