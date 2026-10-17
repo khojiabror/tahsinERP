@@ -2,7 +2,10 @@
    Audit 2026-10 — Tasks + Documents: TUZATISH (DataFix_Docs_01_Find.sql natijasidan keyin).
    ISHGA TUSHIRISHDAN OLDIN: bazaning zaxira nusxasini oling va 01_Find natijasini ko'rib chiqing.
    Standart holatda ROLLBACK bilan tugaydi — natijani tekshirib, oxirgi qatorni COMMIT'ga almashtiring.
-   Takroriy raqamlar (01_Find, 5-bo'lim) bu yerda TUZATILMAYDI — biznes qarori kerak.
+   Xat/buyruq/STD takroriy raqamlari bu yerda TUZATILMAYDI (tashqariga yuborilgan raqam); topshiriq kodlari — 5-bo'lim.
+   2026-10-17: lokal DBTHSN-IPACK bazasida COMMIT bilan ishga tushirildi (zaxira:
+   ...\MSSQL\Backup\DBTHSN-IPACK_before_tasks_docs_2026-10-17.bak). Natija: 1 ta yetim kiruvchi xat
+   sarlavhasi (ID 181) soft-delete, 13 ta takroriy TASK-10 -> TASK-26..TASK-38; qolgan bo'limlarda o'zgarish yo'q.
    ===================================================================== */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
@@ -51,6 +54,32 @@ UPDATE f SET f.IsMain = 0
 FROM dbo.DOC_FILES f JOIN ranked r ON r.ID = f.ID
 WHERE r.rn > 1;
 PRINT CONCAT('Ortiqcha IsMain olib tashlandi: ', @@ROWCOUNT);
+
+/* 5. Takroriy topshiriq kodlari (TSK-B05: KeyCode qulfsiz hisoblanardi — masalan, 14 ta TASK-10).
+      Har guruhda eng birinchi (eng kichik ID) kod saqlanadi, qolganlari shu prefiksdagi
+      navbatdagi bo'sh raqamni oladi. Topshiriq kodi ichki identifikator — tashqariga yuborilmaydi. */
+;WITH dup AS (
+    SELECT ID, KeyCode,
+           LEFT(KeyCode, LEN(KeyCode) - CHARINDEX('-', REVERSE(KeyCode)) + 1) AS Prefix,
+           ROW_NUMBER() OVER (PARTITION BY KeyCode ORDER BY ID) AS rn
+    FROM dbo.APP_TASKS
+    WHERE KeyCode IS NOT NULL AND KeyCode IN (SELECT KeyCode FROM dbo.APP_TASKS WHERE KeyCode IS NOT NULL GROUP BY KeyCode HAVING COUNT(*) > 1)
+), renum AS (
+    SELECT d.ID, d.Prefix,
+           ROW_NUMBER() OVER (PARTITION BY d.Prefix ORDER BY d.ID) AS seq,
+           m.MaxNo
+    FROM dup d
+    CROSS APPLY (
+        SELECT MAX(TRY_CAST(SUBSTRING(t.KeyCode, p.Len + 1, 50) AS BIGINT)) AS MaxNo
+        FROM dbo.APP_TASKS t
+        CROSS APPLY (SELECT LEN(d.Prefix) AS Len) p
+        WHERE t.KeyCode LIKE REPLACE(d.Prefix, '_', '[_]') + '%'
+    ) m
+    WHERE d.rn > 1
+)
+UPDATE t SET t.KeyCode = r.Prefix + CAST(r.MaxNo + r.seq AS NVARCHAR(20)), t.UpdatedDT = GETDATE()
+FROM dbo.APP_TASKS t JOIN renum r ON r.ID = t.ID;
+PRINT CONCAT('Takroriy topshiriq kodlari qayta raqamlandi: ', @@ROWCOUNT);
 
 -- Tekshirib bo'lgach: ROLLBACK ni COMMIT ga almashtiring
 ROLLBACK TRANSACTION;

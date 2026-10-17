@@ -33,7 +33,7 @@ namespace tahsinERP.Services.Documents
     {
         public const string LetterType = DocumentService.OfficialLetterType;
         public const string OrderType = DocumentService.CompanyOrderType;
-        public const string StandardType = "COMPANYSTANDARD";
+        public const string StandardType = "COMPANY_STANDARD";
 
         /// <summary>Takrorlanuvchi maydonlar uchun eng ko'p indeks (ITEM_NAME_1..N, ORDER_DECREE_1_CONTENT_1..N).</summary>
         public const int MaxIndexed = 30;
@@ -99,9 +99,11 @@ namespace tahsinERP.Services.Documents
         {
             { "Letter.No", "LETTER_NO" },
             { "Letter.Date", "LETTER_DATE" },
-            { "Receipent.Receiver.Name", "GREETING_LINE" },
-            { "Receipent.CompanyName", "RECIPIENT_BLOCK" },
-            { "Receipent.Company.Receiver.Position", "RECIPIENT_BLOCK" },
+            // Mavjud OFFICIAL_LETTER_DEFAULT shablonida: "Xurmatli {{Receipent.Receiver.Name}}!" va alohida
+            // qutilarda kompaniya/lavozim — avval hammasiga butun murojaat/qabul qiluvchi bloki qo'yilib, takrorlanardi
+            { "Receipent.Receiver.Name", "CONTACT_NAME" },
+            { "Receipent.CompanyName", "COMPANY_NAME" },
+            { "Receipent.Company.Receiver.Position", "CONTACT_POSITION" },
             { "Content", "LETTER_BODY" },
             { "ORDER NO", "ORDER_NO" },
             { "ITEM_PRICE_1", "ITEM_PRICE_EXW_1" },

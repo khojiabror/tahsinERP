@@ -16,8 +16,6 @@ Shablonlar shu papkadan o'qilmaydi.
 
 ## Eski fayl
 
-`CompanyStandardTemplate.docx` faqat bazaga bir marta ko'chirish uchun qoldirilgan.
-Ko'chirish uchun: Shablonlar → Korxona standarti → **Papkadagi eski shablonni bazaga ko'chirish**.
-Ko'chirilgandan keyin bu faylni o'chirish mumkin.
+`CompanyStandardTemplate.docx` 2026-10-17 da lokal bazaga ko'chirildi (DOC_TEMPLATES, `COMPANY_STANDARD-01`) va papkadan o'chirildi.
 
 `JobDescriptionTemplate.docx` HRM moduliga (JobDesc) tegishli va hali shu papkadan o'qiladi.

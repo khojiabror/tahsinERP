@@ -128,7 +128,8 @@ namespace tahsinERP.Services.Documents
             if (!string.IsNullOrWhiteSpace(requested))
             {
                 string no = requested.Trim();
-                bool taken = await db.COM_OFFICIAL_LETTERS.AnyAsync(l => l.DirectionCode == "OUT" && l.LetterNo == no && l.IsDeleted != true);
+                // O'chirilganlar ham hisoblanadi: bazadagi UX_COM_OFFICIAL_LETTERS_No_Date_Dir ularni ham o'z ichiga oladi
+                bool taken = await db.COM_OFFICIAL_LETTERS.AnyAsync(l => l.DirectionCode == "OUT" && l.LetterNo == no);
                 if (!taken)
                     return no;
             }
@@ -141,7 +142,8 @@ namespace tahsinERP.Services.Documents
             if (!string.IsNullOrWhiteSpace(requested))
             {
                 string no = requested.Trim();
-                bool taken = await db.ADM_COMPANY_ORDERS.AnyAsync(o => o.OrderNo == no && o.IsDeleted != true);
+                // O'chirilganlar ham hisoblanadi (raqam qayta berilmaydi; UX_ADM_COMPANY_ORDERS_No_Date)
+                bool taken = await db.ADM_COMPANY_ORDERS.AnyAsync(o => o.OrderNo == no);
                 if (!taken)
                     return no;
             }

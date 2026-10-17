@@ -29,7 +29,7 @@ JOIN dbo.DOC_DOCUMENT_TYPES t ON t.ID = d.DocTypeID
 WHERE (d.IsDeleted IS NULL OR d.IsDeleted = 0)
   AND (   (t.Code = 'OFFICIAL_LETTER' AND NOT EXISTS (SELECT 1 FROM dbo.COM_OFFICIAL_LETTERS l WHERE l.DocumentID = d.ID))
        OR (t.Code = 'COMP_ORDER'      AND NOT EXISTS (SELECT 1 FROM dbo.ADM_COMPANY_ORDERS o WHERE o.DocumentID = d.ID))
-       OR (t.Code = 'COMPANYSTANDARD' AND NOT EXISTS (SELECT 1 FROM dbo.STD_COMPANY_STANDARDS s WHERE s.DocumentID = d.ID)));
+       OR (t.Code = 'COMPANY_STANDARD' AND NOT EXISTS (SELECT 1 FROM dbo.STD_COMPANY_STANDARDS s WHERE s.DocumentID = d.ID)));
 
 /* 4. Bir hujjatda bir nechta IsMain=1 fayl (avval IsMain parallel/qulfsiz almashtirilardi). */
 SELECT DocumentID, FileExtension, COUNT(*) AS MainCount
