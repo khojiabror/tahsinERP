@@ -127,6 +127,14 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index");
             }
 
+            // Ombor qoldig'i / moliyaviy proводkasi bor hujjatlarni oddiy IsDeleted=false bilan tiklab
+            // bo'lmaydi — qoldiq va moliya qayta hisoblanmaydi (CORE-B02). Bunday hujjat qaytadan kiritiladi.
+            if (NonRecoverableModules.Contains(moduleKey))
+            {
+                TempData["Error"] = "Bu turdagi hujjatni tiklab bo'lmaydi: u ombor qoldig'i yoki moliyaviy yozuvlarga ta'sir qiladi. Hujjatni qaytadan kiriting.";
+                return RedirectToAction("Index", new { selectedModule = moduleKey });
+            }
+
             try
             {
                 var success = await RecoverRecordAsync(moduleKey, id);
@@ -750,6 +758,11 @@ namespace tahsinERP.Controllers
         }
         #endregion
 
+        private static readonly HashSet<string> NonRecoverableModules = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "EXPENSES", "INCOMES", "PRODUCT_PRODUCTION", "FIN_TRANSACTIONS", "P_INVOICES", "F_WAYBILL_PAYMENTS"
+        };
+
         private async Task<bool> RecoverRecordAsync(string moduleKey, int id)
         {
             using (var db = new DBTHSNEntities())
@@ -820,6 +833,16 @@ namespace tahsinERP.Controllers
                 default: return false;
             }
             if (entity == null) return false;
+
+            // Foydalanuvchi: shu nom bilan yangi faol foydalanuvchi bo'lsa — tiklanmaydi
+            if (moduleKey == "USER")
+            {
+                string uname = entity.Uname;
+                int uid = entity.ID;
+                if (await db.USERS.AnyAsync(u => u.Uname == uname && u.ID != uid && u.IsDeleted != true))
+                    return false;
+            }
+
             try { entity.IsDeleted = false; } catch { return false; }
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();

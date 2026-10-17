@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Security;
@@ -8,20 +9,30 @@ using System.Web.Security;
 namespace tahsinERP.Models
 {
     /// <summary>
-    /// Permission va Role boshqaruv yordamchisi
-    /// Caching bilan ishlaydi - har safar DB ga bormaslik uchun
+    /// Permission va Role boshqaruv yordamchisi.
+    ///
+    /// Har bir foydalanuvchi uchun bitta "snapshot" keshlanadi: ID, rollar va barcha ruxsatlar
+    /// (2 ta so'rov bilan quriladi). Avval har bir (user, modul) juftligi alohida 3 ta so'rov
+    /// bilan olinardi — layout'dagi 165 ta tekshiruv login'dan keyin ~210 so'rovga olib kelardi.
+    ///
+    /// Ruxsatlar o'zgarganda <see cref="ClearAllCache"/> global versiyani oshiradi: eski snapshotlar
+    /// keyingi murojaatda qayta quriladi (kesh bo'ylab aylanib chiqish shart emas).
     /// </summary>
     public static class RoleHelper
     {
-        // Cache davomiyligi (daqiqada)
+        // Snapshot sliding muddati — faol foydalanuvchi uchun kesh yashab turadi
+        private static readonly TimeSpan SnapshotSliding = TimeSpan.FromMinutes(20);
+        // Ism/lavozim keshi (absolute)
         private const int CACHE_DURATION_MINUTES = 10;
 
+        // Ruxsatlar/modullar o'zgarganda oshiriladi
+        private static long _permissionsVersion;
+
         #region Cache Keys
-        private static string GetUserRolesCacheKey(string username) => $"UserRoles_{username}";
+        private static string SnapshotKey(string username) => "PermSnap_" + username.ToLowerInvariant();
+        private const string ModulesKey = "PermModules";
         private static string GetUserFullNameCacheKey(string username) => $"UserFullName_{username}";
         private static string GetUserPositionCacheKey(string username) => $"UserPosition_{username}";
-        private static string GetPermissionCacheKey(string username, string module) => $"Permission_{username}_{module}";
-        private static string GetPermissionCacheKey(string username, string controller, string action) => $"Permission_{username}_{controller}_{action}";
         #endregion
 
         #region Cache Helper
@@ -36,11 +47,6 @@ namespace tahsinERP.Models
         {
             return AppCache.Get(key);
         }
-
-        private static void RemoveCache(string key)
-        {
-            AppCache.Remove(key);
-        }
         #endregion
 
         #region Public Methods
@@ -54,7 +60,7 @@ namespace tahsinERP.Models
 
             var cacheKey = GetUserFullNameCacheKey(username);
             var cachedName = GetCache(cacheKey) as string;
-            
+
             if (cachedName != null)
                 return cachedName;
 
@@ -130,38 +136,21 @@ namespace tahsinERP.Models
         }
 
         /// <summary>
-        /// Foydalanuvchi rollarini olish (cache bilan)
+        /// Foydalanuvchi ID si (o'chirilmagan foydalanuvchi; topilmasa null). Snapshot'dan — DB'ga bormaydi.
+        /// </summary>
+        public static int? GetUserId(string username)
+        {
+            var snap = GetSnapshot(username);
+            return snap?.UserId;
+        }
+
+        /// <summary>
+        /// Foydalanuvchi rollarini olish (cache bilan). Faol bo'lmagan foydalanuvchi uchun bo'sh.
         /// </summary>
         public static string[] GetUserRoles(string username)
         {
-            if (string.IsNullOrEmpty(username))
-                return new string[0];
-
-            var cacheKey = GetUserRolesCacheKey(username);
-            var cachedRoles = GetCache(cacheKey) as string[];
-            
-            if (cachedRoles != null)
-                return cachedRoles;
-
-            try
-            {
-                using (var db = new DBTHSNEntities())
-                {
-                    var user = db.USERS
-                        .Include("ROLES")
-                        .FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
-
-                    if (user?.ROLES != null && user.ROLES.Any())
-                    {
-                        var roles = user.ROLES.Select(r => r.RName).ToArray();
-                        SetCache(cacheKey, roles);
-                        return roles;
-                    }
-                }
-            }
-            catch { }
-
-            return new string[0];
+            var snap = GetSnapshot(username);
+            return snap != null && snap.IsActive ? snap.Roles : new string[0];
         }
 
         /// <summary>
@@ -187,260 +176,266 @@ namespace tahsinERP.Models
             return IsInRole(username, "Admin") || IsInRole(username, "Developer");
         }
 
-        /// <summary>
-        /// Ko'rish huquqi borligini tekshirish (Module nomi bo'yicha)
-        /// </summary>
+        /// <summary>Ko'rish huquqi (Module nomi bo'yicha)</summary>
         public static bool IsViewPermitted(string username, string moduleName)
         {
-            if (string.IsNullOrEmpty(username)) return false;
-
-            var cacheKey = GetPermissionCacheKey(username, moduleName);
-            var cached = GetCache(cacheKey) as PermissionCache;
-            
-            if (cached != null)
-                return cached.ViewPermit;
-
-            var permission = GetPermissionFromDb(username, moduleName, null, null, null);
-            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
-            SetCache(cacheKey, permission);
-            return permission.ViewPermit;
+            return Lookup(username, ModuleKey(moduleName)).View;
         }
 
-        /// <summary>
-        /// Ko'rish huquqi borligini tekshirish (Controller/Action bo'yicha)
-        /// </summary>
+        /// <summary>Ko'rish huquqi (Controller/Action bo'yicha)</summary>
         public static bool IsViewPermitted(string username, string controller, string action)
         {
-            if (string.IsNullOrEmpty(username)) return false;
-
-            var cacheKey = GetPermissionCacheKey(username, controller, action);
-            var cached = GetCache(cacheKey) as PermissionCache;
-            
-            if (cached != null)
-                return cached.ViewPermit;
-
-            var permission = GetPermissionFromDb(username, null, controller, action, null);
-            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
-            SetCache(cacheKey, permission);
-            return permission.ViewPermit;
+            return Lookup(username, ActionKey(controller, action, null)).View;
         }
 
-        /// <summary>
-        /// Ko'rish huquqi borligini tekshirish (Controller/Action/Parameter bo'yicha)
-        /// </summary>
+        /// <summary>Ko'rish huquqi (Controller/Action/Parameter bo'yicha)</summary>
         public static bool IsViewPermitted(string username, string controller, string action, string parameter)
         {
-            if (string.IsNullOrEmpty(username)) return false;
-
-            var cacheKey = $"Permission_{username}_{controller}_{action}_{parameter}";
-            var cached = GetCache(cacheKey) as PermissionCache;
-            
-            if (cached != null)
-                return cached.ViewPermit;
-
-            var permission = GetPermissionFromDb(username, null, controller, action, parameter);
-            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
-            SetCache(cacheKey, permission);
-            return permission.ViewPermit;
+            return Lookup(username, ActionKey(controller, action, parameter)).View;
         }
 
-        /// <summary>
-        /// O'zgartirish huquqi borligini tekshirish (Module nomi bo'yicha)
-        /// </summary>
+        /// <summary>O'zgartirish huquqi (Module nomi bo'yicha)</summary>
         public static bool IsChangePermitted(string username, string moduleName)
         {
-            if (string.IsNullOrEmpty(username)) return false;
-
-            var cacheKey = GetPermissionCacheKey(username, moduleName);
-            var cached = GetCache(cacheKey) as PermissionCache;
-            
-            if (cached != null)
-                return cached.ChangePermit;
-
-            var permission = GetPermissionFromDb(username, moduleName, null, null, null);
-            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
-            SetCache(cacheKey, permission);
-            return permission.ChangePermit;
+            return Lookup(username, ModuleKey(moduleName)).Change;
         }
 
-        /// <summary>
-        /// O'zgartirish huquqi borligini tekshirish (Controller/Action bo'yicha)
-        /// </summary>
+        /// <summary>O'zgartirish huquqi (Controller/Action bo'yicha)</summary>
         public static bool IsChangePermitted(string username, string controller, string action)
         {
-            if (string.IsNullOrEmpty(username)) return false;
-
-            var cacheKey = GetPermissionCacheKey(username, controller, action);
-            var cached = GetCache(cacheKey) as PermissionCache;
-            
-            if (cached != null)
-                return cached.ChangePermit;
-
-            var permission = GetPermissionFromDb(username, null, controller, action, null);
-            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
-            SetCache(cacheKey, permission);
-            return permission.ChangePermit;
+            return Lookup(username, ActionKey(controller, action, null)).Change;
         }
 
-        /// <summary>
-        /// O'zgartirish huquqi borligini tekshirish (Controller/Action/Parameter bo'yicha)
-        /// </summary>
+        /// <summary>O'zgartirish huquqi (Controller/Action/Parameter bo'yicha)</summary>
         public static bool IsChangePermitted(string username, string controller, string action, string parameter)
         {
-            if (string.IsNullOrEmpty(username)) return false;
-
-            var cacheKey = $"Permission_{username}_{controller}_{action}_{parameter}";
-            var cached = GetCache(cacheKey) as PermissionCache;
-            
-            if (cached != null)
-                return cached.ChangePermit;
-
-            var permission = GetPermissionFromDb(username, null, controller, action, parameter);
-            // Cache'ga saqlashdan oldin ikkala property ham to'g'ri o'rnatilgan bo'lishi kerak
-            SetCache(cacheKey, permission);
-            return permission.ChangePermit;
+            return Lookup(username, ActionKey(controller, action, parameter)).Change;
         }
 
         /// <summary>
-        /// Foydalanuvchi uchun cache ni tozalash (permission o'zgarganda chaqiriladi)
+        /// Action-darajadagi ruxsat; agar shu action uchun PERMISSIONMODULES yozuvi bo'lmasa,
+        /// controller'ning istalgan yozuvidagi ruxsat olinadi (AJAX yordamchi amallar uchun).
+        /// <see cref="tahsinERP.Filters.PermissionAttribute"/> ishlatadi.
+        /// </summary>
+        public static bool IsPermittedForAction(string username, string controller, string action, bool change)
+        {
+            var snap = GetSnapshot(username);
+            if (snap == null || !snap.IsActive) return false;
+
+            PermissionEntry entry;
+            if (!snap.Entries.TryGetValue(ActionKey(controller, action, null), out entry) &&
+                !snap.Entries.TryGetValue(ControllerKey(controller), out entry))
+            {
+                return false;
+            }
+            return change ? entry.Change : entry.View;
+        }
+
+        /// <summary>
+        /// Foydalanuvchi uchun cache ni tozalash (rol/faollik o'zgarganda chaqiriladi)
         /// </summary>
         public static void ClearUserCache(string username)
         {
             if (string.IsNullOrEmpty(username)) return;
 
-            var cache = HttpRuntime.Cache;
-            var keysToRemove = new List<string>();
-            
-            var enumerator = cache.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                var key = enumerator.Key.ToString();
-                if (key.Contains(username))
-                    keysToRemove.Add(key);
-            }
-
-            foreach (var key in keysToRemove)
-            {
-                cache.Remove(key);
-            }
+            AppCache.Remove(SnapshotKey(username));
+            AppCache.Remove(GetUserFullNameCacheKey(username));
+            AppCache.Remove(GetUserPositionCacheKey(username));
         }
 
         /// <summary>
-        /// Barcha cache ni tozalash
+        /// Barcha ruxsat keshini bekor qilish (rol/modul ruxsatlari o'zgarganda).
+        /// Versiya oshiriladi — har bir foydalanuvchi snapshot'i keyingi murojaatda qayta quriladi.
         /// </summary>
         public static void ClearAllCache()
         {
-            var cache = HttpRuntime.Cache;
-            var keysToRemove = new List<string>();
-            
-            var enumerator = cache.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                var key = enumerator.Key.ToString();
-                if (key.StartsWith("Permission_") || key.StartsWith("UserRoles_") || key.StartsWith("UserFullName_"))
-                    keysToRemove.Add(key);
-            }
-
-            foreach (var key in keysToRemove)
-            {
-                cache.Remove(key);
-            }
+            Interlocked.Increment(ref _permissionsVersion);
+            AppCache.Remove(ModulesKey);
         }
 
         #endregion
 
-        #region Private Methods
+        #region Snapshot
 
-        /// <summary>
-        /// DB dan permission olish
-        /// </summary>
-        private static PermissionCache GetPermissionFromDb(string username, string moduleName, string controller, string action, string parameter)
+        private static PermissionEntry Lookup(string username, string key)
         {
-            var result = new PermissionCache
-            {
-                ViewPermit = false,
-                ChangePermit = false
-            };
+            var snap = GetSnapshot(username);
+            if (snap == null || !snap.IsActive || key == null) return PermissionEntry.None;
 
+            PermissionEntry entry;
+            return snap.Entries.TryGetValue(key, out entry) ? entry : PermissionEntry.None;
+        }
+
+        private static string ModuleKey(string module)
+        {
+            return string.IsNullOrEmpty(module) ? null : "M|" + module;
+        }
+
+        private static string ActionKey(string controller, string action, string parameter)
+        {
+            if (string.IsNullOrEmpty(controller) || string.IsNullOrEmpty(action)) return null;
+            return "A|" + controller + "|" + action + "|" + (parameter ?? "");
+        }
+
+        private static string ControllerKey(string controller)
+        {
+            return string.IsNullOrEmpty(controller) ? null : "C|" + controller;
+        }
+
+        private static UserSnapshot GetSnapshot(string username)
+        {
+            if (string.IsNullOrEmpty(username)) return null;
+
+            var key = SnapshotKey(username);
+            long version = Interlocked.Read(ref _permissionsVersion);
+            var snap = AppCache.Get(key) as UserSnapshot;
+            if (snap != null && snap.Version == version)
+                return snap;
+
+            snap = BuildSnapshot(username, version);
+            if (snap != null)
+            {
+                AppCache.Insert(key, snap, null, Cache.NoAbsoluteExpiration, SnapshotSliding);
+            }
+            return snap;
+        }
+
+        private static UserSnapshot BuildSnapshot(string username, long version)
+        {
             try
             {
                 using (var db = new DBTHSNEntities())
                 {
-                    // Foydalanuvchi rolini olish
                     var user = db.USERS
-                        .Include("ROLES")
-                        .FirstOrDefault(u => u.Uname == username && u.IsDeleted != true && u.IsActive);
-
-                    if (user?.ROLES == null || !user.ROLES.Any())
-                        return result;
-
-                    var roleId = user.ROLES.First().ID;
-
-                    // Permission moduleni topish
-                    PERMISSIONMODULE module = null;
-
-                    if (!string.IsNullOrEmpty(moduleName))
-                    {
-                        module = db.PERMISSIONMODULES.FirstOrDefault(pm => pm.Module == moduleName);
-                    }
-                    else if (!string.IsNullOrEmpty(controller) && !string.IsNullOrEmpty(action))
-                    {
-                        if (!string.IsNullOrEmpty(parameter))
+                        .Where(u => u.Uname == username && u.IsDeleted != true)
+                        .Select(u => new
                         {
-                            module = db.PERMISSIONMODULES.FirstOrDefault(pm =>
-                                pm.Controller == controller &&
-                                pm.Action == action &&
-                                pm.Parameter == parameter);
-                        }
-                        else
-                        {
-                            module = db.PERMISSIONMODULES.FirstOrDefault(pm =>
-                                pm.Controller == controller &&
-                                pm.Action == action &&
-                                (pm.Parameter == null || pm.Parameter == ""));
-                        }
-                    }
+                            u.ID,
+                            u.IsActive,
+                            Roles = u.ROLES.Select(r => new { r.ID, r.RName })
+                        })
+                        .FirstOrDefault();
 
-                    if (module == null)
-                        return result;
+                    if (user == null)
+                        return null;
 
-                    // Permission ni olish
-                    var permission = db.PERMISSIONS.FirstOrDefault(p =>
-                        p.RoleID == roleId &&
-                        p.PermissionModuleID == module.ID);
-
-                    if (permission != null)
+                    var roleIds = user.Roles.Select(r => r.ID).ToList();
+                    var snap = new UserSnapshot
                     {
-                        // Explicitly set both properties to ensure they are set correctly
-                        // PERMISSION modelida ViewPermit va ChangePermit bool (not nullable), shuning uchun ?? false kerak emas
-                        result.ViewPermit = permission.ViewPermit;
-                        result.ChangePermit = permission.ChangePermit;
+                        UserId = user.ID,
+                        IsActive = user.IsActive,
+                        Roles = user.Roles.Select(r => r.RName).ToArray(),
+                        Version = version,
+                        Entries = new Dictionary<string, PermissionEntry>(StringComparer.OrdinalIgnoreCase)
+                    };
+
+                    if (!user.IsActive || roleIds.Count == 0)
+                        return snap;
+
+                    // Bir nechta rol bo'lsa — eng keng huquq (avval faqat birinchi rol olinardi)
+                    var grants = db.PERMISSIONS
+                        .Where(p => roleIds.Contains(p.RoleID))
+                        .GroupBy(p => p.PermissionModuleID)
+                        .Select(g => new
+                        {
+                            ModuleID = g.Key,
+                            View = g.Any(p => p.ViewPermit),
+                            Change = g.Any(p => p.ChangePermit)
+                        })
+                        .ToList()
+                        .ToDictionary(g => g.ModuleID, g => new PermissionEntry(g.View, g.Change));
+
+                    // Modul nomi yoki controller/action dublikat bo'lsa — eng kichik ID (oldingi FirstOrDefault xatti-harakatiga yaqin)
+                    foreach (var m in GetModules(db))
+                    {
+                        PermissionEntry grant;
+                        if (!grants.TryGetValue(m.ID, out grant))
+                            grant = PermissionEntry.None;
+
+                        var moduleKey = ModuleKey(m.Module);
+                        if (moduleKey != null && !snap.Entries.ContainsKey(moduleKey))
+                            snap.Entries[moduleKey] = grant;
+
+                        var actionKey = ActionKey(m.Controller, m.Action, string.IsNullOrEmpty(m.Parameter) ? null : m.Parameter);
+                        if (actionKey != null && !snap.Entries.ContainsKey(actionKey))
+                            snap.Entries[actionKey] = grant;
+
+                        // Controller bo'yicha yig'ma (yozuvi yo'q AJAX amallar uchun)
+                        var ctrlKey = ControllerKey(m.Controller);
+                        if (ctrlKey != null)
+                        {
+                            PermissionEntry existing;
+                            snap.Entries[ctrlKey] = snap.Entries.TryGetValue(ctrlKey, out existing)
+                                ? new PermissionEntry(existing.View || grant.View, existing.Change || grant.Change)
+                                : grant;
+                        }
                     }
+
+                    return snap;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("[RoleHelper] Snapshot qurishda xato: " + ex);
+                return null;
+            }
+        }
 
-            return result;
+        private static List<ModuleRow> GetModules(DBTHSNEntities db)
+        {
+            var cached = AppCache.Get(ModulesKey) as List<ModuleRow>;
+            if (cached != null) return cached;
+
+            var modules = db.PERMISSIONMODULES
+                .OrderBy(m => m.ID)
+                .Select(m => new ModuleRow
+                {
+                    ID = m.ID,
+                    Module = m.Module,
+                    Controller = m.Controller,
+                    Action = m.Action,
+                    Parameter = m.Parameter
+                })
+                .ToList();
+
+            AppCache.Insert(ModulesKey, modules, null, DateTime.Now.AddMinutes(30), Cache.NoSlidingExpiration);
+            return modules;
         }
 
         #endregion
 
         #region Helper Classes
 
-        /// <summary>
-        /// Permission cache uchun oddiy class
-        /// </summary>
-        [Serializable]
-        private class PermissionCache
+        private sealed class ModuleRow
         {
-            public bool ViewPermit { get; set; }
-            public bool ChangePermit { get; set; }
-            
-            public PermissionCache()
+            public int ID { get; set; }
+            public string Module { get; set; }
+            public string Controller { get; set; }
+            public string Action { get; set; }
+            public string Parameter { get; set; }
+        }
+
+        private struct PermissionEntry
+        {
+            public static readonly PermissionEntry None = new PermissionEntry(false, false);
+
+            public PermissionEntry(bool view, bool change)
             {
-                ViewPermit = false;
-                ChangePermit = false;
+                View = view;
+                Change = change;
             }
+
+            public bool View { get; }
+            public bool Change { get; }
+        }
+
+        private sealed class UserSnapshot
+        {
+            public int UserId { get; set; }
+            public bool IsActive { get; set; }
+            public string[] Roles { get; set; }
+            public long Version { get; set; }
+            public Dictionary<string, PermissionEntry> Entries { get; set; }
         }
 
         #endregion

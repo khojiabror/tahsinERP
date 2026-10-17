@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class HSCodeController : Controller
     {
         // Olish so'rovi: HSCode

@@ -14,6 +14,7 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.MES
 {
+    [Permission]
     public class ProductPlanController : Controller
     {
         // Olish so'rovi: ProductPlan

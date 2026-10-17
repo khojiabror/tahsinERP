@@ -18,6 +18,7 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class ProductStockController : Controller
     {
         private Warehouse warehouse = null;

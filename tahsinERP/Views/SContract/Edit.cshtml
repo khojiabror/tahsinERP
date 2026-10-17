@@ -138,7 +138,7 @@
                                                                                 <td>
                                                                                     @if (Model.ProductList[i].ID > 0)
                                                                                     {
-                                                                                        <a href="~/SContract/DeleteProduct/@Model.ProductList[i].ID" onclick="return confirm('Ushbu shartnoma maxsulotini o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                                                        <a href="#" data-post-url="@Url.Action("DeleteProduct", "SContract", new { id = Model.ProductList[i].ID })" data-confirm="Ushbu shartnoma maxsulotini o'chirib yuborishga ishonchingiz komilmi?">
                                                                                             <i class="bx bx-trash"></i>
                                                                                         </a>
                                                                                     }

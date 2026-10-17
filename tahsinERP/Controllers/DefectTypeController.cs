@@ -9,6 +9,7 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class DefectTypeController : Controller
     {
         public ActionResult Index()

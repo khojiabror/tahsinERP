@@ -60,6 +60,12 @@ namespace tahsinERP.Configuration
         /// </summary>
         public static string GetEntityConnectionString()
         {
+            // Har "new DBTHSNEntities()" da (677 joy) shifrni ochib, builder qurmaslik uchun keshlanadi
+            return EntityConnectionString.Value;
+        }
+
+        private static readonly System.Lazy<string> EntityConnectionString = new System.Lazy<string>(() =>
+        {
             var builder = new EntityConnectionStringBuilder
             {
                 Metadata = Metadata,
@@ -67,7 +73,7 @@ namespace tahsinERP.Configuration
                 ProviderConnectionString = GetSqlConnectionString()
             };
             return builder.ToString();
-        }
+        }, System.Threading.LazyThreadSafetyMode.PublicationOnly); // xato keshlanmaydi
 
         /// <summary>
         /// Faqat SQL (provider) connection string — shifrdan ochilgan holda.

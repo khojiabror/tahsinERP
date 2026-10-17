@@ -156,11 +156,11 @@
                                                 }
                                                 @if (!string.IsNullOrWhiteSpace(bodyHtml))
                                                 {
-                                                    @Html.Raw(bodyHtml)
+                                                    @Html.Partial("_SafeHtml", bodyHtml)
                                                 }
                                                 else
                                                 {
-                                                    @Html.Raw(Model.Title?.Replace("\n", "<br/>"))
+                                                    @Html.Raw(Html.Encode(Model.Title ?? "").Replace("\n", "<br/>"))
                                                 }
                                             </div>
                                         </div>

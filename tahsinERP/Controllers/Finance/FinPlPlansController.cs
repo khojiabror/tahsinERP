@@ -106,17 +106,26 @@ namespace tahsinERP.Controllers.Finance
                 var existing = db.FIN_PL_PLANS
                     .FirstOrDefault(p => p.Year == plan.Year && p.Month == plan.Month && p.ItemID == plan.ItemID);
 
-                if (existing != null)
+                if (existing != null && existing.IsDeleted != true)
                 {
                     ModelState.AddModelError("", "Bu oy va element uchun reja allaqachon mavjud. Tahrirlash sahifasiga o'ting.");
                 }
 
                 if (ModelState.IsValid)
                 {
-                    plan.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
-                    plan.CreatedDT = DateTime.Now;
-
-                    db.FIN_PL_PLANS.Add(plan);
+                    if (existing != null)
+                    {
+                        // O'chirilgan reja qayta tiklanadi (avval "allaqachon mavjud" deb rad etilardi, FIN-B11)
+                        existing.AmountPlan = plan.AmountPlan;
+                        existing.IsDeleted = false;
+                        plan = existing;
+                    }
+                    else
+                    {
+                        plan.CreatedByUserID = UserHelper.GetUserId(User.Identity.Name);
+                        plan.CreatedDT = DateTime.Now;
+                        db.FIN_PL_PLANS.Add(plan);
+                    }
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "FinPlPlans", "Create", $"P&L rejasi yaratildi: {plan.Year}-{plan.Month}, ElementID: {plan.ItemID}");
@@ -304,7 +313,7 @@ namespace tahsinERP.Controllers.Finance
 
                 var items = db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder).ToList();
                 var plans = db.FIN_PL_PLANS
-                    .Where(p => p.Year == year.Value && p.Month == month.Value)
+                    .Where(p => p.Year == year.Value && p.Month == month.Value && p.IsDeleted != true)
                     .ToDictionary(p => p.ItemID, p => p.AmountPlan);
 
                 var model = items.Select(item => new BulkPlanItem
@@ -341,29 +350,35 @@ namespace tahsinERP.Controllers.Finance
                 var userId = UserHelper.GetUserId(User.Identity.Name);
                 var now = DateTime.Now;
 
-                foreach (var planData in plans)
-                {
-                    if (planData.AmountPlan != 0) // faqat saqlash non-zero plans
-                    {
-                        var existing = db.FIN_PL_PLANS
-                            .FirstOrDefault(p => p.Year == year && p.Month == month && p.ItemID == planData.ItemID);
+                // Oyning mavjud rejalari bir marta yuklanadi (avval har band uchun alohida so'rov, FIN-P15)
+                var existingByItem = db.FIN_PL_PLANS
+                    .Where(p => p.Year == year && p.Month == month)
+                    .ToList()
+                    .GroupBy(p => p.ItemID)
+                    .ToDictionary(g => g.Key, g => g.First());
 
-                        if (existing != null)
+                foreach (var planData in plans ?? new BulkPlanItem[0])
+                {
+                    existingByItem.TryGetValue(planData.ItemID, out var existing);
+                    if (existing != null)
+                    {
+                        // Mavjud reja 0 ga ham o'zgartiriladi; o'chirilgani tiklanadi (FIN-B11)
+                        if (existing.IsDeleted == true && planData.AmountPlan == 0)
+                            continue;
+                        existing.AmountPlan = planData.AmountPlan;
+                        existing.IsDeleted = false;
+                    }
+                    else if (planData.AmountPlan != 0) // yangi reja faqat nol bo'lmasa
+                    {
+                        db.FIN_PL_PLANS.Add(new FIN_PL_PLANS
                         {
-                            existing.AmountPlan = planData.AmountPlan;
-                        }
-                        else
-                        {
-                            db.FIN_PL_PLANS.Add(new FIN_PL_PLANS
-                            {
-                                Year = year,
-                                Month = (byte)month,
-                                ItemID = planData.ItemID,
-                                AmountPlan = planData.AmountPlan,
-                                CreatedByUserID = userId,
-                                CreatedDT = now
-                            });
-                        }
+                            Year = year,
+                            Month = (byte)month,
+                            ItemID = planData.ItemID,
+                            AmountPlan = planData.AmountPlan,
+                            CreatedByUserID = userId,
+                            CreatedDT = now
+                        });
                     }
                 }
 
@@ -390,7 +405,7 @@ namespace tahsinERP.Controllers.Finance
             {
                 var plans = db.FIN_PL_PLANS
                     .Include(p => p.FIN_PL_ITEMS)
-                    .Where(p => p.Year == year.Value && p.Month == month.Value)
+                    .Where(p => p.Year == year.Value && p.Month == month.Value && p.IsDeleted != true)
                     .OrderBy(p => p.FIN_PL_ITEMS.SortOrder)
                     .ToList();
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
@@ -80,31 +81,6 @@ namespace tahsinERP.Controllers
                 var emptyDocxBytes = CreateEmptyDocx();
                 return File(emptyDocxBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "CompanyStandardTemplate.docx");
             }
-        }
-
-        // POST so'rovi: STDCompanyStandards/SaveDocument (OnlyOffice callback)
-        [HttpPost]
-        [ValidateAntiForgeryHeader]
-        public ActionResult SaveDocument(string key, string url, int status)
-        {
-            // OnlyOffice hujjat Server callback
-            // hujjat saqlangan bo'lsa, uni yuklab olish
-            if (status == 2 && !string.IsNullOrEmpty(url))
-            {
-                try
-                {
-                    using (var client = new System.Net.WebClient())
-                    {
-                        var documentBytes = client.DownloadData(url);
-                        // Bu yerda hujjat ni saqlash logikasi bo'lishi mumkin
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Document yuklashda xatolik: {ex.Message}");
-                }
-            }
-            return Json(new { error = 0 });
         }
 
         // POST so'rovi: STDCompanyStandards/UploadImage (OnlyOffice image upload)
@@ -740,7 +716,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var file = await db.DOC_FILES.FindAsync(fileId);
+                var file = await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.CompanyStandard);
                 if (file == null || file.FileContent == null)
                 {
                     return HttpNotFound();
@@ -785,7 +761,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var file = await db.DOC_FILES.FindAsync(fileId);
+                var file = await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.CompanyStandard);
                 if (file == null || file.FileContent == null)
                 {
                     return HttpNotFound();

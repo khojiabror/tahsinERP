@@ -592,9 +592,16 @@ namespace tahsinERP.Controllers
             }
         }
 
-        // Olish so'rovi: DeleteProduct
+        // POST: DeleteProduct (avval GET edi — CSRF orqali o'chirish mumkin edi)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult DeleteProduct(int id)
         {
+            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "SContract", "Edit"))
+            {
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            }
+
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var contractProduct = db.S_CONTRACT_PRODUCTS

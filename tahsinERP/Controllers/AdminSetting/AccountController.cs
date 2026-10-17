@@ -15,25 +15,15 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
-    [AllowAnonymous]
+    // Faqat Login/Logout/SetDeviceId anonim; qolgan amallar (Settings, rasm) login talab qiladi
     public class AccountController : Controller
     {
-        [DllImport("Iphlpapi.dll")]
-        private static extern int SendARP(int dest, int host, ref long mac, ref int length);
-
-        [DllImport("Ws2_32.dll")]
-        private static extern int inet_addr(string ip);
-
         // Session timeout constants (in minutes)
         // web.config <forms timeout> dan olinadi (sliding)
         private static readonly int DEFAULT_SESSION_TIMEOUT = (int)FormsAuthentication.Timeout.TotalMinutes;
         private const int KEEP_LOGGED_IN_TIMEOUT = 60; // 1 hour
 
-        public ActionResult Index()
-        {
-            return View();
-        }
-
+        [AllowAnonymous]
         public ActionResult Login()
         {
             // agar already authenticated, redirect ga home
@@ -45,6 +35,7 @@ namespace tahsinERP.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public ActionResult Login(UserViewModel user)
         {
@@ -251,6 +242,7 @@ namespace tahsinERP.Controllers
             }
         }
 
+        [AllowAnonymous]
         public ActionResult Logout()
         {
             FormsAuthentication.SignOut();
@@ -290,10 +282,10 @@ namespace tahsinERP.Controllers
             }
         }
 
-        public ActionResult Settings(string userName = null)
+        public ActionResult Settings()
         {
-            // Use current user agar no username provided
-            string currentUserName = userName ?? User.Identity.Name;
+            // Faqat o'z profili: URL'dagi userName parametri e'tiborga olinmaydi
+            string currentUserName = User.Identity.Name;
 
             if (string.IsNullOrEmpty(currentUserName))
             {
@@ -331,24 +323,41 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult SaveSettings(UserViewModel uvm)
         {
-            if (string.IsNullOrEmpty(uvm.UName))
+            // Foydalanuvchi faqat o'zini tahrirlaydi — formadagi UName'ga ishonilmaydi
+            string currentUserName = User.Identity.Name;
+            if (string.IsNullOrEmpty(currentUserName))
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
+            uvm.UName = currentUserName;
 
             int userPhotoMaxLength = Convert.ToInt32(ConfigurationManager.AppSettings["photoMaxSize"] ?? "2097152");
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var userToUpdate = db.USERS.FirstOrDefault(u => u.Uname == uvm.UName);
+                var userToUpdate = db.USERS.FirstOrDefault(u => u.Uname == currentUserName);
                 if (userToUpdate == null)
                 {
                     return HttpNotFound();
                 }
 
+                // Har qanday o'zgartirish uchun amaldagi parol talab qilinadi
+                bool ignoredRehash;
+                if (string.IsNullOrEmpty(uvm.CurrentPassword) ||
+                    !PasswordHasher.Verify(uvm.CurrentPassword, userToUpdate.Password, userToUpdate.HashCode, out ignoredRehash))
+                {
+                    ModelState.AddModelError("", "Amaldagi kalit so'zi noto'g'ri.");
+                    return View("Settings", uvm);
+                }
+
                 // Yangilash password agar provided
                 if (!string.IsNullOrEmpty(uvm.Password))
                 {
+                    if (uvm.Password != uvm.ConfirmPassword)
+                    {
+                        ModelState.AddModelError("", "Yangi kalit so'zi va takrori mos kelmadi.");
+                        return View("Settings", uvm);
+                    }
                     string keyNew;
                     userToUpdate.Password = PasswordHasher.Hash(uvm.Password, out keyNew);
                     userToUpdate.HashCode = keyNew;

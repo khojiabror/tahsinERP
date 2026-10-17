@@ -67,21 +67,13 @@ namespace tahsinERP.Services
                 contractQtyCBM = contractQty; // Use same value for consistency
             }
             // If contract is in CBM and product requires cutting, contractQty is already in CBM
-            else if (requiresCutting)
-            {
-                // For cutting products, contract quantity should be in CBM (UnitID = 11 for m3)
-                // If not, we might need to convert, but typically contracts are in CBM
-                if (contractProduct.UnitID != 11) // 11 = m3 (cubic meter)
-                {
-                    // Contract might be in a different unit, but for cutting products it should be CBM
-                    // For now, assume contract quantity is already in the correct unit
-                }
-            }
+            // Kesiladigan mahsulotlar uchun shartnoma miqdori CBM'da deb olinadi (UnitID = 11, m3).
 
             // Get all invoices linked to orders that are linked to this contract
-            var allInvoiceProducts = await _db.P_ORDERS
-                .Where(po => po.ContractID == contractId)
-                .SelectMany(po => po.P_INVOICES)
+            // FIN-B28: o'chirilgan invoyslar hisobga olinmaydi; buyurtmasiz (to'g'ridan-to'g'ri shartnomaga) invoyslar ham kiradi.
+            var allInvoiceProducts = await _db.P_INVOICES
+                .Where(pi => pi.IsDeleted != true &&
+                             (pi.ContractID == contractId || (pi.P_ORDERS != null && pi.P_ORDERS.ContractID == contractId)))
                 .SelectMany(pi => pi.P_INVOICE_PRODUCTS)
                 .Where(pp => pp.ProductID == productId)
                 .ToListAsync();
@@ -142,27 +134,6 @@ namespace tahsinERP.Services
             };
         }
 
-        /// <summary>
-        /// Gets contract balance for all products in a contract
-        /// </summary>
-        /// <param name="contractId">Contract ID</param>
-        /// <returns>Dictionary of product ID to contract balance info</returns>
-        public async Task<Dictionary<int, ContractBalanceInfo>> GetAllContractBalancesAsync(int contractId)
-        {
-            var contractProducts = await _db.P_CONTRACT_PRODUCTS
-                .Where(cp => cp.ContractID == contractId)
-                .Select(cp => cp.ProductID)
-                .ToListAsync();
-
-            var balances = new Dictionary<int, ContractBalanceInfo>();
-
-            foreach (var productId in contractProducts)
-            {
-                balances[productId] = await GetContractBalanceAsync(contractId, productId);
-            }
-
-            return balances;
-        }
     }
 
     /// <summary>

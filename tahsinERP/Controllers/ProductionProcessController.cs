@@ -8,6 +8,7 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class ProductionProcessController : Controller
     {
         // Olish so'rovi: ProductionProcess

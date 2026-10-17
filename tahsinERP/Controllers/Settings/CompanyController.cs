@@ -7,9 +7,11 @@ using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers.Settings
 {
+    [Permission]
     public class CompanyController : Controller
     {
         // Olish so'rovi: Company

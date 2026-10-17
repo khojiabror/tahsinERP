@@ -84,7 +84,7 @@
                                                     if (balances != null)
                                                     {
                                                         int index = 1;
-                                                        foreach (tahsinERP.Controllers.Finance.AccountBalanceData item in balances)
+                                                        foreach (tahsinERP.ViewModels.Finance.AccountBalanceData item in balances)
                                                         {
                                                             var qoldiqClass = item.Qoldiq >= 0 ? "text-success" : "text-danger";
                                                             var currency = item.CurrencyShortname ?? "UZS";

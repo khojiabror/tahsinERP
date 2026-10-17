@@ -11,7 +11,7 @@ namespace tahsinERP.Controllers.Finance
     public class FinAccountsController : Controller
     {
         // Olish so'rovi: FinAccounts
-        public ActionResult Index(string searchTerm, int? currencyID, string accountType, string sortOrder, int? page, int? pageSize)
+        public ActionResult Index(string searchTerm, int? currencyID, string accountType, string sortOrder)
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinAccounts"))
             {
@@ -67,18 +67,9 @@ namespace tahsinERP.Controllers.Finance
                         break;
                 }
 
-                // Pagination
-                pageSize = pageSize ?? 20;
-                page = page ?? 1;
-                ViewBag.PageSize = pageSize;
-                ViewBag.CurrentPage = page;
-                ViewBag.TotalRecords = query.Count();
-
-                var accounts = query
-                    .Include(a => a.CURRENCy) // Ensure Include is applied before ToList
-                    .Skip((page.Value - 1) * pageSize.Value)
-                    .Take(pageSize.Value)
-                    .ToList();
+                // Hisoblar soni kam — hammasi qaytariladi, sahifalashni DataTables qiladi.
+                // Avval server 20 tadan kesardi, view'da esa pager yo'q edi: 21-hisobdan boshlab ro'yxatda ko'rinmasdi (FIN-B13).
+                var accounts = query.ToList();
 
                 // ViewBag uchun filters
                 ViewBag.CurrencyList = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", currencyID);

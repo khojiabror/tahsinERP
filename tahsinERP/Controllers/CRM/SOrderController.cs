@@ -9,9 +9,11 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class SOrderController : Controller
     {
         // Olish so'rovi: SOrder | Index - List barcha orders

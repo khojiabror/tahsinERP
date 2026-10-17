@@ -10,6 +10,7 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission]
     public class ShopController : Controller
     {
         // Olish so'rovi: Shop

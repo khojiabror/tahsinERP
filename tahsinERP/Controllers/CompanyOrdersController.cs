@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
@@ -563,7 +564,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var file = await db.DOC_FILES.FindAsync(fileId);
+                var file = await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.CompanyOrder);
                 if (file == null || file.FileContent == null)
                 {
                     return HttpNotFound();
