@@ -40,6 +40,8 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var model = new CRMDashboardViewModel();
+                // Barcha summalar so'mga, hujjat sanasidagi kurs bilan (CRM-B18)
+                var uzs = new UzsConverter(db);
 
                 var today = DateTime.Now.Date;
 
@@ -55,14 +57,22 @@ namespace tahsinERP.Controllers
                 model.TotalContracts = contractsQ.Count();
                 model.ContractsOverdue = contractsQ.Count(c => c.DueDate < today);
                 model.ContractsCompleted = contractsQ.Count(c => activeInvoices.Any(inv => inv.ContractID == c.ID));
-                model.ContractsTotalAmount = (decimal)(contractsQ.Sum(c => c.Amount) ?? 0);
+                model.ContractsTotalAmount = contractsQ
+                    .GroupBy(c => new { c.CurrencyID, Day = DbFunctions.TruncateTime(c.IssuedDate) })
+                    .Select(g => new { g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(c => c.Amount) ?? 0 })
+                    .ToList()
+                    .Sum(g => uzs.ToUzsOrZero((decimal)g.Amount, g.CurrencyID, g.Day ?? today));
 
                 // ——— Buyurtmalar ———
                 var ordersQ = db.S_ORDERS.AsNoTracking().Where(o => o.IsDeleted != true);
                 model.TotalOrders = ordersQ.Count();
                 model.OrdersWithInvoice = ordersQ.Count(o => activeInvoices.Any(inv => inv.OrderID == o.ID));
                 model.OrdersWithoutInvoice = model.TotalOrders - model.OrdersWithInvoice;
-                model.OrdersTotalAmount = (decimal)(ordersQ.Sum(o => o.Amount) ?? 0);
+                model.OrdersTotalAmount = ordersQ
+                    .GroupBy(o => new { o.CurrencyID, Day = DbFunctions.TruncateTime(o.IssuedDate) })
+                    .Select(g => new { g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(o => o.Amount) ?? 0 })
+                    .ToList()
+                    .Sum(g => uzs.ToUzsOrZero((decimal)g.Amount, g.CurrencyID, g.Day ?? today));
 
                 // Yetkazib berish rejasi bo'yicha kechikkan (DeliveryDate o'tgan, QtyShipped < QtyPlanned)
                 var deliveryOverdueQ = db.SORDER_DELIVERY_SCHEDULE.AsNoTracking()
@@ -104,7 +114,11 @@ namespace tahsinERP.Controllers
                 var invoicesOverdueQ = activeInvoices.Where(i => i.DueDate.HasValue && i.DueDate.Value < today && i.StatusCode != "PAID");
                 model.TotalInvoices = activeInvoices.Count();
                 model.InvoicesOverdue = invoicesOverdueQ.Count();
-                model.InvoicesTotalAmount = activeInvoices.Sum(i => (decimal?)i.TotalAmount) ?? 0m;
+                model.InvoicesTotalAmount = activeInvoices
+                    .GroupBy(i => new { i.CurrencyCode, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
+                    .Select(g => new { g.Key.CurrencyCode, g.Key.Day, Amount = g.Sum(i => i.TotalAmount) })
+                    .ToList()
+                    .Sum(g => uzs.ToUzsOrZero(g.Amount, g.CurrencyCode, g.Day ?? today));
 
                 // ——— Mijozlar ———
                 model.TotalCustomers = db.CUSTOMERS.Count(c => c.IsDeleted != true);
@@ -203,20 +217,21 @@ namespace tahsinERP.Controllers
                     .ToList();
 
                 // ——— Mijoz bo'yicha buyurtma summasi (top 10) ———
-                // Eslatma (CRM-B18): summalar valyutasidan qat'i nazar qo'shiladi — konvertatsiya biznes qarorini kutmoqda
+                // Mijoz × valyuta × kun bo'yicha SQL'da yig'ilib, so'mga o'giriladi (CRM-B18)
                 model.TopCustomersByOrderAmount = ordersQ
-                    .GroupBy(o => o.CustomerID)
-                    .Select(g => new { CustomerID = g.Key, OrderCount = g.Count(), Total = g.Sum(o => o.Amount) ?? 0 })
-                    .OrderByDescending(x => x.Total)
-                    .Take(10)
+                    .GroupBy(o => new { o.CustomerID, o.CurrencyID, Day = DbFunctions.TruncateTime(o.IssuedDate) })
+                    .Select(g => new { g.Key.CustomerID, g.Key.CurrencyID, g.Key.Day, OrderCount = g.Count(), Total = g.Sum(o => o.Amount) ?? 0 })
                     .ToList()
-                    .Select(x => new CRMCustomerOrderSum
+                    .GroupBy(x => x.CustomerID)
+                    .Select(g => new CRMCustomerOrderSum
                     {
-                        CustomerId = x.CustomerID,
-                        CustomerName = ReferenceDataCache.NameOf(ReferenceDataCache.Customers, x.CustomerID) ?? "",
-                        OrderCount = x.OrderCount,
-                        TotalAmount = (decimal)x.Total
+                        CustomerId = g.Key,
+                        CustomerName = ReferenceDataCache.NameOf(ReferenceDataCache.Customers, g.Key) ?? "",
+                        OrderCount = g.Sum(x => x.OrderCount),
+                        TotalAmount = g.Sum(x => uzs.ToUzsOrZero((decimal)x.Total, x.CurrencyID, x.Day ?? today))
                     })
+                    .OrderByDescending(x => x.TotalAmount)
+                    .Take(10)
                     .ToList();
 
                 // ——— Mijozlar bo'yicha haqqimiz (shartnoma kesimida, expand/collapse uchun) ———
@@ -250,7 +265,17 @@ namespace tahsinERP.Controllers
                         i.CustomerID,
                         i.ContractID,
                         i.InvoiceDate,
+                        i.CurrencyCode,
                         Amount = (i.TotalWithVAT ?? i.TotalAmount)
+                    })
+                    .ToList()
+                    .Select(i => new
+                    {
+                        i.ID,
+                        i.CustomerID,
+                        i.ContractID,
+                        i.InvoiceDate,
+                        Amount = uzs.ToUzsOrZero(i.Amount, i.CurrencyCode, i.InvoiceDate)
                     })
                     .ToList();
                 var openingContractByInvoiceId = new Dictionary<int, string>();
@@ -263,6 +288,7 @@ namespace tahsinERP.Controllers
                             new System.Data.SqlClient.SqlParameter("@p0", latestOpeningDate.Value.Date))
                             .ToList();
                         var nextOpeningId = -1;
+                        // Ochilish qoldiqlari so'mda kiritiladi (FIN_OPENING_CONTRACT_BALANCES'da valyuta ustuni yo'q)
                         foreach (var row in openingRows.Where(x => x.CounterpartyID > 0 && x.Amount > 0))
                         {
                             receivableInvoices.Add(new
@@ -307,7 +333,7 @@ namespace tahsinERP.Controllers
                             // Linked payment documents should also be considered even if counterparty fields are partially empty
                             || (t.SourceDocType == "SalesInvoicePayment" && t.SourceDocID.HasValue)
                         ))
-                    .Select(t => new { t.CounterpartyID, t.TxnDate, t.Amount, t.Direction, t.SourceDocType, t.SourceDocID, t.ContractNo })
+                    .Select(t => new { t.CounterpartyID, t.TxnDate, t.Amount, t.CurrencyID, t.Direction, t.SourceDocType, t.SourceDocID, t.ContractNo })
                     .ToList();
 
                 var linkedInvoiceIds = receiptCandidates
@@ -354,7 +380,7 @@ namespace tahsinERP.Controllers
                             ContractNo = contractNo,
                             ContractID = contractId,
                             r.TxnDate,
-                            Amount = Math.Abs(r.Amount),
+                            Amount = uzs.ToUzsOrZero(Math.Abs(r.Amount), r.CurrencyID, r.TxnDate),
                             InvoiceID = (r.SourceDocType == "SalesInvoicePayment") ? r.SourceDocID : null
                         };
                     })
@@ -506,6 +532,7 @@ namespace tahsinERP.Controllers
                     .Take(20)
                     .ToList();
 
+                ViewBag.CurrencyWarning = uzs.Warning;
                 ViewBag.FromDate = from;
                 ViewBag.ToDate = to;
                 return View(model);

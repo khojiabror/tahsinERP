@@ -37,6 +37,42 @@ namespace tahsinERP.Controllers
                 .Where(l => l.SALES_INVOICES.InvoiceDate >= from && l.SALES_INVOICES.InvoiceDate < toExclusive);
         }
 
+        private sealed class QtyAmt
+        {
+            public decimal Qty { get; set; }
+            public decimal Amt { get; set; }
+        }
+
+        /// <summary>Mahsulot bo'yicha buyurtma miqdori va so'mdagi summasi (valyuta × kun bo'yicha SQL'da yig'ilib, o'giriladi).</summary>
+        private static Dictionary<int, QtyAmt> OrderTotalsByProduct(IQueryable<S_ORDER_PRODUCTS> lines, UzsConverter uzs)
+        {
+            return lines
+                .GroupBy(op => new { op.ProductID, op.S_ORDERS.CurrencyID, Day = DbFunctions.TruncateTime(op.S_ORDERS.IssuedDate) })
+                .Select(g => new { g.Key.ProductID, g.Key.CurrencyID, g.Key.Day, Qty = g.Sum(x => x.Amount), Amt = g.Sum(x => x.TotalPrice) })
+                .ToList()
+                .GroupBy(x => x.ProductID)
+                .ToDictionary(g => g.Key, g => new QtyAmt
+                {
+                    Qty = (decimal)g.Sum(x => x.Qty),
+                    Amt = g.Sum(x => uzs.ToUzsOrZero((decimal)x.Amt, x.CurrencyID, x.Day ?? DateTime.Today))
+                });
+        }
+
+        /// <summary>Mahsulot bo'yicha sotilgan miqdor va so'mdagi summasi (invoys valyutasi va sanasi bo'yicha).</summary>
+        private static Dictionary<int, QtyAmt> InvoiceTotalsByProduct(IQueryable<SALES_INVOICE_LINES> lines, UzsConverter uzs)
+        {
+            return lines
+                .GroupBy(l => new { l.ProductID, l.SALES_INVOICES.CurrencyCode, Day = DbFunctions.TruncateTime(l.SALES_INVOICES.InvoiceDate) })
+                .Select(g => new { g.Key.ProductID, g.Key.CurrencyCode, g.Key.Day, Qty = g.Sum(x => x.Qty), Amt = g.Sum(x => x.LineAmount ?? x.Qty * x.UnitPrice) })
+                .ToList()
+                .GroupBy(x => x.ProductID)
+                .ToDictionary(g => g.Key, g => new QtyAmt
+                {
+                    Qty = g.Sum(x => x.Qty),
+                    Amt = g.Sum(x => uzs.ToUzsOrZero(x.Amt, x.CurrencyCode, x.Day ?? DateTime.Today))
+                });
+        }
+
         /// <summary>Hisobotlar ro'yxati (sahifa)</summary>
         public ActionResult Index()
         {
@@ -78,17 +114,10 @@ namespace tahsinERP.Controllers
                 var orderLinesQ = OrderLines(db, periodStart, periodEndExclusive);
                 var invoiceLinesQ = InvoiceLines(db, periodStart, periodEndExclusive);
 
-                var orderByProduct = orderLinesQ
-                    .GroupBy(op => op.ProductID)
-                    .Select(g => new { ProductID = g.Key, OrderQty = g.Sum(x => x.Amount), OrderAmount = g.Sum(x => x.TotalPrice) })
-                    .ToList()
-                    .ToDictionary(x => x.ProductID, x => new { OrderQty = (decimal)x.OrderQty, OrderAmount = (decimal)x.OrderAmount });
-
-                var soldByProduct = invoiceLinesQ
-                    .GroupBy(l => l.ProductID)
-                    .Select(g => new { ProductID = g.Key, SoldQty = g.Sum(x => x.Qty), SoldAmount = g.Sum(x => x.LineAmount ?? x.Qty * x.UnitPrice) })
-                    .ToList()
-                    .ToDictionary(x => x.ProductID, x => new { x.SoldQty, x.SoldAmount });
+                // Summalar so'mda, hujjat sanasidagi kurs bilan (CRM-B18)
+                var uzs = new UzsConverter(db);
+                var orderByProduct = OrderTotalsByProduct(orderLinesQ, uzs);
+                var soldByProduct = InvoiceTotalsByProduct(invoiceLinesQ, uzs);
 
                 var allProductIds = orderByProduct.Keys.Union(soldByProduct.Keys).Distinct().ToList();
                 var products = db.PRODUCTS.AsNoTracking()
@@ -101,10 +130,10 @@ namespace tahsinERP.Controllers
                     if (!products.TryGetValue(productId, out var product)) continue;
                     var orderAgg = orderByProduct.TryGetValue(productId, out var o) ? o : null;
                     var soldAgg = soldByProduct.TryGetValue(productId, out var s) ? s : null;
-                    var orderQty = orderAgg?.OrderQty ?? 0;
-                    var orderAmt = orderAgg?.OrderAmount ?? 0;
-                    var soldQty = soldAgg?.SoldQty ?? 0;
-                    var soldAmt = soldAgg?.SoldAmount ?? 0;
+                    var orderQty = orderAgg?.Qty ?? 0;
+                    var orderAmt = orderAgg?.Amt ?? 0;
+                    var soldQty = soldAgg?.Qty ?? 0;
+                    var soldAmt = soldAgg?.Amt ?? 0;
                     var conversion = orderAmt > 0 ? (soldAmt / orderAmt * 100) : (soldAmt > 0 ? 100m : 0);
 
                     model.Lines.Add(new MonthlySalesReportLineViewModel
@@ -127,6 +156,7 @@ namespace tahsinERP.Controllers
                 model.TotalOrderCount = orderLinesQ.Select(op => op.OrderID).Distinct().Count();
                 model.TotalInvoiceCount = invoiceLinesQ.Select(l => l.InvoiceID).Distinct().Count();
 
+                ViewBag.CurrencyWarning = uzs.Warning;
                 ViewBag.Year = y;
                 ViewBag.Month = m;
                 ViewBag.Months = Enumerable.Range(1, 12).Select(i => new SelectListItem { Value = i.ToString(), Text = new DateTime(2000, i, 1).ToString("MMMM", ci), Selected = i == m }).ToList();
@@ -157,18 +187,30 @@ namespace tahsinERP.Controllers
                 };
 
                 var toExclusive = to.AddDays(1);
+                // Mijoz × valyuta × kun bo'yicha SQL'da, so'mga hujjat sanasidagi kurs bilan (CRM-B18)
+                var uzs = new UzsConverter(db);
                 var orderAgg = db.S_ORDERS.AsNoTracking()
                     .Where(o => (o.IsDeleted == false || o.IsDeleted == null) && o.IssuedDate >= from && o.IssuedDate < toExclusive)
-                    .GroupBy(o => o.CustomerID)
-                    .Select(g => new { CustomerID = g.Key, Count = g.Count(), Amount = g.Sum(o => o.Amount) ?? 0 })
+                    .GroupBy(o => new { o.CustomerID, o.CurrencyID, Day = DbFunctions.TruncateTime(o.IssuedDate) })
+                    .Select(g => new { g.Key.CustomerID, g.Key.CurrencyID, g.Key.Day, Count = g.Count(), Amount = g.Sum(o => o.Amount) ?? 0 })
                     .ToList()
-                    .ToDictionary(x => x.CustomerID);
+                    .GroupBy(x => x.CustomerID)
+                    .ToDictionary(g => g.Key, g => new
+                    {
+                        Count = g.Sum(x => x.Count),
+                        Amount = g.Sum(x => uzs.ToUzsOrZero((decimal)x.Amount, x.CurrencyID, x.Day ?? from))
+                    });
                 var invoiceAgg = db.SALES_INVOICES.AsNoTracking().Active()
                     .Where(i => i.InvoiceDate >= from && i.InvoiceDate < toExclusive)
-                    .GroupBy(i => i.CustomerID)
-                    .Select(g => new { CustomerID = g.Key, Count = g.Count(), Amount = g.Sum(i => i.TotalAmount) })
+                    .GroupBy(i => new { i.CustomerID, i.CurrencyCode, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
+                    .Select(g => new { g.Key.CustomerID, g.Key.CurrencyCode, g.Key.Day, Count = g.Count(), Amount = g.Sum(i => i.TotalAmount) })
                     .ToList()
-                    .ToDictionary(x => x.CustomerID);
+                    .GroupBy(x => x.CustomerID)
+                    .ToDictionary(g => g.Key, g => new
+                    {
+                        Count = g.Sum(x => x.Count),
+                        Amount = g.Sum(x => uzs.ToUzsOrZero(x.Amount, x.CurrencyCode, x.Day ?? from))
+                    });
 
                 var customerIds = orderAgg.Keys.Union(invoiceAgg.Keys).ToList();
                 var customers = db.CUSTOMERS.AsNoTracking()
@@ -188,12 +230,13 @@ namespace tahsinERP.Controllers
                         CustomerName = name ?? "",
                         OrderCount = oa?.Count ?? 0,
                         InvoiceCount = ia?.Count ?? 0,
-                        TotalOrderAmount = (decimal)(oa?.Amount ?? 0),
+                        TotalOrderAmount = oa?.Amount ?? 0m,
                         TotalInvoiceAmount = ia?.Amount ?? 0m
                     });
                 }
                 model.Lines = model.Lines.OrderByDescending(l => l.TotalInvoiceAmount).ToList();
                 model.TotalAmount = model.Lines.Sum(l => l.TotalInvoiceAmount);
+                ViewBag.CurrencyWarning = uzs.Warning;
                 ViewBag.FromDate = from;
                 ViewBag.ToDate = to;
                 return View(model);
@@ -222,16 +265,9 @@ namespace tahsinERP.Controllers
                 };
 
                 var toExclusive = to.AddDays(1);
-                var orderByProduct = OrderLines(db, from, toExclusive)
-                    .GroupBy(op => op.ProductID)
-                    .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Amount), Amt = g.Sum(x => x.TotalPrice) })
-                    .ToList()
-                    .ToDictionary(x => x.ProductID, x => new { Qty = (decimal)x.Qty, Amt = (decimal)x.Amt });
-                var soldByProduct = InvoiceLines(db, from, toExclusive)
-                    .GroupBy(l => l.ProductID)
-                    .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Qty), Amt = g.Sum(x => x.LineAmount ?? x.Qty * x.UnitPrice) })
-                    .ToList()
-                    .ToDictionary(x => x.ProductID, x => new { x.Qty, x.Amt });
+                var uzs = new UzsConverter(db);
+                var orderByProduct = OrderTotalsByProduct(OrderLines(db, from, toExclusive), uzs);
+                var soldByProduct = InvoiceTotalsByProduct(InvoiceLines(db, from, toExclusive), uzs);
 
                 var allIds = orderByProduct.Keys.Union(soldByProduct.Keys).Distinct().ToList();
                 var products = db.PRODUCTS.AsNoTracking().Include(p => p.UNIT).Where(p => allIds.Contains(p.ID)).ToDictionary(p => p.ID);
@@ -259,6 +295,7 @@ namespace tahsinERP.Controllers
                 model.Lines = model.Lines.OrderByDescending(l => l.SoldAmount).ToList();
                 model.TotalOrderAmount = model.Lines.Sum(l => l.OrderAmount);
                 model.TotalSoldAmount = model.Lines.Sum(l => l.SoldAmount);
+                ViewBag.CurrencyWarning = uzs.Warning;
                 ViewBag.FromDate = from;
                 ViewBag.ToDate = to;
                 return View(model);
