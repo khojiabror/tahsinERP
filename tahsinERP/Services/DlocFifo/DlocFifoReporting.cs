@@ -55,10 +55,7 @@ WHERE v.CreatedAt >= @p0 AND v.CreatedAt <= @p1";
 
             var parms = new List<object> { fromDate, toDate };
             if (ids.Any())
-            {
-                var inList = string.Join(",", ids);
-                sql += $" AND v.WarehouseID IN ({inList})";
-            }
+                sql += " AND v.WarehouseID IN (" + AddInParameters(parms, ids) + ")";
 
             sql += " ORDER BY v.CreatedAt DESC";
             return db.Database.SqlQuery<FifoViolationReportRow>(sql, parms.ToArray()).ToList();
@@ -84,8 +81,9 @@ INNER JOIN dbo.WAREHOUSES w ON w.ID = loc.WarehouseID
 LEFT JOIN dbo.LOT_LOCATIONS ll ON ll.LocationID = loc.ID
 WHERE loc.IsDeleted = 0 AND loc.IsActive = 1";
 
+            var parms = new List<object>();
             if (ids.Any())
-                sql += $" AND loc.WarehouseID IN ({string.Join(",", ids)})";
+                sql += " AND loc.WarehouseID IN (" + AddInParameters(parms, ids) + ")";
 
             sql += @"
 GROUP BY w.WHName, loc.LocationCode, loc.MinCapacity, loc.MaxCapacity, loc.ID
@@ -96,7 +94,21 @@ HAVING CASE
        END IS NOT NULL
 ORDER BY w.WHName, loc.LocationCode";
 
-            return db.Database.SqlQuery<DlocCapacityAlertRow>(sql).ToList();
+            return db.Database.SqlQuery<DlocCapacityAlertRow>(sql, parms.ToArray()).ToList();
+        }
+
+        /// <summary>
+        /// IN (...) ro'yxatini parametrlar (@pN) bilan quradi — qiymatlar SQL matniga qo'shilmaydi (SRM-S06).
+        /// </summary>
+        private static string AddInParameters(List<object> parms, IEnumerable<int> values)
+        {
+            var names = new List<string>();
+            foreach (var v in values)
+            {
+                names.Add("@p" + parms.Count);
+                parms.Add(v);
+            }
+            return string.Join(",", names);
         }
 
         /// <summary>FIFO buzilishini jurnalga yozadi (FIFO_VIOLATIONS).</summary>
