@@ -13,6 +13,7 @@
     var productTextById = new Dictionary<string, string>();
     var unitsData = new List<object>();
     var hsCodesData = new List<object>();
+    var hsTextById = new Dictionary<string, string>();
     
     if (purchasableProductsList != null)
     {
@@ -36,6 +37,7 @@
         foreach (SelectListItem item in hsCodesList)
         {
             hsCodesData.Add(new { Value = item.Value, Text = item.Text });
+            hsTextById[item.Value] = item.Text;
         }
     }
 }
@@ -188,7 +190,17 @@
                                                                         @Html.TextBoxFor(m => m.ContractProducts[i].MOQ, new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.ContractProducts[i].HSCodeID, new SelectList(hsCodesList ?? Enumerable.Empty<SelectListItem>(), "Value", "Text", product.HSCodeID), "---Tanlang---", new { @class = "form-control hs-code-select select2" })
+                                                                        @{
+                                                                            var hsIdStr = product.HSCodeID.HasValue ? product.HSCodeID.Value.ToString() : null;
+                                                                            var hsText = hsIdStr != null && hsTextById.ContainsKey(hsIdStr) ? hsTextById[hsIdStr] : null;
+                                                                        }
+                                                                        <select name="ContractProducts[@i].HSCodeID" class="form-control hs-code-select">
+                                                                            <option value="">---Tanlang---</option>
+                                                                            @if (hsText != null)
+                                                                            {
+                                                                                <option value="@hsIdStr" selected>@hsText</option>
+                                                                            }
+                                                                        </select>
                                                                     </td>
                                                                     <td>
                                                                         <button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button>
@@ -261,6 +273,7 @@
                     var units = @Html.Raw(Json.Encode(unitsData));
                     var hsCodes = @Html.Raw(Json.Encode(hsCodesData));
                     ProductSelect.attach($('#contractProductsTable select.product-select'), purchasableProducts);
+                    ProductSelect.attach($('#contractProductsTable select.hs-code-select'), hsCodes);
 
                     function updateRowTotal($row) {
                         var quantity = parseFloat($row.find('.quantity-input').val()) || 0;
@@ -318,13 +331,8 @@
                             '<td><input type="number" name="ContractProducts[' + productRowIndex + '].Amount" class="form-control total-price" value="0" readonly /></td>' +
                             '<td><input type="number" name="ContractProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
                             '<td>' +
-                                '<select name="ContractProducts[' + productRowIndex + '].HSCodeID" class="form-control hs-code-select select2">' +
-                                '<option value="">---Tanlang---</option>';
-                        
-                        hsCodes.forEach(function (hsCode) {
-                            var selected = hsCode.Value == hsCodeId ? 'selected' : '';
-                            row += '<option value="' + hsCode.Value + '" ' + selected + '>' + htmlEscape(hsCode.Text) + '</option>';
-                        });
+                                '<select name="ContractProducts[' + productRowIndex + '].HSCodeID" class="form-control hs-code-select">' +
+                                ProductSelect.optionsHtml(hsCodes, hsCodeId);
                         
                         row += '</select></td>' +
                             '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
@@ -335,7 +343,8 @@
                         if (typeof $.fn.select2 !== 'undefined') {
                             ProductSelect.attach($('select.product-select').last(), purchasableProducts);
                             $('select.unit-select.select2').last().select2();
-                            $('select.hs-code-select.select2').last().select2();
+                            // HS kodlar ham (~11 000 ta) qatorga yozilmaydi — qidiruv bilan (SRM-P02)
+                            ProductSelect.attach($('select.hs-code-select').last(), hsCodes);
                         }
 
                         productRowIndex++;

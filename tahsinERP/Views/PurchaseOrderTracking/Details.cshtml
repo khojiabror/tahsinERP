@@ -237,7 +237,7 @@
                                                         <tr>
                                                             <td>@invoice.InvoiceNo</td>
                                                             <td>@invoice.InvoiceDate.ToString("dd.MM.yyyy")</td>
-                                                            <td>@invoice.Amount.ToString("N2")</td>
+                                                            <td>@((invoice.Amount ?? 0).ToString("N2"))</td>
                                                             <td>
                                                                 <a href="@Url.Action("Details", "PInvoices", new { id = invoice.ID })" class="btn btn-sm btn-outline-primary">
                                                                     <i class="bx bx-show"></i> Ko'rish
