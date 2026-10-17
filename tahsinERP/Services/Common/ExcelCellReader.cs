@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using OfficeOpenXml;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Services.Common
 {
@@ -15,17 +16,17 @@ namespace tahsinERP.Services.Common
     /// </summary>
     public sealed class ExcelCellReader
     {
-        private readonly ExcelWorksheet _sheet;
+        private readonly IXLWorksheet _sheet;
         private readonly Dictionary<string, int> _map;
 
-        public ExcelCellReader(ExcelWorksheet sheet, int headerRow = 1)
+        public ExcelCellReader(IXLWorksheet sheet, int headerRow = 1)
         {
             _sheet = sheet;
             _map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var lastCol = sheet.Dimension?.End.Column ?? 0;
+            var lastCol = sheet.LastColumnNumber();
             for (int col = 1; col <= lastCol; col++)
             {
-                var header = sheet.Cells[headerRow, col].Text?.Trim();
+                var header = sheet.Cell(headerRow, col).GetFormattedString()?.Trim();
                 if (!string.IsNullOrWhiteSpace(header) && !_map.ContainsKey(header))
                     _map[header] = col;
             }
@@ -57,14 +58,14 @@ namespace tahsinERP.Services.Common
         private object Value(int row, string key)
         {
             int col;
-            return _map.TryGetValue(key, out col) ? _sheet.Cells[row, col].Value : null;
+            return _map.TryGetValue(key, out col) ? _sheet.Cell(row, col).GetRawValue() : null;
         }
 
         public string String(int row, string key)
         {
             int col;
             if (!_map.TryGetValue(key, out col)) return null;
-            var text = _sheet.Cells[row, col].Text?.Trim();
+            var text = _sheet.Cell(row, col).GetFormattedString()?.Trim();
             return string.IsNullOrEmpty(text) ? null : text;
         }
 

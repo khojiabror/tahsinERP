@@ -36,8 +36,9 @@ namespace tahsinERP.Services.Common
             new ConcurrentDictionary<string, Tuple<decimal?, DateTime>>();
         private static readonly TimeSpan MissTtl = TimeSpan.FromMinutes(10);
 
-        private static bool? _tableExists;
-        private static DateTime _tableCheckedAt;
+        // CURRENCY_RATES jadvali bormi — har tenant bazasi uchun alohida (kalit = tenant prefiksi)
+        private static readonly ConcurrentDictionary<string, Tuple<bool, DateTime>> TableChecks =
+            new ConcurrentDictionary<string, Tuple<bool, DateTime>>();
 
         /// <summary>Asos valyuta (so'm) ID'si; topilmasa null.</summary>
         public static int? BaseCurrencyId()
@@ -67,19 +68,22 @@ namespace tahsinERP.Services.Common
         public static bool TableExists(DBTHSNEntities db)
         {
             // 5 daqiqada qayta tekshiriladi — migratsiyadan keyin qayta ishga tushirish shart emas
-            if (_tableExists.HasValue && DateTime.Now - _tableCheckedAt < TimeSpan.FromMinutes(5))
-                return _tableExists.Value;
+            string tenantKey = tahsinERP.Configuration.Tenancy.TenantContext.CacheKeyPrefix;
+            Tuple<bool, DateTime> check;
+            if (TableChecks.TryGetValue(tenantKey, out check) && DateTime.Now - check.Item2 < TimeSpan.FromMinutes(5))
+                return check.Item1;
+            bool exists;
             try
             {
-                _tableExists = db.Database.SqlQuery<int>(
+                exists = db.Database.SqlQuery<int>(
                     "SELECT CASE WHEN OBJECT_ID('dbo.CURRENCY_RATES','U') IS NOT NULL THEN 1 ELSE 0 END").FirstOrDefault() == 1;
             }
             catch
             {
-                _tableExists = false;
+                exists = false;
             }
-            _tableCheckedAt = DateTime.Now;
-            return _tableExists.Value;
+            TableChecks[tenantKey] = Tuple.Create(exists, DateTime.Now);
+            return exists;
         }
 
         /// <summary>
@@ -92,7 +96,7 @@ namespace tahsinERP.Services.Common
             if (currencyId == BaseCurrencyId())
                 return 1m;
 
-            var key = currencyId + "|" + date.ToString("yyyyMMdd");
+            var key = tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(currencyId + "|" + date.ToString("yyyyMMdd"));
             Tuple<decimal?, DateTime> cached;
             if (Memory.TryGetValue(key, out cached) && (cached.Item1.HasValue || DateTime.Now - cached.Item2 < MissTtl))
                 return cached.Item1;
@@ -137,13 +141,13 @@ namespace tahsinERP.Services.Common
                 "ELSE " +
                 "  INSERT INTO dbo.CURRENCY_RATES (CurrencyID, RateDate, Rate, Source, CreatedDT) VALUES (@p0, @p1, @p2, @p3, GETDATE())",
                 currencyId, date, rate, source);
-            Memory[currencyId + "|" + date.ToString("yyyyMMdd")] = Tuple.Create((decimal?)rate, DateTime.Now);
+            Memory[tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(currencyId + "|" + date.ToString("yyyyMMdd"))] = Tuple.Create((decimal?)rate, DateTime.Now);
         }
 
         public static void Forget(int currencyId, DateTime date)
         {
             Tuple<decimal?, DateTime> removed;
-            Memory.TryRemove(currencyId + "|" + date.Date.ToString("yyyyMMdd"), out removed);
+            Memory.TryRemove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(currencyId + "|" + date.Date.ToString("yyyyMMdd")), out removed);
         }
 
         /// <summary>cbu.uz arxivi: "Rate" — "Nominal" birlik uchun so'm.</summary>

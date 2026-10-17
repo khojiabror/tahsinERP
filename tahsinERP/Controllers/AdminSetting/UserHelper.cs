@@ -48,7 +48,7 @@ namespace tahsinERP.Controllers
                 throw new ArgumentException("Username va UserID ham bir vaqtda NULL bo'lishi mumkin emas");
 
             // Ro'yxatlarda har qator uchun chaqiriladi — 10 daqiqalik kesh (avval har safar yangi DbContext)
-            string cacheKey = userID.HasValue ? "UserFullNameById_" + userID.Value : "UserFullNameByName_" + username;
+            string cacheKey = tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(userID.HasValue ? "UserFullNameById_" + userID.Value : "UserFullNameByName_" + username);
             var cached = System.Web.HttpRuntime.Cache.Get(cacheKey) as string;
             if (cached != null)
                 return cached;
