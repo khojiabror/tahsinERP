@@ -25,62 +25,22 @@ namespace tahsinERP.Controllers
         private static readonly Regex IndexPattern = new Regex(@"^ProductList\[(\d+)\]\.ProductID$", RegexOptions.Compiled);
 
         // Olish so'rovi: SContract | Index
-        public async Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        public async Task<ActionResult> Index(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.S_CONTRACTS.AsNoTracking()
-                    .Include(sc => sc.CUSTOMER)
-                    .Include(sc => sc.CURRENCy)
-                    .Where(sc => sc.IsDeleted == false);
+                var query = BuildIndexQuery(db, searchTerm, contractNo, customerID, fromDate, toDate, sortOrder);
 
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    query = query.Where(c =>
-                        c.ContractNo.Contains(searchTerm) ||
-                        (c.Incoterms != null && c.Incoterms.Contains(searchTerm)) ||
-                        (c.PaymentTerms != null && c.PaymentTerms.Contains(searchTerm)));
-                }
-
-                if (!string.IsNullOrEmpty(contractNo))
-                {
-                    query = query.Where(c => c.ContractNo.Contains(contractNo));
-                }
-
-                if (customerID.HasValue)
-                {
-                    query = query.Where(c => c.CustomerID == customerID.Value);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    var from = fromDate.Value.Date;
-                    query = query.Where(c => c.IssuedDate >= from);
-                }
-
-                if (toDate.HasValue)
-                {
-                    var toExclusive = toDate.Value.Date.AddDays(1);
-                    query = query.Where(c => c.IssuedDate < toExclusive);
-                }
-
-                switch (sortOrder)
-                {
-                    case "contractNo_desc":
-                        query = query.OrderByDescending(c => c.ContractNo);
-                        break;
-                    case "contractNo":
-                        query = query.OrderBy(c => c.ContractNo);
-                        break;
-                    case "date":
-                        query = query.OrderBy(c => c.IssuedDate);
-                        break;
-                    default:
-                        query = query.OrderByDescending(c => c.IssuedDate);
-                        break;
-                }
-
-                var contracts = await query.ToListAsync();
+                // Server tomonida sahifalash (CRM-P05: avval butun jadval Include bilan yuklanardi)
+                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
+                int totalItems = await query.CountAsync();
+                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
+                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
+                var contracts = await query.Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage).ToListAsync();
+                ViewBag.CurrentPage = currentPage;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalItems = totalItems;
+                ViewBag.PageSize = itemsPerPage;
 
                 ViewBag.Customers = SalesLookups.Customers(customerID);
                 ViewBag.SearchTerm = searchTerm;
@@ -92,6 +52,79 @@ namespace tahsinERP.Controllers
 
                 return View(contracts);
             }
+        }
+
+        /// <summary>Filtrlangan barcha shartnomalar Excel'da.</summary>
+        public ActionResult ExportExcel(string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var rows = BuildIndexQuery(db, searchTerm, contractNo, customerID, fromDate, toDate, sortOrder).ToList();
+                var bytes = ExcelExport.Create("Shartnomalar", rows,
+                    ExcelExport.Col<S_CONTRACTS>("Shartnoma raqami", c => c.ContractNo),
+                    ExcelExport.Col<S_CONTRACTS>("Mijoz", c => c.CUSTOMER?.Name),
+                    ExcelExport.Col<S_CONTRACTS>("Sana", c => c.IssuedDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_CONTRACTS>("Muddat", c => c.DueDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_CONTRACTS>("Summa", c => c.Amount, "#,##0.00"),
+                    ExcelExport.Col<S_CONTRACTS>("Valyuta", c => c.CURRENCy?.Shortname));
+                return File(bytes, ExcelExport.ContentType, $"Shartnomalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+            }
+        }
+
+        private static IQueryable<S_CONTRACTS> BuildIndexQuery(DBTHSNEntities db, string searchTerm, string contractNo, int? customerID, DateTime? fromDate, DateTime? toDate, string sortOrder)
+        {
+            var query = db.S_CONTRACTS.AsNoTracking()
+                .Include(sc => sc.CUSTOMER)
+                .Include(sc => sc.CURRENCy)
+                .Where(sc => sc.IsDeleted == false);
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(c =>
+                    c.ContractNo.Contains(searchTerm) ||
+                    (c.Incoterms != null && c.Incoterms.Contains(searchTerm)) ||
+                    (c.PaymentTerms != null && c.PaymentTerms.Contains(searchTerm)));
+            }
+
+            if (!string.IsNullOrEmpty(contractNo))
+            {
+                query = query.Where(c => c.ContractNo.Contains(contractNo));
+            }
+
+            if (customerID.HasValue)
+            {
+                query = query.Where(c => c.CustomerID == customerID.Value);
+            }
+
+            if (fromDate.HasValue)
+            {
+                var from = fromDate.Value.Date;
+                query = query.Where(c => c.IssuedDate >= from);
+            }
+
+            if (toDate.HasValue)
+            {
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(c => c.IssuedDate < toExclusive);
+            }
+
+            switch (sortOrder)
+            {
+                case "contractNo_desc":
+                    query = query.OrderByDescending(c => c.ContractNo);
+                    break;
+                case "contractNo":
+                    query = query.OrderBy(c => c.ContractNo);
+                    break;
+                case "date":
+                    query = query.OrderBy(c => c.IssuedDate);
+                    break;
+                default:
+                    query = query.OrderByDescending(c => c.IssuedDate);
+                    break;
+            }
+
+            return query;
         }
 
         // Olish so'rovi: yaratish
