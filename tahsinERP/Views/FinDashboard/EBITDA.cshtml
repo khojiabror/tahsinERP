@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "EBITDA hisoboti";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var ebitda = ViewBag.Ebitda as tahsinERP.Controllers.Finance.EbitdaData;
+    var ebitda = ViewBag.Ebitda as tahsinERP.ViewModels.Finance.EbitdaData;
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))

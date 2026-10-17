@@ -1044,6 +1044,14 @@
     <Compile Include="Services\BomMaterialSummaryService.cs" />
     <Compile Include="Services\DocumentTemplateService.cs" />
     <Compile Include="Services\FinancePostingService.cs" />
+    <Compile Include="Services\Finance\BalanceInventoryValuation.cs" />
+    <Compile Include="Services\Finance\BalanceSheetService.cs" />
+    <Compile Include="Services\Finance\CounterpartyBalanceService.cs" />
+    <Compile Include="Services\Finance\FinAnalyticsService.cs" />
+    <Compile Include="Services\Finance\FinLiabilities.cs" />
+    <Compile Include="Services\Finance\FinQueries.cs" />
+    <Compile Include="Services\Finance\LiabilityReportsService.cs" />
+    <Compile Include="Services\Finance\ValuationService.cs" />
     <Compile Include="Services\HrEmployeeAllowanceService.cs" />
     <Compile Include="Services\HrTimesheetSettingsService.cs" />
     <Compile Include="Services\ReconciliationService.cs" />
@@ -1109,6 +1117,7 @@
     <Compile Include="ViewModels\DeletedRecordsViewModel.cs" />
     <Compile Include="ViewModels\ExpenseViewModel.cs" />
     <Compile Include="ViewModels\FinanceReportsHubViewModel.cs" />
+    <Compile Include="ViewModels\Finance\FinDashboardModels.cs" />
     <Compile Include="ViewModels\Finance\OpeningBalanceViewModel.cs" />
     <Compile Include="ViewModels\HR\HrPieceRateGridEntryViewModel.cs" />
     <Compile Include="ViewModels\HR\KoreshokViewModel.cs" />

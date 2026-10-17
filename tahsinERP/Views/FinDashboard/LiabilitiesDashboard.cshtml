@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "Majburiyatlar dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var passiveStats = ViewBag.PassiveBalanceStats as List<tahsinERP.Controllers.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.Controllers.Finance.BalanceCategoryDetailData>();
+    var passiveStats = ViewBag.PassiveBalanceStats as List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData>();
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
@@ -116,7 +116,7 @@
                                                             <tbody>
                                                                 @if (ViewBag.PayablesAccountBalances != null)
                                                                 {
-                                                                    var balances = ViewBag.PayablesAccountBalances as List<tahsinERP.Controllers.Finance.AccountBalanceData>;
+                                                                    var balances = ViewBag.PayablesAccountBalances as List<tahsinERP.ViewModels.Finance.AccountBalanceData>;
                                                                     if (balances != null)
                                                                     {
                                                                         int index = 1;
@@ -225,7 +225,7 @@
                                                             <tbody>
                                                                 @if (ViewBag.ReceivablesAccountBalances != null)
                                                                 {
-                                                                    var balances = ViewBag.ReceivablesAccountBalances as List<tahsinERP.Controllers.Finance.AccountBalanceData>;
+                                                                    var balances = ViewBag.ReceivablesAccountBalances as List<tahsinERP.ViewModels.Finance.AccountBalanceData>;
                                                                     if (balances != null)
                                                                     {
                                                                         int index = 1;
