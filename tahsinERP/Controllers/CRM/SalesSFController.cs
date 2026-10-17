@@ -5,24 +5,26 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using tahsinERP.Models;
 using tahsinERP.Filters;
+using tahsinERP.Models;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Crm;
+using tahsinERP.ViewModels.Sales;
 
 namespace tahsinERP.Controllers
 {
     [Permission]
-    public class SalesSFController : Controller
+    public class SalesSFController : BaseController
     {
         // Olish so'rovi: SalesSF
-        public async System.Threading.Tasks.Task<ActionResult> Index(string searchTerm, string sfNumber, long? invoiceID, int? customerID, string statusCode, string sortOrder, int? page, int? pageSize)
+        public async Task<ActionResult> Index(string searchTerm, string sfNumber, long? invoiceID, int? customerID, string statusCode, string sortOrder, int? page, int? pageSize)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.SALES_SF_HEADERS
+                var query = db.SALES_SF_HEADERS.AsNoTracking()
                     .Include(sf => sf.SALES_INVOICES)
                     .AsQueryable();
 
-                // Filters
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     query = query.Where(sf => sf.SFNumber.Contains(searchTerm));
@@ -48,7 +50,6 @@ namespace tahsinERP.Controllers
                     query = query.Where(sf => sf.StatusCode == statusCode);
                 }
 
-                // Sorting
                 switch (sortOrder)
                 {
                     case "sfNumber_desc":
@@ -56,9 +57,6 @@ namespace tahsinERP.Controllers
                         break;
                     case "sfNumber":
                         query = query.OrderBy(sf => sf.SFNumber);
-                        break;
-                    case "date_desc":
-                        query = query.OrderByDescending(sf => sf.SFDate);
                         break;
                     case "date":
                         query = query.OrderBy(sf => sf.SFDate);
@@ -68,20 +66,22 @@ namespace tahsinERP.Controllers
                         break;
                 }
 
-                // Pagination
-                int currentPage = page ?? 1;
-                int itemsPerPage = pageSize ?? 25;
+                int itemsPerPage = Math.Min(Math.Max(pageSize ?? 25, 1), 200);
                 int totalItems = await query.CountAsync();
-                int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+                int totalPages = Math.Max(1, (int)Math.Ceiling((double)totalItems / itemsPerPage));
+                int currentPage = Math.Min(Math.Max(page ?? 1, 1), totalPages);
 
                 var sfHeaders = await query
                     .Skip((currentPage - 1) * itemsPerPage)
                     .Take(itemsPerPage)
                     .ToListAsync();
 
-                // ViewBag uchun filters
-                ViewBag.Customers = new SelectList(await db.CUSTOMERS.Where(c => c.IsDeleted == false).ToListAsync(), "ID", "Name", customerID);
-                ViewBag.Invoices = new SelectList(await db.SALES_INVOICES.ToListAsync(), "ID", "InvoiceNo", invoiceID);
+                // Filtr ro'yxatlari: proyeksiya, faqat faol invoyslar (CRM-P04)
+                ViewBag.Customers = SalesLookups.Customers(customerID);
+                ViewBag.Invoices = new SelectList(await db.SALES_INVOICES.AsNoTracking().Active()
+                    .OrderByDescending(i => i.InvoiceDate)
+                    .Select(i => new { i.ID, i.InvoiceNo })
+                    .ToListAsync(), "ID", "InvoiceNo", invoiceID);
                 ViewBag.CurrentPage = currentPage;
                 ViewBag.TotalPages = totalPages;
                 ViewBag.TotalItems = totalItems;
@@ -117,10 +117,8 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Yuklash customer
                 ViewBag.Customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == sfHeader.CustomerID);
 
-                // Yuklash related order agar invoice has one
                 if (sfHeader.SALES_INVOICES != null && sfHeader.SALES_INVOICES.OrderID.HasValue)
                 {
                     ViewBag.Order = db.S_ORDERS
@@ -128,7 +126,6 @@ namespace tahsinERP.Controllers
                         .FirstOrDefault(o => o.ID == sfHeader.SALES_INVOICES.OrderID.Value);
                 }
 
-                // Yuklash products uchun lines
                 var productIDs = sfHeader.SALES_SF_LINES.Select(l => l.ProductID).Distinct().ToList();
                 ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
 
@@ -146,7 +143,7 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var invoice = db.SALES_INVOICES
+                var invoice = db.SALES_INVOICES.Active()
                     .Include(i => i.SALES_INVOICE_LINES)
                     .FirstOrDefault(i => i.ID == invoiceID);
 
@@ -155,7 +152,6 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Tekshirish agar SF already mavjud uchun this invoice
                 var existingSF = db.SALES_SF_HEADERS.FirstOrDefault(sf => sf.InvoiceID == invoiceID);
                 if (existingSF != null)
                 {
@@ -163,7 +159,6 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Details", new { id = existingSF.ID });
                 }
 
-                // Yaratish SF header dan invoice
                 var sfHeader = new SALES_SF_HEADERS
                 {
                     SFDate = DateTime.Now,
@@ -172,126 +167,99 @@ namespace tahsinERP.Controllers
                     StatusCode = "DRAFT",
                     CreatedDT = DateTime.Now,
                     IntegrationUID = Guid.NewGuid(),
-                    SourceSystem = "TAHSIN_ERP"
+                    SourceSystem = "TAHSIN_ERP",
+                    // TODO: haqiqiy INN maydonlari (mijoz/kompaniya sozlamalari) — hozircha DUNS
+                    CustomerINN = db.CUSTOMERS.Where(c => c.ID == invoice.CustomerID).Select(c => c.DUNS).FirstOrDefault(),
+                    SupplierINN = ""
                 };
 
-                // Yuklash customer uchun INN
-                var customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == invoice.CustomerID);
-                if (customer != null)
-                {
-                    // TODO: Get customer INN dan customer record yoki settings
-                    sfHeader.CustomerINN = customer.DUNS; // foydalanib DUNS as placeholder
-                }
-
-                // TODO: Get supplier INN dan company settings
-                sfHeader.SupplierINN = ""; // ga be filled dan company settings
-
-                ViewBag.Invoice = invoice;
-                ViewBag.InvoiceLines = invoice.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList();
-                
-                // Yuklash products
-                var productIDs = invoice.SALES_INVOICE_LINES.Select(l => l.ProductID).Distinct().ToList();
-                ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
-
+                PopulateGenerateLookups(db, invoice);
                 return View(sfHeader);
             }
         }
 
-        // POST so'rovi: yaratish dan Invoice
+        /// <summary>
+        /// SF yaratish. Qator miqdori, narxi va QQS invoys qatoridan olinadi va summalar serverda qayta
+        /// hisoblanadi (CRM-S03: avval brauzer yuborgan LineAmount/VATAmount/TotalWithVAT saqlanardi).
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult GenerateFromInvoice(SALES_SF_HEADERS sfHeader, List<SalesSFLineViewModel> lines)
         {
-            if (ModelState.IsValid && lines != null && lines.Any())
+            if (lines == null || !lines.Any())
+            {
+                ModelState.AddModelError("", "SF qatorlari yo'q");
+            }
+
+            if (ModelState.IsValid)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
                 {
                     try
                     {
-                        // Tekshirish agar SF already mavjud
-                        var existingSF = db.SALES_SF_HEADERS.FirstOrDefault(sf => sf.InvoiceID == sfHeader.InvoiceID);
-                        if (existingSF != null)
-                        {
-                            ModelState.AddModelError("", "Bu invoys uchun SF allaqachon yaratilgan");
-                            return View(sfHeader);
-                        }
+                        var invoice = db.SALES_INVOICES.Active()
+                            .Include(i => i.SALES_INVOICE_LINES)
+                            .FirstOrDefault(i => i.ID == sfHeader.InvoiceID);
 
-                        // Tekshirish invoice mavjud
-                        var invoice = db.SALES_INVOICES.Find(sfHeader.InvoiceID);
                         if (invoice == null)
                         {
-                            ModelState.AddModelError("", "Invoys topilmadi");
-                            return View(sfHeader);
+                            ModelState.AddModelError("", "Invoys topilmadi yoki bekor qilingan");
                         }
-
-                        sfHeader.SFDate = DateTime.Now;
-                        sfHeader.CustomerID = invoice.CustomerID;
-                        sfHeader.StatusCode = "DRAFT";
-                        sfHeader.CreatedDT = DateTime.Now;
-                        sfHeader.IntegrationUID = Guid.NewGuid();
-                        sfHeader.SourceSystem = "TAHSIN_ERP";
-
-                        db.SALES_SF_HEADERS.Add(sfHeader);
-                        db.SaveChanges();
-
-                        // Qo'shish lines dan invoice lines
-                        int lineNo = 1;
-                        foreach (var line in lines)
+                        else if (db.SALES_SF_HEADERS.Any(sf => sf.InvoiceID == sfHeader.InvoiceID))
                         {
-                            var sfLine = new SALES_SF_LINES
-                            {
-                                SFHeaderID = sfHeader.ID,
-                                LineNo = lineNo++,
-                                InvoiceLineID = line.InvoiceLineID,
-                                ProductID = line.ProductID,
-                                Description = line.Description,
-                                Qty = line.Qty,
-                                UnitPrice = line.UnitPrice,
-                                LineAmount = line.LineAmount,
-                                VATRate = line.VATRate,
-                                VATAmount = line.VATAmount,
-                                TotalWithVAT = line.TotalWithVAT
-                            };
-                            db.SALES_SF_LINES.Add(sfLine);
+                            ModelState.AddModelError("", "Bu invoys uchun SF allaqachon yaratilgan");
                         }
+                        else
+                        {
+                            sfHeader.SFDate = DateTime.Now;
+                            sfHeader.CustomerID = invoice.CustomerID;
+                            sfHeader.StatusCode = "DRAFT";
+                            sfHeader.CreatedDT = DateTime.Now;
+                            sfHeader.CreatedByUserID = RoleHelper.GetUserId(CurrentUserName);
+                            sfHeader.IntegrationUID = Guid.NewGuid();
+                            sfHeader.SourceSystem = "TAHSIN_ERP";
 
-                        db.SaveChanges();
+                            var built = BuildLines(invoice, lines);
+                            if (built == null)
+                            {
+                                ModelState.AddModelError("", "SF qatorlari shu invoys qatorlariga mos emas.");
+                            }
+                            else
+                            {
+                                foreach (var line in built)
+                                    sfHeader.SALES_SF_LINES.Add(line);
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "SalesSFController", $"{sfHeader.SFNumber} - SF yaratdi (Invoys: {invoice.InvoiceNo})");
+                                using (var tx = db.Database.BeginTransaction())
+                                {
+                                    if (string.IsNullOrWhiteSpace(sfHeader.SFNumber))
+                                    {
+                                        sfHeader.SFNumber = DocumentNumberService.Next(db, "SALES_SF_HEADERS", "SFNumber", $"SF-{DateTime.Now:yyyy}-", 4);
+                                    }
+                                    db.SALES_SF_HEADERS.Add(sfHeader);
+                                    db.SaveChanges();
+                                    tx.Commit();
+                                }
 
-                        return RedirectToAction("Details", new { id = sfHeader.ID });
+                                LogHelper.LogToDatabase(CurrentUserName, "SalesSFController", $"{sfHeader.SFNumber} - SF yaratdi (Invoys: {invoice.InvoiceNo})");
+
+                                return RedirectToAction("Details", new { id = sfHeader.ID });
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
                     }
                 }
             }
 
-            // Reload ViewBag on xatolik
+            // Barcha xato yo'llarida ro'yxatlar qayta quriladi (CRM-B15)
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                if (sfHeader.InvoiceID.HasValue)
-                {
-                    var invoice = db.SALES_INVOICES
-                        .Include(i => i.SALES_INVOICE_LINES)
-                        .FirstOrDefault(i => i.ID == sfHeader.InvoiceID);
-                    ViewBag.Invoice = invoice;
-                    ViewBag.InvoiceLines = invoice?.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList();
-                    
-                    if (invoice != null)
-                    {
-                        var productIDs = invoice.SALES_INVOICE_LINES.Select(l => l.ProductID).Distinct().ToList();
-                        ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
-                    }
-                }
+                var invoice = sfHeader.InvoiceID.HasValue
+                    ? db.SALES_INVOICES.Include(i => i.SALES_INVOICE_LINES).FirstOrDefault(i => i.ID == sfHeader.InvoiceID)
+                    : null;
+                PopulateGenerateLookups(db, invoice);
             }
 
             return View(sfHeader);
@@ -316,7 +284,6 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Tekshirish agar SF can be edited
                 if (sfHeader.StatusCode == "SENT" || sfHeader.StatusCode == "ACCEPTED")
                 {
                     TempData["ErrorMessage"] = "Yuborilgan yoki qabul qilingan SF ni tahrirlash mumkin emas";
@@ -342,7 +309,6 @@ namespace tahsinERP.Controllers
                         return HttpNotFound();
                     }
 
-                    // Tekshirish agar SF can be edited
                     if (existingSF.StatusCode == "SENT" || existingSF.StatusCode == "ACCEPTED")
                     {
                         ModelState.AddModelError("", "Yuborilgan yoki qabul qilingan SF ni tahrirlash mumkin emas");
@@ -351,80 +317,90 @@ namespace tahsinERP.Controllers
 
                     try
                     {
-                        existingSF.SFNumber = sfHeader.SFNumber;
+                        existingSF.SFNumber = string.IsNullOrWhiteSpace(sfHeader.SFNumber) ? existingSF.SFNumber : sfHeader.SFNumber;
                         existingSF.SFDate = sfHeader.SFDate;
                         existingSF.SupplierINN = sfHeader.SupplierINN;
                         existingSF.CustomerINN = sfHeader.CustomerINN;
                         existingSF.StatusCode = sfHeader.StatusCode;
 
-                        // Yangilash lines agar provided
                         if (lines != null && lines.Any())
                         {
-                            // O'chirish existing lines
-                            var existingLines = db.SALES_SF_LINES.Where(l => l.SFHeaderID == sfHeader.ID).ToList();
-                            foreach (var line in existingLines)
+                            var invoice = db.SALES_INVOICES
+                                .Include(i => i.SALES_INVOICE_LINES)
+                                .FirstOrDefault(i => i.ID == existingSF.InvoiceID);
+                            var built = invoice != null ? BuildLines(invoice, lines) : null;
+                            if (built == null)
                             {
-                                db.SALES_SF_LINES.Remove(line);
+                                ModelState.AddModelError("", "SF qatorlari invoys qatorlariga mos emas.");
+                                return View(sfHeader);
                             }
 
-                            // Qo'shish updated lines
-                            int lineNo = 1;
-                            foreach (var line in lines)
+                            db.SALES_SF_LINES.RemoveRange(db.SALES_SF_LINES.Where(l => l.SFHeaderID == sfHeader.ID).ToList());
+                            foreach (var line in built)
                             {
-                                var sfLine = new SALES_SF_LINES
-                                {
-                                    SFHeaderID = sfHeader.ID,
-                                    LineNo = lineNo++,
-                                    InvoiceLineID = line.InvoiceLineID,
-                                    ProductID = line.ProductID,
-                                    Description = line.Description,
-                                    Qty = line.Qty,
-                                    UnitPrice = line.UnitPrice,
-                                    LineAmount = line.LineAmount,
-                                    VATRate = line.VATRate,
-                                    VATAmount = line.VATAmount,
-                                    TotalWithVAT = line.TotalWithVAT
-                                };
-                                db.SALES_SF_LINES.Add(sfLine);
+                                line.SFHeaderID = sfHeader.ID;
+                                db.SALES_SF_LINES.Add(line);
                             }
                         }
 
                         db.SaveChanges();
 
-                        LogHelper.LogToDatabase(User.Identity.Name, "SalesSFController", $"{existingSF.SFNumber} - SF ni tahrirladi");
+                        LogHelper.LogToDatabase(CurrentUserName, "SalesSFController", $"{existingSF.SFNumber} - SF ni tahrirladi");
 
                         return RedirectToAction("Details", new { id = sfHeader.ID });
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        var innerEx = ex.InnerException;
-                        while (innerEx != null)
-                        {
-                            errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                            innerEx = innerEx.InnerException;
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
                     }
                 }
             }
 
             return View(sfHeader);
         }
-    }
 
-    // ViewModel uchun SF lines
-    public class SalesSFLineViewModel
-    {
-        public long? InvoiceLineID { get; set; }
-        public int ProductID { get; set; }
-        public string Description { get; set; }
-        public decimal Qty { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal LineAmount { get; set; }
-        public decimal VATRate { get; set; }
-        public decimal VATAmount { get; set; }
-        public decimal TotalWithVAT { get; set; }
+        // ───────────────────────────── yordamchi metodlar ─────────────────────────────
+
+        /// <summary>
+        /// Har SF qatori invoys qatoriga (InvoiceLineID) bog'lanadi; miqdor/narx/QQS invoys qatoridan,
+        /// summalar qayta hisoblanadi. Mos kelmasa null.
+        /// </summary>
+        private static List<SALES_SF_LINES> BuildLines(SALES_INVOICES invoice, IEnumerable<SalesSFLineViewModel> lines)
+        {
+            var invoiceLines = invoice.SALES_INVOICE_LINES.ToDictionary(l => l.ID);
+            var result = new List<SALES_SF_LINES>();
+            int lineNo = 1;
+            foreach (var posted in lines)
+            {
+                SALES_INVOICE_LINES src;
+                if (!posted.InvoiceLineID.HasValue || !invoiceLines.TryGetValue(posted.InvoiceLineID.Value, out src))
+                    return null;
+
+                var lineAmount = src.Qty * src.UnitPrice;
+                var vatAmount = lineAmount * src.VATRate / 100m;
+                result.Add(new SALES_SF_LINES
+                {
+                    LineNo = lineNo++,
+                    InvoiceLineID = src.ID,
+                    ProductID = src.ProductID,
+                    Description = string.IsNullOrWhiteSpace(posted.Description) ? src.Description : posted.Description,
+                    Qty = src.Qty,
+                    UnitPrice = src.UnitPrice,
+                    LineAmount = lineAmount,
+                    VATRate = src.VATRate,
+                    VATAmount = vatAmount,
+                    TotalWithVAT = lineAmount + vatAmount
+                });
+            }
+            return result;
+        }
+
+        private void PopulateGenerateLookups(DBTHSNEntities db, SALES_INVOICES invoice)
+        {
+            ViewBag.Invoice = invoice;
+            ViewBag.InvoiceLines = invoice?.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList() ?? new List<SALES_INVOICE_LINES>();
+            var productIDs = invoice?.SALES_INVOICE_LINES.Select(l => l.ProductID).Distinct().ToList() ?? new List<int>();
+            ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
+        }
     }
 }
-

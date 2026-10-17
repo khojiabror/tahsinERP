@@ -6,10 +6,8 @@
     var toDate = ViewBag.ToDate as DateTime? ?? Model.ToDate;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesReports") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -131,8 +129,4 @@
             }
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

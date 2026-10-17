@@ -4,8 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -114,16 +114,16 @@
                                                                         <td>
                                                                             <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
-                                                                            <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@product.PiecePrice" />
+                                                                            <input type="hidden" name="ProductQuantities[@index].PiecePrice" value="@tahsinERP.Services.Crm.CrmNumber.ForInput(product.PiecePrice)" />
                                                                             <input type="hidden" name="ProductQuantities[@index].UnitID" value="@product.UnitID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].VatRate" value="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
                                                                             <input type="number" 
                                                                                    name="ProductQuantities[@index].OrderQuantity" 
                                                                                    class="form-control order-quantity" 
-                                                                                   value="@product.OrderQuantity.ToString("N2")" 
+                                                                                   value="@(product.OrderQuantity > 0 ? tahsinERP.Services.Crm.CrmNumber.ForInput(product.OrderQuantity) : "")" 
                                                                                    step="0.01" 
                                                                                    min="0.01" 
-                                                                                   data-price="@product.PiecePrice"
+                                                                                   data-price="@tahsinERP.Services.Crm.CrmNumber.ForInput(product.PiecePrice)"
                                                                                    data-vat-rate="@product.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
                                                                                    required />
                                                                         </td>
@@ -354,8 +354,4 @@
         });
     </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

@@ -1,0 +1,67 @@
+@*
+    CRM ro'yxatlari uchun server tomonidagi sahifalash (SalesInvoices, Customer, SalesTTNK, SalesSF).
+    ViewBag.CurrentPage / TotalPages / TotalItems / PageSize ishlatiladi; joriy query string (filtrlar)
+    saqlanadi, faqat "page" (va kerak bo'lsa "pageSize") almashtiriladi.
+*@
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
+    int pageSize = ViewBag.PageSize ?? 25;
+
+    Func<int, int, string> pageUrl = (p, size) =>
+    {
+        var qs = HttpUtility.ParseQueryString(Request.QueryString.ToString());
+        qs["page"] = p.ToString();
+        qs["pageSize"] = size.ToString();
+        return Request.Path + "?" + qs.ToString();
+    };
+    int first = Math.Max(1, currentPage - 2);
+    int last = Math.Min(totalPages, currentPage + 2);
+}
+<div class="row mt-2 align-items-center">
+    <div class="col-md-5 text-muted">
+        Jami: @totalItems ta yozuv, sahifa @currentPage / @totalPages
+        <span class="ml-1">
+            | Sahifada:
+            @foreach (var size in new[] { 25, 50, 100, 200 })
+            {
+                if (size == pageSize)
+                {
+                    <strong class="ml-1">@size</strong>
+                }
+                else
+                {
+                    <a class="ml-1" href="@pageUrl(1, size)">@size</a>
+                }
+            }
+        </span>
+    </div>
+    <div class="col-md-7">
+        @if (totalPages > 1)
+        {
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" href="@pageUrl(1, pageSize)">&laquo;</a>
+                    </li>
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" href="@pageUrl(Math.Max(1, currentPage - 1), pageSize)">Oldingi</a>
+                    </li>
+                    @for (int i = first; i <= last; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@pageUrl(i, pageSize)">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@pageUrl(Math.Min(totalPages, currentPage + 1), pageSize)">Keyingi</a>
+                    </li>
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@pageUrl(totalPages, pageSize)">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+</div>

@@ -4,8 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -129,25 +129,28 @@
                                                     </thead>
                                                     <tbody>
                                                         @{
+                                                            var productItems = ViewBag.ProductItems as List<SelectListItem> ?? new List<SelectListItem>();
+                                                            var inv = System.Globalization.CultureInfo.InvariantCulture;
                                                             int lineIndex = 0;
                                                         }
                                                         @foreach (var line in Model.SALES_INVOICE_LINES.OrderBy(l => l.LineNo))
                                                         {
                                                             <tr>
                                                                 <td>
-                                                                    @Html.DropDownList($"lines[{lineIndex}].ProductID", ViewBag.Products as SelectList, new { @class = "form-control product-select", @Value = line.ProductID, required = "required" })
+                                                                    @* Har qator uchun alohida SelectList — saqlangan mahsulot tanlangan bo'ladi (CRM-B03; <select>'da Value atributi ishlamaydi) *@
+                                                                    @Html.DropDownList($"lines[{lineIndex}].ProductID", new SelectList(productItems, "Value", "Text", line.ProductID.ToString()), "Tanlang", new { @class = "form-control product-select", required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     <input type="text" name="lines[@lineIndex].Description" class="form-control" value="@(line.Description ?? "")" />
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" name="lines[@lineIndex].Qty" class="form-control qty-input" step="0.01" min="0" value="@line.Qty" required />
+                                                                    <input type="number" name="lines[@lineIndex].Qty" class="form-control qty-input" step="0.01" min="0.01" value="@line.Qty.ToString(inv)" required />
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" name="lines[@lineIndex].UnitPrice" class="form-control price-input" step="0.01" min="0" value="@line.UnitPrice" required readonly />
+                                                                    <input type="number" name="lines[@lineIndex].UnitPrice" class="form-control price-input" step="0.01" min="0" value="@line.UnitPrice.ToString(inv)" required readonly />
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" name="lines[@lineIndex].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="@line.VATRate" required />
+                                                                    <input type="number" name="lines[@lineIndex].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="@line.VATRate.ToString(inv)" required />
                                                                 </td>
                                                                 <td>
                                                                     <button type="button" class="btn btn-sm btn-danger remove-line">O'chirish</button>
@@ -157,7 +160,9 @@
                                                         }
                                                     </tbody>
                                                 </table>
+                                                @Html.DropDownList("productSelectTemplate", new SelectList(productItems, "Value", "Text"), "Tanlang", new { @class = "form-control product-select d-none", id = "productSelectTemplate", disabled = "disabled" })
                                             </div>
+                                            <small class="text-muted">Mahsulot yoki miqdor o'zgarsa, avvalgi ombor chiqimi qaytariladi va yangisi yoziladi.</small>
 
                                             <div class="row mt-2">
                                                 <div class="col-md-12">
@@ -343,15 +348,16 @@
                 if (addBtn) {
                     addBtn.addEventListener('click', function() {
                         var table = document.getElementById('invoiceLinesTable');
-                        var firstRow = table ? table.querySelector('tbody tr:first-child') : null;
-                        var productSelect = firstRow ? firstRow.querySelector('select') : null;
-                        if (!table || !firstRow || !productSelect) return;
+                        var productSelect = document.getElementById('productSelectTemplate');
+                        if (!table || !productSelect) return;
 
                         var newSelect = productSelect.cloneNode(true);
                         newSelect.name = 'lines[' + lineIndex + '].ProductID';
                         newSelect.removeAttribute('id');
+                        newSelect.removeAttribute('disabled');
+                        newSelect.classList.remove('d-none');
+                        newSelect.required = true;
                         newSelect.value = '';
-                        newSelect.classList.add('product-select');
 
                         var newRow = document.createElement('tr');
                         var td1 = document.createElement('td');
@@ -373,9 +379,7 @@
                         btn.type = 'button';
                         btn.className = 'btn btn-sm btn-danger remove-line';
                         btn.textContent = 'O\'chirish';
-                        btn.addEventListener('click', function() {
-                            if (confirm('Bu qatorni o\'chirishni tasdiqlaysizmi?')) { newRow.remove(); calculateTotals(); }
-                        });
+                        // O'chirish document darajasidagi delegat orqali (avval ikki marta tasdiq so'ralardi — CRM-B20)
                         tdBtn.appendChild(btn);
                         newRow.appendChild(tdBtn);
 
@@ -396,6 +400,19 @@
                     }
                 });
 
+                // Yuborishdan oldin qatorlarni 0..n-1 qilib qayta raqamlash (CRM-B08)
+                var form = document.getElementById('invoiceEditForm');
+                if (form) {
+                    form.addEventListener('submit', function() {
+                        var rows = document.querySelectorAll('#invoiceLinesTable tbody tr');
+                        for (var i = 0; i < rows.length; i++) {
+                            rows[i].querySelectorAll('[name^="lines["]').forEach(function(el) {
+                                el.name = el.name.replace(/^lines\[\d+\]/, 'lines[' + i + ']');
+                            });
+                        }
+                    });
+                }
+
                 var vs = document.getElementById('validationSummary');
                 if (vs && vs.textContent.trim()) vs.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -407,9 +424,5 @@
             }
         })();
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 

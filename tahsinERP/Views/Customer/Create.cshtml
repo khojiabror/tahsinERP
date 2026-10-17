@@ -3,8 +3,8 @@
     ViewBag.Title = "Yaratish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     using (Html.BeginForm("Create", "Customer", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
@@ -35,11 +35,6 @@
                 <div class="content-body">
                     <!-- app invoice View Page -->
                     <section class="basic-select2">
-                        <div class="invoice-create-btn mb-1">
-                            <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Customer/UploadWithExcel'">
-                                <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali xaridor qo'shish</span>
-                            </button>
-                        </div>
                         <div class="row">
                             <!-- invoice view page -->
                             <div class="col-xl-9 col-md-8 col-12">
@@ -121,9 +116,5 @@
             </div>
         </div>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
 

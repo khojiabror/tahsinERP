@@ -8,11 +8,8 @@
     var totalReceivable = Model.CustomerReceivables != null ? Model.CustomerReceivables.Sum(x => x.ReceivableAmount) : 0m;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "CRMDashboard") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SOrder") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SContract") ||
-     tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "SalesInvoices"))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -493,10 +490,10 @@
                     return;
                 }
 
-                var contractsLabels = [ @Html.Raw(Model.ContractsByMonth != null && Model.ContractsByMonth.Any() ? string.Join(",", Model.ContractsByMonth.Select(x => "'" + x.Label + "'")) : "''") ];
+                var contractsLabels = @Html.Raw(Json.Encode((Model.ContractsByMonth?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
                 var contractsSeries = [ @Html.Raw(Model.ContractsByMonth != null && Model.ContractsByMonth.Any() ? string.Join(",", Model.ContractsByMonth.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
 
-                var ordersLabels = [ @Html.Raw(Model.OrdersByMonth != null && Model.OrdersByMonth.Any() ? string.Join(",", Model.OrdersByMonth.Select(x => "'" + x.Label + "'")) : "''") ];
+                var ordersLabels = @Html.Raw(Json.Encode((Model.OrdersByMonth?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
                 var ordersSeries = [ @Html.Raw(Model.OrdersByMonth != null && Model.OrdersByMonth.Any() ? string.Join(",", Model.OrdersByMonth.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
 
                 if (contractsLabels.length && contractsSeries.length) {
@@ -525,7 +522,7 @@
                     document.querySelector("#ordersByMonthChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
                 }
 
-                var fulfillmentLabels = [ @Html.Raw(Model.OrderFulfillmentStatus != null && Model.OrderFulfillmentStatus.Any() ? string.Join(",", Model.OrderFulfillmentStatus.Select(x => "'" + x.Label.Replace("'", "\\'") + "'")) : "''") ];
+                var fulfillmentLabels = @Html.Raw(Json.Encode((Model.OrderFulfillmentStatus?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
                 var fulfillmentSeries = [ @Html.Raw(Model.OrderFulfillmentStatus != null && Model.OrderFulfillmentStatus.Any() ? string.Join(",", Model.OrderFulfillmentStatus.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
                 if (fulfillmentSeries.length && fulfillmentSeries.some(function(v){ return v > 0; })) {
                     new ApexCharts(document.querySelector("#orderFulfillmentChart"), {
@@ -539,7 +536,7 @@
                     document.querySelector("#orderFulfillmentChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
                 }
 
-                var statusLabels = [ @Html.Raw(Model.ContractCompletionStatus != null && Model.ContractCompletionStatus.Any() ? string.Join(",", Model.ContractCompletionStatus.Select(x => "'" + x.Label.Replace("'", "\\'") + "'")) : "''") ];
+                var statusLabels = @Html.Raw(Json.Encode((Model.ContractCompletionStatus?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
                 var statusSeries = [ @Html.Raw(Model.ContractCompletionStatus != null && Model.ContractCompletionStatus.Any() ? string.Join(",", Model.ContractCompletionStatus.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
                 if (statusSeries.length && statusSeries.some(function(v){ return v > 0; })) {
                     new ApexCharts(document.querySelector("#contractStatusChart"), {
@@ -553,7 +550,7 @@
                     document.querySelector("#contractStatusChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
                 }
 
-                var topCustLabels = [ @Html.Raw(Model.TopCustomersByOrderAmount != null && Model.TopCustomersByOrderAmount.Any() ? string.Join(",", Model.TopCustomersByOrderAmount.Select(x => "'" + (x.CustomerName ?? "").Replace("'", "\\'").Replace("\"", "\\\"") + "'")) : "''") ];
+                var topCustLabels = @Html.Raw(Json.Encode((Model.TopCustomersByOrderAmount?.Select(x => x.CustomerName ?? "") ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
                 var topCustSeries = [ @Html.Raw(Model.TopCustomersByOrderAmount != null && Model.TopCustomersByOrderAmount.Any() ? string.Join(",", Model.TopCustomersByOrderAmount.Select(x => ((double)x.TotalAmount).ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
                 function formatSumma(val) {
                     var n = Number(val);
@@ -617,8 +614,4 @@
             });
         </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

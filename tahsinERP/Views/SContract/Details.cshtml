@@ -4,8 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var type = ViewBag.Type;
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
+@* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
+@{
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -55,7 +55,7 @@
                                                 </div>
                                             </section>
                                             <h4 class="text-primary">Shartnoma  ma'lumotlari</h4>
-                                            @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Customer", "Details"))
+                                            @if (tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, "Customer", "Details", false))
                                             {
                                                 <div class="mb-2">
                                                     <a href="@Url.Action("Customer", "Reconciliation", new { id = Model.CustomerID, contractId = Model.ID })" class="btn btn-sm btn-outline-primary">
@@ -193,7 +193,7 @@
                                                     <div class="card">
                                                         <div class="card-header d-flex justify-content-between align-items-center">
                                                             <h4 class="card-title">Bog'langan buyurtmalar</h4>
-                                                            @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                                                            @if (tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString(), true))
                                                             {
                                                                 <a href="@Url.Action("ManageOrders", "SContract", new { contractID = Model.ID })" class="btn btn-sm btn-primary">
                                                                     <i class="bx bx-link"></i> Buyurtmalarni boshqarish
@@ -340,8 +340,4 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

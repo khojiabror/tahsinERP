@@ -4,6 +4,8 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -41,92 +43,91 @@ namespace tahsinERP.Controllers
 
                 var today = DateTime.Now.Date;
 
-                // ——— Shartnomalar ———
-                var contracts = db.S_CONTRACTS
-                    .Include(c => c.CUSTOMER)
-                    .Where(c => c.IsDeleted != true)
-                    .ToList();
+                // KPI va ro'yxatlar SQL'da hisoblanadi (CRM-P01/P02): avval butun S_CONTRACTS/S_ORDERS/
+                // SORDER_DELIVERY_SCHEDULE/SALES_INVOICES jadvallari kuzatuv bilan yuklanib, xotirada sanalardi,
+                // "bajarilgan shartnoma" esa har shartnomaga alohida so'rov edi.
+                // Bekor qilingan invoyslar hisobga olinmaydi, davr yuqori chegarasi yarim ochiq (CRM-B07).
+                var toExclusive = to.AddDays(1);
+                var activeInvoices = db.SALES_INVOICES.AsNoTracking().Active();
 
-                model.TotalContracts = contracts.Count;
-                model.ContractsOverdue = contracts.Count(c => c.DueDate < today);
-                model.ContractsCompleted = contracts.Count(c => db.SALES_INVOICES.Any(inv => inv.ContractID == c.ID));
-                model.ContractsTotalAmount = (decimal)(contracts.Sum(c => c.Amount) ?? 0);
+                // ——— Shartnomalar ———
+                var contractsQ = db.S_CONTRACTS.AsNoTracking().Where(c => c.IsDeleted != true);
+                model.TotalContracts = contractsQ.Count();
+                model.ContractsOverdue = contractsQ.Count(c => c.DueDate < today);
+                model.ContractsCompleted = contractsQ.Count(c => activeInvoices.Any(inv => inv.ContractID == c.ID));
+                model.ContractsTotalAmount = (decimal)(contractsQ.Sum(c => c.Amount) ?? 0);
 
                 // ——— Buyurtmalar ———
-                var orders = db.S_ORDERS
-                    .Include(o => o.CUSTOMER)
-                    .Include(o => o.CURRENCy1)
-                    .Where(o => o.IsDeleted != true)
-                    .ToList();
-
-                model.TotalOrders = orders.Count;
-                var orderIdsWithInvoice = db.SALES_INVOICES.Where(inv => inv.OrderID != null).Select(inv => inv.OrderID.Value).Distinct().ToHashSet();
-                model.OrdersWithInvoice = orders.Count(o => orderIdsWithInvoice.Contains(o.ID));
-                model.OrdersWithoutInvoice = orders.Count(o => !orderIdsWithInvoice.Contains(o.ID));
-                model.OrdersTotalAmount = (decimal)(orders.Sum(o => o.Amount) ?? 0);
+                var ordersQ = db.S_ORDERS.AsNoTracking().Where(o => o.IsDeleted != true);
+                model.TotalOrders = ordersQ.Count();
+                model.OrdersWithInvoice = ordersQ.Count(o => activeInvoices.Any(inv => inv.OrderID == o.ID));
+                model.OrdersWithoutInvoice = model.TotalOrders - model.OrdersWithInvoice;
+                model.OrdersTotalAmount = (decimal)(ordersQ.Sum(o => o.Amount) ?? 0);
 
                 // Yetkazib berish rejasi bo'yicha kechikkan (DeliveryDate o'tgan, QtyShipped < QtyPlanned)
-                var deliverySchedules = db.SORDER_DELIVERY_SCHEDULE
-                    .Include(s => s.S_ORDERS)
-                    .Include(s => s.S_ORDERS.CUSTOMER)
-                    .Include(s => s.PRODUCT)
-                    .Where(s => s.S_ORDERS != null && (s.S_ORDERS.IsDeleted == false || s.S_ORDERS.IsDeleted == null))
-                    .ToList();
-                var deliveryOverdue = deliverySchedules
-                    .Where(s => s.DeliveryDate < today && s.QtyShipped < s.QtyPlanned)
+                var deliveryOverdueQ = db.SORDER_DELIVERY_SCHEDULE.AsNoTracking()
+                    .Where(s => s.S_ORDERS != null && (s.S_ORDERS.IsDeleted == false || s.S_ORDERS.IsDeleted == null)
+                        && s.DeliveryDate < today && s.QtyShipped < s.QtyPlanned);
+                model.OrdersDeliveryOverdue = deliveryOverdueQ.Count();
+                model.DeliveryOverdueList = deliveryOverdueQ
+                    .OrderBy(s => s.DeliveryDate)
+                    .Take(50)
+                    .Select(s => new
+                    {
+                        s.ID,
+                        s.SOrderID,
+                        OrderNo = s.S_ORDERS.OrderNo,
+                        CustomerName = s.S_ORDERS.CUSTOMER.Name,
+                        PNo = s.PRODUCT.PNo,
+                        ProductName = s.PRODUCT.Name,
+                        s.DeliveryDate,
+                        s.QtyPlanned,
+                        s.QtyShipped
+                    })
+                    .ToList()
                     .Select(s => new CRMDeliveryOverdueItem
                     {
                         ScheduleId = s.ID,
                         OrderId = s.SOrderID ?? 0,
-                        OrderNo = s.S_ORDERS?.OrderNo ?? "",
-                        CustomerName = s.S_ORDERS?.CUSTOMER?.Name ?? "",
-                        ProductName = s.PRODUCT?.PNo ?? s.PRODUCT?.Name ?? "",
+                        OrderNo = s.OrderNo ?? "",
+                        CustomerName = s.CustomerName ?? "",
+                        ProductName = s.PNo ?? s.ProductName ?? "",
                         DeliveryDate = s.DeliveryDate,
                         QtyPlanned = s.QtyPlanned,
                         QtyShipped = s.QtyShipped,
                         DaysOverdue = (today - s.DeliveryDate.Date).Days
                     })
-                    .OrderByDescending(x => x.DaysOverdue)
-                    .Take(50)
                     .ToList();
-                model.DeliveryOverdueList = deliveryOverdue;
-                model.OrdersDeliveryOverdue = deliverySchedules.Count(s => s.DeliveryDate < today && s.QtyShipped < s.QtyPlanned);
 
-                // ——— Invoyslar ———
-                var invoices = db.SALES_INVOICES
-                    .Include(i => i.CUSTOMER)
-                    .ToList();
-                model.TotalInvoices = invoices.Count;
-                model.InvoicesOverdue = invoices.Count(i => i.DueDate.HasValue && i.DueDate.Value < today);
-                model.InvoicesTotalAmount = invoices.Sum(i => i.TotalAmount);
+                // ——— Invoyslar (faqat faol) ———
+                // Muddati o'tgan: to'langanlar (PAID) chiqarib tashlanadi (CRM-B18 qisman; qisman to'lov hisobga olinmaydi)
+                var invoicesOverdueQ = activeInvoices.Where(i => i.DueDate.HasValue && i.DueDate.Value < today && i.StatusCode != "PAID");
+                model.TotalInvoices = activeInvoices.Count();
+                model.InvoicesOverdue = invoicesOverdueQ.Count();
+                model.InvoicesTotalAmount = activeInvoices.Sum(i => (decimal?)i.TotalAmount) ?? 0m;
 
                 // ——— Mijozlar ———
                 model.TotalCustomers = db.CUSTOMERS.Count(c => c.IsDeleted != true);
                 var yearStart = new DateTime(today.Year, 1, 1);
-                model.CustomersWithOrdersThisYear = orders.Where(o => o.IssuedDate >= yearStart).Select(o => o.CustomerID).Distinct().Count();
+                model.CustomersWithOrdersThisYear = ordersQ.Where(o => o.IssuedDate >= yearStart).Select(o => o.CustomerID).Distinct().Count();
 
-                // ——— Grafik: shartnomalar oy bo'yicha ———
-                var contractsInRange = contracts.Where(c => c.IssuedDate >= from && c.IssuedDate <= to).ToList();
-                model.ContractsByMonth = contractsInRange
+                // ——— Grafik: shartnomalar / buyurtmalar oy bo'yicha ———
+                model.ContractsByMonth = contractsQ
+                    .Where(c => c.IssuedDate >= from && c.IssuedDate < toExclusive)
                     .GroupBy(c => new { c.IssuedDate.Year, c.IssuedDate.Month })
-                    .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
-                    .Select(g => new CRMChartPoint
-                    {
-                        Label = $"{g.Key.Year}-{g.Key.Month:D2}",
-                        Value = g.Count()
-                    })
+                    .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                    .ToList()
+                    .OrderBy(g => g.Year).ThenBy(g => g.Month)
+                    .Select(g => new CRMChartPoint { Label = $"{g.Year}-{g.Month:D2}", Value = g.Count })
                     .ToList();
 
-                // ——— Grafik: buyurtmalar oy bo'yicha ———
-                var ordersInRange = orders.Where(o => o.IssuedDate >= from && o.IssuedDate <= to).ToList();
-                model.OrdersByMonth = ordersInRange
+                model.OrdersByMonth = ordersQ
+                    .Where(o => o.IssuedDate >= from && o.IssuedDate < toExclusive)
                     .GroupBy(o => new { o.IssuedDate.Year, o.IssuedDate.Month })
-                    .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
-                    .Select(g => new CRMChartPoint
-                    {
-                        Label = $"{g.Key.Year}-{g.Key.Month:D2}",
-                        Value = g.Count()
-                    })
+                    .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                    .ToList()
+                    .OrderBy(g => g.Year).ThenBy(g => g.Month)
+                    .Select(g => new CRMChartPoint { Label = $"{g.Year}-{g.Month:D2}", Value = g.Count })
                     .ToList();
 
                 // ——— Buyurtma bajarilishi: invoys bilan / invoysiz ———
@@ -149,31 +150,35 @@ namespace tahsinERP.Controllers
                 };
 
                 // ——— Invoys yaratilmagan buyurtmalar ro'yxati ———
-                model.OrdersWithoutInvoiceList = orders
-                    .Where(o => !orderIdsWithInvoice.Contains(o.ID))
+                model.OrdersWithoutInvoiceList = ordersQ
+                    .Where(o => !activeInvoices.Any(inv => inv.OrderID == o.ID))
                     .OrderByDescending(o => o.IssuedDate)
                     .Take(30)
+                    .Select(o => new { o.ID, o.OrderNo, CustomerName = o.CUSTOMER.Name, o.IssuedDate, o.Amount, Cur = o.CURRENCy1.Shortname, o.Currency })
+                    .ToList()
                     .Select(o => new CRMOrderWithoutInvoiceItem
                     {
                         OrderId = o.ID,
                         OrderNo = o.OrderNo ?? "",
-                        CustomerName = o.CUSTOMER?.Name ?? "",
+                        CustomerName = o.CustomerName ?? "",
                         IssuedDate = o.IssuedDate,
                         Amount = (decimal?)o.Amount,
-                        CurrencyCode = o.CURRENCy1?.Shortname ?? o.Currency ?? ""
+                        CurrencyCode = o.Cur ?? o.Currency ?? ""
                     })
                     .ToList();
 
                 // ——— Muddati o'tgan shartnomalar ———
-                model.ContractsOverdueList = contracts
+                model.ContractsOverdueList = contractsQ
                     .Where(c => c.DueDate < today)
                     .OrderBy(c => c.DueDate)
                     .Take(30)
+                    .Select(c => new { c.ID, c.ContractNo, CustomerName = c.CUSTOMER.Name, c.DueDate, c.Amount })
+                    .ToList()
                     .Select(c => new CRMContractOverdueItem
                     {
                         ContractId = c.ID,
                         ContractNo = c.ContractNo ?? "",
-                        CustomerName = c.CUSTOMER?.Name ?? "",
+                        CustomerName = c.CustomerName ?? "",
                         DueDate = c.DueDate,
                         DaysOverdue = (today - c.DueDate.Date).Days,
                         Amount = (decimal?)c.Amount
@@ -181,15 +186,16 @@ namespace tahsinERP.Controllers
                     .ToList();
 
                 // ——— Muddati o'tgan invoyslar ———
-                model.InvoicesOverdueList = invoices
-                    .Where(i => i.DueDate.HasValue && i.DueDate.Value < today)
+                model.InvoicesOverdueList = invoicesOverdueQ
                     .OrderBy(i => i.DueDate)
                     .Take(30)
+                    .Select(i => new { i.ID, i.InvoiceNo, CustomerName = i.CUSTOMER.Name, i.DueDate, i.TotalAmount })
+                    .ToList()
                     .Select(i => new CRMInvoiceOverdueItem
                     {
                         InvoiceId = i.ID,
                         InvoiceNo = i.InvoiceNo ?? "",
-                        CustomerName = i.CUSTOMER?.Name ?? "",
+                        CustomerName = i.CustomerName ?? "",
                         DueDate = i.DueDate,
                         DaysOverdue = i.DueDate.HasValue ? (today - i.DueDate.Value.Date).Days : 0,
                         TotalAmount = i.TotalAmount
@@ -197,22 +203,26 @@ namespace tahsinERP.Controllers
                     .ToList();
 
                 // ——— Mijoz bo'yicha buyurtma summasi (top 10) ———
-                model.TopCustomersByOrderAmount = orders
-                    .GroupBy(o => new { o.CustomerID, Name = o.CUSTOMER?.Name ?? "" })
-                    .Select(g => new CRMCustomerOrderSum
-                    {
-                        CustomerId = g.Key.CustomerID,
-                        CustomerName = g.Key.Name,
-                        OrderCount = g.Count(),
-                        TotalAmount = (decimal)(g.Sum(o => o.Amount) ?? 0)
-                    })
-                    .OrderByDescending(x => x.TotalAmount)
+                // Eslatma (CRM-B18): summalar valyutasidan qat'i nazar qo'shiladi — konvertatsiya biznes qarorini kutmoqda
+                model.TopCustomersByOrderAmount = ordersQ
+                    .GroupBy(o => o.CustomerID)
+                    .Select(g => new { CustomerID = g.Key, OrderCount = g.Count(), Total = g.Sum(o => o.Amount) ?? 0 })
+                    .OrderByDescending(x => x.Total)
                     .Take(10)
+                    .ToList()
+                    .Select(x => new CRMCustomerOrderSum
+                    {
+                        CustomerId = x.CustomerID,
+                        CustomerName = ReferenceDataCache.NameOf(ReferenceDataCache.Customers, x.CustomerID) ?? "",
+                        OrderCount = x.OrderCount,
+                        TotalAmount = (decimal)x.Total
+                    })
                     .ToList();
 
                 // ——— Mijozlar bo'yicha haqqimiz (shartnoma kesimida, expand/collapse uchun) ———
                 Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
                 var asOfDate = to;
+                var asOfExclusive = to.AddDays(1);
                 DateTime? latestOpeningDate = null;
                 try
                 {
@@ -231,7 +241,7 @@ namespace tahsinERP.Controllers
                 }
 
                 var receivableInvoices = db.SALES_INVOICES
-                    .Where(i => i.InvoiceDate <= asOfDate
+                    .Where(i => i.InvoiceDate < asOfExclusive
                         && (!latestOpeningDate.HasValue || i.InvoiceDate > latestOpeningDate.Value)
                         && (i.StatusCode == null || (i.StatusCode != "CANCELED" && i.StatusCode != "CANCELLED")))
                     .Select(i => new
@@ -287,7 +297,7 @@ namespace tahsinERP.Controllers
                         .ToDictionary(x => x.ID, x => Tuple.Create(normalize(x.ContractNo), (int?)x.ID));
 
                 var receiptCandidates = db.FIN_TRANSACTIONS
-                    .Where(t => t.TxnDate <= asOfDate
+                    .Where(t => t.TxnDate < asOfExclusive
                         && (!latestOpeningDate.HasValue || t.TxnDate > latestOpeningDate.Value)
                         && (t.IsDeleted == null || t.IsDeleted == false)
                         && t.SourceDocType != "SalesInvoice"
@@ -415,8 +425,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                var customerNames = db.CUSTOMERS
-                    .Where(c => c.IsDeleted != true)
+                var customerNames = ReferenceDataCache.Get(ReferenceDataCache.Customers)
                     .ToDictionary(c => c.ID, c => c.Name ?? "Noma'lum");
                 var contractNosById = contractMetaById.ToDictionary(x => x.Key, x => x.Value.Item1);
 
