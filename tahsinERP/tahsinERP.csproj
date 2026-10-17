@@ -1050,6 +1050,8 @@
     <Compile Include="Services\ReconciliationAdjustmentService.cs" />
     <Compile Include="Services\HR\EmployeeTenureService.cs" />
     <Compile Include="Services\HR\HrLookups.cs" />
+    <Compile Include="Services\HR\HrPayrollCalculator.cs" />
+    <Compile Include="Services\HR\PieceRateTariffResolver.cs" />
     <Compile Include="Services\HR\TimesheetLineAccessor.cs" />
     <Compile Include="Services\HtmlToDocxConverter.cs" />
     <Compile Include="Services\IDocumentTemplateService.cs" />
