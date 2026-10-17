@@ -21,28 +21,30 @@ namespace tahsinERP.Services
                 || sourceDocType.Equals("SalesInvoice", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static DateTime? GetLatestOpeningDate(DBTHSNEntities db, DateTime asOfDate)
+        /// <summary>
+        /// Shartnoma opening'larining (FIN_OPENING_CONTRACT_BALANCES) shu turdagi eng so'nggi sanasi <= asOf.
+        /// FIN-B09: avval FIN_BALANCE_SNAPSHOTS'dan olinardi - u yerdagi sana shartnoma qatorlari sanasiga
+        /// to'g'ri kelmasa, opening umuman topilmasdi.
+        /// </summary>
+        private static DateTime? GetLatestOpeningDate(DBTHSNEntities db, DateTime asOfDate, byte balanceType)
         {
-            return db.FIN_BALANCE_SNAPSHOTS
-                .Where(s => (s.SourceType == "OpeningBalance" || s.SourceType == null) && s.SnapshotDate <= asOfDate)
-                .Select(s => (DateTime?)s.SnapshotDate)
-                .OrderByDescending(x => x)
-                .FirstOrDefault();
+            var day = asOfDate.Date;
+            return db.FIN_OPENING_CONTRACT_BALANCES
+                .Where(x => x.BalanceType == balanceType && x.SnapshotDate <= day)
+                .Select(x => (DateTime?)x.SnapshotDate)
+                .Max();
         }
 
-        private static OpeningContractBalanceLite GetOpeningContractBalance(DBTHSNEntities db, DateTime asOfDate, byte balanceType, int counterpartyId, int contractId, string contractNo)
+        private static OpeningContractBalanceLite GetOpeningContractBalance(DBTHSNEntities db, DateTime openingDate, byte balanceType, int counterpartyId, int contractId, string contractNo)
         {
-            var latestDate = GetLatestOpeningDate(db, asOfDate);
-            if (!latestDate.HasValue) return null;
-
             var contractNoNorm = (contractNo ?? "").Trim().ToUpperInvariant();
             var rows = db.Database.SqlQuery<OpeningContractBalanceLite>(
-                "SELECT TOP 1 TotalAmount, PaidAmount, Amount FROM FIN_OPENING_CONTRACT_BALANCES " +
+                "SELECT TOP 1 Amount FROM FIN_OPENING_CONTRACT_BALANCES " +
                 "WHERE SnapshotDate = @p0 AND BalanceType = @p1 AND CounterpartyID = @p2 " +
                 "AND ((ContractID IS NOT NULL AND ContractID = @p3) " +
                 "OR (@p4 <> '' AND UPPER(LTRIM(RTRIM(ISNULL(ContractNo,'')))) = @p4) " +
                 "OR (@p3 IS NULL AND ContractID IS NULL AND ISNULL(ContractNo,'') = ''))",
-                new SqlParameter("@p0", latestDate.Value.Date),
+                new SqlParameter("@p0", openingDate.Date),
                 new SqlParameter("@p1", balanceType),
                 new SqlParameter("@p2", counterpartyId),
                 new SqlParameter("@p3", contractId),
@@ -68,33 +70,34 @@ namespace tahsinERP.Services
                 AgreementInfo = $"Shartnoma №{contractNo} — xarid-xo'jalik faoliyati bo'yicha o'zaro hisob-kitoblar"
             };
 
-            var invoices = db.P_INVOICES
-                .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
+            // FIN-B07: opening bo'lsa - opening qoldig'i o'z sanasida, keyin faqat shu sanadan keyingi harakatlar
+            // (avval opening + butun tarix qo'shilib, opening'gacha bo'lgan tarix ikki marta hisoblanardi).
+            var openingDate = GetLatestOpeningDate(db, asOfDate, 2);
+            var invoiceQuery = db.P_INVOICES
+                .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false));
+            if (openingDate.HasValue)
+            {
+                var od = openingDate.Value;
+                invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate > od);
+            }
+            var invoices = invoiceQuery
                 .OrderBy(i => i.InvoiceDate)
                 .Select(i => new { i.ID, i.InvoiceNo, i.InvoiceDate, i.Amount })
                 .ToList();
 
-            // Xarid uchun QQS bilan summa: avvalo invoysga bog'langan kirimlar TotalPrice (odatda QQS bilan),
-            // bo'lmasa P_INVOICES.Amount fallback.
-            var invoiceIds = invoices.Select(i => i.ID).ToList();
-            var incomeTotalsByInvoice = invoiceIds.Count == 0
-                ? new Dictionary<int, decimal>()
-                : db.INCOMES
-                    .Where(inc => inc.InvoiceID.HasValue
-                        && invoiceIds.Contains(inc.InvoiceID.Value)
-                        && inc.IsDeleted != true
-                        && inc.TotalPrice.HasValue)
-                    .GroupBy(inc => inc.InvoiceID.Value)
-                    .Select(g => new { InvoiceID = g.Key, Total = g.Sum(x => x.TotalPrice.Value) })
-                    .ToList()
-                    .ToDictionary(x => x.InvoiceID, x => Convert.ToDecimal(x.Total));
+            // Xarid summasi - yagona qoida (FIN-B08): kirimlar TotalPrice (odatda QQS bilan), bo'lmasa P_INVOICES.Amount.
+            var incomeTotalsByInvoice = Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, invoiceQuery, asOfDate);
 
             var invIdSet = new HashSet<int>(invoices.Select(i => i.ID));
-            var payCandidates = db.FIN_TRANSACTIONS
+            var payQuery = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 2 && t.CounterpartyID == supplierId && t.TxnDate <= asOfDate
-                    && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 2)
-                .OrderBy(t => t.TxnDate)
-                .ToList();
+                    && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 2);
+            if (openingDate.HasValue)
+            {
+                var od = openingDate.Value;
+                payQuery = payQuery.Where(t => t.TxnDate > od);
+            }
+            var payCandidates = payQuery.OrderBy(t => t.TxnDate).ToList();
 
             var contractNoNorm = (contractNo ?? "").Trim();
             // Naqd to'lovlar FIN dan: invoys ID si shu shartnoma invoyslariga bog'langan (tur qanday bo'lishidan qat'iy nazarda tutmasdan),
@@ -112,11 +115,13 @@ namespace tahsinERP.Services
             }).OrderBy(t => t.TxnDate).ToList();
 
             var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
-            var opening = GetOpeningContractBalance(db, asOfDate, 2, supplierId, contractId, contractNo);
+            var opening = openingDate.HasValue
+                ? GetOpeningContractBalance(db, openingDate.Value, 2, supplierId, contractId, contractNo)
+                : null;
 
             if (opening != null && opening.Amount != 0)
             {
-                allItems.Add((asOfDate.Date, "open",
+                allItems.Add((openingDate.Value.Date, "open",
                     "Opening balansdan boshlangan qarzdorlik",
                     0, opening.Amount, opening.Amount, 0));
             }
@@ -211,8 +216,15 @@ namespace tahsinERP.Services
                 AgreementInfo = $"Shartnoma №{contractNo} — sotuv faoliyati bo'yicha o'zaro hisob-kitoblar"
             };
 
-            var invoices = db.SALES_INVOICES
-                .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= asOfDate)
+            var openingDate = GetLatestOpeningDate(db, asOfDate, 1);
+            var invoiceQuery = db.SALES_INVOICES
+                .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= asOfDate);
+            if (openingDate.HasValue)
+            {
+                var od = openingDate.Value;
+                invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate > od);
+            }
+            var invoices = invoiceQuery
                 .OrderBy(i => i.InvoiceDate)
                 .Select(i => new
                 {
@@ -227,11 +239,15 @@ namespace tahsinERP.Services
             var invIdSet = new HashSet<long>(invoices.Select(i => i.ID));
             var contractNoNorm = (contractNo ?? "").Trim();
 
-            var payCandidates = db.FIN_TRANSACTIONS
+            var customerPayQuery = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 1 && t.CounterpartyID == customerId && t.TxnDate <= asOfDate
-                    && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 1)
-                .OrderBy(t => t.TxnDate)
-                .ToList();
+                    && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 1);
+            if (openingDate.HasValue)
+            {
+                var od = openingDate.Value;
+                customerPayQuery = customerPayQuery.Where(t => t.TxnDate > od);
+            }
+            var payCandidates = customerPayQuery.OrderBy(t => t.TxnDate).ToList();
 
             var payments = payCandidates.Where(t =>
             {
@@ -246,11 +262,13 @@ namespace tahsinERP.Services
             }).OrderBy(t => t.TxnDate).ToList();
 
             var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
-            var opening = GetOpeningContractBalance(db, asOfDate, 1, customerId, contractId, contractNo);
+            var opening = openingDate.HasValue
+                ? GetOpeningContractBalance(db, openingDate.Value, 1, customerId, contractId, contractNo)
+                : null;
 
             if (opening != null && opening.Amount != 0)
             {
-                allItems.Add((asOfDate.Date, "open",
+                allItems.Add((openingDate.Value.Date, "open",
                     "Opening balansdan boshlangan haqqimiz",
                     opening.Amount, 0, 0, opening.Amount));
             }
@@ -324,8 +342,6 @@ namespace tahsinERP.Services
 
         private class OpeningContractBalanceLite
         {
-            public decimal TotalAmount { get; set; }
-            public decimal PaidAmount { get; set; }
             public decimal Amount { get; set; }
         }
 
