@@ -722,16 +722,10 @@
     <Compile Include="Models\SHOP.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\SHOP_PLANNED_DTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\SORDER_DELIVERY_SCHEDULE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\sp_Fin_CashSummary_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\sp_Norm_PreviewCutMaterial_Result.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\STD_COMPANY_STANDARDS.cs">
@@ -798,21 +792,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\V_FIN_PL_PLAN_VS_FACT_MONTHLY.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\V_TANNARX_ACTUAL_ADMIN_EXPENSES.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\V_TANNARX_ACTUAL_FINISHED_PRODUCT_TRANSPORT.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\V_TANNARX_ACTUAL_LABOR_COSTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\V_TANNARX_ACTUAL_MATERIAL_COSTS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\V_TANNARX_ACTUAL_MATERIAL_TRANSPORT.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Warehouse.cs">
