@@ -82,9 +82,7 @@
                                         <td>@line.PositionName</td>
                                         @for (int day = 1; day <= daysInMonth; day++)
                                         {
-                                            var propertyName = $"Day{day:D2}Hours";
-                                            var property = typeof(tahsinERP.ViewModels.HR.HrTimesheetLineViewModel).GetProperty(propertyName);
-                                            var hours = property?.GetValue(line) as decimal?;
+                                            var hours = tahsinERP.Services.HR.TimesheetLineAccessor.GetHours(line, day);
                                             <td style="text-align: center;">@(hours?.ToString("F1") ?? "0")</td>
                                         }
                                         <td style="text-align: center;">@line.TotalWorkedDays.ToString("F1")</td>

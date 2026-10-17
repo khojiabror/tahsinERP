@@ -1,0 +1,147 @@
+@model tahsinERP.ViewModels.HR.HrPieceRateGridEntryViewModel
+@*
+    GridCreate va GridEdit uchun umumiy grid (HRM-D14). Qatorlar va spravochniklar JSON'dan
+    Scripts/hr/piece-rate-grid.js orqali quriladi (HRM-P06, HRM-S04, HRM-B14).
+    ViewBag.GridMode: "create" | "edit"; ViewBag.GridDataJson va ViewBag.GridRowsJson — controller'da HTML-xavfsiz serializatsiya qilingan.
+*@
+@{
+    bool isEdit = (ViewBag.GridMode as string) == "edit";
+    string action = isEdit ? "GridEdit" : "GridCreate";
+}
+<div class="app-content content">
+    <div class="content-wrapper">
+        <div class="content-body">
+            @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+            @if (TempData["Warning"] != null) { <div class="alert alert-warning">@TempData["Warning"]</div> }
+            @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+            <div class="card mb-1">
+                <div class="card-body">
+                    <h4 class="mb-1">@(isEdit ? "Ishbay grid tahrirlash" : "Ishbay grid kiritish")</h4>
+                    <div class="form-row">
+                        <div class="col-md-2">
+                            <label>Yil</label>
+                            <input id="yearPick" type="number" class="form-control" value="@Model.Year" min="2000" max="2100" />
+                        </div>
+                        <div class="col-md-2">
+                            <label>Oy</label>
+                            <select id="monthPick" class="form-control">
+                                @for (int m = 1; m <= 12; m++)
+                                {
+                                    <option value="@m" @(Model.Month == m ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-primary" id="reloadMonthBtn"><i class="bx bx-refresh"></i> Oyni qo'llash</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @using (Html.BeginForm(action, "HrPieceRateTimesheets", FormMethod.Post, new { id = "pieceRateGridForm" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Year)
+                @Html.HiddenFor(m => m.Month)
+                @Html.HiddenFor(m => m.OrgUnitID)
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="gridTable">
+                        <thead>
+                            <tr class="thead-light">
+                                <th>Xodim</th><th>Mahsulot</th><th>Operatsiya</th><th>Sana</th><th>Miqdor</th><th>Tarif</th><th>Summa</th>
+                                <th class="text-center" style="min-width:100px;">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="mt-1">
+                    <button type="button" class="btn btn-outline-success" id="addRowBtn"><i class="bx bx-plus"></i> Yangi qator qo'shish</button>
+                </div>
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> Saqlash</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">Orqaga</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    #gridTable .freeze-emp { position: sticky; left: 0; background: #fff; z-index: 4; min-width: 220px; }
+    #gridTable thead th:first-child { position: sticky; left: 0; background: #f8f9fa; z-index: 8; min-width: 220px; }
+</style>
+
+<script src="~/Scripts/hr/piece-rate-grid.js"></script>
+<script>
+    (function () {
+        var gridData = @Html.Raw(ViewBag.GridDataJson);
+        var gridRows = @Html.Raw(ViewBag.GridRowsJson);
+        var isEdit = @(isEdit ? "true" : "false");
+        var editUrl = '@Url.Action("EditWorkEntry")';
+        var deleteUrl = '@Url.Action("DeleteGridEntry")';
+        var year = @Model.Year, month = @Model.Month;
+        var orgUnitId = @(Model.OrgUnitID.HasValue ? Model.OrgUnitID.Value.ToString() : "null");
+
+        function deleteGridEntry(id) {
+            if (!confirm("O'chirilsinmi?")) return;
+            var token = document.querySelector('#pieceRateGridForm input[name="__RequestVerificationToken"]');
+            if (!token) { alert('Token topilmadi'); return; }
+            var body = new URLSearchParams();
+            body.append('id', id);
+            body.append('year', year);
+            body.append('month', month);
+            body.append('__RequestVerificationToken', token.value);
+            if (orgUnitId !== null) body.append('orgUnitId', orgUnitId);
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: body.toString(),
+                credentials: 'same-origin'
+            }).then(function (r) {
+                if (r.ok || r.status === 302) window.location.reload();
+                else alert("O'chirishda xatolik");
+            }).catch(function () { alert('Tarmoq xatosi'); });
+        }
+
+        var grid = new PieceRateGrid({
+            data: gridData,
+            tbody: '#gridTable tbody',
+            renderExistingActions: function (td, row) {
+                var qs = '?id=' + row.entryId + '&year=' + year + '&month=' + month + (orgUnitId !== null ? '&orgUnitId=' + orgUnitId : '');
+                var a = document.createElement('a');
+                a.href = editUrl + qs;
+                a.className = 'btn btn-sm btn-outline-primary mb-0';
+                a.title = 'Tahrirlash';
+                a.innerHTML = '<i class="bx bx-edit"></i>';
+                td.appendChild(a);
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn btn-sm btn-outline-danger mb-0 ml-1';
+                b.title = "O'chirish";
+                b.innerHTML = '<i class="bx bx-trash"></i>';
+                b.addEventListener('click', function () { deleteGridEntry(row.entryId); });
+                td.appendChild(b);
+            }
+        });
+        grid.render(gridRows);
+
+        document.getElementById('addRowBtn').addEventListener('click', function () {
+            var y = document.getElementById('yearPick').value;
+            var m = document.getElementById('monthPick').value.toString();
+            if (m.length < 2) m = '0' + m;
+            grid.addRow({ workDate: y + '-' + m + '-01' });
+        });
+
+        document.getElementById('reloadMonthBtn').addEventListener('click', function () {
+            var y = document.getElementById('yearPick').value;
+            var m = document.getElementById('monthPick').value;
+            var url = '@Url.Action(action)' + '?year=' + encodeURIComponent(y) + '&month=' + encodeURIComponent(m);
+            if (orgUnitId !== null) url += '&orgUnitId=' + encodeURIComponent(orgUnitId);
+            window.location.href = url;
+        });
+    })();
+</script>
