@@ -4,9 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "HrPieceRateTariffs"))
-{
-    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTariffs");
+@* Ruxsat controller'da tekshiriladi (HRM-M04: view ichidagi Response.Redirect olib tashlandi) *@
+    @{ bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTariffs"); }
 
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -145,9 +144,4 @@
             });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
 

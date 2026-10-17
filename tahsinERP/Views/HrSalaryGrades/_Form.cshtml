@@ -4,8 +4,7 @@
     bool isEdit = ViewBag.IsEdit == true;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrSalaryGrades"))
-{
+@* Ruxsat controller'da tekshiriladi (HRM-M04: view ichidagi Response.Redirect olib tashlandi) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -111,9 +110,4 @@
             $('.select2').select2({ width: '100%' });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
 

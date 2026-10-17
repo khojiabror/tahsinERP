@@ -6,8 +6,7 @@
     bool changePermit = RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll");
 }
 
-@if (RoleHelper.IsViewPermitted(User.Identity.Name, "HrPayroll"))
-{
+@* Ruxsat controller'da tekshiriladi (HRM-M04: view ichidagi Response.Redirect olib tashlandi) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -186,8 +185,3 @@
             })(window.jQuery || window.$j);
         </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
