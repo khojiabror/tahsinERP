@@ -18,6 +18,8 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class InventoryReportsController : Controller
     {
+        private const int DohCardLimit = 50;
+
         // Olish so'rovi: InventoryReports/Dashboard
         // Barcha agregatlar SQL'da (SRM-P01/P08): avval butun tarixdagi kirim/chiqim qatorlari va to'liq
         // EXPENSES entity'lari xotiraga yuklanib, O(G×E) tsikl bilan hisoblanardi.
@@ -214,6 +216,13 @@ namespace tahsinERP.Controllers
                         })
                         .ToList();
                 }
+
+                // Yuqori/past DOH kartalari sahifalashsiz jadval — eng muhim 50 tasi tartiblab ko'rsatiladi
+                // (to'liq ro'yxat pastdagi DataTable'da). Avval barcha mos qatorlar tartibsiz chiqarilardi.
+                ViewBag.HighDohTotal = model.HighDOHItems.Count;
+                ViewBag.LowDohTotal = model.LowDOHItems.Count;
+                model.HighDOHItems = model.HighDOHItems.OrderByDescending(i => i.PlannedDOH).Take(DohCardLimit).ToList();
+                model.LowDOHItems = model.LowDOHItems.OrderBy(i => i.PlannedDOH).Take(DohCardLimit).ToList();
 
                 model.StockByCategory = stocks
                     .Where(s => s.CategoryName != null)

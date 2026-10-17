@@ -99,7 +99,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-warning">Yuqori DOH (Ortiqcha zaxira)</h4>
+                                    <h4 class="card-title text-warning">Yuqori DOH (Ortiqcha zaxira)@if ((ViewBag.HighDohTotal as int? ?? 0) > Model.HighDOHItems.Count) {<small class="text-muted"> — eng yuqori @Model.HighDOHItems.Count / @ViewBag.HighDohTotal</small>}</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -146,7 +146,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-danger">Past DOH (Zaxira xavfi)</h4>
+                                    <h4 class="card-title text-danger">Past DOH (Zaxira xavfi)@if ((ViewBag.LowDohTotal as int? ?? 0) > Model.LowDOHItems.Count) {<small class="text-muted"> — eng past @Model.LowDOHItems.Count / @ViewBag.LowDohTotal</small>}</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -194,7 +194,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-success">High runner (30 kun)</h4>
+                                    <h4 class="card-title text-success">High runner (@ViewBag.RunnerDays kun)</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -238,7 +238,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-muted">Low runner (30 kun)</h4>
+                                    <h4 class="card-title text-muted">Low runner (@ViewBag.RunnerDays kun)</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">

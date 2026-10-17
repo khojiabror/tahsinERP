@@ -26,6 +26,16 @@ namespace tahsinERP.Services
             periodEndExclusive = periodStart.AddMonths(1);
         }
 
+        /// <summary>
+        /// Kirim qiymati QQS'siz: miqdor × dona narxi (INCOME_PRODUCTS.TotalPrice QQS bilan saqlanadi, chiqim esa
+        /// QQS'siz — avval ikkalasi aralashib, "summa" rejimidagi yakuniy qoldiq ma'nosiz edi, SRM-B19).
+        /// Dona narxi yo'q eski qatorlarda — TotalPrice.
+        /// </summary>
+        private static double IncomeValueWithoutVat(double amount, double? piecePrice, double? totalPrice)
+        {
+            return piecePrice.HasValue ? amount * piecePrice.Value : (totalPrice ?? 0);
+        }
+
         private static bool ContainsInventarizatsiya(string text)
         {
             return !string.IsNullOrEmpty(text)
@@ -88,7 +98,7 @@ namespace tahsinERP.Services
                                      {
                                          ProductId = g.Key,
                                          Total = g.Sum(x => x.Amount),
-                                         TotalSum = g.Sum(x => x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0))
+                                         TotalSum = g.Sum(x => x.PiecePrice != null ? x.Amount * x.PiecePrice.Value : (x.TotalPrice ?? 0))
                                      }).ToListAsync();
 
             var expenseBefore = await (from ep in db.EXPENSE_PRODUCTS
@@ -132,7 +142,7 @@ namespace tahsinERP.Services
                 {
                     x.ProductID,
                     x.Amount,
-                    Sum = (decimal)(x.TotalPrice ?? x.Amount * (x.PiecePrice ?? 0)),
+                    Sum = (decimal)IncomeValueWithoutVat(x.Amount, x.PiecePrice, x.TotalPrice),
                     IsAdjustment = IsInventarizatsiyaDoc(x.DocNo, x.Description, x.Comment, isIncome: true)
                 })
                 .ToList();
