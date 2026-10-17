@@ -552,7 +552,6 @@
     <Compile Include="Controllers\SRM\PInvoicesController.cs" />
     <Compile Include="Controllers\SRM\POrdersController.cs" />
     <Compile Include="Controllers\SRM\PRequisitionsController.cs" />
-    <Compile Include="Controllers\SRM\ProductionControlController.cs" />
     <Compile Include="Controllers\SRM\ProductionToSalesTransferController.cs" />
     <Compile Include="Controllers\SRM\PurchaseOrderTrackingController.cs" />
     <Compile Include="Controllers\SRM\SupplierBaseController.cs" />
@@ -3055,12 +3054,7 @@
     <Content Include="Views\SContract\Create.cshtml" />
     <Content Include="Views\SContract\Edit.cshtml" />
     <Content Include="Views\SContract\Delete.cshtml" />
-    <Content Include="Views\PartWRHS\Index.cshtml" />
-    <Content Include="Views\PartWRHS\Create.cshtml" />
     <Content Include="Views\Forwarder\Index.cshtml" />
-    <Content Include="Views\PartWRHS\Edit.cshtml" />
-    <Content Include="Views\PartWRHS\Details.cshtml" />
-    <Content Include="Views\PartWRHS\Delete.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_LicenseBanner.cshtml" />
     <Content Include="Views\Shared\_SafeHtml.cshtml" />
@@ -3114,7 +3108,6 @@
     <Content Include="Views\DamagedProduct\Edit.cshtml" />
     <Content Include="Views\DamagedProduct\Delete.cshtml" />
     <Content Include="Views\DamagedProduct\Details.cshtml" />
-    <Content Include="Views\PartStock\Index.cshtml" />
     <Content Include="Views\Log\Index.cshtml" />
     <Content Include="Views\Reports\Coverage.cshtml" />
     <Content Include="Views\Manual\Index.cshtml" />
@@ -3136,7 +3129,6 @@
     <Content Include="Views\Currency\Edit.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
     <Content Include="Views\ProductPlan\UploadWithExcel.cshtml" />
-    <Content Include="Views\PartStock\UploadWithExcel.cshtml" />
     <Content Include="Views\Norm\Edit.cshtml" />
     <Content Include="Views\Norm\Index.cshtml" />
     <Content Include="Views\UserEntries\Index.cshtml" />
