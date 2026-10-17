@@ -366,6 +366,7 @@
     <Compile Include="Controllers\AdminSetting\PermissionController.cs" />
     <Compile Include="Controllers\AdminSetting\PModuleController.cs" />
     <Compile Include="Controllers\Engineering\ProductController.cs" />
+    <Compile Include="Controllers\Engineering\ProductImageController.cs" />
     <Compile Include="Controllers\ProductionProcessController.cs" />
     <Compile Include="Controllers\MES\ProductPlanController.cs" />
     <Compile Include="Controllers\ReconciliationController.cs" />

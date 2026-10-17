@@ -331,13 +331,14 @@ namespace tahsinERP.Services
             CollectNodes(root, nodes);
             var productIds = nodes.Select(n => n.ProductId).Distinct().ToList();
 
+            // Rasm baytlari yuklanmaydi — faqat qaysi mahsulotda rasm borligi; tugun rasmni URL orqali oladi
+            // (keshlanadi, kichraytirilgan; avval har tugunga base64 data-URI, MES-P23)
             var images = _db.PRODUCTIMAGES.AsNoTracking()
-                .Where(pi => productIds.Contains(pi.ProdID) && (pi.IsDeleted == null || pi.IsDeleted == false) && pi.Image != null)
-                .OrderBy(pi => pi.ID)
-                .Select(pi => new { pi.ProdID, pi.Image })
-                .ToList()
+                .Where(pi => productIds.Contains(pi.ProdID) && pi.IsDeleted != true && pi.Image != null)
                 .GroupBy(pi => pi.ProdID)
-                .ToDictionary(g => g.Key, g => "data:image/jpeg;base64," + Convert.ToBase64String(g.First().Image));
+                .Select(g => new { ProdID = g.Key, ImageID = g.Max(pi => pi.ID) })
+                .ToList()
+                .ToDictionary(x => x.ProdID, x => tahsinERP.Controllers.ProductImageController.UrlFor(x.ProdID, x.ImageID, 320));
 
             foreach (var node in nodes)
             {

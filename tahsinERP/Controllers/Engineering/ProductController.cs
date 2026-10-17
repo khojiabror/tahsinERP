@@ -163,15 +163,7 @@ namespace tahsinERP.Controllers
             if (product == null)
                 return HttpNotFound();
 
-            // Yuklash ProductImage agar mavjud
-            var productImage = await db.PRODUCTIMAGES
-                .Where(pi => pi.ProdID == id && pi.IsDeleted == false)
-                .FirstOrDefaultAsync();
-
-            if (productImage != null && productImage.Image != null)
-            {
-                ViewBag.ProductImage = Convert.ToBase64String(productImage.Image);
-            }
+            SetProductImageUrl(id);
 
             return View(product);
         }
@@ -276,15 +268,7 @@ namespace tahsinERP.Controllers
             await PopulateFormLookupsAsync(product.UnitID, product.ShopID, product.CategoryID, currentProductType);
             ViewBag.CurrentProductType = currentProductType;
 
-            // Yuklash existing image uchun display
-            var existingImage = await db.PRODUCTIMAGES
-                .Where(pi => pi.ProdID == id && pi.IsDeleted != true)
-                .FirstOrDefaultAsync();
-
-            if (existingImage != null && existingImage.Image != null)
-            {
-                ViewBag.ProductImage = Convert.ToBase64String(existingImage.Image);
-            }
+            SetProductImageUrl(id);
 
             return View(product);
         }
@@ -354,14 +338,7 @@ namespace tahsinERP.Controllers
             if (product == null)
                 return HttpNotFound();
 
-            // Yuklash ProductImage agar mavjud
-            var productImage = await db.PRODUCTIMAGES
-                .FirstOrDefaultAsync(pi => pi.ProdID == id && pi.IsDeleted != true);
-
-            if (productImage?.Image != null)
-            {
-                ViewBag.ProductImage = Convert.ToBase64String(productImage.Image);
-            }
+            SetProductImageUrl(id);
 
             return View(product);
         }
@@ -383,6 +360,15 @@ namespace tahsinERP.Controllers
                 $"{product.PNo} - maxsulotni o'chirdi");
 
             return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Rasm sahifaga base64 bo'lib qo'shilmaydi — ProductImage/Image URL'i orqali keshlanib yuklanadi (MES-P23, dublikat #24).
+        /// </summary>
+        private void SetProductImageUrl(int? productId)
+        {
+            var imageId = productId.HasValue ? ProductImageController.CurrentImageId(db, productId.Value) : null;
+            ViewBag.ProductImageUrl = imageId.HasValue ? ProductImageController.UrlFor(productId.Value, imageId.Value, 600) : null;
         }
 
         protected override void Dispose(bool disposing)
