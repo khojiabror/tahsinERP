@@ -46,8 +46,10 @@ namespace tahsinERP.Controllers.MES
                     .Select(g => new { ProductID = g.Key, Reja = g.Sum(d => d.Total) })
                     .ToListAsync();
 
-                var prodFrom = startDate.AddMonths(-6);
-                var prodTo = endDate.AddMonths(6);
+                // Avval ±6 oylik oyna yuklanardi; oy ichidagi reja kuniga bog'langan boshqa sanadagi ishlab chiqarishlar
+                // linkedProductionIds orqali baribir olinadi, shuning uchun oyning o'zi yetarli (MES-P20).
+                var prodFrom = startDate;
+                var prodToExclusive = endDate.AddDays(1);
                 var linkedProductionIds = await (
                     from qi in db.QUALITY_INSPECTION
                     join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
@@ -58,10 +60,11 @@ namespace tahsinERP.Controllers.MES
                     select qi.ProductionID.Value
                 ).Distinct().ToListAsync();
 
-                var productionCandidates = await db.PRODUCT_PRODUCTION
+                var productionCandidates = await db.PRODUCT_PRODUCTION.AsNoTracking()
                     .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
-                        && ((p.Date >= prodFrom && p.Date <= prodTo)
+                        && ((p.Date >= prodFrom && p.Date < prodToExclusive)
                             || linkedProductionIds.Contains(p.ID)))
+                    .Select(p => new { p.ID, p.ProductID, p.Date, p.Total })
                     .ToListAsync();
 
                 var candidateIds = productionCandidates.Select(p => p.ID).ToList();
@@ -85,7 +88,7 @@ namespace tahsinERP.Controllers.MES
                     .Distinct()
                     .ToList();
 
-                var products = await db.PRODUCTS
+                var products = await db.PRODUCTS.AsNoTracking()
                     .Where(p => productIds.Contains(p.ID) && p.IsDeleted == false)
                     .OrderBy(p => p.PNo)
                     .ToListAsync();
@@ -156,8 +159,10 @@ namespace tahsinERP.Controllers.MES
 
             using (var db = new DBTHSNEntities())
             {
-                var prodFromQ = startDate.AddMonths(-6);
-                var prodToQ = endDate.AddMonths(6);
+                // Avval ±6 oylik oyna yuklanardi; oy ichidagi reja kuniga bog'langan boshqa sanadagi ishlab chiqarishlar
+                // linkedProductionIds orqali baribir olinadi, shuning uchun oyning o'zi yetarli (MES-P20).
+                var prodFromQ = startDate;
+                var prodToExclusiveQ = endDate.AddDays(1);
                 var linkedProductionIdsQ = await (
                     from qi in db.QUALITY_INSPECTION
                     join pd in db.PRODUCTPLANS_DAILY on qi.ProductPlanDailyID equals pd.ID
@@ -168,10 +173,11 @@ namespace tahsinERP.Controllers.MES
                     select qi.ProductionID.Value
                 ).Distinct().ToListAsync();
 
-                var productionCandidatesQ = await db.PRODUCT_PRODUCTION
+                var productionCandidatesQ = await db.PRODUCT_PRODUCTION.AsNoTracking()
                     .Where(p => (p.IsDeleted == false || p.IsDeleted == null)
-                        && ((p.Date >= prodFromQ && p.Date <= prodToQ)
+                        && ((p.Date >= prodFromQ && p.Date < prodToExclusiveQ)
                             || linkedProductionIdsQ.Contains(p.ID)))
+                    .Select(p => new { p.ID, p.ProductID, p.Date, p.Total })
                     .ToListAsync();
 
                 var candidateIdsQ = productionCandidatesQ.Select(p => p.ID).ToList();
@@ -191,10 +197,11 @@ namespace tahsinERP.Controllers.MES
                     .ToList();
 
                 // Sifat tekshiruvi — mahsulot bo'yicha
-                var inspections = await db.QUALITY_INSPECTION
+                var inspectionEndExclusive = endDate.AddDays(1);
+                var inspections = await db.QUALITY_INSPECTION.AsNoTracking()
                     .Include(q => q.PRODUCT)
                     .Include(q => q.DEFECT_TYPES)
-                    .Where(q => q.IsDeleted == false && q.InspectionDate >= startDate && q.InspectionDate <= endDate)
+                    .Where(q => q.IsDeleted == false && q.InspectionDate >= startDate && q.InspectionDate < inspectionEndExclusive)
                     .ToListAsync();
 
                 var byProduct = inspections
