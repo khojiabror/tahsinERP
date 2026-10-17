@@ -720,6 +720,8 @@
                 url: '@Url.Action("Calculate", "Norm")',
                 type: 'POST',
                 contentType: 'application/json; charset=utf-8',
+                // CSRF header aniq beriladi (csrf.js XHR'ni o'rab olgan muhitlarda ham ishlasin)
+                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val() },
                 data: JSON.stringify(viewModel),
                 success: function (response) {
                     $('#calculateBtn').prop('disabled', false).html('<i class="bx bx-calculator"></i> Optimizatsiya qilish');
