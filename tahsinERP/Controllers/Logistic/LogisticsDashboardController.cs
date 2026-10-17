@@ -37,44 +37,58 @@ namespace tahsinERP.Controllers
                 if (direction.HasValue)
                     query = query.Where(w => w.Direction == direction.Value);
 
-                var totals = LogisticsAnalyticsService.GetTotals(query);
+                // LOG-B13: barcha summalar so'mda (CBU kursi, hujjat sanasi)
+                var money = new LogisticsMoney(db);
+                var totals = LogisticsAnalyticsService.GetTotals(query, money);
 
-                // To'langan: split'lar bilan (LOG-B04) + davrdagi qo'lda kiritilgan FIN to'lovlar
-                var paymentLookup = WaybillLedgerService.GetPaidLookup(db, query.Select(w => w.ID));
+                // To'langan: split'lar bilan (LOG-B04) + davrdagi qo'lda kiritilgan FIN to'lovlar.
+                // Yo'l varaqasiga to'langan (uning valyutasida) yo'l varaqasi sanasidagi kurs bilan so'mga —
+                // to'liq to'langan yo'l varaqasi qarzda kurs farqi qoldirmaydi.
+                var paymentLookup = WaybillLedgerService.GetPaidLookup(db, query.Select(w => w.ID), money: money);
+                var waybillInfo = await query
+                    .Select(w => new { w.ID, w.ForwarderID, w.CurrencyID, w.IssueDate })
+                    .ToListAsync();
+                var paidUzsByForwarder = waybillInfo
+                    .GroupBy(w => w.ForwarderID ?? 0)
+                    .ToDictionary(g => g.Key, g => g.Sum(w =>
+                        money.ToUzs(WaybillLedgerService.PaidOf(paymentLookup, w.ID), w.CurrencyID, w.IssueDate)));
+
                 var finQuery = WaybillLedgerService.ManualForwarderPayments(db)
                     .Where(t => t.TxnDate >= from && t.TxnDate < toExclusive);
                 if (forwarderId.HasValue)
                     finQuery = finQuery.Where(t => t.CounterpartyID == forwarderId.Value);
                 var finByForwarder = (await finQuery
-                        .GroupBy(t => t.CounterpartyID.Value)
-                        .Select(g => new { ForwarderID = g.Key, Total = g.Sum(t => t.Amount) })
+                        .GroupBy(t => new { ForwarderID = t.CounterpartyID.Value, t.CurrencyID, Day = DbFunctions.TruncateTime(t.TxnDate) })
+                        .Select(g => new { g.Key.ForwarderID, g.Key.CurrencyID, g.Key.Day, Total = g.Sum(t => t.Amount) })
                         .ToListAsync())
-                    .ToDictionary(x => x.ForwarderID, x => (double)x.Total);
-                var totalPaid = paymentLookup.Values.Sum() + finByForwarder.Values.Sum();
+                    .GroupBy(x => x.ForwarderID)
+                    .ToDictionary(g => g.Key, g => g.Sum(x => money.ToUzs(x.Total, x.CurrencyID, x.Day)));
+                var totalPaid = paidUzsByForwarder.Values.Sum() + finByForwarder.Values.Sum();
 
                 // Logistika xarajati sotuvga nisbatan (chiquvchi, sotuv invoysi bog'langan)
-                var totalSalesValue = await db.SALES_INVOICES
-                    .Where(i => query.Any(w => w.Direction == 1 && w.SalesInvoiceID == i.ID))
-                    .SumAsync(i => (decimal?)i.TotalAmount) ?? 0;
-                var outboundWithInvoiceCost = await query
-                    .Where(w => w.Direction == 1 && w.SalesInvoiceID.HasValue)
-                    .SumAsync(w => w.Amount) ?? 0;
-                var logisticsCostPercent = totalSalesValue > 0 ? outboundWithInvoiceCost / (double)totalSalesValue * 100 : 0;
+                var totalSalesValue = (await db.SALES_INVOICES
+                        .Where(i => query.Any(w => w.Direction == 1 && w.SalesInvoiceID == i.ID))
+                        .GroupBy(i => new { i.CurrencyID, Day = DbFunctions.TruncateTime(i.InvoiceDate) })
+                        .Select(g => new { g.Key.CurrencyID, g.Key.Day, Total = g.Sum(i => i.TotalAmount) })
+                        .ToListAsync())
+                    .Sum(x => money.ToUzs(x.Total, x.CurrencyID, x.Day));
+                var outboundWithInvoiceCost = (await query
+                        .Where(w => w.Direction == 1 && w.SalesInvoiceID.HasValue)
+                        .GroupBy(w => new { w.CurrencyID, Day = DbFunctions.TruncateTime(w.IssueDate) })
+                        .Select(g => new { g.Key.CurrencyID, g.Key.Day, Total = g.Sum(w => w.Amount) ?? 0 })
+                        .ToListAsync())
+                    .Sum(x => money.ToUzs(x.Total, x.CurrencyID, x.Day));
+                var logisticsCostPercent = totalSalesValue > 0 ? outboundWithInvoiceCost / totalSalesValue * 100 : 0;
 
                 // Yuk tashuvchilar (top 10) — to'langan summa yo'l varaqalari bo'yicha + FIN
-                var forwarderStats = LogisticsAnalyticsService.GetForwarderStats(db, query, 10);
-                var statIds = forwarderStats.Select(f => f.ForwarderID.Value).ToList();
-                var waybillForwarder = await query
-                    .Where(w => w.ForwarderID.HasValue && statIds.Contains(w.ForwarderID.Value))
-                    .Select(w => new { w.ID, ForwarderID = w.ForwarderID.Value })
-                    .ToListAsync();
+                var forwarderStats = LogisticsAnalyticsService.GetForwarderStats(db, query, 10, money);
                 foreach (var stat in forwarderStats)
                 {
                     var fid = stat.ForwarderID.Value;
-                    double fin;
+                    double paid, fin;
+                    paidUzsByForwarder.TryGetValue(fid, out paid);
                     finByForwarder.TryGetValue(fid, out fin);
-                    stat.TotalPaid = waybillForwarder.Where(w => w.ForwarderID == fid)
-                        .Sum(w => WaybillLedgerService.PaidOf(paymentLookup, w.ID)) + fin;
+                    stat.TotalPaid = paid + fin;
                 }
                 forwarderStats = forwarderStats.OrderByDescending(f => f.TotalCost).ToList();
 
@@ -104,7 +118,8 @@ namespace tahsinERP.Controllers
                 ViewBag.OutboundCost = totals.OutboundCost;
                 ViewBag.InternalCost = totals.InternalCost;
                 ViewBag.ForwarderStats = forwarderStats;
-                ViewBag.LaneStats = LogisticsAnalyticsService.GetLaneStats(db, query, 10);
+                ViewBag.LaneStats = LogisticsAnalyticsService.GetLaneStats(db, query, 10, money: money);
+                ViewBag.CurrencyWarning = money.Warning;
 
                 return View();
             }
@@ -118,7 +133,9 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var model = await LogisticsMonthlyReportService.BuildReportAsync(db, y, m, forwarderId);
+                var money = new LogisticsMoney(db);
+                var model = await LogisticsMonthlyReportService.BuildReportAsync(db, y, m, forwarderId, money);
+                ViewBag.CurrencyWarning = money.Warning;
                 var periodStart = new DateTime(y, m, 1);
                 var periodEnd = periodStart.AddMonths(1);
                 ViewBag.CurrencyCodes = WaybillCurrencyCodes(WaybillLedgerService.ActiveWaybills(db)
@@ -141,7 +158,10 @@ namespace tahsinERP.Controllers
 
                 ViewBag.StartDate = from.ToString("yyyy-MM-dd");
                 ViewBag.EndDate = to.ToString("yyyy-MM-dd");
-                ViewBag.LanePerformance = LogisticsAnalyticsService.GetLaneStats(db, query, withMainForwarder: true);
+                var money = new LogisticsMoney(db);
+                ViewBag.LanePerformance = LogisticsAnalyticsService.GetLaneStats(db, query, withMainForwarder: true, money: money);
+                ViewBag.CurrencyCodes = WaybillCurrencyCodes(query);
+                ViewBag.CurrencyWarning = money.Warning;
                 return View();
             }
         }
@@ -215,7 +235,10 @@ namespace tahsinERP.Controllers
                 ViewBag.EndDate = to.ToString("yyyy-MM-dd");
                 ViewBag.LaneFrom = laneFrom;
                 ViewBag.LaneTo = laneTo;
-                ViewBag.ForwarderComparison = LogisticsAnalyticsService.GetForwarderStats(db, query);
+                var money = new LogisticsMoney(db);
+                ViewBag.ForwarderComparison = LogisticsAnalyticsService.GetForwarderStats(db, query, money: money);
+                ViewBag.CurrencyCodes = WaybillCurrencyCodes(query);
+                ViewBag.CurrencyWarning = money.Warning;
                 return View();
             }
         }
@@ -237,7 +260,7 @@ namespace tahsinERP.Controllers
                 .ToListAsync();
         }
 
-        /// <summary>LOG-B13: yo'l varaqalari valyutalari (bir nechta bo'lsa view ogohlantiradi).</summary>
+        /// <summary>LOG-B13: yo'l varaqalari valyutalari (bir nechta bo'lsa view "so'mga o'girilgan" izohini chiqaradi).</summary>
         private static List<string> WaybillCurrencyCodes(IQueryable<F_WAYBILLS> waybills)
         {
             return waybills.Select(w => w.CurrencyID).Distinct().ToList()

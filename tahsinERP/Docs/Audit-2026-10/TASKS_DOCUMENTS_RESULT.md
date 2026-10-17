@@ -1,6 +1,6 @@
 # Tasks + Documents — bajarilgan ishlar (2026-10-17)
 
-Branch: `claude/opt-tasks-docs-9aa641` (core `19c07bd7` ustida), 12 ta commit, `tahsinERP-iPack` remote'iga push qilingan. Merge qilinmagan.
+Branch: `claude/opt-tasks-docs-9aa641`, 19 ta commit (2-tur — pastda), `origin` (khojiabror/tahsinERP) ga push va master'ga merge qilingan.
 
 **SQL:** barcha skriptlar 2026-10-17 da lokal `DBTHSN-IPACK` bazasida zaxiradan keyin ishga tushirildi — tafsilotlar oxirgi bo'limda.
 
@@ -67,20 +67,37 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
     Tahrirlash UI'si yo'q (Company sahifasi core'da) — hozircha SQL bilan o'rnatiladi.
   - **MAN-B01:** dasturchilar uchun "CRUD arxitekturasi" bo'limi qo'llanmadan olib tashlandi.
   - `assets/` ildizidagi 6 ta Cursor skrinshoti o'chirildi (csproj yozuvlari bilan).
-- **Sxema takliflari (EDMX yangilashni talab qiladi, `Database_Migrations/Tasks_Docs_Indexes.sql` oxirida):**
-  - DOC-P02 — table splitting.
-  - DOC-P10 — xat JSON'i alohida ustunlarga.
-  - MNT-01/TSK-B09 — ref jadvallarga `IsFinal` va `ColorHex`.
-- **Kod:**
-  - DOC-P08: rasmlarni dedupe qilish yoki faqat joriy versiyani ko'rsatish.
-  - TSK-P10: DataTables server-side.
-  - MNT-02: Dashboard JS'ni alohida faylga chiqarish.
-  - Create/Edit view juftlarini va Quill/mammoth skriptini `_Form` partial'larga birlashtirish (JobDesc bilan umumiy, HRM bilan kelishish kerak).
-  - TaskPriority/TaskStatus view'larini umumlashtirish.
-  - `OfficialLetterDataService.HtmlToPlainText` CompanyOrders'da ishlatiladi (egasi noto'g'ri).
+- **Sxema (foydalanuvchi qarori, 2026-10-18):**
+  - MNT-01/TSK-B09 — BAJARILDI (19-commit): `IsFinal`/`ColorHex` lokal bazada qo'shildi, EDMX yangilandi.
+  - DOC-P02 (table splitting) va DOC-P10 (xat JSON'i ustunlarga) — foydalanuvchi qilmaslikni tanladi; taklif `Database_Migrations/Tasks_Docs_Indexes.sql` oxirida.
+- **Kod (HRM bilan kelishuv kutilmoqda):**
+  - JobDesc'ni umumiy `docx-editor.js`, `_QuillToolbar`, `DocFileResult`, `DocumentService.NewHeader` ga ulash (#15 JobDesc qismi, #20). HRM sessiyasiga taklif yuborildi.
+  - TaskPriority/TaskStatus view'larini umumlashtirish (kichik, qilinmadi).
 - **Core uchun:**
   - `SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync` (`:237`) barcha DOC_FILES'ni blob bilan yuklaydi. Bu modul uni endi chaqirmaydi; JobDesc chaqirsa, set-based UPDATE'ga o'tkazish kerak.
-  - `RoleHelper.IsAdminOrDeveloper` umumiy qatlamda bo'lishi kerak (hozir modulda `TaskRules`).
+  - `RoleHelper.IsAdminOrDeveloper` umumiy qatlamda bo'lishi kerak (hozir modulda `TaskRules`) — core tayyorlagach nusxa olib tashlanadi.
+  - #16 DataTables eksport JS: Tasks hozircha `Scripts/srm/srm-server-table.js` dan foydalanadi (yangi nusxa yaratilmadi).
+
+## 2-tur (2026-10-18): 13–19-commitlar
+
+| # | Mazmuni |
+|---|---|
+| 13 | TSK-P10: Tasks ro'yxati DataTables server-side (`IndexData`), `ExportExcel` — filtr bo'yicha barcha qatorlar; `TaskQueries` proyeksiyasi (#4) |
+| 14 | 6-commit'da tasodifan qo'shilgan `_program files_git` (aspnet_compiler artefakti) olib tashlandi |
+| 15 | MNT-02: Dashboard grafiklari `Scripts/app/task-dashboard.js` ga |
+| 16 | DOC-P08: STD rasmlari alohida saqlanmaydi, galereya joriy .docx'dan; versiya raqami teskariligi tuzatildi |
+| 17 | #6 yagona "bajarilgan/yopilgan" qoidasi, #9 `DocFileResult`, #13 `DocumentService.NewHeader`, STD turi kod bo'yicha, `HtmlToPlainText` → `HtmlToDocxConverter` |
+| 18 | #15: letters/orders/STD Create+Edit → `_Form`/`_FormScripts`; `Scripts/app/docx-editor.js`, `Views/DocTemplates/_QuillToolbar.cshtml` |
+| 19 | MNT-01/TSK-B09: ref jadvallarda `IsFinal`, `ColorHex` (sxema + EDMX + sozlamalar formasi) |
+
+Xulq-atvor o'zgarishlari:
+- Tasks ro'yxatida qidiruv/saralash/eksport endi butun natijaga ishlaydi; "Muddati (gacha)" shu kunni ham oladi.
+- Bekor qilingan topshiriq muddati o'tgan hisoblanmaydi (lokal bazada 24 → 23).
+- STD Details galereyasi faqat joriy versiya rasmlari; Create validatsiyadan keyin matnni yo'qotmaydi.
+- Xat/buyruqda rasm fayllar brauzerda ochiladi, qolganlari yuklab olinadi.
+
+Tekshiruv: MSBuild xatosiz; modul view'lari aspnet_compiler bilan xatosiz; `TaskQueries`, status ID'lari, rasm o'qish,
+shablon generatsiyasi lokal bazada sinaldi; `docx-editor.js`/`task-dashboard.js` node'da stub bilan sinaldi. **Brauzerda sinalmagan.**
 
 ## Data-fix skriptlari (lokal bazada bajarilgan)
 

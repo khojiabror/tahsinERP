@@ -58,6 +58,7 @@ namespace tahsinERP.Models
         public Nullable<long> TTNKID { get; set; }
         public Nullable<int> SalesOrderID { get; set; }
         public Nullable<int> PurchaseOrderID { get; set; }
+        public Nullable<int> TariffID { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual F_CONTRACTS F_CONTRACTS { get; set; }

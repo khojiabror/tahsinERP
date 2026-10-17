@@ -6,7 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using OfficeOpenXml;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.DlocFifo;
@@ -369,17 +370,16 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var ws = package.Workbook.Worksheets.Add("Template");
-                ws.Cells[1, 1].Value = "ProductPNo";
-                ws.Cells[1, 2].Value = "Quantity";
-                ws.Cells[2, 1].Value = "00000001";
-                ws.Cells[2, 2].Value = 10;
-                ws.Cells[1, 1, 1, 2].Style.Font.Bold = true;
+                var ws = workbook.Worksheets.Add("Template");
+                ws.Cell(1, 1).Value = "ProductPNo";
+                ws.Cell(1, 2).Value = "Quantity";
+                ws.Cell(2, 1).Value = "00000001";
+                ws.Cell(2, 2).Value = 10;
+                ws.Range(1, 1, 1, 2).Style.Font.Bold = true;
 
-                var bytes = package.GetAsByteArray();
+                var bytes = workbook.ToByteArray();
                 return File(bytes,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     "Inventory_Adjustment_Template.xlsx");
@@ -434,11 +434,10 @@ namespace tahsinERP.Controllers
                         return View(model);
                     }
 
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                    using (var package = new ExcelPackage(model.ExcelFile.InputStream))
+                    using (var workbook = new XLWorkbook(model.ExcelFile.InputStream))
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null || worksheet.Dimension == null)
+                        var worksheet = workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null || worksheet.LastRowNumber() == 0)
                         {
                             ModelState.AddModelError("", "Excel fayl bo'sh.");
                             await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
@@ -468,8 +467,9 @@ namespace tahsinERP.Controllers
                         var parsedRows = new List<InventoryAdjustmentRow>();
                         var errorDetails = new List<string>();
                         var seenProducts = new HashSet<int>();
+                        var lastRow = worksheet.LastRowNumber();
 
-                        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                        for (int row = 2; row <= lastRow; row++)
                         {
                             var pno = cells.String(row, "productpno") ?? string.Empty;
                             var qtyValue = cells.String(row, "quantity") ?? string.Empty;

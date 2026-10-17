@@ -104,32 +104,7 @@ namespace tahsinERP.Controllers.Engineering
             ViewBag.ShowGenerateButton = missingTannarxCount > 0;
 
             // Map ga ViewModel
-            var viewModelList = tannarxList.Select(t => new TannarxIndexViewModel
-            {
-                ID = t.ID,
-                ProductID = t.ProductID,
-                ProductPNo = t.PRODUCT?.PNo ?? "",
-                ProductName = t.PRODUCT?.Name ?? "",
-                ProductType = t.PRODUCT?.Type ?? "",
-                Dimensions = $"{t.PRODUCT?.Length ?? 0}x{t.PRODUCT?.Width ?? 0}x{t.PRODUCT?.Height ?? 0}",
-                Year = t.Year,
-                Month = t.Month,
-                MonthString = t.MonthString,
-                MaterialPrice = t.MaterialPrice,
-                MaterialTransportCost = t.MaterialTransportCost,
-                LaborCost = t.LaborCost,
-                TaxAndBank = t.TaxAndBank,
-                AdministrativeExpenses = t.AdministrativeExpenses,
-                OtherExpenses = t.OtherExpenses,
-                Profit = t.Profit,
-                SalesPriceEXWWithoutVAT = t.SalesPriceEXWWithoutVAT,
-                SalesPriceEXWWithVAT = t.SalesPriceEXWWithVAT,
-                SetPriceEXWWithVAT = t.SetPriceEXWWithVAT,
-                FinishedProductTransportCost = t.FinishedProductTransportCost,
-                SalesPriceCIPWithoutVAT = t.SalesPriceCIPWithoutVAT,
-                SalesPriceCIPWithVAT = t.SalesPriceCIPWithVAT,
-                SetPriceCIPWithVAT = t.SetPriceCIPWithVAT
-            }).ToList();
+            var viewModelList = tannarxList.Select(TannarxMapper.Map<TannarxIndexViewModel>).ToList();
 
             return View(viewModelList);
         }
@@ -212,36 +187,11 @@ namespace tahsinERP.Controllers.Engineering
                 return HttpNotFound();
             }
 
-            var viewModel = new TannarxEditViewModel
-            {
-                ID = tannarx.ID,
-                ProductID = tannarx.ProductID,
-                ProductPNo = tannarx.PRODUCT?.PNo ?? "",
-                ProductName = tannarx.PRODUCT?.Name ?? "",
-                ProductType = tannarx.PRODUCT?.Type ?? "",
-                Dimensions = $"{tannarx.PRODUCT?.Length ?? 0}x{tannarx.PRODUCT?.Width ?? 0}x{tannarx.PRODUCT?.Height ?? 0}",
-                Year = tannarx.Year,
-                Month = tannarx.Month,
-                MonthString = tannarx.MonthString,
-                MaterialPrice = tannarx.MaterialPrice,
-                MaterialTransportCost = tannarx.MaterialTransportCost,
-                LaborCost = tannarx.LaborCost,
-                TaxAndBank = tannarx.TaxAndBank,
-                AdministrativeExpenses = tannarx.AdministrativeExpenses,
-                OtherExpenses = tannarx.OtherExpenses,
-                Profit = tannarx.Profit,
-                TaxAndBankPercent = tannarx.TaxAndBankPercent ?? 5m,
-                AdministrativeExpensesPercent = tannarx.AdministrativeExpensesPercent ?? 5m,
-                OtherExpensesPercent = tannarx.OtherExpensesPercent ?? 5m,
-                ProfitPercent = tannarx.ProfitPercent ?? 10m,
-                SalesPriceEXWWithoutVAT = tannarx.SalesPriceEXWWithoutVAT,
-                SalesPriceEXWWithVAT = tannarx.SalesPriceEXWWithVAT,
-                SetPriceEXWWithVAT = tannarx.SetPriceEXWWithVAT,
-                FinishedProductTransportCost = tannarx.FinishedProductTransportCost,
-                SalesPriceCIPWithoutVAT = tannarx.SalesPriceCIPWithoutVAT,
-                SalesPriceCIPWithVAT = tannarx.SalesPriceCIPWithVAT,
-                SetPriceCIPWithVAT = tannarx.SetPriceCIPWithVAT
-            };
+            var viewModel = TannarxMapper.Map<TannarxEditViewModel>(tannarx);
+            viewModel.TaxAndBankPercent = tannarx.TaxAndBankPercent ?? 5m;
+            viewModel.AdministrativeExpensesPercent = tannarx.AdministrativeExpensesPercent ?? 5m;
+            viewModel.OtherExpensesPercent = tannarx.OtherExpensesPercent ?? 5m;
+            viewModel.ProfitPercent = tannarx.ProfitPercent ?? 10m;
 
             return View(viewModel);
         }
@@ -383,40 +333,15 @@ namespace tahsinERP.Controllers.Engineering
                 return HttpNotFound();
             }
 
-            var viewModel = new TannarxDetailsViewModel
-            {
-                ID = tannarx.ID,
-                ProductID = tannarx.ProductID,
-                ProductPNo = tannarx.PRODUCT?.PNo ?? "",
-                ProductName = tannarx.PRODUCT?.Name ?? "",
-                ProductType = tannarx.PRODUCT?.Type ?? "",
-                Dimensions = $"{tannarx.PRODUCT?.Length ?? 0}x{tannarx.PRODUCT?.Width ?? 0}x{tannarx.PRODUCT?.Height ?? 0}",
-                Year = tannarx.Year,
-                Month = tannarx.Month,
-                MonthString = tannarx.MonthString,
-                MaterialPrice = tannarx.MaterialPrice,
-                MaterialTransportCost = tannarx.MaterialTransportCost,
-                LaborCost = tannarx.LaborCost,
-                TaxAndBank = tannarx.TaxAndBank,
-                AdministrativeExpenses = tannarx.AdministrativeExpenses,
-                OtherExpenses = tannarx.OtherExpenses,
-                Profit = tannarx.Profit,
-                TaxAndBankPercent = tannarx.TaxAndBankPercent,
-                AdministrativeExpensesPercent = tannarx.AdministrativeExpensesPercent,
-                OtherExpensesPercent = tannarx.OtherExpensesPercent,
-                ProfitPercent = tannarx.ProfitPercent,
-                SalesPriceEXWWithoutVAT = tannarx.SalesPriceEXWWithoutVAT,
-                SalesPriceEXWWithVAT = tannarx.SalesPriceEXWWithVAT,
-                SetPriceEXWWithVAT = tannarx.SetPriceEXWWithVAT,
-                FinishedProductTransportCost = tannarx.FinishedProductTransportCost,
-                SalesPriceCIPWithoutVAT = tannarx.SalesPriceCIPWithoutVAT,
-                SalesPriceCIPWithVAT = tannarx.SalesPriceCIPWithVAT,
-                SetPriceCIPWithVAT = tannarx.SetPriceCIPWithVAT,
-                CreatedBy = tannarx.USER?.FullName ?? tannarx.USER?.Uname ?? "",
-                CreatedDT = tannarx.CreatedDT,
-                ModifiedBy = tannarx.USER1?.FullName ?? tannarx.USER1?.Uname ?? "",
-                ModifiedDT = tannarx.ModifiedDT
-            };
+            var viewModel = TannarxMapper.Map<TannarxDetailsViewModel>(tannarx);
+            viewModel.TaxAndBankPercent = tannarx.TaxAndBankPercent;
+            viewModel.AdministrativeExpensesPercent = tannarx.AdministrativeExpensesPercent;
+            viewModel.OtherExpensesPercent = tannarx.OtherExpensesPercent;
+            viewModel.ProfitPercent = tannarx.ProfitPercent;
+            viewModel.CreatedBy = tannarx.USER?.FullName ?? tannarx.USER?.Uname ?? "";
+            viewModel.CreatedDT = tannarx.CreatedDT;
+            viewModel.ModifiedBy = tannarx.USER1?.FullName ?? tannarx.USER1?.Uname ?? "";
+            viewModel.ModifiedDT = tannarx.ModifiedDT;
 
             return View(viewModel);
         }
@@ -443,16 +368,7 @@ namespace tahsinERP.Controllers.Engineering
                 return HttpNotFound();
             }
 
-            var viewModel = new TannarxDetailsViewModel
-            {
-                ID = tannarx.ID,
-                ProductID = tannarx.ProductID,
-                ProductPNo = tannarx.PRODUCT?.PNo ?? "",
-                ProductName = tannarx.PRODUCT?.Name ?? "",
-                Year = tannarx.Year,
-                Month = tannarx.Month,
-                MonthString = tannarx.MonthString
-            };
+            var viewModel = TannarxMapper.Map<TannarxDetailsViewModel>(tannarx);
 
             return View(viewModel);
         }

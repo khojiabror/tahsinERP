@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace tahsinERP.ViewModels.Tannarx
 {
-    public class TannarxEditViewModel
+    public class TannarxEditViewModel : ITannarxCostFields
     {
         public int ID { get; set; }
         

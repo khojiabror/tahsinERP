@@ -88,34 +88,6 @@ namespace tahsinERP.Services
                 file.FileSizeBytes = bytes.Length;
             }
         }
-
-        /// <summary>
-        /// HTML kontentni oddiy matnga aylantiradi (satr bo'linishlarini saqlab).
-        /// Hujjat shabloniga matn bloki sifatida joylash uchun ishlatiladi.
-        /// </summary>
-        public static string HtmlToPlainText(string html)
-        {
-            if (string.IsNullOrWhiteSpace(html))
-                return string.Empty;
-
-            var text = html;
-
-            // Blok yopilishlari va <br> -> yangi satr
-            text = Regex.Replace(text, @"<\s*(br|/p|/div|/li|/h[1-6]|/tr)\s*/?\s*>", "\n", RegexOptions.IgnoreCase);
-            text = Regex.Replace(text, @"<\s*li[^>]*>", "• ", RegexOptions.IgnoreCase);
-
-            // Qolgan barcha taglarni olib tashlash
-            text = Regex.Replace(text, @"<[^>]+>", string.Empty);
-
-            // HTML entity'larni dekodlash
-            text = System.Net.WebUtility.HtmlDecode(text);
-
-            // Ortiqcha bo'sh satrlarni tartibga solish
-            text = Regex.Replace(text, @"[ \t]+\n", "\n");
-            text = Regex.Replace(text, @"\n{3,}", "\n\n");
-
-            return text.Trim();
-        }
     }
 
     /// <summary>

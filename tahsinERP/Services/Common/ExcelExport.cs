@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
+using ClosedXML.Excel;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Services.Common
 {
     /// <summary>
     /// Oddiy jadvalni .xlsx ga eksport qilish (18 ta Export/Template amalidagi qo'lda yozilgan
-    /// sarlavha/ustun kodining o'rniga). EPPlus litsenziyasi Application_Start'da bir marta o'rnatiladi.
+    /// sarlavha/ustun kodining o'rniga). ClosedXML (MIT) asosida.
     /// <code>
     /// var bytes = ExcelExport.Create("Valyutalar", rows,
     ///     ExcelExport.Col&lt;CURRENCy&gt;("Kod", x => x.Shortname),
@@ -32,25 +32,18 @@ namespace tahsinERP.Services.Common
             return new Column<T> { Header = header, Value = value, Format = format };
         }
 
-        /// <summary>EPPlus litsenziya konteksti (Global.asax'dan bir marta chaqiriladi).</summary>
-        public static void Configure()
-        {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-        }
-
         public static byte[] Create<T>(string sheetName, IEnumerable<T> rows, params Column<T>[] columns)
         {
-            using (var package = new ExcelPackage())
+            using (var workbook = new XLWorkbook())
             {
-                var ws = package.Workbook.Worksheets.Add(string.IsNullOrWhiteSpace(sheetName) ? "Sheet1" : sheetName);
+                var ws = workbook.Worksheets.Add(string.IsNullOrWhiteSpace(sheetName) ? "Sheet1" : sheetName);
 
                 for (int c = 0; c < columns.Length; c++)
                 {
-                    var cell = ws.Cells[1, c + 1];
+                    var cell = ws.Cell(1, c + 1);
                     cell.Value = columns[c].Header;
                     cell.Style.Font.Bold = true;
-                    cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(235, 241, 250));
+                    cell.Style.Fill.BackgroundColor = XLColor.FromArgb(235, 241, 250);
                 }
 
                 int r = 2;
@@ -58,7 +51,7 @@ namespace tahsinERP.Services.Common
                 {
                     for (int c = 0; c < columns.Length; c++)
                     {
-                        ws.Cells[r, c + 1].Value = columns[c].Value(row);
+                        ws.Cell(r, c + 1).Value = XLCellValue.FromObject(columns[c].Value(row));
                     }
                     r++;
                 }
@@ -66,17 +59,18 @@ namespace tahsinERP.Services.Common
                 for (int c = 0; c < columns.Length; c++)
                 {
                     if (!string.IsNullOrEmpty(columns[c].Format) && r > 2)
-                        ws.Cells[2, c + 1, r - 1, c + 1].Style.Numberformat.Format = columns[c].Format;
+                        ws.Range(2, c + 1, r - 1, c + 1).Style.NumberFormat.Format = columns[c].Format;
                 }
 
-                if (ws.Dimension != null)
+                var used = ws.RangeUsed();
+                if (used != null)
                 {
-                    ws.View.FreezePanes(2, 1);
-                    ws.Cells[ws.Dimension.Address].AutoFilter = true;
-                    ws.Cells[ws.Dimension.Address].AutoFitColumns(8, 60);
+                    ws.SheetView.FreezeRows(1);
+                    used.SetAutoFilter();
+                    ws.Columns(1, columns.Length).AdjustToContents(8.0, 60.0);
                 }
 
-                return package.GetAsByteArray();
+                return workbook.ToByteArray();
             }
         }
     }

@@ -4,11 +4,8 @@
   Har bandni alohida, zaxira nusxadan keyin va avval tekshiruv SELECT'lari bilan bajaring.
 */
 
-/* 1) LOG-B05: yo'l varaqasida tanlangan tarifni saqlash.
-      Hozir Edit eng so'nggi faol tarifni "taxmin qiladi"; ustun qo'shilsa WaybillController
-      OriginalTariffID o'rniga shu ustundan foydalanadi. */
--- ALTER TABLE dbo.F_WAYBILLS ADD TariffID INT NULL
---     CONSTRAINT FK_F_WAYBILLS_TARIFF REFERENCES dbo.F_CONTRACT_TARIFFS(ID);
+/* 1) LOG-B05: BAJARILDI (2026-10-18, foydalanuvchi ruxsati bilan) —
+      Logistics_2026_10_B05_WaybillTariffID.sql (ustun, FK, indeks, eski yozuvlarni to'ldirish) va EDMX. */
 
 /* 2) LOG-B07/P04: WaybillNo takrorlanmasin (o'chirilmaganlar orasida).
       Kod DocumentNumberService qulfi va ModelState tekshiruvi bilan himoyalangan; indeks oxirgi kafolat.

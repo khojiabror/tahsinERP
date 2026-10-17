@@ -1,4 +1,4 @@
-@using tahsinERP.ViewModels
+﻿@using tahsinERP.ViewModels
 @{
     ViewBag.Title = "Logistika boshqaruv paneli";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -29,14 +29,7 @@
             </div>
             <div class="content-body">
                 <!-- Filters -->
-                @if (ViewBag.CurrencyCodes != null && ((IEnumerable<string>)ViewBag.CurrencyCodes).Count() > 1)
-                {
-                    @* LOG-B13: summalar valyuta kursisiz qo'shiladi — konvertatsiya biznes qarorini kutmoqda *@
-                    <div class="alert alert-warning no-print">
-                        Diqqat: davrda bir nechta valyutadagi yozuvlar bor (@string.Join(", ", (IEnumerable<string>)ViewBag.CurrencyCodes)).
-                        Jami summalar valyuta kursisiz qo'shilgan.
-                    </div>
-                }
+                @Html.Partial("~/Views/Logistic/Shared/_CurrencyNote.cshtml")
                 <div class="card mb-2">
                     <div class="card-body">
                         <form method="get" action="@Url.Action("Index", "LogisticsDashboard")">

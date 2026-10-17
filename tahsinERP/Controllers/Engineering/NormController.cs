@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Helpers;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using Newtonsoft.Json;
@@ -306,7 +307,7 @@ namespace tahsinERP.Controllers.Engineering
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = BuildDetailedErrorMessage(ex);
+                    TempData["Error"] = MesErrorMessage.From(ex);
                     return RedirectToAction("Index");
                 }
             }
@@ -457,28 +458,100 @@ namespace tahsinERP.Controllers.Engineering
             return View(viewModel);
         }
 
+        // Olish so'rovi: Norm/SearchMaterials?q=...&page=1 (select2 remote qidiruv, MES-P15)
+        [HttpGet]
+        public async Task<JsonResult> SearchMaterials(string q, int page = 1)
+        {
+            const int pageSize = 30;
+            if (page < 1) page = 1;
+            var term = (q ?? "").Trim();
+
+            var query = db.PRODUCTS.AsNoTracking()
+                .Where(p => (p.IsRawMaterial == true || p.IsComponent == true) && p.IsDeleted == false);
+            if (term.Length > 0)
+                query = query.Where(p => p.PNo.Contains(term) || p.Name.Contains(term));
+
+            var rows = await query
+                .OrderBy(p => p.PNo).ThenBy(p => p.ID)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize + 1)
+                .Select(p => new { p.ID, p.PNo, p.Name })
+                .ToListAsync();
+
+            return Json(new
+            {
+                results = rows.Take(pageSize).Select(m => new { id = m.ID, text = MaterialOptionText(m.PNo, m.Name) }),
+                pagination = new { more = rows.Count > pageSize }
+            }, JsonRequestBehavior.AllowGet);
+        }
+
         // Olish so'rovi: Norm/GetMaterialData/{materialId}
         [HttpGet]
         public async Task<JsonResult> GetMaterialData(int materialId)
         {
             try
             {
-                var material = await db.PRODUCTS.AsNoTracking()
-                    .Include(p => p.PRODUCT_CATEGORIES)
-                    .FirstOrDefaultAsync(p => p.ID == materialId);
-
-                if (material == null)
+                var data = await BuildMaterialDataAsync(new[] { materialId });
+                if (data.Count == 0)
                 {
                     return Json(new { success = false, message = "Material topilmadi" }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Olish latest price dan INCOME_PRODUCTS
-                var latestIncome = await db.INCOME_PRODUCTS.AsNoTracking()
-                    .Where(ip => ip.ProductID == materialId && ip.PiecePrice.HasValue)
-                    .OrderByDescending(ip => ip.INCOME.IssueDateTime)
-                    .Select(ip => new { Price = ip.PiecePrice.Value })
-                    .FirstOrDefaultAsync();
+                return Json(data[0], JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return JsonError(ex);
+            }
+        }
 
+        // Olish so'rovi: Norm/GetMaterialDataBatch?ids=1&ids=2 — sahifa ochilganda barcha qatorlar uchun bitta so'rov
+        // (avval har qatorga alohida GetMaterialData AJAX, MES-P15)
+        [HttpGet]
+        public async Task<JsonResult> GetMaterialDataBatch(int[] ids)
+        {
+            try
+            {
+                var data = await BuildMaterialDataAsync(ids ?? new int[0]);
+                return Json(new { success = true, items = data }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return JsonError(ex);
+            }
+        }
+
+        private static string MaterialOptionText(string pno, string name)
+        {
+            return $"{pno} - {name ?? pno}";
+        }
+
+        /// <summary>Material ma'lumotlari (o'lcham, kesish/yog'och belgisi, oxirgi kirim narxi) — bir nechta material uchun 2 so'rovda.</summary>
+        private async Task<List<object>> BuildMaterialDataAsync(IEnumerable<int> materialIds)
+        {
+            var ids = materialIds.Where(id => id > 0).Distinct().Take(500).ToList();
+            var result = new List<object>();
+            if (ids.Count == 0)
+                return result;
+
+            var materials = await db.PRODUCTS.AsNoTracking()
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Where(p => ids.Contains(p.ID))
+                .ToListAsync();
+
+            // Har material uchun oxirgi kirim narxi
+            var latestPrices = await db.INCOME_PRODUCTS.AsNoTracking()
+                .Where(ip => ids.Contains(ip.ProductID) && ip.PiecePrice.HasValue)
+                .GroupBy(ip => ip.ProductID)
+                .Select(g => new
+                {
+                    ProductID = g.Key,
+                    Price = g.OrderByDescending(ip => ip.INCOME.IssueDateTime).Select(ip => ip.PiecePrice.Value).FirstOrDefault()
+                })
+                .ToDictionaryAsync(x => x.ProductID, x => x.Price);
+
+            foreach (var material in materials)
+            {
                 // Kesish talab qilinadimi (kategoriya) va yog'och turi (faqat shu tur uchun kirim narxini metrga aylantiramiz)
                 bool requiresCutting = material.PRODUCT_CATEGORIES?.RequiresCutting ?? false;
                 bool isWoodMaterial = NormLineMath.IsWoodCategory(material.PRODUCT_CATEGORIES);
@@ -486,18 +559,15 @@ namespace tahsinERP.Controllers.Engineering
                 // Use StandardLengthMm agar available, otherwise use Length
                 double standardLengthMm = NormLineMath.EffectiveStandardLengthMm(material);
 
-                double? unitPrice = latestIncome != null ? latestIncome.Price : (double?)null;
+                double price;
+                double? unitPrice = latestPrices.TryGetValue(material.ID, out price) ? price : (double?)null;
                 if (isWoodMaterial && unitPrice.HasValue && standardLengthMm > 0)
                 {
                     // Example: 24000 UZS (4000 mm bar) => 24000 / (4000/1000) = 6000 UZS/m
-                    var meters = standardLengthMm / 1000.0;
-                    if (meters > 0)
-                    {
-                        unitPrice = unitPrice.Value / meters;
-                    }
+                    unitPrice = unitPrice.Value / (standardLengthMm / 1000.0);
                 }
 
-                var materialData = new
+                result.Add(new
                 {
                     success = true,
                     materialId = material.ID,
@@ -512,14 +582,10 @@ namespace tahsinERP.Controllers.Engineering
                     isWoodMaterial = isWoodMaterial,
                     categoryId = material.CategoryID,
                     defaultUnitId = NormalizeUnitFk(material.UnitID > 0 ? material.UnitID : null)
-                };
+                });
+            }
 
-                return Json(materialData, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return JsonError(ex);
-            }
+            return result;
         }
 
         // POST so'rovi: Norm/Calculate (Optimization)
@@ -940,7 +1006,7 @@ namespace tahsinERP.Controllers.Engineering
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = BuildDetailedErrorMessage(ex);
+                    TempData["Error"] = MesErrorMessage.From(ex);
                     if (viewModel.NormVersionID.HasValue)
                     {
                         return RedirectToAction("Edit", new { normVersionId = viewModel.NormVersionID.Value });
@@ -1044,37 +1110,25 @@ namespace tahsinERP.Controllers.Engineering
         /// </summary>
         private async Task PopulateMaterialsAsync(IEnumerable<NormLineViewModel> lines)
         {
-            var materials = await db.PRODUCTS.AsNoTracking()
-                .Where(p => (p.IsRawMaterial == true || p.IsComponent == true) && p.IsDeleted == false)
-                .Select(p => new { p.ID, p.PNo, p.Name })
-                .ToListAsync();
-
-            // Satrdagi materiallar filterga tushmasa ham dropdownda ko'rinishi kerak
-            var known = new HashSet<int>(materials.Select(m => m.ID));
-            var missingMaterialIds = (lines ?? Enumerable.Empty<NormLineViewModel>())
+            // Faqat satrlarda tanlangan materiallar render qilinadi; qolganlari select2 orqali
+            // Norm/SearchMaterials'dan qidiriladi (avval har satrda butun xomashyo ro'yxati, MES-P15)
+            var selectedIds = (lines ?? Enumerable.Empty<NormLineViewModel>())
                 .Select(l => l.MaterialID)
-                .Where(id => id > 0 && !known.Contains(id))
+                .Where(id => id > 0)
                 .Distinct()
                 .ToList();
-            if (missingMaterialIds.Any())
-            {
-                materials.AddRange(await db.PRODUCTS.AsNoTracking()
-                    .Where(p => missingMaterialIds.Contains(p.ID) && p.IsDeleted == false)
-                    .Select(p => new { p.ID, p.PNo, p.Name })
-                    .ToListAsync());
-            }
 
-            var ordered = materials.OrderBy(m => m.PNo).ToList();
+            var materials = selectedIds.Count == 0
+                ? new List<SelectListItem>()
+                : (await db.PRODUCTS.AsNoTracking()
+                        .Where(p => selectedIds.Contains(p.ID) && p.IsDeleted == false)
+                        .OrderBy(p => p.PNo)
+                        .Select(p => new { p.ID, p.PNo, p.Name })
+                        .ToListAsync())
+                    .Select(m => new SelectListItem { Value = m.ID.ToString(), Text = MaterialOptionText(m.PNo, m.Name) })
+                    .ToList();
 
-            // SelectList "PNo - Name" formatida
-            ViewBag.Materials = new SelectList(
-                ordered.Select(m => new SelectListItem { Value = m.ID.ToString(), Text = $"{m.PNo} - {m.Name ?? m.PNo}" }).ToList(),
-                "Value", "Text", null);
-
-            // JSON uchun oddiy ro'yxat (circular reference bo'lmasligi uchun)
-            ViewBag.MaterialsJson = ordered
-                .Select(m => new { id = m.ID, text = m.PNo, name = m.Name ?? m.PNo })
-                .ToList();
+            ViewBag.Materials = new SelectList(materials, "Value", "Text", null);
         }
 
         /// <summary>MaterialID → yog'och kategoriyasimi.</summary>
@@ -1264,27 +1318,6 @@ namespace tahsinERP.Controllers.Engineering
         }
 
         /// <summary>
-        /// UI uchun xatolikni to'liqroq ko'rsatish: inner exception zanjiri bilan.
-        /// </summary>
-        private static string BuildDetailedErrorMessage(Exception ex)
-        {
-            if (ex == null)
-                return "Xatolik yuz berdi.";
-
-            var messages = new List<string>();
-            var current = ex;
-            while (current != null)
-            {
-                if (!string.IsNullOrWhiteSpace(current.Message))
-                    messages.Add(current.Message.Trim());
-                current = current.InnerException;
-            }
-
-            var merged = string.Join(" | Inner: ", messages.Distinct());
-            return $"Xatolik yuz berdi: {merged}";
-        }
-
-        /// <summary>
         /// BOM ↔ norm bog‘lanishi (ProductionConsumptionService: BOMS_AND_NORMS, IsActive = 1).
         /// Bu qadam xato bersa ham NORM save operatsiyasini yiqitmaydi.
         /// </summary>
@@ -1318,7 +1351,7 @@ namespace tahsinERP.Controllers.Engineering
                 LogHelper.LogToDatabase(
                     userName,
                     "Norm",
-                    $"BOMS_AND_NORMS bog'lash xatosi. Product: {productPNo}, BOMID: {bomId}, NormID: {normId}. Tafsilot: {BuildDetailedErrorMessage(ex)}");
+                    $"BOMS_AND_NORMS bog'lash xatosi. Product: {productPNo}, BOMID: {bomId}, NormID: {normId}. Tafsilot: {MesErrorMessage.From(ex)}");
             }
         }
 

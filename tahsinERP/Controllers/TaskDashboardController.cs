@@ -59,6 +59,8 @@ namespace tahsinERP.Controllers
                 var now = DateTime.Now;
                 var today = now.Date;
                 var sevenDaysAgo = now.AddDays(-7);
+                var doneIds = TaskRules.DoneStatusIds();
+                var closedIds = TaskRules.ClosedStatusIds();
 
                 var groups = await query
                     .Select(t => new
@@ -72,7 +74,8 @@ namespace tahsinERP.Controllers
                         t.DueDate,
                         t.UpdatedDT,
                         t.CreatedDT,
-                        IsDone = t.APP_TASK_STATUS_REF.Code == TaskRules.DoneCode || t.APP_TASK_STATUS_REF.Name.Contains("bajarildi")
+                        IsDone = doneIds.Contains(t.StatusID),
+                        IsClosed = closedIds.Contains(t.StatusID)
                     })
                     .GroupBy(t => new
                     {
@@ -83,8 +86,8 @@ namespace tahsinERP.Controllers
                         t.ProjectName,
                         t.AssigneeUserID,
                         t.IsDone,
-                        IsOverdue = t.DueDate.HasValue && t.DueDate.Value < now && !t.IsDone,
-                        IsOverdueByDate = t.DueDate.HasValue && t.DueDate.Value < today && !t.IsDone,
+                        IsOverdue = t.DueDate.HasValue && t.DueDate.Value < now && !t.IsClosed,
+                        IsOverdueByDate = t.DueDate.HasValue && t.DueDate.Value < today && !t.IsClosed,
                         IsOnTime = t.IsDone && t.DueDate.HasValue && t.UpdatedDT.HasValue &&
                                    DbFunctions.TruncateTime(t.UpdatedDT) <= DbFunctions.TruncateTime(t.DueDate),
                         IsRecent = t.CreatedDT >= sevenDaysAgo
@@ -129,7 +132,7 @@ namespace tahsinERP.Controllers
                         PriorityCode = p.Key,
                         PriorityName = p.First().PriorityName ?? "Noma'lum",
                         TotalCount = p.Sum(g => g.Count),
-                        DoneCount = p.Where(g => g.StatusCode == TaskRules.DoneCode).Sum(g => g.Count),
+                        DoneCount = p.Where(g => g.IsDone).Sum(g => g.Count),
                         InProgressCount = p.Where(g => g.StatusCode == "IN_PROGRESS").Sum(g => g.Count),
                         TodoCount = p.Where(g => g.StatusCode == "TODO").Sum(g => g.Count)
                     })
@@ -138,7 +141,7 @@ namespace tahsinERP.Controllers
 
                 // Umumiy (yoki tanlangan foydalanuvchi) ko'rsatkichlari — query allaqachon userId bo'yicha filtrlangan
                 viewModel.UserTaskCount = total;
-                viewModel.UserDoneCount = groups.Where(g => g.StatusCode == TaskRules.DoneCode).Sum(g => g.Count);
+                viewModel.UserDoneCount = groups.Where(g => g.IsDone).Sum(g => g.Count);
                 viewModel.UserInProgressCount = groups.Where(g => g.StatusCode == "IN_PROGRESS").Sum(g => g.Count);
                 viewModel.UserTodoCount = groups.Where(g => g.StatusCode == "TODO").Sum(g => g.Count);
                 viewModel.OverdueCount = groups.Where(g => g.IsOverdue).Sum(g => g.Count);

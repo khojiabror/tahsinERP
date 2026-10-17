@@ -16,14 +16,16 @@ namespace tahsinERP.Services
             DBTHSNEntities db,
             int year,
             int month,
-            int? forwarderId)
+            int? forwarderId,
+            LogisticsMoney money = null)
         {
             var periodStart = new DateTime(year, month, 1);
             var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
             // LOG-P05: davr kesimida SQL'da guruhlangan 3 ta so'rov (avval butun tarix xotiraga yuklanardi).
             // LOG-B04: qarz ta'rifi WaybillLedgerService'da — boshqa ekranlar bilan bir xil.
-            var balances = WaybillLedgerService.GetForwarderBalances(db, periodStart, periodEnd, forwarderId);
+            // LOG-B13: summalar so'mda (har hujjat o'z sanasidagi CBU kursi bilan).
+            var balances = WaybillLedgerService.GetForwarderBalances(db, periodStart, periodEnd, forwarderId, money);
 
             var forwarderIds = balances.Keys.ToList();
             var nameMap = await db.FORWARDERS.AsNoTracking()

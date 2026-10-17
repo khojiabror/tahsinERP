@@ -420,7 +420,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Versiya tarixini olish
-                var files = await db.DOC_FILES
+                var files = await db.DOC_FILES.AsNoTracking()
                     .Where(f => f.DocumentID == id)
                     .OrderByDescending(f => f.VersionNo)
                     .ToListAsync();

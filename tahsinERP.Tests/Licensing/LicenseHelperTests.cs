@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using tahsinERP.Helpers;
+using tahsinERP.Licensing;
 
 namespace tahsinERP.Tests.Licensing
 {

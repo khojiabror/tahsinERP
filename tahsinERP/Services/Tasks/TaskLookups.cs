@@ -30,6 +30,36 @@ namespace tahsinERP.Services.Tasks
             return isAdminOrDeveloper || assigneeUserId == currentUserId;
         }
 
+        /// <summary>
+        /// "Bajarilgan" status (Dashboard'dagi "Bajarildi" soni uchun): DONE kodi yoki nomi bo'yicha.
+        /// Bekor qilingan ham yopilgan, lekin bajarilgan emas — shuning uchun IsFinal'dan alohida.
+        /// </summary>
+        public static bool IsDoneStatus(string code, string name)
+        {
+            return code == DoneCode || TaskBadges.IsDoneName(name);
+        }
+
+        /// <summary>
+        /// Yopilgan (bajarilgan yoki bekor qilingan) status — APP_TASK_STATUS_REF.IsFinal (MNT-01/TSK-B09).
+        /// Yopilgan topshiriq muddati o'tgan hisoblanmaydi.
+        /// </summary>
+        public static bool IsClosedStatus(TaskLookups.Item status)
+        {
+            return status != null && status.IsFinal;
+        }
+
+        /// <summary>SQL filtrlari uchun bajarilgan status ID'lari (keshdan; o'chirilgan statuslar ham).</summary>
+        public static List<int> DoneStatusIds()
+        {
+            return TaskLookups.AllStatuses().Where(st => IsDoneStatus(st.Code, st.Name)).Select(st => st.ID).ToList();
+        }
+
+        /// <summary>SQL filtrlari uchun yopilgan status ID'lari.</summary>
+        public static List<int> ClosedStatusIds()
+        {
+            return TaskLookups.AllStatuses().Where(IsClosedStatus).Select(st => st.ID).ToList();
+        }
+
     }
 
     /// <summary>
@@ -42,6 +72,7 @@ namespace tahsinERP.Services.Tasks
         private static readonly MemoryCache Cache = new MemoryCache("tahsinERP.TaskLookups");
         private static readonly TimeSpan Ttl = TimeSpan.FromMinutes(10);
         private const string StatusesKey = "statuses";
+        private const string AllStatusesKey = "allStatuses";
         private const string PrioritiesKey = "priorities";
         private const string ProjectsKey = "projects";
 
@@ -50,6 +81,10 @@ namespace tahsinERP.Services.Tasks
             public int ID { get; set; }
             public string Code { get; set; }
             public string Name { get; set; }
+            /// <summary>Faqat status: yopilgan (APP_TASK_STATUS_REF.IsFinal).</summary>
+            public bool IsFinal { get; set; }
+            /// <summary>Status/prioritet rangi (#RRGGBB) yoki null.</summary>
+            public string ColorHex { get; set; }
         }
 
         /// <summary>Faol, o'chirilmagan statuslar (SortOrder bo'yicha).</summary>
@@ -58,7 +93,15 @@ namespace tahsinERP.Services.Tasks
             return Get(StatusesKey, db => db.APP_TASK_STATUS_REF.AsNoTracking()
                 .Where(s => s.IsActive && s.IsDeleted != true)
                 .OrderBy(s => s.SortOrder)
-                .Select(s => new Item { ID = s.ID, Code = s.Code, Name = s.Name })
+                .Select(s => new Item { ID = s.ID, Code = s.Code, Name = s.Name, IsFinal = s.IsFinal, ColorHex = s.ColorHex })
+                .ToList());
+        }
+
+        /// <summary>Barcha statuslar, nofaol va o'chirilganlari ham (eski topshiriqlar ularga bog'langan bo'lishi mumkin).</summary>
+        public static IReadOnlyList<Item> AllStatuses()
+        {
+            return Get(AllStatusesKey, db => db.APP_TASK_STATUS_REF.AsNoTracking()
+                .Select(s => new Item { ID = s.ID, Code = s.Code, Name = s.Name, IsFinal = s.IsFinal, ColorHex = s.ColorHex })
                 .ToList());
         }
 
@@ -68,7 +111,7 @@ namespace tahsinERP.Services.Tasks
             return Get(PrioritiesKey, db => db.APP_TASK_PRIORITY_REF.AsNoTracking()
                 .Where(p => p.IsDeleted != true)
                 .OrderBy(p => p.SortOrder)
-                .Select(p => new Item { ID = p.ID, Code = p.Code, Name = p.Name })
+                .Select(p => new Item { ID = p.ID, Code = p.Code, Name = p.Name, ColorHex = p.ColorHex })
                 .ToList());
         }
 
@@ -126,14 +169,15 @@ namespace tahsinERP.Services.Tasks
 
         public static void Invalidate()
         {
-            Cache.Remove(StatusesKey);
-            Cache.Remove(PrioritiesKey);
-            Cache.Remove(ProjectsKey);
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(StatusesKey));
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(AllStatusesKey));
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(PrioritiesKey));
+            Cache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(ProjectsKey));
         }
 
         private static IReadOnlyList<Item> Get(string key, Func<DBTHSNEntities, List<Item>> load)
         {
-            var cached = Cache.Get(key) as List<Item>;
+            var cached = Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key)) as List<Item>;
             if (cached != null)
                 return cached;
 
@@ -141,7 +185,7 @@ namespace tahsinERP.Services.Tasks
             {
                 cached = load(db);
             }
-            Cache.Set(key, cached, DateTimeOffset.Now.Add(Ttl));
+            Cache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key), cached, DateTimeOffset.Now.Add(Ttl));
             return cached;
         }
     }

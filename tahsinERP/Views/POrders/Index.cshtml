@@ -1,4 +1,3 @@
-@model List<tahsinERP.Models.P_ORDERS>
 @{
     ViewBag.Title = "Xarid buyurtmalari";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -45,7 +44,7 @@
                     <!-- Purchase Type Filter -->
                     <div class="row mb-2">
                         <div class="col-md-3">
-                            @using (Html.BeginForm("Index", "POrders", FormMethod.Get))
+                            @using (Html.BeginForm("Index", "POrders", FormMethod.Get, new { id = "pOrdersFilter" }))
                             {
                                 <div class="form-group">
                                     <label for="purchaseTypeFilter">Xarid turi</label>
@@ -54,8 +53,16 @@
                                         new { Value = "", Text = "Barchasi" },
                                         new { Value = "Direct", Text = "Direct Purchase" },
                                         new { Value = "Indirect", Text = "Indirect Purchase" }
-                                    }, "Value", "Text", Request.QueryString["purchaseTypeFilter"]), new { @class = "form-control select2", @onchange = "this.form.submit();" })
+                                    }, "Value", "Text", (string)ViewBag.PurchaseTypeFilter), new { @class = "form-control select2" })
                                 </div>
+                                if (ViewBag.SupplierID != null)
+                                {
+                                    <input type="hidden" name="supplierID" value="@ViewBag.SupplierID" />
+                                }
+                                if (ViewBag.ContractID != null)
+                                {
+                                    <input type="hidden" name="contractID" value="@ViewBag.ContractID" />
+                                }
                             }
                         </div>
                     </div>
@@ -79,45 +86,7 @@
                                                     }
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                @if (Model != null && Model.Any())
-                                                {
-                                                    foreach (var item in Model)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                <a href="@Url.Action("Details", "POrders", new { id = item.ID })">@item.OrderNo</a>
-                                                            </td>
-                                                            <td>
-                                                                @{
-                                                                    var orderType = item.PurchaseType == 1 ? "Indirect" : "Direct";
-                                                                    var orderTypeClass = item.PurchaseType == 1 ? "badge-info" : "badge-primary";
-                                                                }
-                                                                <span class="badge @orderTypeClass">@orderType</span>
-                                                            </td>
-                                                            <td data-order="@item.IssuedDate.ToString("yyyyMMdd")">@item.IssuedDate.ToString("dd.MM.yyyy")</td>
-                                                            <td>@(item.Amount?.ToString("N2") ?? "0.00")</td>
-                                                            <td>@(item.CURRENCy?.Shortname ?? "")</td>
-                                                            @if (changePermit)
-                                                            {
-                                                                <td>
-                                                                    <div class="d-flex">
-                                                                        <a href="@Url.Action("Details", "POrders", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko'rish">
-                                                                            <i class="bx bx-show"></i>
-                                                                        </a>
-                                                                        <a href="@Url.Action("Edit", "POrders", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash">
-                                                                            <i class="bx bx-edit-alt"></i>
-                                                                        </a>
-                                                                        <a href="@Url.Action("Delete", "POrders", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-danger" title="O'chirish" onclick="return confirm('Ushbu buyurtmani o\'chirishni tasdiqlaysizmi?');">
-                                                                            <i class="bx bx-trash"></i>
-                                                                        </a>
-                                                                    </div>
-                                                                </td>
-                                                            }
-                                                        </tr>
-                                                    }
-                                                }
-                                            </tbody>
+                                            <tbody></tbody>
                                         </table>
                                     </div>
                                 </div>
@@ -129,55 +98,43 @@
         </div>
     </div>
 
+@section Scripts {
+    <script src="~/Scripts/srm/srm-server-table.js"></script>
     <script>
-        // Wait for jQuery and DataTables to be loaded
-        (function() {
-            function initPOrdersTable() {
-                // Check if jQuery and DataTables are available
-                if (typeof jQuery === 'undefined' || typeof jQuery.fn.DataTable === 'undefined') {
-                    // Retry after a short delay
-                    setTimeout(initPOrdersTable, 100);
-                    return;
-                }
-
-                // Use jQuery - $ might be conflicted, so use jQuery explicitly
-                var $ = jQuery;
-
-                $(document).ready(function () {
-                    if ($('#pOrdersTable').length > 0) {
-                        $('#pOrdersTable').DataTable({
-                            "language": {
-                                "search": "Qidirish:",
-                                "lengthMenu": "_MENU_ ta ko'rsatish",
-                                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                                "infoEmpty": "Yozuvlar yo'q",
-                                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                                "paginate": {
-                                    "first": "Birinchi",
-                                    "last": "Oxirgi",
-                                    "next": "Keyingi",
-                                    "previous": "Oldingi"
-                                },
-                                "zeroRecords": "Ma'lumot topilmadi"
-                            },
-                            "pageLength": 25,
-                            "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Hammasi"]],
-                            "order": [[2, "desc"]],
-                            dom: 'lBfrtip',
-                            buttons: [
-                                { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
-                                { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
-                            ]
-                        });
+        $(document).ready(function () {
+            var detailsUrl = '@Url.Action("Details", "POrders")/';
+            var editUrl = '@Url.Action("Edit", "POrders")/';
+            var deleteUrl = '@Url.Action("Delete", "POrders")/';
+            var columns = [
+                { data: 'orderNo', render: function (v, t, r) { return '<a href="' + detailsUrl + r.id + '">' + srmEsc(v) + '</a>'; } },
+                { data: 'indirect', render: function (v) { return v ? '<span class="badge badge-info">Indirect</span>' : '<span class="badge badge-primary">Direct</span>'; } },
+                { data: 'date' },
+                { data: 'amount' },
+                { data: 'currency', render: function (v) { return srmEsc(v); } }
+            ];
+            @if (changePermit)
+            {
+                <text>
+                columns.push({
+                    data: null, orderable: false, render: function (v, t, r) {
+                        return '<div class="d-flex">' +
+                            '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>' +
+                            '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>' +
+                            '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish" onclick="return confirm(&quot;Ushbu buyurtmani o&#39;chirishni tasdiqlaysizmi?&quot;);"><i class="bx bx-trash"></i></a>' +
+                            '</div>';
                     }
                 });
+                </text>
             }
-
-            // Start initialization
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initPOrdersTable);
-            } else {
-                initPOrdersTable();
-            }
-        })();
+            var table = srmServerTable('#pOrdersTable', {
+                dataUrl: '@Url.Action("IndexData", "POrders")',
+                exportUrl: '@Url.Action("ExportExcel", "POrders")',
+                filterForm: '#pOrdersFilter',
+                order: [[2, 'desc']],
+                columns: columns
+            });
+            $('#pOrdersFilter select').on('change', function () { table.ajax.reload(); });
+            $('#pOrdersFilter').on('submit', function (e) { e.preventDefault(); table.ajax.reload(); });
+        });
     </script>
+}

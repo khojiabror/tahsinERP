@@ -125,9 +125,9 @@
                                                             <h5 class="card-title mb-0"><i class="bx bx-image"></i> Maxsulot rasmi</h5>
                                                         </div>
                                                         <div class="card-body text-center">
-                                                            @if (ViewBag.ProductImage != null)
+                                                            @if (ViewBag.ProductImageUrl != null)
                                                             {
-                                                                <img src="data:image/png;base64,@ViewBag.ProductImage" alt="@Model.PNo" class="img-fluid" style="max-width: 100%; max-height: 200px; border-radius: 8px;" />
+                                                                <img src="@ViewBag.ProductImageUrl" loading="lazy" alt="@Model.PNo" class="img-fluid" style="max-width: 100%; max-height: 200px; border-radius: 8px;" />
                                                             }
                                                             else
                                                             {

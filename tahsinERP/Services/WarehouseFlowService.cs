@@ -68,7 +68,9 @@ namespace tahsinERP.Services
             return false;
         }
 
-        private static bool _incomesHaveProductionIdColumn;
+        // Har tenant bazasi uchun alohida (kalit = tenant prefiksi); faqat "bor" natijasi saqlanadi
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _incomesHaveProductionIdColumn =
+            new System.Collections.Concurrent.ConcurrentDictionary<string, bool>();
 
         /// <summary>
         /// INCOMES.ProductionID ustuni bormi (MES-P12 migratsiyasi). EDMX'da property bo'lmasa ham ishlashi uchun
@@ -76,12 +78,13 @@ namespace tahsinERP.Services
         /// </summary>
         private static bool IncomesHaveProductionIdColumn(DBTHSNEntities db)
         {
-            if (_incomesHaveProductionIdColumn)
+            string tenantKey = tahsinERP.Configuration.Tenancy.TenantContext.CacheKeyPrefix;
+            if (_incomesHaveProductionIdColumn.ContainsKey(tenantKey))
                 return true;
             var exists = db.Database.SqlQuery<int>(
                 "SELECT CASE WHEN COL_LENGTH('dbo.INCOMES', 'ProductionID') IS NULL THEN 0 ELSE 1 END").FirstOrDefault() == 1;
             if (exists)
-                _incomesHaveProductionIdColumn = true;
+                _incomesHaveProductionIdColumn[tenantKey] = true;
             return exists;
         }
 

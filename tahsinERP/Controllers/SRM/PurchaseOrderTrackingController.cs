@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Services.Procurement;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.SRM
@@ -23,84 +24,160 @@ namespace tahsinERP.Controllers.SRM
             public DateTime? ReceiptDate { get; set; }
         }
 
-        // Olish so'rovi: PurchaseOrderTracking
-        public async Task<ActionResult> Index(string purchaseTypeFilter = "", string statusFilter = "")
+        // Olish so'rovi: PurchaseOrderTracking — sahifa faqat filtr va jadval qobig'i; qatorlar IndexData orqali (SRM-P03)
+        public ActionResult Index(string purchaseTypeFilter = "", string statusFilter = "")
         {
             if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
             {
                 return NotAuthorized();
             }
 
+            ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
+            ViewBag.PurchaseTypeList = new SelectList(new[]
+            {
+                new { Value = "", Text = "All" },
+                new { Value = "Direct", Text = "Direct Purchase" },
+                new { Value = "Indirect", Text = "Indirect Purchase" }
+            }, "Value", "Text", purchaseTypeFilter);
+
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.StatusList = new SelectList(new[]
+            {
+                new { Value = "", Text = "All" },
+                new { Value = "Created", Text = "Created" },
+                new { Value = "ContractCreated", Text = "Contract Created" },
+                new { Value = "Invoiced", Text = "Invoiced" },
+                new { Value = "Received", Text = "Received" }
+            }, "Value", "Text", statusFilter);
+
+            return View();
+        }
+
+        /// <summary>Kuzatuv ro'yxati qatori: bosqich faktlari va hisoblangan holat — hammasi SQL'da.</summary>
+        public sealed class TrackingIndexRow
+        {
+            public int ID { get; set; }
+            public string OrderNo { get; set; }
+            public string SupplierName { get; set; }
+            public DateTime IssuedDate { get; set; }
+            public byte PurchaseType { get; set; }
+            public bool HasContract { get; set; }
+            public string ContractNo { get; set; }
+            public DateTime? ContractDate { get; set; }
+            public string InvoiceNo { get; set; }
+            public DateTime? InvoiceDate { get; set; }
+            public DateTime? ReceiptDate { get; set; }
+            public string Status { get; set; }
+        }
+
+        private static IQueryable<TrackingIndexRow> BuildIndexQuery(DBTHSNEntities db, string purchaseTypeFilter, string statusFilter)
+        {
+            var query = db.P_ORDERS.AsNoTracking().Where(o => o.IsDeleted != true);
+
+            if (!string.IsNullOrEmpty(purchaseTypeFilter))
+            {
+                byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
+                query = query.Where(o => o.PurchaseType == purchaseType);
+            }
+
+            // Bosqichlar: shartnoma, birinchi faol invoys va omborga birinchi kirim (BuildTrackingStatus bilan bir xil qoida)
+            var facts = query.Select(o => new
+            {
+                o.ID,
+                o.OrderNo,
+                SupplierName = o.SUPPLIER.Name,
+                o.IssuedDate,
+                o.PurchaseType,
+                HasContract = o.ContractID.HasValue,
+                ContractNo = o.P_CONTRACTS.ContractNo,
+                ContractDate = (DateTime?)o.P_CONTRACTS.IssuedDate,
+                InvoiceNo = o.P_INVOICES.Where(i => i.IsDeleted != true).OrderBy(i => i.ID).Select(i => i.InvoiceNo).FirstOrDefault(),
+                InvoiceDate = o.P_INVOICES.Where(i => i.IsDeleted != true).OrderBy(i => i.ID).Select(i => (DateTime?)i.InvoiceDate).FirstOrDefault(),
+                ReceiptDate = o.P_INVOICES.Where(i => i.IsDeleted != true)
+                    .SelectMany(i => i.INCOMES)
+                    .Where(inc => inc.IsDeleted != true)
+                    .Min(inc => (DateTime?)inc.IssueDateTime)
+            });
+
+            var rows = facts.Select(f => new TrackingIndexRow
+            {
+                ID = f.ID,
+                OrderNo = f.OrderNo,
+                SupplierName = f.SupplierName,
+                IssuedDate = f.IssuedDate,
+                PurchaseType = f.PurchaseType,
+                HasContract = f.HasContract,
+                ContractNo = f.ContractNo,
+                ContractDate = f.ContractDate,
+                InvoiceNo = f.InvoiceNo,
+                InvoiceDate = f.InvoiceDate,
+                ReceiptDate = f.ReceiptDate,
+                Status = f.ReceiptDate != null ? "Received"
+                    : (f.InvoiceNo != null || f.InvoiceDate != null) ? "Invoiced"
+                    : f.HasContract ? "ContractCreated"
+                    : "Created"
+            });
+
+            // Filtr hisoblangan holat bo'yicha — DB ustuni bo'yicha emas
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                rows = rows.Where(r => r.Status == statusFilter);
+            }
+
+            return rows;
+        }
+
+        private static IQueryable<TrackingIndexRow> SearchIndex(IQueryable<TrackingIndexRow> query, string s)
+        {
+            return query.Where(r => r.OrderNo.Contains(s) || r.SupplierName.Contains(s) || r.Status.Contains(s));
+        }
+
+        private static IOrderedQueryable<TrackingIndexRow> OrderIndex(IQueryable<TrackingIndexRow> query, int column, bool desc)
+        {
+            switch (column)
+            {
+                case 0: return ServerTablePage.By(query, r => r.OrderNo, desc).ThenByDescending(r => r.ID);
+                case 1: return ServerTablePage.By(query, r => r.SupplierName, desc).ThenByDescending(r => r.ID);
+                case 3: return ServerTablePage.By(query, r => r.PurchaseType, desc).ThenByDescending(r => r.ID);
+                case 8: return ServerTablePage.By(query, r => r.Status, desc).ThenByDescending(r => r.ID);
+                default: return desc ? query.OrderByDescending(r => r.IssuedDate).ThenByDescending(r => r.ID)
+                                     : query.OrderBy(r => r.IssuedDate).ThenBy(r => r.ID);
+            }
+        }
+
+        // Olish so'rovi: PurchaseOrderTracking/IndexData (DataTables server-side)
+        [HttpGet]
+        public async Task<ActionResult> IndexData(string purchaseTypeFilter = "", string statusFilter = "")
+        {
+            if (!RoleHelper.IsViewPermitted(CurrentUserName, Module, "Index"))
+            {
+                return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
+            }
+
+            var page = DataTablesPageRequest.Parse(Request, defaultOrderColumn: 2);
             using (var db = new DBTHSNEntities())
             {
-                var query = db.P_ORDERS.AsNoTracking().Where(o => o.IsDeleted != true);
+                var result = await ServerTablePage.LoadAsync(BuildIndexQuery(db, purchaseTypeFilter, statusFilter), page, SearchIndex, OrderIndex);
 
-                if (!string.IsNullOrEmpty(purchaseTypeFilter))
+                return Json(new
                 {
-                    byte purchaseType = purchaseTypeFilter == "Indirect" ? (byte)1 : (byte)0;
-                    query = query.Where(o => o.PurchaseType == purchaseType);
-                }
-
-                // Bosqichlar bitta so'rovda: shartnoma, birinchi faol invoys va omborga kirim sanasi.
-                // Avval buyurtma qatorlari/kompaniya ham Include qilinib, ombor holati doim "qizil" edi (SRM-B07).
-                var rows = await query
-                    .OrderByDescending(o => o.IssuedDate)
-                    .Select(o => new
+                    draw = page.Draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data = result.Rows.Select(r => new
                     {
-                        Order = o,
-                        Supplier = o.SUPPLIER,
-                        Facts = new TrackingFacts
-                        {
-                            ContractNo = o.P_CONTRACTS.ContractNo,
-                            ContractDate = (DateTime?)o.P_CONTRACTS.IssuedDate,
-                            InvoiceNo = o.P_INVOICES.Where(i => i.IsDeleted != true).OrderBy(i => i.ID).Select(i => i.InvoiceNo).FirstOrDefault(),
-                            InvoiceDate = o.P_INVOICES.Where(i => i.IsDeleted != true).OrderBy(i => i.ID).Select(i => (DateTime?)i.InvoiceDate).FirstOrDefault(),
-                            ReceiptDate = o.P_INVOICES.Where(i => i.IsDeleted != true)
-                                .SelectMany(i => i.INCOMES)
-                                .Where(inc => inc.IsDeleted != true)
-                                .Min(inc => (DateTime?)inc.IssueDateTime)
-                        }
+                        id = r.ID,
+                        orderNo = r.OrderNo,
+                        supplier = r.SupplierName,
+                        date = r.IssuedDate.ToString("dd.MM.yyyy"),
+                        indirect = r.PurchaseType == 1,
+                        contract = r.HasContract ? $"Shartnoma: {r.ContractNo} ({r.ContractDate:dd.MM.yyyy})" : null,
+                        invoice = r.InvoiceNo != null || r.InvoiceDate.HasValue
+                            ? $"Invoys: {r.InvoiceNo} ({r.InvoiceDate:dd.MM.yyyy})" : null,
+                        receipt = r.ReceiptDate.HasValue ? $"Omborga keldi: {r.ReceiptDate:dd.MM.yyyy}" : null,
+                        status = r.Status
                     })
-                    .ToListAsync();
-
-                var trackingData = new List<PurchaseOrderTrackingIndexItemViewModel>();
-                foreach (var row in rows)
-                {
-                    row.Order.SUPPLIER = row.Supplier;
-                    var status = BuildTrackingStatus(row.Order, row.Facts);
-
-                    // Filtr ko'rsatilayotgan (hisoblangan) holat bo'yicha — DB ustuni bo'yicha emas
-                    if (!string.IsNullOrEmpty(statusFilter) && row.Order.Status != statusFilter)
-                    {
-                        continue;
-                    }
-
-                    trackingData.Add(new PurchaseOrderTrackingIndexItemViewModel
-                    {
-                        POrder = row.Order,
-                        TrackingStatus = status
-                    });
-                }
-
-                ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
-                ViewBag.PurchaseTypeList = new SelectList(new[]
-                {
-                    new { Value = "", Text = "All" },
-                    new { Value = "Direct", Text = "Direct Purchase" },
-                    new { Value = "Indirect", Text = "Indirect Purchase" }
-                }, "Value", "Text", purchaseTypeFilter);
-
-                ViewBag.StatusFilter = statusFilter;
-                ViewBag.StatusList = new SelectList(new[]
-                {
-                    new { Value = "", Text = "All" },
-                    new { Value = "Created", Text = "Created" },
-                    new { Value = "ContractCreated", Text = "Contract Created" },
-                    new { Value = "Invoiced", Text = "Invoiced" },
-                    new { Value = "Received", Text = "Received" }
-                }, "Value", "Text", statusFilter);
-
-                return View(trackingData);
+                }, JsonRequestBehavior.AllowGet);
             }
         }
 

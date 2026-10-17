@@ -2,8 +2,11 @@
 @{
     Layout = null;
     var ex = Model?.Exception;
-    var msg = ex?.Message ?? "";
-    var innerMsg = ex?.InnerException?.Message ?? "";
+    // Ichki xato matni (SQL, stack ma'lumoti) faqat Developer roliga ko'rsatiladi (CORE-S06)
+    bool showDetails = User != null && User.Identity.IsAuthenticated && tahsinERP.Models.RoleHelper.IsDeveloper(User.Identity.Name);
+    if (ex != null) { System.Diagnostics.Trace.TraceError("[Error] " + ex); }
+    var msg = showDetails ? (ex?.Message ?? "") : "";
+    var innerMsg = showDetails ? (ex?.InnerException?.Message ?? "") : "";
 }
 <!DOCTYPE html>
 <html lang="uz">

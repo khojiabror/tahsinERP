@@ -220,7 +220,7 @@ namespace tahsinERP.Services
         private static CachedTemplate GetTemplate(int templateId)
         {
             string key = templateId.ToString();
-            var cached = TemplateCache.Get(key) as CachedTemplate;
+            var cached = TemplateCache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key)) as CachedTemplate;
             if (cached != null)
                 return cached;
 
@@ -241,14 +241,14 @@ namespace tahsinERP.Services
             if (cached == null || cached.FileContent == null)
                 throw new InvalidOperationException("Shablon topilmadi yoki faol emas.");
 
-            TemplateCache.Set(key, cached, DateTimeOffset.Now.Add(TemplateTtl));
+            TemplateCache.Set(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(key), cached, DateTimeOffset.Now.Add(TemplateTtl));
             return cached;
         }
 
         /// <summary>Shablon yangilanganda/arxivlanganda chaqiriladi.</summary>
         public static void InvalidateTemplate(int templateId)
         {
-            TemplateCache.Remove(templateId.ToString());
+            TemplateCache.Remove(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(templateId.ToString()));
         }
 
         /// <summary>Paragrafning o'ziga tegishli Text'lari (ichki matn qutilaridagi paragraflar alohida qayta ishlanadi).</summary>
@@ -346,7 +346,7 @@ namespace tahsinERP.Services
                 if (_data.Values.TryGetValue(key, out value))
                     return value ?? "";
                 if (_data.Html.TryGetValue(key, out value))
-                    return OfficialLetterDataService.HtmlToPlainText(value);
+                    return HtmlToDocxConverter.HtmlToPlainText(value);
                 DocTable table;
                 if (_data.Tables.TryGetValue(key, out table))
                     return table.ToPlainText();

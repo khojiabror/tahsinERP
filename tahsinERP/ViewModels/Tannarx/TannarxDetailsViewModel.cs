@@ -2,7 +2,7 @@ using System;
 
 namespace tahsinERP.ViewModels.Tannarx
 {
-    public class TannarxDetailsViewModel
+    public class TannarxDetailsViewModel : ITannarxCostFields
     {
         public int ID { get; set; }
         public int ProductID { get; set; }

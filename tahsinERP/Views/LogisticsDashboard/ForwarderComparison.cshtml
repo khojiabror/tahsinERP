@@ -1,4 +1,4 @@
-@using tahsinERP.ViewModels
+﻿@using tahsinERP.ViewModels
 @{
     ViewBag.Title = "Yuk tashuvchilarni taqqoslash";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -32,6 +32,7 @@
             </div>
 
             <div class="content-body">
+                @Html.Partial("~/Views/Logistic/Shared/_CurrencyNote.cshtml")
                 <div class="card mb-2">
                     <div class="card-body">
                         <form method="get" action="@Url.Action("ForwarderComparison", "LogisticsDashboard")" class="row">

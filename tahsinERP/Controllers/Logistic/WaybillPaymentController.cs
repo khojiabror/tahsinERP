@@ -124,7 +124,7 @@ namespace tahsinERP.Controllers.Logistic
                         db.SaveChanges();
 
                         // LOG-B01: yangi to'lovning o'zi taqsimotda "to'langan" deb hisoblanmaydi
-                        WaybillLedgerService.ReplacePaymentSplits(db, model.ID, waybillIds, model.Payment_Amount, model.CurrencyID, model.Comment);
+                        WaybillLedgerService.ReplacePaymentSplits(db, model.ID, waybillIds, model.Payment_Amount, model.CurrencyID, model.Comment, model.PaymentDate);
                         db.SaveChanges();
 
                         posted = FinancePostingService.PostWaybillPayment(model.ID, AccountID, db, CurrentUserId);
@@ -358,7 +358,8 @@ namespace tahsinERP.Controllers.Logistic
                         waybillPaymentToUpdate.CurrencyID = waybillPayment.CurrencyID;
 
                         WaybillLedgerService.ReplacePaymentSplits(db, waybillPaymentToUpdate.ID, waybillIds,
-                            waybillPaymentToUpdate.Payment_Amount, waybillPaymentToUpdate.CurrencyID, waybillPaymentToUpdate.Comment);
+                            waybillPaymentToUpdate.Payment_Amount, waybillPaymentToUpdate.CurrencyID, waybillPaymentToUpdate.Comment,
+                            waybillPaymentToUpdate.PaymentDate);
 
                         // Bog'liq chiqim tranzaksiyasi summa/sana bilan bir xil bo'lib qolsin
                         var finTransaction = FindFinTransaction(db, waybillPaymentToUpdate.ID);
@@ -421,11 +422,29 @@ namespace tahsinERP.Controllers.Logistic
 
             var waybills = db.F_WAYBILLS.AsNoTracking()
                 .Where(w => waybillIds.Contains(w.ID) && w.IsDeleted != true)
-                .Select(w => new { w.ID, w.WaybillNo, w.ForwarderID })
+                .Select(w => new { w.ID, w.WaybillNo, w.ForwarderID, w.CurrencyID })
                 .ToList();
             if (waybills.Count != waybillIds.Count)
             {
                 ModelState.AddModelError("WaybillID", "Tanlangan yo'l varaqalaridan biri topilmadi yoki o'chirilgan.");
+            }
+
+            // LOG-B13: bitta to'lovning yo'l varaqalari bitta valyutada (qoldiq va jami shu valyutada ko'rsatiladi);
+            // to'lov boshqa valyutada bo'lsa — to'lov sanasidagi kurs bo'lishi shart (taqsimot kurs bilan)
+            var waybillCurrencies = waybills.Where(w => w.CurrencyID.HasValue).Select(w => w.CurrencyID.Value).Distinct().ToList();
+            if (waybillCurrencies.Count > 1)
+            {
+                ModelState.AddModelError("WaybillID", "Bitta to'lovga turli valyutadagi yo'l varaqalarini bog'lab bo'lmaydi — ularni alohida to'lang.");
+            }
+            else if (waybillCurrencies.Count == 1 && model.CurrencyID.HasValue && model.CurrencyID != waybillCurrencies[0])
+            {
+                var date = (model.PaymentDate ?? DateTime.Today).Date;
+                if (!new LogisticsMoney(db).Convert(1, model.CurrencyID, waybillCurrencies[0], date).HasValue)
+                {
+                    ModelState.AddModelError("CurrencyID",
+                        $"{date:dd.MM.yyyy} sanasi uchun valyuta kursi topilmadi ({ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, model.CurrencyID)} / " +
+                        $"{ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, waybillCurrencies[0])}). Kursni \"Valyuta kurslari\" sahifasida kiriting.");
+                }
             }
 
             var foreign = waybills

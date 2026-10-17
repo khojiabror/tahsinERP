@@ -6,6 +6,25 @@
     var toDate = ViewBag.ToDate as DateTime?;
     Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
     var totalReceivable = Model.CustomerReceivables != null ? Model.CustomerReceivables.Sum(x => x.ReceivableAmount) : 0m;
+    // Grafik ma'lumotlari JSON konfiguratsiyada (Scripts/crm/crm-dashboard.js) — XSS/qo'shtirnoq xavfsiz (CRM-S05)
+    Func<IEnumerable<tahsinERP.ViewModels.CRMChartPoint>, object> chartJson = pts => new
+    {
+        labels = (pts ?? Enumerable.Empty<tahsinERP.ViewModels.CRMChartPoint>()).Select(x => x.Label).ToList(),
+        series = (pts ?? Enumerable.Empty<tahsinERP.ViewModels.CRMChartPoint>()).Select(x => x.NumericValue).ToList()
+    };
+    var topCustomers = Model.TopCustomersByOrderAmount ?? new List<tahsinERP.ViewModels.CRMCustomerOrderSum>();
+    var dashboardConfig = new
+    {
+        contractsByMonth = chartJson(Model.ContractsByMonth),
+        ordersByMonth = chartJson(Model.OrdersByMonth),
+        orderFulfillment = chartJson(Model.OrderFulfillmentStatus),
+        contractStatus = chartJson(Model.ContractCompletionStatus),
+        topCustomers = new
+        {
+            labels = topCustomers.Select(x => x.CustomerName ?? "").ToList(),
+            series = topCustomers.Select(x => (double)x.TotalAmount).ToList()
+        }
+    };
 }
 
 @* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
@@ -444,7 +463,9 @@
                                                 <th>Xaridor</th>
                                                 <th>To'lov muddati</th>
                                                 <th>Kechikish (kun)</th>
-                                                <th>Summa</th>
+                                                <th>Summa (so'm)</th>
+                                                <th>To'langan</th>
+                                                <th>Qoldiq</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -458,12 +479,14 @@
                                                         <td>@(i.DueDate?.ToString("dd.MM.yyyy") ?? "")</td>
                                                         <td><span class="badge badge-danger">@i.DaysOverdue</span></td>
                                                         <td>@i.TotalAmount.ToString("N0")</td>
+                                                        <td>@i.PaidAmount.ToString("N0")</td>
+                                                        <td class="font-weight-bold">@i.RemainingAmount.ToString("N0")</td>
                                                     </tr>
                                                 }
                                             }
                                             else
                                             {
-                                                <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr>
+                                                <tr><td colspan="7" class="text-center text-muted">Yo'q</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -490,135 +513,7 @@
     @section scripts
     {
         <script src="~/app-assets/vendors/js/charts/apexcharts.min.js"></script>
-        <script>
-            $(document).ready(function() {
-                if (typeof ApexCharts === 'undefined') {
-                    $('#contractsByMonthChart, #ordersByMonthChart, #orderFulfillmentChart, #contractStatusChart, #topCustomersChart').html('<p class="text-center text-muted">ApexCharts yuklanmadi</p>');
-                    return;
-                }
-
-                var contractsLabels = @Html.Raw(Json.Encode((Model.ContractsByMonth?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
-                var contractsSeries = [ @Html.Raw(Model.ContractsByMonth != null && Model.ContractsByMonth.Any() ? string.Join(",", Model.ContractsByMonth.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
-
-                var ordersLabels = @Html.Raw(Json.Encode((Model.OrdersByMonth?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
-                var ordersSeries = [ @Html.Raw(Model.OrdersByMonth != null && Model.OrdersByMonth.Any() ? string.Join(",", Model.OrdersByMonth.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
-
-                if (contractsLabels.length && contractsSeries.length) {
-                    new ApexCharts(document.querySelector("#contractsByMonthChart"), {
-                        chart: { type: 'bar', height: 320 },
-                        series: [{ name: 'Shartnomalar', data: contractsSeries }],
-                        xaxis: { categories: contractsLabels },
-                        plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
-                        colors: ['#7367F0'],
-                        dataLabels: { enabled: false }
-                    }).render();
-                } else {
-                    document.querySelector("#contractsByMonthChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
-                }
-
-                if (ordersLabels.length && ordersSeries.length) {
-                    new ApexCharts(document.querySelector("#ordersByMonthChart"), {
-                        chart: { type: 'line', height: 320 },
-                        series: [{ name: 'Buyurtmalar', data: ordersSeries }],
-                        xaxis: { categories: ordersLabels },
-                        stroke: { curve: 'smooth', width: 2 },
-                        colors: ['#28a745'],
-                        dataLabels: { enabled: false }
-                    }).render();
-                } else {
-                    document.querySelector("#ordersByMonthChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
-                }
-
-                var fulfillmentLabels = @Html.Raw(Json.Encode((Model.OrderFulfillmentStatus?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
-                var fulfillmentSeries = [ @Html.Raw(Model.OrderFulfillmentStatus != null && Model.OrderFulfillmentStatus.Any() ? string.Join(",", Model.OrderFulfillmentStatus.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
-                if (fulfillmentSeries.length && fulfillmentSeries.some(function(v){ return v > 0; })) {
-                    new ApexCharts(document.querySelector("#orderFulfillmentChart"), {
-                        chart: { type: 'donut', height: 320 },
-                        labels: fulfillmentLabels,
-                        series: fulfillmentSeries,
-                        colors: ['#28a745', '#ffc107'],
-                        legend: { position: 'bottom' }
-                    }).render();
-                } else {
-                    document.querySelector("#orderFulfillmentChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
-                }
-
-                var statusLabels = @Html.Raw(Json.Encode((Model.ContractCompletionStatus?.Select(x => x.Label) ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
-                var statusSeries = [ @Html.Raw(Model.ContractCompletionStatus != null && Model.ContractCompletionStatus.Any() ? string.Join(",", Model.ContractCompletionStatus.Select(x => x.NumericValue.ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
-                if (statusSeries.length && statusSeries.some(function(v){ return v > 0; })) {
-                    new ApexCharts(document.querySelector("#contractStatusChart"), {
-                        chart: { type: 'donut', height: 320 },
-                        labels: statusLabels,
-                        series: statusSeries,
-                        colors: ['#dc3545', '#28a745', '#17a2b8'],
-                        legend: { position: 'bottom' }
-                    }).render();
-                } else {
-                    document.querySelector("#contractStatusChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
-                }
-
-                var topCustLabels = @Html.Raw(Json.Encode((Model.TopCustomersByOrderAmount?.Select(x => x.CustomerName ?? "") ?? Enumerable.Empty<string>()).ToList())); // JSON — XSS/qo'shtirnoq xavfsiz (CRM-S05)
-                var topCustSeries = [ @Html.Raw(Model.TopCustomersByOrderAmount != null && Model.TopCustomersByOrderAmount.Any() ? string.Join(",", Model.TopCustomersByOrderAmount.Select(x => ((double)x.TotalAmount).ToString(System.Globalization.CultureInfo.InvariantCulture))) : "0") ];
-                function formatSumma(val) {
-                    var n = Number(val);
-                    if (isNaN(n)) return val;
-                    var parts = n.toFixed(2).split('.');
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
-                    return parts.join(',') + '\u00A0so\'m';
-                }
-                if (topCustLabels.length && topCustSeries.length) {
-                    new ApexCharts(document.querySelector("#topCustomersChart"), {
-                        chart: { type: 'bar', height: 350, toolbar: { show: false } },
-                        plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '65%' } },
-                        series: [{ name: 'Summa', data: topCustSeries }],
-                        xaxis: { categories: topCustLabels },
-                        dataLabels: {
-                            enabled: true,
-                            formatter: function(val) { return formatSumma(val); }
-                        },
-                        colors: ['#5e72e4']
-                    }).render();
-                } else {
-                    document.querySelector("#topCustomersChart").innerHTML = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
-                }
-
-                if (typeof $ !== 'undefined' && $.fn.DataTable) {
-                    var crmDtOptions = {
-                        pageLength: 25,
-                        lengthMenu: [[25, 50, 100, -1], ["25", "50", "100", "Barchasi"]],
-                        language: {
-                            lengthMenu: "Ko'rsatish: _MENU_",
-                            info: "_TOTAL_ ta yozuvdan _START_ - _END_",
-                            infoEmpty: "Yozuv yo'q",
-                            infoFiltered: "(_MAX_ ta yozuvdan filtrlangan)",
-                            search: "Qidirish:",
-                            paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
-                            zeroRecords: "Hech narsa topilmadi"
-                        },
-                        order: [],
-                        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
-                    };
-                    $('.crm-dashboard-datatable').each(function() {
-                        var $t = $(this);
-                        var hasDataRows = $t.find('tbody tr').length > 0 && $t.find('tbody tr td[colspan]').length === 0;
-                        if (hasDataRows) $t.DataTable(crmDtOptions);
-                    });
-                }
-
-                $('#tblCustomerReceivables').on('click', '.receivable-customer-row', function () {
-                    var customerId = $(this).data('customer');
-                    var $icon = $(this).find('.receivable-toggle-icon');
-                    var $children = $('#tblCustomerReceivables').find('.receivable-contract-row[data-parent="' + customerId + '"]');
-                    var isHidden = $children.first().hasClass('d-none');
-                    if (isHidden) {
-                        $children.removeClass('d-none');
-                        $icon.removeClass('bx-chevron-right').addClass('bx-chevron-down');
-                    } else {
-                        $children.addClass('d-none');
-                        $icon.removeClass('bx-chevron-down').addClass('bx-chevron-right');
-                    }
-                });
-            });
-        </script>
+        <script type="application/json" id="crmDashboardConfig">@Html.Raw(Json.Encode(dashboardConfig))</script>
+        <script src="@Url.Content("~/Scripts/crm/crm-dashboard.js")"></script>
     }
 }
