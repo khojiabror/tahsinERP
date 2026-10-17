@@ -37,6 +37,14 @@
         </div>
 
         <div class="content-body">
+                @if (ViewBag.CurrencyCodes != null && ((IEnumerable<string>)ViewBag.CurrencyCodes).Count() > 1)
+                {
+                    @* LOG-B13: summalar valyuta kursisiz qo'shiladi — konvertatsiya biznes qarorini kutmoqda *@
+                    <div class="alert alert-warning no-print">
+                        Diqqat: davrda bir nechta valyutadagi yozuvlar bor (@string.Join(", ", (IEnumerable<string>)ViewBag.CurrencyCodes)).
+                        Jami summalar valyuta kursisiz qo'shilgan.
+                    </div>
+                }
             <div class="card no-print">
                 <div class="card-header">
                     <h4 class="card-title mb-0">Logistika oylik hisoboti</h4>

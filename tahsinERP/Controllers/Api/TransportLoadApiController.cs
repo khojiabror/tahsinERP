@@ -39,7 +39,9 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, error = "An error occurred: " + ex.Message }, JsonRequestBehavior.AllowGet);
+                // LOG-S02: ichki xato matni (SQL va h.k.) foydalanuvchiga ko'rsatilmaydi
+                System.Diagnostics.Trace.TraceError("TransportLoadApi/Calculate: {0}", ex);
+                return Json(new { success = false, error = "Hisoblashda xatolik yuz berdi." }, JsonRequestBehavior.AllowGet);
             }
         }
     }

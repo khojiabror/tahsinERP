@@ -1,166 +1,112 @@
+@using tahsinERP.ViewModels
 @{
     ViewBag.Title = "Solishtirish hisoboti";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    int rowLimit = ViewBag.RowLimit ?? 500;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+@helper Section(string title, string partyHeader, string detailsUrl, IEnumerable<LogisticsReconciliationRowViewModel> rows, int total, int rowLimit)
 {
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/LogisticsDashboard">Logistika boshqaruv paneli</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        Solishtirish hisoboti
-                                    </li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
+    <div class="row mt-2">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="mb-0">@title <span class="badge badge-light-primary">@total</span></h5>
+                    @if (total > rowLimit)
+                    {
+                        <small class="text-muted">Oxirgi @rowLimit tasi ko'rsatilgan — davrni qisqartiring.</small>
+                    }
                 </div>
-            </div>
-
-            <div class="content-body">
-                <div class="row">
-                    <div class="col-xl-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Invoyssiz yo'l varaqalari</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Yo'l varaqasi</th>
-                                                <th>Yuk tashuvchi</th>
-                                                <th>Sana</th>
-                                                <th>Summa</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (ViewBag.WaybillsWithoutInvoices != null)
-                                            {
-                                                foreach (var item in ViewBag.WaybillsWithoutInvoices)
-                                                {
-                                                    <tr>
-                                                        <td><a href="~/Waybill/Details/@item.ID">@item.WaybillNo</a></td>
-                                                        <td>@(item.FORWARDER?.ForwarderName ?? item.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td>
-                                                        <td>@(item.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td>
-                                                        <td>@(item.Amount?.ToString("N2") ?? "")</td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <tr><td colspan="4" class="text-center">Ma'lumot topilmadi</td></tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-2">
-                    <div class="col-xl-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>To'lovsiz yo'l varaqalari</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Yo'l varaqasi</th>
-                                                <th>Yuk tashuvchi</th>
-                                                <th>Sana</th>
-                                                <th>Summa</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (ViewBag.WaybillsWithoutPayments != null)
-                                            {
-                                                foreach (var item in ViewBag.WaybillsWithoutPayments)
-                                                {
-                                                    <tr>
-                                                        <td><a href="~/Waybill/Details/@item.ID">@item.WaybillNo</a></td>
-                                                        <td>@(item.FORWARDER?.ForwarderName ?? item.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td>
-                                                        <td>@(item.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td>
-                                                        <td>@(item.Amount?.ToString("N2") ?? "")</td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <tr><td colspan="4" class="text-center">Ma'lumot topilmadi</td></tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-2">
-                    <div class="col-xl-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Yuk tashish xarajati kiritilmagan sotuv invoyslari</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Invoys</th>
-                                                <th>Mijoz</th>
-                                                <th>Sana</th>
-                                                <th>Summa</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (ViewBag.SalesInvoicesWithoutFreight != null)
-                                            {
-                                                foreach (var item in ViewBag.SalesInvoicesWithoutFreight)
-                                                {
-                                                    <tr>
-                                                        <td><a href="~/SalesInvoices/Details/@item.ID">@item.InvoiceNo</a></td>
-                                                        <td>@item.CUSTOMER?.Name</td>
-                                                        <td>@(item.InvoiceDate?.ToString("dd.MM.yyyy") ?? "")</td>
-                                                        <td>@(item.TotalAmount?.ToString("N2") ?? "")</td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <tr><td colspan="4" class="text-center">Ma'lumot topilmadi</td></tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Hujjat</th>
+                                    <th>@partyHeader</th>
+                                    <th>Sana</th>
+                                    <th>Summa</th>
+                                    <th>Valyuta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (rows != null && rows.Any())
+                                {
+                                    foreach (var item in rows)
+                                    {
+                                        <tr>
+                                            <td><a href="@(detailsUrl + item.ID)">@item.DocumentNo</a></td>
+                                            <td>@(item.PartyName ?? "")</td>
+                                            <td>@(item.Date?.ToString("dd.MM.yyyy") ?? "")</td>
+                                            <td>@(item.Amount?.ToString("N2") ?? "")</td>
+                                            <td>@(item.Currency ?? "")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="5" class="text-center">Ma'lumot topilmadi</td></tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 }
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="~/LogisticsDashboard">Logistika boshqaruv paneli</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    Solishtirish hisoboti
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="card mb-1">
+                <div class="card-body">
+                    <form method="get" action="@Url.Action("Reconciliation", "LogisticsDashboard")">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Boshlanish sanasi</label>
+                                <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
+                            </div>
+                            <div class="col-md-3">
+                                <label>Tugash sanasi</label>
+                                <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Ko'rsatish</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @Section("Invoyssiz yo'l varaqalari", "Yuk tashuvchi", Url.Content("~/Waybill/Details/"), ViewBag.WaybillsWithoutInvoices as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.WaybillsWithoutInvoicesCount, rowLimit)
+
+            @Section("To'lovsiz yo'l varaqalari", "Yuk tashuvchi", Url.Content("~/Waybill/Details/"), ViewBag.WaybillsWithoutPayments as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.WaybillsWithoutPaymentsCount, rowLimit)
+
+            @Section("Yuk tashish xarajati kiritilmagan sotuv invoyslari", "Mijoz", Url.Content("~/SalesInvoices/Details/"), ViewBag.SalesInvoicesWithoutFreight as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.SalesInvoicesWithoutFreightCount, rowLimit)
+        </div>
+    </div>
+</div>

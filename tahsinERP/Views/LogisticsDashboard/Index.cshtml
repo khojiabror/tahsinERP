@@ -29,6 +29,14 @@
             </div>
             <div class="content-body">
                 <!-- Filters -->
+                @if (ViewBag.CurrencyCodes != null && ((IEnumerable<string>)ViewBag.CurrencyCodes).Count() > 1)
+                {
+                    @* LOG-B13: summalar valyuta kursisiz qo'shiladi — konvertatsiya biznes qarorini kutmoqda *@
+                    <div class="alert alert-warning no-print">
+                        Diqqat: davrda bir nechta valyutadagi yozuvlar bor (@string.Join(", ", (IEnumerable<string>)ViewBag.CurrencyCodes)).
+                        Jami summalar valyuta kursisiz qo'shilgan.
+                    </div>
+                }
                 <div class="card mb-2">
                     <div class="card-body">
                         <form method="get" action="@Url.Action("Index", "LogisticsDashboard")">
@@ -200,7 +208,7 @@
 
                 <!-- Forwarder Performance -->
                 @{
-                    var forwarderStats = ViewBag.ForwarderStats as List<ForwarderDashboardStatViewModel>;
+                    var forwarderStats = ViewBag.ForwarderStats as List<ForwarderComparisonViewModel>;
                 }
                 @if (forwarderStats != null && forwarderStats.Any())
                 {
@@ -248,7 +256,7 @@
 
                 <!-- Lane Performance -->
                 @{
-                    var laneStats = ViewBag.LaneStats as List<LaneDashboardStatViewModel>;
+                    var laneStats = ViewBag.LaneStats as List<LanePerformanceViewModel>;
                 }
                 @if (laneStats != null && laneStats.Any())
                 {
