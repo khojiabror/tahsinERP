@@ -308,7 +308,7 @@
                         
                         purchasableProducts.forEach(function (product) {
                             var selected = product.Value == productId ? 'selected' : '';
-                            row += '<option value="' + product.Value + '" ' + selected + '>' + product.Text + '</option>';
+                            row += '<option value="' + product.Value + '" ' + selected + '>' + htmlEscape(product.Text) + '</option>';
                         });
                         
                         row += '</select>' +
@@ -321,7 +321,7 @@
                         
                         units.forEach(function (unit) {
                             var selected = unit.Value == unitId ? 'selected' : '';
-                            row += '<option value="' + unit.Value + '" ' + selected + '>' + unit.Text + '</option>';
+                            row += '<option value="' + unit.Value + '" ' + selected + '>' + htmlEscape(unit.Text) + '</option>';
                         });
                         
                         row += '</select></td>' +
@@ -335,7 +335,7 @@
                         
                         hsCodes.forEach(function (hsCode) {
                             var selected = hsCode.Value == hsCodeId ? 'selected' : '';
-                            row += '<option value="' + hsCode.Value + '" ' + selected + '>' + hsCode.Text + '</option>';
+                            row += '<option value="' + hsCode.Value + '" ' + selected + '>' + htmlEscape(hsCode.Text) + '</option>';
                         });
                         
                         row += '</select></td>' +

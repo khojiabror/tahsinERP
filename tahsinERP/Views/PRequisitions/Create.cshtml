@@ -203,7 +203,7 @@ else
                             '<option value="">---Tanlang---</option>';
                         products.forEach(function(p) {
                             var selected = p.Value == productId ? 'selected' : '';
-                            row += '<option value="' + p.Value + '" ' + selected + '>' + p.Text + '</option>';
+                            row += '<option value="' + p.Value + '" ' + selected + '>' + htmlEscape(p.Text) + '</option>';
                         });
                         row += '</select></td>' +
                             '<td><input type="number" name="RequisitionProducts[' + productRowIndex + '].Quantity" class="form-control quantity" step="0.01" min="0.01" value="' + (quantity || '') + '" required /></td>' +
@@ -211,7 +211,7 @@ else
                             '<option value="">---Tanlang---</option>';
                         units.forEach(function(u) {
                             var selected = u.Value == unitId ? 'selected' : '';
-                            row += '<option value="' + u.Value + '" ' + selected + '>' + u.Text + '</option>';
+                            row += '<option value="' + u.Value + '" ' + selected + '>' + htmlEscape(u.Text) + '</option>';
                         });
                         row += '</select></td>' +
                             '<td><input type="number" name="RequisitionProducts[' + productRowIndex + '].EstimatedPrice" class="form-control price" step="0.01" min="0" value="' + (estimatedPrice || '') + '" /></td>' +
@@ -222,7 +222,7 @@ else
                             '<option value="Low"' + (priority === 'Low' ? ' selected' : '') + '>Low</option>' +
                             '</select></td>' +
                             '<td><input type="date" name="RequisitionProducts[' + productRowIndex + '].RequiredDate" class="form-control" value="' + (requiredDate || '') + '" /></td>' +
-                            '<td><input type="text" name="RequisitionProducts[' + productRowIndex + '].Description" class="form-control" value="' + (description || '') + '" /></td>' +
+                            '<td><input type="text" name="RequisitionProducts[' + productRowIndex + '].Description" class="form-control" value="' + htmlEscape(description) + '" /></td>' +
                             '<td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bx bx-trash"></i></button></td>' +
                             '</tr>';
                         $('#requisitionProductsTable tbody').append(row);

@@ -5,6 +5,8 @@
  * o'chirilsa indekslarda bo'shliq qoladi (0,2,3) va MVC default binder birinchi bo'shliqda
  * to'xtaydi — keyingi barcha qatorlar jim yo'qolardi.
  *
+ * Fayl SRM qator-muharrir formalarida ulanadi; htmlEscape ham shu yerda.
+ *
  * Foydalanish: formaga data-renumber="OrderProducts" (bir nechta bo'lsa vergul bilan) qo'ying va
  * shu faylni ulang. Handler capture fazasida ishlaydi, shuning uchun sahifadagi jQuery submit
  * handlerlaridan oldin bajariladi. AJAX bilan yuborishda window.renumberIndexedRows(form) ni chaqiring.
@@ -45,6 +47,20 @@
     }
 
     window.renumberIndexedRows = renumberIndexedRows;
+
+    /**
+     * Matnni HTML (element matni yoki atribut qiymati) uchun xavfsiz qiladi. Qatorlar satr
+     * qo'shish orqali qurilganda mahsulot PNo/nomi escaping'siz qo'yilardi — stored XSS (SRM-B22).
+     */
+    window.htmlEscape = function (value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
 
     document.addEventListener('submit', function (e) {
         var form = e.target;

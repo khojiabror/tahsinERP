@@ -244,6 +244,13 @@ namespace tahsinERP.Controllers
                 return NotAuthorized();
             }
 
+            // Faqat haqiqiy PDF qabul qilinadi (SRM-B23)
+            var fileError = PdfUpload.Validate(invoiceFile);
+            if (fileError != null)
+            {
+                ModelState.AddModelError("", fileError);
+            }
+
             if (ModelState.IsValid)
             {
                 using (var db = new DBTHSNEntities())
@@ -402,6 +409,13 @@ namespace tahsinERP.Controllers
                 return NotAuthorized();
             }
 
+            // Faqat haqiqiy PDF qabul qilinadi (SRM-B23)
+            var fileError = PdfUpload.Validate(invoiceFile);
+            if (fileError != null)
+            {
+                ModelState.AddModelError("", fileError);
+            }
+
             if (ModelState.IsValid)
             {
                 using (var db = new DBTHSNEntities())
@@ -448,7 +462,7 @@ namespace tahsinERP.Controllers
                                 db.P_INVOICE_PRODUCTS.RemoveRange(existingProducts);
                                 invoice.Amount = await AddLinesAsync(db, invoice, model.InvoiceProducts);
 
-                                if (invoiceFile != null && invoiceFile.ContentLength > 0)
+                                if (PdfUpload.HasFile(invoiceFile))
                                 {
                                     // Yangi hujjat eskisining o'rniga (eski blob'larni xotiraga yuklamasdan o'chiramiz)
                                     await db.Database.ExecuteSqlCommandAsync("DELETE FROM P_INVOICE_DOCS WHERE InvoiceID = @p0", invoice.ID);
@@ -792,20 +806,12 @@ namespace tahsinERP.Controllers
 
         private static void AddDocument(DBTHSNEntities db, P_INVOICES invoice, HttpPostedFileBase file)
         {
-            if (file == null || file.ContentLength <= 0)
+            if (!PdfUpload.HasFile(file))
             {
                 return;
             }
 
-            db.P_INVOICE_DOCS.Add(new P_INVOICE_DOCS { P_INVOICES = invoice, Doc = ReadFile(file) });
-        }
-
-        private static byte[] ReadFile(HttpPostedFileBase file)
-        {
-            using (var reader = new BinaryReader(file.InputStream))
-            {
-                return reader.ReadBytes(file.ContentLength);
-            }
+            db.P_INVOICE_DOCS.Add(new P_INVOICE_DOCS { P_INVOICES = invoice, Doc = PdfUpload.Read(file) });
         }
 
         private static string FormatError(Exception ex)

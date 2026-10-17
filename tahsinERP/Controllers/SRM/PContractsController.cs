@@ -167,6 +167,13 @@ namespace tahsinERP.Controllers
                 return NotAuthorized();
             }
 
+            // Faqat haqiqiy PDF qabul qilinadi (SRM-B23)
+            var fileError = PdfUpload.Validate(contractFile);
+            if (fileError != null)
+            {
+                ModelState.AddModelError("", fileError);
+            }
+
             if (ModelState.IsValid)
             {
                 using (var db = new DBTHSNEntities())
@@ -299,6 +306,13 @@ namespace tahsinERP.Controllers
                 return NotAuthorized();
             }
 
+            // Faqat haqiqiy PDF qabul qilinadi (SRM-B23)
+            var fileError = PdfUpload.Validate(contractFile);
+            if (fileError != null)
+            {
+                ModelState.AddModelError("", fileError);
+            }
+
             // ContractProducts bo'sh bo'lsa, qator validatsiya xatolari o'rniga bitta umumiy xabar
             if (model.ContractProducts == null || !model.ContractProducts.Any())
             {
@@ -362,7 +376,7 @@ namespace tahsinERP.Controllers
 
                                 contract.Amount = await AddLinesAsync(db, contract, model.ContractProducts);
 
-                                if (contractFile != null && contractFile.ContentLength > 0)
+                                if (PdfUpload.HasFile(contractFile))
                                 {
                                     // Yangi hujjat eskisining o'rniga (eski blob'lar xotiraga yuklanmaydi)
                                     await db.Database.ExecuteSqlCommandAsync("DELETE FROM P_CONTRACT_DOCS WHERE ContractID = @p0", contract.ID);
@@ -601,18 +615,12 @@ namespace tahsinERP.Controllers
 
         private static void AddDocument(DBTHSNEntities db, P_CONTRACTS contract, HttpPostedFileBase file)
         {
-            if (file == null || file.ContentLength <= 0)
+            if (!PdfUpload.HasFile(file))
             {
                 return;
             }
 
-            byte[] data;
-            using (var reader = new BinaryReader(file.InputStream))
-            {
-                data = reader.ReadBytes(file.ContentLength);
-            }
-
-            db.P_CONTRACT_DOCS.Add(new P_CONTRACT_DOCS { P_CONTRACTS = contract, Doc = data });
+            db.P_CONTRACT_DOCS.Add(new P_CONTRACT_DOCS { P_CONTRACTS = contract, Doc = PdfUpload.Read(file) });
         }
 
         private static string FormatError(Exception ex)
