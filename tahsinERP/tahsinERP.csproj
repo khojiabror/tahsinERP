@@ -377,6 +377,8 @@
     <Compile Include="Controllers\AdminSetting\UserEntriesController.cs" />
     <Compile Include="Controllers\AdminSetting\UserHelper.cs" />
     <Compile Include="Controllers\Logistic\WaybillController.cs" />
+    <Compile Include="Controllers\Logistic\WaybillImportController.cs" />
+    <Compile Include="Controllers\Logistic\WaybillLookupController.cs" />
     <Compile Include="Controllers\STDCompanyStandardsController.cs" />
     <Compile Include="Controllers\TaskChangeStatusController.cs" />
     <Compile Include="Controllers\TaskDashboardController.cs" />
@@ -886,6 +888,8 @@
     <Compile Include="Services\IUserActionLogger.cs" />
     <Compile Include="Services\LogisticsTerms.cs" />
     <Compile Include="Services\WaybillLedgerService.cs" />
+    <Compile Include="Services\WaybillService.cs" />
+    <Compile Include="Services\WaybillImportService.cs" />
     <Compile Include="Services\FreightCalculator.cs" />
     <Compile Include="Services\LogisticsAnalyticsService.cs" />
     <Compile Include="Services\LogisticsLookups.cs" />
@@ -2908,6 +2912,12 @@
     <Content Include="Views\FTransportType\Delete.cshtml" />
     <Content Include="Views\Waybill\Index.cshtml" />
     <Content Include="Views\Waybill\_WaybillForm.cshtml" />
+    <Content Include="Views\WaybillImport\UploadExcel.cshtml" />
+    <Content Include="Views\WaybillPayment\_PaymentForm.cshtml" />
+    <Content Include="Views\FContract\_FContractForm.cshtml" />
+    <Content Include="Views\FContractTariff\_TariffForm.cshtml" />
+    <Content Include="Views\FTransportType\_TransportTypeForm.cshtml" />
+    <Content Include="Views\Forwarder\_ForwarderForm.cshtml" />
     <Content Include="Scripts\app\waybill-form.js" />
     <Content Include="Views\Logistic\Shared\_Pager.cshtml" />
     <Content Include="Views\Logistic\Shared\_Alerts.cshtml" />
@@ -2915,7 +2925,6 @@
     <Content Include="Views\Waybill\Details.cshtml" />
     <Content Include="Views\Waybill\Edit.cshtml" />
     <Content Include="Views\Waybill\Delete.cshtml" />
-    <Content Include="Views\Waybill\UploadExcel.cshtml" />
     <Content Include="Views\FContract\Index.cshtml" />
     <Content Include="Views\FContract\Create.cshtml" />
     <Content Include="Views\FContract\Details.cshtml" />
