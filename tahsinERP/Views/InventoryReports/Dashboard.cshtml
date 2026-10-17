@@ -550,15 +550,13 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @* jQuery va DataTables _Layout'da (sahifa oxirida) yuklanadi — bu yerda qayta yuklash pluginlarni buzardi (SRM-P19).
+       Skript DOMContentLoaded'da ishlaydi: o'sha paytda layout skriptlari allaqachon bajarilgan bo'ladi. *@
+    <!-- Chart.js (versiya qotirilgan: "latest" yangi major chiqqanda dashboardni jimgina buzishi mumkin edi) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
-        $(document).ready(function () {
+        document.addEventListener('DOMContentLoaded', function () {
+            var $ = window.jQuery;
             // Initialize DataTable
             $('#dohTable').DataTable({
                 "language": {
