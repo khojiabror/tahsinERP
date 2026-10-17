@@ -30,9 +30,6 @@ namespace tahsinERP.Services
             // 2. Foydalanuvchilar, rollar va ruxsatlar (VERY DETAILED)
             chapters.Add(CreatePermissionsChapter());
 
-            // 3. CRUD va modul strukturalari bo'yicha qo'llanma
-            chapters.Add(CreateCrudPatternsChapter());
-
             // 4. Sales / Sotuvlar
             chapters.Add(CreateSalesChapter());
 
@@ -63,160 +60,11 @@ namespace tahsinERP.Services
             // 13. Tasks / Vazifalar
             chapters.Add(CreateTasksChapter());
 
-            // Ro'yxat allaqachon kerakli tartibda; Order qiymatlari takrorlanadi (CRUD va Sotuv — ikkalasi 3),
-            // shuning uchun teng Order'da qo'shilish tartibi saqlanadi (MAN-B01)
+            // Dasturchilar uchun "CRUD arxitekturasi" bo'limi oddiy foydalanuvchiga ko'rsatilardi — olib tashlandi (MAN-B01)
             return new UserManualPageViewModel
             {
-                Chapters = chapters.Select((c, i) => new { c, i }).OrderBy(x => x.c.Order).ThenBy(x => x.i).Select(x => x.c).ToList(),
+                Chapters = chapters.OrderBy(c => c.Order).ToList(),
                 InitialChapterId = chapters.First().Id
-            };
-        }
-
-        private static UserManualChapterViewModel CreateCrudPatternsChapter()
-        {
-            var content = new StringBuilder();
-            content.AppendLine("<h2>CRUD va modul arxitekturasi bo'yicha qo'llanma</h2>");
-            content.AppendLine("<p>Ushbu bo'lim tahsinERP tizimidagi barcha modul va CRUD amallari uchun <strong>umumiy qoliplar</strong> va <strong>praktik foydalanish yo'riqnomasi</strong>ni beradi.</p>");
-
-            content.AppendLine("<h3>1. Umumiy arxitektura</h3>");
-            content.AppendLine("<p>Tizim klassik ASP.NET MVC arxitekturasida qurilgan:</p>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>Models</strong> – EF modeli (<code>DBTHSNEntities</code>) va jadval klasslari (masalan, <code>FIN_ACCOUNTS</code>, <code>PRODUCTS</code>, <code>EXPENSES</code>).</li>");
-            content.AppendLine("<li><strong>Controllers</strong> – har bir modul bo'yicha papkalar va controllerlar (masalan, <code>Finance</code>, <code>SRM</code>, <code>MES</code>, <code>HR</code>).</li>");
-            content.AppendLine("<li><strong>Views</strong> – har bir controller uchun mos papkada <code>.cshtml</code> fayllar (CRUD ko'rinishlari).</li>");
-            content.AppendLine("<li><strong>ViewModels</strong> – murakkab ekranga maxsus modellar (hisobotlar, dashboardlar).</li>");
-            content.AppendLine("<li><strong>Services</strong> – umumiy biznes logika (masalan, <code>UnitConversionService</code>, <code>UserManualProvider</code>).</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h3>2. Standart CRUD qolipi (hamma modul uchun)</h3>");
-            content.AppendLine("<p>Tizimdagi deyarli barcha controllerlar bir xil CRUD pattern bo'yicha ishlaydi. Quyidagi misol <code>FinAccountsController</code> asosida keltirilgan, lekin qolip butun tizim bo'ylab bir xil:</p>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>Index (GET)</strong> – ro'yxat, qidirish, filtr, sort, pagination.");
-            content.AppendLine("<li><strong>Details (GET)</strong> – tanlangan yozuvning to'liq ma'lumoti.</li>");
-            content.AppendLine("<li><strong>Create (GET/POST)</strong> – yangi yozuv yaratish.</li>");
-            content.AppendLine("<li><strong>Edit (GET/POST)</strong> – mavjud yozuvni tahrirlash.</li>");
-            content.AppendLine("<li><strong>Delete (GET/POST)</strong> – odatda <em>soft delete</em> (IsActive/IsDeleted bayrog'i bilan).</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>2.1. Index action – ro'yxat, qidirish va filtrlash</h4>");
-            content.AppendLine("<p>Misol: <code>Finance/FinAccounts/Index</code>.</p>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li>Ruxsat: <code>RoleHelper.IsViewPermitted(User.Identity.Name, \"FinAccounts\")</code>.</li>");
-            content.AppendLine("<li>Query: <code>db.FIN_ACCOUNTS.Where(a =&gt; a.IsActive)</code> ustida <strong>search</strong>, <strong>filter</strong>, <strong>sort</strong>, <strong>pagination</strong>.</li>");
-            content.AppendLine("<li>Natija: ro'yxat view (<code>Views/FinAccounts/Index.cshtml</code>) va <code>ViewBag</code> orqali filter dropdownlar.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>2.2. Details action – bitta yozuv kartasi</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li>URL: <code>/Finance/FinAccounts/Details/{id}</code>.</li>");
-            content.AppendLine("<li>Null va mavjud emasligi uchun <code>BadRequest</code> va <code>HttpNotFound</code> qaytariladi.</li>");
-            content.AppendLine("<li><code>Include(...)</code> bilan navigatsion propertylar (valyuta, foydalanuvchi va boshqalar) yuklanadi.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>2.3. Create (GET/POST) – yangi yozuv yaratish</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>GET</strong> – formani ko'rsatish, <code>ViewBag</code> orqali dropdownlar (<code>CURRENCIES</code>, <code>FIN_BALANCE_CATEGORIES</code> va hokazo) to'ldiriladi.</li>");
-            content.AppendLine("<li><strong>POST</strong> – <code>ModelState.IsValid</code> va biznes qoidalar (masalan, <code>Code</code> unikal bo'lishi) tekshiriladi.</li>");
-            content.AppendLine("<li>Audit maydonlari: <code>CreatedByUserID = UserHelper.GetUserId(User.Identity.Name)</code>, <code>CreatedDT = DateTime.Now</code>.</li>");
-            content.AppendLine("<li>Log yozuvi: <code>LogHelper.LogToDatabase(User.Identity.Name, \"FinAccounts\", \"Create\", ...)</code>.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>2.4. Edit (GET/POST) – mavjud yozuvni tahrirlash</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>GET</strong> – <code>Find(id)</code> orqali yozuv olinadi, dropdownlar to'ldiriladi.</li>");
-            content.AppendLine("<li><strong>POST</strong> – <code>Code</code> kabi unikal maydonlar boshqa yozuvlar bilan to'qnashmasligi tekshiriladi.</li>");
-            content.AppendLine("<li>Faqat ruxsat berilgan maydonlar yangilanadi (masalan, <code>Name</code>, <code>CurrencyID</code>, <code>IsCash</code> va hokazo).</li>");
-            content.AppendLine("<li>Log yozuvi: <code>LogHelper.LogToDatabase(..., \"Edit\", ...)</code>.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>2.5. Delete – soft delete</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>GET</strong> – foydalanuvchiga ogohlantirish sahifasi ko'rsatiladi, ko'pincha <code>HasTransactions</code> yoki boshqa bog'liqlik tekshiriladi.</li>");
-            content.AppendLine("<li><strong>POST (DeleteConfirmed)</strong> – odatda <em>soft delete</em>: <code>IsActive = false</code> yoki <code>IsDeleted = true</code> bayrog'i qo'yiladi.</li>");
-            content.AppendLine("<li>Log yozuvi: <code>LogHelper.LogToDatabase(..., \"Delete\", ...)</code>.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h3>3. Umumiy helper va servislar</h3>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>DBTHSNEntities</strong> – barcha modul uchun yagona EF <code>DbContext</code>. Barcha jadvallar shu yerda.</li>");
-            content.AppendLine("<li><strong>RoleHelper</strong> – <code>IsViewPermitted</code> va <code>IsChangePermitted</code> orqali ruxsat tekshiradi.</li>");
-            content.AppendLine("<li><strong>UserHelper</strong> – joriy foydalanuvchi ID sini beradi (<code>GetUserId(User.Identity.Name)</code>).</li>");
-            content.AppendLine("<li><strong>LogHelper</strong> – CRUD amallarini bazaga log qiladi.</li>");
-            content.AppendLine("<li><strong>UnitConversionService</strong> – ishlab chiqarish va ombor hisobotlarida birlik konvertatsiyasi.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h3>4. Modul bo'yicha qisqacha xarita</h3>");
-            content.AppendLine("<h4>4.1. Moliya (Finance)</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>FinAccounts</strong> – kassa/bank/boshqa hisoblar CRUD.</li>");
-            content.AppendLine("<li><strong>FinTransactions</strong> – moliyaviy tranzaksiyalar CRUD (kirim/chiqim, o'tkazmalar).</li>");
-            content.AppendLine("<li><strong>FinBalanceCategories</strong>, <strong>FinCategories</strong> – balans va P&amp;L kategoriyalar.</li>");
-            content.AppendLine("<li><strong>FinPlItems</strong>, <strong>FinPlPlans</strong> – P&amp;L moddalar va reja.</li>");
-            content.AppendLine("<li><strong>OpeningBalance</strong> – boshlang'ich qoldiqlarni kiritish.</li>");
-            content.AppendLine("<li><strong>Shareholder</strong> – aksiyadorlar ro'yxati.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>4.2. Sotuvlar (CRM / Sales)</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>Customer</strong> / <strong>CustomerBase</strong> – mijozlar CRUD.</li>");
-            content.AppendLine("<li><strong>CompanyOrders</strong> – buyurtmalar (order) CRUD, hisob-faktura va yetkazib berish bilan bog'liq.</li>");
-            content.AppendLine("<li><strong>SalesInvoices</strong>, <strong>SalesSF</strong>, <strong>SalesTTNK</strong> – sotuv invoyslari va soliq hujjatlari.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>4.3. Xarid va SRM</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>Supplier</strong> / <strong>SupplierBase</strong> – ta'minotchilar CRUД.</li>");
-            content.AppendLine("<li><strong>POrders</strong>, <strong>PContracts</strong>, <strong>PInvoices</strong>, <strong>PRequisitions</strong> – xarid buyurtmalari va shartnomalar.</li>");
-            content.AppendLine("<li><strong>SRMDashboard</strong> – ta'minot bo'yicha ko'rsatkichlar.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>4.4. Omborxona va logistika</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>Warehouse</strong> – omborlar CRUD.</li>");
-            content.AppendLine("<li><strong>Incomes</strong>, <strong>Expenses</strong> – ombor kirim/chiqim hujjatlari.</li>");
-            content.AppendLine("<li><strong>Inventory</strong>, <strong>InventoryReports</strong> – qoldiq va analitik hisobotlar.</li>");
-            content.AppendLine("<li><strong>Forwarder</strong>, <strong>FContract</strong>, <strong>Waybill</strong> – logistika (yuk tashish, yo'l varaqalari).</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>4.5. Ishlab chiqarish va MES</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>ProductPlan</strong>, <strong>ProductProduction</strong>, <strong>MESDashboard</strong> – ishlab chiqarish rejalari va faktlari.</li>");
-            content.AppendLine("<li><strong>BOM</strong>, <strong>Norm</strong>, <strong>Tannarx</strong>, <strong>TannarxAnalytics</strong> – retseptlar va tannarx.</li>");
-            content.AppendLine("<li><strong>QualityInspection</strong>, <strong>DamagedPart</strong>, <strong>DamagedProduct</strong>, <strong>DefectType</strong> – sifat va brak bilan ishlash.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h4>4.6. HR va vazifalar</h4>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><strong>HrOrgUnits</strong>, <strong>HrEmployees</strong>, <strong>HrPositions</strong>, <strong>HrSalaryGrades</strong> – tashkiliy struktura va xodimlar.</li>");
-            content.AppendLine("<li><strong>HrTimesheets</strong>, <strong>HrPayroll</strong>, <strong>HrPieceRateTimesheets</strong> – tabel va ish haqi.</li>");
-            content.AppendLine("<li><strong>Tasks</strong>, <strong>TaskDashboard</strong>, <strong>TaskKanban</strong>, <strong>TaskChangeStatus</strong> – vazifalar boshqaruvi.</li>");
-            content.AppendLine("</ul>");
-
-            content.AppendLine("<h3>5. Lot va DLOC (ombor ichidagi joylar)</h3>");
-            content.AppendLine("<p>SRM modulida <strong>DLOC</strong> (ombor joylashuvi), <strong>lot</strong> va <strong>FIFO</strong> chiqim qoidalari joriy qilingan. Batafsil qo'llanma:</p>");
-            content.AppendLine("<ul>");
-            content.AppendLine("<li><a href=\"/HelpDocs/Download?file=DLOC_FIFO_User_Guide.pdf\" target=\"_blank\"><strong>DLOC va FIFO qo'llanmasi (PDF)</strong></a></li>");
-            content.AppendLine("<li><a href=\"/HelpDocs/Download?file=DLOC_FIFO_User_Guide.docx\" target=\"_blank\">Word (.docx)</a> — tahrirlash uchun</li>");
-            content.AppendLine("<li>Manba: <code>Docs/DLOC_FIFO_User_Guide.md</code> (versiya 1.0)</li>");
-            content.AppendLine("</ul>");
-            content.AppendLine("<p><strong>Asosiy ekranlar:</strong> Sozlamalar → Ombor joylashuvlari; Kirimlar (har qator DLOC); Chiqimlar (FIFO); Ombor qoldig'i → Joylar bo'yicha qoldiq.</p>");
-
-            content.AppendLine("<h3>6. Amaliy ishlash tartibi (administrator va power user uchun)</h3>");
-            content.AppendLine("<ol>");
-            content.AppendLine("<li><strong>Model va jadvalni aniqlash:</strong> kerakli jadval EF modelida (<code>DBTHSNEntities</code>) mavjudligini tekshiring.</li>");
-            content.AppendLine("<li><strong>Controller va View papkasini topish:</strong> modulga mos controller (<code>Controllers/Finance</code>, <code>Controllers/SRM</code> va hokazo) va <code>Views</code> ichidagi mos papkani toping.</li>");
-            content.AppendLine("<li><strong>CRUD qolipidan foydalanish:</strong> mavjud controllerlardan (masalan, <code>FinAccountsController</code>) nusxa olib yangi modulga moslashtiring.</li>");
-            content.AppendLine("<li><strong>Ruxsatni sozlash:</strong> <code>PModule</code> orqali modulni ro'yxatga oling va rol uchun <code>ViewPermit</code> va <code>ChangePermit</code> ni belgilab chiqing.</li>");
-            content.AppendLine("<li><strong>Loglarni yoqish:</strong> barcha muhim <code>Create/Edit/Delete</code> amallariga <code>LogHelper.LogToDatabase</code> qo'shilganiga ishonch hosil qiling.</li>");
-            content.AppendLine("</ol>");
-
-            return new UserManualChapterViewModel
-            {
-                Id = "crud-architecture",
-                Title = "CRUD va modul arxitekturasi",
-                ModuleCode = "CRUD",
-                ContentHtml = content.ToString(),
-                Order = 3
             };
         }
 

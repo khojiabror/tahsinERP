@@ -384,7 +384,8 @@ namespace tahsinERP.Controllers
                     return RedirectToAction("Index");
                 }
 
-                // Soft o'chirish: CANCELLED holati bo'lsa — bekor qilinadi, aks holda IsDeleted
+                // Biznes qarori (TSK-B06, 2026-10-17): "o'chirish" = bekor qilish — CANCELLED holati bo'lsa
+                // status o'zgaradi (tarix saqlanadi), aks holda IsDeleted
                 var cancelledStatus = TaskLookups.Statuses().FirstOrDefault(s => s.Code == TaskRules.CancelledCode);
                 if (cancelledStatus != null)
                 {

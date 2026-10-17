@@ -369,7 +369,7 @@ namespace tahsinERP.Controllers
                     { "ORDER_TOPIC", doc.Title ?? "" }, // Template uses ORDER_TOPIC, not ORDER_TITLE
                     { "ORDER_BODY", notesText }, // Full body text without splitting
                     { "ORG_UNIT_NAME", doc.HR_ORG_UNITS?.Name ?? "" },
-                    { "DIRECTOR_NAME", "X.M. Maxmudov" } // TODO: Get dan settings yoki user jadval
+                    { "DIRECTOR_NAME", await CompanySettings.DirectorNameAsync(db) } // COMPANIES.DirectorName (DOC-B11)
                 };
 
                 // Tahlil qilish Notes into individual content items (ORDER_DECREE_1_CONTENT_1, ORDER_DECREE_1_CONTENT_2, etc.)

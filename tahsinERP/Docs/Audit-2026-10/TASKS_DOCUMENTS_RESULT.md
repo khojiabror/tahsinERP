@@ -1,6 +1,6 @@
 # Tasks + Documents — bajarilgan ishlar (2026-10-17)
 
-Branch: `claude/opt-tasks-docs-9aa641` (core `19c07bd7` ustida), 9 ta commit. Push/merge qilinmagan.
+Branch: `claude/opt-tasks-docs-9aa641` (core `19c07bd7` ustida), 10 ta commit. Merge qilinmagan.
 
 **Tekshiruv:** MSBuild (Debug) xatosiz. Modul view'lari aspnet_compiler bilan alohida nusxada kompilyatsiya qilindi (xatosiz).
 HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, rasm joylashgan.
@@ -19,6 +19,7 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 | 7 | Yagona HTML→DOCX konverter (run formatlash, sarlavha, ro'yxat, rasm), JobDesc facade |
 | 8 | O'lik `Views/Manual` + `assets/manual` (194 fayl, ~28 MB), `UserManualProvider` Lazy kesh |
 | 9 | Data-fix skriptlari, indeks taklifi, shu hisobot |
+| 10 | Biznes qarorlari: COMPANIES.DirectorName, qo'llanmadan CRUD bo'limi, assets skrinshotlari |
 
 ## Tuzatilgan ID'lar
 
@@ -57,10 +58,13 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 
 ## Qolganlar (qilinmagan)
 
-- **Biznes qarori kerak:**
-  - **TSK-B06:** Tasks "Delete" hozir statusni CANCELLED qiladi (o'chirmaydi) — shunday qolsinmi?
-  - **DOC-B11:** direktor ismi kodda qattiq yozilgan; kompaniya sozlamasida bunday maydon yo'q.
-  - **MAN-B01:** dasturchilar uchun "CRUD arxitekturasi" bo'limi oddiy foydalanuvchiga ko'rsatiladi — olib tashlansinmi?
+- **Biznes qarorlari (2026-10-17, foydalanuvchi):**
+  - **TSK-B06:** "Delete" topshiriqni o'chirmaydi, CANCELLED statusiga o'tkazadi — shunday qoladi (qasddan).
+  - **DOC-B11:** direktor ismi `COMPANIES.DirectorName` ustunidan olinadi (`Services/Documents/CompanySettings`).
+    Migratsiya: `Database_Migrations/Alter_COMPANIES_AddDirectorName.sql` (ishga tushirilmagan; ustun bo'lmaguncha eski qiymat ishlatiladi).
+    Tahrirlash UI'si yo'q (Company sahifasi core'da) — hozircha SQL bilan o'rnatiladi.
+  - **MAN-B01:** dasturchilar uchun "CRUD arxitekturasi" bo'limi qo'llanmadan olib tashlandi.
+  - `assets/` ildizidagi 6 ta Cursor skrinshoti o'chirildi (csproj yozuvlari bilan).
 - **Sxema (taklif, `Database_Migrations/Proposal_Tasks_Docs_Indexes.sql`):**
   - DOC-P02 — table splitting.
   - DOC-P10 — xat JSON'i alohida ustunlarga.
@@ -76,7 +80,6 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 - **Core uchun:**
   - `SoftDeleteReferenceService.AfterDocDocumentSoftDeletedAsync` (`:237`) barcha DOC_FILES'ni blob bilan yuklaydi. Bu modul uni endi chaqirmaydi; JobDesc chaqirsa, set-based UPDATE'ga o'tkazish kerak.
   - `RoleHelper.IsAdminOrDeveloper` umumiy qatlamda bo'lishi kerak (hozir modulda `TaskRules`).
-  - `assets/` ildizida Cursor skrinshotlari (`c__Users_khoji_...png`, 6 ta) bor — kerakmi, tekshiring.
 
 ## Data-fix skriptlari (ishga tushirilmagan)
 

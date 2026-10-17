@@ -428,7 +428,7 @@ namespace tahsinERP.Controllers
                     { "GREETING_LINE", greetingLine },
                     { "LETTER_BODY", bodyText },
                     { "ITEMS_BLOCK", BuildItemsTextBlock(letterData.Items) },
-                    { "DIRECTOR_NAME", "X.M. Maxmudov" }, // TODO: Get dan settings
+                    { "DIRECTOR_NAME", await CompanySettings.DirectorNameAsync(db) }, // COMPANIES.DirectorName (DOC-B11)
                     { "OUR_REF_NO", letter.OurRefNo ?? "" },
                     { "THEIR_REF_NO", letter.TheirRefNo ?? "" }
                 };
