@@ -5,6 +5,7 @@ using System.Linq;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels.Finance;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Services.Finance
 {
@@ -16,9 +17,6 @@ namespace tahsinERP.Services.Finance
     /// </summary>
     public static class BalanceInventoryValuation
     {
-        public const string FinishedGoodsCategoryName = "Tayyor maxsulot";
-        public const string RawMaterialCategoryName = "Xomashyo";
-
         public static decimal FinishedGoodsTotal(DBTHSNEntities db, DateTime asOfDate)
         {
             return FinishedGoodsLines(db, asOfDate).Sum(r => r.LineTotal);
@@ -259,9 +257,7 @@ namespace tahsinERP.Services.Finance
 
         private static bool IsJihozProductCategory(PRODUCT p)
         {
-            var n = p.PRODUCT_CATEGORIES?.Name;
-            return !string.IsNullOrWhiteSpace(n) &&
-                   string.Equals(n.Trim(), "Jihoz", StringComparison.OrdinalIgnoreCase);
+            return p.PRODUCT_CATEGORIES?.SystemCode == SystemCodes.ProductCategory.Equipment;
         }
 
         private static decimal GetIncomeProductUnitPrice(INCOME_PRODUCTS ip)

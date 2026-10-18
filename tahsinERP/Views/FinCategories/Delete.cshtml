@@ -67,7 +67,14 @@
                                         @Html.Hidden("id", Model.ID)
                                         
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-danger">Ha, o'chirish</button>
+                                            @if (tahsinERP.Services.Common.SystemCodes.IsSystem(Model.SystemCode))
+                                            {
+                                                <div class="alert alert-danger"><i class="bx bx-lock"></i> @tahsinERP.Services.Common.SystemCodes.DeleteForbiddenMessage</div>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn btn-danger">Ha, o'chirish</button>
+                                            }
                                             <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
                                         </div>
                                     }

@@ -924,6 +924,7 @@
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
+    <Compile Include="Services\Common\SystemCodes.cs" />
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />

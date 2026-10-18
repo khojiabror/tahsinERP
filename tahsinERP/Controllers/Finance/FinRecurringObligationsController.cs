@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Controllers;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -37,7 +38,7 @@ namespace tahsinERP.Controllers.Finance
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Doimiy harajatlar jadvali topilmadi. Scripts/Create_FIN_RECURRING_OBLIGATIONS.sql skriptini bajarganingizga ishonch hosil qiling. " + ex.Message;
+                ViewBag.Error = "Doimiy harajatlar jadvali topilmadi. Database/Migrations/003_FIN_RECURRING_OBLIGATIONS.sql qo'llanganini tekshiring (Database/tools/Invoke-DbMigrations.ps1). " + ex.Message;
                 return View(new List<RecurringObligationViewModel>());
             }
         }
@@ -47,7 +48,7 @@ namespace tahsinERP.Controllers.Finance
             using (var db = new DBTHSNEntities())
             {
                 ViewBag.CurrencyID = new SelectList(db.CURRENCIES.OrderBy(c => c.Shortname).ToList(), "ID", "Shortname", 1);
-                var doimiyCategory = db.FIN_BALANCE_CATEGORIES.FirstOrDefault(c => c.IsActive && c.Name == "Doimiy harajatlar qarzi");
+                var doimiyCategory = SystemRefs.BalanceCategory(db, SystemCodes.BalanceCategory.RecurringObligations);
                 var balanceCategories = db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive && c.Type == 2).OrderBy(c => c.Name).ToList();
                 ViewBag.BalanceCategoryID = new SelectList(balanceCategories, "ID", "Name", doimiyCategory?.ID);
                 var model = new RecurringObligationViewModel

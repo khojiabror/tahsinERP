@@ -18,6 +18,15 @@ namespace tahsinERP.Services.Procurement
     public sealed class POrderService
     {
         private readonly DBTHSNEntities _db;
+        private int? _piecesUnitId;
+
+        /// <summary>"dona" birligi (UNITS.SystemCode = PCS) — birlik ko'rsatilmaganda zaxira qiymat.</summary>
+        private int PiecesUnitId()
+        {
+            if (!_piecesUnitId.HasValue)
+                _piecesUnitId = SystemRefs.UnitId(_db, SystemCodes.Unit.Pieces) ?? 0;
+            return _piecesUnitId.Value;
+        }
         private readonly ModelStateDictionary _errors;
 
         public POrderService(DBTHSNEntities db, ModelStateDictionary errors)
@@ -218,7 +227,7 @@ namespace tahsinERP.Services.Procurement
                         ProductID = orderProduct.ProductID,
                         Price = orderProduct.Price,
                         Amount = orderProduct.Amount,
-                        UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : 1),
+                        UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : PiecesUnitId()),
                         TotalPrice = orderProduct.Price * orderProduct.Amount,
                         MOQ = orderProduct.MOQ,
                         Priority = TruncateToPriority(priority),
@@ -314,7 +323,7 @@ namespace tahsinERP.Services.Procurement
                         ProductID = orderProduct.ProductID,
                         Price = orderProduct.Price,
                         Amount = orderProduct.Amount,
-                        UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : 1),
+                        UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : PiecesUnitId()),
                         TotalPrice = orderProduct.Price * orderProduct.Amount,
                         MOQ = orderProduct.MOQ,
                         Priority = TruncateToPriority(

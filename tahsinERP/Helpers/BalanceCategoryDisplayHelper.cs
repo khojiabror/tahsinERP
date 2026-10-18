@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Helpers
 {
@@ -11,20 +12,6 @@ namespace tahsinERP.Helpers
     /// </summary>
     public static class BalanceCategoryDisplayHelper
     {
-        /// <summary>
-        /// Balans varag'ining chap ustuni — aktivlar (Naqd, bank, debitor, zapas, OS).
-        /// </summary>
-        private static readonly HashSet<string> AssetColumnNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Naqd pul",
-            "Bank hisobi",
-            "Xaridorlardan haqlarimiz",
-            "Xomashyo",
-            "Tayyor maxsulot",
-            "Jihozlar",
-            "Bino"
-        };
-
         /// <summary>
         /// true = balans hisobotida "Aktivlar" ustunida ko'rsatish; false = "Passivlar va Kapital".
         /// </summary>
@@ -45,11 +32,10 @@ namespace tahsinERP.Helpers
                 return false;
             }
 
-            // Type 2: odatda passiv, lekin nomi aniq aktiv bo'lsa — aktiv ustuniga
+            // Type 2: odatda passiv, lekin aktiv tizim kategoriyasi bo'lsa (naqd, bank, debitor, zapas, OS) — aktiv ustuniga
             if (c.Type == 2)
             {
-                var n = (c.Name ?? string.Empty).Trim();
-                return AssetColumnNames.Contains(n);
+                return SystemCodes.BalanceCategory.IsAssetColumn(c);
             }
 
             return c.Type == 1;

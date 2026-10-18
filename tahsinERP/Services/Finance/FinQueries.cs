@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Services.Finance
 {
@@ -107,21 +108,15 @@ namespace tahsinERP.Services.Finance
                     g => g.Select(x => new AccountDayTotal { TxnDate = x.TxnDate, In = x.In, Out = x.Out, Net = x.Net }).ToList());
         }
 
-        /// <summary>Nomida "oylik" bo'lgan faol FIN_CATEGORIES (D5).</summary>
+        /// <summary>Oylik tizim kategoriyasi (FIN_CATEGORIES.SystemCode = PAYROLL), faol bo'lsa (D5).</summary>
         public static List<int> SalaryCategoryIds(DBTHSNEntities db)
         {
             return db.FIN_CATEGORIES
                 .Where(c => c.IsActive &&
                             (c.IsDeleted == null || c.IsDeleted == false) &&
-                            c.Name != null &&
-                            c.Name.ToLower().Contains("oylik"))
+                            c.SystemCode == SystemCodes.FinCategory.Payroll)
                 .Select(c => c.ID)
                 .ToList();
-        }
-
-        public static bool IsSalaryLiabilityCategory(string categoryName)
-        {
-            return !string.IsNullOrWhiteSpace(categoryName) && categoryName.Trim().ToLower().Contains("oylik");
         }
 
         /// <summary>Oylik to'lovlari: chiqim, [from; to], "oylik" kategoriyasi yoki xodim (CP=6) yoki HR_PAYROLL.</summary>

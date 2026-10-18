@@ -526,6 +526,7 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CalculationType" Type="tinyint" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORY_CATEGORIES">
           <Key>
@@ -560,6 +561,7 @@
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="FIN_OPENING_CONTRACT_BALANCES">
           <Key>
@@ -1315,6 +1317,7 @@
           <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
           <Property Name="CalculateByWeight" Type="bit" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -1860,6 +1863,7 @@
           <Property Name="ShortName" Type="varchar" MaxLength="20" Nullable="false" />
           <Property Name="Code" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="USER_ENTRIES">
           <Key>
@@ -1905,8 +1909,6 @@
           <Property Name="IP" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="MacAddr" Type="varchar" MaxLength="50" Nullable="false" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.USERROLES' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="USERROLES">
           <Key>
             <PropertyRef Name="UserID" />
@@ -5385,12 +5387,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="WASTES" EntityType="Self.WASTES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WRHS_EXPENSE_DOCS" EntityType="Self.WRHS_EXPENSE_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WRHS_INCOME_DOCS" EntityType="Self.WRHS_INCOME_DOCS" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="USERROLES" EntityType="Self.USERROLES" store:Type="Tables" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [USERROLES].[UserID] AS [UserID], 
-    [USERROLES].[RoleID] AS [RoleID]
-    FROM [dbo].[USERROLES] AS [USERROLES]</DefiningQuery>
-          </EntitySet>
+          <EntitySet Name="USERROLES" EntityType="Self.USERROLES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="Self.V_FIN_PL_FACT_MONTHLY" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
     [V_FIN_PL_FACT_MONTHLY].[Year] AS [Year], 
@@ -7071,6 +7068,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="CalculationType" Type="Byte" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="FIN_ACCOUNTS" Relationship="Self.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_ACCOUNTS" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES1" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_CATEGORIES1" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES2" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES1" ToRole="FIN_BALANCE_CATEGORIES" />
@@ -7105,6 +7103,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="FIN_CATEGORIES1" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES" ToRole="FIN_CATEGORIES1" />
           <NavigationProperty Name="FIN_CATEGORIES2" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES1" ToRole="FIN_CATEGORIES" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_CATEGORIES" ToRole="FIN_TRANSACTIONS" />
@@ -7985,6 +7984,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
           <Property Name="CalculateByWeight" Type="Boolean" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT_CATEGORIES" ToRole="PRODUCTS" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
@@ -8672,6 +8672,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="ShortName" Type="String" MaxLength="20" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="Code" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="BOM_LINES" Relationship="Self.FK_BOM_LINES_UNITS" FromRole="UNITS" ToRole="BOM_LINES" />
           <NavigationProperty Name="EXPENSE_PRODUCTS" Relationship="Self.FK_PROD_WRHS_EXPENSE_PRODUCTS_UNITS" FromRole="UNITS" ToRole="EXPENSE_PRODUCTS" />
           <NavigationProperty Name="F_TRANSPORT_TYPES" Relationship="Self.FK_F_TRANSPORT_TYPES_UNITS" FromRole="UNITS" ToRole="F_TRANSPORT_TYPES" />
@@ -13856,6 +13857,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="CalculationType" ColumnName="CalculationType" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13884,6 +13886,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14637,6 +14640,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
                 <ScalarProperty Name="CalculateByWeight" ColumnName="CalculateByWeight" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -15215,6 +15219,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="ShortName" ColumnName="ShortName" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -123,14 +123,14 @@ namespace tahsinERP.Services.Finance
         public OpeningBalanceViewModel BuildViewModel(DateTime date)
         {
             var db = _db;
-            // FIN-D11: subledger nomi testi balans bilan bitta funksiyada
+            // FIN-D11: subledger testi (SystemCode) balans bilan bitta funksiyada
             var categories = db.FIN_BALANCE_CATEGORIES
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.Type)
                 .ThenBy(c => c.SortOrder)
                 .ThenBy(c => c.Name)
                 .ToList()
-                .Where(c => !BalanceSheetService.IsDetailedSubledgerCategoryName(c.Name))
+                .Where(c => !BalanceSheetService.IsDetailedSubledgerCategory(c))
                 .ToList();
 
             var snapshots = db.FIN_BALANCE_SNAPSHOTS
