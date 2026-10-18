@@ -1,76 +1,73 @@
-@model tahsinERP.Models.F_WAYBILLS
+﻿@model tahsinERP.Models.F_WAYBILLS
 @using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqasi o'chirish";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item ">
-                                        <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        @Model.WaybillNo raqamli @LogisticsTerms.Waybill.ToLower()ni o'chirish
-                                    </li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item ">
+                                    <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    @Model.WaybillNo raqamli @LogisticsTerms.Waybill.ToLower()ni o'chirish
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <div class="row">
-                    <div class="col-xl-9 col-md-8 col-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body pb-0 mx-25">
-                                    <div class="row invoice-info">
-                                        <div class="col-lg-12 col-md-6 mt-25">
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                            <h4 class="text-primary">@LogisticsTerms.Waybill ma'lumotlari</h4>
-                                            <hr />
-                                            <span><b>@LogisticsTerms.Waybill raqami</b>: @Html.DisplayFor(model => model.WaybillNo)</span>
-                                            <hr />
-                                            <span><b>Sana</b>: @(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</span>
-                                            <hr />
-                                            <span><b>@LogisticsTerms.Forwarder</b>: @(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</span>
-                                            <hr />
-                                            <span><b>Shartnoma</b>: @(Model.F_CONTRACTS?.ContractNo ?? "")</span>
-                                            <hr />
-                                            <span><b>Transport turi</b>: @(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</span>
-                                            <hr />
-                                            <span><b>Qayerdan</b>: @(Model.FromLocation ?? "")</span>
-                                            <hr />
-                                            <span><b>Qayerga</b>: @(Model.ToLocation ?? "")</span>
-                                            <hr />
-                                        </div>
+        </div>
+        <div class="content-body">
+            <div class="row">
+                <div class="col-xl-9 col-md-8 col-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body pb-0 mx-25">
+                                <div class="row invoice-info">
+                                    <div class="col-lg-12 col-md-6 mt-25">
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                        <h4 class="text-primary">@LogisticsTerms.Waybill ma'lumotlari</h4>
+                                        <hr />
+                                        <span><b>@LogisticsTerms.Waybill raqami</b>: @Html.DisplayFor(model => model.WaybillNo)</span>
+                                        <hr />
+                                        <span><b>Sana</b>: @(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</span>
+                                        <hr />
+                                        <span><b>@LogisticsTerms.Forwarder</b>: @(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</span>
+                                        <hr />
+                                        <span><b>Shartnoma</b>: @(Model.F_CONTRACTS?.ContractNo ?? "")</span>
+                                        <hr />
+                                        <span><b>Transport turi</b>: @(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</span>
+                                        <hr />
+                                        <span><b>Qayerdan</b>: @(Model.FromLocation ?? "")</span>
+                                        <hr />
+                                        <span><b>Qayerga</b>: @(Model.ToLocation ?? "")</span>
+                                        <hr />
                                     </div>
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item border-0 pb-0">
-                                            @using (Html.BeginForm("Delete", "Waybill", FormMethod.Post, new { enctype = "multipart/form-data" }))
-                                            {
-                                                @Html.AntiForgeryToken()
-                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu yo''l varaqasini o''chirishga ishonchingiz komilmi?')">
-                                                    <i class='bx bx-trash'></i>
-                                                    O'chirish
-                                                </button>
-                                            }
-                                        </li>
-                                    </ul>
                                 </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item border-0 pb-0">
+                                        @using (Html.BeginForm("Delete", "Waybill", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu yo''l varaqasini o''chirishga ishonchingiz komilmi?')">
+                                                <i class='bx bx-trash'></i>
+                                                O'chirish
+                                            </button>
+                                        }
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -78,10 +75,5 @@
             </div>
         </div>
     </div>
-
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>
 

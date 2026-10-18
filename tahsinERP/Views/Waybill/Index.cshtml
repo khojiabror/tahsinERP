@@ -8,185 +8,177 @@
 @{
     bool canChangeWaybill = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    bool changePermit = canChangeWaybill;
+@{ bool changePermit = canChangeWaybill; }
 
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        Logistika
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        @LogisticsTerms.Waybills
-                                    </li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    Logistika
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    @LogisticsTerms.Waybills
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <section class="invoice-list-wrapper">
-                    @if (changePermit)
-                    {
-                        <div class="invoice-create-btn mb-1 d-flex">
-                            <a href="@Url.Action("Create", "Waybill")" class="btn btn-success bg-light invoice-create" role="button">
-                                <i class="bx bx-plus"></i> Yangi @LogisticsTerms.Waybill.ToLower()
-                            </a>
-                            <a href="@Url.Action("UploadExcel", "WaybillImport")" class="btn btn-outline-primary ml-1" role="button">
-                                <i class="bx bx-file"></i> Excel orqali yuklash
-                            </a>
-                        </div>
-                    }
-
-                    <!-- Filtrlar -->
-                    <div class="card mb-2">
-                        <div class="card-body">
-                            <form method="get" action="@Url.Action("Index", "Waybill")" id="filterForm">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label>Qidirish</label>
-                                        <input type="text" name="searchTerm" class="form-control" value="@ViewBag.SearchTerm" placeholder="@LogisticsTerms.Waybill raqami, manzil, haydovchi..." />
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label>Yo'nalish</label>
-                                        @Html.DropDownList("direction", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label>@LogisticsTerms.Forwarder</label>
-                                        @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label>Shartnoma</label>
-                                        @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label>Transport turi</label>
-                                        @Html.DropDownList("transportTypeId", ViewBag.TransportTypes as SelectList, "Barchasi", new { @class = "form-control" })
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label>Boshlanish sanasi</label>
-                                        <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label>Tugash sanasi</label>
-                                        <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
-                                    </div>
-                                    <div class="col-md-1 d-flex align-items-end">
-                                        <button type="submit" class="btn btn-primary w-100">Qidirish</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
+        </div>
+        <div class="content-body">
+            <section class="invoice-list-wrapper">
+                @if (changePermit)
+                {
+                    <div class="invoice-create-btn mb-1 d-flex">
+                        <a href="@Url.Action("Create", "Waybill")" class="btn btn-success bg-light invoice-create" role="button">
+                            <i class="bx bx-plus"></i> Yangi @LogisticsTerms.Waybill.ToLower()
+                        </a>
+                        <a href="@Url.Action("UploadExcel", "WaybillImport")" class="btn btn-outline-primary ml-1" role="button">
+                            <i class="bx bx-file"></i> Excel orqali yuklash
+                        </a>
                     </div>
+                }
 
-                    <div class="col-md-12 col-sm-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table id="waybillDataTable" class="table table-striped table-bordered" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th>@LogisticsTerms.Waybill No</th>
-                                                    <th>Sana</th>
-                                                    <th>Yo'nalish</th>
-                                                    <th>Yuk turi</th>
-                                                    <th>@LogisticsTerms.Forwarder</th>
-                                                    <th>Shartnoma</th>
-                                                    <th>Qayerdan</th>
-                                                    <th>Qayerga</th>
-                                                    <th>Mashina</th>
-                                                    <th>Haydovchi</th>
-                                                    <th>Masofa (km)</th>
-                                                    <th>Vazn (ton)</th>
-                                                    <th>CBM</th>
-                                                    <th>Summa</th>
-                                                    <th>Valyuta</th>
-                                                    <th>To'lov holati</th>
-                                                    <th>To'langan</th>
-                                                    <th>Qoldiq</th>
-                                                    @if (changePermit)
-                                                    {
-                                                        <th>Amallar</th>
-                                                    }
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @if (Model != null && Model.Any())
+                <!-- Filtrlar -->
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <form method="get" action="@Url.Action("Index", "Waybill")" id="filterForm">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>Qidirish</label>
+                                    <input type="text" name="searchTerm" class="form-control" value="@ViewBag.SearchTerm" placeholder="@LogisticsTerms.Waybill raqami, manzil, haydovchi..." />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Yo'nalish</label>
+                                    @Html.DropDownList("direction", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-md-2">
+                                    <label>@LogisticsTerms.Forwarder</label>
+                                    @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Shartnoma</label>
+                                    @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Transport turi</label>
+                                    @Html.DropDownList("transportTypeId", ViewBag.TransportTypes as SelectList, "Barchasi", new { @class = "form-control" })
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Boshlanish sanasi</label>
+                                    <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Tugash sanasi</label>
+                                    <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-12 col-sm-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="waybillDataTable" class="table table-striped table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>@LogisticsTerms.Waybill No</th>
+                                                <th>Sana</th>
+                                                <th>Yo'nalish</th>
+                                                <th>Yuk turi</th>
+                                                <th>@LogisticsTerms.Forwarder</th>
+                                                <th>Shartnoma</th>
+                                                <th>Qayerdan</th>
+                                                <th>Qayerga</th>
+                                                <th>Mashina</th>
+                                                <th>Haydovchi</th>
+                                                <th>Masofa (km)</th>
+                                                <th>Vazn (ton)</th>
+                                                <th>CBM</th>
+                                                <th>Summa</th>
+                                                <th>Valyuta</th>
+                                                <th>To'lov holati</th>
+                                                <th>To'langan</th>
+                                                <th>Qoldiq</th>
+                                                @if (changePermit)
                                                 {
-                                                    foreach (var item in Model)
-                                                    {
-                                                        var directionText = LogisticsEnums.DirectionText(item.Direction);
-                                                        var directionClass = item.Direction == 0 ? "badge-success" : item.Direction == 1 ? "badge-danger" : "badge-secondary";
-                                                        var paymentClass = item.PaymentStatus == "To'langan" ? "badge-success" :
-                                                            item.PaymentStatus == "Qisman" ? "badge-warning" : "badge-danger";
-
-                                                        <tr>
-                                                            <td>
-                                                                <a href="@Url.Action("Details", "Waybill", new { ID = item.ID })">@item.WaybillNo</a>
-                                                            </td>
-                                                            <td>@(item.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td>
-                                                            <td><span class="badge @directionClass">@directionText</span></td>
-                                                            <td>@(item.CargoTypeText ?? "")</td>
-                                                            <td>@(item.ForwarderName ?? "")</td>
-                                                            <td>@(item.ContractNo ?? "")</td>
-                                                            <td>@(item.FromLocation ?? "")</td>
-                                                            <td>@(item.ToLocation ?? "")</td>
-                                                            <td>@(item.TruckNo ?? "")</td>
-                                                            <td>@(item.DriverName ?? "")</td>
-                                                            <td>@(item.DistanceKm?.ToString("N2") ?? "")</td>
-                                                            <td>@(item.GrWeight?.ToString("N2") ?? "")</td>
-                                                            <td>@(item.CBM?.ToString("N2") ?? "")</td>
-                                                            <td>@(item.Amount?.ToString("N2") ?? "")</td>
-                                                            <td>@(item.Currency ?? "")</td>
-                                                            <td><span class="badge @paymentClass">@item.PaymentStatus</span></td>
-                                                            <td>@item.TotalPaid.ToString("N2")</td>
-                                                            <td>@item.Outstanding.ToString("N2")</td>
-                                                            @if (changePermit)
-                                                            {
-                                                                <td>
-                                                                    <div>
-                                                                        <a href="@Url.Action("Edit", "Waybill", new { ID = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
-                                                                        <a href="@Url.Action("Delete", "Waybill", new { Id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
-                                                                    </div>
-                                                                </td>
-                                                            }
-                                                        </tr>
-                                                    }
+                                                    <th>Amallar</th>
                                                 }
-                                                else
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model != null && Model.Any())
+                                            {
+                                                foreach (var item in Model)
                                                 {
+                                                    var directionText = LogisticsEnums.DirectionText(item.Direction);
+                                                    var directionClass = item.Direction == 0 ? "badge-success" : item.Direction == 1 ? "badge-danger" : "badge-secondary";
+                                                    var paymentClass = item.PaymentStatus == "To'langan" ? "badge-success" :
+                                                        item.PaymentStatus == "Qisman" ? "badge-warning" : "badge-danger";
+
                                                     <tr>
-                                                        <td colspan="@(changePermit ? 19 : 18)" class="text-center">Ma'lumot topilmadi</td>
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "Waybill", new { ID = item.ID })">@item.WaybillNo</a>
+                                                        </td>
+                                                        <td>@(item.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td>
+                                                        <td><span class="badge @directionClass">@directionText</span></td>
+                                                        <td>@(item.CargoTypeText ?? "")</td>
+                                                        <td>@(item.ForwarderName ?? "")</td>
+                                                        <td>@(item.ContractNo ?? "")</td>
+                                                        <td>@(item.FromLocation ?? "")</td>
+                                                        <td>@(item.ToLocation ?? "")</td>
+                                                        <td>@(item.TruckNo ?? "")</td>
+                                                        <td>@(item.DriverName ?? "")</td>
+                                                        <td>@(item.DistanceKm?.ToString("N2") ?? "")</td>
+                                                        <td>@(item.GrWeight?.ToString("N2") ?? "")</td>
+                                                        <td>@(item.CBM?.ToString("N2") ?? "")</td>
+                                                        <td>@(item.Amount?.ToString("N2") ?? "")</td>
+                                                        <td>@(item.Currency ?? "")</td>
+                                                        <td><span class="badge @paymentClass">@item.PaymentStatus</span></td>
+                                                        <td>@item.TotalPaid.ToString("N2")</td>
+                                                        <td>@item.Outstanding.ToString("N2")</td>
+                                                        @if (changePermit)
+                                                        {
+                                                            <td>
+                                                                <div>
+                                                                    <a href="@Url.Action("Edit", "Waybill", new { ID = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                    <a href="@Url.Action("Delete", "Waybill", new { Id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                </div>
+                                                            </td>
+                                                        }
                                                     </tr>
                                                 }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    @Html.Partial("~/Views/Logistic/Shared/_Pager.cshtml", (tahsinERP.ViewModels.LogisticsPageInfo)ViewBag.Paging)
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td colspan="@(changePermit ? 19 : 18)" class="text-center">Ma'lumot topilmadi</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
+                                @Html.Partial("~/Views/Logistic/Shared/_Pager.cshtml", (tahsinERP.ViewModels.LogisticsPageInfo)ViewBag.Paging)
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
     </div>
-
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>
