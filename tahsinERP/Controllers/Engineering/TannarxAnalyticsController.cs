@@ -189,7 +189,7 @@ namespace tahsinERP.Controllers.Engineering
                         selection[categoryId] = form[key];
                 }
 
-                await _analyticsService.SaveFinanceCategoryMapAsync(selection, UserHelper.GetUserId(User.Identity.Name));
+                await _analyticsService.SaveFinanceCategoryMapAsync(selection, RoleHelper.GetUserId(User.Identity.Name));
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics",
                     $"Finance kategoriya guruhlari saqlandi: {selection.Count(kv => !string.IsNullOrWhiteSpace(kv.Value))} ta qo'lda belgilangan");
                 TempData["Success"] = "Kategoriya guruhlari saqlandi. Tannarxga ta'sir qilishi uchun oy bo'yicha \"Fakt xarajatlarni yangilash\" ni bosing.";
