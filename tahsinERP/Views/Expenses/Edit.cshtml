@@ -171,24 +171,7 @@
                                                 </table>
                                             </div>
 
-                                            <div class="row mt-2">
-                                                <div class="col-12">
-                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                        <i class="bx bx-plus"></i> Qo'shish
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="row mt-3">
-                                                <div class="col-12">
-                                                    <button type="submit" class="btn btn-success">
-                                                        <i class="bx bx-save"></i> Saqlash
-                                                    </button>
-                                                    <a href="@Url.Action("Index", "Expenses")" class="btn btn-secondary">
-                                                        <i class="bx bx-x"></i> Bekor qilish
-                                                    </a>
-                                                </div>
-                                            </div>
+                                            @Html.Partial("~/Views/Incomes/_DocFormActions.cshtml", "Expenses")
                                         }
                                     </div>
                                 </div>
@@ -202,6 +185,7 @@
 
     @section scripts {
         <script src="~/Scripts/srm/srm-doc-lines.js"></script>
+        <script src="~/Scripts/srm/srm-doc-forms.js"></script>
         <script>
             (function ($) {
                 $(document).ready(function () {
@@ -214,21 +198,7 @@
 
                     function escapeHtml(text) { return srmDocLines.escapeHtml(text); }
 
-                    function buildProductOptions(selectedId) {
-                        var options = '<option value="">---Tanlang---</option>';
-                        availableProducts.forEach(function (product) {
-                            var selected = product.ProductID == selectedId ? 'selected' : '';
-                            options += '<option value="' + escapeHtml(product.ProductID) + '" ' + selected +
-                                ' data-pno="' + escapeHtml(product.ProductPNo) + '"' +
-                                ' data-name="' + escapeHtml(product.ProductName) + '"' +
-                                ' data-stock="' + escapeHtml(product.AvailableStock) + '"' +
-                                ' data-unitid="' + escapeHtml(product.UnitID) + '"' +
-                                ' data-unitname="' + escapeHtml(product.UnitName) + '">' +
-                                escapeHtml(product.ProductPNo + ' - ' + product.ProductName + ' (Mavjud: ' + product.AvailableStock + ')') +
-                                '</option>';
-                        });
-                        return options;
-                    }
+                    function buildProductOptions(selectedId) { return srmExpenseForm.productOptions(availableProducts, selectedId); }
 
                     function buildUnitOptions(selectedId) { return srmDocLines.unitOptions(units, selectedId); }
 
@@ -248,43 +218,9 @@
                         });
                     }
 
-                    function syncProductFields($row) {
-                        var $selected = $row.find('.product-select option:selected');
-                        var pno = $selected.data('pno') || '';
-                        var name = $selected.data('name') || '';
-                        var stock = $selected.data('stock') || 0;
-                        var unitId = $selected.data('unitid') || '';
+                    function syncProductFields($row) { srmExpenseForm.syncProduct($row); }
 
-                        $row.find('.product-name-display').val(name);
-                        $row.find('.product-name').val(name);
-                        $row.find('.product-pno').val(pno);
-                        $row.find('.available-stock').val(stock);
-                        $row.find('.amount-input').attr('max', stock);
-
-                        if (unitId) {
-                            $row.find('.unit-select').val(unitId).trigger('change');
-                        }
-                    }
-
-                    function refreshProductSelects() {
-                        $('#expenseProductsTable tbody tr').each(function () {
-                            var $row = $(this);
-                            var $select = $row.find('.product-select');
-                            var selectedId = $select.val();
-
-                            if ($select.hasClass('select2-hidden-accessible')) {
-                                $select.select2('destroy');
-                            }
-
-                            $select.html(buildProductOptions(selectedId));
-
-                            if (typeof $.fn.select2 !== 'undefined') {
-                                $select.select2();
-                            }
-
-                            syncProductFields($row);
-                        });
-                    }
+                    function refreshProductSelects() { srmExpenseForm.refreshProductSelects(buildProductOptions, syncProductFields); }
 
                     // Lot tanlanmaydi: chiqim har doim sof FIFO (eng eski partiyadan) — serverda avtomatik (SRM-B13)
                     function loadAvailableProducts(warehouseId) {

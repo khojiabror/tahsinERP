@@ -193,24 +193,7 @@
                                                 </table>
                                             </div>
 
-                                            <div class="row mt-2">
-                                                <div class="col-12">
-                                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                        <i class="bx bx-plus"></i> Qo'shish
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="row mt-3">
-                                                <div class="col-12">
-                                                    <button type="submit" class="btn btn-success">
-                                                        <i class="bx bx-save"></i> Saqlash
-                                                    </button>
-                                                    <a href="@Url.Action("Index", "Incomes")" class="btn btn-secondary">
-                                                        <i class="bx bx-x"></i> Bekor qilish
-                                                    </a>
-                                                </div>
-                                            </div>
+                                            @Html.Partial("~/Views/Incomes/_DocFormActions.cshtml", "Incomes")
                                         }
                                     </div>
                                 </div>
@@ -224,6 +207,7 @@
 
     @section scripts {
         <script src="~/Scripts/srm/srm-doc-lines.js"></script>
+        <script src="~/Scripts/srm/srm-doc-forms.js"></script>
         <script>
             (function ($) {
                 $(document).ready(function () {
@@ -238,58 +222,15 @@
 
                     function escapeHtml(text) { return srmDocLines.escapeHtml(text); }
 
-                    function buildProductOptions(selectedId) {
-                        var options = '<option value="">---Tanlang---</option>';
-                        products.forEach(function (product) {
-                            var selected = product.Value == selectedId ? 'selected' : '';
-                            options += '<option value="' + escapeHtml(product.Value) + '" data-name="' + escapeHtml(product.Name) +
-                                '" data-pno="' + escapeHtml(product.PNo) + '" ' + selected + '>' +
-                                escapeHtml((product.PNo ? product.PNo + ' - ' : '') + (product.Name || '')) +
-                                '</option>';
-                        });
-                        return options;
-                    }
+                    function buildProductOptions(selectedId) { return srmIncomeForm.productOptions(products, selectedId); }
 
                     function buildUnitOptions(selectedId) { return srmDocLines.unitOptions(units, selectedId); }
 
-                    function buildDlocOptions(selectedId) {
-                        var options = '<option value="">---DLOC---</option>';
-                        (dlocLocations || []).forEach(function (loc) {
-                            var id = loc.ID || loc.id;
-                            var code = loc.LocationCode || loc.locationCode || '';
-                            var selected = selectedId && String(selectedId) === String(id) ? 'selected' : '';
-                            options += '<option value="' + escapeHtml(String(id)) + '" ' + selected + '>' + escapeHtml(code) + '</option>';
-                        });
-                        return options;
-                    }
+                    function buildDlocOptions(selectedId) { return srmIncomeForm.dlocOptions(dlocLocations, selectedId); }
 
-                    function syncProductFields($row) {
-                        var $selected = $row.find('.product-select option:selected');
-                        var name = $selected.data('name');
-                        var pno = $selected.data('pno');
+                    function syncProductFields($row) { srmIncomeForm.syncProduct($row); }
 
-                        if (!name) {
-                            name = $row.find('.product-name').val() || $row.find('.product-name-display').val() || '';
-                        }
-                        if (!pno) {
-                            pno = $row.find('.product-pno').val() || '';
-                        }
-
-                        $row.find('.product-name-display').val(name);
-                        $row.find('.product-name').val(name);
-                        $row.find('.product-pno').val(pno);
-                    }
-
-                    function recalcRow($row) {
-                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
-                        var price = parseFloat($row.find('.price-input').val()) || 0;
-                        var vat = parseFloat($row.find('.vat-input').val());
-                        if (isNaN(vat)) vat = 0;
-                        vat = Math.max(0, Math.min(100, vat));
-                        var base = amount * price;
-                        var total = base * (1 + vat / 100);
-                        $row.find('.total-price').val(total.toFixed(2));
-                    }
+                    function recalcRow($row) { srmIncomeForm.recalcRow($row); }
 
                     $('#incomeProductsTable tbody tr').each(function () {
                         var $r = $(this);
