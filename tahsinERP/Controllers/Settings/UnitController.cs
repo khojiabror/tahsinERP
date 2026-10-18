@@ -1,168 +1,42 @@
-using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services;
-using tahsinERP.Filters;
 using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers.Settings
 {
+    /// <summary>O'lchov birliklari spravochnigi (umumiy CRUD — <see cref="ReferenceCrudController{T}"/>).</summary>
     [Permission]
-    public class UnitController : Controller
+    public class UnitController : ReferenceCrudController<UNIT>
     {
-        // Olish so'rovi: Unit
-        public async Task<ActionResult> Index()
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var list = await db.UNITS
-                    .Where(u => u.IsDeleted == false || u.IsDeleted == null)
-                    .ToListAsync();
-                return View(list);
-            }
-        }
-        public ActionResult Create()
-        {
-            return View();
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(UNIT unit)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                try
-                {
-                    if (ModelState.IsValid)
-                    {
-                        db.UNITS.Add(unit);
+        protected override DbSet<UNIT> Set(DBTHSNEntities db) => db.UNITS;
 
-                        await db.SaveChangesAsync();
+        protected override IQueryable<UNIT> Active(DBTHSNEntities db) =>
+            db.UNITS.Where(u => u.IsDeleted == false || u.IsDeleted == null);
 
-                        var userEmail = User.Identity.Name;
-                        LogHelper.LogToDatabase(userEmail, "O'lchov birliklar", $"{unit.ShortName} - birligini kiritdi tizimga");
+        protected override bool IsDeleted(UNIT unit) => unit.IsDeleted == true;
 
-                        return RedirectToAction("Index");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(string.Empty, ex);
-                }
-            }
-            return View(unit);
-        }
-        public async Task<ActionResult> Details(int? id)
-        {
-            if (id == null)
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+        protected override void MarkDeleted(UNIT unit) => unit.IsDeleted = true;
 
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var unit = await db.UNITS
-                    .Where(u => u.ID == id && (u.IsDeleted == false || u.IsDeleted == null))
-                    .FirstOrDefaultAsync();
-                if (unit == null)
-                    return HttpNotFound();
-                return View(unit);
-            }
-        }
+        protected override Task AfterSoftDeletedAsync(DBTHSNEntities db, UNIT unit) =>
+            SoftDeleteReferenceService.AfterUnitSoftDeletedAsync(db, unit.ID);
 
-        public async Task<ActionResult> Delete(int? id)
-        {
-            if (id == null)
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+        // Tizim birligi (SystemCode) — kod unga bog'langan, o'chirilmaydi
+        protected override bool IsProtected(UNIT unit) => SystemCodes.IsSystem(unit.SystemCode);
 
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var unit = await db.UNITS.FindAsync(id);
-                return View(unit);
-            }
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int? id, FormCollection gfs)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var unitToDelete = await db.UNITS.FindAsync(id);
-                // Tizim birligi (SystemCode) — kod unga bog'langan, o'chirilmaydi
-                if (unitToDelete != null && SystemCodes.IsSystem(unitToDelete.SystemCode))
-                    return RedirectToAction("Delete", new { id });
-                if (unitToDelete != null)
-                {
-                    try
-                    {
-                        unitToDelete.IsDeleted = true;
-                        db.Entry(unitToDelete).State = System.Data.Entity.EntityState.Modified;
-                        await SoftDeleteReferenceService.AfterUnitSoftDeletedAsync(db, unitToDelete.ID);
-                        await db.SaveChangesAsync();
-                        LogHelper.LogToDatabase(User.Identity.Name, "O'lchov birliklar", $"{unitToDelete.UnitName} - o'lchov birligini o'chirdi");
+        protected override string[] EditableFields => new[] { "UnitName", "ShortName", "Code" };
 
-                        return RedirectToAction("Index");
-                    }
-                    catch (RetryLimitExceededException)
-                    {
-                        ModelState.AddModelError(string.Empty, "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Bunday o'lchov birligi topilmadi.");
-                }
-            }
-            return View();
-        }
-        public async Task<ActionResult> Edit(int? id)
-        {
-            if (id == null)
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+        protected override string LogModule => "O'lchov birliklar";
 
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var unit = await db.UNITS.FindAsync(id);
-                return View(unit);
-            }
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(UNIT unit)
-        {
-            using (DBTHSNEntities db = new DBTHSNEntities())
-            {
-                var unitToUpdate = await db.UNITS.FindAsync(unit.ID);
+        protected override string NotFoundMessage => "Bunday o'lchov birligi topilmadi.";
 
-                if (ModelState.IsValid)
-                {
-                    unitToUpdate.UnitName = unit.UnitName;
-                    unitToUpdate.ShortName = unit.ShortName;
-                    unitToUpdate.Code = unit.Code;
-                    if (TryUpdateModel(unitToUpdate, "", new string[] { "UnitName", "ShortName", "Code"}))
-                    {
-                        try
-                        {
-                            await db.SaveChangesAsync();
+        protected override string CreatedLog(UNIT unit) => $"{unit.ShortName} - birligini kiritdi tizimga";
 
-                            var userEmail = User.Identity.Name;
-                            LogHelper.LogToDatabase(userEmail, "O'lchov birliklar", $"{unit.UnitName} - ni tahrirladi");
+        protected override string UpdatedLog(UNIT unit) => $"{unit.UnitName} - ni tahrirladi";
 
-                            return RedirectToAction("Index");
-                        }
-                        catch (RetryLimitExceededException)
-                        {
-                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        }
-                    }
-                }
-
-                return View(unitToUpdate);
-            }
-        }
+        protected override string DeletedLog(UNIT unit) => $"{unit.UnitName} - o'lchov birligini o'chirdi";
     }
 }

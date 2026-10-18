@@ -934,6 +934,7 @@
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="ViewModels\Warehouse\WarehouseDocViewModels.cs" />
+    <Compile Include="Controllers\Settings\ReferenceCrudController.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
     <Compile Include="Services\Stock\ExpenseDocumentService.cs" />
     <Compile Include="Services\Stock\IncomeDocumentService.cs" />
