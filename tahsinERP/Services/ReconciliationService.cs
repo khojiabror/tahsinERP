@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
 using tahsinERP.Services.Crm;
+using tahsinERP.Services.Finance;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Services
@@ -16,6 +18,7 @@ namespace tahsinERP.Services
     /// "Barcha shartnomalar" rejimida kontragentning hamma to'lovlari (shartnomaga bog'lanmaganlari ham) kiradi —
     /// yakuniy qoldiq kontragent qarzi bilan bir xil bo'ladi. Shartnoma rejimida hech qaysi shartnomaga
     /// bog'lanmagan to'lovlar bo'lsa, ogohlantirish chiqadi (<see cref="ReconciliationViewModel.UnattributedNote"/>).
+    /// FIN-B01: barcha summalar so'mda — har hujjat/to'lov o'z valyutasida o'z sanasidagi CBU kursi bilan.
     /// </summary>
     public static class ReconciliationService
     {
@@ -67,7 +70,9 @@ namespace tahsinERP.Services
             var d = openingDate.Date;
             var rows = db.FIN_OPENING_CONTRACT_BALANCES.AsNoTracking()
                 .Where(x => x.SnapshotDate == d && x.BalanceType == balanceType && x.CounterpartyID == counterpartyId)
-                .Select(x => new { x.ID, x.ContractID, x.ContractNo, x.Amount })
+                .Select(x => new { x.ID, x.ContractID, x.ContractNo, x.Amount, x.CurrencyID })
+                .ToList()
+                .Select(x => new { x.ID, x.ContractID, x.ContractNo, Amount = FinMoney.For(db).Uzs(x.Amount, x.CurrencyID, d) })
                 .ToList();
             if (!contractId.HasValue)
                 return rows.Sum(x => x.Amount);
@@ -199,6 +204,29 @@ namespace tahsinERP.Services
                   "Ularni ko'rish uchun \"Barcha shartnomalar\" ni tanlang yoki to'lovga shartnoma raqamini kiriting.";
         }
 
+        /// <summary>
+        /// To'lovlar (invoys ko'zgu yozuvlarisiz), summa so'mda (to'lov sanasidagi kurs). Entity o'zgartirilmaydi —
+        /// faqat o'qish uchun nusxa.
+        /// </summary>
+        private static List<FIN_TRANSACTIONS> UzsPayments(DBTHSNEntities db, IQueryable<FIN_TRANSACTIONS> payQuery)
+        {
+            var money = FinMoney.For(db);
+            return payQuery.AsNoTracking().OrderBy(t => t.TxnDate).ThenBy(t => t.ID).ToList()
+                .Where(t => !IsFinInvoiceLedgerMirror(t.SourceDocType))
+                .Select(t => new FIN_TRANSACTIONS
+                {
+                    ID = t.ID,
+                    TxnDate = t.TxnDate,
+                    Amount = money.Uzs(t.Amount, t.CurrencyID, t.TxnDate),
+                    CurrencyID = t.CurrencyID,
+                    Purpose = t.Purpose,
+                    ContractNo = t.ContractNo,
+                    SourceDocType = t.SourceDocType,
+                    SourceDocID = t.SourceDocID
+                })
+                .ToList();
+        }
+
         #region Ta'minotchi
 
         public static ReconciliationViewModel BuildSupplierReconciliation(DBTHSNEntities db, int supplierId, int? contractId, DateTime asOfDate, string companyName, string supplierName, string contractNo)
@@ -230,7 +258,7 @@ namespace tahsinERP.Services
             // Xarid summasi — yagona qoida (FIN-B08): kirimlar TotalPrice, bo'lmasa P_INVOICES.Amount
             var amountById = invoiceIdList.Count == 0
                 ? new Dictionary<int, decimal>()
-                : Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, db.P_INVOICES.Where(i => invoiceIdList.Contains(i.ID)), asOfDate);
+                : Finance.CounterpartyBalanceService.PurchaseInvoiceAmountsUzs(db, db.P_INVOICES.Where(i => invoiceIdList.Contains(i.ID)), asOfDate);
 
             var payQuery = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 2 && t.CounterpartyID == supplierId && t.TxnDate <= asOfDate
@@ -240,9 +268,7 @@ namespace tahsinERP.Services
                 var od = openingDate.Value;
                 payQuery = payQuery.Where(t => t.TxnDate > od);
             }
-            var payCandidates = payQuery.OrderBy(t => t.TxnDate).ThenBy(t => t.ID).ToList()
-                .Where(t => !IsFinInvoiceLedgerMirror(t.SourceDocType))
-                .ToList();
+            var payCandidates = UzsPayments(db, payQuery);
 
             // Shartnoma rejimi: invoysi shu shartnomada (opening'gacha bo'lsa ham) yoki shartnoma raqami mos
             var canonical = IsCanonicalForNumber(contractNoById, contractId);
@@ -289,8 +315,8 @@ namespace tahsinERP.Services
                 if (changed.Count > 0)
                 {
                     var changedQuery = db.P_INVOICES.Where(i => changed.Contains(i.ID));
-                    var now = Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, changedQuery, asOfDate);
-                    var then = Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, changedQuery, od);
+                    var now = Finance.CounterpartyBalanceService.PurchaseInvoiceAmountsUzs(db, changedQuery, asOfDate);
+                    var then = Finance.CounterpartyBalanceService.PurchaseInvoiceAmountsUzs(db, changedQuery, od);
                     var lastIncome = db.INCOMES.AsNoTracking()
                         .Where(inc => inc.InvoiceID.HasValue && changed.Contains(inc.InvoiceID.Value) && inc.IsDeleted != true && inc.IssueDateTime <= asOfDate)
                         .GroupBy(inc => inc.InvoiceID.Value)
@@ -346,7 +372,9 @@ namespace tahsinERP.Services
             // Bekor qilingan invoyslar akt-sverkiga kirmaydi
             var allInvoices = db.SALES_INVOICES.Active()
                 .Where(i => i.CustomerID == customerId && i.InvoiceDate <= asOfDate)
-                .Select(i => new { i.ID, i.ContractID, i.InvoiceNo, i.InvoiceDate, Amount = i.TotalWithVAT ?? i.TotalAmount })
+                .Select(i => new { i.ID, i.ContractID, i.InvoiceNo, i.InvoiceDate, Amount = i.TotalWithVAT ?? i.TotalAmount, i.CurrencyID })
+                .ToList()
+                .Select(i => new { i.ID, i.ContractID, i.InvoiceNo, i.InvoiceDate, Amount = FinMoney.For(db).Uzs(i.Amount, i.CurrencyID, i.InvoiceDate) })
                 .ToList();
             var contractNoById = db.S_CONTRACTS.AsNoTracking()
                 .Where(c => c.CustomerID == customerId && c.IsDeleted != true)
@@ -371,9 +399,7 @@ namespace tahsinERP.Services
                 var od = openingDate.Value;
                 payQuery = payQuery.Where(t => t.TxnDate > od);
             }
-            var payCandidates = payQuery.OrderBy(t => t.TxnDate).ThenBy(t => t.ID).ToList()
-                .Where(t => !IsFinInvoiceLedgerMirror(t.SourceDocType))
-                .ToList();
+            var payCandidates = UzsPayments(db, payQuery);
 
             var canonical = IsCanonicalForNumber(contractNoById, contractId);
             var contractNoNorm = canonical ? Norm(contractNo) : "";
@@ -438,7 +464,7 @@ namespace tahsinERP.Services
 
             var scopeWaybills = db.F_WAYBILLS
                 .Where(w => w.ForwarderID == forwarderId && w.IssueDate <= asOfDate && (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue)
-                .Select(w => new { w.ID, w.ContractID, w.WaybillNo, w.IssueDate, w.Amount })
+                .Select(w => new { w.ID, w.ContractID, w.WaybillNo, w.IssueDate, w.Amount, w.CurrencyID })
                 .ToList()
                 .Where(w => !contractId.HasValue || w.ContractID == contractId.Value)
                 .OrderBy(w => w.IssueDate).ThenBy(w => w.ID)
@@ -459,7 +485,7 @@ namespace tahsinERP.Services
             }
             var payments = paymentQuery
                 .OrderBy(p => p.PaymentDate).ThenBy(p => p.ID)
-                .Select(p => new { p.ID, p.PaymentDate, p.Payment_Amount, p.WaybillID })
+                .Select(p => new { p.ID, p.PaymentDate, p.Payment_Amount, p.WaybillID, p.CurrencyID })
                 .ToList();
 
             // Qo'lda kiritilgan FIN to'lovlari (WaybillPayment dublikatlari chiqariladi)
@@ -477,7 +503,9 @@ namespace tahsinERP.Services
             }
             var finCandidates = finQuery
                 .OrderBy(t => t.TxnDate).ThenBy(t => t.ID)
-                .Select(t => new { t.ID, t.TxnDate, t.Amount, t.Purpose, t.ContractNo })
+                .Select(t => new { t.ID, t.TxnDate, t.Amount, t.Purpose, t.ContractNo, t.CurrencyID })
+                .ToList()
+                .Select(t => new { t.ID, t.TxnDate, Amount = FinMoney.For(db).Uzs(t.Amount, t.CurrencyID, t.TxnDate), t.Purpose, t.ContractNo })
                 .ToList();
             var canonical = IsCanonicalForNumber(contractNoById, contractId);
             var contractNoNorm = canonical ? Norm(contractNo) : "";
@@ -501,13 +529,13 @@ namespace tahsinERP.Services
             }
             foreach (var wb in waybills)
             {
-                var amt = Convert.ToDecimal(wb.Amount ?? 0);
+                var amt = FinMoney.For(db).Uzs(Convert.ToDecimal(wb.Amount ?? 0), wb.CurrencyID, wb.IssueDate ?? asOfDate);
                 var prefix = !contractId.HasValue && wb.ContractID.HasValue && contractNoById.TryGetValue(wb.ContractID.Value, out var no) && no != "" ? $"[{no}] " : "";
                 items.Add(new Item { Date = wb.IssueDate ?? DateTime.MinValue, Order = 1, Content = $"{prefix}Yo'l varaqasi №{wb.WaybillNo} sanasi {(wb.IssueDate?.ToString("dd.MM.yyyy") ?? "")}", P1Cr = amt, P2Dr = amt });
             }
             foreach (var pay in payments)
             {
-                var amt = Convert.ToDecimal(pay.Payment_Amount);
+                var amt = FinMoney.For(db).Uzs(Convert.ToDecimal(pay.Payment_Amount), pay.CurrencyID, pay.PaymentDate ?? asOfDate);
                 items.Add(new Item { Date = pay.PaymentDate ?? DateTime.MinValue, Order = 2, Content = $"Yuk tashish to'lovi №{pay.ID} sanasi {(pay.PaymentDate?.ToString("dd.MM.yyyy") ?? "")}", P1Dr = amt, P2Cr = amt });
             }
             foreach (var pay in finPayments)

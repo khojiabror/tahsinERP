@@ -516,9 +516,6 @@
     <Compile Include="Models\F_CONTRACTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\F_CONTRACT_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\F_CONTRACT_TARIFFS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -526,9 +523,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\F_WAYBILLS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\F_WAYBILL_DOCS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\F_WAYBILL_PAYMENTS.cs">
@@ -881,6 +875,7 @@
     <Compile Include="Services\Finance\FinAnalyticsService.cs" />
     <Compile Include="Services\Finance\FinLiabilities.cs" />
     <Compile Include="Services\Finance\FinQueries.cs" />
+    <Compile Include="Services\Finance\FinMoney.cs" />
     <Compile Include="Services\Finance\FinCounterpartyLookupService.cs" />
     <Compile Include="Services\Finance\OpeningBalanceService.cs" />
     <Compile Include="Services\Finance\OpeningBalanceExcelService.cs" />

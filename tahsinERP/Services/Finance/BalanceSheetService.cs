@@ -95,7 +95,8 @@ namespace tahsinERP.Services.Finance
                     Latest = g.OrderByDescending(s => s.SnapshotDate).FirstOrDefault()
                 })
                 .ToList()
-                .ToDictionary(x => x.CategoryID, x => new { x.Latest.Amount, x.Latest.SnapshotDate });
+                // FIN-B01: opening summasi so'mga (snapshot sanasidagi kurs)
+                .ToDictionary(x => x.CategoryID, x => new { Amount = FinMoney.For(db).Uzs(x.Latest.Amount, x.Latest.CurrencyID, x.Latest.SnapshotDate), x.Latest.SnapshotDate });
 
             foreach (var c in categories.Where(IsDetailedSubledgerCategory))
             {
@@ -365,19 +366,17 @@ namespace tahsinERP.Services.Finance
             public decimal Net { get; set; }
         }
 
-        /// <summary>Soni, kirim, chiqim va sof summa — bitta so'rov bilan (avval 3–4 ta).</summary>
-        private static TxnStats PopulateTransactionStats(IQueryable<FIN_TRANSACTIONS> query, BalanceCategoryDetailData detail)
+        /// <summary>Soni, kirim, chiqim va sof summa — so'mda (FIN-B01: kun kursi), bitta so'rov bilan.</summary>
+        private TxnStats PopulateTransactionStats(IQueryable<FIN_TRANSACTIONS> query, BalanceCategoryDetailData detail)
         {
-            var stats = query
-                .GroupBy(t => 1)
-                .Select(g => new TxnStats
-                {
-                    Count = g.Count(),
-                    Added = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
-                    Subtracted = g.Sum(t => t.Direction != 1 ? t.Amount : 0m),
-                    Net = g.Sum(t => t.Direction == 1 ? t.Amount : -t.Amount)
-                })
-                .FirstOrDefault() ?? new TxnStats();
+            var buckets = query.UzsBuckets(_db);
+            var stats = new TxnStats
+            {
+                Count = buckets.Sum(b => b.Count),
+                Added = buckets.Where(b => b.Direction == 1).Sum(b => b.Uzs),
+                Subtracted = buckets.Where(b => b.Direction != 1).Sum(b => b.Uzs),
+                Net = buckets.Sum(b => b.SignedUzs)
+            };
 
             detail.TransactionCount = stats.Count;
             detail.AddedAmount = stats.Added;
