@@ -176,6 +176,45 @@ Natija: akt-sverki va qarz hisoboti turli raqam berardi, balans esa teng emasdi.
 - Bir xil raqamli shartnomalar bor.
 - Birinchi oylik opening'idan (21.05.2026) oldin to'langan oylik HR'dagi hisoblangan oylikdan 26 mln ko'p: balans manfiy oylik qarzini 0 deb ko'rsatadi.
 
+## Yakuniy tur (2026-10-19)
+
+**Holat (audit bandlari bo'yicha):**
+
+| Toifa | Bajarildi |
+|---|---|
+| Bug | 26/26 |
+| Xavfsizlik | 3/3 |
+| Perf | 18/18 |
+| Dublikat | 23/23 |
+| O'lik kod | 16/16 (FinAccounts.Transactions — ataylab qoldirildi, view havolalari ishlatadi) |
+| Maint | 4/4 |
+
+**Bu turdagi commitlar:**
+
+- **B01, valyuta.** Finance hisobotlari endi so'mda. Har hujjat va to'lov o'z sanasidagi CBU kursi bilan o'giriladi (`Services/Finance/FinMoney`, Core'dagi `UzsConverter` ustida). Qamrov:
+  - dashboardlar, P&L, EBITDA/DCF, balans;
+  - kontragent qarzlari, akt-sverki, oylik va doimiy harajatlar, logistika;
+  - opening tahriri.
+
+  Kurs topilmasa, sahifada ogohlantirish chiqadi.
+- **Opening valyutasi.** `DataFix_Finance_OpeningCurrency_Check/Fix` bilan so'mda kiritilgan, lekin USD deb belgilangan 112 ta opening qatori va 20 ta snapshot so'mga o'tkazildi. Lokal bazada oldin BACKUP olindi. Opening'ning standart valyutasi endi asosiy valyuta (avval qattiq "ID 5" edi).
+- **P14.** Shartnoma qoldig'ida mahsulotlar bitta so'rovda yuklanadi.
+- **P17.** Faqat o'qiladigan 30 ta joyga `AsNoTracking` qo'shildi.
+- **P18.** Chart.js bitta qat'iy versiyada (`_ChartJs`); `.stat-card` CSS'i `Content/fin-dashboard.css` faylida.
+- **D12, D15, D20, D23.** Eski asosiy-valyuta tanlovi olib tashlandi; daraxt ro'yxatlarining umumiy skripti; kirim va chiqim tahlili bitta view'da; Include'dan keyingi "fix-up" olib tashlandi.
+- **O'lik kod.** EDMX'dan `sp_Fin_CashSummary` va `V_FIN_PL_PLAN_VS_FACT_MONTHLY` olib tashlandi.
+- **Qo'llanmadagi cheklov.** Qo'lda kiritilgan ta'minotchi to'lovi va doimiy harajat to'lovini endi tahrirlash va o'chirish mumkin.
+
+**Tekshiruv:**
+- Lokal bazada hamma hujjat so'mda: B01'dan keyin 61 ta hisobot raqami o'zgarmadi.
+- Tranzaksiya ichida qo'shilgan USD to'lovlar (ROLLBACK) to'g'ri o'girildi: cashflow +100 USD = 1 180 876 so'm; ta'minotchi qarzi va akt-sverki −10 USD = −118 087,60 so'm.
+- Akt va qarz tengligi, opening AutoFill tengligi saqlangan.
+
+**Qolganlar:**
+- **Chart.js'ni lokal faylga o'tkazish:** fayl yuklab olishni talab qiladi, hozir versiyalangan CDN ishlatiladi.
+- **Balans popup'laridagi hujjat qatorlari** hujjat valyutasida ko'rsatiladi; jami so'mda.
+- **Brauzerda tekshirish:** login kerak.
+
 ## Qolganlar (bajarilmadi)
 
 - **B01 (valyuta):** qaror bor: konvertatsiya qilinadi (CBU + CURRENCY_RATES). Core `Services/Common/CurrencyRateService`'ni tayyorlagach Finance dashboardlari ulanadi.
