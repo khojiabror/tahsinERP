@@ -82,6 +82,17 @@ namespace tahsinERP.ViewModels.Finance
         public List<PLItemData> Children { get; set; }
     }
 
+    /// <summary>Balans jami: Aktiv = Majburiyatlar + Kapital + RetainedEarnings (hisoblangan, balanslovchi).</summary>
+    public class BalanceTotals
+    {
+        public decimal Assets { get; set; }
+        public decimal Liabilities { get; set; }
+        public decimal Equity { get; set; }
+        /// <summary>Hisoblangan taqsimlanmagan foyda (zarar bo'lsa manfiy).</summary>
+        public decimal RetainedEarnings => Assets - Liabilities - Equity;
+        public decimal PassiveTotal => Liabilities + Equity + RetainedEarnings;
+    }
+
     public class BalanceCategoryData
     {
         public FIN_BALANCE_CATEGORIES Category { get; set; }

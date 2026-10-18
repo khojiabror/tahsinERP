@@ -3,6 +3,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     // FIN-D19: aktivlar (BalanceSheetAssetDetails) va passivlar (BalanceSheetLiabilityDetails) uchun bitta sahifa
     var isLiability = ViewBag.IsLiability as bool? ?? false;
+    var totals = isLiability ? ViewBag.Totals as tahsinERP.ViewModels.Finance.BalanceTotals : null;
     var details = ViewBag.Details as List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData>();
 }
 
@@ -40,8 +41,10 @@
                                     <div class="mb-2">
                                         <strong>@ViewBag.TotalLabel</strong>
                                         @{
-                                            var totalDisplay = details.Sum(d =>
-                                                isLiability && d.Category.Type == 2 ? -Math.Abs(d.Amount) : d.Amount);
+                                            // Passivda majburiyatlar musbat; jami = aktiv (taqsimlanmagan foyda bilan) — balans tengligi
+                                            var totalDisplay = totals != null
+                                                ? totals.PassiveTotal
+                                                : details.Sum(d => isLiability ? tahsinERP.Services.Finance.BalanceSheetService.PassiveDisplayAmount(d.Category, d.Amount) : d.Amount);
                                         }
                                         <span class="ml-1">@totalDisplay.ToString("N2")</span>
                                     </div>
@@ -61,8 +64,8 @@
                                             <tbody>
                                                 @foreach (var item in details)
                                                 {
-                                                    var displayAmount = isLiability && item.Category.Type == 2
-                                                        ? -Math.Abs(item.Amount)
+                                                    var displayAmount = isLiability
+                                                        ? tahsinERP.Services.Finance.BalanceSheetService.PassiveDisplayAmount(item.Category, item.Amount)
                                                         : item.Amount;
                                                     <tr>
                                                         <td>
@@ -81,6 +84,18 @@
                                                         <td class="text-right">@item.AddedAmount.ToString("N2")</td>
                                                         <td class="text-right">@item.SubtractedAmount.ToString("N2")</td>
                                                         <td class="text-right">@displayAmount.ToString("N2")</td>
+                                                    </tr>
+                                                }
+                                                @if (totals != null)
+                                                {
+                                                    <tr>
+                                                        <td>Taqsimlanmagan foyda (hisoblangan)</td>
+                                                        <td>Balanslovchi</td>
+                                                        <td>Aktiv @totals.Assets.ToString("N2") − majburiyatlar @totals.Liabilities.ToString("N2") − kiritilgan kapital @totals.Equity.ToString("N2")</td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td class="text-right">@totals.RetainedEarnings.ToString("N2")</td>
                                                     </tr>
                                                 }
                                             </tbody>
