@@ -100,6 +100,11 @@
                                                     @Html.TextBoxFor(model => model.PaymentTerms, new { @class = "form-control" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
+                                                    <label for="PaymentDays">To'lov muddati (kun)</label>
+                                                    @Html.TextBoxFor(model => model.PaymentDays, new { @type = "number", @min = "0", @max = "3650", @step = "1", @class = "form-control", @placeholder = "masalan 30" })
+                                                    @Html.ValidationMessageFor(model => model.PaymentDays, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3 col-12 form-group">
                                                     <label for="Amount">Jami summa</label>
                                                     @Html.TextBoxFor(model => model.Amount, new { @type = "number", @class = "form-control", @id = "Amount", @readonly = "readonly", @placeholder = "Avtomatik hisoblanadi" })
                                                 </div>
