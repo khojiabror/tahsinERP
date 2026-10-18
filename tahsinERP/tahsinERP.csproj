@@ -933,6 +933,7 @@
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
     <Compile Include="Services\Stock\ExpenseDocumentService.cs" />
     <Compile Include="Services\Stock\IncomeDocumentService.cs" />
+    <Compile Include="Services\Stock\InventoryAdjustmentService.cs" />
     <Compile Include="Services\Stock\StockCostService.cs" />
     <Compile Include="Services\Stock\StockLedger.cs" />
     <Compile Include="Services\Stock\WarehouseAccess.cs" />
