@@ -1284,9 +1284,9 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                string extension;
-                var contentType = WarehouseAttachments.ContentType(doc.Doc, out extension);
-                return File(doc.Doc, contentType, $"Income_{doc.IncomeID}{extension}");
+                string fileName;
+                var contentType = WarehouseAttachments.ContentType(doc.Doc, $"Income_{doc.IncomeID}", out fileName);
+                return File(doc.Doc, contentType, fileName);
             }
         }
 
