@@ -7,6 +7,7 @@ using System.Linq;
 using System.Web.Mvc;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels.Finance;
 
 namespace tahsinERP.Services.Finance
@@ -479,7 +480,7 @@ namespace tahsinERP.Services.Finance
             Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
 
             // 1) Customer receivables by contract
-            var sInvoices = db.SALES_INVOICES
+            var sInvoices = db.SALES_INVOICES.Active()
                 .Where(i => i.InvoiceDate <= date)
                 .Select(i => new { ID = (int)i.ID, i.CustomerID, i.ContractID, Amount = i.TotalWithVAT ?? i.TotalAmount })
                 .ToList();
@@ -503,7 +504,7 @@ namespace tahsinERP.Services.Finance
             var cLinkedIds = cPayments.Where(p => p.SourceDocType == "SalesInvoicePayment" && p.SourceDocID.HasValue).Select(p => (long)p.SourceDocID.Value).Distinct().ToList();
             var cInvoiceMeta = cLinkedIds.Count == 0
                 ? new Dictionary<long, Tuple<int, string, int?>>()
-                : db.SALES_INVOICES.Where(i => cLinkedIds.Contains(i.ID))
+                : db.SALES_INVOICES.Active().Where(i => cLinkedIds.Contains(i.ID))
                     .Select(i => new { i.ID, i.CustomerID, i.ContractID })
                     .ToList()
                     .ToDictionary(

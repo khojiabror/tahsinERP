@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Data.SqlClient;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Services
@@ -217,7 +218,8 @@ namespace tahsinERP.Services
             };
 
             var openingDate = GetLatestOpeningDate(db, asOfDate, 1);
-            var invoiceQuery = db.SALES_INVOICES
+            // Bekor qilingan invoyslar akt-sverkiga kirmaydi
+            var invoiceQuery = db.SALES_INVOICES.Active()
                 .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= asOfDate);
             if (openingDate.HasValue)
             {
