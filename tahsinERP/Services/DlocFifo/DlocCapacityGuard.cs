@@ -32,17 +32,5 @@ WHERE ll.LocationID = @p0 AND ll.QtyAvailable > 0 AND ll.ProductID <> @p1";
             }
         }
 
-        public static bool IsBelowMin(DBTHSNEntities db, int locationId)
-        {
-            if (!DlocFifoSchema.IsEnabled(db))
-                return false;
-
-            var loc = DlocFifoDataAccess.GetLocation(db, locationId);
-            if (loc == null || loc.MinCapacity <= 0)
-                return false;
-
-            var current = DlocFifoDataAccess.GetLocationCurrentQty(db, locationId);
-            return current < loc.MinCapacity;
-        }
     }
 }

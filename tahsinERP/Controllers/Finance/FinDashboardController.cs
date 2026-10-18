@@ -78,6 +78,16 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
+        /// <summary>Aktivlar va passivlar tafsiloti — bitta view (FIN-D19).</summary>
+        private ActionResult DetailsView(List<BalanceCategoryDetailData> details, string heading, string totalLabel, bool isLiability)
+        {
+            ViewBag.Details = details;
+            ViewBag.Heading = heading;
+            ViewBag.TotalLabel = totalLabel;
+            ViewBag.IsLiability = isLiability;
+            return View("BalanceSheetDetails");
+        }
+
         // GET: FinDashboard/BalanceSheetLiabilityDetails
         public ActionResult BalanceSheetLiabilityDetails(DateTime? asOfDate)
         {
@@ -89,7 +99,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.LiabilityDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);
-                return View();
+                return DetailsView(details, "Passivlar va Kapital Tafsiloti", "Jami passivlar va kapital:", true);
             }
         }
 
@@ -104,7 +114,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.AssetDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);
-                return View();
+                return DetailsView(details, "Aktivlar Tafsiloti", "Jami aktivlar:", false);
             }
         }
 

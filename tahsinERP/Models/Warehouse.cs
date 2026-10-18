@@ -34,6 +34,7 @@ namespace tahsinERP.Models
         public Nullable<int> MRP { get; set; }
         public Nullable<int> ShopID { get; set; }
         public Nullable<int> Account { get; set; }
+        public string WarehouseType { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<EXPENS> EXPENSES { get; set; }

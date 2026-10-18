@@ -34,7 +34,7 @@ namespace tahsinERP.Controllers
         // Olish so'rovi: TaskDashboard
         public async Task<ActionResult> Index(int? userId, int? productID)
         {
-            bool isAdminOrDeveloper = TaskRules.IsAdminOrDeveloper(CurrentUserName);
+            bool isAdminOrDeveloper = RoleHelper.IsAdminOrDeveloper(CurrentUserName);
             int currentUserId = CurrentUserId;
             if (!isAdminOrDeveloper)
             {

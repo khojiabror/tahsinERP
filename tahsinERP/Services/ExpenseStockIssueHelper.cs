@@ -27,6 +27,9 @@ namespace tahsinERP.Services
             if (amount <= QtyEpsilon)
                 return;
 
+            // SRM-B14: chiqim qatori birligi → qoldiq birligi (FIFO lotlar ham shu birlikda)
+            amount = StockLedger.ToStockUnit(db, warehouseId, productId, amount, unitId, out unitId);
+
             var stockQty = StockLedger.GetOnHand(db, warehouseId, productId);
             if (stockQty + QtyEpsilon < amount)
             {
@@ -84,6 +87,8 @@ namespace tahsinERP.Services
         {
             if (amount <= QtyEpsilon)
                 return;
+
+            amount = StockLedger.ToStockUnit(db, warehouseId, productId, amount, unitId, out unitId);
 
             if (DlocFifoSchema.IsEnabled(db))
             {

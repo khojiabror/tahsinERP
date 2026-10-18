@@ -798,6 +798,9 @@
     <Compile Include="Models\V_FIN_PL_PLAN_VS_FACT_MONTHLY.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\INVENTORY_ADJUSTMENTS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Warehouse.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -837,6 +840,9 @@
     <Compile Include="Services\Crm\CrmPaging.cs" />
     <Compile Include="Services\Crm\CrmReport.cs" />
     <Compile Include="Services\Crm\FormRows.cs" />
+    <Compile Include="Services\Crm\EDocuments\EDocumentModels.cs" />
+    <Compile Include="Services\Crm\EDocuments\EDocumentProviders.cs" />
+    <Compile Include="Services\Crm\EDocuments\EDocumentService.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
     <Compile Include="Services\Crm\CrmNumber.cs" />
     <Compile Include="Services\Common\CurrencyRateService.cs" />
@@ -932,7 +938,13 @@
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
+    <Compile Include="Services\Stock\ExpenseDocumentService.cs" />
+    <Compile Include="Services\Stock\IncomeDocumentService.cs" />
+    <Compile Include="Services\Stock\InventoryAdjustmentService.cs" />
+    <Compile Include="Services\Stock\StockCostService.cs" />
     <Compile Include="Services\Stock\StockLedger.cs" />
+    <Compile Include="Services\Stock\WarehouseAccess.cs" />
+    <Compile Include="Services\Stock\WarehouseRoles.cs" />
     <Compile Include="Services\WarehouseAttachments.cs" />
     <Compile Include="Services\WarehouseFlowService.cs" />
     <Compile Include="Services\ExpenseStockIssueHelper.cs" />
@@ -956,7 +968,6 @@
     <Compile Include="Services\LotTrackingService.cs" />
     <Compile Include="Services\ProductionLotService.cs" />
     <Compile Include="Services\WarehouseMonthlyReportService.cs" />
-    <Compile Include="Services\WasteHandlingService.cs" />
     <Compile Include="Services\WordDocumentConverterService.cs" />
     <Compile Include="Services\WordDocumentImageService.cs" />
     <Compile Include="ViewModels\BOM\BomDetailsViewModel.cs" />
@@ -3017,6 +3028,7 @@
     <Content Include="Views\SalesTTNK\Edit.cshtml" />
     <Content Include="Views\SalesTTNK\Index.cshtml" />
     <Content Include="Views\SalesSF\Details.cshtml" />
+    <Content Include="Views\SalesSF\_EDocumentPanel.cshtml" />
     <Content Include="Views\SalesSF\Edit.cshtml" />
     <Content Include="Views\SalesSF\GenerateFromInvoice.cshtml" />
     <Content Include="Views\SalesSF\Index.cshtml" />
@@ -3043,9 +3055,8 @@
     <Content Include="Views\Expenses\Details.cshtml" />
     <Content Include="Views\Expenses\Edit.cshtml" />
     <Content Include="Views\Expenses\Index.cshtml" />
+    <Content Include="Views\FinDashboard\BalanceSheetDetails.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheet.cshtml" />
-    <Content Include="Views\FinDashboard\BalanceSheetAssetDetails.cshtml" />
-    <Content Include="Views\FinDashboard\BalanceSheetLiabilityDetails.cshtml" />
     <Content Include="Views\FinDashboard\Cashflow.cshtml" />
     <Content Include="Views\FinDashboard\PL.cshtml" />
     <Content Include="Views\FinDashboard\ShareholderValue.cshtml" />

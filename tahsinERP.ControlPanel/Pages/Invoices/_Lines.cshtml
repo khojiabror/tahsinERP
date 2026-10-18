@@ -1,0 +1,14 @@
+@model List<tahsinERP.ControlPanel.Pages.Invoices.LineInput>
+<table class="lines">
+    <tr><th>Xizmat nomi</th><th class="num">Miqdor</th><th class="num">Narx, so'm (QQS bilan)</th><th class="num">QQS %</th></tr>
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        <tr>
+            <td><input type="text" name="Lines[@i].Description" value="@Model[i].Description" /></td>
+            <td><input type="text" name="Lines[@i].Quantity" value="@Model[i].Quantity" /></td>
+            <td><input type="text" name="Lines[@i].UnitPrice" value="@Model[i].UnitPrice" /></td>
+            <td><input type="text" name="Lines[@i].VatRate" value="@Model[i].VatRate" /></td>
+        </tr>
+    }
+</table>
+<div class="hint">Bo'sh qatorlar tashlab yuboriladi. Narxlar QQS bilan; QQS summasi = summa × stavka / (100 + stavka).</div>

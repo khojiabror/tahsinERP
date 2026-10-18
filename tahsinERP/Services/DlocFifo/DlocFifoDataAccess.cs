@@ -1,12 +1,40 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services.DlocFifo
 {
     public static class DlocFifoDataAccess
     {
+        /// <summary>
+        /// SRM-P11: bitta DbContext (≈ bitta so'rov) ichida joylar ro'yxati va "omborda joy bormi" natijasi
+        /// bir marta o'qiladi — avval har yordamchi (Details, Create validatsiyasi, putaway, StockLedger) ularni
+        /// qayta so'rardi. Joy qoldig'i (QtyAvailable) keshlanmaydi — u tranzaksiya ichida o'zgaradi.
+        /// Joy qo'shish/tahrirlash/o'chirishda shu kontekst keshi tozalanadi.
+        /// </summary>
+        private sealed class ContextCache
+        {
+            public readonly Dictionary<int, bool> HasLocations = new Dictionary<int, bool>();
+            public readonly Dictionary<string, List<WarehouseLocationDto>> Locations = new Dictionary<string, List<WarehouseLocationDto>>();
+            public readonly Dictionary<int, WarehouseLocationDto> ById = new Dictionary<int, WarehouseLocationDto>();
+        }
+
+        private static readonly ConditionalWeakTable<DBTHSNEntities, ContextCache> Caches =
+            new ConditionalWeakTable<DBTHSNEntities, ContextCache>();
+
+        private static ContextCache CacheFor(DBTHSNEntities db)
+        {
+            return Caches.GetValue(db, _ => new ContextCache());
+        }
+
+        /// <summary>Shu kontekst uchun joylar keshini tozalaydi (joy o'zgarganda).</summary>
+        public static void InvalidateCache(DBTHSNEntities db)
+        {
+            Caches.Remove(db);
+        }
+
         public static bool TableExists(DBTHSNEntities db, string tableName)
         {
             var sql = "SELECT CASE WHEN OBJECT_ID(@p0,'U') IS NOT NULL THEN 1 ELSE 0 END";
@@ -18,6 +46,21 @@ namespace tahsinERP.Services.DlocFifo
             if (!DlocFifoSchema.IsEnabled(db))
                 return new List<WarehouseLocationDto>();
 
+            var cache = CacheFor(db);
+            var key = (warehouseId?.ToString() ?? "*") + (activeOnly ? ":a" : ":all");
+            List<WarehouseLocationDto> cached;
+            if (!cache.Locations.TryGetValue(key, out cached))
+            {
+                cached = LoadLocations(db, warehouseId, activeOnly);
+                cache.Locations[key] = cached;
+                foreach (var l in cached)
+                    cache.ById[l.ID] = l;
+            }
+            return new List<WarehouseLocationDto>(cached);
+        }
+
+        private static List<WarehouseLocationDto> LoadLocations(DBTHSNEntities db, int? warehouseId, bool activeOnly)
+        {
             var sql = @"
 SELECT l.ID, l.WarehouseID, l.LocationCode, l.LocationName, l.MinCapacity, l.MaxCapacity,
        l.AllowMixedLots, l.AllowMixedProducts, l.IsActive, w.WHName AS WarehouseName
@@ -41,13 +84,85 @@ WHERE l.IsDeleted = 0";
             if (!DlocFifoSchema.IsEnabled(db))
                 return null;
 
+            var cache = CacheFor(db);
+            WarehouseLocationDto loc;
+            if (cache.ById.TryGetValue(locationId, out loc))
+                return loc;
+
             const string sql = @"
 SELECT l.ID, l.WarehouseID, l.LocationCode, l.LocationName, l.MinCapacity, l.MaxCapacity,
        l.AllowMixedLots, l.AllowMixedProducts, l.IsActive, w.WHName AS WarehouseName
 FROM dbo.WAREHOUSE_LOCATIONS l
 INNER JOIN dbo.WAREHOUSES w ON w.ID = l.WarehouseID
 WHERE l.ID = @p0 AND l.IsDeleted = 0";
-            return db.Database.SqlQuery<WarehouseLocationDto>(sql, locationId).FirstOrDefault();
+            loc = db.Database.SqlQuery<WarehouseLocationDto>(sql, locationId).FirstOrDefault();
+            if (loc != null)
+                cache.ById[locationId] = loc;
+            return loc;
+        }
+
+        /// <summary>Omborning barcha joylaridagi joriy qoldiq (LocationID → miqdor) — bitta so'rov.</summary>
+        public static Dictionary<int, decimal> GetLocationQtyMap(DBTHSNEntities db, int warehouseId)
+        {
+            if (!DlocFifoSchema.IsEnabled(db))
+                return new Dictionary<int, decimal>();
+
+            const string sql = @"
+SELECT ll.LocationID AS [Key], SUM(ll.QtyAvailable) AS Qty
+FROM dbo.LOT_LOCATIONS ll
+INNER JOIN dbo.WAREHOUSE_LOCATIONS loc ON loc.ID = ll.LocationID AND loc.IsDeleted = 0
+WHERE loc.WarehouseID = @p0
+GROUP BY ll.LocationID";
+            return db.Database.SqlQuery<KeyQty>(sql, warehouseId).ToDictionary(r => r.Key, r => r.Qty);
+        }
+
+        /// <summary>Ombordagi DLOC ledger qoldig'i mahsulot bo'yicha (ProductID → miqdor) — bitta so'rov.</summary>
+        public static Dictionary<int, decimal> GetLedgerQtyByProduct(DBTHSNEntities db, int warehouseId)
+        {
+            if (!DlocFifoSchema.IsEnabled(db))
+                return new Dictionary<int, decimal>();
+
+            const string sql = @"
+SELECT ll.ProductID AS [Key], SUM(ll.QtyAvailable) AS Qty
+FROM dbo.LOT_LOCATIONS ll
+INNER JOIN dbo.WAREHOUSE_LOCATIONS loc ON loc.ID = ll.LocationID AND loc.IsDeleted = 0
+WHERE loc.WarehouseID = @p0
+GROUP BY ll.ProductID";
+            return db.Database.SqlQuery<KeyQty>(sql, warehouseId).ToDictionary(r => r.Key, r => r.Qty);
+        }
+
+        /// <summary>Ombordagi mahsulot → u turgan joylar (qoldig'i &gt; 0) — bitta so'rov.</summary>
+        public static Dictionary<int, HashSet<int>> GetProductLocationIds(DBTHSNEntities db, int warehouseId)
+        {
+            var result = new Dictionary<int, HashSet<int>>();
+            if (!DlocFifoSchema.IsEnabled(db))
+                return result;
+
+            const string sql = @"
+SELECT DISTINCT ll.ProductID AS ProductID, ll.LocationID AS LocationID
+FROM dbo.LOT_LOCATIONS ll
+INNER JOIN dbo.WAREHOUSE_LOCATIONS loc ON loc.ID = ll.LocationID AND loc.IsDeleted = 0 AND loc.IsActive = 1
+WHERE loc.WarehouseID = @p0 AND ll.QtyAvailable > 0";
+            foreach (var r in db.Database.SqlQuery<ProductLocation>(sql, warehouseId))
+            {
+                HashSet<int> set;
+                if (!result.TryGetValue(r.ProductID, out set))
+                    result[r.ProductID] = set = new HashSet<int>();
+                set.Add(r.LocationID);
+            }
+            return result;
+        }
+
+        private sealed class KeyQty
+        {
+            public int Key { get; set; }
+            public decimal Qty { get; set; }
+        }
+
+        private sealed class ProductLocation
+        {
+            public int ProductID { get; set; }
+            public int LocationID { get; set; }
         }
 
         public static decimal GetLocationCurrentQty(DBTHSNEntities db, int locationId)
@@ -64,10 +179,17 @@ WHERE l.ID = @p0 AND l.IsDeleted = 0";
             if (!DlocFifoSchema.IsEnabled(db))
                 return false;
 
+            var cache = CacheFor(db);
+            bool has;
+            if (cache.HasLocations.TryGetValue(warehouseId, out has))
+                return has;
+
             const string sql = @"
 SELECT COUNT(1) FROM dbo.WAREHOUSE_LOCATIONS
 WHERE WarehouseID = @p0 AND IsDeleted = 0 AND IsActive = 1";
-            return db.Database.SqlQuery<int>(sql, warehouseId).FirstOrDefault() > 0;
+            has = db.Database.SqlQuery<int>(sql, warehouseId).FirstOrDefault() > 0;
+            cache.HasLocations[warehouseId] = has;
+            return has;
         }
 
         public static List<InventoryDlocStockRow> GetInventoryByDloc(DBTHSNEntities db, int? warehouseId, int? productId,
@@ -93,8 +215,14 @@ WHERE ll.QtyAvailable > 0";
             var parms = new List<object>();
             if (warehouseId.HasValue)
             {
-                sql += " AND loc.WarehouseID = @p0";
+                sql += " AND loc.WarehouseID = @p" + parms.Count;
                 parms.Add(warehouseId.Value);
+            }
+            if (productId.HasValue)
+            {
+                // avval butun ombor o'qilib, mahsulot xotirada filtrlanardi
+                sql += " AND ll.ProductID = @p" + parms.Count;
+                parms.Add(productId.Value);
             }
 
             sql += @"
@@ -112,9 +240,6 @@ ORDER BY w.WHName, loc.LocationCode, p.PNo";
                 var set = new HashSet<int>(allowedWarehouseIds);
                 rows = rows.Where(r => set.Contains(r.WarehouseID)).ToList();
             }
-
-            if (productId.HasValue)
-                rows = rows.Where(r => r.ProductID == productId.Value).ToList();
 
             return rows;
         }
@@ -139,6 +264,7 @@ INSERT INTO dbo.WAREHOUSE_LOCATIONS (WarehouseID, LocationCode, LocationName, Mi
     AllowMixedLots, AllowMixedProducts, IsActive, IsDeleted, CreatedAt)
 VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, 1, 0, GETDATE());
 SELECT CAST(SCOPE_IDENTITY() AS INT);";
+            InvalidateCache(db);
             return db.Database.SqlQuery<int>(sql, dto.WarehouseID, dto.LocationCode, dto.LocationName ?? "",
                 dto.MinCapacity, dto.MaxCapacity, dto.AllowMixedLots, dto.AllowMixedProducts).First();
         }
@@ -149,12 +275,14 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);";
 UPDATE dbo.WAREHOUSE_LOCATIONS SET LocationCode=@p1, LocationName=@p2, MinCapacity=@p3, MaxCapacity=@p4,
     AllowMixedLots=@p5, AllowMixedProducts=@p6, IsActive=@p7
 WHERE ID=@p0 AND IsDeleted=0";
+            InvalidateCache(db);
             db.Database.ExecuteSqlCommand(sql, dto.ID, dto.LocationCode, dto.LocationName ?? "",
                 dto.MinCapacity, dto.MaxCapacity, dto.AllowMixedLots, dto.AllowMixedProducts, dto.IsActive);
         }
 
         public static void SoftDeleteLocation(DBTHSNEntities db, int id)
         {
+            InvalidateCache(db);
             db.Database.ExecuteSqlCommand(
                 "UPDATE dbo.WAREHOUSE_LOCATIONS SET IsDeleted=1 WHERE ID=@p0", id);
         }

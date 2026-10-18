@@ -423,48 +423,11 @@ namespace tahsinERP.Controllers.SRM
                             await db.SaveChangesAsync();
 
                             // Qo'shish expense products va decrease stock
-                            double totalAmount = 0;
-                            double totalPrice = 0;
-
+                            // Qatorlar: saqlash → sof FIFO chiqim → FIFO tannarx (ExpenseDocumentService, SRM-M01/B13/B19)
                             if (model.ExpenseProducts != null && model.ExpenseProducts.Any())
                             {
-                                foreach (var product in model.ExpenseProducts)
-                                {
-                                    var expenseProduct = new EXPENSE_PRODUCTS
-                                    {
-                                        ExpenseID = expense.ID,
-                                        ProductID = product.ProductID,
-                                        Amount = product.Amount,
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
-                                        UnitID = product.UnitID,
-                                        Comment = product.Comment ?? ""
-                                    };
+                                await ExpenseDocumentService.PostLinesAsync(db, expense, model.ExpenseProducts);
 
-                                    db.EXPENSE_PRODUCTS.Add(expenseProduct);
-                                    await db.SaveChangesAsync();
-
-                                    // SRM-B13: chiqim har doim sof FIFO — DLOC omborda eng eski lotdan (ajratmalar
-                                    // EXPENSE_PRODUCT_ALLOCATIONS ga), oddiy omborda umumiy qoldiqdan. Foydalanuvchi
-                                    // lot tanlamaydi (avval tanlangan lot e'tiborsiz qolar yoki faqat izohga yozilardi).
-                                    try
-                                    {
-                                        await StockLedger.IssueLineAsync(
-                                            db, expense.SenderWHID, product.ProductID, product.Amount,
-                                            product.UnitID, expenseProduct.ID);
-                                    }
-                                    catch (WarehouseDlocException wex)
-                                    {
-                                        throw new Exception(wex.Message);
-                                    }
-
-                                    totalAmount += product.Amount;
-                                    totalPrice += expenseProduct.TotalPrice;
-                                    // Ichki o'tkazmada qabul qiluvchi qoldig'i faqat kirim "Qabul qilish"da oshadi.
-                                }
-
-                            expense.Amount = totalAmount;
-                            expense.TotalPrice = totalPrice;
                             await db.SaveChangesAsync();
 
                             // Ichki o'tkazma bo'lsa linked income hujjatini majburiy upsert qilamiz.
@@ -477,11 +440,7 @@ namespace tahsinERP.Controllers.SRM
                             // Upload expense hujjat agar provided
                             if (expenseFile != null && expenseFile.ContentLength > 0)
                             {
-                                byte[] fileData = null;
-                                using (var binaryReader = new BinaryReader(expenseFile.InputStream))
-                                {
-                                    fileData = binaryReader.ReadBytes(expenseFile.ContentLength);
-                                }
+                                var fileData = WarehouseAccess.ReadUpload(expenseFile);
 
                                 var expenseDoc = new WRHS_EXPENSE_DOCS
                                 {
@@ -503,13 +462,7 @@ namespace tahsinERP.Controllers.SRM
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            var errorMessage = $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
+                            var errorMessage = WarehouseAccess.ErrorMessage(ex);
                             ModelState.AddModelError("", errorMessage);
                         }
                     }
@@ -644,13 +597,9 @@ namespace tahsinERP.Controllers.SRM
             return ids.Count == 0 ? (int?)null : ids[0];
         }
 
-        private async Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
+        private Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
         {
-            var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
-            return await db.WAREHOUSES
-                .Where(w => w.IsDeleted != true && w.MRP == currentUserId)
-                .Select(w => w.ID)
-                .ToListAsync();
+            return WarehouseAccess.AssignedWarehouseIdsAsync(db, User.Identity.Name);
         }
 
         // Olish so'rovi: Expenses/Edit/5
@@ -819,48 +768,13 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             // Qo'shish updated expense products va yangilash stock
-                            double totalAmount = 0;
-                            double totalPrice = 0;
-
+                            // Qatorlar: saqlash → sof FIFO chiqim → FIFO tannarx (ExpenseDocumentService, SRM-M01/B13/B19)
+                            expense.Amount = 0;
+                            expense.TotalPrice = 0;
                             if (model.ExpenseProducts != null && model.ExpenseProducts.Any())
                             {
-                                foreach (var product in model.ExpenseProducts)
-                                {
-                                    var expenseProduct = new EXPENSE_PRODUCTS
-                                    {
-                                        ExpenseID = expense.ID,
-                                        ProductID = product.ProductID,
-                                        Amount = product.Amount,
-                                        PiecePrice = product.PiecePrice,
-                                        TotalPrice = product.Amount * product.PiecePrice,
-                                        UnitID = product.UnitID,
-                                        Comment = product.Comment ?? ""
-                                    };
-
-                                    db.EXPENSE_PRODUCTS.Add(expenseProduct);
-                                    await db.SaveChangesAsync();
-
-                                    // SRM-B13: chiqim har doim sof FIFO — DLOC omborda eng eski lotdan (ajratmalar
-                                    // EXPENSE_PRODUCT_ALLOCATIONS ga), oddiy omborda umumiy qoldiqdan. Foydalanuvchi
-                                    // lot tanlamaydi (avval tanlangan lot e'tiborsiz qolar yoki faqat izohga yozilardi).
-                                    try
-                                    {
-                                        await StockLedger.IssueLineAsync(
-                                            db, expense.SenderWHID, product.ProductID, product.Amount,
-                                            product.UnitID, expenseProduct.ID);
-                                    }
-                                    catch (WarehouseDlocException wex)
-                                    {
-                                        throw new Exception(wex.Message);
-                                    }
-
-                                    totalAmount += product.Amount;
-                                    totalPrice += expenseProduct.TotalPrice;
-                                }
+                                await ExpenseDocumentService.PostLinesAsync(db, expense, model.ExpenseProducts);
                             }
-
-                            expense.Amount = totalAmount;
-                            expense.TotalPrice = totalPrice;
 
                             // Handle fayl upload
                             if (expenseFile != null && expenseFile.ContentLength > 0)
@@ -873,11 +787,7 @@ namespace tahsinERP.Controllers.SRM
                                 }
 
                                 // Qo'shish new doc
-                                byte[] fileData = null;
-                                using (var binaryReader = new BinaryReader(expenseFile.InputStream))
-                                {
-                                    fileData = binaryReader.ReadBytes(expenseFile.ContentLength);
-                                }
+                                var fileData = WarehouseAccess.ReadUpload(expenseFile);
 
                                 var expenseDoc = new WRHS_EXPENSE_DOCS
                                 {
@@ -911,13 +821,7 @@ namespace tahsinERP.Controllers.SRM
                         catch (Exception ex)
                         {
                             transaction.Rollback();
-                            var errorMessage = $"Xatolik: {ex.Message}";
-                            var innerEx = ex.InnerException;
-                            while (innerEx != null)
-                            {
-                                errorMessage += $" | Ichki xatolik: {innerEx.Message}";
-                                innerEx = innerEx.InnerException;
-                            }
+                            var errorMessage = WarehouseAccess.ErrorMessage(ex);
                             ModelState.AddModelError("", errorMessage);
                         }
                     }

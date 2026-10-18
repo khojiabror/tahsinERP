@@ -16,101 +16,29 @@ namespace tahsinERP.Services
     /// </summary>
     public static class WarehouseFlowService
     {
-        // Warehouse type identification constants
-        private const string PRODUCTION_WH_KEYWORDS = "PRODUCTION,ISHLAB CHIQARISH,PROD";
-        private const string SALES_WH_KEYWORDS = "SALES,SOTUV,SALE,SAVDO";
-        private const string SUPPLY_WH_KEYWORDS = "SUPPLY,XOMASHYO,SUPPLIER";
-
-        private static string[] SplitKeywords(string keywords)
-        {
-            return (keywords ?? string.Empty)
-                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(k => k.Trim())
-                .Where(k => k.Length > 0)
-                .ToArray();
-        }
-
         /// <summary>
         /// CURRENCIES dan Shortname = "UZS" bo'lganini oladi, yo'q bo'lsa birinchi valyuta ID si.
         /// </summary>
         private static int GetDefaultCurrencyId(DBTHSNEntities db)
         {
-            var c = db.CURRENCIES.FirstOrDefault(x => x.Shortname != null && x.Shortname.Trim().ToUpper() == "UZS")
-                ?? db.CURRENCIES.OrderBy(x => x.ID).FirstOrDefault();
-            return c != null ? c.ID : 1;
-        }
-
-        private static bool NameMatchesKeywords(string name, string[] keywords)
-        {
-            if (string.IsNullOrWhiteSpace(name) || keywords == null || keywords.Length == 0)
-            {
-                return false;
-            }
-
-            return keywords.Any(k =>
-                name.IndexOf(k, StringComparison.OrdinalIgnoreCase) >= 0);
+            return WarehouseAccess.DefaultCurrencyId(db);
         }
 
         /// <summary>
-        /// Get Production Warehouse (for finished goods from production)
+        /// Ishlab chiqarish ombori — WarehouseType = PRODUCTION (bir nechta bo'lsa, sexi mos kelgani).
+        /// Sozlanmagan bo'lsa null (SRM-B12: nom bo'yicha taxmin va "birinchi ombor" zaxirasi yo'q).
         /// </summary>
         public static Warehouse GetProductionWarehouse(DBTHSNEntities db, int? shopID = null)
         {
-            var query = db.WAREHOUSES.Where(w => w.IsDeleted != true);
-
-            // Try to find by name keywords
-            var productionKeywords = SplitKeywords(PRODUCTION_WH_KEYWORDS);
-            var productionWH = query
-                .AsEnumerable()
-                .FirstOrDefault(w => NameMatchesKeywords(w.WHName, productionKeywords));
-
-            if (productionWH != null)
-                return productionWH;
-
-            // If shopID provided, try to find warehouse for that shop
-            if (shopID.HasValue)
-            {
-                productionWH = query
-                    .Where(w => w.ShopID == shopID.Value)
-                    .FirstOrDefault();
-            }
-
-            // Fallback: get first active warehouse
-            if (productionWH == null)
-            {
-                productionWH = query.FirstOrDefault();
-            }
-
-            return productionWH;
+            var id = WarehouseRoles.GetWarehouseId(db, WarehouseRoles.Production, shopID);
+            return id.HasValue ? db.WAREHOUSES.Find(id.Value) : null;
         }
 
-        /// <summary>
-        /// Get Sales Warehouse (for finished goods ready for sale)
-        /// </summary>
+        /// <summary>Savdo ombori — WarehouseType = SALES; sozlanmagan bo'lsa null.</summary>
         public static Warehouse GetSalesWarehouse(DBTHSNEntities db)
         {
-            // Try to find by name keywords (Savdo Ombori, Sotuv ombori, Sales)
-            var salesKeywords = SplitKeywords(SALES_WH_KEYWORDS);
-            var salesWH = db.WAREHOUSES
-                .Where(w => w.IsDeleted != true)
-                .AsEnumerable()
-                .FirstOrDefault(w => NameMatchesKeywords(w.WHName, salesKeywords));
-
-            // Fallback: Warehouse ID 7 — odatda Savdo/Sotuv ombori
-            if (salesWH == null)
-            {
-                salesWH = db.WAREHOUSES.FirstOrDefault(w => w.ID == 7 && w.IsDeleted != true);
-            }
-
-            // Oxirgi fallback: birinchi faol ombor
-            if (salesWH == null)
-            {
-                salesWH = db.WAREHOUSES
-                    .Where(w => w.IsDeleted != true)
-                    .FirstOrDefault();
-            }
-
-            return salesWH;
+            var id = WarehouseRoles.GetWarehouseId(db, WarehouseRoles.Sales);
+            return id.HasValue ? db.WAREHOUSES.Find(id.Value) : null;
         }
 
         public const string AutoTransferIncomeMarker = "Chiqimdan avtomatik bog'langan:";
@@ -139,25 +67,6 @@ namespace tahsinERP.Services
         }
 
         // Har tenant bazasi uchun alohida (kalit = tenant prefiksi); faqat "bor" natijasi saqlanadi
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _incomesHaveProductionIdColumn =
-            new System.Collections.Concurrent.ConcurrentDictionary<string, bool>();
-
-        /// <summary>
-        /// INCOMES.ProductionID ustuni bormi (MES-P12 migratsiyasi). EDMX'da property bo'lmasa ham ishlashi uchun
-        /// ustunga xom SQL bilan murojaat qilinadi; faqat "bor" natijasi keshlanadi (migratsiya keyin qo'llansa ham topiladi).
-        /// </summary>
-        private static bool IncomesHaveProductionIdColumn(DBTHSNEntities db)
-        {
-            string tenantKey = tahsinERP.Configuration.Tenancy.TenantContext.CacheKeyPrefix;
-            if (_incomesHaveProductionIdColumn.ContainsKey(tenantKey))
-                return true;
-            var exists = db.Database.SqlQuery<int>(
-                "SELECT CASE WHEN COL_LENGTH('dbo.INCOMES', 'ProductionID') IS NULL THEN 0 ELSE 1 END").FirstOrDefault() == 1;
-            if (exists)
-                _incomesHaveProductionIdColumn[tenantKey] = true;
-            return exists;
-        }
-
         /// <summary>
         /// Ishlab chiqarishning (o'chirilmagan) avtomatik kirimlari: avval INCOMES.ProductionID bo'yicha (indeksli, aniq);
         /// topilmasa — zaxira sifatida izohdagi "ProductionID:x" markeri (aniq moslik bilan; backfill qilinmagan eski yozuvlar).
@@ -167,13 +76,13 @@ namespace tahsinERP.Services
             if (productionId <= 0)
                 return new List<int>();
 
-            if (IncomesHaveProductionIdColumn(db))
-            {
-                var byColumn = db.Database.SqlQuery<int>(
-                    "SELECT ID FROM dbo.INCOMES WHERE ProductionID = @p0 AND ISNULL(IsDeleted, 0) = 0", productionId).ToList();
-                if (byColumn.Count > 0)
-                    return byColumn;
-            }
+            // INCOMES.ProductionID endi EDMX'da (MES-P12) — xom SQL va COL_LENGTH tekshiruvi kerak emas (SRM-M03)
+            var byColumn = db.INCOMES
+                .Where(i => i.ProductionID == productionId && i.IsDeleted != true)
+                .Select(i => i.ID)
+                .ToList();
+            if (byColumn.Count > 0)
+                return byColumn;
 
             var marker = ProductionIncomeMarker + productionId;
             return db.INCOMES
@@ -185,18 +94,12 @@ namespace tahsinERP.Services
                 .ToList();
         }
 
-        /// <summary>Ushbu ishlab chiqarish uchun avtomatik kirim yaratilganmi.</summary>
-        public static bool HasProductionIncome(DBTHSNEntities db, int productionId)
-        {
-            return FindProductionIncomeIds(db, productionId).Count > 0;
-        }
-
         /// <summary>
-        /// Ishlab chiqarish tahrirlanganda eski kirim/DLOC lotini to'liq bekor qiladi:
-        /// LOT_LOCATIONS qatorlarini o'chiradi, lotni va kirim hujjatini "deleted" deb belgilaydi
-        /// va PRODUCT_STOCKS dan faqat hali ishlatilmagan (QtyConsumed == 0) qismini ayiradi.
-        /// Shu yo'l bilan DLOC ledger va PRODUCT_STOCKS doim mos keladi (aggregate'ni to'g'ridan-to'g'ri
-        /// tuzatib, DLOC'ni eskirgan holatda qoldirish o'rniga).
+        /// Ishlab chiqarish tahrirlanganda/o'chirilganda eski avtomatik kirimni to'liq bekor qiladi:
+        /// <see cref="StockLedger.ReverseIncomeReceipt"/> (lot joylari o'chiriladi, lot bekor qilinadi, qoldiq ayiriladi;
+        /// lotdan chiqim qilingan bo'lsa — xato) va kirim hujjati "deleted" deb belgilanadi.
+        /// SRM-M03: avval LOT_LOCATIONS/INCOME_LOTS EF orqali o'zgartirilardi, xuddi shu kontekstda xom SQL ledger
+        /// bilan aralashib, kuzatilayotgan entity'lar eskirardi.
         /// </summary>
         public static void ReverseProductionIncome(DBTHSNEntities db, int productionId, int productId,
             int warehouseId, string userEmail)
@@ -209,75 +112,30 @@ namespace tahsinERP.Services
             if (!incomeIds.Any())
                 return;
 
-            var lots = db.INCOME_LOTS
-                .Where(l => incomeIds.Contains(l.IncomeID) && l.ProductID == productId
-                    && l.WarehouseID == warehouseId && !l.IsDeleted)
-                .ToList();
-
-            foreach (var lot in lots)
-            {
-                if (lot.QtyConsumed > 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Lot {lot.LotNo} qisman ishlatilgan ({lot.QtyConsumed} dona chiqarilgan), shu sabab " +
-                        "bu ishlab chiqarish yozuvini tahrirlash mumkin emas.");
-                }
-
-                var locations = db.LOT_LOCATIONS.Where(ll => ll.LotID == lot.ID).ToList();
-                var totalAvailable = locations.Sum(ll => ll.QtyAvailable);
-
-                foreach (var loc in locations)
-                {
-                    db.LOT_LOCATIONS.Remove(loc);
-                }
-
-                lot.QtyConsumed = lot.QtyReceived;
-                lot.IsDeleted = true;
-
-                if (totalAvailable > 0)
-                {
-                    AdjustProductStock(db, warehouseId, productId, -(double)totalAvailable);
-                }
-            }
-
             foreach (var incomeId in incomeIds)
             {
                 var income = db.INCOMES.Find(incomeId);
-                if (income != null)
+                if (income == null)
+                    continue;
+
+                try
                 {
-                    income.IsDeleted = true;
+                    if (income.RecieveStatus == true)
+                        StockLedger.ReverseIncomeReceipt(db, income.ID, income.ReceivingWHID);
                 }
+                catch (WarehouseDlocException ex) when (ex.ErrorCode == "LOT_CONSUMED")
+                {
+                    throw new InvalidOperationException(
+                        ex.Message + " Shu sabab bu ishlab chiqarish yozuvini tahrirlash mumkin emas.", ex);
+                }
+
+                income.IsDeleted = true;
             }
 
             db.SaveChanges();
 
             LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "ReverseProductionIncome",
                 $"ProductionID {productionId} uchun eski kirim/DLOC lot(lar) bekor qilindi.");
-        }
-
-        public static bool IsProductionWarehouse(Warehouse warehouse)
-        {
-            return IsWarehouseNameMatch(warehouse, PRODUCTION_WH_KEYWORDS);
-        }
-
-        public static bool IsSalesWarehouse(Warehouse warehouse)
-        {
-            return IsWarehouseNameMatch(warehouse, SALES_WH_KEYWORDS);
-        }
-
-        public static bool IsSupplyWarehouse(Warehouse warehouse)
-        {
-            return IsWarehouseNameMatch(warehouse, SUPPLY_WH_KEYWORDS);
-        }
-
-        private static bool IsWarehouseNameMatch(Warehouse warehouse, string keywordsCsv)
-        {
-            if (warehouse == null)
-            {
-                return false;
-            }
-
-            return NameMatchesKeywords(warehouse.WHName, SplitKeywords(keywordsCsv));
         }
 
         /// <summary>
@@ -312,13 +170,7 @@ namespace tahsinERP.Services
         /// </summary>
         public static bool CanCreateManualIncome(DBTHSNEntities db, int receivingWhId)
         {
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == receivingWhId && w.IsDeleted != true);
-            if (warehouse == null)
-            {
-                return false;
-            }
-
-            return IsSupplyWarehouse(warehouse);
+            return WarehouseRoles.GetType(db, receivingWhId) == WarehouseRoles.Supply;
         }
 
         /// <summary>
@@ -326,13 +178,12 @@ namespace tahsinERP.Services
         /// </summary>
         public static string ValidateManualIncomeCreate(DBTHSNEntities db, int receivingWhId, int? invoiceId)
         {
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == receivingWhId && w.IsDeleted != true);
-            if (warehouse == null)
+            if (!WarehouseRoles.Exists(db, receivingWhId))
             {
                 return "Ombor topilmadi.";
             }
 
-            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, receivingWhId)))
             {
                 return "Ishlab chiqarish va Savdo omborlariga qo'lda kirim yaratish mumkin emas. Faqat chiqim hujjatidan avtomatik yaratilgan kirimni qabul qiling.";
             }
@@ -350,13 +201,12 @@ namespace tahsinERP.Services
                 return "Kirim hujjati topilmadi.";
             }
 
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == income.ReceivingWHID && w.IsDeleted != true);
-            if (warehouse == null)
+            if (!WarehouseRoles.Exists(db, income.ReceivingWHID))
             {
                 return "Ombor topilmadi.";
             }
 
-            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
             {
                 if (!IsAutoLinkedTransferIncome(income))
                 {
@@ -377,13 +227,12 @@ namespace tahsinERP.Services
                 return "Kirim hujjati topilmadi.";
             }
 
-            var warehouse = db.WAREHOUSES.FirstOrDefault(w => w.ID == income.ReceivingWHID && w.IsDeleted != true);
-            if (warehouse == null)
+            if (!WarehouseRoles.Exists(db, income.ReceivingWHID))
             {
                 return "Ombor topilmadi.";
             }
 
-            if (IsProductionWarehouse(warehouse) || IsSalesWarehouse(warehouse))
+            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
             {
                 return "Ishlab chiqarish va Savdo omborlaridagi kirimlarni qo'lda tahrirlash mumkin emas.";
             }
@@ -431,6 +280,7 @@ namespace tahsinERP.Services
                         CurrencyID = GetDefaultCurrencyId(db),
                         IsDeleted = false,
                         RecieveStatus = true,
+                        ProductionID = productionID.HasValue && productionID.Value > 0 ? productionID : null, // MES-P12 FK
                         Description = productionID.HasValue && productionID.Value > 0
                             ? $"Ishlab chiqarishdan kirim: {product.PNo} - {product.Name}. ProductionID:{productionID.Value}"
                             : $"Ishlab chiqarishdan kirim: {product.PNo} - {product.Name}"
@@ -447,14 +297,6 @@ namespace tahsinERP.Services
                     db.INCOMES.Add(income);
                     db.INCOME_PRODUCTS.Add(incomeProduct);
                     db.SaveChanges();
-
-                    // MES-P12: ishlab chiqarishga FK bog'lanish (izohdagi marker ham saqlanadi). EDMX'da property
-                    // qo'shilgunga qadar xom SQL bilan; ustun yo'q bo'lsa (migratsiyadan oldin) — o'tkazib yuboriladi.
-                    if (productionID.HasValue && productionID.Value > 0 && IncomesHaveProductionIdColumn(db))
-                    {
-                        db.Database.ExecuteSqlCommand(
-                            "UPDATE dbo.INCOMES SET ProductionID = @p0 WHERE ID = @p1", productionID.Value, income.ID);
-                    }
 
                     var locations = DlocFifoDataAccess.GetLocations(db, productionWH.ID, activeOnly: true);
                     StockLedger.ReceiveLine(db, productionWH.ID, income.ID, incomeProduct.ID, productID,
@@ -544,15 +386,6 @@ namespace tahsinERP.Services
                     int currencyId = GetDefaultCurrencyId(db);
                     var pnoList = string.Join(", ", activeLines.Select(l => products[l.ProductID].PNo).Distinct());
 
-                    // Narx: oxirgi sotuv shartnomasidan (mahsulotlar bo'yicha bitta so'rov)
-                    var prices = db.S_CONTRACT_PRODUCTS
-                        .Where(cp => productIds.Contains(cp.ProductID)
-                            && (cp.S_CONTRACTS.IsDeleted == false || cp.S_CONTRACTS.IsDeleted == null))
-                        .Select(cp => new { cp.ProductID, cp.PiecePrice, cp.S_CONTRACTS.IssuedDate })
-                        .ToList()
-                        .GroupBy(x => x.ProductID)
-                        .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.IssuedDate).First().PiecePrice);
-
                     expense = new EXPENS
                     {
                         DocNo = transferDocNo,
@@ -570,15 +403,12 @@ namespace tahsinERP.Services
                     foreach (var line in activeLines)
                     {
                         var product = products[line.ProductID];
-                        double piecePrice;
-                        prices.TryGetValue(line.ProductID, out piecePrice);
                         var ep = new EXPENSE_PRODUCTS
                         {
                             EXPENS = expense,
                             ProductID = line.ProductID,
                             Amount = line.Quantity,
-                            PiecePrice = piecePrice,
-                            TotalPrice = line.Quantity * piecePrice,
+                            PiecePrice = 0, // chiqimdan keyin FIFO tannarxi bilan to'ldiriladi
                             UnitID = product.UnitID > 0 ? product.UnitID : 1,
                             Comment = ProductionLotService.BuildLotAllocationsComment(line.LotAllocations)
                         };
@@ -586,15 +416,20 @@ namespace tahsinERP.Services
                         expenseLines.Add(ep);
                     }
                     expense.Amount = expenseLines.Sum(x => x.Amount);
-                    expense.TotalPrice = expenseLines.Sum(x => x.TotalPrice);
 
                     if (transferDocument != null)
                         db.WRHS_EXPENSE_DOCS.Add(new WRHS_EXPENSE_DOCS { EXPENS = expense, Doc = transferDocument });
 
                     db.SaveChanges();
 
+                    // SRM-B19: o'tkazma tannarxda (FIFO, QQSsiz) — avval sotuv shartnomasi narxi (sotish narxi) olinardi
                     foreach (var ep in expenseLines)
+                    {
                         StockLedger.IssueLine(db, productionWH.ID, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
+                        ep.PiecePrice = StockCostService.IssuedLineUnitCost(db, productionWH.ID, ep.ProductID,
+                            ep.Amount, ep.UnitID, ep.ID);
+                    }
+                    expense.TotalPrice = expenseLines.Sum(x => x.Amount * x.PiecePrice);
 
                     // Sotuv omboriga kutilayotgan kirim (MRP "Qabul qilish" bilan tasdiqlaydi)
                     var income = new INCOME
@@ -619,7 +454,6 @@ namespace tahsinERP.Services
                             ProductID = ep.ProductID,
                             Amount = ep.Amount,
                             PiecePrice = ep.PiecePrice,
-                            TotalPrice = ep.TotalPrice,
                             UnitID = ep.UnitID
                         });
                     }
@@ -642,31 +476,6 @@ namespace tahsinERP.Services
             }
 
             return expense;
-        }
-
-        /// <summary>
-        /// PRODUCT_STOCKS qoldig'ini atomik o'zgartiradi. Manfiy natija — <see cref="InsufficientStockException"/>.
-        /// Yangi kod uchun <see cref="StockLedger.Adjust"/> ni to'g'ridan-to'g'ri chaqiring.
-        /// </summary>
-        public static void AdjustProductStock(DBTHSNEntities db, int warehouseId, int productId, double delta, int unitId = 1)
-        {
-            StockLedger.Adjust(db, warehouseId, productId, delta, unitId);
-        }
-
-        /// <summary>Kirim / ishlab chiqarish qabul — umumiy qoldiq oshadi (<see cref="StockLedger.Increase"/>).</summary>
-        public static void ApplyIncomeReceiveToStock(DBTHSNEntities db, int warehouseId, int productId, double amount, int unitId)
-        {
-            if (amount <= 0)
-                return;
-            StockLedger.Increase(db, warehouseId, productId, amount, unitId);
-        }
-
-        /// <summary>Chiqim — umumiy qoldiq kamayadi, yetmasa xato (<see cref="StockLedger.Decrease"/>).</summary>
-        public static void ApplyIncomeIssueFromStock(DBTHSNEntities db, int warehouseId, int productId, double amount, int unitId)
-        {
-            if (amount <= 0)
-                return;
-            StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
         }
 
         /// <summary>
@@ -856,18 +665,6 @@ namespace tahsinERP.Services
                     $"Xatolik: {ex.Message}, InvoiceID: {invoiceID}");
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Get current stock in Sales Warehouse for a product
-        /// </summary>
-        public static double GetSalesStock(int productID, DBTHSNEntities db)
-        {
-            var salesWH = GetSalesWarehouse(db);
-            if (salesWH == null)
-                return 0;
-
-            return InventoryValuationService.GetQty(db, salesWH.ID, productID);
         }
 
         /// <summary>

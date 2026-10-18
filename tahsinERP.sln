@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.LicenseGen", "tah
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.Licensing", "tahsinERP.Licensing\tahsinERP.Licensing.csproj", "{FAEAB174-561D-4005-8486-F59CF3E49999}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.ControlPanel", "tahsinERP.ControlPanel\tahsinERP.ControlPanel.csproj", "{1A2891B6-50D1-4158-B8E9-9F40F948DA50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.ControlPanel.Tests", "tahsinERP.ControlPanel.Tests\tahsinERP.ControlPanel.Tests.csproj", "{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +59,30 @@ Global
 		{FAEAB174-561D-4005-8486-F59CF3E49999}.Release|x64.Build.0 = Release|Any CPU
 		{FAEAB174-561D-4005-8486-F59CF3E49999}.Release|x86.ActiveCfg = Release|Any CPU
 		{FAEAB174-561D-4005-8486-F59CF3E49999}.Release|x86.Build.0 = Release|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Debug|x64.Build.0 = Debug|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Debug|x86.Build.0 = Debug|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Release|x64.ActiveCfg = Release|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Release|x64.Build.0 = Release|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Release|x86.ActiveCfg = Release|Any CPU
+		{1A2891B6-50D1-4158-B8E9-9F40F948DA50}.Release|x86.Build.0 = Release|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Debug|x64.Build.0 = Debug|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Debug|x86.Build.0 = Debug|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Release|x64.ActiveCfg = Release|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Release|x64.Build.0 = Release|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Release|x86.ActiveCfg = Release|Any CPU
+		{D29CCEB8-4802-43A3-9C32-CBF879D3BB28}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,6 +6,7 @@ using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Services.Common;
+using tahsinERP.Services.Stock;
 
 namespace tahsinERP.Services.Finance
 {
@@ -35,7 +36,7 @@ namespace tahsinERP.Services.Finance
             {
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
-                    Note = "Ishlab chiqarish ombori topilmadi (nomda «Ishlab chiqarish» yoki «Production» bo'lishi kerak)."
+                    Note = "Ishlab chiqarish ombori topilmadi (Sozlamalar → Omborlar: ombor turi «Ishlab chiqarish» bo'lishi kerak)."
                 });
                 return rows;
             }
@@ -102,7 +103,7 @@ namespace tahsinERP.Services.Finance
             {
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
-                    Note = "Xomashyo ombori topilmadi (nomda «Xomashyo» bo'lishi kerak)."
+                    Note = "Xomashyo ombori topilmadi (Sozlamalar → Omborlar: ombor turi «Xomashyo (ta'minot)» bo'lishi kerak)."
                 });
                 return rows;
             }
@@ -186,28 +187,26 @@ namespace tahsinERP.Services.Finance
             return rows;
         }
 
+        /// <summary>Ishlab chiqarish ombori — WAREHOUSES.WarehouseType = PRODUCTION (avval nomida "Ishlab chiqarish" qidirilardi).</summary>
         public static Warehouse ResolveProductionWarehouse(DBTHSNEntities db)
         {
-            // IndexOf(StringComparison) SQL ga tarjima qilinmaydi — avval ro'yxatni yuklab, keyin filtrlash.
-            return ActiveWarehouses(db).FirstOrDefault(w =>
-                w.WHName != null &&
-                (w.WHName.IndexOf("ishlab chiqarish", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                 w.WHName.IndexOf("production", StringComparison.OrdinalIgnoreCase) >= 0));
+            return ActiveWarehouseOfType(db, WarehouseRoles.Production);
         }
 
+        /// <summary>Xomashyo ombori — WAREHOUSES.WarehouseType = SUPPLY (avval nomida "Xomashyo" qidirilardi).</summary>
         public static Warehouse ResolveRawMaterialWarehouse(DBTHSNEntities db)
         {
-            return ActiveWarehouses(db).FirstOrDefault(w =>
-                w.WHName != null &&
-                w.WHName.IndexOf("xomashyo", StringComparison.OrdinalIgnoreCase) >= 0);
+            return ActiveWarehouseOfType(db, WarehouseRoles.Supply);
         }
 
-        private static List<Warehouse> ActiveWarehouses(DBTHSNEntities db)
+        private static Warehouse ActiveWarehouseOfType(DBTHSNEntities db, string warehouseType)
         {
+            // WarehouseRoles keshi jarayon darajasida (tenant kalitisiz) — balans uchun to'g'ridan-to'g'ri so'rov
             return db.WAREHOUSES
                 .AsNoTracking()
-                .Where(w => w.IsDeleted == null || w.IsDeleted == false)
-                .ToList();
+                .Where(w => (w.IsDeleted == null || w.IsDeleted == false) && w.WarehouseType == warehouseType)
+                .OrderBy(w => w.ID)
+                .FirstOrDefault();
         }
 
         private sealed class StockLine

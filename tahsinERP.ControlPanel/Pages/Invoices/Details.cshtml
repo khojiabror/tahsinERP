@@ -1,0 +1,86 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Invoices.DetailsModel
+@{ var inv = Model.Invoice; ViewData["Title"] = inv.Number ?? "Qoralama"; }
+<h1>@(inv.Number ?? $"Qoralama #{inv.Id}") <span class="badge @Labels.Badge(inv.Status)">@Labels.Of(inv.Status)</span></h1>
+<div asp-validation-summary="All"></div>
+<div class="actions">
+    <a class="btn secondary" href="/Invoices/Details/@inv.Id?handler=Pdf">PDF</a>
+    @if (Model.CanSell && inv.Status == InvoiceStatus.Draft)
+    {
+        <a class="btn secondary" href="/Invoices/Edit/@inv.Id">Tahrirlash</a>
+        <form method="post" asp-page-handler="Issue" class="inline"><button type="submit">Chiqarish (raqam berish)</button></form>
+    }
+    <a href="/Tenants/Details/@inv.TenantId">← @inv.Tenant!.LegalName</a>
+</div>
+<div class="card">
+    <dl class="props">
+        <dt>Sana / muddat</dt><dd>@inv.IssueDate.ToString("dd.MM.yyyy") / @inv.DueDate.ToString("dd.MM.yyyy")</dd>
+        <dt>Obuna</dt><dd>@(inv.Subscription is null ? "—" : $"#{inv.Subscription.Id} {inv.Subscription.Plan?.Name}, {inv.PeriodCount} × {Labels.Of(inv.Subscription.Period).ToLower()}")
+            @if (inv.SubscriptionAppliedUtc != null) { <span class="badge ok">uzaytirilgan</span> }</dd>
+        <dt>Jami (QQS bilan)</dt><dd><strong>@Money.FormatSom(inv.TotalTiyin)</strong>, shundan QQS @Money.FormatSom(inv.VatTiyin)</dd>
+        <dt>To'langan / qoldiq</dt><dd>@Money.FormatSom(inv.PaidTiyin) / <strong>@Money.FormatSom(inv.RemainingTiyin)</strong></dd>
+        @if (!string.IsNullOrEmpty(inv.Note)) { <dt>Izoh</dt><dd>@inv.Note</dd> }
+    </dl>
+</div>
+<table>
+    <tr><th>№</th><th>Xizmat</th><th class="num">Miqdor</th><th class="num">Narx</th><th class="num">Summa</th><th class="num">QQS %</th><th class="num">QQS</th></tr>
+    @foreach (var l in inv.Lines.OrderBy(l => l.LineNo))
+    {
+        <tr><td>@l.LineNo</td><td>@l.Description</td><td class="num">@l.Quantity.ToString("0.###")</td><td class="num">@Money.Format(l.UnitPriceTiyin)</td>
+            <td class="num">@Money.Format(l.AmountTiyin)</td><td class="num">@l.VatRatePercent.ToString("0.##")</td><td class="num">@Money.Format(l.VatTiyin)</td></tr>
+    }
+</table>
+
+<h2>To'lovlar</h2>
+<table>
+    <tr><th>Sana</th><th>Usul</th><th class="num">Summa</th><th>Hujjat №</th><th>Izoh</th><th>Kim belgiladi</th><th>Storno</th></tr>
+    @foreach (var p in inv.Payments.OrderBy(p => p.Id))
+    {
+        <tr class="@(p.IsReversed ? "reversed" : "")">
+            <td>@p.PaidAt.ToString("dd.MM.yyyy")</td><td>@Labels.Of(p.Method)</td><td class="num">@Money.Format(p.AmountTiyin)</td>
+            <td>@p.Reference</td><td>@p.Note</td>
+            <td>@Model.StaffNames.GetValueOrDefault(p.RecordedByStaffId) <span class="hint">@p.RecordedAtUtc.ToString("dd.MM.yyyy HH:mm") UTC</span></td>
+            <td>
+                @if (p.IsReversed)
+                {
+                    <span>@Model.StaffNames.GetValueOrDefault(p.ReversedByStaffId ?? 0): @p.ReverseReason</span>
+                }
+                else if (Model.IsOwner)
+                {
+                    <form method="post" asp-page-handler="Reverse" class="toolbar">
+                        <input type="hidden" name="PaymentId" value="@p.Id" />
+                        <input type="text" name="Reason" placeholder="sabab (majburiy)" />
+                        <button type="submit" class="danger">Storno</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+</table>
+@if (inv.Payments.Count == 0) { <div class="empty">To'lov yo'q.</div> }
+
+@if (Model.CanSell && inv.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid)
+{
+    <h2>To'lov qabul qilindi</h2>
+    <form method="post" asp-page-handler="Pay" class="stack card">
+        <div class="row">
+            <div><label asp-for="Amount">Summa, so'm</label><input asp-for="Amount" type="text" /><span asp-validation-for="Amount"></span></div>
+            <div><label asp-for="PaidAt">To'lov sanasi</label><input asp-for="PaidAt" type="date" /></div>
+        </div>
+        <div class="row">
+            <div><label asp-for="Method">Usul</label>
+                <select asp-for="Method">@foreach (var m in Enum.GetValues<PaymentMethod>()) { <option value="@m">@Labels.Of(m)</option> }</select></div>
+            <div><label asp-for="Reference">To'lov topshirig'i / kvitansiya №</label><input asp-for="Reference" type="text" /></div>
+        </div>
+        <div><label asp-for="PaymentNote">Izoh</label><input asp-for="PaymentNote" type="text" /></div>
+        <div class="hint">Qisman to'lov mumkin. To'liq yopilsa: obuna uzaytiriladi va yangi litsenziya kaliti avtomatik chiqadi. Belgilangan to'lov o'chirilmaydi — faqat storno (Owner).</div>
+        <div><button type="submit">To'lovni belgilash</button></div>
+    </form>
+}
+@if (Model.CanSell && inv.Status is InvoiceStatus.Draft or InvoiceStatus.Issued && inv.PaidTiyin == 0)
+{
+    <form method="post" asp-page-handler="Cancel" class="toolbar card">
+        <div><label for="Reason">Bekor qilish sababi</label><input id="Reason" name="Reason" type="text" /></div>
+        <button type="submit" class="danger">Hisob-fakturani bekor qilish</button>
+    </form>
+}

@@ -85,6 +85,9 @@ Bog'liq tartib:
 - CRM: `CURRENCY_RATES` jadvali, CRM indekslari; 22 ta sotuv invoysi finance'ga post qilindi —
   tafsilot `Database_Migrations/CRM_2026_10_APPLIED.md`.
 - Tannarx: `TANNARX_FIN_CATEGORY_MAP` yaratildi, `SP_TANNARX_UPDATE_ACTUAL_COSTS` o'chirildi (kod chaqirmaydi).
+- SRM Xarid (2026-10-18, zaxira `DBTHSN-IPACK_pre_SRM_Procurement_20261018.bak`): `Proposal_SRM_Procurement_Indexes.sql` —
+  18 ta FK/filtr indeksi yaratildi (`sqlcmd -I` yoki skriptdagi `SET QUOTED_IDENTIFIER ON` shart). Raqam ustunlarida
+  global UNIQUE indekslar oldindan bor edi. `DataFix_SRM_Procurement_01/02_*_Find` — bo'sh natija, Fix kerak emas.
 - Qolgan skriptlarni ishga tushirishdan oldin har birining "allaqachon qo'llanganmi" tekshiruvini ko'ring.
 
 ## Core takliflari

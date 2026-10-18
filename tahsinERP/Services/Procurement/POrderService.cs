@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -347,7 +346,7 @@ namespace tahsinERP.Services.Procurement
             return true;
         }
 
-        /// <summary>Soft delete: OrderNo arxivlanadi va bog'liq havolalar tozalanadi. O'chirilgan buyurtma yoki null.</summary>
+        /// <summary>Soft delete va bog'liq havolalarni tozalash. O'chirilgan buyurtma yoki null.</summary>
         public async Task<P_ORDERS> SoftDeleteAsync(int id)
         {
             var order = await _db.P_ORDERS.FindAsync(id);
@@ -356,10 +355,10 @@ namespace tahsinERP.Services.Procurement
                 return null;
             }
 
+            // Raqam o'zgartirilmaydi: generator o'chirilganlarni ham hisobga oladi, shuning uchun raqam qayta
+            // berilmaydi (SRM-B14). Avval "_d{ID}" qo'shilardi — raqamli qism yo'qolib, keyingi buyurtma aynan shu
+            // raqamni olardi. Foydalanuvchi shu raqamni qo'lda kiritsa, ReleaseOrderNoFromSoftDeletedRowsAsync uni bo'shatadi.
             order.IsDeleted = true;
-            // O'chirilgan buyurtmaning OrderNo siga _d suffix qo'shamiz — xuddi shu OrderNo bilan
-            // darhol yangi buyurtma kiritilganda UNIQUE constraint xatosi chiqmasligi uchun.
-            order.OrderNo = BuildDeletedOrderNo(order.OrderNo, order.ID);
             await SoftDeleteReferenceService.AfterPOrderSoftDeletedAsync(_db, id);
             await _db.SaveChangesAsync();
             return order;
@@ -371,45 +370,11 @@ namespace tahsinERP.Services.Procurement
         private const string ArchivedOrderNoSuffixDeleted = "_deleted";
         private const string ArchivedOrderNoSuffixDl = "_dl";
 
-        /// <summary>PO-{yil}-{oy}-NNNN — qulf bilan; "_d{ID}" bilan arxivlangan o'chirilgan raqamlar qayta ishlatilishi mumkin.</summary>
+        /// <summary>PO-{yil}-{oy}-NNNN — qulf bilan; o'chirilgan buyurtmalar raqami ham hisobga olinadi (qayta berilmaydi).</summary>
         private Task<string> GenerateOrderNoAsync()
         {
             var now = DateTime.Now;
             return DocumentNumberService.NextAsync(_db, "P_ORDERS", "OrderNo", $"PO-{now.Year}-{now.Month:D2}-", 4);
-        }
-
-        /// <summary>
-        /// O'chirish vaqtida OrderNo ni arxivlaydi: "_d{ID}" suffiksi (ID unikal — takror to'qnashuv bo'lmaydi).
-        /// Shu sababli o'chirilgan buyurtma OrderNo si darhol bo'shaydi va yangi yozuvga to'sqinlik qilmaydi.
-        /// </summary>
-        private static string BuildDeletedOrderNo(string orderNo, int id)
-        {
-            var suffix = "_d" + id.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            if (string.IsNullOrWhiteSpace(orderNo))
-            {
-                return suffix;
-            }
-
-            var trimmed = orderNo.Trim();
-            // Allaqachon arxivlangan bo'lsa (har qanday _d<raqam>), qayta suffix qo'shilmaydi.
-            if (Regex.IsMatch(trimmed, @"_d\d+$", RegexOptions.IgnoreCase))
-            {
-                return trimmed;
-            }
-
-            var combined = trimmed + suffix;
-            if (combined.Length <= POrderNoMaxLength)
-            {
-                return combined;
-            }
-
-            var keepBase = POrderNoMaxLength - suffix.Length;
-            if (keepBase < 0)
-            {
-                keepBase = 0;
-            }
-
-            return trimmed.Substring(0, keepBase) + suffix;
         }
 
         private static string BuildArchivedOrderNo(string orderNo)

@@ -381,3 +381,9 @@ db.connection
 _program files_git/
 **/_program files_git/
 TestResults/
+
+# ControlPanel: lokal sirlar va imzolash kaliti (hech qachon git'ga kirmasin)
+panel-signing-*.json
+*.signing.json
+tahsinERP.ControlPanel/appsettings.Local.json
+tahsinERP.ControlPanel/appsettings.Production.json

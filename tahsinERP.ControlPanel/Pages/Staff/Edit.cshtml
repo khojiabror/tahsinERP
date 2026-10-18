@@ -1,0 +1,20 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Staff.EditModel
+@{ ViewData["Title"] = "Xodim: " + Model.Staff.Email; }
+<h1>Xodim: @Model.Staff.Email</h1>
+<div asp-validation-summary="All"></div>
+<form method="post" class="stack card">
+    <div><label asp-for="Role">Rol</label>
+        <select asp-for="Role">@foreach (var r in Enum.GetValues<StaffRole>()) { <option value="@r">@Labels.Of(r)</option> }</select></div>
+    <label class="check"><input asp-for="IsActive" /> Faol</label>
+    <div><button type="submit">Saqlash</button></div>
+</form>
+<form method="post" asp-page-handler="Password" class="stack card">
+    <div><label asp-for="NewPassword">Yangi vaqtinchalik parol</label><input asp-for="NewPassword" autocomplete="new-password" /></div>
+    <div><button type="submit" class="secondary">Parolni almashtirish va blokni olish</button></div>
+</form>
+<form method="post" asp-page-handler="ResetTotp" class="card">
+    <p>2FA: @(Model.Staff.TotpSecretProtected is null ? "ulanmagan" : "ulangan"). Telefon yo'qolganda tiklang — xodim keyingi kirishda qayta ulaydi.</p>
+    <button type="submit" class="danger">2FA'ni tiklash</button>
+</form>
+<p><a href="/Staff">← Xodimlar</a></p>

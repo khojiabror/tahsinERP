@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 
 namespace tahsinERP.Services.Finance
 {
@@ -451,7 +452,8 @@ namespace tahsinERP.Services.Finance
         private CustomerData LoadCustomerData(DateTime maxAsOf, DateTime? minFromExclusive)
         {
             var db = _db;
-            var invoiceQuery = db.SALES_INVOICES.AsNoTracking().Where(i => i.InvoiceDate <= maxAsOf);
+            // Bekor qilingan invoyslar qarzga kirmaydi (CRM bilan bir xil filtr)
+            var invoiceQuery = db.SALES_INVOICES.AsNoTracking().Active().Where(i => i.InvoiceDate <= maxAsOf);
             if (minFromExclusive.HasValue)
             {
                 var f = minFromExclusive.Value;
@@ -496,7 +498,7 @@ namespace tahsinERP.Services.Finance
                 .ToList();
             data.LinkedInvoices = linkedIds.Count == 0
                 ? new Dictionary<long, SalesInvoiceRow>()
-                : db.SALES_INVOICES.AsNoTracking().Where(i => linkedIds.Contains(i.ID))
+                : db.SALES_INVOICES.AsNoTracking().Active().Where(i => linkedIds.Contains(i.ID))
                     .Select(i => new SalesInvoiceRow { ID = i.ID, CustomerID = i.CustomerID, ContractID = i.ContractID })
                     .ToList()
                     .ToDictionary(x => x.ID);

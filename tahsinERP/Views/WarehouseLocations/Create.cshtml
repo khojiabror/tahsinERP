@@ -6,8 +6,8 @@
     var returnWarehouseId = Model.WarehouseID > 0 ? (int?)Model.WarehouseID : null;
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Warehouse", "Index"))
-{
+@* Ruxsat controller action'ida tekshiriladi (SRM-M05). *@
+@{
     using (Html.BeginForm("Create", "WarehouseLocations", FormMethod.Post))
     {
         @Html.AntiForgeryToken()
@@ -135,8 +135,4 @@
             $('.select2').select2({ placeholder: "Tanlang", allowClear: true });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

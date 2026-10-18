@@ -28,6 +28,7 @@ namespace tahsinERP.Models
         public Nullable<double> TotalPrice { get; set; }
         public string Comment { get; set; }
         public int UnitID { get; set; }
+        public Nullable<double> VATRate { get; set; }
     
         public virtual INCOME INCOME { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }
