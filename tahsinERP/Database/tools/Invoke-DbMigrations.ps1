@@ -43,6 +43,8 @@ param(
     [string]$LogFile,
     [int]$CommandTimeout = 0
 )
+# Parol buyruq satrida ko'rinmasligi uchun env orqali ham beriladi (provisioning agenti shunday chaqiradi).
+if ($SqlUser -and -not $SqlPassword -and $env:TAHSINERP_SQL_PASSWORD) { $SqlPassword = $env:TAHSINERP_SQL_PASSWORD }
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'

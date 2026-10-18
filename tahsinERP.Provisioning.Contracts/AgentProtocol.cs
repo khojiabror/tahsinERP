@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace tahsinERP.Provisioning.Contracts;
 
 // Panel ↔ provisioning agenti kontrakti (Docs/ControlPanel/05_PROVISIONING.md, 3-bo'lim).
-// Bu fayl agent loyihasiga ham ulangan (<Compile Include ... Link>) — ikki tomon bitta ta'rifdan foydalanadi.
+// Panel ham, agent ham shu kutubxonaga bog'langan — ikki tomon bitta ta'rifdan foydalanadi.
 
 /// <summary>HMAC-SHA256 imzo: agent har so'rovni server siri bilan imzolaydi; panel SQL'ga ulanmaydi, agent panelga.</summary>
 public static class AgentProtocol
