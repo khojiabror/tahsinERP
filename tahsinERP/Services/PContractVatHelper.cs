@@ -17,24 +17,9 @@ namespace tahsinERP.Services
             return VatMath.PercentFromLine(amount, vatAmount);
         }
 
-        public static double CalculateVatAmount(double lineAmount, double vatPercent)
-        {
-            return VatMath.AmountFromPercent(lineAmount, vatPercent);
-        }
-
         public static double CalculateLineTotalWithVat(double lineAmount, double? vatAmount)
         {
             return lineAmount + (vatAmount ?? 0);
-        }
-
-        public static double CalculateContractVatRate(IEnumerable<P_CONTRACT_PRODUCTS> products)
-        {
-            if (products == null)
-            {
-                return 0;
-            }
-
-            return VatMath.RateFromLines(products.Select(p => new VatLine(p.ContractID, p.Amount, p.VATAmount)));
         }
 
         public static async Task<double> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
@@ -71,7 +56,7 @@ namespace tahsinERP.Services
                 p => VatMath.PercentFromLine(p.Amount, p.VATAmount));
         }
 
-        public static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
+        private static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
         {
             if (products == null)
             {
@@ -81,7 +66,7 @@ namespace tahsinERP.Services
             return VatMath.RateFromLines(products.Select(ToVatLine));
         }
 
-        public static Dictionary<int, double> BuildContractVatRates(IEnumerable<ContractProductVatLine> contractProducts)
+        private static Dictionary<int, double> BuildContractVatRates(IEnumerable<ContractProductVatLine> contractProducts)
         {
             return VatMath.RatesByContract(contractProducts.Select(ToVatLine));
         }
@@ -113,7 +98,7 @@ namespace tahsinERP.Services
             return new VatLine(p.ContractID, p.Amount, p.VATAmount);
         }
 
-        public class ContractProductVatLine
+        public sealed class ContractProductVatLine
         {
             public int ContractID { get; set; }
             public double Amount { get; set; }

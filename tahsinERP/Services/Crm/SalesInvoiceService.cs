@@ -194,11 +194,13 @@ namespace tahsinERP.Services.Crm
         {
             lines = NormalizeLines(lines);
 
+            DateTime? dueDate;
             using (var db = new DBTHSNEntities())
             {
                 ValidateLines(db, posted.ContractID, posted.OrderID, lines);
                 ApplyContractPrices(db, posted.ContractID, lines);
                 EnsureStockAvailable(db, lines, null);
+                dueDate = posted.DueDate ?? DefaultDueDate(db, posted.ContractID, posted.InvoiceDate);
             }
 
             var invoice = new SALES_INVOICES
@@ -211,7 +213,7 @@ namespace tahsinERP.Services.Crm
                 // CRM-M02: CurrencyID hech qachon yozilmasdi — posting "CurrencyID ?? 1" bilan yiqilardi (bazada 1-valyuta yo'q).
                 // Kesh tranzaksiyadan OLDIN o'qiladi (scope ichida yangi ulanish DTC'ga olib keladi).
                 CurrencyID = posted.CurrencyID ?? CurrencyRateService.BaseCurrencyId(),
-                DueDate = posted.DueDate,
+                DueDate = dueDate,
                 // Biznes qoidasi: invoys yaratilganda darhol APPROVED
                 StatusCode = SalesInvoiceStatus.Approved,
                 CreatedDT = DateTime.Now,
@@ -235,6 +237,7 @@ namespace tahsinERP.Services.Crm
 
                 IssueStock(db, invoice, lines, userName);
                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
+                SalesOrderService.RecalculateShipped(db, invoice.OrderID);
 
                 scope.Complete();
             }
@@ -266,6 +269,8 @@ namespace tahsinERP.Services.Crm
 
                 ValidateLines(db, posted.ContractID, posted.OrderID, lines);
                 ApplyContractPrices(db, posted.ContractID, lines);
+                if (!posted.DueDate.HasValue)
+                    posted.DueDate = DefaultDueDate(db, posted.ContractID, posted.InvoiceDate);
 
                 var oldLines = current.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList();
                 stockChanged = !SameQuantities(oldLines, lines);
@@ -305,9 +310,10 @@ namespace tahsinERP.Services.Crm
                 invoice.InvoiceDate = posted.InvoiceDate;
                 invoice.CustomerID = posted.CustomerID;
                 invoice.ContractID = posted.ContractID;
+                var previousOrderId = invoice.OrderID;
                 invoice.OrderID = posted.OrderID;
                 invoice.CurrencyID = currencyId;
-                // Tahrirlash formasida to'lov muddati maydoni yo'q — bo'sh kelsa saqlangani qoladi (avval NULL bo'lib ketardi)
+                // Bo'sh qoldirilsa shartnoma muddatidan, u ham bo'lmasa saqlangani qoladi
                 invoice.DueDate = posted.DueDate ?? invoice.DueDate;
                 invoice.UpdatedDT = DateTime.Now;
                 // Biznes qoidasi: tahrirlangan invoys ham APPROVED oqimida yuradi
@@ -329,8 +335,24 @@ namespace tahsinERP.Services.Crm
                 // Finance posting upsert
                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
 
+                // Buyurtma rejasidagi "Yetkazilgan" — buyurtma almashgan bo'lsa ikkalasi ham
+                SalesOrderService.RecalculateShipped(db, invoice.OrderID);
+                if (previousOrderId != invoice.OrderID)
+                    SalesOrderService.RecalculateShipped(db, previousOrderId);
+
                 scope.Complete();
             }
+        }
+
+        /// <summary>
+        /// To'lov muddati: InvoiceDate + shartnomadagi PaymentDays (forma maydoni bo'sh qoldirilganda).
+        /// Shartnomada muddat bo'lmasa — null (dashboard "muddati o'tgan" ro'yxatiga tushmaydi).
+        /// </summary>
+        public static DateTime? DefaultDueDate(DBTHSNEntities db, int? contractId, DateTime invoiceDate)
+        {
+            if (!contractId.HasValue) return null;
+            var days = db.S_CONTRACTS.Where(c => c.ID == contractId.Value).Select(c => c.PaymentDays).FirstOrDefault();
+            return days.HasValue ? invoiceDate.Date.AddDays(days.Value) : (DateTime?)null;
         }
 
         // ───────────────────────────── Bekor qilish ─────────────────────────────
@@ -356,6 +378,7 @@ namespace tahsinERP.Services.Crm
                 invoice.StatusCode = SalesInvoiceStatus.Canceled;
                 invoice.UpdatedDT = DateTime.Now;
                 db.SaveChanges();
+                SalesOrderService.RecalculateShipped(db, invoice.OrderID);
 
                 scope.Complete();
                 return invoice;

@@ -26,3 +26,11 @@ Ilova mantiqini chaqirish uchun vaqtinchalik konsol vosita (CrmFix: `post`, `can
 | `CRM_2026_10_M02_DropCurrencyColumns.sql` | Foydalanuvchi qarori (M02): `SALES_INVOICES.CurrencyCode` va `S_ORDERS.Currency` olib tashlandi; yagona manba `CurrencyID`. Zaxira: `SALES_INVOICES_CurrencyCode_BAK_20261018` (211), `S_ORDERS_Currency_BAK_20261018` (95). EDMX bir vaqtda yangilangan — eski EDMX'li branch bu jadvallarda yiqiladi, master'ni olishi kerak. |
 
 187 ta eski DRAFT invoys — foydalanuvchi qarori: tegilmaydi.
+
+## 2026-10-19 (yakuniy tur)
+Zaxira: `DBTHSN-IPACK_CRM_FINAL_20261019.bak` (COPY_ONLY, 52 MB).
+
+| Skript | Natija |
+|---|---|
+| `CRM_2026_10_PaymentDays.sql` | `S_CONTRACTS.PaymentDays INT NULL` + CHECK 0–3650; "po faktu"/"post" — 27 ta shartnomaga 0 kun. EDMX yangilandi. |
+| `DataFix_CRM_ScheduleQtyShipped.sql` | Reja qatorlari invoyslar bo'yicha: 25 SHIPPED, 1 PARTIAL, 7 PLANNED. |

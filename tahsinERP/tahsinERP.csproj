@@ -422,6 +422,9 @@
     <Compile Include="Models\COM_OFFICIAL_LETTERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\COM_OFFICIAL_LETTER_ITEMS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\COOKIES_CONFIRMATION.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -466,6 +469,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DOC_FILES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DOC_FILE_CONTENTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DOC_TEMPLATES.cs">
@@ -769,6 +775,7 @@
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\DocFileAccess.cs" />
     <Compile Include="Helpers\LayoutBadges.cs" />
+    <Compile Include="Helpers\ModelStateExtensions.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
@@ -921,6 +928,7 @@
     <Compile Include="Services\AuditLogQueue.cs" />
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
+    <Compile Include="Services\Common\DataTablesRequest.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
     <Compile Include="Services\Common\SystemCodes.cs" />
     <Compile Include="Services\Common\BrandingService.cs" />
@@ -2706,6 +2714,7 @@
     <Content Include="assets\js\jquery.min.js" />
     <Content Include="assets\js\jquery.repeater.min.js" />
     <Content Include="assets\js\lazy-pdfmake.js" />
+    <Content Include="assets\js\dt-defaults.js" />
     <Content Include="assets\js\scripts.js" />
     <Content Include="Content\fin-dashboard.css" />
     <Content Include="Content\404.css" />
@@ -3285,7 +3294,6 @@
     <Content Include="Views\Home\StatusView.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Create.cshtml" />
-    <Content Include="Views\CustomerBase\Delete.cshtml" />
     <Content Include="Views\CustomerBase\Details.cshtml" />
     <Content Include="Views\CustomerBase\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Index.cshtml" />
