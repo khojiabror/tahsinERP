@@ -933,6 +933,7 @@
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
+    <Compile Include="ViewModels\Warehouse\WarehouseDocViewModels.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
     <Compile Include="Services\Stock\ExpenseDocumentService.cs" />
     <Compile Include="Services\Stock\IncomeDocumentService.cs" />
@@ -3155,6 +3156,8 @@
     <Content Include="Views\Incomes\Delete.cshtml" />
     <Content Include="Views\Incomes\Details.cshtml" />
     <Content Include="Views\Incomes\Edit.cshtml" />
+    <Content Include="Views\Incomes\_DocDeleteConfirm.cshtml" />
+    <Content Include="Views\Incomes\_IncomeLinesTable.cshtml" />
     <Content Include="Views\Incomes\Index.cshtml" />
     <Content Include="Views\Inventory\Index.cshtml" />
     <Content Include="Views\Inventory\IndexDloc.cshtml" />
