@@ -1,107 +1,104 @@
-@model  tahsinERP.Models.F_TRANSPORT_TYPES
+﻿@model  tahsinERP.Models.F_TRANSPORT_TYPES
 @{
     ViewBag.Title = "Transport turi tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item ">
-                                        <a href="~/FTransportType/Index">Transport turlari</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        @Model.TransportType ma`lumotlari
-                                    </li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item ">
+                                    <a href="~/FTransportType/Index">Transport turlari</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    @Model.TransportType ma`lumotlari
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <div class="row">
-                    <div class="col-xl-12 col-md-12 col-12">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body pb-0 mx-25">
-                                    <div class="row invoice-info">
-                                        <div class="col-lg-12 col-md-12 mt-25">
-                                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                            <h4 class="text-primary">Transport turi ma'lumotlari</h4>
-                                            <br />
-                                            <hr />
-                                            <span><b>Transport turi</b>: @Html.DisplayFor(model => model.TransportType)</span>
-                                            <br />
-                                            <hr />
-                                            <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
-                                            <br />
-                                            <hr />
-                                            <span><b>Transport og`irligi (kg)</b>: @Html.DisplayFor(model => model.TransportWeight)</span>
-                                            <br />
-                                            <hr />
-                                            <span><b>Maks. Ko`tarish qobilyati (kg)</b>: @Html.DisplayFor(model => model.CapableOfLifting)</span>
-                                            <br />
-                                            <br />
-                                            <div class="row">
-                                                <div class="col-12 col-md-12">
-                                                    <div class="card mb-3">
-                                                        <div class="card-body">
-                                                            <h4 class="card-title text-primary">Tashqi</h4>
-                                                            <hr />
-                                                            <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.ExtLgth) mm</span>
-                                                            <br />
-                                                            <hr />
-                                                            <span><b>Kengligi</b>: @Html.DisplayFor(model => model.ExtWdth) mm</span>
-                                                            <br />
-                                                            <hr />
-                                                            <span><b>Balandligi</b>: @Html.DisplayFor(model => model.ExtHght) mm</span>
-                                                            <br />
-                                                            <hr />
-                                                            <span><b>Tashqi hajm</b>: @(ViewBag.ExternalCBM != null ? ((double)ViewBag.ExternalCBM).ToString("N2") + " m³" : "-")</span>
-                                                            <br />
-                                                              <hr />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-12 col-md-12">
-                                                    <div class="card mb-3">
-                                                        <div class="card-body">
-                                                            <h4 class="card-title text-primary">Ichki</h4>
-                                                            <hr />
-                                                            <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.IntLgth) mm</span>
-                                                            <br />
-                                                            <hr />
-                                                            <span><b>Kengligi</b>: @Html.DisplayFor(model => model.IntWdth) mm</span>
-                                                            <br />
-                                                            <hr />
-                                                            <span><b>Balandligi</b>: @Html.DisplayFor(model => model.IntHght) mm</span>
-                                                            <br />
-                                                            <hr />
-                                                            @* LOG-B10: hajm va palletlar mm o'lchamlardan (TransportLoadCalculator) *@
-                                                            <span><b>Ichki hajm</b>: @(ViewBag.CBMCapacity != null ? ((double)ViewBag.CBMCapacity).ToString("N2") + " m³" : "-")</span>
-                                                            <br />
-                                                            <hr />
-                                                            <span><b>Palletlar (1200×1000, bir qatlam)</b>: @(ViewBag.PalletCount ?? "-")</span>
-                                                            <br />
-                                                            <hr />
-                                                        </div>
+        </div>
+        <div class="content-body">
+            <div class="row">
+                <div class="col-xl-12 col-md-12 col-12">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body pb-0 mx-25">
+                                <div class="row invoice-info">
+                                    <div class="col-lg-12 col-md-12 mt-25">
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                        <h4 class="text-primary">Transport turi ma'lumotlari</h4>
+                                        <br />
+                                        <hr />
+                                        <span><b>Transport turi</b>: @Html.DisplayFor(model => model.TransportType)</span>
+                                        <br />
+                                        <hr />
+                                        <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
+                                        <br />
+                                        <hr />
+                                        <span><b>Transport og`irligi (kg)</b>: @Html.DisplayFor(model => model.TransportWeight)</span>
+                                        <br />
+                                        <hr />
+                                        <span><b>Maks. Ko`tarish qobilyati (kg)</b>: @Html.DisplayFor(model => model.CapableOfLifting)</span>
+                                        <br />
+                                        <br />
+                                        <div class="row">
+                                            <div class="col-12 col-md-12">
+                                                <div class="card mb-3">
+                                                    <div class="card-body">
+                                                        <h4 class="card-title text-primary">Tashqi</h4>
+                                                        <hr />
+                                                        <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.ExtLgth) mm</span>
+                                                        <br />
+                                                        <hr />
+                                                        <span><b>Kengligi</b>: @Html.DisplayFor(model => model.ExtWdth) mm</span>
+                                                        <br />
+                                                        <hr />
+                                                        <span><b>Balandligi</b>: @Html.DisplayFor(model => model.ExtHght) mm</span>
+                                                        <br />
+                                                        <hr />
+                                                        <span><b>Tashqi hajm</b>: @(ViewBag.ExternalCBM != null ? ((double)ViewBag.ExternalCBM).ToString("N2") + " m³" : "-")</span>
+                                                        <br />
+                                                          <hr />
                                                     </div>
                                                 </div>
                                             </div>
-
+                                            <div class="col-12 col-md-12">
+                                                <div class="card mb-3">
+                                                    <div class="card-body">
+                                                        <h4 class="card-title text-primary">Ichki</h4>
+                                                        <hr />
+                                                        <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.IntLgth) mm</span>
+                                                        <br />
+                                                        <hr />
+                                                        <span><b>Kengligi</b>: @Html.DisplayFor(model => model.IntWdth) mm</span>
+                                                        <br />
+                                                        <hr />
+                                                        <span><b>Balandligi</b>: @Html.DisplayFor(model => model.IntHght) mm</span>
+                                                        <br />
+                                                        <hr />
+                                                        @* LOG-B10: hajm va palletlar mm o'lchamlardan (TransportLoadCalculator) *@
+                                                        <span><b>Ichki hajm</b>: @(ViewBag.CBMCapacity != null ? ((double)ViewBag.CBMCapacity).ToString("N2") + " m³" : "-")</span>
+                                                        <br />
+                                                        <hr />
+                                                        <span><b>Palletlar (1200×1000, bir qatlam)</b>: @(ViewBag.PalletCount ?? "-")</span>
+                                                        <br />
+                                                        <hr />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -111,10 +108,5 @@
             </div>
         </div>
     </div>
-
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>
 

@@ -1,4 +1,4 @@
-@model tahsinERP.Models.F_WAYBILL_PAYMENTS
+﻿@model tahsinERP.Models.F_WAYBILL_PAYMENTS
 @using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqasi to'lovi – tafsilotlar";
@@ -13,133 +13,126 @@
         ?? Enumerable.Empty<tahsinERP.ViewModels.WaybillPaymentLinkedWaybillViewModel>();
     var linkedWaybillText = string.Join(", ", linkedWaybills.Select(x => x.WaybillNo));
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Waybill/Index">@LogisticsTerms.Waybills</a></li>
-                                    <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@LogisticsTerms.Waybill to'lovlari</a></li>
-                                    <li class="breadcrumb-item active">To'lov tafsilotlari</li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                <li class="breadcrumb-item"><a href="~/Waybill/Index">@LogisticsTerms.Waybills</a></li>
+                                <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@LogisticsTerms.Waybill to'lovlari</a></li>
+                                <li class="breadcrumb-item active">To'lov tafsilotlari</li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <section class="invoice-edit-wrapper">
-                    <div class="row">
-                        <div class="col-xl-12 col-md-12 col-12">
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h4 class="text-primary mb-0">@LogisticsTerms.Waybill to'lovi</h4>
-                                            <div>
-                                                @if (hasFin)
-                                                {
-                                                    <span class="badge badge-success mr-1">Tranzaksiyada aks etgan (Chiqim)</span>
-                                                }
-                                                @if (finTransactionID.HasValue)
-                                                {
-                                                    <a href="@Url.Action("Details", "FinTransactions", new { id = finTransactionID.Value })" class="btn btn-sm btn-outline-primary">
-                                                        <i class="bx bx-link-external"></i> FIN tranzaksiya
-                                                    </a>
-                                                }
-                                            </div>
+        </div>
+        <div class="content-body">
+            <section class="invoice-edit-wrapper">
+                <div class="row">
+                    <div class="col-xl-12 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h4 class="text-primary mb-0">@LogisticsTerms.Waybill to'lovi</h4>
+                                        <div>
+                                            @if (hasFin)
+                                            {
+                                                <span class="badge badge-success mr-1">Tranzaksiyada aks etgan (Chiqim)</span>
+                                            }
+                                            @if (finTransactionID.HasValue)
+                                            {
+                                                <a href="@Url.Action("Details", "FinTransactions", new { id = finTransactionID.Value })" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bx bx-link-external"></i> FIN tranzaksiya
+                                                </a>
+                                            }
                                         </div>
-                                        <hr />
-                                        <table class="table table-bordered table-sm">
-                                            <tr>
-                                                <th style="width:220px">@LogisticsTerms.Waybill</th>
-                                                <td>@(string.IsNullOrWhiteSpace(linkedWaybillText) ? "-" : linkedWaybillText)</td>
-                                            </tr>
-                                            <tr>
-                                                <th>@LogisticsTerms.Forwarder</th>
-                                                <td>@(Model.FORWARDER != null ? Model.FORWARDER.ForwarderName : "")</td>
-                                            </tr>
-                                            <tr>
-                                                <th>To'lov sanasi</th>
-                                                <td>@(Model.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
-                                            </tr>
-                                            <tr>
-                                                <th>To'lov miqdori</th>
-                                                <td>@Model.Payment_Amount.ToString("N2") @currencyShort</td>
-                                            </tr>
-                                            <tr>
-                                                <th>@LogisticsTerms.Waybill jami summasi</th>
-                                                <td>@(waybillAmount.HasValue ? waybillAmount.Value.ToString("N2") : "") @currencyShort</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Shu @LogisticsTerms.Waybill.ToLower()ga jami to'langan</th>
-                                                <td>@(totalPaid.HasValue ? totalPaid.Value.ToString("N2") : "") @currencyShort</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Qoldiq</th>
-                                                <td>@(outstanding.HasValue ? outstanding.Value.ToString("N2") : "") @currencyShort</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Izoh</th>
-                                                <td>@(Model.Comment ?? "")</td>
-                                            </tr>
-                                        </table>
-                                        @if (linkedWaybills.Any())
-                                        {
-                                            <h5 class="mt-2 mb-1">Bog'langan yo'l varaqalari</h5>
-                                            <div class="table-responsive">
-                                                <table class="table table-striped table-bordered table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>@LogisticsTerms.Waybill</th>
-                                                            <th>Biriktirilgan summa</th>
-                                                            <th>Jami summa</th>
-                                                            <th>Jami to'langan</th>
-                                                            <th>Qoldiq</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach (var row in linkedWaybills)
-                                                        {
-                                                            <tr>
-                                                                <td>
-                                                                    <a href="@Url.Action("Details", "Waybill", new { ID = row.WaybillID })">@row.WaybillNo</a>
-                                                                </td>
-                                                                <td>@row.Allocated.ToString("N2") @row.Currency</td>
-                                                                <td>@row.Amount.ToString("N2") @row.Currency</td>
-                                                                <td>@row.Paid.ToString("N2") @row.Currency</td>
-                                                                <td>@row.Outstanding.ToString("N2") @row.Currency</td>
-                                                            </tr>
-                                                        }
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        }
-                                        <hr />
-                                        <a href="@Url.Action("Index", "WaybillPayment")" class="btn btn-outline-secondary">Ro'yxatga qaytish</a>
-                                        @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-                                        {
-                                            <a href="@Url.Action("Edit", "WaybillPayment", new { Id = Model.ID })" class="btn btn-outline-success ml-1">Tahrirlash</a>
-                                            <a href="@Url.Action("Delete", "WaybillPayment", new { Id = Model.ID })" class="btn btn-outline-danger ml-1">O'chirish</a>
-                                        }
                                     </div>
+                                    <hr />
+                                    <table class="table table-bordered table-sm">
+                                        <tr>
+                                            <th style="width:220px">@LogisticsTerms.Waybill</th>
+                                            <td>@(string.IsNullOrWhiteSpace(linkedWaybillText) ? "-" : linkedWaybillText)</td>
+                                        </tr>
+                                        <tr>
+                                            <th>@LogisticsTerms.Forwarder</th>
+                                            <td>@(Model.FORWARDER != null ? Model.FORWARDER.ForwarderName : "")</td>
+                                        </tr>
+                                        <tr>
+                                            <th>To'lov sanasi</th>
+                                            <td>@(Model.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
+                                        </tr>
+                                        <tr>
+                                            <th>To'lov miqdori</th>
+                                            <td>@Model.Payment_Amount.ToString("N2") @currencyShort</td>
+                                        </tr>
+                                        <tr>
+                                            <th>@LogisticsTerms.Waybill jami summasi</th>
+                                            <td>@(waybillAmount.HasValue ? waybillAmount.Value.ToString("N2") : "") @currencyShort</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Shu @LogisticsTerms.Waybill.ToLower()ga jami to'langan</th>
+                                            <td>@(totalPaid.HasValue ? totalPaid.Value.ToString("N2") : "") @currencyShort</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Qoldiq</th>
+                                            <td>@(outstanding.HasValue ? outstanding.Value.ToString("N2") : "") @currencyShort</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Izoh</th>
+                                            <td>@(Model.Comment ?? "")</td>
+                                        </tr>
+                                    </table>
+                                    @if (linkedWaybills.Any())
+                                    {
+                                        <h5 class="mt-2 mb-1">Bog'langan yo'l varaqalari</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-bordered table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>@LogisticsTerms.Waybill</th>
+                                                        <th>Biriktirilgan summa</th>
+                                                        <th>Jami summa</th>
+                                                        <th>Jami to'langan</th>
+                                                        <th>Qoldiq</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var row in linkedWaybills)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a href="@Url.Action("Details", "Waybill", new { ID = row.WaybillID })">@row.WaybillNo</a>
+                                                            </td>
+                                                            <td>@row.Allocated.ToString("N2") @row.Currency</td>
+                                                            <td>@row.Amount.ToString("N2") @row.Currency</td>
+                                                            <td>@row.Paid.ToString("N2") @row.Currency</td>
+                                                            <td>@row.Outstanding.ToString("N2") @row.Currency</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    <hr />
+                                    <a href="@Url.Action("Index", "WaybillPayment")" class="btn btn-outline-secondary">Ro'yxatga qaytish</a>
+                                    @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
+                                    {
+                                        <a href="@Url.Action("Edit", "WaybillPayment", new { Id = Model.ID })" class="btn btn-outline-success ml-1">Tahrirlash</a>
+                                        <a href="@Url.Action("Delete", "WaybillPayment", new { Id = Model.ID })" class="btn btn-outline-danger ml-1">O'chirish</a>
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>
