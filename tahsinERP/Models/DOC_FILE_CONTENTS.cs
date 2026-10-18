@@ -12,14 +12,11 @@ namespace tahsinERP.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class V_FIN_PL_PLAN_VS_FACT_MONTHLY
+    public partial class DOC_FILE_CONTENTS
     {
-        public Nullable<int> Year { get; set; }
-        public Nullable<int> Month { get; set; }
-        public Nullable<System.DateTime> PeriodStartDate { get; set; }
-        public int ItemID { get; set; }
-        public string ItemName { get; set; }
-        public int SortOrder { get; set; }
-        public Nullable<decimal> AmountFact { get; set; }
+        public long ID { get; set; }
+        public byte[] FileContent { get; set; }
+    
+        public virtual DOC_FILES DOC_FILES { get; set; }
     }
 }

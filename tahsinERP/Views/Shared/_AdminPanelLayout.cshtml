@@ -160,7 +160,6 @@
 
         @Scripts.Render("~/bundles/jquery")
         <script src="~/Scripts/csrf.js"></script>
-        @RenderSection("Scripts", required: false)
 
         <!-- Vendor JS -->
         <script src="~/app-assets/vendors/js/vendors.min.js"></script>
@@ -192,51 +191,9 @@
         <script src="~/app-assets/js/scripts/components.js"></script>
         <script src="~/app-assets/js/scripts/datatables/datatable.js"></script>
         <script src="~/app-assets/js/scripts/forms/select/form-select2.js"></script>
-        <script>
-            (function () {
-                if (!(window.jQuery && jQuery.fn && jQuery.fn.dataTable && jQuery.fn.dataTable.ext && jQuery.fn.dataTable.ext.buttons)) {
-                    return;
-                }
-
-                var pdfButton = jQuery.fn.dataTable.ext.buttons.pdfHtml5;
-                if (!pdfButton) {
-                    return;
-                }
-
-                pdfButton.pageSize = 'A4';
-                pdfButton.orientation = 'portrait';
-                pdfButton.customize = function (doc, config, dtApi) {
-                    try {
-                        var visibleColumns = dtApi && dtApi.columns ? dtApi.columns(':visible').count() : 0;
-                        doc.pageOrientation = visibleColumns > 8 ? 'landscape' : 'portrait';
-                        doc.pageSize = 'A4';
-                        doc.pageMargins = [12, 12, 12, 12];
-
-                        var fontSize = visibleColumns > 10 ? 7 : 8;
-                        doc.defaultStyle = doc.defaultStyle || {};
-                        doc.styles = doc.styles || {};
-                        doc.styles.tableHeader = doc.styles.tableHeader || {};
-                        doc.defaultStyle.fontSize = fontSize;
-                        doc.styles.tableHeader.fontSize = fontSize + 1;
-
-                        var tableContent = null;
-                        for (var i = 0; i < (doc.content || []).length; i++) {
-                            if (doc.content[i] && doc.content[i].table) {
-                                tableContent = doc.content[i];
-                                break;
-                            }
-                        }
-
-                        if (tableContent && tableContent.table && tableContent.table.body && tableContent.table.body[0]) {
-                            var colCount = tableContent.table.body[0].length;
-                            tableContent.table.widths = Array(colCount).fill('*');
-                        }
-                    } catch (e) {
-                        // Keep default export behavior if custom formatting fails.
-                    }
-                };
-            })();
-        </script>
+        <script src="~/assets/js/dt-defaults.js"></script>
+        @* Sahifa skriptlari jQuery/DataTables yuklangandan keyin (CORE-P09) *@
+        @RenderSection("Scripts", required: false)
     }
     else
     {

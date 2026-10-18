@@ -64,6 +64,60 @@ namespace tahsinERP.Services.Common
             return db.Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, LockSql, "docno:" + resource);
         }
 
+        // --- O'chirilgan hujjat raqamini arxivlash (SRM-D4) ---
+        // Soft-delete qilingan qator raqamni UNIQUE indeksda band qilib turadi. Foydalanuvchi shu raqamni
+        // qo'lda qayta kiritsa, eski qatorning raqamiga "_deleted" (sig'masa "_dl") qo'shiladi.
+
+        private const string ArchivedSuffix = "_deleted";
+        private const string ArchivedSuffixShort = "_dl";
+
+        /// <summary>Raqamga arxiv qo'shimchasini qo'shadi (maxLength'dan oshmaydi; allaqachon arxivlangan bo'lsa o'zgarmaydi).</summary>
+        public static string ArchiveNumber(string number, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(number))
+                return number;
+
+            var trimmed = number.Trim();
+            if (trimmed.EndsWith(ArchivedSuffix, StringComparison.OrdinalIgnoreCase) ||
+                trimmed.EndsWith(ArchivedSuffixShort, StringComparison.OrdinalIgnoreCase))
+                return trimmed;
+
+            if (trimmed.Length + ArchivedSuffix.Length <= maxLength)
+                return trimmed + ArchivedSuffix;
+            if (trimmed.Length + ArchivedSuffixShort.Length <= maxLength)
+                return trimmed + ArchivedSuffixShort;
+            return trimmed.Substring(0, maxLength - ArchivedSuffixShort.Length) + ArchivedSuffixShort;
+        }
+
+        /// <summary>Faol (o'chirilmagan) qatorda shu raqam bormi. Jadvalda ID va IsDeleted ustunlari bo'lishi kerak.</summary>
+        public static Task<bool> ActiveNumberExistsAsync(DBTHSNEntities db, string table, string column, string number, int? excludeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(number))
+                return Task.FromResult(false);
+            CheckIdentifiers(table, column);
+            var sql = "SELECT CAST(CASE WHEN EXISTS (SELECT 1 FROM [" + table + "] WHERE [" + column + "] = @p0 " +
+                      "AND (IsDeleted IS NULL OR IsDeleted = 0) AND (@p1 IS NULL OR ID <> @p1)) THEN 1 ELSE 0 END AS bit)";
+            return db.Database.SqlQuery<bool>(sql, number.Trim(), (object)excludeId ?? DBNull.Value).FirstAsync();
+        }
+
+        /// <summary>O'chirilgan qatorlardagi shu raqamni arxivlaydi (bitta UPDATE) — yangi yozuv uchun UNIQUE bo'shaydi.</summary>
+        public static Task<int> ReleaseNumberFromDeletedAsync(DBTHSNEntities db, string table, string column, string number, int maxLength, int? excludeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(number))
+                return Task.FromResult(0);
+            CheckIdentifiers(table, column);
+            var normalized = number.Trim();
+            var sql = "UPDATE [" + table + "] SET [" + column + "] = @p1 WHERE [" + column + "] = @p0 " +
+                      "AND IsDeleted = 1 AND (@p2 IS NULL OR ID <> @p2)";
+            return db.Database.ExecuteSqlCommandAsync(sql, normalized, ArchiveNumber(normalized, maxLength), (object)excludeId ?? DBNull.Value);
+        }
+
+        private static void CheckIdentifiers(string table, string column)
+        {
+            if (!Identifier.IsMatch(table) || !Identifier.IsMatch(column))
+                throw new ArgumentException("Jadval/ustun nomi noto'g'ri.");
+        }
+
         private const string LockSql =
             "DECLARE @r int; " +
             "EXEC @r = sp_getapplock @Resource = @p0, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000; " +

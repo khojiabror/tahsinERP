@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -315,7 +316,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", ProcurementErrors.Format(ex));
+                        ModelState.AddDbErrors(ex);
                     }
                 }
             }
@@ -435,7 +436,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", ProcurementErrors.Format(ex));
+                        ModelState.AddDbErrors(ex);
                     }
                 }
             }

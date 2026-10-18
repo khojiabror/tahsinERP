@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
@@ -35,13 +36,19 @@ namespace tahsinERP.Services.Documents
                    (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()));
         }
 
-        /// <summary>Faylni beradi (rasm — inline, qolgani yuklab olish); topilmasa yoki bo'sh bo'lsa 404.</summary>
-        public static ActionResult For(DOC_FILES file)
+        /// <summary>
+        /// Faylni beradi (rasm — inline, qolgani yuklab olish); topilmasa yoki bo'sh bo'lsa 404.
+        /// <paramref name="file"/> — metadata (DocFileAccess), baytlar alohida o'qiladi (DOC-P02).
+        /// </summary>
+        public static async Task<ActionResult> ForAsync(DBTHSNEntities db, DOC_FILES file)
         {
-            if (file == null || file.FileContent == null)
+            if (file == null)
+                return new HttpNotFoundResult();
+            var content = await DocFileService.ContentAsync(db, file.ID);
+            if (content == null)
                 return new HttpNotFoundResult();
             string name = file.FileName ?? ("file" + file.FileExtension);
-            return new DocFileResult(file.FileContent, file.MimeType, name, IsImage(file.MimeType, file.FileExtension));
+            return new DocFileResult(content, file.MimeType, name, IsImage(file.MimeType, file.FileExtension));
         }
 
         public override void ExecuteResult(ControllerContext context)

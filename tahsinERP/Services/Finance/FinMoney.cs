@@ -20,9 +20,22 @@ namespace tahsinERP.Services.Finance
 
         private readonly UzsConverter _uzs;
 
+        private const string RequestKey = "tahsinERP.FinMoney.Instances";
+
         private FinMoney(DBTHSNEntities db)
         {
             _uzs = new UzsConverter(db);
+            // So'rov davomidagi barcha konvertorlar — sahifa "kurs topilmadi" ogohlantirishini ko'rsatishi uchun
+            var items = System.Web.HttpContext.Current?.Items;
+            if (items != null)
+            {
+                if (!(items[RequestKey] is List<FinMoney> list))
+                {
+                    list = new List<FinMoney>();
+                    items[RequestKey] = list;
+                }
+                list.Add(this);
+            }
             BaseCurrencyId = _uzs.BaseCurrencyId;
             BaseShortname = BaseCurrencyId.HasValue
                 ? db.CURRENCIES.AsNoTracking().Where(c => c.ID == BaseCurrencyId.Value).Select(c => c.Shortname).FirstOrDefault() ?? "UZS"
@@ -48,6 +61,21 @@ namespace tahsinERP.Services.Finance
 
         /// <summary>Kurs topilmagan hujjatlar haqida ogohlantirish yoki null.</summary>
         public string Warning => _uzs.Warning;
+
+        /// <summary>Joriy so'rovdagi barcha konvertorlarning ogohlantirishlari (Finance sahifalari ko'rsatadi).</summary>
+        public static List<string> RequestWarnings()
+        {
+            var list = System.Web.HttpContext.Current?.Items[RequestKey] as List<FinMoney>;
+            return list == null
+                ? new List<string>()
+                : list.Select(m => m.Warning).Where(w => !string.IsNullOrEmpty(w)).Distinct().ToList();
+        }
+
+        /// <summary>Asosiy valyuta (so'm) ID'si; topilmasa — bazadagi birinchi valyuta.</summary>
+        public static int BaseCurrencyIdOrFirst(DBTHSNEntities db)
+        {
+            return CurrencyRateService.BaseCurrencyId() ?? db.CURRENCIES.Select(c => c.ID).OrderBy(id => id).FirstOrDefault();
+        }
     }
 
     /// <summary>Tranzaksiyalar guruhi (kategoriya × hisob × yo'nalish × kun × valyuta), summa so'mda.</summary>

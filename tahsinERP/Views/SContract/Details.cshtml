@@ -109,6 +109,10 @@
                                                 <b>To`lov sharti</b>: @Html.DisplayFor(model => model.PaymentTerms, new { @class = "form-control" })
                                             </span>
                                             <hr />
+                                            <span>
+                                                <b>To'lov muddati</b>: @(Model.PaymentDays.HasValue ? Model.PaymentDays + " kun" : "-")
+                                            </span>
+                                            <hr />
 
                                         </div>
                                     </div>

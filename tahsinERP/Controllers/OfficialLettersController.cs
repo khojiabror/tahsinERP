@@ -468,7 +468,7 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                return DocFileResult.For(await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.OfficialLetter));
+                return await DocFileResult.ForAsync(db, await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.OfficialLetter));
             }
         }
 
@@ -649,7 +649,7 @@ namespace tahsinERP.Controllers
                         FileExtension = fileExtension,
                         MimeType = vm.AttachmentFile.ContentType ?? "application/pdf",
                         FileSizeBytes = vm.AttachmentFile.ContentLength,
-                        FileContent = fileContent,
+                        DOC_FILE_CONTENTS = new DOC_FILE_CONTENTS { FileContent = fileContent },
                         IsMain = true,
                         CreatedByUserID = userId,
                         CreatedDT = DateTime.Now

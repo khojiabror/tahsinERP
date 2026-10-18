@@ -18,6 +18,9 @@ namespace tahsinERP.Services.Procurement
     /// </summary>
     public sealed class PContractService
     {
+        /// <summary>P_CONTRACTS.ContractNo ustun uzunligi (arxiv qo'shimchasi shunga sig'diriladi).</summary>
+        private const int NumberMaxLength = 50;
+
         private readonly DBTHSNEntities _db;
         private int? _piecesUnitId;
         private int? _cubicMeterUnitId;
@@ -223,7 +226,7 @@ namespace tahsinERP.Services.Procurement
 
         /// <summary>
         /// Shartnoma raqami: bo'sh bo'lsa PC-{yil}-NNNN (qulf bilan, o'chirilganlar ham hisobga olinadi — SRM-B14);
-        /// qo'lda kiritilsa — barcha shartnomalarda (o'chirilganlar ham) takrorlanmasligi tekshiriladi.
+        /// qo'lda kiritilsa — faol shartnomalarda takrorlanmasligi tekshiriladi, o'chirilgan hujjat raqami bo'shatiladi.
         /// Avtomatik raqam tranzaksiya ichida chaqirilishi kerak. Xato bo'lsa null (ModelState'ga yoziladi).
         /// </summary>
         private async Task<string> ResolveContractNoAsync(string requested, int? excludeId)
@@ -240,16 +243,15 @@ namespace tahsinERP.Services.Procurement
                 return await DocumentNumberService.NextAsync(_db, "P_CONTRACTS", "ContractNo", $"PC-{DateTime.Now.Year}-", 4);
             }
 
-            // Bazada ContractNo bo'yicha global UNIQUE indeks bor (o'chirilganlar ham) — tekshiruv ham global
-            bool duplicate = await _db.P_CONTRACTS.AnyAsync(c =>
-                c.ContractNo == number &&
-                (!excludeId.HasValue || c.ID != excludeId.Value));
-            if (duplicate)
+            // Faol hujjatlarda takrorlanmasin. Bazada ContractNo bo'yicha global UNIQUE indeks bor (o'chirilganlar ham):
+            // shu raqamli o'chirilgan hujjat bo'lsa, uning raqami arxivlanadi va raqam bo'shaydi (SRM-D4, POrders bilan bir xil)
+            if (await DocumentNumberService.ActiveNumberExistsAsync(_db, "P_CONTRACTS", "ContractNo", number, excludeId))
             {
-                _errors.AddModelError("ContractNo", "Shu raqamli shartnoma allaqachon mavjud (o'chirilganlar orasida ham bo'lishi mumkin).");
+                _errors.AddModelError("ContractNo", "Shu raqamli shartnoma allaqachon mavjud.");
                 return null;
             }
 
+            await DocumentNumberService.ReleaseNumberFromDeletedAsync(_db, "P_CONTRACTS", "ContractNo", number, NumberMaxLength, excludeId);
             return number;
         }
 

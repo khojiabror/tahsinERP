@@ -38,6 +38,7 @@ namespace tahsinERP.Models
         public virtual DbSet<BOM_HEADERS> BOM_HEADERS { get; set; }
         public virtual DbSet<BOM_LINES> BOM_LINES { get; set; }
         public virtual DbSet<COM_OFFICIAL_LETTERS> COM_OFFICIAL_LETTERS { get; set; }
+        public virtual DbSet<COM_OFFICIAL_LETTER_ITEMS> COM_OFFICIAL_LETTER_ITEMS { get; set; }
         public virtual DbSet<COMPANy> COMPANIES { get; set; }
         public virtual DbSet<COMPANY_LICENSES> COMPANY_LICENSES { get; set; }
         public virtual DbSet<COOKIES_CONFIRMATION> COOKIES_CONFIRMATION { get; set; }
@@ -50,6 +51,7 @@ namespace tahsinERP.Models
         public virtual DbSet<DOC_DOCUMENT_TYPES> DOC_DOCUMENT_TYPES { get; set; }
         public virtual DbSet<DOC_DOCUMENTS> DOC_DOCUMENTS { get; set; }
         public virtual DbSet<DOC_FILES> DOC_FILES { get; set; }
+        public virtual DbSet<DOC_FILE_CONTENTS> DOC_FILE_CONTENTS { get; set; }
         public virtual DbSet<DOC_TEMPLATES> DOC_TEMPLATES { get; set; }
         public virtual DbSet<EXPENSE_PRODUCTS> EXPENSE_PRODUCTS { get; set; }
         public virtual DbSet<EXPENS> EXPENSES { get; set; }
@@ -151,7 +153,6 @@ namespace tahsinERP.Models
         public virtual DbSet<WRHS_EXPENSE_DOCS> WRHS_EXPENSE_DOCS { get; set; }
         public virtual DbSet<WRHS_INCOME_DOCS> WRHS_INCOME_DOCS { get; set; }
         public virtual DbSet<V_FIN_PL_FACT_MONTHLY> V_FIN_PL_FACT_MONTHLY { get; set; }
-        public virtual DbSet<V_FIN_PL_PLAN_VS_FACT_MONTHLY> V_FIN_PL_PLAN_VS_FACT_MONTHLY { get; set; }
         public virtual DbSet<EXPENSE_PRODUCT_ALLOCATIONS> EXPENSE_PRODUCT_ALLOCATIONS { get; set; }
         public virtual DbSet<FIFO_POLICY> FIFO_POLICY { get; set; }
         public virtual DbSet<FIFO_VIOLATIONS> FIFO_VIOLATIONS { get; set; }
@@ -233,18 +234,6 @@ namespace tahsinERP.Models
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_Fin_AddTransaction", txnDateParameter, accountIDParameter, categoryIDParameter, directionParameter, amountParameter, currencyIDParameter, qtyParameter, pricePerUnitParameter, counterpartyTypeParameter, counterpartyIDParameter, counterpartyNameParameter, purposeParameter, sourceDocTypeParameter, sourceDocIDParameter, contractNoParameter, commentParameter, createdByUserIDParameter, newID);
         }
     
-        public virtual ObjectResult<sp_Fin_CashSummary_Result> sp_Fin_CashSummary(Nullable<System.DateTime> from, Nullable<System.DateTime> to)
-        {
-            var fromParameter = from.HasValue ?
-                new ObjectParameter("From", from) :
-                new ObjectParameter("From", typeof(System.DateTime));
-    
-            var toParameter = to.HasValue ?
-                new ObjectParameter("To", to) :
-                new ObjectParameter("To", typeof(System.DateTime));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_Fin_CashSummary_Result>("sp_Fin_CashSummary", fromParameter, toParameter);
-        }
     
         public virtual int sp_FIN_ShareholderValue_AsOf(Nullable<System.DateTime> asOfDate)
         {

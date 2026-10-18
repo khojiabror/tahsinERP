@@ -55,21 +55,7 @@ namespace tahsinERP.Controllers
                 if (days <= 0) days = 1;
 
                 // Faqat tanlangan ombordan chiqqan xomashyo chiqimlari
-                var expenses = await db.EXPENSES
-                    .Include(e => e.EXPENSE_PRODUCTS)
-                    .Where(e => e.IssueDateTime >= from && e.IssueDateTime <= to &&
-                                e.SenderWHID == selectedWarehouseId &&
-                                e.IsDeleted != true)
-                    .ToListAsync();
-
-                var lines = expenses
-                    .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new
-                    {
-                        ep.ProductID,
-                        Date = e.IssueDateTime.Date,
-                        ep.Amount
-                    }))
-                    .ToList();
+                var lines = await LoadDemandLinesAsync(db, selectedWarehouseId, from, to);
 
                 if (!lines.Any())
                 {
@@ -227,21 +213,7 @@ namespace tahsinERP.Controllers
                 var days = (to - from).Days + 1;
                 if (days <= 0) days = 1;
 
-                var expenses = await db.EXPENSES
-                    .Include(e => e.EXPENSE_PRODUCTS)
-                    .Where(e => e.IssueDateTime >= from && e.IssueDateTime <= to &&
-                                e.SenderWHID == selectedWarehouseId &&
-                                e.IsDeleted != true)
-                    .ToListAsync();
-
-                var lines = expenses
-                    .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new
-                    {
-                        ep.ProductID,
-                        Date = e.IssueDateTime.Date,
-                        ep.Amount
-                    }))
-                    .ToList();
+                var lines = await LoadDemandLinesAsync(db, selectedWarehouseId, from, to);
 
                 var demandByProduct = lines
                     .GroupBy(x => x.ProductID)
@@ -452,6 +424,7 @@ namespace tahsinERP.Controllers
 
                 // 1. Ombordagi xomashyo qoldiqlari (tanlangan ombor)
                 var stockQuery = await db.PRODUCT_STOCKS
+                    .AsNoTracking()
                     .Include(s => s.PRODUCT)
                     .Include(s => s.PRODUCT.PRODUCT_CATEGORIES)
                     .Include(s => s.UNIT)
@@ -496,21 +469,7 @@ namespace tahsinERP.Controllers
                 var rawIds = rawStocks.Select(s => s.ProductID).Distinct().ToList();
 
                 // 2. Kunlik talab statistikasi (EXPENSES) - ABC/XYZ va Safety DOH uchun
-                var expenses = await db.EXPENSES
-                    .Include(e => e.EXPENSE_PRODUCTS)
-                    .Where(e => e.IssueDateTime >= from && e.IssueDateTime <= to &&
-                                e.SenderWHID == selectedWarehouseId &&
-                                e.IsDeleted != true)
-                    .ToListAsync();
-
-                var lines = expenses
-                    .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new
-                    {
-                        ep.ProductID,
-                        Date = e.IssueDateTime.Date,
-                        ep.Amount
-                    }))
-                    .ToList();
+                var lines = await LoadDemandLinesAsync(db, selectedWarehouseId, from, to);
 
                 var demandByProduct = lines
                     .GroupBy(x => x.ProductID)
@@ -593,8 +552,10 @@ namespace tahsinERP.Controllers
                 var demandLookup = orderedByDemand.ToDictionary(i => i.ProductId);
 
                 // 3. Aktiv BOMlar - tayyor mahsulot -> xomashyo
+                // Komponent kategoriyasi ham birga (avval har satrda lazy-load — N+1, CORE-P13)
                 var activeBoms = await db.BOM_HEADERS
-                    .Include(b => b.BOM_LINES.Select(l => l.PRODUCT))
+                    .AsNoTracking()
+                    .Include(b => b.BOM_LINES.Select(l => l.PRODUCT.PRODUCT_CATEGORIES))
                     .Where(b => b.IsActive == true && b.ProductID.HasValue)
                     .ToListAsync();
 
@@ -627,6 +588,7 @@ namespace tahsinERP.Controllers
 
                 // 4. Reja - PRODUCTPLANS_DAILY
                 var plans = await db.PRODUCTPLANS_DAILY
+                    .AsNoTracking()
                     .Include(p => p.PRODUCTPLAN)
                     .Where(p => p.Day >= from && p.Day <= to && p.PRODUCTPLAN.IsDeleted == false)
                     .ToListAsync();
@@ -655,10 +617,12 @@ namespace tahsinERP.Controllers
                     select qi.ProductionID.Value
                 ).Distinct().ToListAsync();
 
+                // Faqat kerakli 4 ustun (12 oylik oynada to'liq qatorlar o'rniga)
                 var productions = await db.PRODUCT_PRODUCTION
                     .Where(p => (p.IsDeleted == null || p.IsDeleted == false)
                         && ((p.Date >= prodFrom && p.Date <= prodTo)
                             || linkedProductionIds.Contains(p.ID)))
+                    .Select(p => new { p.ID, p.ProductID, p.Date, p.Total })
                     .ToListAsync();
 
                 var productionIds = productions.Select(p => p.ID).ToList();
@@ -892,6 +856,31 @@ namespace tahsinERP.Controllers
 
                 return View(model);
             }
+        }
+
+        /// <summary>
+        /// Ombordan chiqim satrlari (ABC, SafetyStock, Coverage uchun umumiy). Faqat 3 ustun proyeksiya qilinadi
+        /// (avval EXPENSES + EXPENSE_PRODUCTS to'liq, kuzatiladigan entity bo'lib yuklanardi). CORE-P14: oxirgi kun
+        /// to'liq kiradi (avval "IssueDateTime &lt;= to" kun boshida kesilardi).
+        /// </summary>
+        private static async System.Threading.Tasks.Task<List<DemandLine>> LoadDemandLinesAsync(DBTHSNEntities db, int warehouseId, DateTime from, DateTime to)
+        {
+            var toExclusive = to.Date.AddDays(1);
+            var rows = await db.EXPENSES
+                .Where(e => e.IssueDateTime >= from && e.IssueDateTime < toExclusive &&
+                            e.SenderWHID == warehouseId &&
+                            e.IsDeleted != true)
+                .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new { ep.ProductID, e.IssueDateTime, ep.Amount }))
+                .ToListAsync();
+
+            return rows.Select(r => new DemandLine { ProductID = r.ProductID, Date = r.IssueDateTime.Date, Amount = r.Amount }).ToList();
+        }
+
+        private class DemandLine
+        {
+            public int ProductID { get; set; }
+            public DateTime Date { get; set; }
+            public double Amount { get; set; }
         }
 
         private class BomComponent

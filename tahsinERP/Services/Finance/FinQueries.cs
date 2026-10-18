@@ -12,7 +12,6 @@ namespace tahsinERP.Services.Finance
     ///  - faol tranzaksiyalar va "real pul" filtri (invoys mirror yozuvlarisiz, D1);
     ///  - hisob qoldiqlari — har hisobga alohida SUM o'rniga bitta GROUP BY (D2, FIN-P02);
     ///  - oylik kategoriyalari, tasdiqlangan payroll qatorlari, oylik to'lovlari (D5, D6);
-    ///  - asosiy valyuta (eng ko'p ishlatilgan CurrencyID, D12).
     /// Hammasi o'qish uchun (AsNoTracking).
     /// </summary>
     public static class FinQueries
@@ -147,31 +146,6 @@ namespace tahsinERP.Services.Finance
                             (l.HR_PAYROLL_HEADERS.IsDeleted == null || l.HR_PAYROLL_HEADERS.IsDeleted == false) &&
                             (l.HR_PAYROLL_HEADERS.Status == "Approved" || l.HR_PAYROLL_HEADERS.Status == "Posted") &&
                             l.HR_PAYROLL_HEADERS.ApprovedDT.HasValue);
-        }
-
-        /// <summary>
-        /// Eng ko'p ishlatilgan valyuta (teng bo'lsa — birinchi uchragani). Tranzaksiyalarni xotiraga olmasdan, SQL'da.
-        /// </summary>
-        public static int? MostUsedCurrencyId(IQueryable<FIN_TRANSACTIONS> query)
-        {
-            var top = query
-                .GroupBy(t => t.CurrencyID)
-                .Select(g => new { CurrencyID = g.Key, Count = g.Count(), FirstID = g.Min(t => t.ID) })
-                .OrderByDescending(x => x.Count)
-                .ThenBy(x => x.FirstID)
-                .FirstOrDefault();
-            return top?.CurrencyID;
-        }
-
-        /// <summary>Asosiy valyuta qisqa nomi; tranzaksiya bo'lmasa — bazadagi birinchi valyuta, u ham bo'lmasa "UZS".</summary>
-        public static string PrimaryCurrencyShortname(DBTHSNEntities db, IQueryable<FIN_TRANSACTIONS> query)
-        {
-            var currencyId = MostUsedCurrencyId(query);
-            CURRENCy currency = currencyId.HasValue
-                ? db.CURRENCIES.AsNoTracking().FirstOrDefault(c => c.ID == currencyId.Value)
-                : null;
-            currency = currency ?? db.CURRENCIES.AsNoTracking().FirstOrDefault();
-            return currency?.Shortname ?? "UZS";
         }
     }
 

@@ -36,6 +36,7 @@
         </div>
 
         <div class="content-body">
+                @Html.Partial("~/Views/FinDashboard/_CurrencyWarning.cshtml")
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                     <h4 class="card-title mb-0">Akt-sverki @(Model.AllContracts ? "(barcha shartnomalar)" : "(shartnoma bo'yicha)")</h4>
