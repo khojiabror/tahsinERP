@@ -276,6 +276,8 @@
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\TahsinControllerFactory.cs" />
+    <Compile Include="Services\Common\CacheTempDataProvider.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AdminSetting\AccountController.cs" />
     <Compile Include="Controllers\AdminSetting\LicenseController.cs" />
