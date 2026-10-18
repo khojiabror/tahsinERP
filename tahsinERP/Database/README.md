@@ -10,7 +10,7 @@ Database/
   Migrations/NNN_nomi.sql      har sxema o'zgarishi — yangi fayl
   Seed/100_Reference.sql       majburiy spravochniklar (generatsiya: Export-ReferenceSeed.ps1)
   Seed/110_Defaults.sql        yangi korxona standart qatorlari (qo'lda)
-  Demo/*.sql                   (ixtiyoriy, hali yo'q) demo ma'lumot, New-TenantDb.ps1 -Demo
+  Demo/*.sql                   demo korxona ma'lumoti (faqat New-TenantDb.ps1 -Demo)
   tools/Invoke-DbMigrations.ps1  runner: bitta baza yoki tenants.json dagi barchasi
   tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> admin
   tools/Export-ReferenceSeed.ps1 seed'ni etalon bazadan qayta generatsiya
@@ -84,6 +84,20 @@ farq faqat BAK/DataFix jadvallari bo'lishi kerak. Lokal `DBTHSN-IPACK` 2026-10-1
 Runner o'zi yaratadi. `ScriptName` (PK, masalan `Migrations/001_SystemCodes.sql`), `Kind`
 (baseline / migration / seed / extra), `Version`, `Checksum`, `AppliedAt` (UTC), `AppliedBy`, `DurationMs`, `Note`.
 Bir bazada bir vaqtda faqat bitta runner (`sp_getapplock`).
+
+## Demo ma'lumot (`Demo/`)
+
+Uydirma "Demo Plast" MChJ (plastik idishlar): 24 mahsulot (12 xomashyo + 12 tayyor, BOM/norma), 5 mijoz,
+5 ta'minotchi, ~3 oylik xarid -> ombor -> ishlab chiqarish (DLOC/FIFO lotlar) -> sotuv (QQS 12%) -> to'lovlar,
+ustav kapitali, 9 xodim va o'tgan oyning tasdiqlangan oyligi. Kirish: `demo` / `demo2026` (Admin roli).
+
+- `200_Demo_Master.sql` — foydalanuvchi, ombor turlari/joylari, mahsulot, BOM/norma, kontragentlar, kurslar, hisoblar.
+- `210_Demo_Operations.sql` — SRM, ombor, MES, CRM hujjatlari; `PRODUCT_STOCKS` harakatlardan, manfiy qoldiq bo'lsa THROW.
+- `220_Demo_Finance_HR.sql` — FIN_TRANSACTIONS (FinancePostingService ko'zgu yozuvlari + to'lovlar), HR.
+
+Hujjatlar ilova servislari yozadigan shaklda (raqam formatlari, statuslar, tavsiflar) — servis o'zgarsa demo ham
+yangilanadi. Sanalar `GETDATE()` ga nisbatan; har fayl bitta batch (GO yo'q) va ma'lumot bor bo'lsa o'zini
+o'tkazib yuboradi. Faqat yangi (bo'sh) bazaga mo'ljallangan.
 
 ## Baseline va seed'ni qayta generatsiya qilish
 
