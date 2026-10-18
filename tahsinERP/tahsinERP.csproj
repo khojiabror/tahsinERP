@@ -927,6 +927,7 @@
     <Compile Include="Services\AuditLogQueue.cs" />
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
+    <Compile Include="Services\Common\DataTablesRequest.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
     <Compile Include="Services\Common\SystemCodes.cs" />
     <Compile Include="Services\Common\BrandingService.cs" />
@@ -3288,7 +3289,6 @@
     <Content Include="Views\Home\StatusView.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Create.cshtml" />
-    <Content Include="Views\CustomerBase\Delete.cshtml" />
     <Content Include="Views\CustomerBase\Details.cshtml" />
     <Content Include="Views\CustomerBase\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Index.cshtml" />

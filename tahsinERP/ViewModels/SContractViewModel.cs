@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace tahsinERP.ViewModels
 {
@@ -12,6 +13,9 @@ namespace tahsinERP.ViewModels
         public DateTime DueDate { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
+        /// <summary>To'lov muddati (kun) — invoysning DueDate'i shundan hisoblanadi.</summary>
+        [Range(0, 3650, ErrorMessage = "To'lov muddati 0–3650 kun oralig'ida bo'lishi kerak")]
+        public int? PaymentDays { get; set; }
         public int CurrencyID { get; set; }
         public decimal Amount { get; set; }
         public List<SContractProductViewModel> ProductList { get; set; }
