@@ -103,6 +103,10 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
         if (t.Status == status) return;
         if (status == TenantStatus.Archived && string.IsNullOrWhiteSpace(reason))
             throw new DomainException("Arxivlash sababi majburiy.");
+        if (status == TenantStatus.Archived && t.Deployment == DeploymentKind.SaaS && t.ProvisionedAtUtc != null)
+            throw new DomainException("Bazasi yaratilgan SaaS tenant faqat «Arxivlash» amali (provisioning) orqali arxivlanadi.");
+        if (t.Status == TenantStatus.Archived && t.Deployment == DeploymentKind.SaaS && t.ProvisionedAtUtc != null)
+            throw new DomainException("Arxivlangan tenant bazasi o'chirilgan — holatni qo'lda qaytarib bo'lmaydi.");
         var before = t.Status;
         t.Status = status;
         audit.Add("tenant.status", "Tenant", t.Id, new { Status = before }, new { Status = status, Reason = reason });
