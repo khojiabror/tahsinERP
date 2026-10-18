@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -254,19 +255,24 @@ namespace tahsinERP.Controllers
             // Xodimlar ro'yxati (shu kompaniya). Developer'lar faqat Developer'ga ko'rinadi.
             bool viewerIsDev = RoleHelper.IsDeveloper(User.Identity.Name);
 
+            // Har xodim uchun alohida rol va o'rin so'rovi o'rniga — bitta so'rov (CORE-P12)
             var users = db.USERS
                 .Where(u => u.CompanyID == companyId && u.IsDeleted != true)
+                .Where(u => viewerIsDev || !u.ROLES.Any(r => r.RName == "Developer"))
                 .OrderBy(u => u.FullName)
                 .ToList();
 
+            int licId = lic?.ID ?? 0;
+            var seats = lic == null ? new Dictionary<int, USER_LICENSES>() :
+                db.USER_LICENSES
+                    .Where(x => x.CompanyLicenseID == licId && x.IsActive && x.UserID != null)
+                    .ToList()
+                    .GroupBy(x => x.UserID.Value)
+                    .ToDictionary(g => g.Key, g => g.First());
+
             foreach (var u in users)
             {
-                // Developer xodimlarni yashirish (Developer bo'lmagan admin uchun)
-                if (!viewerIsDev && RoleHelper.IsDeveloper(u.Uname))
-                    continue;
-
-                var seat = lic == null ? null :
-                    db.USER_LICENSES.FirstOrDefault(x => x.CompanyLicenseID == lic.ID && x.UserID == u.ID && x.IsActive);
+                seats.TryGetValue(u.ID, out var seat);
 
                 vm.Users.Add(new SeatRow
                 {
