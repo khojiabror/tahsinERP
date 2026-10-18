@@ -77,7 +77,8 @@ namespace tahsinERP.Controllers
                         TotalAmount = i.TotalAmount,
                         TotalVAT = i.TotalVAT,
                         TotalWithVAT = i.TotalWithVAT,
-                        CurrencyCode = i.CURRENCy.Shortname
+                        CurrencyCode = i.CURRENCy.Shortname,
+                        StatusCode = i.StatusCode
                     })
                     .ToList();
 
@@ -90,7 +91,8 @@ namespace tahsinERP.Controllers
                     ExcelExport.Col<InvoiceExportRow>("Summa", r => r.TotalAmount, "#,##0.00"),
                     ExcelExport.Col<InvoiceExportRow>("QQS", r => r.TotalVAT, "#,##0.00"),
                     ExcelExport.Col<InvoiceExportRow>("Jami (QQS bilan)", r => r.TotalWithVAT, "#,##0.00"),
-                    ExcelExport.Col<InvoiceExportRow>("Valyuta", r => r.CurrencyCode));
+                    ExcelExport.Col<InvoiceExportRow>("Valyuta", r => r.CurrencyCode),
+                    ExcelExport.Col<InvoiceExportRow>("Holat", r => r.StatusCode));
                 return File(bytes, ExcelExport.ContentType, $"Invoyslar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
@@ -106,11 +108,14 @@ namespace tahsinERP.Controllers
             public decimal TotalVAT { get; set; }
             public decimal? TotalWithVAT { get; set; }
             public string CurrencyCode { get; set; }
+            public string StatusCode { get; set; }
         }
 
         private static IQueryable<SALES_INVOICES> BuildIndexQuery(DBTHSNEntities db, string searchTerm, string invoiceNo, int? customerID, int? orderID, int? contractID, DateTime? fromDate, DateTime? toDate, string statusCode, string sortOrder)
         {
-            var query = db.SALES_INVOICES.AsNoTracking().Active();
+            // Ro'yxatda bekor qilinganlar ham ko'rinadi (holat ustuni bilan) — aks holda ularni topib bo'lmasdi;
+            // jamilar/hisobotlar Active() bilan faqat faol invoyslarni hisoblaydi.
+            IQueryable<SALES_INVOICES> query = db.SALES_INVOICES.AsNoTracking();
 
             if (!string.IsNullOrEmpty(searchTerm))
                 query = query.Where(i => i.InvoiceNo.Contains(searchTerm));
