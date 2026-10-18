@@ -23,7 +23,6 @@ namespace tahsinERP.Services.Tannarx
         private const decimal Path3CoverageThreshold = 0.60m;
         private const decimal ReconcileThreshold = 0.03m;
 
-        private static readonly Regex ProductionIdRegex = new Regex(@"ProductionID:\s*(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex BuyTokenRegex = new Regex(@"(?:Buy#|B:)\s*(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly string[] AccrualSourceDocTypes = { "PurchaseInvoice", "SalesInvoice" };
         private static readonly string[] CoveredElsewhereSourceDocTypes = { "PurchaseInvoicePayment", "WaybillPayment", "HR_PAYROLL", "ShareholderContribution" };
@@ -699,7 +698,8 @@ namespace tahsinERP.Services.Tannarx
 
         /// <summary>
         /// Ishlab chiqarish uchun avtomatik yaratilgan xomashyo chiqimlari (ProductionConsumptionService):
-        /// EXPENSES.Description da "ProductionID:{PRODUCT_PRODUCTION.ID}", EXPENSE_PRODUCTS.TotalPrice — FIFO kirim narxi (UZS).
+        /// EXPENSES.ProductionID (FK, MES-P12; avval Description'dagi "ProductionID:x" markeri LIKE bilan qidirilardi),
+        /// EXPENSE_PRODUCTS.TotalPrice — FIFO tannarx (StockCostService, QQSsiz).
         /// Chiqim hujjati ishlab chiqarish sanasida emas, kiritilgan/qayta hisoblangan kunda yaratiladi,
         /// shuning uchun sana bo'yicha emas, ProductionID bo'yicha bog'lanadi (oy boshidan 1 oy oldingi hujjatlardan qidiriladi).
         /// </summary>
@@ -718,21 +718,16 @@ namespace tahsinERP.Services.Tannarx
             var productionById = productions.ToDictionary(p => p.ID);
 
             var searchFrom = start.AddMonths(-1);
-            var expenseHeaders = await _db.EXPENSES
+            var productionIds = productionById.Keys.ToList();
+            // Faqat ichki sarf chiqimlari (ReceiverWhID = null); ishlab chiqarish -> sotuv o'tkazmalari kirmaydi
+            var expenseToProduction = await _db.EXPENSES
                 .Where(e => !e.IsDeleted
                     && e.IssueDateTime >= searchFrom
-                    && e.Description != null
-                    && e.Description.Contains("ProductionID:"))
-                .Select(e => new { e.ID, e.Description })
-                .ToListAsync();
-
-            var expenseToProduction = new Dictionary<int, int>();
-            foreach (var e in expenseHeaders)
-            {
-                var m = ProductionIdRegex.Match(e.Description);
-                if (m.Success && int.TryParse(m.Groups[1].Value, out var productionId) && productionById.ContainsKey(productionId))
-                    expenseToProduction[e.ID] = productionId;
-            }
+                    && e.ReceiverWhID == null
+                    && e.ProductionID.HasValue
+                    && productionIds.Contains(e.ProductionID.Value))
+                .Select(e => new { e.ID, ProductionID = e.ProductionID.Value })
+                .ToDictionaryAsync(e => e.ID, e => e.ProductionID);
             if (!expenseToProduction.Any())
                 return result;
 
