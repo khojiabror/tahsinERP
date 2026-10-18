@@ -15,7 +15,8 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     [GeneratedRegex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")]
     private static partial Regex SlugRegex();
 
-    [GeneratedRegex(@"^[A-Za-z0-9_\-\.]{1,128}$")]
+    // 03_DB_PROVISIONING.md: New-TenantDb -DbName ^[A-Za-z0-9_\-\.]{1,100}$ (ERP TenantRegistry 128 gacha qabul qiladi).
+    [GeneratedRegex(@"^[A-Za-z0-9_\-\.]{1,100}$")]
     private static partial Regex DatabaseRegex();
 
     /// <summary>ERP TenantRegistry.ReservedSlugs — panel subdomenlari.</summary>
@@ -32,7 +33,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     }
 
     public static string? ValidateDbName(string? dbName) =>
-        string.IsNullOrEmpty(dbName) || DatabaseRegex().IsMatch(dbName) ? null : "Baza nomi: faqat A-Z a-z 0-9 _ - . (1–128).";
+        string.IsNullOrEmpty(dbName) || DatabaseRegex().IsMatch(dbName) ? null : "Baza nomi: faqat A-Z a-z 0-9 _ - . (1–100).";
 
     public static string? ValidateInn(string? inn) =>
         string.IsNullOrEmpty(inn) || ((inn.Length == 9 || inn.Length == 14) && inn.All(char.IsAsciiDigit))
@@ -91,6 +92,12 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
 
     public async Task UpdateAsync(Tenant t, object before, CancellationToken ct = default)
     {
+        var entry = db.Entry(t);
+        if (t.ProvisionedAtUtc is not null
+            && (entry.Property(x => x.DbName).OriginalValue != t.DbName
+                || entry.Property(x => x.ServerId).OriginalValue != t.ServerId
+                || entry.Property(x => x.Deployment).OriginalValue != t.Deployment))
+            throw new DomainException("Baza yaratilgan: baza nomi, server va joylashuvni o'zgartirib bo'lmaydi (ko'chirish — alohida jarayon).");
         await ValidateAsync(t, ct);
         audit.Add("tenant.update", "Tenant", t.Id, before, Snapshot(t));
         await db.SaveChangesAsync(ct);

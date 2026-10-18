@@ -73,3 +73,4 @@ code, .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px
 .empty { color: var(--muted); padding: 10px 0; }
 td code { white-space: nowrap; word-break: normal; }
 table.lines td:first-child { width: 55%; }
+pre.mono { white-space: pre-wrap; max-height: 520px; overflow: auto; font-size: 12px; }

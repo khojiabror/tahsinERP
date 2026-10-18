@@ -20,6 +20,11 @@ public class PanelOptions
     public int GraceDays { get; set; } = 3;
     /// <summary>Hisob-faktura to'lov muddati, kun.</summary>
     public int InvoiceDueDays { get; set; } = 5;
+    /// <summary>
+    /// Bitta umumiy domen (02_MULTI_TENANT.md): tenantlar &lt;slug&gt;.&lt;BaseDomain&gt;. Hali tanlanmagan — bo'sh bo'lsa
+    /// tenants.json'ga baseDomain yozilmaydi (ERP o'z TAHSINERP_BASE_DOMAIN / Web.config qiymatini ishlatadi).
+    /// </summary>
+    public string? BaseDomain { get; set; }
     /// <summary>Kunlik fon ishi soati (TimeZone bo'yicha).</summary>
     public int DailyJobHour { get; set; } = 9;
 }

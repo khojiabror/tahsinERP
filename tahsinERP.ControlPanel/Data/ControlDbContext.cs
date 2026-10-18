@@ -17,6 +17,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<AuditEntry> AuditLog => Set<AuditEntry>();
     public DbSet<InvoiceSequence> InvoiceSequences => Set<InvoiceSequence>();
     public DbSet<ApiNonce> ApiNonces => Set<ApiNonce>();
+    public DbSet<ProvisioningJob> ProvisioningJobs => Set<ProvisioningJob>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -52,6 +53,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Region).HasMaxLength(50);
             e.Property(x => x.SqlInstance).HasMaxLength(200);
             e.Property(x => x.Notes).HasMaxLength(1000);
+            e.Property(x => x.AgentTokenHash).HasMaxLength(64);
+            e.Property(x => x.AgentVersion).HasMaxLength(50);
+            e.HasIndex(x => x.AgentTokenHash).IsUnique().HasFilter("[AgentTokenHash] IS NOT NULL");
         });
 
         b.Entity<Tenant>(e =>
@@ -149,6 +153,17 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Entity).HasMaxLength(50);
             e.Property(x => x.EntityId).HasMaxLength(50);
             e.Property(x => x.Ip).HasMaxLength(64);
+        });
+
+        b.Entity<ProvisioningJob>(e =>
+        {
+            e.HasIndex(x => new { x.ServerId, x.Status });
+            e.HasIndex(x => x.TenantId);
+            e.Property(x => x.Error).HasMaxLength(2000);
+            e.Property(x => x.SecretProtected).HasMaxLength(500);
+            e.Property(x => x.RowVersion).IsRowVersion();
+            e.HasOne(x => x.Server).WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<ApiNonce>(e =>

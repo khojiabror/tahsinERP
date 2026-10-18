@@ -1,0 +1,29 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Provisioning.IndexModel
+@{ ViewData["Title"] = "Provisioning"; }
+<h1>Provisioning navbati</h1>
+<p class="hint">Bazalarni ERP serveridagi agent (tahsinERP.ProvisioningAgent) yaratadi va yangilaydi; panel SQL serverga ulanmaydi.
+    Yangi baza — tashkilot sahifasidan, barcha bazalarni yangilash — Serverlar sahifasidan.</p>
+<form method="get" class="toolbar">
+    <div><label for="Status">Holat</label>
+        <select id="Status" name="Status">
+            <option value="">Hammasi</option>
+            @foreach (var s in Enum.GetValues<ProvisioningJobStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }
+        </select></div>
+    <button type="submit" class="secondary">Ko'rsatish</button>
+</form>
+<table>
+    <tr><th>#</th><th>Turi</th><th>Server</th><th>Tashkilot</th><th>Holat</th><th class="num">Urinish</th><th class="num">Kod</th><th>Yaratilgan (UTC)</th><th>Tugagan (UTC)</th></tr>
+    @foreach (var j in Model.Rows)
+    {
+        <tr>
+            <td><a href="/Provisioning/Details/@j.Id">@j.Id</a></td>
+            <td>@Labels.Of(j.Type)</td><td>@j.Server!.Name</td>
+            <td>@if (j.Tenant is not null) { <a href="/Tenants/Details/@j.TenantId">@j.Tenant.Slug</a> }</td>
+            <td><span class="badge @Labels.Badge(j.Status)">@Labels.Of(j.Status)</span></td>
+            <td class="num">@j.Attempts</td><td class="num">@j.ExitCode</td>
+            <td>@j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")</td><td>@j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm")</td>
+        </tr>
+    }
+</table>
+@if (Model.Rows.Count == 0) { <div class="empty">Ish yo'q.</div> }

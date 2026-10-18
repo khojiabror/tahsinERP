@@ -71,6 +71,11 @@ public class Server
     public bool IsActive { get; set; } = true;
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
+    /// <summary>Provisioning agenti tokenining SHA-256 hex'i (token o'zi bir marta ko'rsatiladi).</summary>
+    public string? AgentTokenHash { get; set; }
+    public DateTime? AgentTokenIssuedUtc { get; set; }
+    public DateTime? AgentLastSeenUtc { get; set; }
+    public string? AgentVersion { get; set; }
 }
 
 public class Tenant
@@ -108,6 +113,8 @@ public class Tenant
     public DateTime? LastSeenUtc { get; set; }
     public string? LastVersion { get; set; }
     public string? LastHost { get; set; }
+    /// <summary>SaaS: baza agent tomonidan yaratilgan vaqt. Shundan keyin tenant tenants.json reestriga kiradi.</summary>
+    public DateTime? ProvisionedAtUtc { get; set; }
 
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
@@ -277,6 +284,41 @@ public class AuditEntry
     public string? After { get; set; }
     public string? Ip { get; set; }
     public DateTime AtUtc { get; set; }
+}
+
+public enum ProvisioningJobType { CreateDb = 1, MigrateAll = 2 }
+
+public enum ProvisioningJobStatus { Pending = 1, Running = 2, Succeeded = 3, Failed = 4, Cancelled = 5 }
+
+/// <summary>
+/// Provisioning navbati (00_PLAN.md 7). Panel yozadi, ERP serveridagi agent (tahsinERP.ProvisioningAgent) oladi va bajaradi.
+/// Panel SQL serverga to'g'ridan-to'g'ri ulanmaydi.
+/// </summary>
+public class ProvisioningJob
+{
+    public int Id { get; set; }
+    public int ServerId { get; set; }
+    public Server? Server { get; set; }
+    public int? TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    public ProvisioningJobType Type { get; set; }
+    public ProvisioningJobStatus Status { get; set; }
+    public int Attempts { get; set; }
+    public DateTime? LeaseUntilUtc { get; set; }
+    /// <summary>Skript chiqish kodi (03_DB_PROVISIONING.md 3-bo'lim).</summary>
+    public int? ExitCode { get; set; }
+    public string? Error { get; set; }
+    /// <summary>RESULT JSON (tempPassword olib tashlangan).</summary>
+    public string? Result { get; set; }
+    /// <summary>Skript logining oxiri (ko'pi bilan 30 000 belgi).</summary>
+    public string? Log { get; set; }
+    /// <summary>Yangi admin vaqtinchalik paroli — shifrlangan; xodim bir marta ko'radi, keyin (yoki 7 kunda) o'chiriladi.</summary>
+    public string? SecretProtected { get; set; }
+    public int? CreatedByStaffId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime? StartedAtUtc { get; set; }
+    public DateTime? FinishedAtUtc { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 }
 
 /// <summary>

@@ -51,6 +51,7 @@ services.AddScoped<BillingService>();
 services.AddScoped<LicenseIssuer>();
 services.AddScoped<DashboardService>();
 services.AddScoped<ExpiryReminderService>();
+services.AddScoped<ProvisioningService>();
 services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
@@ -154,6 +155,7 @@ app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Text("ok")).AllowAnonymous();
 LicenseApi.Map(app);
+AgentApi.Map(app);
 app.MapRazorPages();
 
 app.Run();

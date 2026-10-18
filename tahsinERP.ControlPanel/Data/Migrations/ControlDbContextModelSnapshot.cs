@@ -528,6 +528,76 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.ProvisioningJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedByStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("ExitCode")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FinishedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LeaseUntilUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Log")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Result")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("SecretProtected")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("StartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("ServerId", "Status");
+
+                    b.ToTable("ProvisioningJobs");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Server", b =>
                 {
                     b.Property<int>("Id")
@@ -535,6 +605,20 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("AgentLastSeenUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AgentTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("AgentTokenIssuedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AgentVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
@@ -569,6 +653,10 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AgentTokenHash")
+                        .IsUnique()
+                        .HasFilter("[AgentTokenHash] IS NOT NULL");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -756,6 +844,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("ProvisionedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("RegTokenExpiresUtc")
                         .HasColumnType("datetime2");
 
@@ -859,6 +950,24 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.ProvisioningJob", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Server");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Subscription", b =>

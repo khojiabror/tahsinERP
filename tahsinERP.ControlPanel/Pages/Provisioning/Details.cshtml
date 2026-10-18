@@ -1,0 +1,36 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Provisioning.DetailsModel
+@{ var j = Model.Job; ViewData["Title"] = "Provisioning #" + j.Id; }
+<h1>Provisioning #@j.Id — @Labels.Of(j.Type) <span class="badge @Labels.Badge(j.Status)">@Labels.Of(j.Status)</span></h1>
+<div asp-validation-summary="All"></div>
+@if (Model.RevealedPassword is not null)
+{
+    <div class="secret">
+        <strong>Yangi admin vaqtinchalik paroli (faqat hozir ko'rinadi, bazadan o'chirildi):</strong>
+        <div class="mono">@Model.RevealedPassword</div>
+        <div class="hint">Login: @(j.Result is not null && j.Result.Contains("adminLogin") ? System.Text.Json.Nodes.JsonNode.Parse(j.Result)?["adminLogin"]?.ToString() : "admin"). Birinchi kirishda almashtirish majburiy. Mijozga xavfsiz kanal orqali bering.</div>
+    </div>
+}
+<div class="card">
+    <dl class="props">
+        <dt>Server</dt><dd>@j.Server!.Name (@j.Server.Host)</dd>
+        <dt>Tashkilot</dt><dd>@if (j.Tenant is not null) { <a href="/Tenants/Details/@j.TenantId">@j.Tenant.LegalName</a> <code>@j.Tenant.DbName</code> }</dd>
+        <dt>Urinishlar</dt><dd>@j.Attempts / @ProvisioningService.MaxAttempts</dd>
+        <dt>Chiqish kodi</dt><dd>@j.ExitCode @j.Error</dd>
+        <dt>Vaqtlar (UTC)</dt><dd>yaratilgan @j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm") · boshlangan @j.StartedAtUtc?.ToString("HH:mm:ss") · tugagan @j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
+        <dt>Natija</dt><dd class="mono">@j.Result</dd>
+    </dl>
+</div>
+<div class="actions">
+    @if (Model.CanSell && j.Status == ProvisioningJobStatus.Pending)
+    {
+        <form method="post" asp-page-handler="Cancel" class="inline"><button type="submit" class="danger">Bekor qilish</button></form>
+    }
+    @if (Model.CanSell && j.SecretProtected is not null)
+    {
+        <form method="post" asp-page-handler="Reveal" class="inline"><button type="submit" class="secondary">Admin parolini ko'rsatish (bir marta)</button></form>
+    }
+    <a href="/Provisioning">← Navbat</a>
+</div>
+<h2>Log</h2>
+<pre class="card mono">@(j.Log ?? "—")</pre>
