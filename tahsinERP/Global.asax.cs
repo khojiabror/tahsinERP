@@ -15,6 +15,7 @@ namespace tahsinERP
             System.Web.Helpers.AntiForgeryConfig.SuppressXFrameOptionsHeader = true;
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters); // HandleError, Authorize, LicenseCheck, MustChangePassword, EditionCheck
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            ControllerBuilder.Current.SetControllerFactory(new TahsinControllerFactory()); // ReadOnly sessiya + TempData keshda (CORE-P05)
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             tahsinERP.Services.LicenseSync.LicenseSyncService.Start(); // panel URL bo'sh bo'lsa (on-prem offline) hech narsa qilmaydi
         }

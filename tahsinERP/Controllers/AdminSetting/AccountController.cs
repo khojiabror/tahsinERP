@@ -16,6 +16,8 @@ using tahsinERP.Filters;
 namespace tahsinERP.Controllers
 {
     // Faqat Login/Logout/SetDeviceId anonim; qolgan amallar (Settings, rasm) login talab qiladi
+    // Session'ga yozadi (vaqtinchalik parol bayrog'i) — boshqa controller'lar ReadOnly (CORE-P05)
+    [System.Web.Mvc.SessionState(System.Web.SessionState.SessionStateBehavior.Required)]
     public class AccountController : Controller
     {
         // Session timeout constants (in minutes)
