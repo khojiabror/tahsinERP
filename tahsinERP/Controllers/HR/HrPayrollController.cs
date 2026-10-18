@@ -974,17 +974,10 @@ namespace tahsinERP.Controllers.HR
 
         #region Generatsiya yordamchilari
 
-        /// <summary>Qatorlarni o'chirilgan deb belgilaydi (SaveChanges chaqiruvchida).</summary>
-        private async Task SoftDeleteActivePayrollLinesAsync(int payrollId)
+        /// <summary>Qatorlarni o'chirilgan deb belgilaydi (SaveChanges chaqiruvchida). Bitta o'chirish yo'li (HRM-D12).</summary>
+        private Task SoftDeleteActivePayrollLinesAsync(int payrollId)
         {
-            var activeLines = await db.HR_PAYROLL_LINES
-                .Where(l => l.PayrollID == payrollId && (l.IsDeleted == null || l.IsDeleted == false))
-                .ToListAsync();
-
-            foreach (var line in activeLines)
-            {
-                line.IsDeleted = true;
-            }
+            return SoftDeleteLinesKeepingAdjustmentsAsync(payrollId);
         }
 
         /// <summary>Qo'lda kiritiladigan qiymatlar: qayta hisoblashda xodim bo'yicha qayta qo'llanadi (HRM-B09).</summary>
