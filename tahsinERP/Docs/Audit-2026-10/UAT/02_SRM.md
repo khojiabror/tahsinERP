@@ -166,7 +166,7 @@ Ombor qoldig'ini **Omborxona → Ombor → Operatsiyalar → Qoldiqlar** sahifas
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-XAR-11. Invoysni tahrirlash: summa qayta hisoblanadi, raqam takrori taqiqlanadi
-**Nima tekshiriladi:** Qatorlar o'zgarganda invoys summasi va Moliyadagi ko'zgu yozuvi yangilanadi. Invoys raqami butun tizimda takrorlanmaydi (bazada o'chirilganlarni ham qamraydigan UNIQUE indeks bor). (audit ID: SRM-B01, SRM-B14, SRM-B20)
+**Nima tekshiriladi:** Qatorlar o'zgarganda invoys summasi va Moliyadagi ko'zgu yozuvi yangilanadi. Invoys raqami faol invoyslar orasida butun tizimda takrorlanmaydi; o'chirilgan invoys raqami qayta ishlatilishi mumkin (eski yozuv raqami avtomatik arxivlanadi). (audit ID: SRM-B01, SRM-B14, SRM-B20)
 **Kim:** demo_admin   **Oldin bajarilgan bo'lishi kerak:** T-XAR-10 (omborga kirim hali qilinmagan bo'lsin)
 **Qadamlar:**
 1. T-XAR-10 dagi invoysni **Tahrirlash** da oching. DEMO-XOM-02 miqdorini `18000` ga o'zgartirib saqlang.
@@ -177,7 +177,7 @@ Ombor qoldig'ini **Omborxona → Ombor → Operatsiyalar → Qoldiqlar** sahifas
 - 1-qadamdan keyin: QQS'siz 42 500 000 + 2 160 000 = 44 660 000; QQS 5 359 200; ro'yxatda **50 019 200**.
 - Moliya tranzaksiyasi yangi yozuv qo'shmaydi. Mavjud yozuv summasi 50 019 200 ga o'zgaradi.
 - 3-qadamdan keyin invoys ham, tranzaksiya ham yana **50 288 000** bo'ladi.
-- 4-qadamda "Shu raqamli invoys allaqachon mavjud (o'chirilganlar orasida ham bo'lishi mumkin)." xabari chiqadi va invoys yaratilmaydi. Boshqa ta'minotchi tanlansa ham xuddi shu xabar chiqadi.
+- 4-qadamda "Shu raqamli invoys allaqachon mavjud." xabari chiqadi va invoys yaratilmaydi. Boshqa ta'minotchi tanlansa ham xuddi shu xabar chiqadi.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-XAR-12. SRM Dashboard va Buyurtma kuzatuv
