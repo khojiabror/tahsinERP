@@ -163,6 +163,7 @@ namespace tahsinERP.Controllers
                         DueDate = model.DueDate,
                         Incoterms = model.Incoterms,
                         PaymentTerms = model.PaymentTerms,
+                        PaymentDays = model.PaymentDays,
                         CurrencyID = model.CurrencyID,
                         CompanyID = int.Parse(ConfigurationManager.AppSettings["companyID"]),
                         IsDeleted = false
@@ -287,6 +288,7 @@ namespace tahsinERP.Controllers
                     DueDate = contract.DueDate,
                     Incoterms = contract.Incoterms,
                     PaymentTerms = contract.PaymentTerms,
+                    PaymentDays = contract.PaymentDays,
                     CurrencyID = contract.CurrencyID,
                     Amount = (decimal)SContractVatHelper.CalculateContractTotalWithVat(contract.S_CONTRACT_PRODUCTS),
                     ProductList = contract.S_CONTRACT_PRODUCTS.Select(p => new SContractProductViewModel
@@ -367,6 +369,7 @@ namespace tahsinERP.Controllers
                     contractToUpdate.DueDate = model.DueDate;
                     contractToUpdate.Incoterms = model.Incoterms;
                     contractToUpdate.PaymentTerms = model.PaymentTerms;
+                    contractToUpdate.PaymentDays = model.PaymentDays;
                     contractToUpdate.CurrencyID = model.CurrencyID;
 
                     db.S_CONTRACT_PRODUCTS.RemoveRange(productsToRemove);

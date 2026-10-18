@@ -19,6 +19,15 @@ namespace tahsinERP.Services.Procurement
     public sealed class PInvoiceService
     {
         private readonly DBTHSNEntities _db;
+        private int? _piecesUnitId;
+
+        /// <summary>"dona" birligi (UNITS.SystemCode = PCS) — birlik ko'rsatilmaganda zaxira qiymat.</summary>
+        private int PiecesUnitId()
+        {
+            if (!_piecesUnitId.HasValue)
+                _piecesUnitId = SystemRefs.UnitId(_db, SystemCodes.Unit.Pieces) ?? 0;
+            return _piecesUnitId.Value;
+        }
         private readonly ModelStateDictionary _errors;
 
         public PInvoiceService(DBTHSNEntities db, ModelStateDictionary errors)
@@ -398,11 +407,11 @@ namespace tahsinERP.Services.Procurement
             foreach (var line in list)
             {
                 // Foydalanuvchi tanlagan birlik saqlanadi (masalan, m3/CBM). Avval kesiladigan mahsulotlar
-                // majburan donaga (UnitID=1) o'tkazilardi — m3 da kiritilgan miqdor donaga aylanib qolardi.
+                // majburan donaga o'tkazilardi — m3 da kiritilgan miqdor donaga aylanib qolardi.
                 int productUnit;
                 int unitId = line.UnitID > 0
                     ? line.UnitID
-                    : (productUnits.TryGetValue(line.ProductID, out productUnit) ? productUnit : 1);
+                    : (productUnits.TryGetValue(line.ProductID, out productUnit) ? productUnit : PiecesUnitId());
 
                 var invoiceProduct = new P_INVOICE_PRODUCTS
                 {

@@ -11,6 +11,8 @@ namespace tahsinERP.Services.Finance
     /// Pul oqimi va analitika hisobotlari (Cashflow, FinancialOverview, Category/Account/Direction analytics,
     /// AccountBalances, P&amp;L). Avval davrdagi barcha tranzaksiyalar Include'lar bilan xotiraga olinib,
     /// u yerda guruhlanardi (FIN-P06/P08/P09, lazy-load N+1) — endi agregatsiya SQL'da.
+    /// FIN-B01: barcha jamilar so'mda — tranzaksiyalar (kategoriya, hisob, yo'nalish, valyuta, kun) guruhlarida
+    /// kun kursi bilan o'giriladi (<see cref="FinMoneyQueries.UzsBuckets"/>); avval UZS va USD qo'shib yuborilardi.
     /// </summary>
     public static class FinAnalyticsService
     {
@@ -89,26 +91,35 @@ namespace tahsinERP.Services.Finance
             public decimal Out { get; set; }
         }
 
-        private static InOut Totals(IQueryable<FIN_TRANSACTIONS> q)
+        private static InOut Totals(List<TxnBucket> buckets)
         {
-            return q.GroupBy(t => 1)
-                .Select(g => new InOut
-                {
-                    In = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
-                    Out = g.Sum(t => t.Direction == 2 ? t.Amount : 0m)
-                })
-                .FirstOrDefault() ?? new InOut();
+            return new InOut
+            {
+                In = buckets.Where(b => b.Direction == 1).Sum(b => b.Uzs),
+                Out = buckets.Where(b => b.Direction == 2).Sum(b => b.Uzs)
+            };
         }
 
-        /// <summary>Naqd (IsCash) va bank (IsBank) faol hisoblari qoldig'i — bitta GROUP BY (FIN-P02).</summary>
+        private static Dictionary<int, string> CategoryNames(DBTHSNEntities db)
+        {
+            return db.FIN_CATEGORIES.AsNoTracking().Select(c => new { c.ID, c.Name }).ToList().ToDictionary(c => c.ID, c => c.Name);
+        }
+
+        /// <summary>
+        /// Naqd (IsCash) va bank (IsBank) faol hisoblari qoldig'i so'mda — har hisob qoldig'i o'z valyutasida
+        /// bugungi kurs bilan o'giriladi (bitta GROUP BY, FIN-P02).
+        /// </summary>
         private static void CashAndBankBalances(DBTHSNEntities db, out decimal cash, out decimal bank, out List<FIN_ACCOUNTS> cashAccounts, out List<FIN_ACCOUNTS> bankAccounts)
         {
             cashAccounts = db.FIN_ACCOUNTS.AsNoTracking().Where(a => a.IsCash && a.IsActive).OrderBy(a => a.ID).ToList();
             bankAccounts = db.FIN_ACCOUNTS.AsNoTracking().Where(a => a.IsBank && a.IsActive).OrderBy(a => a.ID).ToList();
             var ids = cashAccounts.Select(a => a.ID).Concat(bankAccounts.Select(a => a.ID)).ToList();
             var balances = FinQueries.AccountBalances(db, ids);
-            cash = FinQueries.SumBalance(balances, cashAccounts.Select(a => a.ID));
-            bank = FinQueries.SumBalance(balances, bankAccounts.Select(a => a.ID));
+            var money = FinMoney.For(db);
+            decimal Uzs(IEnumerable<FIN_ACCOUNTS> accounts) => accounts
+                .Sum(a => balances.TryGetValue(a.ID, out var b) ? money.Uzs(b, a.CurrencyID, DateTime.Today) : 0m);
+            cash = Uzs(cashAccounts);
+            bank = Uzs(bankAccounts);
         }
 
         public static CashflowResult Cashflow(DBTHSNEntities db, DateTime fromDate, DateTime toDate, int? accountID)
@@ -120,30 +131,19 @@ namespace tahsinERP.Services.Finance
                 query = query.Where(t => t.AccountID == acc);
             }
 
-            var totals = Totals(query);
-            CashAndBankBalances(db, out var cash, out var bank, out var cashAccounts, out var bankAccounts);
+            var buckets = query.UzsBuckets(db);
+            var totals = Totals(buckets);
+            CashAndBankBalances(db, out var cash, out var bank, out _, out _);
 
-            // Asosiy valyuta: davrdagi eng ko'p ishlatilgani, bo'lmasa birinchi naqd/bank hisobining valyutasi.
-            var currencyId = FinQueries.MostUsedCurrencyId(query);
-            if (!currencyId.HasValue)
-            {
-                var firstAccount = cashAccounts.FirstOrDefault() ?? bankAccounts.FirstOrDefault();
-                currencyId = firstAccount?.CurrencyID;
-            }
-            var currency = currencyId.HasValue ? db.CURRENCIES.AsNoTracking().FirstOrDefault(c => c.ID == currencyId.Value) : null;
-            currency = currency ?? db.CURRENCIES.AsNoTracking().FirstOrDefault();
-
-            var daily = query
-                .GroupBy(t => DbFunctions.TruncateTime(t.TxnDate))
-                .Select(g => new
+            var daily = buckets
+                .GroupBy(b => b.Day)
+                .OrderBy(g => g.Key)
+                .Select(g => new DailyFlow
                 {
-                    Day = g.Key,
-                    Inflow = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
-                    Outflow = g.Sum(t => t.Direction == 2 ? t.Amount : 0m)
+                    Date = g.Key.ToString("dd.MM.yyyy"),
+                    Inflow = g.Where(b => b.Direction == 1).Sum(b => b.Uzs),
+                    Outflow = g.Where(b => b.Direction == 2).Sum(b => b.Uzs)
                 })
-                .OrderBy(x => x.Day)
-                .ToList()
-                .Select(x => new DailyFlow { Date = x.Day.Value.ToString("dd.MM.yyyy"), Inflow = x.Inflow, Outflow = x.Outflow })
                 .ToList();
 
             return new CashflowResult
@@ -151,41 +151,37 @@ namespace tahsinERP.Services.Finance
                 Inflow = totals.In,
                 Outflow = totals.Out,
                 CurrentBalance = cash + bank,
-                CurrencyShortname = currency?.Shortname ?? "UZS",
+                CurrencyShortname = FinMoney.For(db).BaseShortname,
                 DailyData = daily
             };
         }
 
         public static OverviewResult FinancialOverview(DBTHSNEntities db, DateTime fromDate, DateTime toDate)
         {
-            var query = FinQueries.Active(db).InPeriod(fromDate, toDate).RealCash();
-            var totals = Totals(query);
+            var buckets = FinQueries.Active(db).InPeriod(fromDate, toDate).RealCash().UzsBuckets(db);
+            var totals = Totals(buckets);
             CashAndBankBalances(db, out var cash, out var bank, out _, out _);
+            var names = CategoryNames(db);
 
             List<CategoryAmount> TopCategories(byte direction)
             {
-                return query
-                    .Where(t => t.Direction == direction)
-                    .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name })
-                    .Select(g => new { g.Key.CategoryName, Amount = g.Sum(t => t.Amount) })
+                return buckets
+                    .Where(b => b.Direction == direction)
+                    .GroupBy(b => b.CategoryID)
+                    .Select(g => new CategoryAmount { CategoryName = names.TryGetValue(g.Key, out var n) ? n : null, Amount = g.Sum(b => b.Uzs) })
                     .OrderByDescending(x => x.Amount)
                     .Take(10)
-                    .ToList()
-                    .Select(x => new CategoryAmount { CategoryName = x.CategoryName, Amount = x.Amount })
                     .ToList();
             }
 
-            var monthly = query
-                .GroupBy(t => new { t.TxnDate.Year, t.TxnDate.Month })
-                .Select(g => new
+            var monthly = buckets
+                .GroupBy(b => new { b.Day.Year, b.Day.Month })
+                .Select(g => new PeriodIncomeExpense
                 {
-                    g.Key.Year,
-                    g.Key.Month,
-                    Income = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
-                    Expense = g.Sum(t => t.Direction == 2 ? t.Amount : 0m)
+                    Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    Income = g.Where(b => b.Direction == 1).Sum(b => b.Uzs),
+                    Expense = g.Where(b => b.Direction == 2).Sum(b => b.Uzs)
                 })
-                .ToList()
-                .Select(x => new PeriodIncomeExpense { Period = $"{x.Year}-{x.Month:D2}", Income = x.Income, Expense = x.Expense })
                 .OrderBy(x => x.Period)
                 .ToList();
 
@@ -198,11 +194,11 @@ namespace tahsinERP.Services.Finance
                 TopExpenseCategories = TopCategories(2),
                 TopIncomeCategories = TopCategories(1),
                 MonthlyData = monthly,
-                CurrencyShortname = FinQueries.PrimaryCurrencyShortname(db, query)
+                CurrencyShortname = FinMoney.For(db).BaseShortname
             };
         }
 
-        /// <summary>Kategoriyalar kesimida chiqim (direction=2) yoki kirim (1): summa va soni.</summary>
+        /// <summary>Kategoriyalar kesimida chiqim (direction=2) yoki kirim (1): summa (so'mda) va soni.</summary>
         public static List<CategoryBreakdownItem> CategoryBreakdown(DBTHSNEntities db, DateTime fromDate, DateTime toDate, int? categoryID, byte direction)
         {
             var query = FinQueries.Active(db).InPeriod(fromDate, toDate).RealCash().Where(t => t.Direction == direction);
@@ -212,15 +208,16 @@ namespace tahsinERP.Services.Finance
                 query = query.Where(t => t.CategoryID == cat);
             }
 
-            return query
-                .GroupBy(t => new { t.CategoryID, CategoryName = t.FIN_CATEGORIES.Name, CategoryType = t.FIN_CATEGORIES.Type })
+            var categories = db.FIN_CATEGORIES.AsNoTracking().Select(c => new { c.ID, c.Name, c.Type }).ToList().ToDictionary(c => c.ID);
+            return query.UzsBuckets(db)
+                .GroupBy(b => b.CategoryID)
                 .Select(g => new CategoryBreakdownItem
                 {
-                    CategoryID = g.Key.CategoryID,
-                    CategoryName = g.Key.CategoryName,
-                    CategoryType = g.Key.CategoryType,
-                    Amount = g.Sum(t => t.Amount),
-                    TransactionCount = g.Count()
+                    CategoryID = g.Key,
+                    CategoryName = categories.TryGetValue(g.Key, out var c) ? c.Name : null,
+                    CategoryType = categories.TryGetValue(g.Key, out var c2) ? c2.Type : (byte)0,
+                    Amount = g.Sum(b => b.Uzs),
+                    TransactionCount = g.Sum(b => b.Count)
                 })
                 .OrderByDescending(x => x.Amount)
                 .ToList();
@@ -235,64 +232,59 @@ namespace tahsinERP.Services.Finance
                 query = query.Where(t => t.AccountID == acc);
             }
 
-            currencyShortname = FinQueries.PrimaryCurrencyShortname(db, query);
-
-            return query
-                .Where(t => t.FIN_ACCOUNTS.Name != null && t.FIN_ACCOUNTS.Name != "")
-                .GroupBy(t => new { t.AccountID, t.FIN_ACCOUNTS.Name, t.FIN_ACCOUNTS.Code, t.FIN_ACCOUNTS.IsCash, t.FIN_ACCOUNTS.IsBank })
-                .Select(g => new
-                {
-                    g.Key.AccountID,
-                    g.Key.Name,
-                    g.Key.Code,
-                    g.Key.IsCash,
-                    g.Key.IsBank,
-                    In = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
-                    Out = g.Sum(t => t.Direction == 2 ? t.Amount : 0m),
-                    Count = g.Count()
-                })
+            currencyShortname = FinMoney.For(db).BaseShortname;
+            var accounts = db.FIN_ACCOUNTS.AsNoTracking()
+                .Where(a => a.Name != null && a.Name != "")
+                .Select(a => new { a.ID, a.Name, a.Code, a.IsCash, a.IsBank })
                 .ToList()
-                .Select(x => new AccountUsageData
+                .ToDictionary(a => a.ID);
+
+            return query.UzsBuckets(db)
+                .Where(b => accounts.ContainsKey(b.AccountID))
+                .GroupBy(b => b.AccountID)
+                .Select(g =>
                 {
-                    AccountID = x.AccountID,
-                    AccountName = x.Name ?? "",
-                    AccountCode = x.Code ?? "",
-                    AccountType = x.IsCash ? "Naqd pul" : (x.IsBank ? "Bank" : "Boshqa"),
-                    TotalInflow = x.In,
-                    TotalOutflow = x.Out,
-                    TransactionCount = x.Count,
-                    NetAmount = x.In - x.Out
+                    var a = accounts[g.Key];
+                    var inflow = g.Where(b => b.Direction == 1).Sum(b => b.Uzs);
+                    var outflow = g.Where(b => b.Direction == 2).Sum(b => b.Uzs);
+                    return new AccountUsageData
+                    {
+                        AccountID = a.ID,
+                        AccountName = a.Name ?? "",
+                        AccountCode = a.Code ?? "",
+                        AccountType = a.IsCash ? "Naqd pul" : (a.IsBank ? "Bank" : "Boshqa"),
+                        TotalInflow = inflow,
+                        TotalOutflow = outflow,
+                        TransactionCount = g.Sum(b => b.Count),
+                        NetAmount = inflow - outflow
+                    };
                 })
                 .OrderByDescending(x => Math.Abs(x.NetAmount))
                 .ToList();
         }
 
-        /// <summary>Chiqim (2) yoki kirim (1) tahlili: kategoriya, hisob va oy kesimida (D20).</summary>
+        /// <summary>Chiqim (2) yoki kirim (1) tahlili: kategoriya, hisob va oy kesimida, so'mda (D20).</summary>
         public static DirectionAnalysisResult DirectionAnalysis(DBTHSNEntities db, DateTime fromDate, DateTime toDate, byte direction)
         {
-            var query = FinQueries.Active(db).Where(t => t.Direction == direction).InPeriod(fromDate, toDate).RealCash();
+            var buckets = FinQueries.Active(db).Where(t => t.Direction == direction).InPeriod(fromDate, toDate).RealCash().UzsBuckets(db);
+            var categoryNames = CategoryNames(db);
+            var accountNames = db.FIN_ACCOUNTS.AsNoTracking().Select(a => new { a.ID, a.Name }).ToList().ToDictionary(a => a.ID, a => a.Name);
 
-            var byCategory = query
-                .GroupBy(t => new { t.CategoryID, t.FIN_CATEGORIES.Name })
-                .Select(g => new { g.Key.Name, Amount = g.Sum(t => t.Amount) })
+            var byCategory = buckets
+                .GroupBy(b => b.CategoryID)
+                .Select(g => new NamedAmount { Name = (categoryNames.TryGetValue(g.Key, out var n) ? n : null) ?? "", Amount = g.Sum(b => b.Uzs) })
                 .OrderByDescending(x => x.Amount)
-                .ToList()
-                .Select(x => new NamedAmount { Name = x.Name ?? "", Amount = x.Amount })
                 .ToList();
 
-            var byAccount = query
-                .GroupBy(t => new { t.AccountID, t.FIN_ACCOUNTS.Name })
-                .Select(g => new { g.Key.Name, Amount = g.Sum(t => t.Amount) })
+            var byAccount = buckets
+                .GroupBy(b => b.AccountID)
+                .Select(g => new NamedAmount { Name = (accountNames.TryGetValue(g.Key, out var n) ? n : null) ?? "", Amount = g.Sum(b => b.Uzs) })
                 .OrderByDescending(x => x.Amount)
-                .ToList()
-                .Select(x => new NamedAmount { Name = x.Name ?? "", Amount = x.Amount })
                 .ToList();
 
-            var monthly = query
-                .GroupBy(t => new { t.TxnDate.Year, t.TxnDate.Month })
-                .Select(g => new { g.Key.Year, g.Key.Month, Amount = g.Sum(t => t.Amount) })
-                .ToList()
-                .Select(x => new MonthlyData { Period = $"{x.Year}-{x.Month:D2}", Amount = x.Amount })
+            var monthly = buckets
+                .GroupBy(b => new { b.Day.Year, b.Day.Month })
+                .Select(g => new MonthlyData { Period = $"{g.Key.Year}-{g.Key.Month:D2}", Amount = g.Sum(b => b.Uzs) })
                 .OrderBy(x => x.Period)
                 .ToList();
 
@@ -302,7 +294,7 @@ namespace tahsinERP.Services.Finance
                 ByAccount = byAccount,
                 Monthly = monthly,
                 Total = byCategory.Sum(x => x.Amount),
-                CurrencyShortname = FinQueries.PrimaryCurrencyShortname(db, query)
+                CurrencyShortname = FinMoney.For(db).BaseShortname
             };
         }
 
@@ -439,11 +431,13 @@ namespace tahsinERP.Services.Finance
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
+            // FIN-B01: so'mda (kun kursi)
             var sums = FinQueries.Active(db)
                 .Where(t => t.TxnDate >= startDate && t.TxnDate <= endDate)
                 .RealCash()
-                .GroupBy(t => new { t.CategoryID, t.Direction })
-                .Select(g => new { g.Key.CategoryID, g.Key.Direction, Amount = g.Sum(t => t.Amount) })
+                .UzsBuckets(db)
+                .GroupBy(b => new { b.CategoryID, b.Direction })
+                .Select(g => new { g.Key.CategoryID, g.Key.Direction, Amount = g.Sum(b => b.Uzs) })
                 .ToList();
 
             var allPlItems = db.FIN_PL_ITEMS.AsNoTracking()

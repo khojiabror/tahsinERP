@@ -4,6 +4,7 @@ using System.Linq;
 using tahsinERP.Models;
 using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Services
 {
@@ -13,20 +14,40 @@ namespace tahsinERP.Services
     public static class FinancePostingService
     {
         /// <summary>
-        /// Kontragent hisobini topadi: avval aniq kod bo'yicha (RECEIVABLES_{valyuta} / PAYABLES_{valyuta}),
-        /// so'ng eski ma'lumot uchun nom bo'yicha; topilmasa yangisi qo'shiladi (SaveChanges chaqiruvchida).
-        /// Nofaol hisob qayta faollashtiriladi.
+        /// Tizim moliya kategoriyasini SystemCode bo'yicha topadi; yo'q bo'lsa qo'shadi (SaveChanges chaqiruvchida),
+        /// nofaol bo'lsa faollashtiradi (UNIQUE SystemCode sababli ikkinchisi yaratilmaydi).
+        /// </summary>
+        public static FIN_CATEGORIES EnsureSystemCategory(DBTHSNEntities db, string systemCode, string defaultName, byte type)
+        {
+            var category = db.FIN_CATEGORIES.FirstOrDefault(c => c.SystemCode == systemCode);
+            if (category == null)
+            {
+                category = new FIN_CATEGORIES
+                {
+                    Name = defaultName,
+                    Type = type,
+                    IsActive = true,
+                    SortOrder = 1,
+                    SystemCode = systemCode
+                };
+                db.FIN_CATEGORIES.Add(category);
+            }
+            else if (!category.IsActive)
+            {
+                category.IsActive = true;
+            }
+            return category;
+        }
+
+        /// <summary>
+        /// Kontragent hisobini FAQAT kod bo'yicha topadi (RECEIVABLES_{valyuta} / PAYABLES_{valyuta});
+        /// topilmasa yangisi qo'shiladi (SaveChanges chaqiruvchida). Nofaol hisob qayta faollashtiriladi.
+        /// Nom bo'yicha qidiruv olib tashlandi: hisob nomini foydalanuvchi erkin o'zgartiradi.
         /// </summary>
         private static FIN_ACCOUNTS ResolveCounterpartyAccount(DBTHSNEntities db, string code, int currencyId,
-            string legacyName, string legacyNameEn, string newName, int userId)
+            string newName, int userId)
         {
             var account = db.FIN_ACCOUNTS.FirstOrDefault(a => a.Code == code);
-            if (account == null)
-            {
-                account = db.FIN_ACCOUNTS
-                    .FirstOrDefault(a => a.IsActive && a.CurrencyID == currencyId && !a.IsCash && !a.IsBank &&
-                                         (a.Name.Contains(legacyName) || a.Name.Contains(legacyNameEn)));
-            }
 
             if (account == null)
             {
@@ -76,27 +97,16 @@ namespace tahsinERP.Services
             var currencyId = invoice.CurrencyID ?? 1;
             var receivableCode = "RECEIVABLES_" + currencyId;
 
-            var account = ResolveCounterpartyAccount(db, receivableCode, currencyId,
-                "Debitorlar", "Receivable", "Debitorlar qarzi", userId);
+            var account = ResolveCounterpartyAccount(db, receivableCode, currencyId, "Debitorlar qarzi", userId);
             if (account.ID == 0)
             {
                 db.SaveChanges();
             }
 
-            // Find sales revenue category
-            var category = db.FIN_CATEGORIES
-                .FirstOrDefault(c => c.Name.Contains("Sotuv") && c.Type == 1 && c.IsActive);
-
-            if (category == null)
+            // Sotuv daromadi — SALES tizim kategoriyasi
+            var category = EnsureSystemCategory(db, SystemCodes.FinCategory.Sales, "Sotuv daromadi", 1);
+            if (category.ID == 0)
             {
-                category = new FIN_CATEGORIES
-                {
-                    Name = "Sotuv daromadi",
-                    Type = 1, // Income
-                    IsActive = true,
-                    SortOrder = 1
-                };
-                db.FIN_CATEGORIES.Add(category);
                 db.SaveChanges();
             }
 
@@ -155,24 +165,10 @@ namespace tahsinERP.Services
                 LogHelper.LogToDatabase("System", "FinancePosting", "PostPurchaseInvoice",
                     $"Xarid invoysi {invoiceID}: valyuta ko'rsatilmagan, standart valyuta (ID {currencyId}) olindi");
             }
-            var account = ResolveCounterpartyAccount(db, "PAYABLES_" + currencyId, currencyId,
-                "Kreditorlar", "Creditor", "Kreditorlar qarzi", userId);
+            var account = ResolveCounterpartyAccount(db, "PAYABLES_" + currencyId, currencyId, "Kreditorlar qarzi", userId);
 
-            // Find purchase expense category
-            var category = db.FIN_CATEGORIES
-                .FirstOrDefault(c => c.Name.Contains("Xarid") && c.Type == 2 && c.IsActive);
-
-            if (category == null)
-            {
-                category = new FIN_CATEGORIES
-                {
-                    Name = "Xarid xarajatlari",
-                    Type = 2, // Expense
-                    IsActive = true,
-                    SortOrder = 1
-                };
-                db.FIN_CATEGORIES.Add(category);
-            }
+            // Xarid xarajati — PURCHASE tizim kategoriyasi
+            var category = EnsureSystemCategory(db, SystemCodes.FinCategory.Purchase, "Xarid xarajatlari", 2);
 
             var transaction = existing ?? new FIN_TRANSACTIONS
             {

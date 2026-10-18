@@ -423,7 +423,7 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                return DocFileResult.For(await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.CompanyOrder));
+                return await DocFileResult.ForAsync(db, await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.CompanyOrder));
             }
         }
 

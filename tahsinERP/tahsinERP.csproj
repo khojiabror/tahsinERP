@@ -327,6 +327,7 @@
     <Compile Include="Controllers\MES\QualityInspectionController.cs" />
     <Compile Include="Controllers\OfficialLettersController.cs" />
     <Compile Include="Controllers\Settings\CompanyController.cs" />
+    <Compile Include="Controllers\Settings\BrandingController.cs" />
     <Compile Include="Controllers\Settings\CurrencyController.cs" />
     <Compile Include="Controllers\Settings\UnitController.cs" />
     <Compile Include="Controllers\AdminSetting\LogController.cs" />
@@ -421,6 +422,9 @@
     <Compile Include="Models\COM_OFFICIAL_LETTERS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\COM_OFFICIAL_LETTER_ITEMS.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\COOKIES_CONFIRMATION.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -465,6 +469,9 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DOC_FILES.cs">
+      <DependentUpon>DBTHSNModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DOC_FILE_CONTENTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DOC_TEMPLATES.cs">
@@ -515,9 +522,6 @@
     <Compile Include="Models\F_CONTRACTS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\F_CONTRACT_DOCS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\F_CONTRACT_TARIFFS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -525,9 +529,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\F_WAYBILLS.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\F_WAYBILL_DOCS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\F_WAYBILL_PAYMENTS.cs">
@@ -827,6 +828,7 @@
     <Compile Include="Services\LicenseSync\LicensePanelClient.cs" />
     <Compile Include="Services\LicenseSync\LicenseSyncService.cs" />
     <Compile Include="Filters\LicenseCheckAttribute.cs" />
+    <Compile Include="Filters\MustChangePasswordAttribute.cs" />
     <Compile Include="Filters\EditionCheckAttribute.cs" />
     <Compile Include="Services\Editions\EditionGate.cs" />
     <Compile Include="Services\Editions\EditionModules.cs" />
@@ -879,6 +881,7 @@
     <Compile Include="Services\Finance\FinAnalyticsService.cs" />
     <Compile Include="Services\Finance\FinLiabilities.cs" />
     <Compile Include="Services\Finance\FinQueries.cs" />
+    <Compile Include="Services\Finance\FinMoney.cs" />
     <Compile Include="Services\Finance\FinCounterpartyLookupService.cs" />
     <Compile Include="Services\Finance\OpeningBalanceService.cs" />
     <Compile Include="Services\Finance\OpeningBalanceExcelService.cs" />
@@ -930,7 +933,10 @@
     <Compile Include="Services\AuditLogQueue.cs" />
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
+    <Compile Include="Services\Common\DataTablesRequest.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
+    <Compile Include="Services\Common\SystemCodes.cs" />
+    <Compile Include="Services\Common\BrandingService.cs" />
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
@@ -3289,7 +3295,6 @@
     <Content Include="Views\Home\StatusView.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Create.cshtml" />
-    <Content Include="Views\CustomerBase\Delete.cshtml" />
     <Content Include="Views\CustomerBase\Details.cshtml" />
     <Content Include="Views\CustomerBase\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Index.cshtml" />

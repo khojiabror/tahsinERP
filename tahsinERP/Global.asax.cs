@@ -13,12 +13,9 @@ namespace tahsinERP
             AreaRegistration.RegisterAllAreas();
             // X-Frame-Options web.config'dagi customHeaders orqali beriladi (dublikat bo'lmasin)
             System.Web.Helpers.AntiForgeryConfig.SuppressXFrameOptionsHeader = true;
-            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters); // Global filtrlarga LogActionFilter ni qo'shish
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters); // HandleError, Authorize, LicenseCheck, MustChangePassword, EditionCheck
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-            GlobalFilters.Filters.Add(new AuthorizeAttribute());
-            GlobalFilters.Filters.Add(new tahsinERP.Filters.LicenseCheckAttribute()); // Litsenziya (company muddat) tekshiruvi
-            GlobalFilters.Filters.Add(new tahsinERP.Filters.EditionCheckAttribute()); // Paket (Edition) bo'yicha modul cheklovi
             tahsinERP.Services.LicenseSync.LicenseSyncService.Start(); // panel URL bo'sh bo'lsa (on-prem offline) hech narsa qilmaydi
         }
 

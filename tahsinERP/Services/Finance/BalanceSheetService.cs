@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels.Finance;
 
@@ -18,9 +19,6 @@ namespace tahsinERP.Services.Finance
     /// </summary>
     public sealed class BalanceSheetService
     {
-        public const string PayablesCategoryName = "Ta'minotchilardan qarzlar";
-        public const string ReceivablesCategoryName = "Xaridorlardan haqlarimiz";
-
         private readonly DBTHSNEntities _db;
         private readonly CounterpartyBalanceService _counterparties;
         private readonly Dictionary<DateTime, List<BalanceCategoryDetailData>> _cache = new Dictionary<DateTime, List<BalanceCategoryDetailData>>();
@@ -36,21 +34,16 @@ namespace tahsinERP.Services.Finance
         /// <summary>
         /// AR/AP/oylik kabi subledger kategoriyalari dinamik (FIN_OPENING_CONTRACT_BALANCES + harakatlar) hisoblanadi —
         /// ular uchun kategoriya darajasidagi FIN_BALANCE_SNAPSHOTS "OpeningBalance" yozuvi ishlatilmaydi.
+        /// Kategoriya SystemCode bo'yicha aniqlanadi (avval nomidagi "qarz"/"haq"/"oylik" so'zlari bo'yicha edi).
         /// </summary>
-        public static bool IsDetailedSubledgerCategoryName(string name)
+        public static bool IsDetailedSubledgerCategory(FIN_BALANCE_CATEGORIES category)
         {
-            if (string.IsNullOrWhiteSpace(name)) return false;
-            var n = name.Trim().ToLowerInvariant();
-            return n.Contains("debitor") || n.Contains("kreditor") || n.Contains("mijoz")
-                || n.Contains("xaridor") || n.Contains("haqq") || n.Contains("haq")
-                || n.Contains("ta'minot") || n.Contains("qarz") || n.Contains("oylik");
+            return SystemCodes.BalanceCategory.IsSubledger(category);
         }
 
-        public static bool IsLogisticsLiabilityCategoryName(string name)
+        private static bool Is(FIN_BALANCE_CATEGORIES category, string systemCode)
         {
-            if (name == null) return false;
-            var n = name.ToLower();
-            return n.Contains("logistika") && n.Contains("qarz");
+            return SystemCodes.BalanceCategory.Is(category, systemCode);
         }
 
         private static string GetCalculationTypeName(int? calculationType)
@@ -102,16 +95,18 @@ namespace tahsinERP.Services.Finance
                     Latest = g.OrderByDescending(s => s.SnapshotDate).FirstOrDefault()
                 })
                 .ToList()
-                .ToDictionary(x => x.CategoryID, x => new { x.Latest.Amount, x.Latest.SnapshotDate });
+                // FIN-B01: opening summasi so'mga (snapshot sanasidagi kurs)
+                .ToDictionary(x => x.CategoryID, x => new { Amount = FinMoney.For(db).Uzs(x.Latest.Amount, x.Latest.CurrencyID, x.Latest.SnapshotDate), x.Latest.SnapshotDate });
 
-            foreach (var c in categories.Where(c => IsDetailedSubledgerCategoryName(c.Name)))
+            foreach (var c in categories.Where(IsDetailedSubledgerCategory))
             {
                 openingSnapshots.Remove(c.ID);
             }
 
             var accounts = db.FIN_ACCOUNTS.AsNoTracking().Where(a => a.IsActive).ToList();
 
-            // Hisob → kategoriya: avval FIN_ACCOUNTS.BalanceCategoryID, bo'lmasa nom bo'yicha moslash (eski fallback).
+            // Hisob → kategoriya: avval FIN_ACCOUNTS.BalanceCategoryID; bog'lanmagan bo'lsa — naqd hisob CASH,
+            // bank hisobi BANK tizim kategoriyasiga (avval nomlar bir-biriga Contains bilan solishtirilardi).
             var mappedAccountsByCategory = accounts
                 .Where(a => a.BalanceCategoryID.HasValue)
                 .GroupBy(a => a.BalanceCategoryID.Value)
@@ -120,9 +115,8 @@ namespace tahsinERP.Services.Finance
             foreach (var account in accounts)
             {
                 var matchingCategory = categories.FirstOrDefault(c =>
-                    (c.Name.Contains(account.Name) || account.Name.Contains(c.Name)) ||
-                    (c.Name == "Naqd pul" && account.IsCash) ||
-                    (c.Name == "Bank hisobi" && account.IsBank));
+                    (account.IsCash && Is(c, SystemCodes.BalanceCategory.Cash)) ||
+                    (account.IsBank && Is(c, SystemCodes.BalanceCategory.Bank)));
                 if (matchingCategory != null)
                 {
                     accountToBalanceCategory[account.ID] = matchingCategory.ID;
@@ -165,19 +159,19 @@ namespace tahsinERP.Services.Finance
                 }
 
                 // Kreditorlik/debitorlik — CalculationType'dan qat'i nazar hujjatlar bo'yicha (FIFO).
-                if (category.Name == PayablesCategoryName)
+                if (Is(category, SystemCodes.BalanceCategory.Payables))
                 {
                     FillPayables(detail, asOfDate);
                     continue;
                 }
-                if (category.Name == ReceivablesCategoryName)
+                if (Is(category, SystemCodes.BalanceCategory.Receivables))
                 {
                     FillReceivables(detail, asOfDate);
                     continue;
                 }
 
                 // Ombor: opening bo'lsa — shu qiymat (override), bo'lmasa ombor hisobi.
-                if (string.Equals(category.Name, BalanceInventoryValuation.FinishedGoodsCategoryName, StringComparison.OrdinalIgnoreCase))
+                if (Is(category, SystemCodes.BalanceCategory.FinishedGoods))
                 {
                     if (!openingDate.HasValue)
                     {
@@ -193,7 +187,7 @@ namespace tahsinERP.Services.Finance
                     }
                     continue;
                 }
-                if (string.Equals(category.Name, BalanceInventoryValuation.RawMaterialCategoryName, StringComparison.OrdinalIgnoreCase))
+                if (Is(category, SystemCodes.BalanceCategory.RawMaterials))
                 {
                     if (!openingDate.HasValue)
                     {
@@ -259,7 +253,7 @@ namespace tahsinERP.Services.Finance
                         break;
 
                     case 3: // Document-Based
-                        if (FinQueries.IsSalaryLiabilityCategory(category.Name))
+                        if (Is(category, SystemCodes.BalanceCategory.PayrollDebt))
                         {
                             // FIN-B18: ReportsHub bilan bir xil funksiya; oylik opening'i (BalanceType 3) hisobga olinadi
                             var payroll = FinLiabilities.PayrollByEmployee(db, _counterparties, asOfDate);
@@ -269,7 +263,7 @@ namespace tahsinERP.Services.Finance
                                 ? $"Oylik opening ({payroll.OpeningDate.Value:dd.MM.yyyy}) {payroll.OpeningNet:N2} + hisoblangan {payroll.Accrued:N2} − to'langan {payroll.Paid:N2}"
                                 : $"Oyliklar bo'yicha: hisoblangan {payroll.Accrued:N2}, to'langan {payroll.Paid:N2}";
                         }
-                        else if (IsLogisticsLiabilityCategoryName(category.Name))
+                        else if (Is(category, SystemCodes.BalanceCategory.LogisticsDebt))
                         {
                             var logistics = FinLiabilities.Logistics(db, _counterparties, asOfDate);
                             if (logistics.PaymentQuery != null)
@@ -281,7 +275,7 @@ namespace tahsinERP.Services.Finance
                                 ? $"Opening balans ({logistics.OpeningDate.Value:dd.MM.yyyy}) + yo'l varaqalari {logistics.WaybillTotal:N2} − to'lovlar {logistics.Paid:N2}"
                                 : $"Yo'l varaqalari bo'yicha: {logistics.WaybillTotal:N2}, to'lovlar {logistics.Paid:N2}";
                         }
-                        else if (category.Name == FinLiabilities.RecurringObligationCategoryName)
+                        else if (Is(category, SystemCodes.BalanceCategory.RecurringObligations))
                         {
                             // Avval faqat BalanceSheet'da bor edi, details/DCF/Liabilities'da yo'q edi (FIN-B02).
                             var recurring = FinLiabilities.RecurringObligationsLiability(db, category.ID, asOfDate, openingDate, includeUnassigned: true);
@@ -372,19 +366,17 @@ namespace tahsinERP.Services.Finance
             public decimal Net { get; set; }
         }
 
-        /// <summary>Soni, kirim, chiqim va sof summa — bitta so'rov bilan (avval 3–4 ta).</summary>
-        private static TxnStats PopulateTransactionStats(IQueryable<FIN_TRANSACTIONS> query, BalanceCategoryDetailData detail)
+        /// <summary>Soni, kirim, chiqim va sof summa — so'mda (FIN-B01: kun kursi), bitta so'rov bilan.</summary>
+        private TxnStats PopulateTransactionStats(IQueryable<FIN_TRANSACTIONS> query, BalanceCategoryDetailData detail)
         {
-            var stats = query
-                .GroupBy(t => 1)
-                .Select(g => new TxnStats
-                {
-                    Count = g.Count(),
-                    Added = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
-                    Subtracted = g.Sum(t => t.Direction != 1 ? t.Amount : 0m),
-                    Net = g.Sum(t => t.Direction == 1 ? t.Amount : -t.Amount)
-                })
-                .FirstOrDefault() ?? new TxnStats();
+            var buckets = query.UzsBuckets(_db);
+            var stats = new TxnStats
+            {
+                Count = buckets.Sum(b => b.Count),
+                Added = buckets.Where(b => b.Direction == 1).Sum(b => b.Uzs),
+                Subtracted = buckets.Where(b => b.Direction != 1).Sum(b => b.Uzs),
+                Net = buckets.Sum(b => b.SignedUzs)
+            };
 
             detail.TransactionCount = stats.Count;
             detail.AddedAmount = stats.Added;
@@ -402,7 +394,7 @@ namespace tahsinERP.Services.Finance
                 return new { success = false, message = "Kategoriya topilmadi" };
             }
 
-            if (string.Equals(category.Name, BalanceInventoryValuation.FinishedGoodsCategoryName, StringComparison.OrdinalIgnoreCase))
+            if (Is(category, SystemCodes.BalanceCategory.FinishedGoods))
             {
                 var wh = BalanceInventoryValuation.ResolveProductionWarehouse(db);
                 return new
@@ -416,7 +408,7 @@ namespace tahsinERP.Services.Finance
                 };
             }
 
-            if (string.Equals(category.Name, BalanceInventoryValuation.RawMaterialCategoryName, StringComparison.OrdinalIgnoreCase))
+            if (Is(category, SystemCodes.BalanceCategory.RawMaterials))
             {
                 var wh = BalanceInventoryValuation.ResolveRawMaterialWarehouse(db);
                 return new
@@ -432,11 +424,11 @@ namespace tahsinERP.Services.Finance
 
             // Subledger kategoriyalari uchun opening sanasi dinamik manbadan, aks holda kategoriya snapshot'idan.
             DateTime? fromExclusive;
-            if (IsDetailedSubledgerCategoryName(category.Name))
+            if (IsDetailedSubledgerCategory(category))
             {
-                int balanceType = category.Name == ReceivablesCategoryName
+                int balanceType = Is(category, SystemCodes.BalanceCategory.Receivables)
                     ? CounterpartyBalanceService.BalanceTypeReceivable
-                    : (FinQueries.IsSalaryLiabilityCategory(category.Name) ? CounterpartyBalanceService.BalanceTypePayroll : CounterpartyBalanceService.BalanceTypePayable);
+                    : (Is(category, SystemCodes.BalanceCategory.PayrollDebt) ? CounterpartyBalanceService.BalanceTypePayroll : CounterpartyBalanceService.BalanceTypePayable);
                 fromExclusive = _counterparties.LatestOpeningDate(asOfDate, balanceType);
             }
             else
@@ -450,7 +442,7 @@ namespace tahsinERP.Services.Finance
 
             const int top = 20;
 
-            if (category.Name == PayablesCategoryName)
+            if (Is(category, SystemCodes.BalanceCategory.Payables))
             {
                 // Popup'da invoys/to'lovlar to'liq ko'rsatiladi (opening'dan keyingisi emas, asOfDate gacha).
                 var addedRaw = db.P_INVOICES.AsNoTracking()
@@ -507,7 +499,7 @@ namespace tahsinERP.Services.Finance
                 return new { success = true, added, subtracted };
             }
 
-            if (category.Name == ReceivablesCategoryName)
+            if (Is(category, SystemCodes.BalanceCategory.Receivables))
             {
                 var added = db.SALES_INVOICES.Active()
                     .Where(i => i.InvoiceDate <= asOfDate &&
@@ -523,8 +515,9 @@ namespace tahsinERP.Services.Finance
                     })
                     .ToList();
 
+                // Sotuv tushumi — SALES tizim kategoriyasi (avval nomida "Sotuv" bo'lgan barcha daromad kategoriyalari)
                 var salesCategoryIds = db.FIN_CATEGORIES
-                    .Where(c => c.IsActive && c.Type == 1 && c.Name.Contains("Sotuv"))
+                    .Where(c => c.IsActive && c.SystemCode == SystemCodes.FinCategory.Sales)
                     .Select(c => c.ID)
                     .ToList();
 
@@ -549,7 +542,7 @@ namespace tahsinERP.Services.Finance
                 return new { success = true, added, subtracted };
             }
 
-            if (FinQueries.IsSalaryLiabilityCategory(category.Name))
+            if (Is(category, SystemCodes.BalanceCategory.PayrollDebt))
             {
                 var headers = db.HR_PAYROLL_HEADERS.AsNoTracking()
                     .Where(p => (p.IsDeleted == null || p.IsDeleted == false) &&

@@ -356,10 +356,7 @@ namespace tahsinERP.Controllers
                 var currentDocx = docxFiles.FirstOrDefault(f => f.IsMain) ?? docxFiles.FirstOrDefault(); // ro'yxat VersionNo DESC
                 if (currentDocx != null)
                 {
-                    var docxBytes = await db.DOC_FILES.AsNoTracking()
-                        .Where(f => f.ID == currentDocx.ID)
-                        .Select(f => f.FileContent)
-                        .FirstOrDefaultAsync();
+                    var docxBytes = await DocFileService.ContentAsync(db, currentDocx.ID);
                     if (docxBytes != null)
                     {
                         imageFiles = WordDocumentImageService.ListImages(docxBytes)
@@ -479,12 +476,13 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var file = await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.CompanyStandard);
-                if (file == null || file.FileContent == null || !string.Equals(file.FileExtension, ".docx", StringComparison.OrdinalIgnoreCase))
+                if (file == null || !string.Equals(file.FileExtension, ".docx", StringComparison.OrdinalIgnoreCase))
                 {
                     return HttpNotFound();
                 }
 
-                var image = WordDocumentImageService.GetImage(file.FileContent, index);
+                var content = await DocFileService.ContentAsync(db, file.ID);
+                var image = content == null ? null : WordDocumentImageService.GetImage(content, index);
                 if (image == null)
                 {
                     return HttpNotFound();
@@ -504,7 +502,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var file = await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.CompanyStandard);
-                if (file == null || file.FileContent == null)
+                if (file == null)
                 {
                     return HttpNotFound();
                 }
@@ -514,7 +512,7 @@ namespace tahsinERP.Controllers
                     return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest, "Bu fayl rasm emas");
                 }
 
-                return DocFileResult.For(file);
+                return await DocFileResult.ForAsync(db, file);
             }
         }
 

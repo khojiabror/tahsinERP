@@ -107,6 +107,22 @@
           <Property Name="Topic" Type="nvarchar" MaxLength="500" />
           <Property Name="ExternalContactPosition" Type="nvarchar" MaxLength="200" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="BodyHtml" Type="nvarchar(max)" />
+          <Property Name="GreetingLine" Type="nvarchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="COM_OFFICIAL_LETTER_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="ItemName" Type="nvarchar" MaxLength="500" />
+          <Property Name="ItemSize" Type="nvarchar" MaxLength="200" />
+          <Property Name="PriceExw" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatExw" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="PriceCip" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatCip" Type="decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="COMPANIES">
           <Key>
@@ -335,14 +351,6 @@
           <Property Name="CurrencyID" Type="int" Nullable="false" />
           <Property Name="ProductionID" Type="int" />
         </EntityType>
-        <EntityType Name="F_CONTRACT_DOCS">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="ContractID" Type="int" />
-          <Property Name="Doc" Type="varbinary(max)" />
-        </EntityType>
         <EntityType Name="F_CONTRACT_TARIFFS">
           <Key>
             <PropertyRef Name="ID" />
@@ -393,14 +401,6 @@
           <Property Name="TransportWeight" Type="float" />
           <Property Name="UnitID" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
-        </EntityType>
-        <EntityType Name="F_WAYBILL_DOCS">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="WaybillID" Type="int" Nullable="false" />
-          <Property Name="Doc" Type="varbinary(max)" />
         </EntityType>
         <EntityType Name="F_WAYBILL_PAYMENT_SPLITS">
           <Key>
@@ -526,6 +526,7 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CalculationType" Type="tinyint" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="FIN_BALANCE_CATEGORY_CATEGORIES">
           <Key>
@@ -560,6 +561,7 @@
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="FIN_OPENING_CONTRACT_BALANCES">
           <Key>
@@ -1315,6 +1317,7 @@
           <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
           <Property Name="CalculateByWeight" Type="bit" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -1486,6 +1489,7 @@
           <Property Name="Amount" Type="float" />
           <Property Name="Incoterms" Type="varchar" MaxLength="15" />
           <Property Name="PaymentTerms" Type="varchar" MaxLength="50" />
+          <Property Name="PaymentDays" Type="int" />
           <Property Name="DueDate" Type="date" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="CurrencyID" Type="int" Nullable="false" />
@@ -1860,6 +1864,7 @@
           <Property Name="ShortName" Type="varchar" MaxLength="20" Nullable="false" />
           <Property Name="Code" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="USER_ENTRIES">
           <Key>
@@ -1905,8 +1910,6 @@
           <Property Name="IP" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="MacAddr" Type="varchar" MaxLength="50" Nullable="false" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.USERROLES' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="USERROLES">
           <Key>
             <PropertyRef Name="UserID" />
@@ -1928,6 +1931,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.USERROLES' does not have a primar
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="HashCode" Type="varchar" MaxLength="30" />
           <Property Name="CompanyID" Type="int" />
+          <Property Name="MustChangePassword" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="WAREHOUSE_LOCATIONS">
           <Key>
@@ -2447,18 +2451,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_F_CONTRACT_DOCS_F_CONTRACTS">
-          <End Role="F_CONTRACTS" Type="Self.F_CONTRACTS" Multiplicity="0..1" />
-          <End Role="F_CONTRACT_DOCS" Type="Self.F_CONTRACT_DOCS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="F_CONTRACTS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="F_CONTRACT_DOCS">
-              <PropertyRef Name="ContractID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_F_CONTRACT_TARIFFS_CONTRACTS">
           <End Role="F_CONTRACTS" Type="Self.F_CONTRACTS" Multiplicity="1" />
           <End Role="F_CONTRACT_TARIFFS" Type="Self.F_CONTRACT_TARIFFS" Multiplicity="*" />
@@ -2540,18 +2532,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="F_TRANSPORT_TYPES">
               <PropertyRef Name="UnitID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_F_WAYBILL_DOCS_F_WAYBILLS">
-          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="1" />
-          <End Role="F_WAYBILL_DOCS" Type="Self.F_WAYBILL_DOCS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="F_WAYBILLS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="F_WAYBILL_DOCS">
-              <PropertyRef Name="WaybillID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5276,6 +5256,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="BOM_HEADERS" EntityType="Self.BOM_HEADERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="BOM_LINES" EntityType="Self.BOM_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COM_OFFICIAL_LETTERS" EntityType="Self.COM_OFFICIAL_LETTERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="COM_OFFICIAL_LETTER_ITEMS" EntityType="Self.COM_OFFICIAL_LETTER_ITEMS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COMPANIES" EntityType="Self.COMPANIES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COMPANY_LICENSES" EntityType="Self.COMPANY_LICENSES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COOKIES_CONFIRMATION" EntityType="Self.COOKIES_CONFIRMATION" Schema="dbo" store:Type="Tables" />
@@ -5292,11 +5273,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="EXPENSE_PRODUCT_ALLOCATIONS" EntityType="Self.EXPENSE_PRODUCT_ALLOCATIONS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="EXPENSE_PRODUCTS" EntityType="Self.EXPENSE_PRODUCTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="EXPENSES" EntityType="Self.EXPENSES" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="F_CONTRACT_DOCS" EntityType="Self.F_CONTRACT_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_CONTRACT_TARIFFS" EntityType="Self.F_CONTRACT_TARIFFS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_CONTRACTS" EntityType="Self.F_CONTRACTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_TRANSPORT_TYPES" EntityType="Self.F_TRANSPORT_TYPES" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="F_WAYBILL_DOCS" EntityType="Self.F_WAYBILL_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILL_PAYMENT_SPLITS" EntityType="Self.F_WAYBILL_PAYMENT_SPLITS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILL_PAYMENTS" EntityType="Self.F_WAYBILL_PAYMENTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="F_WAYBILLS" EntityType="Self.F_WAYBILLS" Schema="dbo" store:Type="Tables" />
@@ -5399,12 +5378,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="WASTES" EntityType="Self.WASTES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WRHS_EXPENSE_DOCS" EntityType="Self.WRHS_EXPENSE_DOCS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WRHS_INCOME_DOCS" EntityType="Self.WRHS_INCOME_DOCS" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="USERROLES" EntityType="Self.USERROLES" store:Type="Tables" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [USERROLES].[UserID] AS [UserID], 
-    [USERROLES].[RoleID] AS [RoleID]
-    FROM [dbo].[USERROLES] AS [USERROLES]</DefiningQuery>
-          </EntitySet>
+          <EntitySet Name="USERROLES" EntityType="Self.USERROLES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="Self.V_FIN_PL_FACT_MONTHLY" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
     [V_FIN_PL_FACT_MONTHLY].[Year] AS [Year], 
@@ -5563,10 +5537,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="WAREHOUSE_LOCATIONS" EntitySet="WAREHOUSE_LOCATIONS" />
             <End Role="EXPENSE_PRODUCT_ALLOCATIONS" EntitySet="EXPENSE_PRODUCT_ALLOCATIONS" />
           </AssociationSet>
-          <AssociationSet Name="FK_F_CONTRACT_DOCS_F_CONTRACTS" Association="Self.FK_F_CONTRACT_DOCS_F_CONTRACTS">
-            <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
-            <End Role="F_CONTRACT_DOCS" EntitySet="F_CONTRACT_DOCS" />
-          </AssociationSet>
           <AssociationSet Name="FK_F_CONTRACT_TARIFFS_CONTRACTS" Association="Self.FK_F_CONTRACT_TARIFFS_CONTRACTS">
             <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
             <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
@@ -5594,10 +5564,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_F_TRANSPORT_TYPES_UNITS" Association="Self.FK_F_TRANSPORT_TYPES_UNITS">
             <End Role="UNITS" EntitySet="UNITS" />
             <End Role="F_TRANSPORT_TYPES" EntitySet="F_TRANSPORT_TYPES" />
-          </AssociationSet>
-          <AssociationSet Name="FK_F_WAYBILL_DOCS_F_WAYBILLS" Association="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS">
-            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
-            <End Role="F_WAYBILL_DOCS" EntitySet="F_WAYBILL_DOCS" />
           </AssociationSet>
           <AssociationSet Name="FK_F_WAYBILL_FORWARDERS" Association="Self.FK_F_WAYBILL_FORWARDERS">
             <End Role="FORWARDERS" EntitySet="FORWARDERS" />
@@ -6602,7 +6568,23 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="Topic" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="ExternalContactPosition" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="BodyHtml" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="GreetingLine" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_COM_OFFICIAL_LETTERS_Document" FromRole="COM_OFFICIAL_LETTERS" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="COM_OFFICIAL_LETTER_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="ItemName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ItemSize" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="PriceExw" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatExw" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceCip" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatCip" Type="Decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="COMPANy">
           <Key>
@@ -6818,12 +6800,20 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="FileExtension" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="MimeType" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="FileSizeBytes" Type="Int64" />
-          <Property Name="FileContent" Type="Binary" MaxLength="Max" FixedLength="false" Nullable="false" />
           <Property Name="IsMain" Type="Boolean" Nullable="false" />
           <Property Name="CreatedByUserID" Type="Int32" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="IsDeleted" Type="Boolean" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_DOC_FILES_Document" FromRole="DOC_FILES" ToRole="DOC_DOCUMENTS" />
+          <NavigationProperty Name="DOC_FILE_CONTENTS" Relationship="Self.DOC_FILES_CONTENT" FromRole="DOC_FILES" ToRole="DOC_FILE_CONTENTS" />
+        </EntityType>
+        <EntityType Name="DOC_FILE_CONTENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" />
+          <Property Name="FileContent" Type="Binary" MaxLength="Max" FixedLength="false" Nullable="false" />
+          <NavigationProperty Name="DOC_FILES" Relationship="Self.DOC_FILES_CONTENT" FromRole="DOC_FILE_CONTENTS" ToRole="DOC_FILES" />
         </EntityType>
         <EntityType Name="DOC_TEMPLATES">
           <Key>
@@ -6887,15 +6877,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="Warehouse" Relationship="Self.FK_PROD_WRHS_EXPENSES_PROD_WRHS" FromRole="EXPENSES" ToRole="WAREHOUSES" />
           <NavigationProperty Name="Warehouse1" Relationship="Self.FK_PROD_WRHS_EXPENSES_PROD_WRHS2" FromRole="EXPENSES" ToRole="WAREHOUSES" />
         </EntityType>
-        <EntityType Name="F_CONTRACT_DOCS">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="ContractID" Type="Int32" />
-          <Property Name="Doc" Type="Binary" MaxLength="Max" FixedLength="false" />
-          <NavigationProperty Name="F_CONTRACTS" Relationship="Self.FK_F_CONTRACT_DOCS_F_CONTRACTS" FromRole="F_CONTRACT_DOCS" ToRole="F_CONTRACTS" />
-        </EntityType>
         <EntityType Name="F_CONTRACT_TARIFFS">
           <Key>
             <PropertyRef Name="ID" />
@@ -6934,7 +6915,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="CurrencyID" Type="Int32" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_F_CONTRACTS_COMPANIES" FromRole="F_CONTRACTS" ToRole="COMPANIES" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK_F_CONTRACTS_CURRENCIES" FromRole="F_CONTRACTS" ToRole="CURRENCIES" />
-          <NavigationProperty Name="F_CONTRACT_DOCS" Relationship="Self.FK_F_CONTRACT_DOCS_F_CONTRACTS" FromRole="F_CONTRACTS" ToRole="F_CONTRACT_DOCS" />
           <NavigationProperty Name="F_CONTRACT_TARIFFS" Relationship="Self.FK_F_CONTRACT_TARIFFS_CONTRACTS" FromRole="F_CONTRACTS" ToRole="F_CONTRACT_TARIFFS" />
           <NavigationProperty Name="FORWARDER" Relationship="Self.FK_F_CONTRACTS_FORWARDERS" FromRole="F_CONTRACTS" ToRole="FORWARDERS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_F_CONTRACTS" FromRole="F_CONTRACTS" ToRole="F_WAYBILLS" />
@@ -6958,15 +6938,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="F_CONTRACT_TARIFFS" Relationship="Self.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" FromRole="F_TRANSPORT_TYPES" ToRole="F_CONTRACT_TARIFFS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_F_TRANSPORT_TYPES_UNITS" FromRole="F_TRANSPORT_TYPES" ToRole="UNITS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_F_TRANSPORT_TYPES" FromRole="F_TRANSPORT_TYPES" ToRole="F_WAYBILLS" />
-        </EntityType>
-        <EntityType Name="F_WAYBILL_DOCS">
-          <Key>
-            <PropertyRef Name="ID" />
-          </Key>
-          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="WaybillID" Type="Int32" Nullable="false" />
-          <Property Name="Doc" Type="Binary" MaxLength="Max" FixedLength="false" />
-          <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS" FromRole="F_WAYBILL_DOCS" ToRole="F_WAYBILLS" />
         </EntityType>
         <EntityType Name="F_WAYBILL_PAYMENT_SPLITS">
           <Key>
@@ -7042,7 +7013,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK_F_WAYBILLS_CURRENCIES" FromRole="F_WAYBILLS" ToRole="CURRENCIES" />
           <NavigationProperty Name="F_CONTRACTS" Relationship="Self.FK_F_WAYBILLS_F_CONTRACTS" FromRole="F_WAYBILLS" ToRole="F_CONTRACTS" />
           <NavigationProperty Name="F_TRANSPORT_TYPES" Relationship="Self.FK_F_WAYBILLS_F_TRANSPORT_TYPES" FromRole="F_WAYBILLS" ToRole="F_TRANSPORT_TYPES" />
-          <NavigationProperty Name="F_WAYBILL_DOCS" Relationship="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_DOCS" />
           <NavigationProperty Name="F_WAYBILL_PAYMENT_SPLITS" Relationship="Self.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_PAYMENT_SPLITS" />
           <NavigationProperty Name="F_WAYBILL_PAYMENTS" Relationship="Self.FK_F_WAYBILL_PAYMENTS_WAYBILLS" FromRole="F_WAYBILLS" ToRole="F_WAYBILL_PAYMENTS" />
           <NavigationProperty Name="FORWARDER" Relationship="Self.FK_F_WAYBILLS_FORWARDERS" FromRole="F_WAYBILLS" ToRole="FORWARDERS" />
@@ -7085,6 +7055,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="CalculationType" Type="Byte" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="FIN_ACCOUNTS" Relationship="Self.FK_FIN_ACCOUNTS_BalanceCategory" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_ACCOUNTS" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES1" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES" ToRole="FIN_BALANCE_CATEGORIES1" />
           <NavigationProperty Name="FIN_BALANCE_CATEGORIES2" Relationship="Self.FK_FIN_BALANCE_CATEGORIES_PARENT" FromRole="FIN_BALANCE_CATEGORIES1" ToRole="FIN_BALANCE_CATEGORIES" />
@@ -7119,6 +7090,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="FIN_CATEGORIES1" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES" ToRole="FIN_CATEGORIES1" />
           <NavigationProperty Name="FIN_CATEGORIES2" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES1" ToRole="FIN_CATEGORIES" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_CATEGORIES" ToRole="FIN_TRANSACTIONS" />
@@ -7999,6 +7971,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
           <Property Name="CalculateByWeight" Type="Boolean" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT_CATEGORIES" ToRole="PRODUCTS" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
@@ -8229,6 +8202,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="Amount" Type="Double" />
           <Property Name="Incoterms" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
           <Property Name="PaymentTerms" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PaymentDays" Type="Int32" />
           <Property Name="DueDate" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" Nullable="false" />
@@ -8686,6 +8660,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="ShortName" Type="String" MaxLength="20" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="Code" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="BOM_LINES" Relationship="Self.FK_BOM_LINES_UNITS" FromRole="UNITS" ToRole="BOM_LINES" />
           <NavigationProperty Name="EXPENSE_PRODUCTS" Relationship="Self.FK_PROD_WRHS_EXPENSE_PRODUCTS_UNITS" FromRole="UNITS" ToRole="EXPENSE_PRODUCTS" />
           <NavigationProperty Name="F_TRANSPORT_TYPES" Relationship="Self.FK_F_TRANSPORT_TYPES_UNITS" FromRole="UNITS" ToRole="F_TRANSPORT_TYPES" />
@@ -8764,6 +8739,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="HashCode" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
           <Property Name="CompanyID" Type="Int32" />
+          <Property Name="MustChangePassword" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_USERS_COMPANIES" FromRole="USERS" ToRole="COMPANIES" />
           <NavigationProperty Name="COOKIES_CONFIRMATION" Relationship="Self.FK_COOKIES_CONFIRMATION_USERS" FromRole="USERS" ToRole="COOKIES_CONFIRMATION" />
           <NavigationProperty Name="FIN_ACCOUNTS" Relationship="Self.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="USERS" ToRole="FIN_ACCOUNTS" />
@@ -9542,6 +9518,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="DOC_FILES_CONTENT">
+          <End Role="DOC_FILES" Type="Self.DOC_FILES" Multiplicity="1" />
+          <End Role="DOC_FILE_CONTENTS" Type="Self.DOC_FILE_CONTENTS" Multiplicity="1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_FILES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_FILE_CONTENTS">
+              <PropertyRef Name="ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_HR_JOB_DESCRIPTIONS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
           <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="0..1" />
@@ -9654,18 +9642,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_F_CONTRACT_DOCS_F_CONTRACTS">
-          <End Role="F_CONTRACTS" Type="Self.F_CONTRACTS" Multiplicity="0..1" />
-          <End Role="F_CONTRACT_DOCS" Type="Self.F_CONTRACT_DOCS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="F_CONTRACTS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="F_CONTRACT_DOCS">
-              <PropertyRef Name="ContractID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_F_CONTRACT_TARIFFS_CONTRACTS">
           <End Role="F_CONTRACTS" Type="Self.F_CONTRACTS" Multiplicity="1" />
           <End Role="F_CONTRACT_TARIFFS" Type="Self.F_CONTRACT_TARIFFS" Multiplicity="*" />
@@ -9735,18 +9711,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Principal>
             <Dependent Role="F_WAYBILLS">
               <PropertyRef Name="TransportTypeID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_F_WAYBILL_DOCS_F_WAYBILLS">
-          <End Role="F_WAYBILLS" Type="Self.F_WAYBILLS" Multiplicity="1" />
-          <End Role="F_WAYBILL_DOCS" Type="Self.F_WAYBILL_DOCS" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="F_WAYBILLS">
-              <PropertyRef Name="ID" />
-            </Principal>
-            <Dependent Role="F_WAYBILL_DOCS">
-              <PropertyRef Name="WaybillID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -11879,6 +11843,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="BOM_HEADERS" EntityType="Self.BOM_HEADERS" />
           <EntitySet Name="BOM_LINES" EntityType="Self.BOM_LINES" />
           <EntitySet Name="COM_OFFICIAL_LETTERS" EntityType="Self.COM_OFFICIAL_LETTERS" />
+          <EntitySet Name="COM_OFFICIAL_LETTER_ITEMS" EntityType="Self.COM_OFFICIAL_LETTER_ITEMS" />
           <EntitySet Name="COMPANIES" EntityType="Self.COMPANy" />
           <EntitySet Name="COMPANY_LICENSES" EntityType="Self.COMPANY_LICENSES" />
           <EntitySet Name="COOKIES_CONFIRMATION" EntityType="Self.COOKIES_CONFIRMATION" />
@@ -11891,14 +11856,13 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="DOC_DOCUMENT_TYPES" EntityType="Self.DOC_DOCUMENT_TYPES" />
           <EntitySet Name="DOC_DOCUMENTS" EntityType="Self.DOC_DOCUMENTS" />
           <EntitySet Name="DOC_FILES" EntityType="Self.DOC_FILES" />
+          <EntitySet Name="DOC_FILE_CONTENTS" EntityType="Self.DOC_FILE_CONTENTS" />
           <EntitySet Name="DOC_TEMPLATES" EntityType="Self.DOC_TEMPLATES" />
           <EntitySet Name="EXPENSE_PRODUCTS" EntityType="Self.EXPENSE_PRODUCTS" />
           <EntitySet Name="EXPENSES" EntityType="Self.EXPENS" />
-          <EntitySet Name="F_CONTRACT_DOCS" EntityType="Self.F_CONTRACT_DOCS" />
           <EntitySet Name="F_CONTRACT_TARIFFS" EntityType="Self.F_CONTRACT_TARIFFS" />
           <EntitySet Name="F_CONTRACTS" EntityType="Self.F_CONTRACTS" />
           <EntitySet Name="F_TRANSPORT_TYPES" EntityType="Self.F_TRANSPORT_TYPES" />
-          <EntitySet Name="F_WAYBILL_DOCS" EntityType="Self.F_WAYBILL_DOCS" />
           <EntitySet Name="F_WAYBILL_PAYMENT_SPLITS" EntityType="Self.F_WAYBILL_PAYMENT_SPLITS" />
           <EntitySet Name="F_WAYBILL_PAYMENTS" EntityType="Self.F_WAYBILL_PAYMENTS" />
           <EntitySet Name="F_WAYBILLS" EntityType="Self.F_WAYBILLS" />
@@ -12207,6 +12171,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="DOC_FILES" EntitySet="DOC_FILES" />
           </AssociationSet>
+          <AssociationSet Name="DOC_FILES_CONTENT" Association="Self.DOC_FILES_CONTENT">
+            <End Role="DOC_FILES" EntitySet="DOC_FILES" />
+            <End Role="DOC_FILE_CONTENTS" EntitySet="DOC_FILE_CONTENTS" />
+          </AssociationSet>
           <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_Document" Association="Self.FK_HR_JOB_DESCRIPTIONS_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="HR_JOB_DESCRIPTIONS" EntitySet="HR_JOB_DESCRIPTIONS" />
@@ -12243,10 +12211,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="WAREHOUSES" EntitySet="WAREHOUSES" />
             <End Role="EXPENSES" EntitySet="EXPENSES" />
           </AssociationSet>
-          <AssociationSet Name="FK_F_CONTRACT_DOCS_F_CONTRACTS" Association="Self.FK_F_CONTRACT_DOCS_F_CONTRACTS">
-            <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
-            <End Role="F_CONTRACT_DOCS" EntitySet="F_CONTRACT_DOCS" />
-          </AssociationSet>
           <AssociationSet Name="FK_F_CONTRACT_TARIFFS_CONTRACTS" Association="Self.FK_F_CONTRACT_TARIFFS_CONTRACTS">
             <End Role="F_CONTRACTS" EntitySet="F_CONTRACTS" />
             <End Role="F_CONTRACT_TARIFFS" EntitySet="F_CONTRACT_TARIFFS" />
@@ -12270,10 +12234,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_F_WAYBILLS_F_TRANSPORT_TYPES" Association="Self.FK_F_WAYBILLS_F_TRANSPORT_TYPES">
             <End Role="F_TRANSPORT_TYPES" EntitySet="F_TRANSPORT_TYPES" />
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
-          </AssociationSet>
-          <AssociationSet Name="FK_F_WAYBILL_DOCS_F_WAYBILLS" Association="Self.FK_F_WAYBILL_DOCS_F_WAYBILLS">
-            <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
-            <End Role="F_WAYBILL_DOCS" EntitySet="F_WAYBILL_DOCS" />
           </AssociationSet>
           <AssociationSet Name="FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" Association="Self.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS">
             <End Role="F_WAYBILLS" EntitySet="F_WAYBILLS" />
@@ -13479,6 +13439,23 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="Topic" ColumnName="Topic" />
                 <ScalarProperty Name="ExternalContactPosition" ColumnName="ExternalContactPosition" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="BodyHtml" ColumnName="BodyHtml" />
+                <ScalarProperty Name="GreetingLine" ColumnName="GreetingLine" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="COM_OFFICIAL_LETTER_ITEMS">
+            <EntityTypeMapping TypeName="DBTHSNModel.COM_OFFICIAL_LETTER_ITEMS">
+              <MappingFragment StoreEntitySet="COM_OFFICIAL_LETTER_ITEMS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="ItemSize" ColumnName="ItemSize" />
+                <ScalarProperty Name="PriceExw" ColumnName="PriceExw" />
+                <ScalarProperty Name="PriceVatExw" ColumnName="PriceVatExw" />
+                <ScalarProperty Name="PriceCip" ColumnName="PriceCip" />
+                <ScalarProperty Name="PriceVatCip" ColumnName="PriceVatCip" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13652,11 +13629,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="FileExtension" ColumnName="FileExtension" />
                 <ScalarProperty Name="MimeType" ColumnName="MimeType" />
                 <ScalarProperty Name="FileSizeBytes" ColumnName="FileSizeBytes" />
-                <ScalarProperty Name="FileContent" ColumnName="FileContent" />
                 <ScalarProperty Name="IsMain" ColumnName="IsMain" />
                 <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DOC_FILE_CONTENTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.DOC_FILE_CONTENTS">
+              <MappingFragment StoreEntitySet="DOC_FILES">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FileContent" ColumnName="FileContent" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13713,15 +13697,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="F_CONTRACT_DOCS">
-            <EntityTypeMapping TypeName="DBTHSNModel.F_CONTRACT_DOCS">
-              <MappingFragment StoreEntitySet="F_CONTRACT_DOCS">
-                <ScalarProperty Name="ID" ColumnName="ID" />
-                <ScalarProperty Name="ContractID" ColumnName="ContractID" />
-                <ScalarProperty Name="Doc" ColumnName="Doc" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="F_CONTRACT_TARIFFS">
             <EntityTypeMapping TypeName="DBTHSNModel.F_CONTRACT_TARIFFS">
               <MappingFragment StoreEntitySet="F_CONTRACT_TARIFFS">
@@ -13773,15 +13748,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="TransportWeight" ColumnName="TransportWeight" />
                 <ScalarProperty Name="UnitID" ColumnName="UnitID" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="F_WAYBILL_DOCS">
-            <EntityTypeMapping TypeName="DBTHSNModel.F_WAYBILL_DOCS">
-              <MappingFragment StoreEntitySet="F_WAYBILL_DOCS">
-                <ScalarProperty Name="ID" ColumnName="ID" />
-                <ScalarProperty Name="WaybillID" ColumnName="WaybillID" />
-                <ScalarProperty Name="Doc" ColumnName="Doc" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13884,6 +13850,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="CalculationType" ColumnName="CalculationType" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13912,6 +13879,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14665,6 +14633,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
                 <ScalarProperty Name="CalculateByWeight" ColumnName="CalculateByWeight" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14848,6 +14817,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="Amount" ColumnName="Amount" />
                 <ScalarProperty Name="Incoterms" ColumnName="Incoterms" />
                 <ScalarProperty Name="PaymentTerms" ColumnName="PaymentTerms" />
+                <ScalarProperty Name="PaymentDays" ColumnName="PaymentDays" />
                 <ScalarProperty Name="DueDate" ColumnName="DueDate" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
@@ -15243,6 +15213,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="ShortName" ColumnName="ShortName" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -15306,6 +15277,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="HashCode" ColumnName="HashCode" />
                 <ScalarProperty Name="CompanyID" ColumnName="CompanyID" />
+                <ScalarProperty Name="MustChangePassword" ColumnName="MustChangePassword" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

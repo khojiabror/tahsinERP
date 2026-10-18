@@ -83,13 +83,23 @@ namespace tahsinERP.Services.Documents
                 FileExtension = extension,
                 MimeType = mimeType,
                 FileSizeBytes = content.Length,
-                FileContent = content,
+                // Blob alohida entity'da (DOC-P02 table splitting) — metadata so'rovlari uni o'qimaydi
+                DOC_FILE_CONTENTS = new DOC_FILE_CONTENTS { FileContent = content },
                 IsMain = true,
                 CreatedByUserID = userId,
                 CreatedDT = DateTime.Now
             };
             db.DOC_FILES.Add(file);
             return file;
+        }
+
+        /// <summary>Fayl baytlari (faqat yuklab berish/konvertatsiya uchun); topilmasa null.</summary>
+        public static Task<byte[]> ContentAsync(DBTHSNEntities db, long fileId)
+        {
+            return db.DOC_FILE_CONTENTS.AsNoTracking()
+                .Where(c => c.ID == fileId)
+                .Select(c => c.FileContent)
+                .FirstOrDefaultAsync();
         }
 
         public static async Task<int> NextVersionNoAsync(DBTHSNEntities db, long documentId)

@@ -12,12 +12,16 @@ namespace tahsinERP.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class F_WAYBILL_DOCS
+    public partial class COM_OFFICIAL_LETTER_ITEMS
     {
-        public int ID { get; set; }
-        public int WaybillID { get; set; }
-        public byte[] Doc { get; set; }
-    
-        public virtual F_WAYBILLS F_WAYBILLS { get; set; }
+        public long ID { get; set; }
+        public long DocumentID { get; set; }
+        public int SortOrder { get; set; }
+        public string ItemName { get; set; }
+        public string ItemSize { get; set; }
+        public Nullable<decimal> PriceExw { get; set; }
+        public Nullable<decimal> PriceVatExw { get; set; }
+        public Nullable<decimal> PriceCip { get; set; }
+        public Nullable<decimal> PriceVatCip { get; set; }
     }
 }

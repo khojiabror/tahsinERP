@@ -12,12 +12,11 @@ namespace tahsinERP.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class F_CONTRACT_DOCS
+    public partial class DOC_FILE_CONTENTS
     {
-        public int ID { get; set; }
-        public Nullable<int> ContractID { get; set; }
-        public byte[] Doc { get; set; }
+        public long ID { get; set; }
+        public byte[] FileContent { get; set; }
     
-        public virtual F_CONTRACTS F_CONTRACTS { get; set; }
+        public virtual DOC_FILES DOC_FILES { get; set; }
     }
 }

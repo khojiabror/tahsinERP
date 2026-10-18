@@ -31,6 +31,7 @@ namespace tahsinERP.Models
         public Nullable<double> Amount { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
+        public Nullable<int> PaymentDays { get; set; }
         public System.DateTime DueDate { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public int CurrencyID { get; set; }

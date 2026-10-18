@@ -193,15 +193,16 @@ namespace tahsinERP.Controllers
                     contractBalances = await new ContractBalanceService(db).GetContractBalancesAsync(contractId.Value, productIds);
                 }
 
-                // CBM faqat kesiladigan mahsulot donada (UnitID=1) saqlangan bo'lsa hisoblanadi.
+                // CBM faqat kesiladigan mahsulot donada (UNITS.SystemCode = PCS) saqlangan bo'lsa hisoblanadi.
                 // Agar foydalanuvchi to'g'ridan-to'g'ri m3 kiritgan bo'lsa, qayta aylantirish shart emas.
                 var conversionService = new UnitConversionService(db);
+                var piecesUnitId = SystemRefs.UnitId(db, SystemCodes.Unit.Pieces);
                 var productCBMInfo = new Dictionary<int, decimal>();
                 foreach (var invoiceProduct in invoice.P_INVOICE_PRODUCTS)
                 {
                     bool requiresCutting = invoiceProduct.PRODUCT?.PRODUCT_CATEGORIES?.RequiresCutting == true
                                            && invoiceProduct.PRODUCT.CategoryID.HasValue;
-                    if (requiresCutting && invoiceProduct.UnitID == 1)
+                    if (requiresCutting && invoiceProduct.UnitID == piecesUnitId)
                     {
                         try
                         {

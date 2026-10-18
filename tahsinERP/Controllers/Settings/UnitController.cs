@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Filters;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -91,6 +92,9 @@ namespace tahsinERP.Controllers.Settings
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var unitToDelete = await db.UNITS.FindAsync(id);
+                // Tizim birligi (SystemCode) — kod unga bog'langan, o'chirilmaydi
+                if (unitToDelete != null && SystemCodes.IsSystem(unitToDelete.SystemCode))
+                    return RedirectToAction("Delete", new { id });
                 if (unitToDelete != null)
                 {
                     try

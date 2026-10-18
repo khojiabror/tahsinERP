@@ -819,8 +819,7 @@ namespace tahsinERP.Controllers.HR
         private async Task<int?> FindDefaultSalaryCategoryIdAsync()
         {
             return await db.FIN_CATEGORIES.AsNoTracking()
-                .Where(c => c.IsActive && c.IsDeleted != true && c.Type == 2 && c.Name != null &&
-                            (c.Name.ToLower().Contains("oylik") || c.Name.ToLower().Contains("ish haqi")))
+                .Where(c => c.IsActive && c.IsDeleted != true && c.SystemCode == SystemCodes.FinCategory.Payroll)
                 .OrderBy(c => c.SortOrder).ThenBy(c => c.ID)
                 .Select(c => (int?)c.ID)
                 .FirstOrDefaultAsync();
