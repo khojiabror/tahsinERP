@@ -931,6 +931,7 @@
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
+    <Compile Include="Services\Stock\ExpenseDocumentService.cs" />
     <Compile Include="Services\Stock\IncomeDocumentService.cs" />
     <Compile Include="Services\Stock\StockCostService.cs" />
     <Compile Include="Services\Stock\StockLedger.cs" />
