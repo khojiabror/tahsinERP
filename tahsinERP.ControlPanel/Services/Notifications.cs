@@ -1,0 +1,175 @@
+using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using tahsinERP.ControlPanel.Data;
+
+namespace tahsinERP.ControlPanel.Services;
+
+public class TelegramOptions
+{
+    /// <summary>Bot token — faqat env/user-secrets (<c>ControlPanel__Telegram__BotToken</c>). Bo'sh bo'lsa xabarlar faqat logga yoziladi.</summary>
+    public string? BotToken { get; set; }
+    /// <summary>Xodimlar guruhi chat ID'si (ixtiyoriy) — barcha eslatmalarning nusxasi.</summary>
+    public string? StaffChatId { get; set; }
+}
+
+public interface ITelegramSender
+{
+    bool IsConfigured { get; }
+    Task SendAsync(string chatId, string text, CancellationToken ct = default);
+}
+
+public sealed class TelegramSender(HttpClient http, IOptions<TelegramOptions> options) : ITelegramSender
+{
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(options.Value.BotToken);
+
+    public async Task SendAsync(string chatId, string text, CancellationToken ct = default)
+    {
+        var url = $"https://api.telegram.org/bot{options.Value.BotToken}/sendMessage";
+        using var response = await http.PostAsJsonAsync(url, new { chat_id = chatId, text, disable_web_page_preview = true }, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            string body = await response.Content.ReadAsStringAsync(ct);
+            throw new HttpRequestException($"Telegram {(int)response.StatusCode}: {(body.Length > 300 ? body[..300] : body)}");
+        }
+    }
+}
+
+/// <summary>
+/// Muddat eslatmalari: obuna tugashiga 14/7/3/1 kun qolganda va tugagan kuni (00_PLAN.md 6). Har (tenant, shablon,
+/// tugash sanasi, qabul qiluvchi) uchun bir marta — Notifications.DedupKey noyob. Token yo'q bo'lsa — faqat log.
+/// </summary>
+public sealed class ExpiryReminderService(ControlDbContext db, ITelegramSender telegram, IOptions<TelegramOptions> tgOptions, Clock clock,
+    ILogger<ExpiryReminderService> log)
+{
+    public static readonly int[] Thresholds = [14, 7, 3, 1, 0];
+
+    public async Task<int> RunAsync(CancellationToken ct = default)
+    {
+        DateOnly today = clock.Today;
+        DateOnly horizon = today.AddDays(Thresholds.Max());
+        var subs = await db.Subscriptions.Include(s => s.Tenant).Include(s => s.Plan)
+            .Where(s => s.Status == SubscriptionStatus.Active && s.EndDate >= today && s.EndDate <= horizon
+                        && s.Tenant!.Status != TenantStatus.Archived && s.Tenant.Status != TenantStatus.Suspended)
+            .ToListAsync(ct);
+
+        // Tenantning eng uzoq faol obunasi bo'yicha (masalan TRIAL + yangi to'langan obuna bo'lsa — eskisi uchun eslatma kerak emas).
+        var latestEnd = await db.Subscriptions.Where(s => s.Status == SubscriptionStatus.Active)
+            .GroupBy(s => s.TenantId).Select(g => new { g.Key, End = g.Max(s => s.EndDate) }).ToDictionaryAsync(x => x.Key, x => x.End, ct);
+
+        int sent = 0;
+        foreach (var s in subs)
+        {
+            if (latestEnd.TryGetValue(s.TenantId, out var end) && end > s.EndDate)
+                continue;
+            int days = s.EndDate.DayNumber - today.DayNumber;
+            if (!Thresholds.Contains(days))
+                continue;
+            string template = "expiry-" + days;
+            string text = BuildText(s, days);
+            var recipients = new List<string?> { s.Tenant!.TelegramChatId, tgOptions.Value.StaffChatId }
+                .Where(r => !string.IsNullOrWhiteSpace(r)).Distinct().ToList();
+            if (recipients.Count == 0)
+                recipients.Add(null); // hech kim yo'q — baribir logga (dashboard'da ko'rinadi)
+            foreach (var chat in recipients)
+                if (await SendOnceAsync(s, template, chat, text, ct))
+                    sent++;
+        }
+        return sent;
+    }
+
+    public static string BuildText(Subscription s, int days)
+    {
+        string when = days == 0 ? "BUGUN tugaydi" : $"tugashiga {days} kun qoldi ({s.EndDate:dd.MM.yyyy})";
+        string what = s.Period == BillingPeriod.Trial ? "sinov muddati" : $"«{s.Plan?.Name}» obunasi";
+        return $"tahsinERP: {s.Tenant?.LegalName} ({s.Tenant?.Slug}) — {what} {when}. " +
+               (s.Period == BillingPeriod.Trial ? "Davom ettirish uchun biz bilan bog'laning." : "Uzluksiz ishlash uchun hisob-fakturani o'z vaqtida to'lang.");
+    }
+
+    private async Task<bool> SendOnceAsync(Subscription s, string template, string? chatId, string text, CancellationToken ct)
+    {
+        string dedup = $"{s.TenantId}|{template}|{s.EndDate:yyyyMMdd}|{chatId ?? "-"}";
+        if (await db.Notifications.AnyAsync(n => n.DedupKey == dedup && n.Status != NotificationStatus.Failed, ct))
+            return false;
+        var existingFailed = await db.Notifications.FirstOrDefaultAsync(n => n.DedupKey == dedup, ct);
+        var n = existingFailed ?? new Notification { TenantId = s.TenantId, Template = template, DedupKey = dedup, Recipient = chatId };
+        n.Message = text;
+        n.CreatedAtUtc = clock.UtcNow;
+        if (chatId is null || !telegram.IsConfigured)
+        {
+            n.Channel = NotificationChannel.Log;
+            n.Status = NotificationStatus.Logged;
+            log.LogInformation("Eslatma (Telegram sozlanmagan yoki chat yo'q) → {Chat}: {Text}", chatId ?? "-", text);
+        }
+        else
+        {
+            n.Channel = NotificationChannel.Telegram;
+            try
+            {
+                await telegram.SendAsync(chatId, text, ct);
+                n.Status = NotificationStatus.Sent;
+                n.Error = null;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                n.Status = NotificationStatus.Failed; // ertaga qayta urinadi
+                n.Error = ex.Message.Length > 1000 ? ex.Message[..1000] : ex.Message;
+                log.LogWarning(ex, "Telegram xabari yuborilmadi ({Chat})", chatId);
+            }
+        }
+        if (existingFailed is null)
+            db.Notifications.Add(n);
+        await db.SaveChangesAsync(ct);
+        return n.Status != NotificationStatus.Failed;
+    }
+}
+
+/// <summary>Kunlik fon ishi: hayot sikli (status) + eslatmalar. Ishga tushganda bir marta, keyin har kuni DailyJobHour da.</summary>
+public sealed class DailyJobHostedService(IServiceScopeFactory scopes, TimeProvider time, IOptions<PanelOptions> options,
+    ILogger<DailyJobHostedService> log) : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        try { await Task.Delay(TimeSpan.FromSeconds(30), time, stoppingToken); }
+        catch (OperationCanceledException) { return; }
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            await RunOnceAsync(scopes, log, stoppingToken);
+            try { await Task.Delay(DelayUntilNextRun(), time, stoppingToken); }
+            catch (OperationCanceledException) { return; }
+        }
+    }
+
+    public static async Task RunOnceAsync(IServiceScopeFactory scopes, ILogger log, CancellationToken ct)
+    {
+        try
+        {
+            using var scope = scopes.CreateScope();
+            var sp = scope.ServiceProvider;
+            int changed = await sp.GetRequiredService<SubscriptionService>().RunLifecycleAsync(ct);
+            int sent = await sp.GetRequiredService<ExpiryReminderService>().RunAsync(ct);
+            int purged = await PurgeExpiredNoncesAsync(sp.GetRequiredService<ControlDbContext>(), sp.GetRequiredService<Clock>(), ct);
+            log.LogInformation("Kunlik ish: {Changed} tenant holati o'zgardi, {Sent} eslatma, {Purged} eski nonce o'chirildi", changed, sent, purged);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            log.LogError(ex, "Kunlik ish xatosi");
+        }
+    }
+
+    /// <summary>License API nonce'lari: replay oynasidan (10 daq) o'tganlari endi kerak emas.</summary>
+    public static Task<int> PurgeExpiredNoncesAsync(ControlDbContext db, Clock clock, CancellationToken ct = default)
+    {
+        DateTime now = clock.UtcNow;
+        return db.ApiNonces.Where(n => n.ExpiresUtc < now).ExecuteDeleteAsync(ct);
+    }
+
+    private TimeSpan DelayUntilNextRun()
+    {
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZone);
+        var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(time.GetUtcNow().UtcDateTime, zone);
+        var next = nowLocal.Date.AddHours(Math.Clamp(options.Value.DailyJobHour, 0, 23));
+        if (next <= nowLocal) next = next.AddDays(1);
+        return next - nowLocal;
+    }
+}

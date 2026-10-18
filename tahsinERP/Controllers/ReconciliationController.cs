@@ -12,7 +12,7 @@ using tahsinERP.ViewModels;
 namespace tahsinERP.Controllers
 {
     /// <summary>
-    /// Akt-sverki — faqat bitta shartnoma bo'yicha (xarid / sotuv / yuk tashish shartnomasi).
+    /// Akt-sverki — bitta shartnoma yoki kontragentning barcha shartnomalari (contractId = -1) bo'yicha.
     /// </summary>
     public class ReconciliationController : Controller
     {
@@ -45,6 +45,12 @@ namespace tahsinERP.Controllers
                         .Select(c => new ReconciliationContractOption { Id = c.ID, ContractNo = c.ContractNo })
                         .ToListAsync();
 
+                    if (contractId == ReconciliationContractOption.AllContractsId)
+                    {
+                        var all = ReconciliationService.BuildSupplierReconciliation(db, id.Value, null, asOfDate.Value, companyName, supplier.Name ?? "", null);
+                        all.ContractsForParty = contractList;
+                        return View("AktSverki", all);
+                    }
                     if (!contractId.HasValue || contractId.Value <= 0)
                     {
                         var empty = EmptyVm("Supplier", id.Value, supplier.Name ?? "", companyName, asOfDate.Value, contractList);
@@ -92,6 +98,12 @@ namespace tahsinERP.Controllers
                     .Select(c => new ReconciliationContractOption { Id = c.ID, ContractNo = c.ContractNo })
                     .ToListAsync();
 
+                if (contractId == ReconciliationContractOption.AllContractsId)
+                {
+                    var all = ReconciliationService.BuildCustomerReconciliation(db, id.Value, null, asOfDate.Value, companyName, customer.Name ?? "", null);
+                    all.ContractsForParty = contractList;
+                    return View("AktSverki", all);
+                }
                 if (!contractId.HasValue || contractId.Value <= 0)
                 {
                     var empty = EmptyVm("Customer", id.Value, customer.Name ?? "", companyName, asOfDate.Value, contractList);
@@ -133,6 +145,12 @@ namespace tahsinERP.Controllers
                     .Select(c => new ReconciliationContractOption { Id = c.ID, ContractNo = c.ContractNo })
                     .ToListAsync();
 
+                if (contractId == ReconciliationContractOption.AllContractsId)
+                {
+                    var all = ReconciliationService.BuildForwarderReconciliation(db, id.Value, null, asOfDate.Value, companyName, forwarder.ForwarderName ?? "", null);
+                    all.ContractsForParty = contractList;
+                    return View("AktSverki", all);
+                }
                 if (!contractId.HasValue || contractId.Value <= 0)
                 {
                     var empty = EmptyVm("Forwarder", id.Value, forwarder.ForwarderName ?? "", companyName, asOfDate.Value, contractList);
@@ -161,7 +179,7 @@ namespace tahsinERP.Controllers
                 Party2Name = party2Name,
                 AsOfDate = asOfDate,
                 ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
-                AgreementInfo = "Akt-sverki faqat bitta tanlangan shartnoma bo'yicha shakllantiriladi.",
+                AgreementInfo = "Akt-sverki tanlangan shartnoma yoki barcha shartnomalar bo'yicha shakllantiriladi.",
                 Rows = new List<ReconciliationRowViewModel>(),
                 ContractsForParty = contractList ?? new List<ReconciliationContractOption>()
             };

@@ -1,0 +1,24 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Notifications.IndexModel
+@{ ViewData["Title"] = "Eslatmalar"; }
+<h1>Eslatmalar</h1>
+<p class="hint">Obuna tugashiga 14, 7, 3, 1 kun qolganda va tugagan kuni — tashkilotning Telegram chatiga (va xodimlar chatiga). Kunlik fon ishi.
+    Telegram: @(Model.TelegramConfigured ? "sozlangan" : "bot token yo'q — xabarlar faqat logga yoziladi").</p>
+@if (Model.IsOwner)
+{
+    <form method="post" asp-page-handler="Run" class="actions"><button type="submit" class="secondary">Kunlik ishni hozir bajarish</button></form>
+}
+<table>
+    <tr><th>Vaqt (UTC)</th><th>Tashkilot</th><th>Shablon</th><th>Kanal</th><th>Qabul qiluvchi</th><th>Holat</th><th>Matn</th></tr>
+    @foreach (var n in Model.Rows)
+    {
+        <tr>
+            <td>@n.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
+            <td>@(n.TenantId is int t ? Model.Tenants.GetValueOrDefault(t) : "")</td>
+            <td>@n.Template</td><td>@n.Channel</td><td>@n.Recipient</td>
+            <td><span class="badge @(n.Status == NotificationStatus.Failed ? "bad" : n.Status == NotificationStatus.Sent ? "ok" : "muted")">@Labels.Of(n.Status)</span> @n.Error</td>
+            <td>@n.Message</td>
+        </tr>
+    }
+</table>
+@if (Model.Rows.Count == 0) { <div class="empty">Hali eslatma yo'q.</div> }

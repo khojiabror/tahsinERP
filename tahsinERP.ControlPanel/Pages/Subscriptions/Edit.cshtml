@@ -1,0 +1,33 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Subscriptions.EditModel
+@{ ViewData["Title"] = "Obuna #" + Model.Sub.Id; }
+<h1>Obuna #@Model.Sub.Id — @Model.Sub.Tenant!.LegalName</h1>
+<div asp-validation-summary="All"></div>
+<div class="card">
+    <dl class="props">
+        <dt>Joriy paket</dt><dd>@Model.Sub.Plan!.Name (@Labels.Of(Model.Sub.Period))</dd>
+        <dt>Davr</dt><dd>@Model.Sub.StartDate.ToString("dd.MM.yyyy") – @Model.Sub.EndDate.ToString("dd.MM.yyyy")</dd>
+        <dt>Holat</dt><dd>@Labels.Of(Model.Sub.Status)</dd>
+    </dl>
+</div>
+@if (Model.Sub.Period != BillingPeriod.Trial && Model.Sub.Status is SubscriptionStatus.Pending or SubscriptionStatus.Active)
+{
+    <form method="post" class="stack card">
+        <div class="row">
+            <div>
+                <label asp-for="PlanId">Paket</label>
+                <select asp-for="PlanId">@foreach (var p in Model.Plans) { <option value="@p.Id">@p.Name — @p.MaxUsers foyd.</option> }</select>
+            </div>
+            <div><label asp-for="Users">Foydalanuvchilar</label><input asp-for="Users" type="number" /></div>
+        </div>
+        <label class="check"><input asp-for="AutoRenew" /> Avtomatik uzaytirish</label>
+        <div class="hint">Paketni o'zgartirish narxni avtomatik qayta hisoblamaydi — farq uchun alohida hisob-faktura chiqaring.</div>
+        <div><button type="submit">Saqlash</button></div>
+    </form>
+    <form method="post" asp-page-handler="Cancel" class="stack card">
+        <div><label asp-for="Reason">Bekor qilish sababi</label><input asp-for="Reason" type="text" /></div>
+        <div><button type="submit" class="danger">Obunani bekor qilish</button></div>
+        <div class="hint">Kalit avtomatik qisqartirilmaydi — kerak bo'lsa Kalitlar sahifasida bekor qiling.</div>
+    </form>
+}
+<p><a href="/Tenants/Details/@Model.Sub.TenantId">← Tashkilotga</a></p>

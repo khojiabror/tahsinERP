@@ -147,6 +147,35 @@ Asosiy audit sessiyasi ro'yxati bo'yicha. Har qadam alohida commit, master va ma
 
 **Eslatma:** CRM sessiyasi lokal bazada `S_ORDERS.Currency` ustunini olib tashlagan (`CRM_2026_10_M02_DropCurrencyColumns.sql`). Uning EDMX o'zgarishi hali master'da emas. Shu sababli 2026-10-18 holatida balans sahifalari lokal bazada `Invalid column name 'Currency'` bilan yiqiladi. Bu Finance kodi bilan bog'liq emas. Balans bo'yicha oxirgi harness solishtiruvi shu ustun olib tashlanishidan oldin qilingan (B18).
 
+## 3-bosqich (2026-10-18): akt-sverki, qarz, balans va opening mosligi
+
+Bu bosqich tekshiruvdan boshlandi. Lokal bazada, faqat o'qish rejimida, 5 ta sana (2025-12-31 dan 2026-06-30 gacha) bo'yicha ikki narsa solishtirildi:
+- har bir kontragentning akt-sverkisi;
+- balans va qarzlar hisoboti.
+
+Natija: akt-sverki va qarz hisoboti turli raqam berardi, balans esa teng emasdi. Tuzatilganlari:
+
+- **Akt-sverki** ("Barcha shartnomalar" rejimi bilan): kontragentning hamma to'lovi olinadi, shartnomaga bog'lanmagani ham (masalan mijoz 4 bo'yicha 83,8 mln). Shartnoma rejimida bog'lanmagan to'lovlar haqida ogohlantirish chiqadi.
+- **Shartnoma aktidagi xatolar:**
+  - opening'gacha chiqarilgan invoysga keyin qilingan to'lov aktga kirmay qolardi;
+  - bir xil raqamli ikki shartnomada opening va to'lovlar ikki marta sanalardi;
+  - opening'gacha kiritilgan tuzatish opening bilan birga yana sanalardi (mijoz 4 da 60 mln).
+- **Kontragent qarzi:** opening sanasi kategoriya snapshot'idan olinardi va opening 0 bo'lib qolardi. Masalan, 2026-04-30 holatiga ta'minotchilar qarzi 1,7 mlrd o'rniga 122 mln chiqardi. Opening'gacha chiqarilgan invoysning summasi ham qayta qo'shilardi (+37,9 mln).
+- **Logistika qarzi** endi ekspeditor aktlari yig'indisiga teng. Avval kategoriya nomi bo'yicha hisoblanardi va 2025-12-31 da soxta 83 mln qarz chiqardi.
+- **Balans tengligi:** majburiyatlar musbat ko'rsatiladi va "Taqsimlanmagan foyda (hisoblangan)" balanslovchi qatori qo'shildi. Endi aktiv = majburiyatlar + kapital + taqsimlanmagan foyda.
+- **Opening AutoFill** akt-sverki bilan bir xil hisobdan foydalanadi: oldingi opening + harakatlar, shartnoma bo'yicha, shartnomasiz qoldiq va avans ham.
+
+**Natija (lokal baza):**
+- 5 ta sananing hammasida barcha ta'minotchi, mijoz va ekspeditor aktlari qarzga 0,00 farq bilan teng.
+- Opening'ni saqlab qayta o'qish bir xil natija beradi.
+- AutoFill jami AP, AR, logistika va oylik qarziga teng (2026-05-31 va 2026-06-30).
+- Save va AutoFill tranzaksiya ichida sinaldi, ROLLBACK qilindi, ya'ni baza o'zgarmadi.
+
+**Ma'lumot masalalari:**
+- 17 ta to'lovda kontragent yoki shartnoma ko'rsatilmagan: kontragentsiz to'lovlar hech qaysi aktga tushmaydi, shartnomasizlar faqat "Barcha shartnomalar" aktida ko'rinadi.
+- Bir xil raqamli shartnomalar bor.
+- Birinchi oylik opening'idan (21.05.2026) oldin to'langan oylik HR'dagi hisoblangan oylikdan 26 mln ko'p: balans manfiy oylik qarzini 0 deb ko'rsatadi.
+
 ## Qolganlar (bajarilmadi)
 
 - **B01 (valyuta):** qaror bor: konvertatsiya qilinadi (CBU + CURRENCY_RATES). Core `Services/Common/CurrencyRateService`'ni tayyorlagach Finance dashboardlari ulanadi.
