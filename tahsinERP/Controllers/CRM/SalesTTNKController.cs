@@ -241,6 +241,8 @@ namespace tahsinERP.Controllers
                             }
 
                             ttnkHeader.TotalDeliveryCost = ttnkHeader.DeliveryCost + ttnkHeader.VATAmount;
+                            ApplyRequiredDefaults(db, ttnkHeader);
+                            var lineNames = ProductNames(db, lines);
 
                             foreach (var invoice in invoices)
                             {
@@ -260,7 +262,7 @@ namespace tahsinERP.Controllers
                                     ProductID = line.ProductID,
                                     InvoiceLineID = line.InvoiceLineID,
                                     HSCode = line.HSCode,
-                                    Description = line.Description,
+                                    Description = LineDescription(line, lineNames),
                                     UnitOfMeasure = line.UnitOfMeasure,
                                     Qty = line.Qty,
                                     UnitPrice = line.UnitPrice,
@@ -292,7 +294,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
                     }
                 }
             }
@@ -388,6 +390,8 @@ namespace tahsinERP.Controllers
                         existingTTNK.TotalDeliveryCost = ttnkHeader.DeliveryCost + ttnkHeader.VATAmount;
                         existingTTNK.StatusCode = ttnkHeader.StatusCode;
                         existingTTNK.UpdatedDT = DateTime.Now;
+                        ApplyRequiredDefaults(db, existingTTNK);
+                        var lineNames = ProductNames(db, lines);
 
                         if (lines != null && lines.Any())
                         {
@@ -403,7 +407,7 @@ namespace tahsinERP.Controllers
                                     ProductID = line.ProductID,
                                     InvoiceLineID = line.InvoiceLineID,
                                     HSCode = line.HSCode,
-                                    Description = line.Description,
+                                    Description = LineDescription(line, lineNames),
                                     UnitOfMeasure = line.UnitOfMeasure,
                                     Qty = line.Qty,
                                     UnitPrice = line.UnitPrice,
@@ -425,7 +429,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
                     }
                 }
             }
@@ -436,6 +440,52 @@ namespace tahsinERP.Controllers
         // ───────────────────────────── yordamchi metodlar ─────────────────────────────
 
         /// <summary>"1,2,3" → ID ro'yxati; noto'g'ri qiymatda null (avval long.Parse 500 qaytarardi — CRM-B17).</summary>
+        /// <summary>
+        /// SALES_TTNK_HEADERS'dagi NOT NULL matn maydonlari forma bo'sh yuborganda to'ldiriladi — aks holda EF
+        /// validatsiyasi TTNK'ni umuman saqlamasdi (UAT T-CRM-11): jo'natuvchi — kompaniya, valyuta — UZS.
+        /// </summary>
+        private static void ApplyRequiredDefaults(DBTHSNEntities db, SALES_TTNK_HEADERS header)
+        {
+            if (string.IsNullOrWhiteSpace(header.ShipperName))
+            {
+                header.ShipperName = db.COMPANIES.Select(c => c.Name).FirstOrDefault() ?? "-";
+            }
+            if (string.IsNullOrWhiteSpace(header.ConsigneeName))
+            {
+                header.ConsigneeName = "-";
+            }
+            if (string.IsNullOrWhiteSpace(header.CurrencyCode))
+            {
+                header.CurrencyCode = "UZS";
+            }
+            if (string.IsNullOrWhiteSpace(header.StatusCode))
+            {
+                header.StatusCode = "DRAFT";
+            }
+        }
+
+        private static Dictionary<int, string> ProductNames(DBTHSNEntities db, IEnumerable<SalesTTNKLineViewModel> lines)
+        {
+            var ids = (lines ?? Enumerable.Empty<SalesTTNKLineViewModel>())
+                .Where(l => l.ProductID.HasValue).Select(l => l.ProductID.Value).Distinct().ToList();
+            return db.PRODUCTS.AsNoTracking()
+                .Where(p => ids.Contains(p.ID))
+                .Select(p => new { p.ID, p.PNo, p.Name })
+                .ToList()
+                .ToDictionary(p => p.ID, p => (p.PNo + " " + p.Name).Trim());
+        }
+
+        /// <summary>Qator tavsifi majburiy (NOT NULL) — bo'sh bo'lsa mahsulot nomi.</summary>
+        private static string LineDescription(SalesTTNKLineViewModel line, IDictionary<int, string> names)
+        {
+            if (!string.IsNullOrWhiteSpace(line.Description))
+            {
+                return line.Description;
+            }
+            string name;
+            return line.ProductID.HasValue && names.TryGetValue(line.ProductID.Value, out name) ? name : "-";
+        }
+
         private static List<long> ParseIds(string invoiceIDs)
         {
             if (string.IsNullOrWhiteSpace(invoiceIDs))
