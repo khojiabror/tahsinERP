@@ -61,10 +61,9 @@ namespace tahsinERP.Controllers
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Find user by username (case-insensitive)
-                var getUser = db.USERS.FirstOrDefault(u => 
-                    u.Uname.ToLower() == user.UName.ToLower() && 
-                    u.IsDeleted != true);
+                // Foydalanuvchi nomi bo'yicha: baza collation'i CI (Cyrillic_General_CI_AS), ToLower() indeksni o'chirib qo'yardi (CORE-P20)
+                var loginName = user.UName.Trim();
+                var getUser = db.USERS.FirstOrDefault(u => u.Uname == loginName && u.IsDeleted != true);
 
                 if (getUser == null)
                 {

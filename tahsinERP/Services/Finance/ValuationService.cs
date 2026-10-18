@@ -28,7 +28,7 @@ namespace tahsinERP.Services.Finance
         /// </summary>
         private void OperatingCategories(out HashSet<int> incomeCategoryIds, out HashSet<int> expenseCategoryIds)
         {
-            var items = _db.FIN_PL_ITEMS
+            var items = _db.FIN_PL_ITEMS.AsNoTracking()
                 .Where(i => i.IsActive && (i.IsDeleted == null || i.IsDeleted == false))
                 .Select(i => new { i.Sign, i.Name, Cats = i.FIN_CATEGORIES.Select(c => c.ID) })
                 .ToList();
@@ -52,9 +52,10 @@ namespace tahsinERP.Services.Finance
             OperatingCategories(out var incomeIds, out _);
             if (incomeIds.Count == 0) return 0m;
             var ids = incomeIds.ToList();
+            // FIN-B01: so'mda (kun kursi)
             return FinQueries.Active(_db).InPeriod(fromDate, toDate).RealCash()
                 .Where(t => ids.Contains(t.CategoryID))
-                .Sum(t => (decimal?)(t.Direction == 1 ? t.Amount : -t.Amount)) ?? 0m;
+                .NetUzs(_db);
         }
 
         /// <summary>
@@ -66,17 +67,22 @@ namespace tahsinERP.Services.Finance
             OperatingCategories(out var incomeIds, out var expenseIds);
             var allIds = incomeIds.Concat(expenseIds).ToList();
 
+            // FIN-B01: so'mda (kun kursi)
+            var names = allIds.Count == 0
+                ? new Dictionary<int, string>()
+                : _db.FIN_CATEGORIES.AsNoTracking().Where(c => allIds.Contains(c.ID)).Select(c => new { c.ID, c.Name }).ToList().ToDictionary(c => c.ID, c => c.Name);
             var sums = allIds.Count == 0
                 ? new List<CategorySum>()
                 : FinQueries.Active(_db).InPeriod(fromDate, toDate).RealCash()
                     .Where(t => allIds.Contains(t.CategoryID))
-                    .GroupBy(t => new { t.CategoryID, t.FIN_CATEGORIES.Name })
+                    .UzsBuckets(_db)
+                    .GroupBy(b => b.CategoryID)
                     .Select(g => new CategorySum
                     {
-                        CategoryID = g.Key.CategoryID,
-                        Name = g.Key.Name,
-                        In = g.Sum(t => t.Direction == 1 ? t.Amount : 0m),
-                        Out = g.Sum(t => t.Direction == 1 ? 0m : t.Amount)
+                        CategoryID = g.Key,
+                        Name = names.TryGetValue(g.Key, out var n) ? n : null,
+                        In = g.Where(b => b.Direction == 1).Sum(b => b.Uzs),
+                        Out = g.Where(b => b.Direction != 1).Sum(b => b.Uzs)
                     })
                     .ToList();
 

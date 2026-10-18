@@ -60,7 +60,7 @@ namespace tahsinERP.Controllers
                 if (string.Equals(Request.Headers["If-None-Match"], etag, StringComparison.Ordinal))
                     return new HttpStatusCodeResult(304);
 
-                var cacheKey = "pimg:" + imageId.Value + ":" + (width ?? 0);
+                var cacheKey = tahsinERP.Configuration.Tenancy.TenantContext.CacheKey("pimg:" + imageId.Value + ":" + (width ?? 0));
                 var cached = HttpRuntime.Cache[cacheKey] as Tuple<byte[], string>;
                 if (cached == null)
                 {

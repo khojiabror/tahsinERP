@@ -9,6 +9,7 @@ using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
 using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.PRequisition;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -284,12 +285,7 @@ namespace tahsinERP.Controllers.SRM
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Xatolik: {ex.Message}";
-                        for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
-                        {
-                            errorMessage += $" | Ichki xatolik: {inner.Message}";
-                        }
-                        ModelState.AddModelError("", errorMessage);
+                        ModelState.AddDbErrors(ex);
                     }
                 }
             }

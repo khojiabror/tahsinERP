@@ -24,6 +24,7 @@
                 </div>
             </div>
             <div class="content-body">
+                @Html.Partial("~/Views/FinDashboard/_CurrencyWarning.cshtml")
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
@@ -130,7 +131,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         var accountData = @Html.Raw(Json.Encode(ViewBag.AccountUsage));
         var accountLabels = accountData.map(function(item) { return item.AccountName; });

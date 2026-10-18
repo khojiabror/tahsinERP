@@ -79,6 +79,11 @@
                                                         @Html.TextBoxFor(model => model.PaymentTerms, new { @class = "form-control" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
+                                                        <label>To'lov muddati (kun)</label>
+                                                        @Html.TextBoxFor(model => model.PaymentDays, new { @type = "number", @min = "0", @max = "3650", @step = "1", @class = "form-control", @placeholder = "masalan 30" })
+                                                        @Html.ValidationMessageFor(model => model.PaymentDays, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3 col-12 form-group">
                                                         <label>Valyuta</label>
                                                         @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
                                                     </div>

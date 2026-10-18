@@ -26,7 +26,7 @@ namespace tahsinERP.Controllers.Finance
                 year = year ?? DateTime.Now.Year;
                 month = month ?? DateTime.Now.Month;
 
-                var query = db.FIN_PL_PLANS
+                var query = db.FIN_PL_PLANS.AsNoTracking()
                     .Where(p => (p.IsDeleted == false || p.IsDeleted == null) && p.Year == year.Value && p.Month == month.Value)
                     .Include(p => p.FIN_PL_ITEMS)
                     .Include(p => p.USER);
@@ -44,7 +44,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.YearList = FinSelectLists.Years(year);
                 ViewBag.MonthList = FinSelectLists.Months(month);
                 ViewBag.ItemList = new SelectList(
-                    db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder).ToList(),
+                    db.FIN_PL_ITEMS.AsNoTracking().Where(i => i.IsActive).OrderBy(i => i.SortOrder).ToList(),
                     "ID", "Name", itemID);
 
                 return View(plans);

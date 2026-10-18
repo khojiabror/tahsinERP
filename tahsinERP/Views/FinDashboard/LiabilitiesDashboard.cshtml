@@ -25,6 +25,7 @@
                 </div>
             </div>
             <div class="content-body">
+                @Html.Partial("~/Views/FinDashboard/_CurrencyWarning.cshtml")
                 <form method="get" action="@Url.Action("LiabilitiesDashboard")" class="mb-3">
                     <div class="row">
                         <div class="col-md-4">
@@ -266,56 +267,9 @@
         </div>
     </div>
 
-    <style>
-        .stat-card {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
-            overflow: hidden;
-        }
-        .stat-card-payables {
-            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-            color: white;
-        }
-        .stat-card-receivables {
-            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-            color: white;
-        }
-        .stat-card-payroll {
-            background: linear-gradient(135deg, #8e24aa 0%, #5e35b1 100%);
-            color: white;
-        }
-        .stat-card-generic {
-            background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);
-            color: white;
-        }
-        .stat-card-body {
-            padding: 1.5rem;
-            text-align: center;
-        }
-        .stat-card-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            opacity: 0.95;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .stat-card-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            line-height: 1.2;
-        }
-        .stat-card-currency {
-            font-size: 0.85rem;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-    </style>
+    <link href="~/Content/fin-dashboard.css" rel="stylesheet" />
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Payables by Supplier Pie Chart

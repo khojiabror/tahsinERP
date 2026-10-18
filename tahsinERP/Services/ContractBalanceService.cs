@@ -68,6 +68,8 @@ namespace tahsinERP.Services
                 .Select(ip => new { ip.ProductID, ip.Quantity, ip.UnitID })
                 .ToListAsync();
             var linesByProduct = invoiceLines.ToLookup(l => l.ProductID);
+            // FIN-P14: mahsulot ma'lumotlari (birlik konversiyasi uchun) bitta so'rovda
+            await _conversionService.PreloadProductsAsync(contractLines.Keys);
 
             foreach (var productId in ids)
             {
@@ -109,7 +111,7 @@ namespace tahsinERP.Services
                         // dona -> CBM chiziqli (qty × L×W×H), shuning uchun yig'indini bir marta aylantiramiz
                         invoicedQtyCBM += await _conversionService.ConvertPieceToCBMAsync(productId, piecesToConvert);
                     }
-                    catch
+                    catch (InvalidOperationException)
                     {
                         // O'lcham kiritilmagan bo'lsa — avvalgidek miqdorni o'zgarishsiz olamiz
                         invoicedQtyCBM += piecesToConvert;

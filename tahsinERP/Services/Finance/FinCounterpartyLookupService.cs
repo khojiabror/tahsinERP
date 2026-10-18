@@ -10,7 +10,7 @@ namespace tahsinERP.Services.Finance
     /// <summary>
     /// Kontragent va shartnoma ma'lumotnomalari (FIN-D17: FinTransactions va OpeningBalance'dagi takrorlangan
     /// JSON lookup'lar) hamda shartnoma bo'yicha "umumiy oldi-berdi / to'langan" hisobi (OpeningBalance
-    /// tahriri va Excel importi uchun).
+    /// tahriri va Excel importi uchun). FIN-B01: summalar so'mda (hujjat sanasidagi kurs).
     /// Kontragent turi: 1 = mijoz, 2 = ta'minotchi, 3 = aksiyador, 4 = ekspeditor, 6 = xodim.
     /// </summary>
     public sealed class FinCounterpartyLookupService
@@ -123,7 +123,9 @@ namespace tahsinERP.Services.Finance
         {
             var invoices = _db.SALES_INVOICES.AsNoTracking().Active()
                 .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= date)
-                .Select(i => new { i.ID, Amount = i.TotalWithVAT ?? i.TotalAmount })
+                .Select(i => new { i.ID, Amount = i.TotalWithVAT ?? i.TotalAmount, i.CurrencyID, i.InvoiceDate })
+                .ToList()
+                .Select(i => new { i.ID, Amount = FinMoney.For(_db).Uzs(i.Amount, i.CurrencyID, i.InvoiceDate) })
                 .ToList();
 
             var contractNoNorm = Normalize(_db.S_CONTRACTS
@@ -137,8 +139,9 @@ namespace tahsinERP.Services.Finance
                             t.SourceDocType != "SalesInvoice" &&
                             ((t.Direction == 1 && t.CounterpartyType == 1 && t.CounterpartyID == customerId) ||
                              (t.SourceDocType == "SalesInvoicePayment" && t.SourceDocID.HasValue)))
-                .Select(t => new { t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
+                .Select(t => new { t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo, t.CurrencyID, t.TxnDate })
                 .ToList()
+                .Select(t => new { Amount = FinMoney.For(_db).Uzs(t.Amount, t.CurrencyID, t.TxnDate), t.SourceDocType, t.SourceDocID, t.ContractNo })
                 .Where(p =>
                     (p.SourceDocType == "SalesInvoicePayment" && p.SourceDocID.HasValue && invIdSet.Contains((long)p.SourceDocID.Value))
                     || (contractNoNorm != "" && Normalize(p.ContractNo) == contractNoNorm))
@@ -152,7 +155,7 @@ namespace tahsinERP.Services.Finance
             // Xarid summasi — yagona qoida (FIN-B08): kirim (INCOMES.TotalPrice) yoki invoys summasi.
             var invoiceQuery = _db.P_INVOICES
                 .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false));
-            var amounts = CounterpartyBalanceService.PurchaseInvoiceAmounts(_db, invoiceQuery, date);
+            var amounts = CounterpartyBalanceService.PurchaseInvoiceAmountsUzs(_db, invoiceQuery, date);
 
             var contractNoNorm = Normalize(_db.P_CONTRACTS
                 .Where(c => c.ID == contractId && c.SupplierID == supplierId && c.IsDeleted != true)
@@ -165,8 +168,9 @@ namespace tahsinERP.Services.Finance
                             (t.SourceDocType == null || (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")) &&
                             ((t.Direction == 2 && t.CounterpartyType == 2 && t.CounterpartyID == supplierId) ||
                              (t.SourceDocType == "PurchaseInvoicePayment" && t.SourceDocID.HasValue)))
-                .Select(t => new { t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
+                .Select(t => new { t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo, t.CurrencyID, t.TxnDate })
                 .ToList()
+                .Select(t => new { Amount = FinMoney.For(_db).Uzs(t.Amount, t.CurrencyID, t.TxnDate), t.SourceDocType, t.SourceDocID, t.ContractNo })
                 .Where(p =>
                     (p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue && invIdSet.Contains(p.SourceDocID.Value))
                     || (contractNoNorm != "" && Normalize(p.ContractNo) == contractNoNorm))
@@ -181,17 +185,17 @@ namespace tahsinERP.Services.Finance
             var total = _db.F_WAYBILLS.AsNoTracking()
                 .Where(w => w.ContractID == contractId && w.IsDeleted != true &&
                             w.Amount.HasValue && w.IssueDate.HasValue && w.IssueDate.Value <= date)
-                .Select(w => w.Amount)
+                .Select(w => new { w.Amount, w.CurrencyID, w.IssueDate })
                 .ToList()
-                .Sum(a => (decimal)(a ?? 0d));
+                .Sum(w => FinMoney.For(_db).Uzs((decimal)(w.Amount ?? 0d), w.CurrencyID, w.IssueDate.Value));
 
             var paid = _db.F_WAYBILL_PAYMENTS.AsNoTracking()
                 .Where(p => !p.IsDeleted &&
                             p.F_WAYBILLS.ContractID == contractId &&
                             (!p.PaymentDate.HasValue || p.PaymentDate.Value <= date))
-                .Select(p => p.Payment_Amount)
+                .Select(p => new { p.Payment_Amount, p.CurrencyID, p.PaymentDate })
                 .ToList()
-                .Sum(a => (decimal)a);
+                .Sum(p => FinMoney.For(_db).Uzs((decimal)p.Payment_Amount, p.CurrencyID, p.PaymentDate ?? date));
 
             return new ContractTotals { Total = total, Paid = paid };
         }

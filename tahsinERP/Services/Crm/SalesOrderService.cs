@@ -175,6 +175,7 @@ namespace tahsinERP.Services.Crm
             db.S_ORDER_PRODUCTS.RemoveRange(unmatched);
             order.Amount = totalAmount;
             db.SaveChanges();
+            RecalculateShipped(db, order.ID);
 
             LogHelper.LogToDatabase(userName, "SOrderController", $"{order.OrderNo} - Buyurtmani tahrirladi");
             return order;
@@ -277,6 +278,7 @@ namespace tahsinERP.Services.Crm
 
             db.SORDER_DELIVERY_SCHEDULE.RemoveRange(toRemove);
             db.SaveChanges();
+            RecalculateShipped(db, orderId);
 
             LogHelper.LogToDatabase(userName, "SOrderController", $"Yetkazib berish rejasi saqlandi (Buyurtma: {order.OrderNo})");
             return order;
@@ -300,6 +302,74 @@ namespace tahsinERP.Services.Crm
             await SoftDeleteReferenceService.AfterSOrderSoftDeletedAsync(db, id);
             await db.SaveChangesAsync();
             LogHelper.LogToDatabase(userName, "SOrderController", $"{order.OrderNo} - Buyurtmani o'chirdi");
+        }
+
+        public const string SchedulePlanned = "PLANNED";
+        public const string SchedulePartial = "PARTIAL";
+        public const string ScheduleShipped = "SHIPPED";
+
+        /// <summary>
+        /// Yetkazib berish rejasidagi "Yetkazilgan" (QtyShipped) — buyurtmaning faol invoyslari bo'yicha
+        /// (sotuv omboridan chiqim invoysda bo'ladi; TTNK shu invoys qatorlaridan tuziladi). Har mahsulot
+        /// bo'yicha invoys qilingan miqdor reja qatorlariga sana tartibida (FIFO) taqsimlanadi. Avval bu
+        /// ustunni hech narsa to'ldirmasdi — dashboard'dagi "kechikkan yetkazish" hamma eski rejalarni ko'rsatardi.
+        /// Invoys yaratish/tahrirlash/bekor qilish, reja saqlash va buyurtma tahririda chaqiriladi.
+        /// </summary>
+        public static void RecalculateShipped(DBTHSNEntities db, int? orderId)
+        {
+            if (!orderId.HasValue)
+            {
+                return;
+            }
+
+            var schedule = db.SORDER_DELIVERY_SCHEDULE
+                .Where(s => s.SOrderID == orderId.Value)
+                .OrderBy(s => s.DeliveryDate).ThenBy(s => s.ID)
+                .ToList();
+            if (schedule.Count == 0)
+            {
+                return;
+            }
+
+            var productByLine = db.S_ORDER_PRODUCTS
+                .Where(l => l.OrderID == orderId.Value)
+                .Select(l => new { l.ID, l.ProductID })
+                .ToList()
+                .ToDictionary(l => l.ID, l => l.ProductID);
+
+            var remaining = db.SALES_INVOICE_LINES.Active()
+                .Where(l => l.SALES_INVOICES.OrderID == orderId.Value)
+                .GroupBy(l => l.ProductID)
+                .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Qty) })
+                .ToList()
+                .ToDictionary(x => x.ProductID, x => x.Qty);
+
+            var now = DateTime.Now;
+            foreach (var row in schedule)
+            {
+                int productId;
+                decimal available = 0;
+                if (productByLine.TryGetValue(row.SOrderProductID, out productId))
+                {
+                    remaining.TryGetValue(productId, out available);
+                }
+
+                var shipped = Math.Max(0, Math.Min(row.QtyPlanned, available));
+                if (productByLine.ContainsKey(row.SOrderProductID))
+                {
+                    remaining[productId] = available - shipped;
+                }
+
+                var status = shipped <= 0 ? SchedulePlanned : shipped < row.QtyPlanned ? SchedulePartial : ScheduleShipped;
+                if (row.QtyShipped != shipped || row.StatusCode != status)
+                {
+                    row.QtyShipped = shipped;
+                    row.StatusCode = status;
+                    row.UpdatedDT = now;
+                }
+            }
+
+            db.SaveChanges();
         }
 
         // ───────────────────────────── yordamchi metodlar ─────────────────────────────

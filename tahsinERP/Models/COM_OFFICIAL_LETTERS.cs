@@ -26,6 +26,8 @@ namespace tahsinERP.Models
         public string Topic { get; set; }
         public string ExternalContactPosition { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
+        public string BodyHtml { get; set; }
+        public string GreetingLine { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
     }

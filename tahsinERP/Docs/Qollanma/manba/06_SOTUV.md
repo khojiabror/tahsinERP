@@ -179,7 +179,7 @@ Yuqoridagi "Buyurtma maxsulotlari" jadvalida har mahsulot bo'yicha quyidagilar k
 > - sifat nazorati bog'langan qatorni o'chirib bo'lmaydi;
 > - reja miqdorini yetkazilgan miqdordan kam qilib bo'lmaydi.
 
-> **Diqqat:** "Yetkazilgan" (QtyShipped) ustunini hozircha hech qaysi hujjat avtomatik to'ldirmaydi: invoys yaratilganda u o'zgarmaydi. Haqiqiy jo'natmani **invoyslar** bo'yicha kuzating. Dashboard'dagi "Yetkazib berish kechikkan" ro'yxatiga rejadagi sanasi o'tgan barcha partiyalar tushadi.
+> **Eslatma:** "Yetkazilgan" (QtyShipped) avtomatik to'ladi: buyurtmaga bog'langan invoys (ombordan chiqim) yaratilganda, tahrirlanganda yoki bekor qilinganda invoys qilingan miqdor reja partiyalariga sana tartibida taqsimlanadi. Holat: Rejada / Qisman / Yetkazilgan. Dashboard'dagi "Yetkazib berish kechikkan" ro'yxatiga faqat sanasi o'tgan va to'liq yetkazilmagan partiyalar tushadi.
 
 **Natija:** CRM Dashboard'da "Yetkazib berish kechikkan" soni va jadvali (Buyurtma, Mahsulot, Reja sana, Yuborilgan, Kechikish) shu rejadan hisoblanadi.
 
@@ -397,7 +397,7 @@ CRM Dashboard'da uchta "muddati o'tgan" ro'yxat bor:
 - to'liq yopilgan invoys bu ro'yxatga tushmaydi;
 - bekor qilingan va PAID invoyslar ham tushmaydi.
 
-> **Diqqat:** Invoys formasida to'lov muddati maydoni yo'q. Shuning uchun bu ro'yxatga faqat muddati bazada bor invoyslar (asosan import qilinganlar) tushadi. Yangi invoyslar bo'yicha to'lov nazoratini shartnoma bo'yicha Akt-sverki va "Korxonalar bo'yicha haqqimiz (Debitorlik)" jadvali orqali yuriting.
+> **Eslatma:** Invoys formasida "To'lov muddati" maydoni bor. Bo'sh qoldirilsa, muddat shartnomadagi "To'lov muddati (kun)" bo'yicha hisoblanadi (invoys sanasi + kun). Shartnomada kun ko'rsatilmagan bo'lsa, invoysning muddati bo'lmaydi va u bu ro'yxatga tushmaydi.
 
 ## 6.12 Hisobotlar va dashboardlar
 
@@ -480,5 +480,5 @@ Ikkala joy bitta qoidadan foydalanadi: invoyslar QQS bilan minus to'lovlar. Farq
 **USD shartnoma summasi hisobotda chiqmayapti.**
 Hujjat sanasi uchun kurs topilmagan. Valyuta kurslari sahifasida kursni qo'lda kiriting yoki CBU'dan yuklang.
 
-**"Yetkazilgan" ustuni doim 0.**
-Hozircha bu ustun avtomatik to'ldirilmaydi. Jo'natilgan miqdorni invoyslar va "Mahsulot bo'yicha sotuv" hisobotidan ko'ring.
+**"Yetkazilgan" ustuni 0.**
+Buyurtmaga bog'langan faol invoys yo'q (yoki invoys boshqa buyurtmaga bog'langan). Invoys yaratishda "Buyurtma" maydonini tanlang.

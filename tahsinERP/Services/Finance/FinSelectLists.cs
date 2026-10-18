@@ -90,10 +90,16 @@ namespace tahsinERP.Services.Finance
             return new SelectList(items, "Value", "Text", selected);
         }
 
-        public static bool IsManual(string sourceDocType)
+        /// <summary>
+        /// Foydalanuvchi qo'lda kiritgan tranzaksiya: Manual, ta'minotchiga to'lov (xarid invoysiga bog'langan) yoki
+        /// doimiy harajat to'lovi — tahrirlash va o'chirish mumkin. Hujjatdan avtomatik yaratilganlari (SalesInvoice,
+        /// PurchaseInvoice, WaybillPayment, ShareholderContribution ...) faqat manba hujjat orqali o'zgaradi.
+        /// Avval faqat Manual edi — qo'lda kiritilgan ta'minotchi va doimiy harajat to'lovini tuzatib bo'lmasdi.
+        /// </summary>
+        public static bool IsUserEditable(string sourceDocType)
         {
             return string.IsNullOrWhiteSpace(sourceDocType) ||
-                   string.Equals(sourceDocType.Trim(), Manual, StringComparison.OrdinalIgnoreCase);
+                   ManualSourceDocTypes.Contains(sourceDocType.Trim(), StringComparer.OrdinalIgnoreCase);
         }
     }
 }
