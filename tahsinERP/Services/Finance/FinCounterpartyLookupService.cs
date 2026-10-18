@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 
 namespace tahsinERP.Services.Finance
 {
@@ -120,7 +121,7 @@ namespace tahsinERP.Services.Finance
 
         private ContractTotals CustomerTotals(int customerId, int contractId, DateTime date)
         {
-            var invoices = _db.SALES_INVOICES.AsNoTracking()
+            var invoices = _db.SALES_INVOICES.AsNoTracking().Active()
                 .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= date)
                 .Select(i => new { i.ID, Amount = i.TotalWithVAT ?? i.TotalAmount })
                 .ToList();
