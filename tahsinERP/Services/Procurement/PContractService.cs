@@ -18,10 +18,25 @@ namespace tahsinERP.Services.Procurement
     /// </summary>
     public sealed class PContractService
     {
-        /// <summary>UNITS.ID: m3 — kesiladigan mahsulotlar shartnomada CBM'da yuritiladi.</summary>
-        public const int CubicMeterUnitId = 11;
-
         private readonly DBTHSNEntities _db;
+        private int? _piecesUnitId;
+        private int? _cubicMeterUnitId;
+
+        /// <summary>"dona" birligi (UNITS.SystemCode = PCS) — birlik ko'rsatilmaganda zaxira qiymat.</summary>
+        private int PiecesUnitId()
+        {
+            if (!_piecesUnitId.HasValue)
+                _piecesUnitId = SystemRefs.UnitId(_db, SystemCodes.Unit.Pieces) ?? 0;
+            return _piecesUnitId.Value;
+        }
+
+        /// <summary>m3 birligi (UNITS.SystemCode = M3) — kesiladigan mahsulotlar shartnomada CBM'da yuritiladi.</summary>
+        private int? CubicMeterUnitId()
+        {
+            if (!_cubicMeterUnitId.HasValue)
+                _cubicMeterUnitId = SystemRefs.UnitId(_db, SystemCodes.Unit.CubicMeter) ?? 0;
+            return _cubicMeterUnitId.Value > 0 ? _cubicMeterUnitId : null;
+        }
         private readonly ModelStateDictionary _errors;
 
         public PContractService(DBTHSNEntities db, ModelStateDictionary errors)
@@ -270,9 +285,9 @@ namespace tahsinERP.Services.Procurement
 
                 // Kesiladigan mahsulotlar CBM'da (m3), qolganlari — tanlangan birlikda yoki mahsulot birligida
                 var product = products.ContainsKey(line.ProductID) ? products[line.ProductID] : null;
-                int unitId = product != null && product.RequiresCutting
-                    ? CubicMeterUnitId
-                    : line.UnitID ?? (product?.UnitID ?? 1);
+                int unitId = product != null && product.RequiresCutting && CubicMeterUnitId().HasValue
+                    ? CubicMeterUnitId().Value
+                    : line.UnitID ?? (product?.UnitID ?? PiecesUnitId());
 
                 _db.P_CONTRACT_PRODUCTS.Add(new P_CONTRACT_PRODUCTS
                 {
