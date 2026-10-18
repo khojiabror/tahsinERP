@@ -12,7 +12,6 @@ namespace tahsinERP.Services.Finance
     ///  - faol tranzaksiyalar va "real pul" filtri (invoys mirror yozuvlarisiz, D1);
     ///  - hisob qoldiqlari — har hisobga alohida SUM o'rniga bitta GROUP BY (D2, FIN-P02);
     ///  - oylik kategoriyalari, tasdiqlangan payroll qatorlari, oylik to'lovlari (D5, D6);
-    ///  - asosiy valyuta (eng ko'p ishlatilgan CurrencyID, D12).
     /// Hammasi o'qish uchun (AsNoTracking).
     /// </summary>
     public static class FinQueries

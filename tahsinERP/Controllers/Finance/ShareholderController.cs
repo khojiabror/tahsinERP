@@ -72,18 +72,6 @@ namespace tahsinERP.Controllers.Finance
                     .OrderByDescending(c => c.ContributionDate)
                     .ToList();
                 
-                // Ensure barcha CURRENCy navigation properties are loaded
-                var currencyIds = contributions.Where(c => c.CurrencyID > 0).Select(c => c.CurrencyID).Distinct().ToList();
-                var currencies = db.CURRENCIES.AsNoTracking().Where(c => currencyIds.Contains(c.ID)).ToDictionary(c => c.ID, c => c);
-                
-                foreach (var contrib in contributions)
-                {
-                    if (contrib.CURRENCy == null && contrib.CurrencyID > 0 && currencies.ContainsKey(contrib.CurrencyID))
-                    {
-                        contrib.CURRENCy = currencies[contrib.CurrencyID];
-                    }
-                }
-                
                 ViewBag.Contributions = contributions;
 
                 return View(shareholder);

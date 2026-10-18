@@ -3046,6 +3046,7 @@
     <Content Include="Views\Expenses\Details.cshtml" />
     <Content Include="Views\Expenses\Edit.cshtml" />
     <Content Include="Views\Expenses\Index.cshtml" />
+    <Content Include="Views\FinDashboard\DirectionAnalysis.cshtml" />
     <Content Include="Views\FinDashboard\_ChartJs.cshtml" />
     <Content Include="Views\FinDashboard\_CurrencyWarning.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheetDetails.cshtml" />
@@ -3274,9 +3275,7 @@
     <Content Include="Views\FinDashboard\AccountAnalytics.cshtml" />
     <Content Include="Views\FinDashboard\AccountBalances.cshtml" />
     <Content Include="Views\FinDashboard\CategoryAnalytics.cshtml" />
-    <Content Include="Views\FinDashboard\ExpenseAnalysis.cshtml" />
     <Content Include="Views\FinDashboard\FinancialOverview.cshtml" />
-    <Content Include="Views\FinDashboard\IncomeAnalysis.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Create.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\DeleteEntries.cshtml" />
     <Content Include="Views\HrEmployees\Dismiss.cshtml" />

@@ -234,24 +234,6 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Ensure navigation properties are loaded
-                if (transaction.FIN_ACCOUNTS == null && transaction.AccountID > 0)
-                {
-                    transaction.FIN_ACCOUNTS = db.FIN_ACCOUNTS.Find(transaction.AccountID);
-                }
-                if (transaction.FIN_CATEGORIES == null && transaction.CategoryID > 0)
-                {
-                    transaction.FIN_CATEGORIES = db.FIN_CATEGORIES.Find(transaction.CategoryID);
-                }
-                if (transaction.CURRENCy == null && transaction.CurrencyID > 0)
-                {
-                    transaction.CURRENCy = db.CURRENCIES.Find(transaction.CurrencyID);
-                }
-                if (transaction.USER == null && transaction.CreatedByUserID > 0)
-                {
-                    transaction.USER = db.USERS.Find(transaction.CreatedByUserID);
-                }
-
                 // Olish source hujjat link agar available
                 if (!string.IsNullOrEmpty(transaction.SourceDocType) && transaction.SourceDocID.HasValue)
                 {

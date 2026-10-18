@@ -1,0 +1,257 @@
+@model tahsinERP.ViewModels.Finance.DirectionAnalysisPage
+@* FIN-D20: ExpenseAnalysis va IncomeAnalysis uchun bitta sahifa (matn va ranglar — DirectionAnalysisPage) *@
+@{
+    ViewBag.Title = Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+                <div class="content-header-left col-12 mb-2 mt-1">
+                    <div class="row breadcrumbs-top">
+                        <div class="col-12">
+                            <div class="breadcrumb-wrapper col-12">
+                                <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                    <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                                    <li class="breadcrumb-item">Dashboard</li>
+                                    <li class="breadcrumb-item">Moliya Dashboard</li>
+                                    <li class="breadcrumb-item active">@Model.Title</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                @Html.Partial("~/Views/FinDashboard/_CurrencyWarning.cshtml")
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">@Model.Title</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <form method="get" action="@Url.Action(Model.Action)" class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label class="control-label">Dan sana:</label>
+                                                <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="control-label">Gacha sana:</label>
+                                                <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="control-label">&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <div class="stat-card @Model.CardClass">
+                                                <div class="stat-card-body">
+                                                    <div class="stat-card-title">@Model.TotalLabel</div>
+                                                    <div class="stat-card-value">@ViewBag.Total.ToString("N2")</div>
+                                                    <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>@Model.Plural bo'yicha kategoriyalar (Pie Chart)</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="@(Model.IdPrefix)CategoryPieChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>@Model.Plural bo'yicha hisoblar (Pie Chart)</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="@(Model.IdPrefix)AccountPieChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Oylik @Model.Plural.ToLower() trendi</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="@(Model.IdPrefix)MonthlyChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>@Model.Plural jadvali</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="table-responsive">
+                                                        <table id="@(Model.IdPrefix)Table" class="table table-striped table-bordered" style="width:100%">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="text-center">Nº</th>
+                                                                    <th>Kategoriya</th>
+                                                                    <th class="text-right">Summa</th>
+                                                                    <th class="text-right">Foiz</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @if (ViewBag.ByCategory != null)
+                                                                {
+                                                                    var rows = ViewBag.ByCategory as List<tahsinERP.ViewModels.Finance.DirectionCategoryData>;
+                                                                    if (rows != null)
+                                                                    {
+                                                                        int index = 1;
+                                                                        foreach (var item in rows)
+                                                                        {
+                                                                            <tr>
+                                                                                <td class="text-center">@index</td>
+                                                                                <td>@(item.CategoryName ?? "-")</td>
+                                                                                <td class="text-right">@item.Amount.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</td>
+                                                                                <td class="text-right">@item.Percentage.ToString("N2")%</td>
+                                                                            </tr>
+                                                                            index++;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link href="~/Content/fin-dashboard.css" rel="stylesheet" />
+
+    @Html.Partial("_ChartJs")
+    <script>
+        var idPrefix = @Html.Raw(Json.Encode(Model.IdPrefix));
+        var pieColors = @Html.Raw(Json.Encode(Model.PieColors));
+
+        // Kategoriyalar bo'yicha (Pie Chart)
+        var categoryData = @Html.Raw(Json.Encode(ViewBag.ByCategory));
+        var categoryLabels = categoryData.map(function(item) { return item.CategoryName; });
+        var categoryAmounts = categoryData.map(function(item) { return item.Amount; });
+
+        var categoryPieCtx = document.getElementById(idPrefix + 'CategoryPieChart').getContext('2d');
+        new Chart(categoryPieCtx, {
+            type: 'pie',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryAmounts,
+                    backgroundColor: pieColors
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // Hisoblar bo'yicha (Pie Chart)
+        var accountData = @Html.Raw(Json.Encode(ViewBag.ByAccount));
+        var accountLabels = accountData.map(function(item) { return item.AccountName; });
+        var accountAmounts = accountData.map(function(item) { return item.Amount; });
+
+        var accountPieCtx = document.getElementById(idPrefix + 'AccountPieChart').getContext('2d');
+        new Chart(accountPieCtx, {
+            type: 'pie',
+            data: {
+                labels: accountLabels,
+                datasets: [{
+                    data: accountAmounts,
+                    backgroundColor: pieColors
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // Oylik trend
+        var monthlyData = @Html.Raw(Json.Encode(ViewBag.Monthly));
+        var monthlyPeriods = monthlyData.map(function(item) { return item.Period; });
+        var monthlyAmounts = monthlyData.map(function(item) { return item.Amount; });
+
+        var monthlyCtx = document.getElementById(idPrefix + 'MonthlyChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyPeriods,
+                datasets: [{
+                    label: @Html.Raw(Json.Encode(Model.Plural)),
+                    data: monthlyAmounts,
+                    borderColor: 'rgb(@Model.LineRgb)',
+                    backgroundColor: 'rgba(@Model.LineRgb, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Initialize DataTable
+        $(document).ready(function() {
+            $('#' + idPrefix + 'Table').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                },
+                "order": [[2, "desc"]], // Sort by Amount column
+                "pageLength": 25,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "columnDefs": [
+                    { "orderable": true, "targets": [0, 1, 2, 3] },
+                    { "type": "num", "targets": [0] },
+                    { "type": "num-fmt", "targets": [2, 3] }
+                ]
+            });
+        });
+    </script>

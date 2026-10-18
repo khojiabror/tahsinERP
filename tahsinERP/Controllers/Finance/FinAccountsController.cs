@@ -104,17 +104,6 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                // Ensure navigation properties are loaded
-                if (account.CURRENCy == null && account.CurrencyID > 0)
-                {
-                    account.CURRENCy = db.CURRENCIES.Find(account.CurrencyID);
-                }
-                
-                if (account.USER == null && account.CreatedByUserID > 0)
-                {
-                    account.USER = db.USERS.Find(account.CreatedByUserID);
-                }
-
                 // Olish transaction count
                 ViewBag.TransactionCount = db.FIN_TRANSACTIONS.Count(t => t.AccountID == id && t.IsDeleted != true);
 
