@@ -99,7 +99,11 @@
             });
         }
 
-        function loadContracts(customerId) {
+        /**
+         * keepContractId — sahifa xato bilan qaytganda server tanlagan shartnoma: ro'yxatda bo'lsa
+         * tanlangan holda qoladi va kiritilgan miqdorlar tozalanmaydi (CRM-B11).
+         */
+        function loadContracts(customerId, keepContractId) {
             $contract.prop('disabled', true).empty().append(option('0', 'Yuklanmoqda...'));
 
             var request = {
@@ -118,9 +122,26 @@
                         $contract.append(option('0', 'Shartnomalar topilmadi'));
                     }
 
+                    var keep = keepContractId && keepContractId != '0' &&
+                        $contract.find('option').filter(function () { return this.value == keepContractId; }).length > 0;
+                    if (keep) {
+                        $contract.val(String(keepContractId));
+                    }
+
                     refreshSelect2($contract);
                     $contract.prop('disabled', false);
 
+                    if (keep) {
+                        // Server qayta chizgan qatorlar (#productsContainer boshida yashirin)
+                        if ($('#productsTableBody tr').length > 0) {
+                            if (cfg.showStatus) {
+                                $('#noProductsMessage').hide();
+                                $('#productsContainer').show();
+                            }
+                            $('.order-quantity').trigger('input');
+                        }
+                        return;
+                    }
                     resetProducts('<i class="bx bx-info-circle"></i> Shartnoma tanlang, maxsulotlar yuklanadi.');
                 }
             };
@@ -262,7 +283,7 @@
         if (cfg.loadContractsOnInit) {
             var initialCustomerId = $customer.val();
             if (initialCustomerId && initialCustomerId != '0') {
-                loadContracts(initialCustomerId);
+                loadContracts(initialCustomerId, $contract.val());
             }
         }
 

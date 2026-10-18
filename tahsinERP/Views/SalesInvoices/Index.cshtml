@@ -95,6 +95,7 @@
                                                     <th>Buyurtma</th>
                                                     <th>Summa</th>
                                                     <th>Valyuta</th>
+                                                    <th>Holat</th>
                                                     @if (changePermit)
                                                     {
                                                         <th class="text-center">Amallar</th>
@@ -180,6 +181,16 @@
                                                                 else
                                                                 {
                                                                     <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
+                                                            <td>
+                                                                @if (tahsinERP.Services.Crm.SalesInvoiceStatus.IsCanceled(item.StatusCode))
+                                                                {
+                                                                    <span class="badge badge-light-danger">Bekor qilingan</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge badge-light-success">@item.StatusCode</span>
                                                                 }
                                                             </td>
                                                             @if (changePermit)

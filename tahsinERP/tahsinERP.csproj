@@ -840,6 +840,7 @@
     <Compile Include="Services\Crm\CrmPaging.cs" />
     <Compile Include="Services\Crm\CrmReport.cs" />
     <Compile Include="Services\Crm\FormRows.cs" />
+    <Compile Include="Services\Crm\CrmErrors.cs" />
     <Compile Include="Services\Crm\EDocuments\EDocumentModels.cs" />
     <Compile Include="Services\Crm\EDocuments\EDocumentProviders.cs" />
     <Compile Include="Services\Crm\EDocuments\EDocumentService.cs" />

@@ -244,7 +244,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
                     }
                 }
             }
@@ -347,7 +347,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
                     }
                 }
             }
