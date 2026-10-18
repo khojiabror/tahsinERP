@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_CATEGORIES
+                var query = db.FIN_CATEGORIES.AsNoTracking()
                     .Where(c => c.IsActive && (c.IsDeleted == false || c.IsDeleted == null));
 
                 // Search filtrlash
@@ -82,7 +82,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var category = db.FIN_CATEGORIES
+                var category = db.FIN_CATEGORIES.AsNoTracking()
                     .Where(c => c.ID == id && (c.IsDeleted == false || c.IsDeleted == null))
                     .Include(c => c.FIN_CATEGORIES2)
                     .FirstOrDefault();
@@ -93,7 +93,7 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 // Olish child categories
-                ViewBag.ChildCategories = db.FIN_CATEGORIES
+                ViewBag.ChildCategories = db.FIN_CATEGORIES.AsNoTracking()
                     .Where(c => c.ParentID == id && c.IsActive)
                     .OrderBy(c => c.SortOrder)
                     .ToList();

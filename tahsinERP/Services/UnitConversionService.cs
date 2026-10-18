@@ -34,6 +34,23 @@ namespace tahsinERP.Services
             return product;
         }
 
+        /// <summary>
+        /// Bir nechta mahsulotni bitta so'rovda keshga yuklaydi (FIN-P14: shartnoma qoldig'ida har mahsulotga
+        /// alohida so'rov ketardi).
+        /// </summary>
+        public async Task PreloadProductsAsync(IEnumerable<int> productIds)
+        {
+            var ids = productIds.Distinct().Where(id => !_products.ContainsKey(id)).ToList();
+            if (ids.Count == 0) return;
+            var products = await _db.PRODUCTS
+                .Include(p => p.PRODUCT_CATEGORIES)
+                .Include(p => p.UNIT)
+                .Where(p => ids.Contains(p.ID))
+                .ToListAsync();
+            foreach (var id in ids)
+                _products[id] = products.FirstOrDefault(p => p.ID == id);
+        }
+
         public UnitConversionService(DBTHSNEntities db)
         {
             _db = db;

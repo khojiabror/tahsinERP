@@ -1,0 +1,5 @@
+@* FIN-B01: hisobot so'mda; kursi topilmagan valyutadagi hujjatlar jamiga qo'shilmagan bo'lsa ogohlantirish *@
+@foreach (var warning in tahsinERP.Services.Finance.FinMoney.RequestWarnings())
+{
+    <div class="alert alert-warning">@warning</div>
+}

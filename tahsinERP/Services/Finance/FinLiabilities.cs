@@ -211,6 +211,17 @@ namespace tahsinERP.Services.Finance
                 .ToDictionary(g => g.Key, g => g.Sum(x => money.Uzs(x.Paid, x.CurrencyID, x.Day.Value)));
         }
 
+        /// <summary>FIN-B01: majburiyat hisobi so'mda — har oy o'sha oy boshidagi kurs bilan.</summary>
+        public static decimal AccruedUzs(DBTHSNEntities db, RecurringObligationRow ob, DateTime start, int monthsCount)
+        {
+            var money = FinMoney.For(db);
+            var first = new DateTime(start.Year, start.Month, 1);
+            decimal accrued = 0m;
+            for (int m = 0; m < monthsCount; m++)
+                accrued += money.Uzs(ob.MonthlyAmount, ob.CurrencyID, first.AddMonths(m));
+            return accrued;
+        }
+
         public static int AccruedMonths(DateTime startMonth, DateTime endDate)
         {
             return ((endDate.Year - startMonth.Year) * 12) + (endDate.Month - startMonth.Month) + 1;
@@ -243,10 +254,7 @@ namespace tahsinERP.Services.Finance
                 var monthsCount = AccruedMonths(effectiveStart, endDate);
                 if (monthsCount < 1) continue;
 
-                // FIN-B01: har oy hisobi o'sha oy boshidagi kurs bilan so'mda
-                decimal accrued = 0m;
-                for (int m = 0; m < monthsCount; m++)
-                    accrued += FinMoney.For(db).Uzs(ob.MonthlyAmount, ob.CurrencyID, new DateTime(effectiveStart.Year, effectiveStart.Month, 1).AddMonths(m));
+                var accrued = AccruedUzs(db, ob, effectiveStart, monthsCount);
                 var paid = paidById.TryGetValue(ob.ID, out var p) ? p : 0m;
                 result.Accrued += accrued;
                 result.Paid += paid;
@@ -290,14 +298,15 @@ namespace tahsinERP.Services.Finance
                 ? counterparties.OpeningContractBalances(logiOpening.Value, CounterpartyBalanceService.BalanceTypeLogistics).Sum(x => x.Amount)
                 : 0m;
 
-            // double ustunlar xotirada decimal'ga yig'iladi
-            result.WaybillTotal = db.F_WAYBILLS.AsNoTracking()
+            // double ustunlar xotirada decimal'ga yig'iladi; FIN-B01: so'mda (varaqa sanasidagi kurs)
+            var money = FinMoney.For(db);
+            result.WaybillTotal = (double)db.F_WAYBILLS.AsNoTracking()
                 .Where(w => (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue &&
                             (!logiOpening.HasValue || w.IssueDate > logiOpening.Value) &&
                             w.IssueDate <= asOf)
-                .Select(w => w.Amount)
+                .Select(w => new { w.Amount, w.CurrencyID, w.IssueDate })
                 .ToList()
-                .Sum(a => a ?? 0d);
+                .Sum(w => money.Uzs((decimal)(w.Amount ?? 0d), w.CurrencyID, w.IssueDate ?? asOf));
 
             // Ekspeditor to'lovlari: varaqa shu sanagacha chiqarilgan, to'lov opening'dan keyin (sanasizi opening'ga kirgan)
             var waybillPaid = db.F_WAYBILL_PAYMENTS.AsNoTracking()
@@ -308,9 +317,9 @@ namespace tahsinERP.Services.Finance
                             p.F_WAYBILLS.IssueDate <= asOf &&
                             (p.PaymentDate ?? DateTime.MinValue) <= asOf &&
                             (!logiOpening.HasValue || (p.PaymentDate.HasValue && p.PaymentDate.Value > logiOpening.Value)))
-                .Select(p => p.Payment_Amount)
+                .Select(p => new { p.Payment_Amount, p.CurrencyID, p.PaymentDate })
                 .ToList()
-                .Sum(a => (decimal)a);
+                .Sum(p => money.Uzs((decimal)p.Payment_Amount, p.CurrencyID, p.PaymentDate ?? asOf));
 
             result.PaymentQuery = FinQueries.Active(db)
                 .Where(t => t.CounterpartyType == 4 &&
@@ -319,7 +328,7 @@ namespace tahsinERP.Services.Finance
                             t.TxnDate <= asOf &&
                             (!logiOpening.HasValue || t.TxnDate > logiOpening.Value) &&
                             (t.SourceDocType == null || t.SourceDocType != "WaybillPayment"));
-            var manualPaid = result.PaymentQuery.Sum(t => (decimal?)t.Amount) ?? 0m;
+            var manualPaid = result.PaymentQuery.SumUzs(db);
 
             result.Paid = waybillPaid + manualPaid;
             result.Adjustments = counterparties.AdjustmentTotals(CounterpartyBalanceService.BalanceTypeLogistics, asOf, logiOpening, creditIncreases: true).Values.Sum();

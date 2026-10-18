@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.SHAREHOLDERS.Where(s => s.IsActive && s.IsDeleted != true); // FIN-B12: o'chirilganlar ro'yxatda qolmasin
+                var query = db.SHAREHOLDERS.AsNoTracking().Where(s => s.IsActive && s.IsDeleted != true); // FIN-B12: o'chirilganlar ro'yxatda qolmasin
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -45,7 +45,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var shareholder = db.SHAREHOLDERS
+                var shareholder = db.SHAREHOLDERS.AsNoTracking()
                     .Where(s => s.ID == id && (s.IsDeleted == false || s.IsDeleted == null))
                     .Include(s => s.SHAREHOLDER_SHARE_PERIODS)
                     .Include(s => s.SHAREHOLDER_CONTRIBUTIONS)
@@ -66,23 +66,11 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.CurrentSharePercent = currentShare?.SharePercent ?? 0;
                 
                 // Yuklash contributions bilan CURRENCy navigation property included
-                var contributions = db.SHAREHOLDER_CONTRIBUTIONS
+                var contributions = db.SHAREHOLDER_CONTRIBUTIONS.AsNoTracking()
                     .Include(c => c.CURRENCy)
                     .Where(c => c.ShareholderID == id.Value)
                     .OrderByDescending(c => c.ContributionDate)
                     .ToList();
-                
-                // Ensure barcha CURRENCy navigation properties are loaded
-                var currencyIds = contributions.Where(c => c.CurrencyID > 0).Select(c => c.CurrencyID).Distinct().ToList();
-                var currencies = db.CURRENCIES.Where(c => currencyIds.Contains(c.ID)).ToDictionary(c => c.ID, c => c);
-                
-                foreach (var contrib in contributions)
-                {
-                    if (contrib.CURRENCy == null && contrib.CurrencyID > 0 && currencies.ContainsKey(contrib.CurrencyID))
-                    {
-                        contrib.CURRENCy = currencies[contrib.CurrencyID];
-                    }
-                }
                 
                 ViewBag.Contributions = contributions;
 
@@ -230,7 +218,7 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                var periods = db.SHAREHOLDER_SHARE_PERIODS
+                var periods = db.SHAREHOLDER_SHARE_PERIODS.AsNoTracking()
                     .Where(sp => sp.ShareholderID == id)
                     .OrderByDescending(sp => sp.FromDate)
                     .ToList();

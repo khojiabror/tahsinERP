@@ -731,9 +731,6 @@
     <Compile Include="Models\SORDER_DELIVERY_SCHEDULE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\sp_Fin_CashSummary_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\STD_COMPANY_STANDARDS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -796,9 +793,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\V_FIN_PL_FACT_MONTHLY.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\V_FIN_PL_PLAN_VS_FACT_MONTHLY.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\INVENTORY_ADJUSTMENTS.cs">
@@ -2723,6 +2717,7 @@
     <Content Include="assets\js\lazy-pdfmake.js" />
     <Content Include="assets\js\dt-defaults.js" />
     <Content Include="assets\js\scripts.js" />
+    <Content Include="Content\fin-dashboard.css" />
     <Content Include="Content\404.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
@@ -3061,6 +3056,9 @@
     <Content Include="Views\Expenses\Details.cshtml" />
     <Content Include="Views\Expenses\Edit.cshtml" />
     <Content Include="Views\Expenses\Index.cshtml" />
+    <Content Include="Views\FinDashboard\DirectionAnalysis.cshtml" />
+    <Content Include="Views\FinDashboard\_ChartJs.cshtml" />
+    <Content Include="Views\FinDashboard\_CurrencyWarning.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheetDetails.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheet.cshtml" />
     <Content Include="Views\FinDashboard\Cashflow.cshtml" />
@@ -3076,6 +3074,7 @@
     <Content Include="Views\FinBalanceCategories\Details.cshtml" />
     <Content Include="Views\FinBalanceCategories\Edit.cshtml" />
     <Content Include="Views\FinBalanceCategories\Index.cshtml" />
+    <Content Include="Views\FinCategories\_TreeIndexScripts.cshtml" />
     <Content Include="Views\FinCategories\Create.cshtml" />
     <Content Include="Views\FinCategories\Delete.cshtml" />
     <Content Include="Views\FinCategories\Details.cshtml" />
@@ -3287,9 +3286,7 @@
     <Content Include="Views\FinDashboard\AccountAnalytics.cshtml" />
     <Content Include="Views\FinDashboard\AccountBalances.cshtml" />
     <Content Include="Views\FinDashboard\CategoryAnalytics.cshtml" />
-    <Content Include="Views\FinDashboard\ExpenseAnalysis.cshtml" />
     <Content Include="Views\FinDashboard\FinancialOverview.cshtml" />
-    <Content Include="Views\FinDashboard\IncomeAnalysis.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Create.cshtml" />
     <Content Include="Views\HrPieceRateTimesheets\DeleteEntries.cshtml" />
     <Content Include="Views\HrEmployees\Dismiss.cshtml" />
