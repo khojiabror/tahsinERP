@@ -60,3 +60,16 @@ JOIN (VALUES
     (17, N'Divident',  N'Dividend')
 ) v (ID, OldName, NewName) ON v.ID = c.ID AND c.Name = v.OldName;
 GO
+
+-- Yangi korxona admini — barcha modullarga to'liq huquq (etalon bazadagi Admin roli korxonaga moslab
+-- cheklangan bo'lishi mumkin). Yangi ruxsat modullari keyin qo'shilsa — Role -> Huquqlar sahifasida.
+DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE RName = N'Admin');
+IF @admin IS NOT NULL
+BEGIN
+    UPDATE dbo.PERMISSIONS SET ViewPermit = 1, ChangePermit = 1, DeletePermit = 1 WHERE RoleID = @admin;
+    INSERT INTO dbo.PERMISSIONS (ViewPermit, ChangePermit, RoleID, PermissionModuleID, DeletePermit)
+    SELECT 1, 1, @admin, pm.ID, 1
+    FROM dbo.PERMISSIONMODULES pm
+    WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONS p WHERE p.RoleID = @admin AND p.PermissionModuleID = pm.ID);
+END
+GO
