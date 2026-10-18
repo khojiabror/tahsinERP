@@ -18,6 +18,9 @@ namespace tahsinERP.Services.Procurement
     /// </summary>
     public sealed class PInvoiceService
     {
+        /// <summary>P_INVOICES.InvoiceNo ustun uzunligi (arxiv qo'shimchasi shunga sig'diriladi).</summary>
+        private const int NumberMaxLength = 50;
+
         private readonly DBTHSNEntities _db;
         private int? _piecesUnitId;
 
@@ -355,7 +358,7 @@ namespace tahsinERP.Services.Procurement
 
         /// <summary>
         /// Invoys raqami: bo'sh bo'lsa PI-{yil}-NNNN (qulf bilan, o'chirilganlar ham hisobga olinadi — SRM-B14);
-        /// qo'lda kiritilsa — barcha invoyslarda (o'chirilganlar ham) takrorlanmasligi tekshiriladi.
+        /// qo'lda kiritilsa — faol invoyslarda takrorlanmasligi tekshiriladi, o'chirilgan hujjat raqami bo'shatiladi.
         /// Avtomatik raqam tranzaksiya ichida chaqirilishi kerak. Xato bo'lsa null (ModelState'ga yoziladi).
         /// </summary>
         private async Task<string> ResolveInvoiceNoAsync(string requested, int? excludeId)
@@ -372,16 +375,15 @@ namespace tahsinERP.Services.Procurement
                 return await DocumentNumberService.NextAsync(_db, "P_INVOICES", "InvoiceNo", $"PI-{DateTime.Now.Year}-", 4);
             }
 
-            // Bazada InvoiceNo bo'yicha global UNIQUE indeks bor (o'chirilganlar ham) — tekshiruv ham global
-            bool duplicate = await _db.P_INVOICES.AnyAsync(i =>
-                i.InvoiceNo == number &&
-                (!excludeId.HasValue || i.ID != excludeId.Value));
-            if (duplicate)
+            // Faol hujjatlarda takrorlanmasin. Bazada InvoiceNo bo'yicha global UNIQUE indeks bor (o'chirilganlar ham):
+            // shu raqamli o'chirilgan hujjat bo'lsa, uning raqami arxivlanadi va raqam bo'shaydi (SRM-D4, POrders bilan bir xil)
+            if (await DocumentNumberService.ActiveNumberExistsAsync(_db, "P_INVOICES", "InvoiceNo", number, excludeId))
             {
-                _errors.AddModelError("InvoiceNo", "Shu raqamli invoys allaqachon mavjud (o'chirilganlar orasida ham bo'lishi mumkin).");
+                _errors.AddModelError("InvoiceNo", "Shu raqamli invoys allaqachon mavjud.");
                 return null;
             }
 
+            await DocumentNumberService.ReleaseNumberFromDeletedAsync(_db, "P_INVOICES", "InvoiceNo", number, NumberMaxLength, excludeId);
             return number;
         }
 

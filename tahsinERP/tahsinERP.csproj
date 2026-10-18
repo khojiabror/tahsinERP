@@ -851,7 +851,6 @@
     <Compile Include="ViewModels\PInvoice\PInvoiceFormViewModels.cs" />
     <Compile Include="Services\Procurement\PInvoiceService.cs" />
     <Compile Include="ViewModels\PContract\PContractFormViewModels.cs" />
-    <Compile Include="Services\Procurement\ProcurementErrors.cs" />
     <Compile Include="Services\Procurement\PContractService.cs" />
     <Compile Include="Services\Procurement\PdfUpload.cs" />
     <Compile Include="Services\ContractBalanceService.cs" />
