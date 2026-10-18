@@ -3064,6 +3064,7 @@
     <Content Include="Views\FinBalanceCategories\Details.cshtml" />
     <Content Include="Views\FinBalanceCategories\Edit.cshtml" />
     <Content Include="Views\FinBalanceCategories\Index.cshtml" />
+    <Content Include="Views\FinCategories\_TreeIndexScripts.cshtml" />
     <Content Include="Views\FinCategories\Create.cshtml" />
     <Content Include="Views\FinCategories\Delete.cshtml" />
     <Content Include="Views\FinCategories\Details.cshtml" />
