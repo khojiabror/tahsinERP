@@ -38,6 +38,7 @@ namespace tahsinERP.Models
         public virtual DbSet<BOM_HEADERS> BOM_HEADERS { get; set; }
         public virtual DbSet<BOM_LINES> BOM_LINES { get; set; }
         public virtual DbSet<COM_OFFICIAL_LETTERS> COM_OFFICIAL_LETTERS { get; set; }
+        public virtual DbSet<COM_OFFICIAL_LETTER_ITEMS> COM_OFFICIAL_LETTER_ITEMS { get; set; }
         public virtual DbSet<COMPANy> COMPANIES { get; set; }
         public virtual DbSet<COMPANY_LICENSES> COMPANY_LICENSES { get; set; }
         public virtual DbSet<COOKIES_CONFIRMATION> COOKIES_CONFIRMATION { get; set; }
@@ -50,6 +51,7 @@ namespace tahsinERP.Models
         public virtual DbSet<DOC_DOCUMENT_TYPES> DOC_DOCUMENT_TYPES { get; set; }
         public virtual DbSet<DOC_DOCUMENTS> DOC_DOCUMENTS { get; set; }
         public virtual DbSet<DOC_FILES> DOC_FILES { get; set; }
+        public virtual DbSet<DOC_FILE_CONTENTS> DOC_FILE_CONTENTS { get; set; }
         public virtual DbSet<DOC_TEMPLATES> DOC_TEMPLATES { get; set; }
         public virtual DbSet<EXPENSE_PRODUCTS> EXPENSE_PRODUCTS { get; set; }
         public virtual DbSet<EXPENS> EXPENSES { get; set; }
