@@ -263,7 +263,25 @@ public class ProvisioningQueueTests(PanelFactory f) : IClassFixture<PanelFactory
         await agent.CompleteAsync(l4.JobId, new JobCompletion { LeaseToken = l4.LeaseToken, Outcome = JobOutcome.Succeeded, RegistryEnabled = false }, default);
         Assert.Null(await agent.LeaseAsync(default)); // holat mos — yangi job yo'q
 
-        // 5) qo'lda arxivlash (status dropdown) bazasi yaratilgan tenantda taqiqlangan
+        // 5) baza yaratilgach DbName/Server o'zgarmaydi; boshqa maydonlar o'zgaradi
+        await Assert.ThrowsAsync<DomainException>(() => f.WithScopeAsync(async sp =>
+        {
+            var x = await sp.GetRequiredService<ControlDbContext>().Tenants.FirstAsync(y => y.Id == t.Id);
+            var svc = sp.GetRequiredService<TenantService>();
+            var before = svc.TakeSnapshot(x);
+            x.DbName = "DB_boshqa";
+            await svc.UpdateAsync(x, before);
+        }));
+        await f.WithScopeAsync(async sp =>
+        {
+            var x = await sp.GetRequiredService<ControlDbContext>().Tenants.FirstAsync(y => y.Id == t.Id);
+            var svc = sp.GetRequiredService<TenantService>();
+            var before = svc.TakeSnapshot(x);
+            x.Phone = "+998 90 000 00 00";
+            await svc.UpdateAsync(x, before);
+        });
+
+        // 6) qo'lda arxivlash (status dropdown) bazasi yaratilgan tenantda taqiqlangan
         await Assert.ThrowsAsync<DomainException>(() => f.WithScopeAsync(async sp =>
         {
             var db = sp.GetRequiredService<ControlDbContext>();
