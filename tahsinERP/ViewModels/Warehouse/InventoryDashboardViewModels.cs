@@ -17,7 +17,6 @@ namespace tahsinERP.ViewModels
         public List<InventoryDashboardItem> StockItems { get; set; }
         public List<InventoryDashboardItem> HighRunnerItems { get; set; }
         public List<InventoryDashboardItem> LowRunnerItems { get; set; }
-        public List<InventoryFifoViolationItem> FifoJournal { get; set; }
         public List<InventoryFifoViolationItem> FifoHeuristicAlerts { get; set; }
         public int DlocBelowMinCount { get; set; }
         public int DlocNearMaxCount { get; set; }
@@ -56,28 +55,6 @@ namespace tahsinERP.ViewModels
         public string ExpectedLotNo { get; set; }
         public string SelectedLotNo { get; set; }
         public string CreatedBy { get; set; }
-    }
-
-    internal static class InventoryReportsFifoMapper
-    {
-        public static InventoryFifoViolationItem MapFifoJournalRow(FifoViolationReportRow v)
-        {
-            return new InventoryFifoViolationItem
-            {
-                ProductPNo = v.ProductPNo ?? "N/A",
-                ProductName = v.ProductName ?? "N/A",
-                WarehouseName = v.WarehouseName ?? "N/A",
-                CreatedAt = v.CreatedAt,
-                OldestIncomeDate = v.ExpectedReceivedAt ?? v.CreatedAt,
-                LatestExpenseDate = v.SelectedReceivedAt ?? v.CreatedAt,
-                RemainingFromOldest = 0,
-                ReasonCode = v.ReasonCode,
-                ExpenseDocNo = v.ExpenseDocNo,
-                ExpectedLotNo = v.ExpectedLotNo,
-                SelectedLotNo = v.SelectedLotNo,
-                CreatedBy = v.CreatedBy
-            };
-        }
     }
 
     public class CategoryStockSummary

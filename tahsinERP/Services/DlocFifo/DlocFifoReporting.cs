@@ -5,21 +5,6 @@ using tahsinERP.Models;
 
 namespace tahsinERP.Services.DlocFifo
 {
-    public class FifoViolationReportRow
-    {
-        public string ProductPNo { get; set; }
-        public string ProductName { get; set; }
-        public string WarehouseName { get; set; }
-        public string ReasonCode { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? ExpectedReceivedAt { get; set; }
-        public DateTime? SelectedReceivedAt { get; set; }
-        public string ExpectedLotNo { get; set; }
-        public string SelectedLotNo { get; set; }
-        public string ExpenseDocNo { get; set; }
-        public string CreatedBy { get; set; }
-    }
-
     public class DlocCapacityAlertRow
     {
         public string WarehouseName { get; set; }
@@ -32,35 +17,6 @@ namespace tahsinERP.Services.DlocFifo
 
     public static class DlocFifoReporting
     {
-        public static List<FifoViolationReportRow> GetFifoViolations(
-            DBTHSNEntities db, DateTime fromDate, DateTime toDate, IEnumerable<int> warehouseIds)
-        {
-            if (!DlocFifoSchema.IsEnabled(db) || !DlocFifoDataAccess.TableExists(db, "FIFO_VIOLATIONS"))
-                return new List<FifoViolationReportRow>();
-
-            var ids = warehouseIds?.Distinct().ToList() ?? new List<int>();
-            var sql = @"
-SELECT p.PNo AS ProductPNo, p.Name AS ProductName, w.WHName AS WarehouseName,
-       v.ReasonCode, v.CreatedAt, v.ExpectedReceivedAt, v.SelectedReceivedAt,
-       ilE.LotNo AS ExpectedLotNo, ilS.LotNo AS SelectedLotNo,
-       e.DocNo AS ExpenseDocNo, v.CreatedBy
-FROM dbo.FIFO_VIOLATIONS v
-INNER JOIN dbo.PRODUCTS p ON p.ID = v.ProductID
-INNER JOIN dbo.WAREHOUSES w ON w.ID = v.WarehouseID
-LEFT JOIN dbo.INCOME_LOTS ilE ON ilE.ID = v.ExpectedLotID
-LEFT JOIN dbo.INCOME_LOTS ilS ON ilS.ID = v.SelectedLotID
-LEFT JOIN dbo.EXPENSE_PRODUCTS ep ON ep.ID = v.ExpenseProductID
-LEFT JOIN dbo.EXPENSES e ON e.ID = ep.ExpenseID
-WHERE v.CreatedAt >= @p0 AND v.CreatedAt <= @p1";
-
-            var parms = new List<object> { fromDate, toDate };
-            if (ids.Any())
-                sql += " AND v.WarehouseID IN (" + AddInParameters(parms, ids) + ")";
-
-            sql += " ORDER BY v.CreatedAt DESC";
-            return db.Database.SqlQuery<FifoViolationReportRow>(sql, parms.ToArray()).ToList();
-        }
-
         public static List<DlocCapacityAlertRow> GetDlocCapacityAlerts(DBTHSNEntities db, IEnumerable<int> warehouseIds)
         {
             if (!DlocFifoSchema.IsEnabled(db))
