@@ -155,6 +155,20 @@ public class LicenseApiTests(PanelFactory f) : IClassFixture<PanelFactory>
         var replay = await http.SendAsync(Req());
         Assert.Equal(HttpStatusCode.Unauthorized, replay.StatusCode);
         Assert.Equal("replay", (await replay.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["error"]);
+
+        // Nonce bazada (ko'p instans uchun); kunlik ish 10 daqiqadan eskilarini o'chiradi.
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            Assert.Equal(1, await db.ApiNonces.CountAsync(n => n.InstallationId == inst));
+            f.Time.Advance(TimeSpan.FromMinutes(11));
+            try
+            {
+                await Services.DailyJobHostedService.PurgeExpiredNoncesAsync(db, sp.GetRequiredService<Services.Clock>());
+                Assert.Equal(0, await db.ApiNonces.CountAsync(n => n.InstallationId == inst));
+            }
+            finally { f.Time.SetUtcNow(PanelFactory.Start); }
+        });
     }
 
     [Fact]

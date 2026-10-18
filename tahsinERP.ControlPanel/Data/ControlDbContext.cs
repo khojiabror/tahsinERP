@@ -16,6 +16,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<AuditEntry> AuditLog => Set<AuditEntry>();
     public DbSet<InvoiceSequence> InvoiceSequences => Set<InvoiceSequence>();
+    public DbSet<ApiNonce> ApiNonces => Set<ApiNonce>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -148,6 +149,14 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Entity).HasMaxLength(50);
             e.Property(x => x.EntityId).HasMaxLength(50);
             e.Property(x => x.Ip).HasMaxLength(64);
+        });
+
+        b.Entity<ApiNonce>(e =>
+        {
+            e.HasIndex(x => new { x.InstallationId, x.Nonce }).IsUnique();
+            e.HasIndex(x => x.ExpiresUtc);
+            e.Property(x => x.InstallationId).HasMaxLength(36);
+            e.Property(x => x.Nonce).HasMaxLength(32);
         });
 
         b.Entity<InvoiceSequence>(e =>

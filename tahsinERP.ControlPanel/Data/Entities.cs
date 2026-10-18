@@ -279,6 +279,18 @@ public class AuditEntry
     public DateTime AtUtc { get; set; }
 }
 
+/// <summary>
+/// License API pull so'rovlarining ishlatilgan nonce'lari (replay himoyasi). Bazada — panel bir nechta instansda ishlasa ham
+/// bitta nonce ikki marta qabul qilinmaydi. Muddati o'tganlari kunlik ishda o'chiriladi.
+/// </summary>
+public class ApiNonce
+{
+    public long Id { get; set; }
+    public string InstallationId { get; set; } = "";
+    public string Nonce { get; set; } = "";
+    public DateTime ExpiresUtc { get; set; }
+}
+
 /// <summary>Hisob-faktura raqamlari hisoblagichi (yil bo'yicha).</summary>
 public class InvoiceSequence
 {

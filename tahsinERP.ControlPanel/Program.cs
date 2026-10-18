@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -51,6 +52,16 @@ services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
     services.AddHostedService<DailyJobHostedService>();
+
+// Cookie/antiforgery kalitlari: serverda doimiy papkada (aks holda IIS qayta ishga tushganda xodimlar qayta kiradi).
+// Windows'da DPAPI (LocalMachine) bilan shifrlanadi. Papka bo'sh bo'lsa — standart joy (dev).
+var dataProtection = services.AddDataProtection().SetApplicationName("tahsinERP.ControlPanel");
+if (config["ControlPanel:DataProtection:KeysDir"] is { Length: > 0 } keysDir)
+{
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keysDir));
+    if (OperatingSystem.IsWindows())
+        dataProtection.ProtectKeysWithDpapi(protectToLocalMachine: true);
+}
 
 bool isDev = builder.Environment.IsDevelopment();
 services.AddAuthentication(AuthSchemes.Staff)

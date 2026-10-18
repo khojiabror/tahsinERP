@@ -87,6 +87,22 @@ dotnet test tahsinERP.ControlPanel.Tests
 | `Vendor:*` | Hisob-fakturadagi sotuvchi rekvizitlari (MChJ, STIR, QQS kodi, bank, h/r, MFO) — **to'ldirilishi kerak**. |
 | `Panel:*` | TimeZone (Asia/Tashkent), PollHours 6, RegTokenDays 7, SaasKeyExtraDays 3, GraceDays 3, InvoiceDueDays 5, DailyJobHour 9, MigrateOnStartup, rate limitlar. |
 | `Pdf:FontsDir` | Linux'da shrift papkasi (Windows'da Arial avtomatik). |
+| `DataProtection:KeysDir` | Cookie/antiforgery kalitlari papkasi (serverda majburiy; Windows'da DPAPI LocalMachine bilan shifrlanadi). Bo'sh — standart joy (dev). |
+
+## 2a. Serverga joylash (IIS)
+
+Skript: `tahsinERP.ControlPanel/deploy/Install-PanelIis.ps1` (Administrator, ASP.NET Core 10 Hosting Bundle o'rnatilgan bo'lsin).
+U publish qiladi, app pool (No Managed Code, AlwaysRunning — kunlik fon ishi to'xtamasin) va https saytni yaratadi, sirlarni
+app pool `environmentVariables`ga **yashirin so'rov** orqali yozadi, `%ProgramData%\tahsinERP\ControlPanel\keys` ga ruxsat beradi
+va `migrate` ni ishga tushiradi. Yangilashda: `-KeepSecrets`. Keyin bir marta `create-owner`.
+
+```bash
+powershell -ExecutionPolicy Bypass -File tahsinERP.ControlPanel\deploy\Install-PanelIis.ps1 -HostName admin.<domen> -CertThumbprint <thumbprint>
+```
+
+Eslatma: skript sintaksisi tekshirilgan, lekin haqiqiy IIS serverda hali ishga tushirilmagan.
+App pool identity (`IIS AppPool\tahsinERP.ControlPanel`) SQL'da `tahsin_control` ga login/ruxsat olishi kerak.
+`tahsin_control` ni har kuni zaxiralang (S3, versioning) — bu baza yo'qolsa, kim qancha to'laganini yo'qotasiz.
 
 ## 3. Panel kalitini ERP qabul qilishi (k2)
 
@@ -130,10 +146,8 @@ bog'langan bo'lsa — 409. Yangi reg_token chiqarilsa (ERP qayta o'rnatilganda) 
 
 ## 6. Ma'lum cheklovlar / keyingi qadamlar
 
-- Nonce keshi — xotirada (bitta instans). Bir nechta instansda — umumiy kesh (Redis/DB) kerak.
+- Nonce'lar bazada (`ApiNonces`, noyob indeks) — bir nechta panel instansida ham replay ushlanadi; kunlik ish eskilarini o'chiradi.
 - `tenant_secret` rotatsiyasi (`/api/license/rotate`) — yo'q (01_LICENSE_API.md ochiq savol).
 - Email/SMS eslatmalar, Didox, bank ko'chirmasi importi — 4-bosqich.
-- DataProtection kalitlari (antiforgery/cookie) — standart joyda; IIS'da `%LOCALAPPDATA%` profil yuklanishi yoqilsin yoki
-  `PersistKeysToFileSystem` sozlansin (aks holda qayta ishga tushganda xodimlar qayta kiradi — xavfsiz, lekin noqulay).
 - PDF kutubxonasi: PDFsharp/MigraDoc **6.2.4 (MIT)**. 6.5.0 dan boshlab AGPL-3.0 — **versiyani oshirmang**.
   QuestPDF Community — yillik daromad < $1M bo'lsa bepul, MIT emas (daromad oshsa pullik) — shuning uchun tanlanmadi.

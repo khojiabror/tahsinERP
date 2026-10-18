@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Licensing;
@@ -133,7 +132,7 @@ public static class LicenseApi
     }
 
     internal static async Task<IResult> PullAsync(string installationId, HttpRequest http, ControlDbContext db, ISecretProtector protector,
-        LicenseIssuer issuer, IMemoryCache cache, Clock clock, IOptions<PanelOptions> options, CancellationToken ct)
+        LicenseIssuer issuer, Clock clock, IOptions<PanelOptions> options, CancellationToken ct)
     {
         string? inst = ErpLicense.NormalizeInstallationId(installationId);
         if (inst is null)
@@ -166,15 +165,15 @@ public static class LicenseApi
             return Error(401, "bad_signature");
 
         // Nonce faqat imzo to'g'ri bo'lganda band qilinadi (begona odam nonce'larni "yeb" qo'ya olmaydi).
-        string nonceKey = "nonce:" + inst + ":" + nonce.ToLowerInvariant();
-        lock (cache)
+        // Noyob indeks (InstallationId, Nonce) — bir nechta panel instansida ham bitta nonce bir marta.
+        DateTime now = clock.UtcNow;
+        db.ApiNonces.Add(new ApiNonce { InstallationId = inst, Nonce = nonce.ToLowerInvariant(), ExpiresUtc = now.Add(NonceWindow) });
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException { Number: 2601 or 2627 })
         {
-            if (cache.TryGetValue(nonceKey, out _))
-                return Error(401, "replay");
-            cache.Set(nonceKey, true, NonceWindow);
+            return Error(401, "replay");
         }
 
-        DateTime now = clock.UtcNow;
         if (tenant.LastSeenUtc is null || now - tenant.LastSeenUtc > TimeSpan.FromMinutes(5))
         {
             tenant.LastSeenUtc = now;
