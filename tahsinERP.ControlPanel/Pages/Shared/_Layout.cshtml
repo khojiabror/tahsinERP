@@ -1,0 +1,55 @@
+@{
+    bool signedIn = User.Identity?.IsAuthenticated == true && User.Identity.AuthenticationType == AuthSchemes.Staff;
+    bool owner = User.IsInRole(nameof(StaffRole.Owner));
+    string path = Context.Request.Path.Value ?? "/";
+    string Nav(string prefix) => (prefix == "/" ? path == "/" : path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+    var flashPage = Model as PanelPageModel;
+}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] — tahsinERP panel</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">tahsinERP <span>panel</span></a>
+    @if (signedIn)
+    {
+        <nav>
+            <a class="@Nav("/")" href="/">Bosh sahifa</a>
+            <a class="@Nav("/Tenants")" href="/Tenants">Tashkilotlar</a>
+            <a class="@Nav("/Invoices")" href="/Invoices">Hisob-fakturalar</a>
+            <a class="@Nav("/Licenses")" href="/Licenses">Kalitlar</a>
+            <a class="@Nav("/Plans")" href="/Plans">Tariflar</a>
+            <a class="@Nav("/Notifications")" href="/Notifications">Eslatmalar</a>
+            @if (owner)
+            {
+                <a class="@Nav("/Servers")" href="/Servers">Serverlar</a>
+                <a class="@Nav("/Staff")" href="/Staff">Xodimlar</a>
+                <a class="@Nav("/Audit")" href="/Audit">Audit</a>
+            }
+        </nav>
+        <form method="post" action="/Account/Logout" class="userbox">
+            <span>@User.Identity!.Name</span>
+            <a href="/Account/ChangePassword">Parol</a>
+            @Html.AntiForgeryToken()
+            <button type="submit" class="link">Chiqish</button>
+        </form>
+    }
+</header>
+<main>
+    @if (!string.IsNullOrEmpty(flashPage?.FlashOk))
+    {
+        <div class="flash ok">@flashPage.FlashOk</div>
+    }
+    @if (!string.IsNullOrEmpty(flashPage?.FlashError))
+    {
+        <div class="flash bad">@flashPage.FlashError</div>
+    }
+    @RenderBody()
+</main>
+</body>
+</html>

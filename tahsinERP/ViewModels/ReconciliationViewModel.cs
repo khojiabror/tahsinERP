@@ -21,7 +21,11 @@ namespace tahsinERP.ViewModels
         public string ContractNo { get; set; }
         /// <summary>Dropdown: ushbu kontragentning barcha shartnomalari.</summary>
         public List<ReconciliationContractOption> ContractsForParty { get; set; }
-        public bool HasSelectedContract => ContractId > 0;
+        /// <summary>"Barcha shartnomalar" rejimi: kontragentning barcha hujjat va to'lovlari (shartnomaga bog'lanmaganlari ham).</summary>
+        public bool AllContracts { get; set; }
+        public bool HasSelectedContract => ContractId > 0 || AllContracts;
+        /// <summary>Shartnoma rejimida: hech qaysi shartnomaga bog'lanmagan to'lovlar haqida ogohlantirish (bo'lsa).</summary>
+        public string UnattributedNote { get; set; }
         public List<ReconciliationRowViewModel> Rows { get; set; }
         public decimal Party1DebitTotal { get; set; }
         public decimal Party1CreditTotal { get; set; }
@@ -32,6 +36,9 @@ namespace tahsinERP.ViewModels
 
     public class ReconciliationContractOption
     {
+        /// <summary>Dropdown'dagi "Barcha shartnomalar" qiymati (contractId).</summary>
+        public const int AllContractsId = -1;
+
         public int Id { get; set; }
         public string ContractNo { get; set; }
     }

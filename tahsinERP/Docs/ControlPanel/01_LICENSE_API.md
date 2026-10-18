@@ -1,6 +1,6 @@
 # License API — ERP ↔ markaziy panel kontrakti (v1)
 
-Holat: 2026-10-17, ERP tomoni tayyor (`Services/LicenseSync/*`), panel hali yo'q. Panel shu hujjat bo'yicha quriladi.
+Holat: 2026-10-18, ERP tomoni (`Services/LicenseSync/*`) va panel tomoni (`tahsinERP.ControlPanel/Api/LicenseApi.cs`, `04_PANEL_MVP.md`) tayyor.
 Bog'liq: `00_PLAN.md` 3.2–3.3, `tahsinERP.Licensing/LicenseHelper.cs` (kalit formati v2).
 
 ## Umumiy
@@ -70,8 +70,8 @@ Javoblar:
 |---|---|---|
 | 200 | `{ "license_key": "<v2>", "etag": "<sha256 hex>", "poll_hours": 6 }` | Kalit faoldan farq qilsa `ActivateCompanyLicense`. Rad etilsa — sababini `LastSyncResult` ga yozadi. |
 | 304 | — | O'zgarish yo'q |
-| 401 | `{ "error": "bad_signature" }` / `"clock_skew"` | Logga yozadi, keyingi urinishda qayta |
-| 404 | `{ "error": "unknown_installation" }` | Logga yozadi (tenant panelda o'chirilgan) |
+| 401 | `{ "error": "bad_signature" }` / `"clock_skew"` / `"replay"` | Logga yozadi, keyingi urinishda qayta |
+| 404 | `{ "error": "unknown_installation" }` / `"no_license"` | Logga yozadi (tenant panelda o'chirilgan/arxivda yoki hali kalit chiqmagan — faol obuna yo'q) |
 | 410 | `{ "error": "revoked" }` | Logga yozadi. Kalit muddati o'zi tugaydi (bekor qilish = panel qisqa muddatli yangi kalit chiqaradi, 3.4) |
 
 - `etag` = `lowercase(hex(SHA256(UTF8(license_key))))`. ERP ham shunday hisoblaydi.
