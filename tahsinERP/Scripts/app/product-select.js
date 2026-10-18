@@ -10,6 +10,8 @@
  *   var html = ProductSelect.optionsHtml(products, selectedId);   // satr qurishda
  *   ProductSelect.attach($('select.product-select'), products);   // select2 ulash
  * products: [{ Value: "12", Text: "PNo - Nomi" }, ...]
+ * Katta katalog uchun products o'rniga URL bering — server qidiruvi (SRM-P05):
+ *   ProductSelect.attach($('select.product-select'), '/ProductLookup/Search');
  * htmlEscape — indexed-rows.js dan.
  */
 (function () {
@@ -44,7 +46,8 @@
     function attach($selects, products) {
         var $ = window.jQuery;
         if (!$ || !$.fn.select2) return;
-        var list = products || [];
+        var remoteUrl = typeof products === 'string' ? products : null;
+        var list = remoteUrl ? [] : (products || []);
 
         $selects.each(function () {
             var $select = $(this);
@@ -56,7 +59,13 @@
             $select.select2({
                 width: '100%',
                 placeholder: '---Tanlang---',
-                ajax: {
+                ajax: remoteUrl ? {
+                    url: remoteUrl,
+                    delay: 250,
+                    dataType: 'json',
+                    data: function (params) { return { term: params.term || '', page: params.page || 1 }; },
+                    processResults: function (data) { return data; }
+                } : {
                     delay: 150,
                     transport: function (params, success) {
                         var term = ((params.data && params.data.term) || '').toLowerCase();
