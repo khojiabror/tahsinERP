@@ -160,7 +160,6 @@
 
         @Scripts.Render("~/bundles/jquery")
         <script src="~/Scripts/csrf.js"></script>
-        @RenderSection("Scripts", required: false)
 
         <!-- Vendor JS -->
         <script src="~/app-assets/vendors/js/vendors.min.js"></script>
@@ -192,6 +191,8 @@
         <script src="~/app-assets/js/scripts/components.js"></script>
         <script src="~/app-assets/js/scripts/datatables/datatable.js"></script>
         <script src="~/app-assets/js/scripts/forms/select/form-select2.js"></script>
+        @* Sahifa skriptlari jQuery/DataTables yuklangandan keyin (CORE-P09) *@
+        @RenderSection("Scripts", required: false)
         <script>
             (function () {
                 if (!(window.jQuery && jQuery.fn && jQuery.fn.dataTable && jQuery.fn.dataTable.ext && jQuery.fn.dataTable.ext.buttons)) {

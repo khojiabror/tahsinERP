@@ -932,6 +932,7 @@
     <Compile Include="Services\AuditLogQueue.cs" />
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
+    <Compile Include="Services\Common\DataTablesRequest.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
     <Compile Include="Services\Common\SystemCodes.cs" />
     <Compile Include="Services\Common\BrandingService.cs" />
