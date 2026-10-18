@@ -372,6 +372,7 @@
     <Compile Include="Controllers\MES\ProductPlanController.cs" />
     <Compile Include="Controllers\ReconciliationController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
+    <Compile Include="Controllers\ProductLookupController.cs" />
     <Compile Include="Controllers\AdminSetting\RoleController.cs" />
     <Compile Include="Controllers\CRM\SContractController.cs" />
     <Compile Include="Controllers\Engineering\ShopController.cs" />
