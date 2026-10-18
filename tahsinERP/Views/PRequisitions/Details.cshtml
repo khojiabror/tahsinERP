@@ -185,9 +185,9 @@
                                                         <td>
                                                             @{
                                                                 var priorityClass = "badge-secondary";
-                                                                if (product.Priority == "High") priorityClass = "badge-danger";
-                                                                else if (product.Priority == "Medium") priorityClass = "badge-warning";
-                                                                else if (product.Priority == "Low") priorityClass = "badge-info";
+                                                                if (product.Priority == "High") { priorityClass = "badge-danger"; }
+                                                                else if (product.Priority == "Medium") { priorityClass = "badge-warning"; }
+                                                                else if (product.Priority == "Low") { priorityClass = "badge-info"; }
                                                             }
                                                             <span class="badge @priorityClass">@(product.Priority ?? "Medium")</span>
                                                         </td>
@@ -200,7 +200,7 @@
                                         <tfoot>
                                             <tr>
                                                 <td colspan="6" class="text-right"><strong>Jami:</strong></td>
-                                                <td><strong>@(Model.P_REQUISITION_PRODUCTS?.Sum(p => p.Amount ?? 0)?.ToString("N2") ?? "0.00")</strong></td>
+                                                <td><strong>@((Model.P_REQUISITION_PRODUCTS?.Sum(p => p.Amount ?? 0) ?? 0).ToString("N2"))</strong></td>
                                                 <td colspan="2"></td>
                                             </tr>
                                         </tfoot>
@@ -231,8 +231,8 @@
                                                         <td>
                                                             @{
                                                                 var approvalStatusClass = "badge-secondary";
-                                                                if (approval.Status == "Approved") approvalStatusClass = "badge-success";
-                                                                else if (approval.Status == "Rejected") approvalStatusClass = "badge-danger";
+                                                                if (approval.Status == "Approved") { approvalStatusClass = "badge-success"; }
+                                                                else if (approval.Status == "Rejected") { approvalStatusClass = "badge-danger"; }
                                                             }
                                                             <span class="badge @approvalStatusClass">@(approval.Status ?? "Pending")</span>
                                                         </td>
