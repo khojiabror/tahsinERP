@@ -7,6 +7,7 @@ using tahsinERP.Models;
 using System.Data.Entity;
 using tahsinERP.Services;
 using tahsinERP.Filters;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers
 {
@@ -236,6 +237,9 @@ namespace tahsinERP.Controllers
                 {
                     return HttpNotFound();
                 }
+                // Tizim kategoriyasi (SystemCode) — o'chirilmaydi
+                if (SystemCodes.IsSystem(category.SystemCode))
+                    return RedirectToAction("Delete", new { id });
                 category.IsDeleted = true;
                 db.Entry(category).State = System.Data.Entity.EntityState.Modified;
 

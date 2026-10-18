@@ -62,10 +62,17 @@
                                                 </div>
                                                 <ul class="list-group list-group-flush">
                                                     <li class="list-group-item border-0 pb-0">
-                                                        <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete">
-                                                            <i class='bx bx-trash'></i>
-                                                            O'chirish
-                                                        </button>
+                                                        @if (tahsinERP.Services.Common.SystemCodes.IsSystem(Model.SystemCode))
+                                                        {
+                                                            <div class="alert alert-danger"><i class="bx bx-lock"></i> @tahsinERP.Services.Common.SystemCodes.DeleteForbiddenMessage</div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete">
+                                                                <i class='bx bx-trash'></i>
+                                                                O'chirish
+                                                            </button>
+                                                        }
                                                     </li>
                                                 </ul>
                                             </div>

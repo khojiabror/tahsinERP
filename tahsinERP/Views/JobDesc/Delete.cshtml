@@ -84,7 +84,8 @@
     </div>
 
     <script>
-        $(document).ready(function () {
+        // jQuery layout oxirida yuklanadi — DOMContentLoaded undan keyin keladi
+        document.addEventListener('DOMContentLoaded', function () {
             $('#deleteForm').on('submit', function(e) {
                 // O'chirish tugmasini o'chirish (double submit oldini olish)
                 $('#deleteBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> O\'chirilmoqda...');

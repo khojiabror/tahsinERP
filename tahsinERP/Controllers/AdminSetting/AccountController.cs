@@ -183,6 +183,14 @@ namespace tahsinERP.Controllers
                 // Log user entry immediately (IP will be logged, MAC might be 00:00:00:00:00:00 agar not in session yet)
                 SetUserEntry(getUser.ID);
 
+                // Vaqtinchalik parol (masalan yangi korxona admini) — avval parolni almashtirish
+                if (getUser.MustChangePassword)
+                {
+                    Session[tahsinERP.Filters.MustChangePasswordAttribute.SessionKey] = true;
+                    TempData["MustChangePassword"] = "Vaqtinchalik parol bilan kirdingiz. Davom etish uchun yangi parol o'rnating.";
+                    return RedirectToAction("Settings");
+                }
+
                 // Litsenziya bloklangan bo'lsa admin to'g'ridan-to'g'ri License sahifasiga (kalit kiritish uchun)
                 if (canManageLicense && (licStatus == null || licStatus.Blocked))
                     return RedirectToAction("Index", "License");
@@ -351,6 +359,14 @@ namespace tahsinERP.Controllers
                     return View("Settings", uvm);
                 }
 
+                // Vaqtinchalik parol bilan kirgan bo'lsa — yangi parol majburiy va eskisidan farq qilishi kerak
+                if (userToUpdate.MustChangePassword &&
+                    (string.IsNullOrEmpty(uvm.Password) || uvm.Password == uvm.CurrentPassword))
+                {
+                    ModelState.AddModelError("", "Vaqtinchalik parolni almashtiring: yangi (boshqa) kalit so'zini kiriting.");
+                    return View("Settings", uvm);
+                }
+
                 // Yangilash password agar provided
                 if (!string.IsNullOrEmpty(uvm.Password))
                 {
@@ -362,6 +378,8 @@ namespace tahsinERP.Controllers
                     string keyNew;
                     userToUpdate.Password = PasswordHasher.Hash(uvm.Password, out keyNew);
                     userToUpdate.HashCode = keyNew;
+                    userToUpdate.MustChangePassword = false;
+                    Session.Remove(tahsinERP.Filters.MustChangePasswordAttribute.SessionKey);
                 }
 
                 // Yangilash other fields
