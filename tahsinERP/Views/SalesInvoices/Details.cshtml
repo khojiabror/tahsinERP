@@ -52,6 +52,7 @@
                                                     <div class="col-md-6">
                                                         <span><b>Invoys raqami</b>: @Html.DisplayFor(model => model.InvoiceNo)</span><br />
                                                         <span><b>Invoys sanasi</b>: @Model.InvoiceDate.ToString("dd.MM.yyyy")</span><br />
+                                                        <span><b>To'lov muddati</b>: @(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "-")</span><br />
                                                         <span><b>Mijoz</b>: 
                                                             @if (customer != null)
                                                             {

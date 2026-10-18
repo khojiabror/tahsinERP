@@ -3289,7 +3289,6 @@
     <Content Include="Views\Home\StatusView.cshtml" />
     <Content Include="Views\HrEmployeeHistory\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Create.cshtml" />
-    <Content Include="Views\CustomerBase\Delete.cshtml" />
     <Content Include="Views\CustomerBase\Details.cshtml" />
     <Content Include="Views\CustomerBase\Edit.cshtml" />
     <Content Include="Views\CustomerBase\Index.cshtml" />
