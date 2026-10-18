@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.Configuration.Tenancy;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services.Stock
@@ -10,8 +12,9 @@ namespace tahsinERP.Services.Stock
     /// Ombor roli — WAREHOUSES.WarehouseType (SRM-B12). Avval rol ombor NOMIdagi kalit so'zlar bilan taxmin
     /// qilinardi, topilmasa "ID 7" yoki "birinchi ombor"ga tushardi; endi faqat ustun hal qiladi, sozlanmagan
     /// bo'lsa null qaytariladi (chaqiruvchi aniq xato beradi).
-    /// Faol omborlar (ID, turi, sex) jarayon darajasida keshlanadi (SRM-P14); ombor yaratilganda/tahrirlanganda/
-    /// o'chirilganda <see cref="Invalidate"/> chaqiriladi.
+    /// Faol omborlar (ID, turi, sex) jarayon darajasida keshlanadi (SRM-P14) — kalit = tenant prefiksi, aks holda
+    /// bir tenantning ombor ID'lari boshqa tenant bazasiga yoziladi; ombor yaratilganda/tahrirlanganda/
+    /// o'chirilganda <see cref="Invalidate"/> chaqiriladi (faqat joriy tenant keshi tozalanadi).
     /// </summary>
     public static class WarehouseRoles
     {
@@ -26,17 +29,20 @@ namespace tahsinERP.Services.Stock
             public int? ShopID { get; set; }
         }
 
-        private static volatile List<Row> _active;
+        private static readonly ConcurrentDictionary<string, List<Row>> _active =
+            new ConcurrentDictionary<string, List<Row>>(StringComparer.Ordinal);
 
         public static void Invalidate()
         {
-            _active = null;
+            List<Row> removed;
+            _active.TryRemove(TenantContext.CacheKeyPrefix, out removed);
         }
 
         private static List<Row> Active(DBTHSNEntities db)
         {
-            var rows = _active;
-            if (rows != null)
+            string key = TenantContext.CacheKeyPrefix;
+            List<Row> rows;
+            if (_active.TryGetValue(key, out rows))
                 return rows;
 
             rows = db.WAREHOUSES
@@ -45,7 +51,7 @@ namespace tahsinERP.Services.Stock
                 .OrderBy(w => w.ID)
                 .Select(w => new Row { ID = w.ID, WarehouseType = w.WarehouseType, ShopID = w.ShopID })
                 .ToList();
-            _active = rows;
+            _active[key] = rows;
             return rows;
         }
 
