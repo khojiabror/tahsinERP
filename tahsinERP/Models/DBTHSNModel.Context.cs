@@ -53,11 +53,9 @@ namespace tahsinERP.Models
         public virtual DbSet<DOC_TEMPLATES> DOC_TEMPLATES { get; set; }
         public virtual DbSet<EXPENSE_PRODUCTS> EXPENSE_PRODUCTS { get; set; }
         public virtual DbSet<EXPENS> EXPENSES { get; set; }
-        public virtual DbSet<F_CONTRACT_DOCS> F_CONTRACT_DOCS { get; set; }
         public virtual DbSet<F_CONTRACT_TARIFFS> F_CONTRACT_TARIFFS { get; set; }
         public virtual DbSet<F_CONTRACTS> F_CONTRACTS { get; set; }
         public virtual DbSet<F_TRANSPORT_TYPES> F_TRANSPORT_TYPES { get; set; }
-        public virtual DbSet<F_WAYBILL_DOCS> F_WAYBILL_DOCS { get; set; }
         public virtual DbSet<F_WAYBILL_PAYMENT_SPLITS> F_WAYBILL_PAYMENT_SPLITS { get; set; }
         public virtual DbSet<F_WAYBILL_PAYMENTS> F_WAYBILL_PAYMENTS { get; set; }
         public virtual DbSet<F_WAYBILLS> F_WAYBILLS { get; set; }
