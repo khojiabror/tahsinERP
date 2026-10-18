@@ -1,0 +1,30 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Subscriptions.CreateModel
+@{ ViewData["Title"] = "Yangi obuna"; }
+<h1>Yangi obuna: @Model.Tenant.LegalName</h1>
+<form method="post" class="stack card">
+    <div asp-validation-summary="All"></div>
+    <input type="hidden" asp-for="TenantId" />
+    <div class="row">
+        <div>
+            <label asp-for="PlanId">Paket</label>
+            <select asp-for="PlanId">
+                @foreach (var p in Model.Plans)
+                {
+                    <option value="@p.Id">@p.Name — @p.MaxUsers foyd. (oy: @(Money.Format(p.PriceMonthTiyin) ?? "?"), yil: @(Money.Format(p.PriceYearTiyin) ?? "?"))</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label asp-for="Period">Davr</label>
+            <select asp-for="Period"><option value="Month">Oylik</option><option value="Year">Yillik</option></select>
+        </div>
+    </div>
+    <div class="row">
+        <div><label asp-for="Users">Foydalanuvchilar</label><input asp-for="Users" type="number" placeholder="paket chegarasi" /><div class="hint">Bo'sh — paket chegarasi (qat'iy paket).</div></div>
+        <div><label asp-for="StartDate">Boshlanish sanasi</label><input asp-for="StartDate" type="date" /></div>
+    </div>
+    <label class="check"><input asp-for="AutoRenew" /> Avtomatik uzaytirish (eslatma uchun belgi; to'lov baribir qo'lda)</label>
+    <div class="hint">Obuna «To'lov kutilmoqda» holatida yaratiladi; hisob-faktura to'liq to'langanda faollashadi va kalit chiqadi.</div>
+    <div class="actions"><button type="submit">Yaratish va hisob-fakturaga o'tish</button><a class="btn secondary" href="/Tenants/Details/@Model.TenantId">Bekor</a></div>
+</form>

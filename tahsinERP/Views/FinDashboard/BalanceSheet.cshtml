@@ -2,6 +2,7 @@
     ViewBag.Title = "Balans";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var balanceData = ViewBag.BalanceData as List<tahsinERP.ViewModels.Finance.BalanceCategoryData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryData>();
+    var totals = ViewBag.Totals as tahsinERP.ViewModels.Finance.BalanceTotals;
 }
 
 @* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
@@ -92,13 +93,21 @@
                                                     <tbody>
                                                         @foreach (var item in balanceData.Where(b => !b.IsAssetColumn))
                                                         {
-                                                            @* Passivlar: ko'rsatish konvensiyasi — manfiy; kapital: saqlangan belgi *@
-                                                            var displayAmount = item.Category.Type == 2
-                                                                ? -Math.Abs(item.Amount)
-                                                                : item.Amount;
+                                                            @* Majburiyatlar musbat (kredit qoldig'i), kapital o'z belgisida *@
+                                                            var displayAmount = tahsinERP.Services.Finance.BalanceSheetService.PassiveDisplayAmount(item.Category, item.Amount);
                                                             <tr>
                                                                 <td>@item.Category.Name</td>
                                                                 <td class="text-right">@displayAmount.ToString("N2")</td>
+                                                            </tr>
+                                                        }
+                                                        @if (totals != null)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    Taqsimlanmagan foyda (hisoblangan)
+                                                                    <small class="d-block text-muted">Aktiv − majburiyatlar − kiritilgan kapital; balanslovchi qator</small>
+                                                                </td>
+                                                                <td class="text-right">@totals.RetainedEarnings.ToString("N2")</td>
                                                             </tr>
                                                         }
                                                     </tbody>
@@ -107,9 +116,9 @@
                                                             <th>Jami passivlar va kapital:</th>
                                                             <th class="text-right">
                                                                 @{
-                                                                    var totalDisplay = balanceData
-                                                                        .Where(b => !b.IsAssetColumn)
-                                                                        .Sum(b => b.Category.Type == 2 ? -Math.Abs(b.Amount) : b.Amount);
+                                                                    var totalDisplay = totals != null
+                                                                        ? totals.PassiveTotal
+                                                                        : balanceData.Where(b => !b.IsAssetColumn).Sum(b => tahsinERP.Services.Finance.BalanceSheetService.PassiveDisplayAmount(b.Category, b.Amount));
                                                                 }
                                                                 <a style="text-decoration: underline;"
                                                                    href="@Url.Action("BalanceSheetLiabilityDetails", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">
@@ -119,6 +128,10 @@
                                                         </tr>
                                                     </tfoot>
                                                 </table>
+                                                @if (totals != null)
+                                                {
+                                                    <p class="small text-muted mt-1 mb-0">Balans tengligi: aktiv @totals.Assets.ToString("N2") = majburiyatlar @totals.Liabilities.ToString("N2") + kapital @totals.Equity.ToString("N2") + taqsimlanmagan foyda @totals.RetainedEarnings.ToString("N2")</p>
+                                                }
                                             </div>
                                         </div>
                                     </div>

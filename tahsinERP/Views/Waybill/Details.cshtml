@@ -1,4 +1,4 @@
-@model tahsinERP.Models.F_WAYBILLS
+﻿@model tahsinERP.Models.F_WAYBILLS
 @using tahsinERP.Services
 @{
     ViewBag.Title = "Yo'l varaqasi tafsilotlari";
@@ -19,151 +19,144 @@
     }
     var statusClass = paymentStatus == "To'langan" ? "success" : paymentStatus == "Qisman" ? "warning" : "danger";
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        @LogisticsTerms.Waybill tafsilotlari
-                                    </li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="content-body">
-                <div class="row">
-                    <div class="col-lg-8 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h4 class="text-primary mb-0">@LogisticsTerms.Waybill ma'lumotlari</h4>
-                                    <span class="badge badge-light-primary">@Model.WaybillNo</span>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-borderless table-sm mb-0">
-                                        <tr><td style="width:220px"><b>Sana</b></td><td>@(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
-                                        <tr><td><b>@LogisticsTerms.Forwarder</b></td><td>@(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td></tr>
-                                        <tr><td><b>Shartnoma</b></td><td>@(Model.F_CONTRACTS?.ContractNo ?? "")</td></tr>
-                                        <tr><td><b>Transport turi</b></td><td>@(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</td></tr>
-                                        <tr><td><b>Marshrut</b></td><td>@(Model.FromLocation ?? "") → @(Model.ToLocation ?? "")</td></tr>
-                                        <tr><td><b>Haydovchi / Mashina</b></td><td>@(Model.DriverName ?? "-") / @(Model.TruckNo ?? "-")</td></tr>
-                                        <tr><td><b>Masofa</b></td><td>@(Model.DistanceKm?.ToString("N2") ?? "0") km</td></tr>
-                                        <tr><td><b>Vazn / CBM</b></td><td>@(Model.GrWeight?.ToString("N2") ?? "0") ton / @(Model.CBM?.ToString("N2") ?? "0")</td></tr>
-                                        <tr><td><b>Izoh</b></td><td>@(Model.Description ?? "-")</td></tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="mb-1">To'lov holati</h5>
-                                <div class="mb-1">
-                                    <span class="badge badge-@statusClass" style="font-size: 0.95rem;">@paymentStatus</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-50">
-                                    <span>Jami summa</span>
-                                    <b>@((Model.Amount ?? 0).ToString("N2")) @currencyShortname</b>
-                                </div>
-                                <div class="d-flex justify-content-between mb-50">
-                                    <span>To'langan</span>
-                                    <b class="text-success">@totalPaid.ToString("N2") @currencyShortname</b>
-                                </div>
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>Qoldiq</span>
-                                    <b class="text-danger">@outstanding.ToString("N2") @currencyShortname</b>
-                                </div>
-                                <div class="progress progress-bar-@statusClass" style="height: 8px;">
-                                    @{
-                                        var amount = Model.Amount ?? 0;
-                                        var ratio = amount <= 0 ? 0 : Math.Min(100, Math.Max(0, (totalPaid / amount) * 100));
-                                    }
-                                    <div class="progress-bar bg-@statusClass" role="progressbar" style="width:@ratio.ToString("N0")%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-body">
-                                <h6 class="mb-1">Yetkazish</h6>
-                                <div class="d-flex justify-content-between mb-50">
-                                    <span>Rejalashtirilgan</span>
-                                    <b>@(Model.PlannedDeliveryDate?.ToString("dd.MM.yyyy") ?? "-")</b>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Haqiqiy</span>
-                                    <b>@(Model.ActualDeliveryDate?.ToString("dd.MM.yyyy") ?? "-")</b>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
                     <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <h5 class="mb-0">Bog'langan to'lovlar</h5>
-                                    <a href="@Url.Action("Create", "WaybillPayment")" class="btn btn-sm btn-outline-primary">
-                                        <i class="bx bx-plus"></i> To'lov qo'shish
-                                    </a>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-bordered table-sm mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Sana</th>
-                                                <th>Summa</th>
-                                                <th>Valyuta</th>
-                                                <th>@LogisticsTerms.Forwarder</th>
-                                                <th>Izoh</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (hasPayments)
-                                            {
-                                                foreach (var p in payments)
-                                                {
-                                                    <tr>
-                                                        <td><a href="@Url.Action("Details", "WaybillPayment", new { id = p.ID })">@p.ID</a></td>
-                                                        <td>@(p.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
-                                                        <td>@p.Payment_Amount.ToString("N2")</td>
-                                                        <td>@(p.CURRENCy != null ? p.CURRENCy.Shortname : currencyShortname)</td>
-                                                        <td>@(p.FORWARDER != null ? p.FORWARDER.ForwarderName : "")</td>
-                                                        <td>@(p.Comment ?? "")</td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <tr><td colspan="6" class="text-center text-muted">To'lovlar topilmadi</td></tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    @LogisticsTerms.Waybill tafsilotlari
+                                </li>
+                            </ol>
                         </div>
-                    </div>
                     </div>
                 </div>
             </div>
         </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+        <div class="content-body">
+            <div class="row">
+                <div class="col-lg-8 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="text-primary mb-0">@LogisticsTerms.Waybill ma'lumotlari</h4>
+                                <span class="badge badge-light-primary">@Model.WaybillNo</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr><td style="width:220px"><b>Sana</b></td><td>@(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
+                                    <tr><td><b>@LogisticsTerms.Forwarder</b></td><td>@(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td></tr>
+                                    <tr><td><b>Shartnoma</b></td><td>@(Model.F_CONTRACTS?.ContractNo ?? "")</td></tr>
+                                    <tr><td><b>Transport turi</b></td><td>@(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</td></tr>
+                                    <tr><td><b>Marshrut</b></td><td>@(Model.FromLocation ?? "") → @(Model.ToLocation ?? "")</td></tr>
+                                    <tr><td><b>Haydovchi / Mashina</b></td><td>@(Model.DriverName ?? "-") / @(Model.TruckNo ?? "-")</td></tr>
+                                    <tr><td><b>Masofa</b></td><td>@(Model.DistanceKm?.ToString("N2") ?? "0") km</td></tr>
+                                    <tr><td><b>Vazn / CBM</b></td><td>@(Model.GrWeight?.ToString("N2") ?? "0") ton / @(Model.CBM?.ToString("N2") ?? "0")</td></tr>
+                                    <tr><td><b>Izoh</b></td><td>@(Model.Description ?? "-")</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="mb-1">To'lov holati</h5>
+                            <div class="mb-1">
+                                <span class="badge badge-@statusClass" style="font-size: 0.95rem;">@paymentStatus</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-50">
+                                <span>Jami summa</span>
+                                <b>@((Model.Amount ?? 0).ToString("N2")) @currencyShortname</b>
+                            </div>
+                            <div class="d-flex justify-content-between mb-50">
+                                <span>To'langan</span>
+                                <b class="text-success">@totalPaid.ToString("N2") @currencyShortname</b>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Qoldiq</span>
+                                <b class="text-danger">@outstanding.ToString("N2") @currencyShortname</b>
+                            </div>
+                            <div class="progress progress-bar-@statusClass" style="height: 8px;">
+                                @{
+                                    var amount = Model.Amount ?? 0;
+                                    var ratio = amount <= 0 ? 0 : Math.Min(100, Math.Max(0, (totalPaid / amount) * 100));
+                                }
+                                <div class="progress-bar bg-@statusClass" role="progressbar" style="width:@ratio.ToString("N0")%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="mb-1">Yetkazish</h6>
+                            <div class="d-flex justify-content-between mb-50">
+                                <span>Rejalashtirilgan</span>
+                                <b>@(Model.PlannedDeliveryDate?.ToString("dd.MM.yyyy") ?? "-")</b>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Haqiqiy</span>
+                                <b>@(Model.ActualDeliveryDate?.ToString("dd.MM.yyyy") ?? "-")</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h5 class="mb-0">Bog'langan to'lovlar</h5>
+                                <a href="@Url.Action("Create", "WaybillPayment")" class="btn btn-sm btn-outline-primary">
+                                    <i class="bx bx-plus"></i> To'lov qo'shish
+                                </a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Sana</th>
+                                            <th>Summa</th>
+                                            <th>Valyuta</th>
+                                            <th>@LogisticsTerms.Forwarder</th>
+                                            <th>Izoh</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (hasPayments)
+                                        {
+                                            foreach (var p in payments)
+                                            {
+                                                <tr>
+                                                    <td><a href="@Url.Action("Details", "WaybillPayment", new { id = p.ID })">@p.ID</a></td>
+                                                    <td>@(p.PaymentDate?.ToString("dd.MM.yyyy") ?? "")</td>
+                                                    <td>@p.Payment_Amount.ToString("N2")</td>
+                                                    <td>@(p.CURRENCy != null ? p.CURRENCy.Shortname : currencyShortname)</td>
+                                                    <td>@(p.FORWARDER != null ? p.FORWARDER.ForwarderName : "")</td>
+                                                    <td>@(p.Comment ?? "")</td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr><td colspan="6" class="text-center text-muted">To'lovlar topilmadi</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>

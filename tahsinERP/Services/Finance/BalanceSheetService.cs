@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels.Finance;
 
 namespace tahsinERP.Services.Finance
@@ -303,6 +304,27 @@ namespace tahsinERP.Services.Finance
         }
 
         /// <summary>Passivlar va kapital ustuni (Type 2/3, aktiv nomlilar bundan mustasno).</summary>
+        /// <summary>Passiv ustunida ko'rsatiladigan summa: majburiyat (Type 2) musbat, kapital (Type 3) o'z belgisida.</summary>
+        public static decimal PassiveDisplayAmount(FIN_BALANCE_CATEGORIES category, decimal amount)
+        {
+            return category.Type == 2 ? Math.Abs(amount) : amount;
+        }
+
+        /// <summary>
+        /// Balans tengligi: Aktiv = Majburiyatlar + Kapital + hisoblangan taqsimlanmagan foyda (balanslovchi).
+        /// Taqsimlanmagan foyda kategoriya sifatida kiritilmagan — aktivdan majburiyat va kiritilgan kapital ayirib topiladi.
+        /// </summary>
+        public BalanceTotals Totals(DateTime asOfDate)
+        {
+            var all = Compute(asOfDate);
+            return new BalanceTotals
+            {
+                Assets = all.Where(d => d.IsAssetColumn).Sum(d => d.Amount),
+                Liabilities = all.Where(d => !d.IsAssetColumn && d.Category.Type == 2).Sum(d => Math.Abs(d.Amount)),
+                Equity = all.Where(d => !d.IsAssetColumn && d.Category.Type != 2).Sum(d => d.Amount)
+            };
+        }
+
         public List<BalanceCategoryDetailData> LiabilityDetails(DateTime asOfDate)
         {
             return Compute(asOfDate, (c, isAsset) => (c.Type == 2 || c.Type == 3) && !isAsset);
@@ -487,7 +509,7 @@ namespace tahsinERP.Services.Finance
 
             if (category.Name == ReceivablesCategoryName)
             {
-                var added = db.SALES_INVOICES
+                var added = db.SALES_INVOICES.Active()
                     .Where(i => i.InvoiceDate <= asOfDate &&
                                 (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value))
                     .OrderByDescending(i => i.InvoiceDate)

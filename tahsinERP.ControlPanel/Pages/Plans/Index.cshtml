@@ -1,0 +1,22 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Plans.IndexModel
+@{ ViewData["Title"] = "Tariflar"; }
+<h1>Tariflar (paketlar)</h1>
+<p class="hint">Narxlar QQS bilan. Paket kodi = litsenziya kalitidagi Edition; ERP modullarni shu kod bo'yicha ochadi (EditionModules). Qat'iy paketlar: foydalanuvchi soni chegaradan oshsa — keyingi paket.</p>
+<table>
+    <tr><th>Kod</th><th>Nomi</th><th class="num">Oylik, so'm</th><th class="num">Yillik, so'm</th><th class="num">Foydalanuvchi</th><th>Modullar</th><th class="num">QQS %</th><th>Holat</th><th></th></tr>
+    @foreach (var p in Model.Plans)
+    {
+        <tr>
+            <td><code>@p.Code</code></td>
+            <td>@p.Name</td>
+            <td class="num">@(Money.Format(p.PriceMonthTiyin) ?? "belgilanmagan")</td>
+            <td class="num">@(Money.Format(p.PriceYearTiyin) ?? "belgilanmagan")</td>
+            <td class="num">@p.MaxUsers</td>
+            <td>@p.Modules.Replace(",", ", ")</td>
+            <td class="num">@p.VatRatePercent.ToString("0.##")</td>
+            <td>@(p.IsActive ? "faol" : "o'chirilgan")</td>
+            <td>@if (Model.IsOwner) { <a href="/Plans/Edit/@p.Id">Tahrirlash</a> }</td>
+        </tr>
+    }
+</table>

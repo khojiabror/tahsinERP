@@ -1,18 +1,37 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Data.SqlClient;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Akt-sverki — faqat bitta shartnoma (xarid/sotuv/yuk tashish) bo'yicha.
+    /// Akt-sverki — bitta shartnoma (xarid/sotuv/yuk tashish) yoki kontragentning barcha shartnomalari
+    /// (<c>contractId = null</c>) bo'yicha.
     /// To'lovlar: FIN_TRANSACTIONS (naqd/chiqim), invoys-oyna qatorlari (PurchaseInvoice/SalesInvoice) bundan chiqariladi.
+    /// Opening bo'lsa (FIN_OPENING_CONTRACT_BALANCES) — opening qoldig'i o'z sanasida, keyin faqat opening sanasidan
+    /// keyingi hujjat va to'lovlar.
+    /// "Barcha shartnomalar" rejimida kontragentning hamma to'lovlari (shartnomaga bog'lanmaganlari ham) kiradi —
+    /// yakuniy qoldiq kontragent qarzi bilan bir xil bo'ladi. Shartnoma rejimida hech qaysi shartnomaga
+    /// bog'lanmagan to'lovlar bo'lsa, ogohlantirish chiqadi (<see cref="ReconciliationViewModel.UnattributedNote"/>).
     /// </summary>
     public static class ReconciliationService
     {
+        private const byte TypeReceivable = 1;
+        private const byte TypePayable = 2;
+        private const byte TypeForwarder = 4;
+
+        private sealed class Item
+        {
+            public DateTime Date;
+            public int Order; // bir kunda: opening, hujjat, to'lov, tuzatish
+            public string Content;
+            public decimal P1Dr, P1Cr, P2Dr, P2Cr;
+            public bool IsAdjustment;
+        }
+
         /// <summary>FIN da invoys bo'yicha faqat balans (qarz) aks ettiruvchi yozuvlar — to'lov emas.</summary>
         private static bool IsFinInvoiceLedgerMirror(string sourceDocType)
         {
@@ -21,10 +40,14 @@ namespace tahsinERP.Services
                 || sourceDocType.Equals("SalesInvoice", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static string Norm(string s)
+        {
+            return (s ?? "").Trim().ToUpperInvariant();
+        }
+
         /// <summary>
-        /// Shartnoma opening'larining (FIN_OPENING_CONTRACT_BALANCES) shu turdagi eng so'nggi sanasi <= asOf.
-        /// FIN-B09: avval FIN_BALANCE_SNAPSHOTS'dan olinardi - u yerdagi sana shartnoma qatorlari sanasiga
-        /// to'g'ri kelmasa, opening umuman topilmasdi.
+        /// Shartnoma opening'larining (FIN_OPENING_CONTRACT_BALANCES) shu turdagi eng so'nggi sanasi &lt;= asOf.
+        /// FIN-B09: avval FIN_BALANCE_SNAPSHOTS'dan olinardi.
         /// </summary>
         private static DateTime? GetLatestOpeningDate(DBTHSNEntities db, DateTime asOfDate, byte balanceType)
         {
@@ -35,60 +58,180 @@ namespace tahsinERP.Services
                 .Max();
         }
 
-        private static OpeningContractBalanceLite GetOpeningContractBalance(DBTHSNEntities db, DateTime openingDate, byte balanceType, int counterpartyId, int contractId, string contractNo)
+        /// <summary>
+        /// Opening qoldig'i: shartnoma bo'yicha (ID yoki raqam mos birinchi qator) yoki <paramref name="contractId"/> null
+        /// bo'lsa — kontragentning barcha qatorlari yig'indisi.
+        /// </summary>
+        private static decimal OpeningAmount(DBTHSNEntities db, DateTime openingDate, byte balanceType, int counterpartyId, int? contractId, string contractNo, bool canonicalForNumber)
         {
-            var contractNoNorm = (contractNo ?? "").Trim().ToUpperInvariant();
-            var rows = db.Database.SqlQuery<OpeningContractBalanceLite>(
-                "SELECT TOP 1 Amount FROM FIN_OPENING_CONTRACT_BALANCES " +
-                "WHERE SnapshotDate = @p0 AND BalanceType = @p1 AND CounterpartyID = @p2 " +
-                "AND ((ContractID IS NOT NULL AND ContractID = @p3) " +
-                "OR (@p4 <> '' AND UPPER(LTRIM(RTRIM(ISNULL(ContractNo,'')))) = @p4) " +
-                "OR (@p3 IS NULL AND ContractID IS NULL AND ISNULL(ContractNo,'') = ''))",
-                new SqlParameter("@p0", openingDate.Date),
-                new SqlParameter("@p1", balanceType),
-                new SqlParameter("@p2", counterpartyId),
-                new SqlParameter("@p3", contractId),
-                new SqlParameter("@p4", contractNoNorm)
-            ).ToList();
+            var d = openingDate.Date;
+            var rows = db.FIN_OPENING_CONTRACT_BALANCES.AsNoTracking()
+                .Where(x => x.SnapshotDate == d && x.BalanceType == balanceType && x.CounterpartyID == counterpartyId)
+                .Select(x => new { x.ID, x.ContractID, x.ContractNo, x.Amount })
+                .ToList();
+            if (!contractId.HasValue)
+                return rows.Sum(x => x.Amount);
 
-            return rows.FirstOrDefault();
+            // Avval ContractID bo'yicha; ContractID'siz (eski) qator raqam bo'yicha faqat shu raqamning asosiy
+            // shartnomasiga — bir xil raqamli ikki shartnomada opening ikki marta sanalmasin
+            var byId = rows.Where(x => x.ContractID.HasValue && x.ContractID.Value == contractId.Value).ToList();
+            if (byId.Count > 0)
+                return byId.Sum(x => x.Amount);
+            var no = Norm(contractNo);
+            if (no == "" || !canonicalForNumber)
+                return 0m;
+            return rows.Where(x => !x.ContractID.HasValue && Norm(x.ContractNo) == no).Sum(x => x.Amount);
         }
 
-        public static ReconciliationViewModel BuildSupplierReconciliation(DBTHSNEntities db, int supplierId, int contractId, DateTime asOfDate, string companyName, string supplierName, string contractNo)
+        /// <summary>
+        /// Raqam bo'yicha bog'lanadigan to'lov/opening qaysi shartnomaga tushadi: bir xil raqamli shartnomalar
+        /// bo'lsa — eng kichik ID'liga (aks holda ikkala shartnoma aktida ham sanalardi).
+        /// </summary>
+        private static bool IsCanonicalForNumber(IDictionary<int, string> contractNoById, int? contractId)
         {
-            var vm = new ReconciliationViewModel
+            if (!contractId.HasValue || !contractNoById.TryGetValue(contractId.Value, out var no)) return true;
+            var n = Norm(no);
+            return n == "" || contractNoById.Where(kv => Norm(kv.Value) == n).Min(kv => kv.Key) == contractId.Value;
+        }
+
+        /// <summary>
+        /// Tuzatishlar: opening bo'lsa faqat undan keyingilari (opening holati oldingi tuzatishlarni o'z ichiga oladi —
+        /// aks holda ular ikki marta sanalardi).
+        /// </summary>
+        private static List<ReconciliationAdjustmentRow> Adjustments(DBTHSNEntities db, byte type, int counterpartyId, int? contractId, DateTime asOfDate, DateTime? openingDate)
+        {
+            var rows = contractId.HasValue
+                ? ReconciliationAdjustmentService.LoadForReport(db, type, counterpartyId, contractId.Value, asOfDate)
+                : ReconciliationAdjustmentService.LoadForCounterparty(db, type, counterpartyId, asOfDate);
+            return openingDate.HasValue
+                ? rows.Where(a => a.CutoffDate.Date > openingDate.Value.Date).ToList()
+                : rows;
+        }
+
+        private static ReconciliationViewModel NewVm(string type, string companyName, string party2Name, int counterpartyId, int? contractId, string contractNo, DateTime asOfDate, string activity)
+        {
+            return new ReconciliationViewModel
             {
                 Party1Name = companyName ?? "Bizning korxona",
-                Party2Name = supplierName,
+                Party2Name = party2Name,
                 AsOfDate = asOfDate,
                 ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
-                ReconciliationType = "Supplier",
-                CounterpartyId = supplierId,
-                ContractId = contractId,
-                ContractNo = contractNo,
+                ReconciliationType = type,
+                CounterpartyId = counterpartyId,
+                ContractId = contractId ?? 0,
+                AllContracts = !contractId.HasValue,
+                ContractNo = contractId.HasValue ? contractNo : "Barcha shartnomalar",
                 Rows = new List<ReconciliationRowViewModel>(),
-                AgreementInfo = $"Shartnoma №{contractNo} — xarid-xo'jalik faoliyati bo'yicha o'zaro hisob-kitoblar"
+                AgreementInfo = contractId.HasValue
+                    ? $"Shartnoma №{contractNo} — {activity} bo'yicha o'zaro hisob-kitoblar"
+                    : $"Barcha shartnomalar (shartnomaga bog'lanmagan to'lovlar bilan) — {activity} bo'yicha o'zaro hisob-kitoblar"
             };
+        }
 
-            // FIN-B07: opening bo'lsa - opening qoldig'i o'z sanasida, keyin faqat shu sanadan keyingi harakatlar
-            // (avval opening + butun tarix qo'shilib, opening'gacha bo'lgan tarix ikki marta hisoblanardi).
-            var openingDate = GetLatestOpeningDate(db, asOfDate, 2);
-            var invoiceQuery = db.P_INVOICES
-                .Where(i => i.SupplierID == supplierId && i.ContractID == contractId && i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false));
-            if (openingDate.HasValue)
+        private static void AddAdjustmentItems(List<Item> items, IEnumerable<ReconciliationAdjustmentRow> adjustments)
+        {
+            foreach (var a in adjustments)
             {
-                var od = openingDate.Value;
-                invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate > od);
+                var note = string.IsNullOrWhiteSpace(a.Note) ? "" : " — " + a.Note;
+                items.Add(new Item
+                {
+                    Date = a.CutoffDate,
+                    Order = 3,
+                    Content = $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
+                    P1Dr = a.Party1Debit,
+                    P1Cr = a.Party1Credit,
+                    P2Dr = a.Party1Credit,
+                    P2Cr = a.Party1Debit,
+                    IsAdjustment = true
+                });
             }
-            var invoices = invoiceQuery
-                .OrderBy(i => i.InvoiceDate)
-                .Select(i => new { i.ID, i.InvoiceNo, i.InvoiceDate, i.Amount })
+        }
+
+        /// <summary>
+        /// Qatorlar, jami va yakuniy qoldiq. Ikki tomon jadvali ko'zgu: Party2 debeti = Party1 krediti va aksincha.
+        /// <paramref name="party1Receivable"/> = true (mijoz): qoldiq = Party1 debet − kredit; aks holda kredit − debet.
+        /// </summary>
+        private static void Finish(ReconciliationViewModel vm, List<Item> items, bool party1Receivable)
+        {
+            foreach (var item in items.OrderBy(x => x.Date).ThenBy(x => x.Order))
+            {
+                vm.Rows.Add(new ReconciliationRowViewModel
+                {
+                    Content = item.Content,
+                    Date = item.Date,
+                    Party1Debit = item.P1Dr,
+                    Party1Credit = item.P1Cr,
+                    Party2Debit = item.P2Dr,
+                    Party2Credit = item.P2Cr,
+                    IsAdjustmentRow = item.IsAdjustment
+                });
+            }
+
+            vm.Party1DebitTotal = items.Sum(x => x.P1Dr);
+            vm.Party1CreditTotal = items.Sum(x => x.P1Cr);
+            vm.Party2DebitTotal = items.Sum(x => x.P2Dr);
+            vm.Party2CreditTotal = items.Sum(x => x.P2Cr);
+            vm.FinalBalance = party1Receivable
+                ? vm.Party1DebitTotal - vm.Party1CreditTotal
+                : vm.Party1CreditTotal - vm.Party1DebitTotal;
+
+            if (vm.Rows.Count == 0) return;
+
+            vm.Rows.Add(new ReconciliationRowViewModel { IsBalanceRow = true });
+            var weOwe = party1Receivable ? vm.FinalBalance < 0 : vm.FinalBalance > 0; // Party1 kredit qoldig'i
+            var amount = Math.Abs(vm.FinalBalance);
+            vm.Rows.Add(new ReconciliationRowViewModel
+            {
+                Content = $"Yakuniy qoldiq {vm.AsOfDate:dd.MM.yyyy}",
+                IsBalanceRow = true,
+                Party1Debit = weOwe ? 0 : amount,
+                Party1Credit = weOwe ? amount : 0,
+                Party2Debit = weOwe ? amount : 0,
+                Party2Credit = weOwe ? 0 : amount
+            });
+        }
+
+        private static string UnattributedNote(int count, decimal sum)
+        {
+            return count == 0
+                ? null
+                : $"Bu kontragentning hech qaysi shartnomasiga bog'lanmagan {count} ta to'lovi ({sum:N2}) shartnoma akt-sverkisiga kirmaydi. " +
+                  "Ularni ko'rish uchun \"Barcha shartnomalar\" ni tanlang yoki to'lovga shartnoma raqamini kiriting.";
+        }
+
+        #region Ta'minotchi
+
+        public static ReconciliationViewModel BuildSupplierReconciliation(DBTHSNEntities db, int supplierId, int? contractId, DateTime asOfDate, string companyName, string supplierName, string contractNo)
+        {
+            var vm = NewVm("Supplier", companyName, supplierName, supplierId, contractId, contractNo, asOfDate, "xarid-xo'jalik faoliyati");
+            var openingDate = GetLatestOpeningDate(db, asOfDate, TypePayable);
+
+            // Kontragentning barcha invoyslari (to'lovni shartnomaga bog'lash uchun opening'gacha bo'lganlari ham)
+            var allInvoices = db.P_INVOICES
+                .Where(i => i.SupplierID == supplierId && i.InvoiceDate <= asOfDate && (i.IsDeleted == null || i.IsDeleted == false))
+                .Select(i => new { i.ID, i.ContractID, i.InvoiceNo, i.InvoiceDate, i.Amount })
                 .ToList();
+            var contractNoById = db.P_CONTRACTS.AsNoTracking()
+                .Where(c => c.SupplierID == supplierId && c.IsDeleted != true)
+                .Select(c => new { c.ID, c.ContractNo })
+                .ToList()
+                .ToDictionary(c => c.ID, c => c.ContractNo ?? "");
+            var knownContractNos = new HashSet<string>(contractNoById.Values.Select(Norm).Where(n => n != ""));
 
-            // Xarid summasi - yagona qoida (FIN-B08): kirimlar TotalPrice (odatda QQS bilan), bo'lmasa P_INVOICES.Amount.
-            var incomeTotalsByInvoice = Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, invoiceQuery, asOfDate);
+            var scopeInvoiceIds = new HashSet<int>(allInvoices.Where(i => !contractId.HasValue || i.ContractID == contractId.Value).Select(i => i.ID));
+            var anyContractInvoiceIds = new HashSet<int>(allInvoices.Where(i => i.ContractID > 0).Select(i => i.ID));
 
-            var invIdSet = new HashSet<int>(invoices.Select(i => i.ID));
+            // Hujjatlar: opening sanasidan keyingilari
+            var invoices = allInvoices
+                .Where(i => scopeInvoiceIds.Contains(i.ID) && (!openingDate.HasValue || i.InvoiceDate > openingDate.Value))
+                .OrderBy(i => i.InvoiceDate).ThenBy(i => i.ID)
+                .ToList();
+            var invoiceIdList = invoices.Select(i => i.ID).ToList();
+            // Xarid summasi — yagona qoida (FIN-B08): kirimlar TotalPrice, bo'lmasa P_INVOICES.Amount
+            var amountById = invoiceIdList.Count == 0
+                ? new Dictionary<int, decimal>()
+                : Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, db.P_INVOICES.Where(i => invoiceIdList.Contains(i.ID)), asOfDate);
+
             var payQuery = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 2 && t.CounterpartyID == supplierId && t.TxnDate <= asOfDate
                     && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 2);
@@ -97,375 +240,288 @@ namespace tahsinERP.Services
                 var od = openingDate.Value;
                 payQuery = payQuery.Where(t => t.TxnDate > od);
             }
-            var payCandidates = payQuery.OrderBy(t => t.TxnDate).ToList();
+            var payCandidates = payQuery.OrderBy(t => t.TxnDate).ThenBy(t => t.ID).ToList()
+                .Where(t => !IsFinInvoiceLedgerMirror(t.SourceDocType))
+                .ToList();
 
-            var contractNoNorm = (contractNo ?? "").Trim();
-            // Naqd to'lovlar FIN dan: invoys ID si shu shartnoma invoyslariga bog'langan (tur qanday bo'lishidan qat'iy nazarda tutmasdan),
-            // yoki shartnoma raqami mos; PurchaseInvoice yozuvlari — invoys bilan dublikat, chiqarilmaydi.
+            // Shartnoma rejimi: invoysi shu shartnomada (opening'gacha bo'lsa ham) yoki shartnoma raqami mos
+            var canonical = IsCanonicalForNumber(contractNoById, contractId);
+            var contractNoNorm = canonical ? Norm(contractNo) : "";
             var payments = payCandidates.Where(t =>
-            {
-                if (IsFinInvoiceLedgerMirror(t.SourceDocType))
-                    return false;
-                if (t.SourceDocID.HasValue && invIdSet.Contains(t.SourceDocID.Value))
-                    return true;
-                if (!string.IsNullOrEmpty(contractNoNorm) && !string.IsNullOrEmpty(t.ContractNo)
-                    && string.Equals(t.ContractNo.Trim(), contractNoNorm, StringComparison.OrdinalIgnoreCase))
-                    return true;
-                return false;
-            }).OrderBy(t => t.TxnDate).ToList();
+                    !contractId.HasValue
+                    || (t.SourceDocID.HasValue && scopeInvoiceIds.Contains(t.SourceDocID.Value))
+                    || (contractNoNorm != "" && Norm(t.ContractNo) == contractNoNorm))
+                .ToList();
 
-            var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
-            var opening = openingDate.HasValue
-                ? GetOpeningContractBalance(db, openingDate.Value, 2, supplierId, contractId, contractNo)
-                : null;
-
-            if (opening != null && opening.Amount != 0)
+            if (contractId.HasValue)
             {
-                allItems.Add((openingDate.Value.Date, "open",
-                    "Opening balansdan boshlangan qarzdorlik",
-                    0, opening.Amount, opening.Amount, 0));
+                var unattributed = payCandidates
+                    .Where(t => !(t.SourceDocID.HasValue && anyContractInvoiceIds.Contains(t.SourceDocID.Value))
+                                && !knownContractNos.Contains(Norm(t.ContractNo)))
+                    .ToList();
+                vm.UnattributedNote = UnattributedNote(unattributed.Count, unattributed.Sum(t => t.Amount));
+            }
+
+            var items = new List<Item>();
+            if (openingDate.HasValue)
+            {
+                var opening = OpeningAmount(db, openingDate.Value, TypePayable, supplierId, contractId, contractNo, canonical);
+                if (opening != 0)
+                {
+                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = "Opening balansdan boshlangan qarzdorlik", P1Cr = opening, P2Dr = opening });
+                }
+            }
+
+            // Opening'gacha chiqarilgan invoys, kirim hujjati opening'dan keyin kelgan: opening'da u o'sha sanadagi
+            // summa bilan bor — faqat keyingi o'zgarish qatori (qarz hisobi bilan bir xil qoida)
+            if (openingDate.HasValue)
+            {
+                var od = openingDate.Value;
+                var preOpeningIds = allInvoices.Where(i => scopeInvoiceIds.Contains(i.ID) && i.InvoiceDate <= od).Select(i => i.ID).ToList();
+                var changed = preOpeningIds.Count == 0
+                    ? new List<int>()
+                    : db.INCOMES.AsNoTracking()
+                        .Where(inc => inc.InvoiceID.HasValue && preOpeningIds.Contains(inc.InvoiceID.Value) && inc.IsDeleted != true &&
+                                      inc.TotalPrice.HasValue && inc.IssueDateTime > od && inc.IssueDateTime <= asOfDate)
+                        .Select(inc => inc.InvoiceID.Value)
+                        .Distinct()
+                        .ToList();
+                if (changed.Count > 0)
+                {
+                    var changedQuery = db.P_INVOICES.Where(i => changed.Contains(i.ID));
+                    var now = Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, changedQuery, asOfDate);
+                    var then = Finance.CounterpartyBalanceService.PurchaseInvoiceAmounts(db, changedQuery, od);
+                    var lastIncome = db.INCOMES.AsNoTracking()
+                        .Where(inc => inc.InvoiceID.HasValue && changed.Contains(inc.InvoiceID.Value) && inc.IsDeleted != true && inc.IssueDateTime <= asOfDate)
+                        .GroupBy(inc => inc.InvoiceID.Value)
+                        .Select(g => new { ID = g.Key, Date = g.Max(x => x.IssueDateTime) })
+                        .ToList()
+                        .ToDictionary(x => x.ID, x => x.Date);
+                    foreach (var inv in allInvoices.Where(i => changed.Contains(i.ID)))
+                    {
+                        var delta = (now.TryGetValue(inv.ID, out var n) ? n : 0m) - (then.TryGetValue(inv.ID, out var o) ? o : 0m);
+                        if (delta == 0) continue;
+                        var date = lastIncome.TryGetValue(inv.ID, out var d) ? d.Date : asOfDate.Date;
+                        items.Add(new Item
+                        {
+                            Date = date,
+                            Order = 1,
+                            Content = $"Hisob-faktura №{inv.InvoiceNo} ({inv.InvoiceDate:dd.MM.yyyy}) summasi kirim hujjati bo'yicha o'zgardi",
+                            P1Cr = delta > 0 ? delta : 0,
+                            P2Dr = delta > 0 ? delta : 0,
+                            P1Dr = delta < 0 ? -delta : 0,
+                            P2Cr = delta < 0 ? -delta : 0
+                        });
+                    }
+                }
             }
 
             foreach (var inv in invoices)
             {
-                var amt = incomeTotalsByInvoice.ContainsKey(inv.ID)
-                    ? incomeTotalsByInvoice[inv.ID]
-                    : Convert.ToDecimal(inv.Amount ?? 0);
-                allItems.Add((inv.InvoiceDate, "inv",
-                    $"Hisob-faktura №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}",
-                    0, amt, amt, 0));
+                var amt = amountById.TryGetValue(inv.ID, out var a) ? a : Convert.ToDecimal(inv.Amount ?? 0);
+                var prefix = !contractId.HasValue && inv.ContractID > 0 && contractNoById.TryGetValue(inv.ContractID, out var no) && no != "" ? $"[{no}] " : "";
+                items.Add(new Item { Date = inv.InvoiceDate, Order = 1, Content = $"{prefix}Hisob-faktura №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}", P1Cr = amt, P2Dr = amt });
             }
             foreach (var pay in payments)
             {
                 var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : " — " + pay.Purpose;
-                allItems.Add((pay.TxnDate, "pay",
-                    $"FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}",
-                    pay.Amount, 0, 0, pay.Amount));
+                var ctxt = !contractId.HasValue && !string.IsNullOrWhiteSpace(pay.ContractNo) ? $"[{pay.ContractNo.Trim()}] " : "";
+                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = $"{ctxt}FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}", P1Dr = pay.Amount, P2Cr = pay.Amount });
             }
+            AddAdjustmentItems(items, Adjustments(db, ReconciliationAdjustmentService.CounterpartySupplier, supplierId, contractId, asOfDate, openingDate));
 
-            var adjustments = ReconciliationAdjustmentService.LoadForReport(db, ReconciliationAdjustmentService.CounterpartySupplier, supplierId, contractId, asOfDate);
-            foreach (var a in adjustments)
-            {
-                var note = string.IsNullOrWhiteSpace(a.Note) ? "" : " — " + a.Note;
-                allItems.Add((a.CutoffDate, "adj",
-                    $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
-                    a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
-            }
-
-            var ordered = allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "open" ? 0 : x.type == "inv" ? 1 : x.type == "pay" ? 2 : 3).ToList();
-
-            foreach (var item in ordered)
-            {
-                vm.Rows.Add(new ReconciliationRowViewModel
-                {
-                    Content = item.content,
-                    Date = item.dt,
-                    Party1Debit = item.p1Dr,
-                    Party1Credit = item.p1Cr,
-                    Party2Debit = item.p2Dr,
-                    Party2Credit = item.p2Cr,
-                    IsAdjustmentRow = item.type == "adj"
-                });
-            }
-
-            var totalInv = invoices.Sum(i =>
-                incomeTotalsByInvoice.ContainsKey(i.ID)
-                    ? incomeTotalsByInvoice[i.ID]
-                    : Convert.ToDecimal(i.Amount ?? 0));
-            if (opening != null) totalInv += opening.Amount;
-            var totalPay = payments.Sum(p => p.Amount);
-            var adjDr = adjustments.Sum(a => a.Party1Debit);
-            var adjCr = adjustments.Sum(a => a.Party1Credit);
-
-            vm.Party1DebitTotal = totalPay + adjDr;
-            vm.Party1CreditTotal = totalInv + adjCr;
-            vm.Party2DebitTotal = totalInv + adjCr;
-            vm.Party2CreditTotal = totalPay + adjDr;
-            vm.FinalBalance = vm.Party1CreditTotal - vm.Party1DebitTotal;
-
-            if (vm.Rows != null && vm.Rows.Count > 0)
-            {
-                vm.Rows.Add(new ReconciliationRowViewModel { IsBalanceRow = true });
-                vm.Rows.Add(new ReconciliationRowViewModel
-                {
-                    Content = $"Yakuniy qoldiq {asOfDate:dd.MM.yyyy}",
-                    IsBalanceRow = true,
-                    Party1Debit = vm.FinalBalance > 0 ? 0 : Math.Abs(vm.FinalBalance),
-                    Party1Credit = vm.FinalBalance > 0 ? vm.FinalBalance : 0,
-                    Party2Debit = vm.FinalBalance > 0 ? vm.FinalBalance : 0,
-                    Party2Credit = vm.FinalBalance > 0 ? 0 : Math.Abs(vm.FinalBalance)
-                });
-            }
-
+            Finish(vm, items, party1Receivable: false);
             return vm;
         }
 
-        public static ReconciliationViewModel BuildCustomerReconciliation(DBTHSNEntities db, int customerId, int contractId, DateTime asOfDate, string companyName, string customerName, string contractNo)
-        {
-            var vm = new ReconciliationViewModel
-            {
-                Party1Name = companyName ?? "Bizning korxona",
-                Party2Name = customerName,
-                AsOfDate = asOfDate,
-                ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
-                ReconciliationType = "Customer",
-                CounterpartyId = customerId,
-                ContractId = contractId,
-                ContractNo = contractNo,
-                Rows = new List<ReconciliationRowViewModel>(),
-                AgreementInfo = $"Shartnoma №{contractNo} — sotuv faoliyati bo'yicha o'zaro hisob-kitoblar"
-            };
+        #endregion
 
-            var openingDate = GetLatestOpeningDate(db, asOfDate, 1);
-            var invoiceQuery = db.SALES_INVOICES
-                .Where(i => i.CustomerID == customerId && i.ContractID == contractId && i.InvoiceDate <= asOfDate);
-            if (openingDate.HasValue)
-            {
-                var od = openingDate.Value;
-                invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate > od);
-            }
-            var invoices = invoiceQuery
-                .OrderBy(i => i.InvoiceDate)
-                .Select(i => new
-                {
-                    i.ID,
-                    i.InvoiceNo,
-                    i.InvoiceDate,
-                    Amount = i.TotalAmount,
-                    TotalWithVAT = i.TotalWithVAT
-                })
+        #region Mijoz
+
+        public static ReconciliationViewModel BuildCustomerReconciliation(DBTHSNEntities db, int customerId, int? contractId, DateTime asOfDate, string companyName, string customerName, string contractNo)
+        {
+            var vm = NewVm("Customer", companyName, customerName, customerId, contractId, contractNo, asOfDate, "sotuv faoliyati");
+            var openingDate = GetLatestOpeningDate(db, asOfDate, TypeReceivable);
+
+            // Bekor qilingan invoyslar akt-sverkiga kirmaydi
+            var allInvoices = db.SALES_INVOICES.Active()
+                .Where(i => i.CustomerID == customerId && i.InvoiceDate <= asOfDate)
+                .Select(i => new { i.ID, i.ContractID, i.InvoiceNo, i.InvoiceDate, Amount = i.TotalWithVAT ?? i.TotalAmount })
+                .ToList();
+            var contractNoById = db.S_CONTRACTS.AsNoTracking()
+                .Where(c => c.CustomerID == customerId && c.IsDeleted != true)
+                .Select(c => new { c.ID, c.ContractNo })
+                .ToList()
+                .ToDictionary(c => c.ID, c => c.ContractNo ?? "");
+            var knownContractNos = new HashSet<string>(contractNoById.Values.Select(Norm).Where(n => n != ""));
+
+            var scopeInvoiceIds = new HashSet<long>(allInvoices.Where(i => !contractId.HasValue || i.ContractID == contractId.Value).Select(i => i.ID));
+            var anyContractInvoiceIds = new HashSet<long>(allInvoices.Where(i => i.ContractID.HasValue).Select(i => i.ID));
+
+            var invoices = allInvoices
+                .Where(i => scopeInvoiceIds.Contains(i.ID) && (!openingDate.HasValue || i.InvoiceDate > openingDate.Value))
+                .OrderBy(i => i.InvoiceDate).ThenBy(i => i.ID)
                 .ToList();
 
-            var invIdSet = new HashSet<long>(invoices.Select(i => i.ID));
-            var contractNoNorm = (contractNo ?? "").Trim();
-
-            var customerPayQuery = db.FIN_TRANSACTIONS
+            var payQuery = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 1 && t.CounterpartyID == customerId && t.TxnDate <= asOfDate
                     && (t.IsDeleted == null || t.IsDeleted == false) && t.Direction == 1);
             if (openingDate.HasValue)
             {
                 var od = openingDate.Value;
-                customerPayQuery = customerPayQuery.Where(t => t.TxnDate > od);
+                payQuery = payQuery.Where(t => t.TxnDate > od);
             }
-            var payCandidates = customerPayQuery.OrderBy(t => t.TxnDate).ToList();
+            var payCandidates = payQuery.OrderBy(t => t.TxnDate).ThenBy(t => t.ID).ToList()
+                .Where(t => !IsFinInvoiceLedgerMirror(t.SourceDocType))
+                .ToList();
 
+            var canonical = IsCanonicalForNumber(contractNoById, contractId);
+            var contractNoNorm = canonical ? Norm(contractNo) : "";
             var payments = payCandidates.Where(t =>
-            {
-                if (IsFinInvoiceLedgerMirror(t.SourceDocType))
-                    return false;
-                if (t.SourceDocID.HasValue && invIdSet.Contains((long)t.SourceDocID.Value))
-                    return true;
-                if (!string.IsNullOrEmpty(contractNoNorm) && !string.IsNullOrEmpty(t.ContractNo)
-                    && string.Equals(t.ContractNo.Trim(), contractNoNorm, StringComparison.OrdinalIgnoreCase))
-                    return true;
-                return false;
-            }).OrderBy(t => t.TxnDate).ToList();
+                    !contractId.HasValue
+                    || (t.SourceDocID.HasValue && scopeInvoiceIds.Contains(t.SourceDocID.Value))
+                    || (contractNoNorm != "" && Norm(t.ContractNo) == contractNoNorm))
+                .ToList();
 
-            var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
-            var opening = openingDate.HasValue
-                ? GetOpeningContractBalance(db, openingDate.Value, 1, customerId, contractId, contractNo)
-                : null;
-
-            if (opening != null && opening.Amount != 0)
+            if (contractId.HasValue)
             {
-                allItems.Add((openingDate.Value.Date, "open",
-                    "Opening balansdan boshlangan haqqimiz",
-                    opening.Amount, 0, 0, opening.Amount));
+                var unattributed = payCandidates
+                    .Where(t => !(t.SourceDocID.HasValue && anyContractInvoiceIds.Contains(t.SourceDocID.Value))
+                                && !knownContractNos.Contains(Norm(t.ContractNo)))
+                    .ToList();
+                vm.UnattributedNote = UnattributedNote(unattributed.Count, unattributed.Sum(t => t.Amount));
+            }
+
+            var items = new List<Item>();
+            if (openingDate.HasValue)
+            {
+                var opening = OpeningAmount(db, openingDate.Value, TypeReceivable, customerId, contractId, contractNo, canonical);
+                if (opening != 0)
+                {
+                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = "Opening balansdan boshlangan haqqimiz", P1Dr = opening, P2Cr = opening });
+                }
             }
 
             foreach (var inv in invoices)
             {
-                var invoiceAmountWithVat = inv.TotalWithVAT ?? inv.Amount;
-                allItems.Add((inv.InvoiceDate, "inv",
-                    $"Sotuv invoysi №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}",
-                    invoiceAmountWithVat, 0, 0, invoiceAmountWithVat));
+                var prefix = !contractId.HasValue && inv.ContractID.HasValue && contractNoById.TryGetValue(inv.ContractID.Value, out var no) && no != "" ? $"[{no}] " : "";
+                items.Add(new Item { Date = inv.InvoiceDate, Order = 1, Content = $"{prefix}Sotuv invoysi №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}", P1Dr = inv.Amount, P2Cr = inv.Amount });
             }
             foreach (var pay in payments)
             {
                 var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : " — " + pay.Purpose;
-                allItems.Add((pay.TxnDate, "pay",
-                    $"FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}",
-                    0, pay.Amount, pay.Amount, 0));
+                var ctxt = !contractId.HasValue && !string.IsNullOrWhiteSpace(pay.ContractNo) ? $"[{pay.ContractNo.Trim()}] " : "";
+                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = $"{ctxt}FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}", P1Cr = pay.Amount, P2Dr = pay.Amount });
             }
+            AddAdjustmentItems(items, Adjustments(db, ReconciliationAdjustmentService.CounterpartyCustomer, customerId, contractId, asOfDate, openingDate));
 
-            var adjList = ReconciliationAdjustmentService.LoadForReport(db, ReconciliationAdjustmentService.CounterpartyCustomer, customerId, contractId, asOfDate);
-            foreach (var a in adjList)
-            {
-                var note = string.IsNullOrWhiteSpace(a.Note) ? "" : " — " + a.Note;
-                allItems.Add((a.CutoffDate, "adj",
-                    $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
-                    a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
-            }
-
-            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "open" ? 0 : x.type == "inv" ? 1 : x.type == "pay" ? 2 : 3))
-            {
-                vm.Rows.Add(new ReconciliationRowViewModel
-                {
-                    Content = item.content,
-                    Date = item.dt,
-                    Party1Debit = item.p1Dr,
-                    Party1Credit = item.p1Cr,
-                    Party2Debit = item.p2Dr,
-                    Party2Credit = item.p2Cr,
-                    IsAdjustmentRow = item.type == "adj"
-                });
-            }
-
-            var totalInv = invoices.Sum(i => i.TotalWithVAT ?? i.Amount);
-            if (opening != null) totalInv += opening.Amount;
-            var totalPay = payments.Sum(p => p.Amount);
-            var adjDr = adjList.Sum(a => a.Party1Debit);
-            var adjCr = adjList.Sum(a => a.Party1Credit);
-
-            vm.Party1DebitTotal = totalInv + adjDr;
-            vm.Party1CreditTotal = totalPay + adjCr;
-            vm.Party2DebitTotal = totalPay + adjCr;
-            vm.Party2CreditTotal = totalInv + adjDr;
-            vm.FinalBalance = vm.Party1DebitTotal - vm.Party1CreditTotal;
-
-            if (vm.Rows.Count > 0)
-            {
-                vm.Rows.Add(new ReconciliationRowViewModel { IsBalanceRow = true });
-                vm.Rows.Add(new ReconciliationRowViewModel
-                {
-                    Content = $"Yakuniy qoldiq {asOfDate:dd.MM.yyyy}",
-                    IsBalanceRow = true,
-                    Party1Debit = vm.FinalBalance > 0 ? vm.FinalBalance : 0,
-                    Party1Credit = vm.FinalBalance > 0 ? 0 : Math.Abs(vm.FinalBalance),
-                    Party2Debit = vm.FinalBalance > 0 ? 0 : Math.Abs(vm.FinalBalance),
-                    Party2Credit = vm.FinalBalance > 0 ? vm.FinalBalance : 0
-                });
-            }
-
+            Finish(vm, items, party1Receivable: true);
             return vm;
         }
 
-        private class OpeningContractBalanceLite
-        {
-            public decimal Amount { get; set; }
-        }
+        #endregion
 
-        public static ReconciliationViewModel BuildForwarderReconciliation(DBTHSNEntities db, int forwarderId, int contractId, DateTime asOfDate, string companyName, string forwarderName, string contractNo)
-        {
-            var vm = new ReconciliationViewModel
-            {
-                Party1Name = companyName ?? "Bizning korxona",
-                Party2Name = forwarderName,
-                AsOfDate = asOfDate,
-                ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
-                ReconciliationType = "Forwarder",
-                CounterpartyId = forwarderId,
-                ContractId = contractId,
-                ContractNo = contractNo,
-                Rows = new List<ReconciliationRowViewModel>(),
-                AgreementInfo = $"Shartnoma №{contractNo} — yuk tashish xizmatlari bo'yicha o'zaro hisob-kitoblar"
-            };
+        #region Ekspeditor
 
-            var waybills = db.F_WAYBILLS
-                .Where(w => w.ForwarderID == forwarderId && w.ContractID == contractId && w.IssueDate <= asOfDate && (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue)
-                .OrderBy(w => w.IssueDate)
-                .Select(w => new { w.ID, w.WaybillNo, w.IssueDate, w.Amount })
+        public static ReconciliationViewModel BuildForwarderReconciliation(DBTHSNEntities db, int forwarderId, int? contractId, DateTime asOfDate, string companyName, string forwarderName, string contractNo)
+        {
+            var vm = NewVm("Forwarder", companyName, forwarderName, forwarderId, contractId, contractNo, asOfDate, "yuk tashish xizmatlari");
+            // Foydalanuvchi qarori (2026-10-18): ta'minotchi/mijoz kabi — opening (BalanceType 4) bo'lsa, shu sanadan keyingilar
+            var openingDate = GetLatestOpeningDate(db, asOfDate, TypeForwarder);
+
+            var contractNoById = db.F_CONTRACTS.AsNoTracking()
+                .Where(c => c.ForwarderID == forwarderId && c.IsDeleted == false)
+                .Select(c => new { c.ID, c.ContractNo })
+                .ToList()
+                .ToDictionary(c => c.ID, c => c.ContractNo ?? "");
+            var knownContractNos = new HashSet<string>(contractNoById.Values.Select(Norm).Where(n => n != ""));
+
+            var scopeWaybills = db.F_WAYBILLS
+                .Where(w => w.ForwarderID == forwarderId && w.IssueDate <= asOfDate && (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue)
+                .Select(w => new { w.ID, w.ContractID, w.WaybillNo, w.IssueDate, w.Amount })
+                .ToList()
+                .Where(w => !contractId.HasValue || w.ContractID == contractId.Value)
+                .OrderBy(w => w.IssueDate).ThenBy(w => w.ID)
                 .ToList();
+            var waybills = openingDate.HasValue
+                ? scopeWaybills.Where(w => w.IssueDate > openingDate.Value).ToList()
+                : scopeWaybills;
 
-            var wbIds = new HashSet<int>(waybills.Select(w => w.ID));
-
-            var payments = db.F_WAYBILL_PAYMENTS
-                .Where(p => p.ForwarderID == forwarderId && wbIds.Contains(p.WaybillID) && (p.PaymentDate ?? DateTime.MinValue) <= asOfDate && !p.IsDeleted)
-                .OrderBy(p => p.PaymentDate)
+            // To'lovlar — doiradagi barcha yo'l varaqalari bo'yicha (opening'gacha chiqarilganiga keyin to'langani ham)
+            var wbIds = scopeWaybills.Select(w => w.ID).ToList();
+            var paymentQuery = db.F_WAYBILL_PAYMENTS
+                .Where(p => p.ForwarderID == forwarderId && wbIds.Contains(p.WaybillID) && (p.PaymentDate ?? DateTime.MinValue) <= asOfDate && !p.IsDeleted);
+            if (openingDate.HasValue)
+            {
+                // Sanasiz to'lov opening'ga kirgan (AutoFill ham shunday hisoblaydi)
+                var od = openingDate.Value;
+                paymentQuery = paymentQuery.Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value > od);
+            }
+            var payments = paymentQuery
+                .OrderBy(p => p.PaymentDate).ThenBy(p => p.ID)
                 .Select(p => new { p.ID, p.PaymentDate, p.Payment_Amount, p.WaybillID })
                 .ToList();
 
-            var contractNoNorm = (contractNo ?? "").Trim();
-            // Qo'lda kiritilgan FIN to'lovlari: WaybillPayment dublikatlarini chiqaramiz.
-            // Agar shartnoma tanlangan bo'lsa, faqat ContractNo mos to'lovlar kiritiladi.
-            var finPayments = db.FIN_TRANSACTIONS
+            // Qo'lda kiritilgan FIN to'lovlari (WaybillPayment dublikatlari chiqariladi)
+            var finQuery = db.FIN_TRANSACTIONS
                 .Where(t => t.CounterpartyType == 4
                     && t.CounterpartyID == forwarderId
                     && t.Direction == 2
                     && (t.IsDeleted == null || t.IsDeleted == false)
                     && t.TxnDate <= asOfDate
-                    && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment")
-                    && (string.IsNullOrEmpty(contractNoNorm)
-                        || (!string.IsNullOrEmpty(t.ContractNo)
-                            && t.ContractNo.Trim().Equals(contractNoNorm, StringComparison.OrdinalIgnoreCase))))
-                .OrderBy(t => t.TxnDate)
-                .Select(t => new { t.ID, t.TxnDate, t.Amount, t.Purpose })
+                    && (t.SourceDocType == null || t.SourceDocType != "WaybillPayment"));
+            if (openingDate.HasValue)
+            {
+                var od = openingDate.Value;
+                finQuery = finQuery.Where(t => t.TxnDate > od);
+            }
+            var finCandidates = finQuery
+                .OrderBy(t => t.TxnDate).ThenBy(t => t.ID)
+                .Select(t => new { t.ID, t.TxnDate, t.Amount, t.Purpose, t.ContractNo })
                 .ToList();
+            var canonical = IsCanonicalForNumber(contractNoById, contractId);
+            var contractNoNorm = canonical ? Norm(contractNo) : "";
+            var finPayments = finCandidates
+                .Where(t => !contractId.HasValue || (contractNoNorm != "" && Norm(t.ContractNo) == contractNoNorm))
+                .ToList();
+            if (contractId.HasValue)
+            {
+                var unattributed = finCandidates.Where(t => !knownContractNos.Contains(Norm(t.ContractNo))).ToList();
+                vm.UnattributedNote = UnattributedNote(unattributed.Count, unattributed.Sum(t => t.Amount));
+            }
 
-            var allItems = new List<(DateTime dt, string type, string content, decimal p1Dr, decimal p1Cr, decimal p2Dr, decimal p2Cr)>();
-
+            var items = new List<Item>();
+            if (openingDate.HasValue)
+            {
+                var opening = OpeningAmount(db, openingDate.Value, TypeForwarder, forwarderId, contractId, contractNo, canonical);
+                if (opening != 0)
+                {
+                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = "Opening balansdan boshlangan qarzdorlik", P1Cr = opening, P2Dr = opening });
+                }
+            }
             foreach (var wb in waybills)
             {
                 var amt = Convert.ToDecimal(wb.Amount ?? 0);
-                allItems.Add((wb.IssueDate ?? DateTime.MinValue, "wb",
-                    $"Yo'l varaqasi №{wb.WaybillNo} sanasi {(wb.IssueDate?.ToString("dd.MM.yyyy") ?? "")}",
-                    0, amt, amt, 0));
+                var prefix = !contractId.HasValue && wb.ContractID.HasValue && contractNoById.TryGetValue(wb.ContractID.Value, out var no) && no != "" ? $"[{no}] " : "";
+                items.Add(new Item { Date = wb.IssueDate ?? DateTime.MinValue, Order = 1, Content = $"{prefix}Yo'l varaqasi №{wb.WaybillNo} sanasi {(wb.IssueDate?.ToString("dd.MM.yyyy") ?? "")}", P1Cr = amt, P2Dr = amt });
             }
             foreach (var pay in payments)
             {
                 var amt = Convert.ToDecimal(pay.Payment_Amount);
-                allItems.Add((pay.PaymentDate ?? DateTime.MinValue, "pay",
-                    $"Yuk tashish to'lovi №{pay.ID} sanasi {(pay.PaymentDate?.ToString("dd.MM.yyyy") ?? "")}",
-                    amt, 0, 0, amt));
+                items.Add(new Item { Date = pay.PaymentDate ?? DateTime.MinValue, Order = 2, Content = $"Yuk tashish to'lovi №{pay.ID} sanasi {(pay.PaymentDate?.ToString("dd.MM.yyyy") ?? "")}", P1Dr = amt, P2Cr = amt });
             }
             foreach (var pay in finPayments)
             {
                 var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : $" — {pay.Purpose}";
-                allItems.Add((pay.TxnDate, "fin",
-                    $"FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}",
-                    pay.Amount, 0, 0, pay.Amount));
+                var ctxt = !contractId.HasValue && !string.IsNullOrWhiteSpace(pay.ContractNo) ? $"[{pay.ContractNo.Trim()}] " : "";
+                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = $"{ctxt}FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}", P1Dr = pay.Amount, P2Cr = pay.Amount });
             }
+            AddAdjustmentItems(items, Adjustments(db, ReconciliationAdjustmentService.CounterpartyForwarder, forwarderId, contractId, asOfDate, openingDate));
 
-            var adjList = ReconciliationAdjustmentService.LoadForReport(db, ReconciliationAdjustmentService.CounterpartyForwarder, forwarderId, contractId, asOfDate);
-            foreach (var a in adjList)
-            {
-                var note = string.IsNullOrWhiteSpace(a.Note) ? "" : " — " + a.Note;
-                allItems.Add((a.CutoffDate, "adj",
-                    $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
-                    a.Party1Debit, a.Party1Credit, a.Party1Credit, a.Party1Debit));
-            }
-
-            foreach (var item in allItems.OrderBy(x => x.dt).ThenBy(x => x.type == "wb" ? 0 : (x.type == "pay" || x.type == "fin") ? 1 : 2))
-            {
-                vm.Rows.Add(new ReconciliationRowViewModel
-                {
-                    Content = item.content,
-                    Date = item.dt,
-                    Party1Debit = item.p1Dr,
-                    Party1Credit = item.p1Cr,
-                    Party2Debit = item.p2Dr,
-                    Party2Credit = item.p2Cr,
-                    IsAdjustmentRow = item.type == "adj"
-                });
-            }
-
-            var totalWb = waybills.Sum(w => Convert.ToDecimal(w.Amount ?? 0));
-            var totalPay = payments.Sum(p => Convert.ToDecimal(p.Payment_Amount))
-                + finPayments.Sum(p => p.Amount);
-            var adjDr = adjList.Sum(a => a.Party1Debit);
-            var adjCr = adjList.Sum(a => a.Party1Credit);
-
-            vm.Party1DebitTotal = totalPay + adjDr;
-            vm.Party1CreditTotal = totalWb + adjCr;
-            vm.Party2DebitTotal = totalWb + adjCr;
-            vm.Party2CreditTotal = totalPay + adjDr;
-            vm.FinalBalance = vm.Party1CreditTotal - vm.Party1DebitTotal;
-
-            if (vm.Rows.Count > 0)
-            {
-                vm.Rows.Add(new ReconciliationRowViewModel { IsBalanceRow = true });
-                vm.Rows.Add(new ReconciliationRowViewModel
-                {
-                    Content = $"Yakuniy qoldiq {asOfDate:dd.MM.yyyy}",
-                    IsBalanceRow = true,
-                    Party1Debit = vm.FinalBalance > 0 ? 0 : Math.Abs(vm.FinalBalance),
-                    Party1Credit = vm.FinalBalance > 0 ? vm.FinalBalance : 0,
-                    Party2Debit = vm.FinalBalance > 0 ? vm.FinalBalance : 0,
-                    Party2Credit = vm.FinalBalance > 0 ? 0 : Math.Abs(vm.FinalBalance)
-                });
-            }
-
+            Finish(vm, items, party1Receivable: false);
             return vm;
         }
+
+        #endregion
     }
 }

@@ -9,6 +9,8 @@ using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
+using tahsinERP.Services.Crm.EDocuments;
+using Newtonsoft.Json;
 using tahsinERP.ViewModels.Sales;
 
 namespace tahsinERP.Controllers
@@ -137,6 +139,8 @@ namespace tahsinERP.Controllers
 
                 var productIDs = ttnkHeader.SALES_TTNK_LINES.Where(l => l.ProductID.HasValue).Select(l => l.ProductID.Value).Distinct().ToList();
                 ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
+                ViewBag.EDocument = EDocumentService.Panel(db, ttnkHeader,
+                    RoleHelper.IsPermittedForAction(CurrentUserName, "SalesTTNK", "SendEDocument", true));
 
                 return View(ttnkHeader);
             }
@@ -175,6 +179,7 @@ namespace tahsinERP.Controllers
                     StatusCode = "DRAFT",
                     CreatedDT = DateTime.Now,
                     IntegrationUID = Guid.NewGuid(),
+                    IntegrationStatusCode = EDocumentStatus.Local,
                     ShipperName = "",
                     ConsigneeName = firstInvoice.CUSTOMER?.Name ?? "",
                     ConsigneeINN = firstInvoice.CUSTOMER?.DUNS ?? "",
@@ -225,6 +230,8 @@ namespace tahsinERP.Controllers
                             ttnkHeader.StatusCode = "DRAFT";
                             ttnkHeader.CreatedDT = DateTime.Now;
                             ttnkHeader.IntegrationUID = Guid.NewGuid();
+                            // NOT NULL ustun (bazada DEFAULT 'LOCAL', lekin EF null yuborib validatsiyada yiqilardi)
+                            ttnkHeader.IntegrationStatusCode = EDocumentStatus.Local;
 
                             var customer = db.CUSTOMERS.FirstOrDefault(c => c.ID == first.CustomerID);
                             if (customer != null)
@@ -234,6 +241,8 @@ namespace tahsinERP.Controllers
                             }
 
                             ttnkHeader.TotalDeliveryCost = ttnkHeader.DeliveryCost + ttnkHeader.VATAmount;
+                            ApplyRequiredDefaults(db, ttnkHeader);
+                            var lineNames = ProductNames(db, lines);
 
                             foreach (var invoice in invoices)
                             {
@@ -253,7 +262,7 @@ namespace tahsinERP.Controllers
                                     ProductID = line.ProductID,
                                     InvoiceLineID = line.InvoiceLineID,
                                     HSCode = line.HSCode,
-                                    Description = line.Description,
+                                    Description = LineDescription(line, lineNames),
                                     UnitOfMeasure = line.UnitOfMeasure,
                                     Qty = line.Qty,
                                     UnitPrice = line.UnitPrice,
@@ -285,7 +294,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
                     }
                 }
             }
@@ -381,6 +390,8 @@ namespace tahsinERP.Controllers
                         existingTTNK.TotalDeliveryCost = ttnkHeader.DeliveryCost + ttnkHeader.VATAmount;
                         existingTTNK.StatusCode = ttnkHeader.StatusCode;
                         existingTTNK.UpdatedDT = DateTime.Now;
+                        ApplyRequiredDefaults(db, existingTTNK);
+                        var lineNames = ProductNames(db, lines);
 
                         if (lines != null && lines.Any())
                         {
@@ -396,7 +407,7 @@ namespace tahsinERP.Controllers
                                     ProductID = line.ProductID,
                                     InvoiceLineID = line.InvoiceLineID,
                                     HSCode = line.HSCode,
-                                    Description = line.Description,
+                                    Description = LineDescription(line, lineNames),
                                     UnitOfMeasure = line.UnitOfMeasure,
                                     Qty = line.Qty,
                                     UnitPrice = line.UnitPrice,
@@ -418,7 +429,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
                     }
                 }
             }
@@ -429,6 +440,52 @@ namespace tahsinERP.Controllers
         // ───────────────────────────── yordamchi metodlar ─────────────────────────────
 
         /// <summary>"1,2,3" → ID ro'yxati; noto'g'ri qiymatda null (avval long.Parse 500 qaytarardi — CRM-B17).</summary>
+        /// <summary>
+        /// SALES_TTNK_HEADERS'dagi NOT NULL matn maydonlari forma bo'sh yuborganda to'ldiriladi — aks holda EF
+        /// validatsiyasi TTNK'ni umuman saqlamasdi (UAT T-CRM-11): jo'natuvchi — kompaniya, valyuta — UZS.
+        /// </summary>
+        private static void ApplyRequiredDefaults(DBTHSNEntities db, SALES_TTNK_HEADERS header)
+        {
+            if (string.IsNullOrWhiteSpace(header.ShipperName))
+            {
+                header.ShipperName = db.COMPANIES.Select(c => c.Name).FirstOrDefault() ?? "-";
+            }
+            if (string.IsNullOrWhiteSpace(header.ConsigneeName))
+            {
+                header.ConsigneeName = "-";
+            }
+            if (string.IsNullOrWhiteSpace(header.CurrencyCode))
+            {
+                header.CurrencyCode = "UZS";
+            }
+            if (string.IsNullOrWhiteSpace(header.StatusCode))
+            {
+                header.StatusCode = "DRAFT";
+            }
+        }
+
+        private static Dictionary<int, string> ProductNames(DBTHSNEntities db, IEnumerable<SalesTTNKLineViewModel> lines)
+        {
+            var ids = (lines ?? Enumerable.Empty<SalesTTNKLineViewModel>())
+                .Where(l => l.ProductID.HasValue).Select(l => l.ProductID.Value).Distinct().ToList();
+            return db.PRODUCTS.AsNoTracking()
+                .Where(p => ids.Contains(p.ID))
+                .Select(p => new { p.ID, p.PNo, p.Name })
+                .ToList()
+                .ToDictionary(p => p.ID, p => (p.PNo + " " + p.Name).Trim());
+        }
+
+        /// <summary>Qator tavsifi majburiy (NOT NULL) — bo'sh bo'lsa mahsulot nomi.</summary>
+        private static string LineDescription(SalesTTNKLineViewModel line, IDictionary<int, string> names)
+        {
+            if (!string.IsNullOrWhiteSpace(line.Description))
+            {
+                return line.Description;
+            }
+            string name;
+            return line.ProductID.HasValue && names.TryGetValue(line.ProductID.Value, out name) ? name : "-";
+        }
+
         private static List<long> ParseIds(string invoiceIDs)
         {
             if (string.IsNullOrWhiteSpace(invoiceIDs))
@@ -464,6 +521,55 @@ namespace tahsinERP.Controllers
             ViewBag.InvoiceIDs = invoiceIDs;
             ViewBag.InvoiceLines = allInvoiceLines;
             ViewBag.Products = db.PRODUCTS.Where(p => productIDs.Contains(p.ID)).ToDictionary(p => p.ID, p => p);
+        }
+        // ───────────────────────────── elektron hujjat (EDO) ─────────────────────────────
+
+        /// <summary>Provayderga yuboriladigan hujjat ma'lumotlari va kamchiliklar (integratsiyani sozlash uchun).</summary>
+        [HttpGet]
+        public ActionResult EDocumentPayload(long id)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var doc = EDocumentService.BuildWaybill(db, id);
+                if (doc == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var json = JsonConvert.SerializeObject(new
+                {
+                    Provider = EDocumentProviders.Active().Code,
+                    EDocumentService.SchemaVersion,
+                    Errors = EDocumentService.Validate(doc),
+                    Document = doc
+                }, Formatting.Indented);
+                return Content(json, "application/json");
+            }
+        }
+
+        /// <summary>TTN'ni faol EDO provayderiga (Didox / Faktura.uz) yuborish. Ichki rejimda o'chiq.</summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SendEDocument(long id)
+        {
+            var result = await EDocumentService.SendWaybillAsync(id, CurrentUserName);
+            if (result.Success)
+                TempData["EDocSuccess"] = "TTN yuborildi: " + EDocumentStatus.Title(result.Status) + (string.IsNullOrEmpty(result.ExternalId) ? "" : " (ID: " + result.ExternalId + ")");
+            else
+                TempData["EDocError"] = result.Message;
+            return RedirectToAction("Details", new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RefreshEDocument(long id)
+        {
+            var result = await EDocumentService.RefreshAsync(EDocumentKind.Waybill, id);
+            if (result.Success)
+                TempData["EDocSuccess"] = "Holat: " + EDocumentStatus.Title(result.Status);
+            else
+                TempData["EDocError"] = result.Message;
+            return RedirectToAction("Details", new { id });
         }
     }
 }

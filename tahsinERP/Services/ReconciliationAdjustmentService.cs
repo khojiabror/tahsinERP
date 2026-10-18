@@ -52,6 +52,17 @@ namespace tahsinERP.Services
                 .ToList();
         }
 
+        /// <summary>Kontragentning barcha shartnomalari bo'yicha tuzatishlar (akt-sverki "Barcha shartnomalar" rejimi).</summary>
+        public static List<ReconciliationAdjustmentRow> LoadForCounterparty(DBTHSNEntities db, byte counterpartyType, int counterpartyId, DateTime asOfDate)
+        {
+            var day = asOfDate.Date;
+            return db.RECONCILIATION_ADJUSTMENTS.AsNoTracking()
+                .Where(a => a.CounterpartyType == counterpartyType && a.CounterpartyID == counterpartyId && a.CutoffDate <= day)
+                .OrderBy(a => a.CutoffDate).ThenBy(a => a.EntryYear).ThenBy(a => a.ID)
+                .Select(ToRow)
+                .ToList();
+        }
+
         public static ReconciliationAdjustmentRow LoadForYear(DBTHSNEntities db, byte counterpartyType, int counterpartyId, int contractId, int entryYear)
         {
             return Query(db, counterpartyType, counterpartyId, contractId)

@@ -38,9 +38,9 @@
         <div class="content-body">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-                    <h4 class="card-title mb-0">Akt-sverki (bitta shartnoma bo'yicha)</h4>
+                    <h4 class="card-title mb-0">Akt-sverki @(Model.AllContracts ? "(barcha shartnomalar)" : "(shartnoma bo'yicha)")</h4>
                     <div>
-                        @if (User.Identity.IsAuthenticated && Model.HasSelectedContract && RoleHelper.IsChangePermitted(User.Identity.Name, Model.ReconciliationType == "Supplier" ? "Supplier" : Model.ReconciliationType == "Customer" ? "Customer" : "Forwarder"))
+                        @if (User.Identity.IsAuthenticated && Model.HasSelectedContract && !Model.AllContracts && RoleHelper.IsChangePermitted(User.Identity.Name, Model.ReconciliationType == "Supplier" ? "Supplier" : Model.ReconciliationType == "Customer" ? "Customer" : "Forwarder"))
                         {
                             <a href="@Url.Action("EditAdjustment", "Reconciliation", new { type = Model.ReconciliationType, id = Model.CounterpartyId, contractId = Model.ContractId })" class="btn btn-sm btn-outline-warning mr-1"><i class="bx bx-edit-alt"></i> Tuzatish</a>
                         }
@@ -56,6 +56,7 @@
                                     <label>Shartnoma <span class="text-danger">*</span></label>
                                     <select name="contractId" class="form-control" required onchange="document.getElementById('aktSverkiFilterForm').submit();">
                                         <option value="">— Tanlang —</option>
+                                        <option value="@tahsinERP.ViewModels.ReconciliationContractOption.AllContractsId" @(Model.AllContracts ? "selected" : "")>— Barcha shartnomalar —</option>
                                         @foreach (var c in contracts)
                                         {
                                             <option value="@c.Id" @(Model.ContractId == c.Id ? "selected" : "")>@c.ContractNo</option>
@@ -84,7 +85,11 @@
 
                         @if (!Model.HasSelectedContract)
                         {
-                            <div class="alert alert-warning">Akt-sverkini ko'rish uchun yuqoridan <strong>bitta shartnoma</strong> tanlang (barcha shartnomalar bir vaqtda chiqmaydi).</div>
+                            <div class="alert alert-warning">Akt-sverkini ko'rish uchun yuqoridan <strong>shartnoma</strong> yoki <strong>"Barcha shartnomalar"</strong> ni tanlang.</div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.UnattributedNote))
+                        {
+                            <div class="alert alert-info">@Model.UnattributedNote</div>
                         }
 
                         <div class="text-center mb-4">

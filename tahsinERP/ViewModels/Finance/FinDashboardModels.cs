@@ -21,6 +21,11 @@ namespace tahsinERP.ViewModels.Finance
         /// true bo'lsa, qoldiq opening balans + opening sanasidan keyingi tranzaksiyalar bo'yicha hisoblangan.
         /// </summary>
         public bool IncludesOpeningBalance { get; set; }
+
+        /// <summary>
+        /// true: opening hisob kesimida kiritilmagan — kategoriya opening'i hisoblar soniga teng bo'lingan (taxminiy, FIN-B16).
+        /// </summary>
+        public bool IsOpeningApproximate { get; set; }
     }
 
     public class AccountUsageData
@@ -75,6 +80,17 @@ namespace tahsinERP.ViewModels.Finance
         public decimal Variance { get; set; }
         public decimal VariancePercent { get; set; }
         public List<PLItemData> Children { get; set; }
+    }
+
+    /// <summary>Balans jami: Aktiv = Majburiyatlar + Kapital + RetainedEarnings (hisoblangan, balanslovchi).</summary>
+    public class BalanceTotals
+    {
+        public decimal Assets { get; set; }
+        public decimal Liabilities { get; set; }
+        public decimal Equity { get; set; }
+        /// <summary>Hisoblangan taqsimlanmagan foyda (zarar bo'lsa manfiy).</summary>
+        public decimal RetainedEarnings => Assets - Liabilities - Equity;
+        public decimal PassiveTotal => Liabilities + Equity + RetainedEarnings;
     }
 
     public class BalanceCategoryData

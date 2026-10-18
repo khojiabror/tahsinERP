@@ -1,0 +1,32 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Licenses.DetailsModel
+@{ var l = Model.License; ViewData["Title"] = "Kalit #" + l.Id; }
+<h1>Kalit #@l.Id — @l.Tenant!.LegalName</h1>
+<div asp-validation-summary="All"></div>
+<div class="card">
+    <dl class="props">
+        <dt>Holat</dt><dd>@(l.RevokedAtUtc != null ? $"bekor qilingan ({l.RevokedAtUtc:dd.MM.yyyy}, {Model.StaffNames.GetValueOrDefault(l.RevokedByStaffId ?? 0)}): {l.RevokeReason}" : l.SupersededById != null ? $"almashtirilgan → #{l.SupersededById}" : "joriy")</dd>
+        <dt>Edition / foydalanuvchi</dt><dd>@l.Edition / @l.MaxUsers</dd>
+        <dt>Muddat</dt><dd>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy")</dd>
+        <dt>InstallationId</dt><dd><code>@l.InstallationId</code></dd>
+        <dt>CompanyID</dt><dd>@l.CompanyId</dd>
+        <dt>Imzo kaliti</dt><dd>@l.KeyId</dd>
+        <dt>Manba</dt><dd>@Labels.Of(l.Source) @(l.IssuedByStaffId is int s ? Model.StaffNames.GetValueOrDefault(s) : "") · @l.IssuedAtUtc.ToString("dd.MM.yyyy HH:mm") UTC</dd>
+        <dt>Sabab</dt><dd>@l.Reason</dd>
+        <dt>ETag</dt><dd><code>@l.ETag</code></dd>
+    </dl>
+</div>
+<h2>Kalit matni</h2>
+<div class="secret mono">@l.LicenseKey</div>
+<p><a class="btn secondary" href="/Licenses/Details/@l.Id?handler=Download">.lic fayl sifatida yuklab olish</a>
+   <a class="btn secondary" href="/Tenants/Details/@l.TenantId">← Tashkilotga</a></p>
+@if (Model.IsOwner && l.RevokedAtUtc == null)
+{
+    <h2>Bekor qilish</h2>
+    <form method="post" asp-page-handler="Revoke" class="stack card">
+        <div><label asp-for="Reason">Sabab (majburiy)</label><input asp-for="Reason" type="text" /></div>
+        <div><label asp-for="ReplacementExpiry">O'rniga qisqa kalit, shu sanagacha (ixtiyoriy)</label><input asp-for="ReplacementExpiry" type="date" /></div>
+        <div class="hint">SaaS: qisqa kalit keyingi pull'da ERP'ga yetib boradi. Sana bo'sh bo'lsa ERP pull'da 410 revoked oladi, lekin saqlangan kalit muddati tugaguncha ishlaydi (on-prem offline kalitni qaytarib olib bo'lmaydi).</div>
+        <div><button type="submit" class="danger">Bekor qilish</button></div>
+    </form>
+}

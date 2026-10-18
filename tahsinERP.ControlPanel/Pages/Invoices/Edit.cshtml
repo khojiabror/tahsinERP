@@ -1,0 +1,13 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Invoices.EditModel
+@{ ViewData["Title"] = "Qoralamani tahrirlash"; }
+<h1>Qoralama #@Model.Invoice.Id — @Model.Invoice.Tenant!.LegalName</h1>
+<form method="post" class="stack card">
+    <div asp-validation-summary="All"></div>
+    <partial name="_Lines" model="Model.Lines" />
+    <div class="row">
+        <div><label asp-for="DueDate">To'lov muddati</label><input asp-for="DueDate" type="date" /></div>
+        <div><label asp-for="Note">Izoh</label><input asp-for="Note" type="text" /></div>
+    </div>
+    <div class="actions"><button type="submit">Saqlash</button><a class="btn secondary" href="/Invoices/Details/@Model.Invoice.Id">Bekor</a></div>
+</form>

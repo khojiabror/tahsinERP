@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 
 namespace tahsinERP.Services.Finance
 {
@@ -24,7 +25,6 @@ namespace tahsinERP.Services.Finance
 
         private readonly DBTHSNEntities _db;
         private readonly Dictionary<int, List<DateTime>> _openingDatesByType = new Dictionary<int, List<DateTime>>();
-        private List<DateTime> _snapshotOpeningDates;
         private readonly Dictionary<(DateTime, int), List<OpeningContractBalance>> _openingRows = new Dictionary<(DateTime, int), List<OpeningContractBalance>>();
         private readonly Dictionary<(DateTime, DateTime?), List<SupplierOutstanding>> _supplierCache = new Dictionary<(DateTime, DateTime?), List<SupplierOutstanding>>();
         private readonly Dictionary<(DateTime, DateTime?), List<CustomerOutstanding>> _customerCache = new Dictionary<(DateTime, DateTime?), List<CustomerOutstanding>>();
@@ -87,24 +87,16 @@ namespace tahsinERP.Services.Finance
 
         /// <summary>
         /// Berilgan tur bo'yicha eng so'nggi opening sanasi (FIN_OPENING_CONTRACT_BALANCES, SnapshotDate ≤ asOf).
-        /// Bo'lmasa — FIN_BALANCE_SNAPSHOTS dagi oxirgi "OpeningBalance" sanasi (eski xatti-harakat saqlangan).
+        /// Avval kontragent qatorlari bo'lmasa FIN_BALANCE_SNAPSHOTS'dagi "OpeningBalance" sanasi olinardi — u sanada
+        /// kontragent qoldig'i yo'q bo'lgani uchun opening 0 bo'lib, undan oldingi butun qarz yo'qolardi
+        /// (masalan 2026-04-30 holatiga ta'minotchilar qarzi 1,7 mlrd o'rniga 122 mln). Endi faqat kontragent qatorlari;
+        /// opening yo'q bo'lsa — qarz boshidan hisoblanadi (akt-sverki bilan bir xil).
         /// </summary>
         public DateTime? LatestOpeningDate(DateTime asOf, int balanceType)
         {
             var day = asOf.Date;
             var byContract = OpeningDates(balanceType).Where(d => d <= day).Select(d => (DateTime?)d).Max();
-            if (byContract.HasValue)
-                return byContract.Value.Date;
-
-            if (_snapshotOpeningDates == null)
-            {
-                _snapshotOpeningDates = _db.FIN_BALANCE_SNAPSHOTS.AsNoTracking()
-                    .Where(s => s.SourceType == "OpeningBalance")
-                    .Select(s => s.SnapshotDate)
-                    .Distinct()
-                    .ToList();
-            }
-            return _snapshotOpeningDates.Where(d => d <= asOf).Select(d => (DateTime?)d).Max();
+            return byContract?.Date;
         }
 
         private List<DateTime> OpeningDates(int balanceType)
@@ -145,6 +137,27 @@ namespace tahsinERP.Services.Finance
                 _openingRows[key] = rows;
             }
             return rows;
+        }
+
+        /// <summary>
+        /// Akt-sverki tuzatishlari (RECONCILIATION_ADJUSTMENTS) kontragent bo'yicha: (opening; asOf] oralig'idagilar.
+        /// Opening'gacha bo'lganlari opening holatiga kirgan. <paramref name="creditIncreases"/> — kreditorlik
+        /// (ta'minotchi, ekspeditor): Party1 krediti qarzni oshiradi; debitorlik (mijoz): debeti oshiradi.
+        /// </summary>
+        public Dictionary<int, decimal> AdjustmentTotals(byte counterpartyType, DateTime asOf, DateTime? fromExclusive, bool creditIncreases)
+        {
+            var to = asOf.Date;
+            var q = _db.RECONCILIATION_ADJUSTMENTS.AsNoTracking()
+                .Where(a => a.CounterpartyType == counterpartyType && a.CutoffDate <= to);
+            if (fromExclusive.HasValue)
+            {
+                var f = fromExclusive.Value.Date;
+                q = q.Where(a => a.CutoffDate > f);
+            }
+            return q.GroupBy(a => a.CounterpartyID)
+                .Select(g => new { ID = g.Key, Debit = g.Sum(a => a.Party1Debit), Credit = g.Sum(a => a.Party1Credit) })
+                .ToList()
+                .ToDictionary(x => x.ID, x => creditIncreases ? x.Credit - x.Debit : x.Debit - x.Credit);
         }
 
         #endregion
@@ -303,16 +316,25 @@ namespace tahsinERP.Services.Finance
                             (!effectiveFrom.HasValue || i.InvoiceDate > effectiveFrom.Value || HasIncomeAfterOpening(i.ID)))
                 .ToList();
 
-            // Kirim hujjati (INCOMES) summasi bo'lsa — invoys summasi o'rniga shu olinadi.
-            decimal InvoiceAmount(SupplierInvoiceRow i)
+            // Kirim hujjati (INCOMES) summasi bo'lsa — invoys summasi o'rniga shu olinadi (sana holatiga).
+            decimal AmountAt(SupplierInvoiceRow i, DateTime at)
             {
                 if (data.IncomesByInvoice.TryGetValue(i.ID, out var incs))
                 {
-                    var valid = incs.Where(inc => inc.IsDeleted != true && inc.TotalPrice.HasValue && inc.IssueDateTime <= asOf).ToList();
+                    var valid = incs.Where(inc => inc.IsDeleted != true && inc.TotalPrice.HasValue && inc.IssueDateTime <= at).ToList();
                     if (valid.Count > 0)
                         return Convert.ToDecimal(valid.Sum(inc => inc.TotalPrice.Value));
                 }
                 return i.Amount.HasValue ? Convert.ToDecimal(i.Amount.Value) : 0m;
+            }
+
+            // Opening'gacha chiqarilgan invoys (kirimi keyin kelgan): opening'da u o'sha sanadagi summa bilan bor —
+            // faqat undan keyingi o'zgarish qo'shiladi (avval to'liq summa qayta qo'shilib, ikki marta sanalardi).
+            decimal InvoiceAmount(SupplierInvoiceRow i)
+            {
+                return effectiveFrom.HasValue && i.InvoiceDate <= effectiveFrom.Value
+                    ? AmountAt(i, asOf) - AmountAt(i, effectiveFrom.Value)
+                    : AmountAt(i, asOf);
             }
 
             // Shartnoma raqami faqat joriy invoyslar shartnomalari bo'yicha olinadi (avvalgi xatti-harakat).
@@ -331,7 +353,7 @@ namespace tahsinERP.Services.Finance
 
             if (effectiveFrom.HasValue)
             {
-                foreach (var row in OpeningContractBalances(effectiveFrom.Value, BalanceTypePayable).Where(x => x.CounterpartyID > 0 && x.Amount > 0))
+                foreach (var row in OpeningContractBalances(effectiveFrom.Value, BalanceTypePayable).Where(x => x.CounterpartyID > 0 && x.Amount != 0))
                 {
                     invoiceWork.Add(new SupplierInvoiceWork
                     {
@@ -368,8 +390,10 @@ namespace tahsinERP.Services.Finance
                 .ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });
 
             var allKeys = invoiceTotalsByKey.Keys.Union(paymentTotalsByKey.Keys).ToList();
+            // Ta'minotchi: Party1 krediti qarzni oshiradi, debeti kamaytiradi
+            var supplierAdjustments = AdjustmentTotals(2, asOf, effectiveFrom, creditIncreases: true);
             var summary = new List<SupplierOutstanding>();
-            foreach (var supplierId in allKeys.Select(k => k.Item1).Distinct())
+            foreach (var supplierId in allKeys.Select(k => k.Item1).Union(supplierAdjustments.Keys).Distinct())
             {
                 var invoiceTotal = allKeys.Where(k => k.Item1 == supplierId && invoiceTotalsByKey.ContainsKey(k)).Sum(k => invoiceTotalsByKey[k].Total);
                 var paymentTotal = allKeys.Where(k => k.Item1 == supplierId && paymentTotalsByKey.ContainsKey(k)).Sum(k => paymentTotalsByKey[k].Total);
@@ -379,7 +403,7 @@ namespace tahsinERP.Services.Finance
                 summary.Add(new SupplierOutstanding
                 {
                     SupplierID = supplierId,
-                    Outstanding = invoiceTotal - paymentTotal,
+                    Outstanding = invoiceTotal - paymentTotal + (supplierAdjustments.TryGetValue(supplierId, out var adj) ? adj : 0m),
                     InvoiceCount = invoiceCount,
                     PaymentCount = paymentCount,
                     InvoiceTotal = invoiceTotal,
@@ -451,7 +475,8 @@ namespace tahsinERP.Services.Finance
         private CustomerData LoadCustomerData(DateTime maxAsOf, DateTime? minFromExclusive)
         {
             var db = _db;
-            var invoiceQuery = db.SALES_INVOICES.AsNoTracking().Where(i => i.InvoiceDate <= maxAsOf);
+            // Bekor qilingan invoyslar qarzga kirmaydi (CRM bilan bir xil filtr)
+            var invoiceQuery = db.SALES_INVOICES.AsNoTracking().Active().Where(i => i.InvoiceDate <= maxAsOf);
             if (minFromExclusive.HasValue)
             {
                 var f = minFromExclusive.Value;
@@ -496,7 +521,7 @@ namespace tahsinERP.Services.Finance
                 .ToList();
             data.LinkedInvoices = linkedIds.Count == 0
                 ? new Dictionary<long, SalesInvoiceRow>()
-                : db.SALES_INVOICES.AsNoTracking().Where(i => linkedIds.Contains(i.ID))
+                : db.SALES_INVOICES.AsNoTracking().Active().Where(i => linkedIds.Contains(i.ID))
                     .Select(i => new SalesInvoiceRow { ID = i.ID, CustomerID = i.CustomerID, ContractID = i.ContractID })
                     .ToList()
                     .ToDictionary(x => x.ID);
@@ -512,11 +537,19 @@ namespace tahsinERP.Services.Finance
                 .ToList();
 
             var openingContractByInvoiceId = new Dictionary<int, string>();
+            var openingAdvances = new Dictionary<Tuple<int, string>, decimal>();
             if (effectiveFrom.HasValue)
             {
                 var nextOpeningId = -1;
-                foreach (var row in OpeningContractBalances(effectiveFrom.Value, BalanceTypeReceivable).Where(x => x.CounterpartyID > 0 && x.Amount > 0))
+                foreach (var row in OpeningContractBalances(effectiveFrom.Value, BalanceTypeReceivable).Where(x => x.CounterpartyID > 0 && x.Amount != 0))
                 {
+                    if (row.Amount < 0)
+                    {
+                        // Opening'dagi avans (mijoz ortiqcha to'lagan) — taqsimlanmagan tushum sifatida
+                        var key = Tuple.Create(row.CounterpartyID, NormalizeContractNo(row.ContractNo));
+                        openingAdvances[key] = (openingAdvances.TryGetValue(key, out var adv) ? adv : 0m) - row.Amount;
+                        continue;
+                    }
                     invoices.Add(new CustomerInvoiceWork
                     {
                         ID = nextOpeningId,
@@ -572,7 +605,7 @@ namespace tahsinERP.Services.Finance
 
             // 1) Invoysga bog'langan tushum avval o'sha invoysni yopadi; 2) qolgani shartnoma kesimida FIFO.
             var receiptRemainders = new List<(int CustomerID, string ContractNo, DateTime TxnDate, decimal Amount)>();
-            var unappliedByKey = new Dictionary<Tuple<int, string>, decimal>();
+            var unappliedByKey = new Dictionary<Tuple<int, string>, decimal>(openingAdvances);
             foreach (var receipt in receipts)
             {
                 var remaining = receipt.Amount;
@@ -620,11 +653,14 @@ namespace tahsinERP.Services.Finance
             var invoiceTotalsByCustomer = invoices.GroupBy(i => i.CustomerID).ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });
             var receiptTotalsByCustomer = receipts.GroupBy(p => p.CustomerID).ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });
 
+            // Mijoz: Party1 debeti haqqimizni oshiradi, krediti kamaytiradi
+            var customerAdjustments = AdjustmentTotals(1, asOf, effectiveFrom, creditIncreases: false);
             var summary = new List<CustomerOutstanding>();
-            foreach (var customerId in invoiceTotalsByCustomer.Keys.Union(receiptTotalsByCustomer.Keys).ToList())
+            foreach (var customerId in invoiceTotalsByCustomer.Keys.Union(receiptTotalsByCustomer.Keys).Union(customerAdjustments.Keys).Union(openingAdvances.Keys.Select(k => k.Item1)).Distinct().ToList())
             {
                 var outstanding = invoices.Where(i => i.CustomerID == customerId).Sum(i => invoiceRemaining[i.ID]);
                 outstanding -= unappliedByKey.Where(k => k.Key.Item1 == customerId).Sum(k => k.Value);
+                outstanding += customerAdjustments.TryGetValue(customerId, out var adj) ? adj : 0m;
 
                 var invoiceInfo = invoiceTotalsByCustomer.ContainsKey(customerId) ? invoiceTotalsByCustomer[customerId] : new { Total = 0m, Count = 0 };
                 var receiptInfo = receiptTotalsByCustomer.ContainsKey(customerId) ? receiptTotalsByCustomer[customerId] : new { Total = 0m, Count = 0 };
