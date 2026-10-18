@@ -1,6 +1,6 @@
 # Tasks + Documents — bajarilgan ishlar (2026-10-17)
 
-Branch: `claude/opt-tasks-docs-9aa641`, 22 ta commit (2-tur — pastda), `origin` (khojiabror/tahsinERP) ga push va master'ga merge qilingan.
+Branch: `claude/opt-tasks-docs-9aa641`, 24+ commit (2-tur — pastda), `origin` (khojiabror/tahsinERP) ga push va master'ga merge qilingan.
 
 **SQL:** barcha skriptlar 2026-10-17 da lokal `DBTHSN-IPACK` bazasida zaxiradan keyin ishga tushirildi — tafsilotlar oxirgi bo'limda.
 
@@ -69,7 +69,8 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
   - `assets/` ildizidagi 6 ta Cursor skrinshoti o'chirildi (csproj yozuvlari bilan).
 - **Sxema (foydalanuvchi qarori, 2026-10-18):**
   - MNT-01/TSK-B09 — BAJARILDI (19-commit): `IsFinal`/`ColorHex` lokal bazada qo'shildi, EDMX yangilandi.
-  - DOC-P02 (table splitting) va DOC-P10 (xat JSON'i ustunlarga) — foydalanuvchi qilmaslikni tanladi; taklif `Database_Migrations/Tasks_Docs_Indexes.sql` oxirida.
+  - DOC-P10 — BAJARILDI (2026-10-19, foydalanuvchi ruxsati bilan, zaxiradan keyin): `COM_OFFICIAL_LETTERS.BodyHtml/GreetingLine`, `COM_OFFICIAL_LETTER_ITEMS`; eski JSON qatorlarini ilova o'zi ko'chiradi (`Database_Migrations/Alter_OfficialLetters_BodyItems.sql`).
+  - DOC-P02 — BAJARILDI: EF6 table splitting — `DOC_FILES` (metadata) + `DOC_FILE_CONTENTS` (blob) bitta jadvalga; bazada o'zgarish yo'q. Blob faqat `DocFileService.ContentAsync` orqali o'qiladi.
 - **Kod:**
   - JobDesc umumiy qismlarga ulandi (21-commit). To'liq `VersionedDocController` bazasi (#20) qilinmadi — STD va JobDesc endi umumiy servislar orqali ishlaydi, qolgan farq faqat o'z maydonlari.
   - TaskPriority/TaskStatus view'larini umumlashtirish (kichik, qilinmadi).
@@ -92,6 +93,11 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 | 20 | `TaskRules.IsAdminOrDeveloper` olib tashlandi — core `RoleHelper.IsAdminOrDeveloper` |
 | 21 | JobDesc (HRM roziligi bilan): `docx-editor.js`, `_QuillToolbar`, `NewHeader`, `AddMainVersionAsync`, `DocFileResult`, tur/holat kod bo'yicha |
 | 22 | Status/prioritet badge'lari faqat ID/Code/IsFinal/ColorHex bo'yicha — nom bo'yicha qidiruv qolmadi (db-foundation so'rovi) |
+| 23 | Brauzer tekshiruvi tuzatishlari: inline skriptlar jQuery'dan keyin, Quill `clipboard.convert` (Word/shablon muharrirga tushmasdi) |
+| 24 | DOC-P10 sxema skripti; DOC-P10 kodi va DOC-P02 table splitting (EDMX + kod) |
+
+**Yakuniy holat (2026-10-19):** Bug 22/23 (TSK-B06 — foydalanuvchi qarori) · Xavfsizlik 8/8 · Perf 24/24 · Dublikat 19/20 (#16 — Core) · O'lik kod 2/2 · Maint 2/2.
+Brauzerda tekshirildi: Tasks, Kanban, Dashboard, TaskSettings, xat/buyruq/STD/JobDesc ro'yxat, Details, Create, Edit, fayl/rasm yuklab olish.
 
 Xulq-atvor o'zgarishlari:
 - Tasks ro'yxatida qidiruv/saralash/eksport endi butun natijaga ishlaydi; "Muddati (gacha)" shu kunni ham oladi.

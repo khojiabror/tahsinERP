@@ -219,7 +219,7 @@ namespace tahsinERP.Controllers
 
                 // Eng so'nggi asosiy .docx (o'chirilganlar hisobga olinmaydi)
                 long? latestFileId = await DocFileService.LatestMainFileIdAsync(db, id.Value, ".docx");
-                var latestFile = latestFileId == null ? null : await db.DOC_FILES.AsNoTracking()
+                var latestFile = latestFileId == null ? null : await db.DOC_FILE_CONTENTS.AsNoTracking()
                     .Where(f => f.ID == latestFileId.Value)
                     .Select(f => new { f.ID, f.FileContent })
                     .FirstOrDefaultAsync();
@@ -557,7 +557,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                return DocFileResult.For(await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.JobDescription));
+                return await DocFileResult.ForAsync(db, await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.JobDescription));
             }
         }
     }

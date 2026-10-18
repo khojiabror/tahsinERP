@@ -107,6 +107,22 @@
           <Property Name="Topic" Type="nvarchar" MaxLength="500" />
           <Property Name="ExternalContactPosition" Type="nvarchar" MaxLength="200" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="BodyHtml" Type="nvarchar(max)" />
+          <Property Name="GreetingLine" Type="nvarchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="COM_OFFICIAL_LETTER_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DocumentID" Type="bigint" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="ItemName" Type="nvarchar" MaxLength="500" />
+          <Property Name="ItemSize" Type="nvarchar" MaxLength="200" />
+          <Property Name="PriceExw" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatExw" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="PriceCip" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatCip" Type="decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="COMPANIES">
           <Key>
@@ -5239,6 +5255,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="BOM_HEADERS" EntityType="Self.BOM_HEADERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="BOM_LINES" EntityType="Self.BOM_LINES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COM_OFFICIAL_LETTERS" EntityType="Self.COM_OFFICIAL_LETTERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="COM_OFFICIAL_LETTER_ITEMS" EntityType="Self.COM_OFFICIAL_LETTER_ITEMS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COMPANIES" EntityType="Self.COMPANIES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COMPANY_LICENSES" EntityType="Self.COMPANY_LICENSES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="COOKIES_CONFIRMATION" EntityType="Self.COOKIES_CONFIRMATION" Schema="dbo" store:Type="Tables" />
@@ -6550,7 +6567,23 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="Topic" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="ExternalContactPosition" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="BodyHtml" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="GreetingLine" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_COM_OFFICIAL_LETTERS_Document" FromRole="COM_OFFICIAL_LETTERS" ToRole="DOC_DOCUMENTS" />
+        </EntityType>
+        <EntityType Name="COM_OFFICIAL_LETTER_ITEMS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DocumentID" Type="Int64" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="ItemName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ItemSize" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="PriceExw" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatExw" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceCip" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceVatCip" Type="Decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="COMPANy">
           <Key>
@@ -6766,12 +6799,20 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="FileExtension" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="MimeType" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="FileSizeBytes" Type="Int64" />
-          <Property Name="FileContent" Type="Binary" MaxLength="Max" FixedLength="false" Nullable="false" />
           <Property Name="IsMain" Type="Boolean" Nullable="false" />
           <Property Name="CreatedByUserID" Type="Int32" />
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="IsDeleted" Type="Boolean" />
           <NavigationProperty Name="DOC_DOCUMENTS" Relationship="Self.FK_DOC_FILES_Document" FromRole="DOC_FILES" ToRole="DOC_DOCUMENTS" />
+          <NavigationProperty Name="DOC_FILE_CONTENTS" Relationship="Self.DOC_FILES_CONTENT" FromRole="DOC_FILES" ToRole="DOC_FILE_CONTENTS" />
+        </EntityType>
+        <EntityType Name="DOC_FILE_CONTENTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" />
+          <Property Name="FileContent" Type="Binary" MaxLength="Max" FixedLength="false" Nullable="false" />
+          <NavigationProperty Name="DOC_FILES" Relationship="Self.DOC_FILES_CONTENT" FromRole="DOC_FILE_CONTENTS" ToRole="DOC_FILES" />
         </EntityType>
         <EntityType Name="DOC_TEMPLATES">
           <Key>
@@ -9475,6 +9516,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="DOC_FILES_CONTENT">
+          <End Role="DOC_FILES" Type="Self.DOC_FILES" Multiplicity="1" />
+          <End Role="DOC_FILE_CONTENTS" Type="Self.DOC_FILE_CONTENTS" Multiplicity="1" />
+          <ReferentialConstraint>
+            <Principal Role="DOC_FILES">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="DOC_FILE_CONTENTS">
+              <PropertyRef Name="ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_HR_JOB_DESCRIPTIONS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
           <End Role="HR_JOB_DESCRIPTIONS" Type="Self.HR_JOB_DESCRIPTIONS" Multiplicity="0..1" />
@@ -11788,6 +11841,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="BOM_HEADERS" EntityType="Self.BOM_HEADERS" />
           <EntitySet Name="BOM_LINES" EntityType="Self.BOM_LINES" />
           <EntitySet Name="COM_OFFICIAL_LETTERS" EntityType="Self.COM_OFFICIAL_LETTERS" />
+          <EntitySet Name="COM_OFFICIAL_LETTER_ITEMS" EntityType="Self.COM_OFFICIAL_LETTER_ITEMS" />
           <EntitySet Name="COMPANIES" EntityType="Self.COMPANy" />
           <EntitySet Name="COMPANY_LICENSES" EntityType="Self.COMPANY_LICENSES" />
           <EntitySet Name="COOKIES_CONFIRMATION" EntityType="Self.COOKIES_CONFIRMATION" />
@@ -11800,6 +11854,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="DOC_DOCUMENT_TYPES" EntityType="Self.DOC_DOCUMENT_TYPES" />
           <EntitySet Name="DOC_DOCUMENTS" EntityType="Self.DOC_DOCUMENTS" />
           <EntitySet Name="DOC_FILES" EntityType="Self.DOC_FILES" />
+          <EntitySet Name="DOC_FILE_CONTENTS" EntityType="Self.DOC_FILE_CONTENTS" />
           <EntitySet Name="DOC_TEMPLATES" EntityType="Self.DOC_TEMPLATES" />
           <EntitySet Name="EXPENSE_PRODUCTS" EntityType="Self.EXPENSE_PRODUCTS" />
           <EntitySet Name="EXPENSES" EntityType="Self.EXPENS" />
@@ -12113,6 +12168,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <AssociationSet Name="FK_DOC_FILES_Document" Association="Self.FK_DOC_FILES_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="DOC_FILES" EntitySet="DOC_FILES" />
+          </AssociationSet>
+          <AssociationSet Name="DOC_FILES_CONTENT" Association="Self.DOC_FILES_CONTENT">
+            <End Role="DOC_FILES" EntitySet="DOC_FILES" />
+            <End Role="DOC_FILE_CONTENTS" EntitySet="DOC_FILE_CONTENTS" />
           </AssociationSet>
           <AssociationSet Name="FK_HR_JOB_DESCRIPTIONS_Document" Association="Self.FK_HR_JOB_DESCRIPTIONS_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
@@ -13378,6 +13437,23 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="Topic" ColumnName="Topic" />
                 <ScalarProperty Name="ExternalContactPosition" ColumnName="ExternalContactPosition" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="BodyHtml" ColumnName="BodyHtml" />
+                <ScalarProperty Name="GreetingLine" ColumnName="GreetingLine" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="COM_OFFICIAL_LETTER_ITEMS">
+            <EntityTypeMapping TypeName="DBTHSNModel.COM_OFFICIAL_LETTER_ITEMS">
+              <MappingFragment StoreEntitySet="COM_OFFICIAL_LETTER_ITEMS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="DocumentID" ColumnName="DocumentID" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="ItemSize" ColumnName="ItemSize" />
+                <ScalarProperty Name="PriceExw" ColumnName="PriceExw" />
+                <ScalarProperty Name="PriceVatExw" ColumnName="PriceVatExw" />
+                <ScalarProperty Name="PriceCip" ColumnName="PriceCip" />
+                <ScalarProperty Name="PriceVatCip" ColumnName="PriceVatCip" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -13551,11 +13627,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="FileExtension" ColumnName="FileExtension" />
                 <ScalarProperty Name="MimeType" ColumnName="MimeType" />
                 <ScalarProperty Name="FileSizeBytes" ColumnName="FileSizeBytes" />
-                <ScalarProperty Name="FileContent" ColumnName="FileContent" />
                 <ScalarProperty Name="IsMain" ColumnName="IsMain" />
                 <ScalarProperty Name="CreatedByUserID" ColumnName="CreatedByUserID" />
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DOC_FILE_CONTENTS">
+            <EntityTypeMapping TypeName="DBTHSNModel.DOC_FILE_CONTENTS">
+              <MappingFragment StoreEntitySet="DOC_FILES">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FileContent" ColumnName="FileContent" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

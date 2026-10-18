@@ -21,12 +21,12 @@ namespace tahsinERP.Models
         public string FileExtension { get; set; }
         public string MimeType { get; set; }
         public Nullable<long> FileSizeBytes { get; set; }
-        public byte[] FileContent { get; set; }
         public bool IsMain { get; set; }
         public Nullable<int> CreatedByUserID { get; set; }
         public System.DateTime CreatedDT { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
     
         public virtual DOC_DOCUMENTS DOC_DOCUMENTS { get; set; }
+        public virtual DOC_FILE_CONTENTS DOC_FILE_CONTENTS { get; set; }
     }
 }
