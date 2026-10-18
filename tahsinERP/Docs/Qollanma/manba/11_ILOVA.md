@@ -71,8 +71,6 @@ Quyidagilar kodni tekshirish paytida aniqlangan. Ish jarayonida ularni hisobga o
 | Davrni yopish (qulflash) | Yo'q | 11.2 dagi tartib bo'yicha kelishib ishlang | 8, 11 |
 | Valyutani so'mga o'girish | Sotuv va logistikada bor; moliya dashboardlari summani o'girmasdan qo'shadi | Moliya hisobotlarini valyuta bo'yicha alohida ko'ring | 6, 8 |
 | P&L | Kassa usulida hisoblanadi (to'lov bo'yicha) | Hisoblash usulini rahbar bilan kelishing | 8 |
-| Sotuv buyurtmasidagi "Yetkazilgan" ustuni | Avtomatik to'lmaydi | Yetkazishdan keyin qo'lda yangilang | 6 |
-| Invoysda to'lov muddati | Maydon yo'q | Muddatni shartnoma shartlarida yozing | 6 |
 | Ta'minotchi to'lovi, doimiy xarajat to'lovi | Saqlangach tahrirlanmaydi | Xato bo'lsa o'chirib, qayta kiriting | 8 |
 | Kunlik ishlab chiqarishni qayta kiritish | Shu reja kuni uchun avvalgi yozuvni almashtiradi (qo'shmaydi) | To'liq kunlik miqdorni kiriting | 5 |
 | Sifat nazorati va brak | Ombor qoldig'ini o'zgartirmaydi | Brakni alohida ombor hujjati bilan rasmiylashtiring | 5 |

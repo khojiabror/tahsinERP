@@ -75,6 +75,16 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>To'lov muddati</label>
+                                                        @Html.TextBoxFor(m => m.DueDate, new { @class = "form-control", type = "date", Value = Model.DueDate.HasValue ? Model.DueDate.Value.ToString("yyyy-MM-dd") : "" })
+                                                        <small class="text-muted">Bo'sh qoldirilsa shartnomadagi to'lov muddati (kun) bo'yicha hisoblanadi.</small>
+                                                        @Html.ValidationMessageFor(m => m.DueDate, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                             <div class="row">
                                                 <div class="col-md-4">

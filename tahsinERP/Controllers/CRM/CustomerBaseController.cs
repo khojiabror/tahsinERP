@@ -198,69 +198,6 @@ namespace tahsinERP.Controllers
             return View(customerBase);
         }
 
-        // Olish so'rovi: CustomerBase/o'chirish/5
-        public async Task<ActionResult> Delete(int? id)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                var customerBase = await db.CUSTOMER_BASE.FindAsync(id);
-                if (customerBase == null || customerBase.IsDeleted == true)
-                {
-                    return HttpNotFound();
-                }
-
-                return View(customerBase);
-            }
-        }
-
-        // POST so'rovi: CustomerBase/o'chirish
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmed(int id, FormCollection collection)
-        {
-            if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
-            using (var db = new DBTHSNEntities())
-            {
-                try
-                {
-                    var customerBase = await db.CUSTOMER_BASE.FindAsync(id);
-                    if (customerBase == null || customerBase.IsDeleted == true)
-                    {
-                        // Oddiy forma POST'i — JSON emas, 404 (avval xom JSON sahifa ko'rinardi)
-                        return HttpNotFound();
-                    }
-
-                    customerBase.IsDeleted = true;
-                    await db.SaveChangesAsync();
-
-                    LogHelper.LogToDatabase(User.Identity.Name, "CustomerBase", $"Delete - {customerBase.CompanyName} o'chirildi");
-
-                    return RedirectToAction("Index");
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", "O'chirishda xatolik: " + (ex.GetBaseException()?.Message ?? ex.Message));
-                    var model = await db.CUSTOMER_BASE.AsNoTracking().FirstOrDefaultAsync(x => x.ID == id);
-                    if (model == null) return HttpNotFound();
-                    return View("Delete", model);
-                }
-            }
-        }
-
         // POST so'rovi: CustomerBase/o'chirish (AJAX)
         [HttpPost]
         [ValidateAntiForgeryToken]
