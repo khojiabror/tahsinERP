@@ -204,7 +204,7 @@ namespace tahsinERP.Controllers.Finance
                         currency = t.Currency ?? "-",
                         counterparty = t.CounterpartyName ?? "-",
                         purpose = t.Purpose ?? "-",
-                        editable = string.IsNullOrEmpty(t.SourceDocType) || t.SourceDocType == "Manual"
+                        editable = string.IsNullOrEmpty(t.SourceDocType) || t.SourceDocType == FinSelectLists.Manual || t.SourceDocType == FinSelectLists.PurchaseInvoicePayment || t.SourceDocType == FinSelectLists.RecurringObligationPayment
                     })
                     .ToList();
 
@@ -427,7 +427,7 @@ namespace tahsinERP.Controllers.Finance
                 {
                     return HttpNotFound();
                 }
-                if (!FinSelectLists.IsManual(transaction.SourceDocType))
+                if (!FinSelectLists.IsUserEditable(transaction.SourceDocType))
                 {
                     TempData["Error"] = $"Ushbu tranzaksiya '{transaction.SourceDocType}' hujjatidan yaratilgan. Uni manba hujjat orqali o'zgartiring.";
                     return RedirectToAction("Index");
@@ -453,7 +453,7 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 // FIN-B15: hujjatdan yaratilgan (posted) tranzaksiyani to'g'ridan-to'g'ri POST bilan ham tahrirlab bo'lmaydi
-                if (!FinSelectLists.IsManual(existing.SourceDocType))
+                if (!FinSelectLists.IsUserEditable(existing.SourceDocType))
                 {
                     TempData["Error"] = $"Ushbu tranzaksiya '{existing.SourceDocType}' hujjatidan yaratilgan. Tahrirlash mumkin emas.";
                     return RedirectToAction("Index");
@@ -516,7 +516,7 @@ namespace tahsinERP.Controllers.Finance
                 }
 
                 // Tekshirish agar linked ga source hujjat
-                if (!string.IsNullOrEmpty(transaction.SourceDocType) && transaction.SourceDocType != "Manual")
+                if (!FinSelectLists.IsUserEditable(transaction.SourceDocType))
                 {
                     ViewBag.CannotDelete = true;
                     ViewBag.SourceDocType = transaction.SourceDocType;
@@ -544,8 +544,8 @@ namespace tahsinERP.Controllers.Finance
                         return RedirectToAction("Index");
                     }
 
-                    // Faqat qo'lda (Manual) yaratilgan tranzaksiyani o'chirishga ruxsat.
-                    if (!FinSelectLists.IsManual(transaction.SourceDocType))
+                    // Faqat qo'lda kiritilgan (Manual, ta'minotchiga to'lov, doimiy harajat to'lovi) tranzaksiyani o'chirishga ruxsat.
+                    if (!FinSelectLists.IsUserEditable(transaction.SourceDocType))
                     {
                         TempData["Error"] = $"Ushbu tranzaksiya '{transaction.SourceDocType}' hujjatidan yaratilgan. O'chirish mumkin emas.";
                         return RedirectToAction("Delete", new { id });

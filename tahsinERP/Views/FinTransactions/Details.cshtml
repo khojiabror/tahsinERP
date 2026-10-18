@@ -34,7 +34,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">Tranzaksiya tafsilotlari</h4>
-                                @if (changePermit && (string.IsNullOrEmpty(Model.SourceDocType) || Model.SourceDocType == "Manual"))
+                                @if (changePermit && tahsinERP.Services.Finance.FinSelectLists.IsUserEditable(Model.SourceDocType))
                                 {
                                     <div class="heading-elements">
                                         <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
