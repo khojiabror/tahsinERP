@@ -115,7 +115,11 @@ try {
     # ---------------- 2. baseline + migratsiya + seed (+ demo) ----------------
     $runner = Join-Path $PSScriptRoot 'Invoke-DbMigrations.ps1'
     $extra = @()
-    if ($Demo) { $extra = @(Get-ChildItem -LiteralPath (Join-Path $root 'Demo') -Filter '*.sql' | Sort-Object Name | ForEach-Object { $_.FullName }) }
+    if ($Demo) {
+        $demoDir = Join-Path $root 'Demo'
+        if (Test-Path -LiteralPath $demoDir) { $extra = @(Get-ChildItem -LiteralPath $demoDir -Filter '*.sql' | Sort-Object Name | ForEach-Object { $_.FullName }) }
+        if ($extra.Count -eq 0) { $code = $EXIT_BAD_ARGS; throw [System.Exception]::new("Demo skriptlari topilmadi: $demoDir") }
+    }
     $runArgs = @{ Server = $Server; Database = $DbName; Seed = $true; DatabaseRoot = $root }
     if ($SqlUser) { $runArgs.SqlUser = $SqlUser; $runArgs.SqlPassword = $SqlPassword }
     if ($extra.Count -gt 0) { $runArgs.ExtraScripts = $extra }

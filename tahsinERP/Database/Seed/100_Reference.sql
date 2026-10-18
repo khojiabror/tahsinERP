@@ -1,6 +1,6 @@
 /* =====================================================================
    tahsinERP вЂ” MAJBURIY SPRAVOCHNIK SEED (generatsiya qilingan, QO'LDA TAHRIR QILMANG)
-   Manba: DB_TEST_CMP, 2026-10-18, Database/tools/Export-ReferenceSeed.ps1
+   Manba: DBTHSN-IPACK, 2026-10-18, Database/tools/Export-ReferenceSeed.ps1
    Idempotent: har qator kaliti bazada bo'lmasa qo'shiladi; ID'lar saqlanadi (IDENTITY_INSERT).
    Tranzaksiya va kontragent ma'lumotlari kirmaydi. Qo'shimcha qatorlar: Seed/110_Defaults.sql.
    ===================================================================== */
@@ -11493,7 +11493,7 @@ SELECT v.[ID], v.[HSCODE], v.[Description] FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM dbo.[HSCODES] t WHERE t.[ID] = v.[ID]);
 SET IDENTITY_INSERT dbo.[HSCODES] OFF;
 GO
--- ---------- PERMISSIONMODULES (462) ----------
+-- ---------- PERMISSIONMODULES (463) ----------
 SET IDENTITY_INSERT dbo.[PERMISSIONMODULES] ON;
 INSERT INTO dbo.[PERMISSIONMODULES] ([ID], [Module], [Controller], [Action], [Parameter])
 SELECT v.[ID], v.[Module], v.[Controller], v.[Action], v.[Parameter] FROM (VALUES
@@ -11958,7 +11958,8 @@ SELECT v.[ID], v.[Module], v.[Controller], v.[Action], v.[Parameter] FROM (VALUE
 (472, N'OpeningBalance-Create', N'OpeningBalance', N'Create', NULL),
 (473, N'OpeningBalance-Edit', N'OpeningBalance', N'Edit', NULL),
 (474, N'OpeningBalance-Details', N'OpeningBalance', N'Details', NULL),
-(477, N'Koreshok', N'Koreshok', N'Index', NULL)
+(477, N'Koreshok', N'Koreshok', N'Index', NULL),
+(478, N'FinRecurringObligations', N'FinRecurringObligations', N'Index', NULL)
 ) v ([ID], [Module], [Controller], [Action], [Parameter])
 WHERE NOT EXISTS (SELECT 1 FROM dbo.[PERMISSIONMODULES] t WHERE t.[ID] = v.[ID]);
 SET IDENTITY_INSERT dbo.[PERMISSIONMODULES] OFF;
@@ -11973,7 +11974,7 @@ SELECT v.[ID], v.[RName], v.[Description], v.[IsDeleted] FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM dbo.[ROLES] t WHERE t.[ID] = v.[ID]);
 SET IDENTITY_INSERT dbo.[ROLES] OFF;
 GO
--- ---------- PERMISSIONS (924) ----------
+-- ---------- PERMISSIONS (926) ----------
 SET IDENTITY_INSERT dbo.[PERMISSIONS] ON;
 INSERT INTO dbo.[PERMISSIONS] ([ID], [ViewPermit], [ChangePermit], [RoleID], [PermissionModuleID], [DeletePermit])
 SELECT v.[ID], v.[ViewPermit], v.[ChangePermit], v.[RoleID], v.[PermissionModuleID], v.[DeletePermit] FROM (VALUES
@@ -12907,7 +12908,9 @@ SELECT v.[ID], v.[ViewPermit], v.[ChangePermit], v.[RoleID], v.[PermissionModule
 (4189, 1, 1, 1, 474, 1),
 (4190, 1, 0, 3, 474, 0),
 (4214, 1, 0, 1, 477, 0),
-(4215, 1, 0, 3, 477, 0)
+(4215, 1, 0, 3, 477, 0),
+(4222, 1, 1, 1, 478, 1),
+(4223, 1, 0, 3, 478, 0)
 ) v ([ID], [ViewPermit], [ChangePermit], [RoleID], [PermissionModuleID], [DeletePermit])
 WHERE NOT EXISTS (SELECT 1 FROM dbo.[PERMISSIONS] t WHERE t.[ID] = v.[ID]);
 SET IDENTITY_INSERT dbo.[PERMISSIONS] OFF;
