@@ -150,7 +150,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
         log.Info($"RESTORE {p.DbName} ← {template}");
         await sql.RestoreAsync(p.DbName, template, ct);
         log.Info("shablondan keyingi migratsiyalar (Invoke-DbMigrations.ps1)");
-        var args = new List<string> { "-Server", options.Sql.Server, "-Database", p.DbName };
+        var args = new List<string> { "-Server", options.Sql.Server, "-Database", p.DbName, "-DatabaseRoot", options.Paths.DatabaseRoot };
         if (!string.IsNullOrWhiteSpace(options.Sql.User)) { args.Add("-SqlUser"); args.Add(options.Sql.User!); }
         var r = await scripts.RunAsync("Invoke-DbMigrations.ps1", args, new Dictionary<string, string?>(), ct);
         log.Raw(r.Log);

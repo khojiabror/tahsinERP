@@ -83,7 +83,7 @@ Asosiy qarorlar:
 | `Invoices` | Id, Number (TE-2026-000123), TenantId, SubscriptionId, AmountUzs, Status (Draft/Issued/PartiallyPaid/Paid/Cancelled), PaidAmountTiyin, DueDate, Lines (JSON: nomi, miqdor, narx, QQS), DidoxId (e-hisob-faktura) |
 | `Payments` | Id, InvoiceId, Method (Bank/Cash/Card/Other), AmountTiyin, PaidAt, Reference (to'lov topshirig'i raqami), Note, RecordedBy (StaffUserId), RecordedAt, IsReversed, ReversedBy, ReversedAt, ReverseReason |
 | `Licenses` | Id, TenantId, InstallationId, KeyId (k1/k2), LicenseKey, MaxUsers, StartDate, ExpiryDate, Edition, IssuedBy (user/auto), IssuedAt, Reason, SupersededById |
-| `ProvisioningJobs` | Id, TenantId, Type (Create/Reset/Suspend/Archive/Delete), Status, Log, StartedAt, FinishedAt |
+| `ProvisioningJobs` | Id, TenantId, Type (Create/Reset/Suspend/Resume/Archive/Delete), Status, Attempts, Lease, Payload, Secrets (shifrlangan), Log, Result, StartedAt, FinishedAt — 05_PROVISIONING.md |
 | `Notifications` | Id, TenantId, Channel (Telegram/Email/SMS), Template, SentAt, Status |
 | `StaffUsers` | Id, Email, PasswordHash (PBKDF2), Role (Owner/Sales/Support), TotpSecret |
 | `AuditLog` | Id, StaffUserId, Action, Entity, EntityId, Before/After (JSON), Ip, At |
