@@ -289,13 +289,13 @@ namespace tahsinERP.Services.Finance
                 return new MonthlyData { Period = $"{m.MonthStart.Year}-{m.MonthStart.Month:D2}", Amount = liability < 0 ? 0m : liability };
             }).ToList();
 
-            // Kreditor/debitor hisoblari qoldig'i (bitta GROUP BY bilan, FIN-P02).
+            // Kreditor/debitor hisoblari qoldig'i (bitta GROUP BY bilan, FIN-P02). Hisob faqat kod bo'yicha (nom erkin).
             var payablesAccounts = db.FIN_ACCOUNTS.AsNoTracking().Include(a => a.CURRENCy)
-                .Where(a => (a.Code.StartsWith("PAYABLES_") || a.Name.Contains("Kreditorlar")) && a.IsActive)
+                .Where(a => a.Code.StartsWith("PAYABLES_") && a.IsActive)
                 .OrderBy(a => a.ID)
                 .ToList();
             var receivablesAccounts = db.FIN_ACCOUNTS.AsNoTracking().Include(a => a.CURRENCy)
-                .Where(a => (a.Code.StartsWith("RECEIVABLES_") || a.Name.Contains("Debitorlar")) && a.IsActive)
+                .Where(a => a.Code.StartsWith("RECEIVABLES_") && a.IsActive)
                 .OrderBy(a => a.ID)
                 .ToList();
             result.PayablesAccountBalances = FinAnalyticsService.PlainAccountBalances(db, payablesAccounts, fromDate, toDate);

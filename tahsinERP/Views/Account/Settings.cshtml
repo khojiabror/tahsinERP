@@ -55,6 +55,10 @@
 
                                                 @Html.AntiForgeryToken()
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                                @if (TempData["MustChangePassword"] != null)
+                                                {
+                                                    <div class="alert alert-warning">@TempData["MustChangePassword"]</div>
+                                                }
                                                 <div class="row">
                                                     <div class="col-12">
                                                         <div class="form-group">
