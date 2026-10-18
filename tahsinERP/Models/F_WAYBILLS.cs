@@ -17,7 +17,6 @@ namespace tahsinERP.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public F_WAYBILLS()
         {
-            this.F_WAYBILL_DOCS = new HashSet<F_WAYBILL_DOCS>();
             this.F_WAYBILL_PAYMENT_SPLITS = new HashSet<F_WAYBILL_PAYMENT_SPLITS>();
             this.F_WAYBILL_PAYMENTS = new HashSet<F_WAYBILL_PAYMENTS>();
         }
@@ -63,8 +62,6 @@ namespace tahsinERP.Models
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual F_CONTRACTS F_CONTRACTS { get; set; }
         public virtual F_TRANSPORT_TYPES F_TRANSPORT_TYPES { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<F_WAYBILL_DOCS> F_WAYBILL_DOCS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<F_WAYBILL_PAYMENT_SPLITS> F_WAYBILL_PAYMENT_SPLITS { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

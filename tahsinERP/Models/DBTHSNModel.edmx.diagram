@@ -28,11 +28,9 @@
         <EntityTypeShape EntityType="DBTHSNModel.DOC_TEMPLATES" Width="1.5" PointX="17" PointY="101.5" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.EXPENSE_PRODUCTS" Width="1.5" PointX="15.75" PointY="166.5" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.EXPENS" Width="1.5" PointX="10.5" PointY="161.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.F_CONTRACT_DOCS" Width="1.5" PointX="5.25" PointY="149.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.F_CONTRACT_TARIFFS" Width="1.5" PointX="8.25" PointY="141.875" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.F_CONTRACTS" Width="1.5" PointX="3" PointY="134.875" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.F_TRANSPORT_TYPES" Width="1.5" PointX="14.25" PointY="123.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILL_DOCS" Width="1.5" PointX="18.75" PointY="131.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILL_PAYMENT_SPLITS" Width="1.5" PointX="24.75" PointY="131.25" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILL_PAYMENTS" Width="1.5" PointX="24.75" PointY="127.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.F_WAYBILLS" Width="1.5" PointX="16.5" PointY="127.5" IsExpanded="true" />
@@ -191,14 +189,12 @@
         <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSE_DOCS_PROD_WRHS_EXPENSES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSES_PROD_WRHS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_PROD_WRHS_EXPENSES_PROD_WRHS2" ManuallyRouted="false" />
-        <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_DOCS_F_CONTRACTS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_CONTRACTS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_CONTRACTS_FORWARDERS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_F_CONTRACTS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_TRANSPORT_TYPES_UNITS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILLS_F_TRANSPORT_TYPES" ManuallyRouted="false" />
-        <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_DOCS_F_WAYBILLS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_PAYMENT_SPLITS_WAYBILLS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_FORWARDERS" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_F_WAYBILL_PAYMENTS_WAYBILLS" ManuallyRouted="false" />
