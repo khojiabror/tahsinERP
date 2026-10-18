@@ -201,6 +201,7 @@
     </div>
 
     @section scripts {
+        <script src="~/Scripts/srm/srm-doc-lines.js"></script>
         <script>
             (function ($) {
                 $(document).ready(function () {
@@ -261,14 +262,7 @@
                         addProductRow(null, '', '', 0, null, 0, 0, '', 0);
                     });
 
-                    function escapeHtml(text) {
-                        return String(text == null ? '' : text)
-                            .replace(/&/g, '&amp;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;')
-                            .replace(/"/g, '&quot;')
-                            .replace(/'/g, '&#39;');
-                    }
+                    function escapeHtml(text) { return srmDocLines.escapeHtml(text); }
 
                     function buildProductOptions(selectedId) {
                         var options = '<option value="">---Tanlang---</option>';
@@ -282,14 +276,7 @@
                         return options;
                     }
 
-                    function buildUnitOptions(selectedId) {
-                        var options = '<option value="">---Tanlang---</option>';
-                        units.forEach(function (unit) {
-                            var selected = unit.Value == selectedId ? 'selected' : '';
-                            options += '<option value="' + escapeHtml(unit.Value) + '" ' + selected + '>' + escapeHtml(unit.Text) + '</option>';
-                        });
-                        return options;
-                    }
+                    function buildUnitOptions(selectedId) { return srmDocLines.unitOptions(units, selectedId); }
 
                     function buildDlocOptions(selectedId) {
                         var options = '<option value="">---DLOC---</option>';
@@ -456,13 +443,7 @@
                         refreshDlocCapacity($(this).closest('tr'));
                     });
 
-                    function updateTotal() {
-                        var total = 0;
-                        $('.total-price').each(function () {
-                            total += parseFloat($(this).val()) || 0;
-                        });
-                        $('#totalAmount').text(total.toFixed(2));
-                    }
+                    function updateTotal() { srmDocLines.updateTotal(); }
 
                     $('#incomeForm').submit(function (e) {
                         if ($('#incomeProductsTable tbody tr').length === 0) {
