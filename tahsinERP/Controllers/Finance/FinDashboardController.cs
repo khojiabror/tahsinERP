@@ -72,8 +72,10 @@ namespace tahsinERP.Controllers.Finance
 
             using (var db = new DBTHSNEntities())
             {
+                var service = new BalanceSheetService(db);
                 ViewBag.AsOfDate = asOfDate;
-                ViewBag.BalanceData = new BalanceSheetService(db).BalanceSheet(asOfDate.Value);
+                ViewBag.BalanceData = service.BalanceSheet(asOfDate.Value);
+                ViewBag.Totals = service.Totals(asOfDate.Value);
                 return View();
             }
         }
@@ -95,7 +97,9 @@ namespace tahsinERP.Controllers.Finance
 
             using (var db = new DBTHSNEntities())
             {
-                var details = new BalanceSheetService(db).LiabilityDetails(asOfDate.Value);
+                var service = new BalanceSheetService(db);
+                var details = service.LiabilityDetails(asOfDate.Value);
+                ViewBag.Totals = service.Totals(asOfDate.Value);
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.LiabilityDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);

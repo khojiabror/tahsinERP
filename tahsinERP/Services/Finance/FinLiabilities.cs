@@ -257,44 +257,62 @@ namespace tahsinERP.Services.Finance
             public decimal OpeningNet { get; set; }
             public double WaybillTotal { get; set; }
             public decimal Paid { get; set; }
+            /// <summary>Akt-sverki tuzatishlari (opening'dan keyingi): + qarzni oshiradi.</summary>
+            public decimal Adjustments { get; set; }
             public IQueryable<FIN_TRANSACTIONS> PaymentQuery { get; set; }
-            public decimal Amount => OpeningNet + (decimal)WaybillTotal - Paid;
+            public decimal Amount => OpeningNet + (decimal)WaybillTotal - Paid + Adjustments;
         }
 
-        /// <summary>Logistika qarzi: opening (BalanceType=4) + yo'l varaqalari − "m.tash"/"t.tash" chiqimlari.</summary>
+        /// <summary>
+        /// Logistika qarzi — ekspeditor akt-sverkilari ("Barcha shartnomalar") yig'indisi bilan bir xil formula:
+        /// opening (BalanceType=4, barcha qatorlar) + undan keyingi yo'l varaqalari − ekspeditor to'lovlari
+        /// (F_WAYBILL_PAYMENTS) − qo'lda kiritilgan FIN to'lovlari (CP=4, chiqim, WaybillPayment ko'zgusi emas).
+        /// Avval to'lovlar "m.tash"/"t.tash" kategoriyasi nomi bo'yicha FIN'dan olinardi: ular ichida ta'minotchi
+        /// to'lovlari bor, FIN'ga yozilmagan ekspeditor to'lovlari esa yo'q edi (2025-12-31: barcha varaqalar to'langan,
+        /// lekin balansda 83 mln qarz chiqardi).
+        /// </summary>
         public static LogisticsLiabilityResult Logistics(DBTHSNEntities db, CounterpartyBalanceService counterparties, DateTime asOf)
         {
             var result = new LogisticsLiabilityResult();
             var logiOpening = counterparties.LatestOpeningDate(asOf, CounterpartyBalanceService.BalanceTypeLogistics);
             result.OpeningDate = logiOpening;
             result.OpeningNet = logiOpening.HasValue
-                ? counterparties.OpeningContractBalances(logiOpening.Value, CounterpartyBalanceService.BalanceTypeLogistics).Where(x => x.Amount > 0).Sum(x => x.Amount)
+                ? counterparties.OpeningContractBalances(logiOpening.Value, CounterpartyBalanceService.BalanceTypeLogistics).Sum(x => x.Amount)
                 : 0m;
 
-            result.WaybillTotal = db.F_WAYBILLS
-                .Where(w => w.IsDeleted == false && w.Amount.HasValue &&
+            // double ustunlar xotirada decimal'ga yig'iladi
+            result.WaybillTotal = db.F_WAYBILLS.AsNoTracking()
+                .Where(w => (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue &&
                             (!logiOpening.HasValue || w.IssueDate > logiOpening.Value) &&
                             w.IssueDate <= asOf)
-                .Sum(w => (double?)w.Amount) ?? 0;
+                .Select(w => w.Amount)
+                .ToList()
+                .Sum(a => a ?? 0d);
 
-            var categoryNames = new[] { "m.tash", "t.tash" };
-            var logisticsCategoryIds = db.FIN_CATEGORIES
-                .Where(c => c.IsActive && categoryNames.Contains(c.Name.ToLower()))
-                .Select(c => c.ID)
-                .ToList();
+            // Ekspeditor to'lovlari: varaqa shu sanagacha chiqarilgan, to'lov opening'dan keyin (sanasizi opening'ga kirgan)
+            var waybillPaid = db.F_WAYBILL_PAYMENTS.AsNoTracking()
+                .Where(p => !p.IsDeleted &&
+                            p.ForwarderID == p.F_WAYBILLS.ForwarderID &&
+                            (p.F_WAYBILLS.IsDeleted == null || p.F_WAYBILLS.IsDeleted == false) &&
+                            p.F_WAYBILLS.Amount.HasValue &&
+                            p.F_WAYBILLS.IssueDate <= asOf &&
+                            (p.PaymentDate ?? DateTime.MinValue) <= asOf &&
+                            (!logiOpening.HasValue || (p.PaymentDate.HasValue && p.PaymentDate.Value > logiOpening.Value)))
+                .Select(p => p.Payment_Amount)
+                .ToList()
+                .Sum(a => (decimal)a);
 
-            if (logisticsCategoryIds.Count > 0)
-            {
-                result.PaymentQuery = FinQueries.Active(db)
-                    .Where(t => logisticsCategoryIds.Contains(t.CategoryID) &&
-                                t.TxnDate <= asOf &&
-                                (!logiOpening.HasValue || t.TxnDate > logiOpening.Value) &&
-                                (t.IsDeleted == null || t.IsDeleted == false));
-                result.Paid = result.PaymentQuery
-                    .Where(t => t.Direction == 2)
-                    .Sum(t => (decimal?)t.Amount) ?? 0m;
-            }
+            result.PaymentQuery = FinQueries.Active(db)
+                .Where(t => t.CounterpartyType == 4 &&
+                            t.CounterpartyID.HasValue &&
+                            t.Direction == 2 &&
+                            t.TxnDate <= asOf &&
+                            (!logiOpening.HasValue || t.TxnDate > logiOpening.Value) &&
+                            (t.SourceDocType == null || t.SourceDocType != "WaybillPayment"));
+            var manualPaid = result.PaymentQuery.Sum(t => (decimal?)t.Amount) ?? 0m;
 
+            result.Paid = waybillPaid + manualPaid;
+            result.Adjustments = counterparties.AdjustmentTotals(CounterpartyBalanceService.BalanceTypeLogistics, asOf, logiOpening, creditIncreases: true).Values.Sum();
             return result;
         }
 

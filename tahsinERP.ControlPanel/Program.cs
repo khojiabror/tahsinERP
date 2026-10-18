@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +14,10 @@ using tahsinERP.ControlPanel.Services;
 if (Cli.IsCommand(args) && Cli.RunStandalone(args) is int standaloneExit)
     return standaloneExit;
 
-var builder = WebApplication.CreateBuilder(args);
+// CLI istalgan papkadan ishga tushirilsa ham appsettings.json ilova yonidan o'qilsin.
+var builder = Cli.IsCommand(args) && !File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"))
+    ? WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, ContentRootPath = AppContext.BaseDirectory })
+    : WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 var services = builder.Services;
 
@@ -51,6 +55,16 @@ services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
     services.AddHostedService<DailyJobHostedService>();
+
+// Cookie/antiforgery kalitlari: serverda doimiy papkada (aks holda IIS qayta ishga tushganda xodimlar qayta kiradi).
+// Windows'da DPAPI (LocalMachine) bilan shifrlanadi. Papka bo'sh bo'lsa — standart joy (dev).
+var dataProtection = services.AddDataProtection().SetApplicationName("tahsinERP.ControlPanel");
+if (config["ControlPanel:DataProtection:KeysDir"] is { Length: > 0 } keysDir)
+{
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keysDir));
+    if (OperatingSystem.IsWindows())
+        dataProtection.ProtectKeysWithDpapi(protectToLocalMachine: true);
+}
 
 bool isDev = builder.Environment.IsDevelopment();
 services.AddAuthentication(AuthSchemes.Staff)

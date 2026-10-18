@@ -148,12 +148,20 @@ public sealed class DailyJobHostedService(IServiceScopeFactory scopes, TimeProvi
             var sp = scope.ServiceProvider;
             int changed = await sp.GetRequiredService<SubscriptionService>().RunLifecycleAsync(ct);
             int sent = await sp.GetRequiredService<ExpiryReminderService>().RunAsync(ct);
-            log.LogInformation("Kunlik ish: {Changed} tenant holati o'zgardi, {Sent} eslatma", changed, sent);
+            int purged = await PurgeExpiredNoncesAsync(sp.GetRequiredService<ControlDbContext>(), sp.GetRequiredService<Clock>(), ct);
+            log.LogInformation("Kunlik ish: {Changed} tenant holati o'zgardi, {Sent} eslatma, {Purged} eski nonce o'chirildi", changed, sent, purged);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             log.LogError(ex, "Kunlik ish xatosi");
         }
+    }
+
+    /// <summary>License API nonce'lari: replay oynasidan (10 daq) o'tganlari endi kerak emas.</summary>
+    public static Task<int> PurgeExpiredNoncesAsync(ControlDbContext db, Clock clock, CancellationToken ct = default)
+    {
+        DateTime now = clock.UtcNow;
+        return db.ApiNonces.Where(n => n.ExpiresUtc < now).ExecuteDeleteAsync(ct);
     }
 
     private TimeSpan DelayUntilNextRun()

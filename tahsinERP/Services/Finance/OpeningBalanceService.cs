@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services.Crm;
+using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.Finance;
 
 namespace tahsinERP.Services.Finance
@@ -400,7 +401,6 @@ namespace tahsinERP.Services.Finance
                     var total = ParseDecimalFlexible(rawForm(prefix + "[" + i + "].TotalAmount"), x.TotalAmount);
                     var paid = ParseDecimalFlexible(rawForm(prefix + "[" + i + "].PaidAmount"), x.PaidAmount);
                     if (total == 0 && paid == 0) continue;
-                    if (paid > total) paid = total;
                     rows.Add(new ContractRow
                     {
                         SnapshotDate = date,
@@ -430,7 +430,6 @@ namespace tahsinERP.Services.Finance
                     var total = ParseDecimalFlexible(rawForm("EmployeePayrollLines[" + i + "].TotalAmount"), x.TotalAmount);
                     var paid = ParseDecimalFlexible(rawForm("EmployeePayrollLines[" + i + "].PaidAmount"), x.PaidAmount);
                     if (total == 0 && paid == 0) continue;
-                    if (paid > total) paid = total;
                     rows.Add(new ContractRow
                     {
                         SnapshotDate = date,
@@ -465,9 +464,12 @@ namespace tahsinERP.Services.Finance
         #region Avto-to'ldirish
 
         /// <summary>
-        /// Shu sana holatidagi joriy qoldiqlardan kontragent opening qatorlarini tuzadi (eski opening o'chiriladi):
-        /// AR/AP — shartnoma kesimida (invoyslar − to'lovlar), oylik — xodim kesimida, ekspeditor — yo'l
-        /// varaqalari − to'lovlar. Faqat musbat qoldiqlar yoziladi.
+        /// Shu sana holatidagi joriy qoldiqlardan kontragent opening qatorlarini tuzadi (eski opening o'chiriladi).
+        /// Hisob akt-sverki va balans bilan bir xil: oldingi opening (bo'lsa) + undan keyingi hujjat/to'lovlar,
+        /// shartnoma kesimida; shartnomaga bog'lanmagan to'lovlar qoldig'i kontragentning shartnomasiz qatori.
+        /// Avans (manfiy qoldiq) ham yoziladi — opening jami kontragent qarzlariga (balansga) teng bo'ladi.
+        /// Avval butun tarix noldan qayta hisoblanardi: oldingi (qo'lda to'g'rilangan) opening e'tiborsiz qolar,
+        /// shartnomasiz to'lov va avanslar tushib qolardi (2026-06-30: AP +48 mln, AR −11,9 mln farq).
         /// </summary>
         public void AutoFill(DateTime snapshotDate, int userId)
         {
@@ -477,215 +479,83 @@ namespace tahsinERP.Services.Finance
 
             DeleteByDate(date);
 
-            Func<string, string> normalize = s => string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpper();
-
-            // 1) Customer receivables by contract
-            var sInvoices = db.SALES_INVOICES.Active()
-                .Where(i => i.InvoiceDate <= date)
-                .Select(i => new { ID = (int)i.ID, i.CustomerID, i.ContractID, Amount = i.TotalWithVAT ?? i.TotalAmount })
-                .ToList();
-            var sContractIds = sInvoices.Where(i => i.ContractID.HasValue).Select(i => i.ContractID.Value).Distinct().ToList();
-            var sContractNoById = sContractIds.Count == 0
-                ? new Dictionary<int, string>()
-                : db.S_CONTRACTS.Where(c => sContractIds.Contains(c.ID))
-                    .Select(c => new { c.ID, c.ContractNo })
-                    .ToList()
-                    .ToDictionary(x => x.ID, x => normalize(x.ContractNo));
-
-            var cPayments = db.FIN_TRANSACTIONS
-                .Where(t => t.TxnDate <= date &&
-                            (t.IsDeleted == null || t.IsDeleted == false) &&
-                            t.SourceDocType != "SalesInvoice" &&
-                            ((t.Direction == 1 && t.CounterpartyType == 1 && t.CounterpartyID.HasValue) ||
-                             (t.SourceDocType == "SalesInvoicePayment" && t.SourceDocID.HasValue)))
-                .Select(t => new { t.CounterpartyID, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
-                .ToList();
-
-            var cLinkedIds = cPayments.Where(p => p.SourceDocType == "SalesInvoicePayment" && p.SourceDocID.HasValue).Select(p => (long)p.SourceDocID.Value).Distinct().ToList();
-            var cInvoiceMeta = cLinkedIds.Count == 0
-                ? new Dictionary<long, Tuple<int, string, int?>>()
-                : db.SALES_INVOICES.Active().Where(i => cLinkedIds.Contains(i.ID))
-                    .Select(i => new { i.ID, i.CustomerID, i.ContractID })
-                    .ToList()
-                    .ToDictionary(
-                        x => x.ID,
-                        x => Tuple.Create(x.CustomerID, x.ContractID.HasValue && sContractNoById.ContainsKey(x.ContractID.Value) ? sContractNoById[x.ContractID.Value] : "", x.ContractID));
-
-            var cInvoiceTotalsByKey = sInvoices
-                .GroupBy(i => Tuple.Create(i.CustomerID, i.ContractID.HasValue && sContractNoById.ContainsKey(i.ContractID.Value) ? sContractNoById[i.ContractID.Value] : ""))
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-            var cContractIdByKey = sInvoices
-                .Where(i => i.ContractID.HasValue)
-                .GroupBy(i => Tuple.Create(i.CustomerID, sContractNoById.ContainsKey(i.ContractID.Value) ? sContractNoById[i.ContractID.Value] : ""))
-                .ToDictionary(g => g.Key, g => g.Select(x => x.ContractID).FirstOrDefault());
-
-            var cPaymentTotalsByKey = cPayments
-                .Select(p =>
-                {
-                    int customerId = p.CounterpartyID ?? 0;
-                    var contractNo = normalize(p.ContractNo);
-                    if (p.SourceDocType == "SalesInvoicePayment" && p.SourceDocID.HasValue && cInvoiceMeta.ContainsKey((long)p.SourceDocID.Value))
-                    {
-                        var meta = cInvoiceMeta[(long)p.SourceDocID.Value];
-                        customerId = meta.Item1;
-                        if (string.IsNullOrWhiteSpace(contractNo)) contractNo = meta.Item2;
-                    }
-                    if (customerId <= 0) return null;
-                    return new { CustomerID = customerId, ContractNo = contractNo, Amount = Math.Abs(p.Amount) };
-                })
-                .Where(x => x != null)
-                .GroupBy(x => Tuple.Create(x.CustomerID, x.ContractNo))
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-
-            // 2) Supplier payables by contract.
-            // Xarid summasi — dashboard/balans/Akt-sverki bilan bir xil qoida (FIN-B08):
-            // invoysga bog'langan kirimlar (INCOMES.TotalPrice) bo'lsa shu, aks holda P_INVOICES.Amount.
-            var pInvoiceQuery = db.P_INVOICES
-                .Where(i => i.InvoiceDate <= date && (i.IsDeleted == null || i.IsDeleted == false));
-            var pAmountById = CounterpartyBalanceService.PurchaseInvoiceAmounts(db, pInvoiceQuery, date);
-            var pInvoices = pInvoiceQuery
-                .Select(i => new { i.ID, i.SupplierID, i.ContractID })
-                .ToList()
-                .Select(i => new { i.ID, i.SupplierID, i.ContractID, Amount = pAmountById.TryGetValue(i.ID, out var a) ? a : 0m })
-                .ToList();
-            var pContractIds = pInvoices.Where(i => i.ContractID > 0).Select(i => i.ContractID).Distinct().ToList();
-            var pContractNoById = pContractIds.Count == 0
-                ? new Dictionary<int, string>()
-                : db.P_CONTRACTS.Where(c => pContractIds.Contains(c.ID))
-                    .Select(c => new { c.ID, c.ContractNo })
-                    .ToList()
-                    .ToDictionary(x => x.ID, x => normalize(x.ContractNo));
-
-            var sPayments = db.FIN_TRANSACTIONS
-                .Where(t => t.TxnDate <= date &&
-                            (t.IsDeleted == null || t.IsDeleted == false) &&
-                            (t.SourceDocType == null || (t.SourceDocType != "PurchaseInvoice" && t.SourceDocType != "SalesInvoice")) &&
-                            ((t.Direction == 2 && t.CounterpartyType == 2 && t.CounterpartyID.HasValue) ||
-                             (t.SourceDocType == "PurchaseInvoicePayment" && t.SourceDocID.HasValue)))
-                .Select(t => new { t.CounterpartyID, t.Amount, t.SourceDocType, t.SourceDocID, t.ContractNo })
-                .ToList();
-
-            var sLinkedIds = sPayments.Where(p => p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue).Select(p => p.SourceDocID.Value).Distinct().ToList();
-            var pInvoiceMeta = sLinkedIds.Count == 0
-                ? new Dictionary<int, Tuple<int, string>>()
-                : db.P_INVOICES.Where(i => sLinkedIds.Contains(i.ID))
-                    .Select(i => new { i.ID, i.SupplierID, i.ContractID })
-                    .ToList()
-                    .ToDictionary(x => x.ID, x => Tuple.Create(x.SupplierID, x.ContractID > 0 && pContractNoById.ContainsKey(x.ContractID) ? pContractNoById[x.ContractID] : ""));
-
-            var pInvoiceTotalsByKey = pInvoices
-                .GroupBy(i => Tuple.Create(i.SupplierID, i.ContractID > 0 && pContractNoById.ContainsKey(i.ContractID) ? pContractNoById[i.ContractID] : ""))
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-            var pContractIdByKey = pInvoices
-                .Where(i => i.ContractID > 0)
-                .GroupBy(i => Tuple.Create(i.SupplierID, pContractNoById.ContainsKey(i.ContractID) ? pContractNoById[i.ContractID] : ""))
-                .ToDictionary(g => g.Key, g => g.Select(x => (int?)x.ContractID).FirstOrDefault());
-
-            var pPaymentTotalsByKey = sPayments
-                .Select(p =>
-                {
-                    int supplierId = p.CounterpartyID ?? 0;
-                    var contractNo = normalize(p.ContractNo);
-                    if (p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue && pInvoiceMeta.ContainsKey(p.SourceDocID.Value))
-                    {
-                        var meta = pInvoiceMeta[p.SourceDocID.Value];
-                        supplierId = meta.Item1;
-                        if (string.IsNullOrWhiteSpace(contractNo)) contractNo = meta.Item2;
-                    }
-                    if (supplierId <= 0) return null;
-                    return new { SupplierID = supplierId, ContractNo = contractNo, Amount = Math.Abs(p.Amount) };
-                })
-                .Where(x => x != null)
-                .GroupBy(x => Tuple.Create(x.SupplierID, x.ContractNo))
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-
-            // 3) Payroll by employee
-            var payrollCalculatedByEmployee = FinQueries.ApprovedPayrollLines(db)
-                .Where(l => l.HR_PAYROLL_HEADERS.ApprovedDT.Value <= date)
-                .GroupBy(l => l.EmployeeID)
-                .Select(g => new { EmployeeID = g.Key, Total = g.Sum(x => (decimal?)x.NetSalary) ?? 0m })
-                .ToList()
-                .ToDictionary(x => x.EmployeeID, x => x.Total);
-            var payrollPaidByEmployee = FinQueries.Active(db)
-                .Where(t => t.Direction == 2 &&
-                            t.CounterpartyType == 6 &&
-                            t.CounterpartyID.HasValue &&
-                            t.TxnDate <= date)
-                .GroupBy(t => t.CounterpartyID.Value)
-                .Select(g => new { EmployeeID = g.Key, Paid = g.Sum(x => x.Amount) })
-                .ToList()
-                .ToDictionary(x => x.EmployeeID, x => x.Paid);
-
             var rows = new List<ContractRow>();
 
-            void AddPositive(byte type, int counterpartyId, int? contractId, string contractNo, decimal total, decimal paid)
+            // Kreditorlik (ta'minotchi, ekspeditor): Party1 krediti — hujjatlar, debeti — to'lovlar.
+            // Debitorlik (mijoz): Party1 debeti — hujjatlar, krediti — to'lovlar.
+            void AddCounterparty<TContract>(byte type, int counterpartyId, List<TContract> contracts, Func<TContract, int> id, Func<TContract, string> no,
+                Func<int?, string, ReconciliationViewModel> build, bool receivable)
             {
-                var net = total - paid;
-                if (net <= 0) return;
+                decimal Docs(ReconciliationViewModel vm) => receivable ? vm.Party1DebitTotal : vm.Party1CreditTotal;
+                decimal Paid(ReconciliationViewModel vm) => receivable ? vm.Party1CreditTotal : vm.Party1DebitTotal;
+
+                var all = build(null, null);
+                decimal restDocs = Docs(all), restPaid = Paid(all), restNet = all.FinalBalance;
+                foreach (var c in contracts)
+                {
+                    var vm = build(id(c), no(c) ?? "");
+                    restDocs -= Docs(vm); restPaid -= Paid(vm); restNet -= vm.FinalBalance;
+                    if (vm.FinalBalance == 0) continue;
+                    rows.Add(new ContractRow
+                    {
+                        SnapshotDate = date, BalanceType = type, CounterpartyID = counterpartyId,
+                        ContractID = id(c), ContractNo = no(c) ?? "",
+                        TotalAmount = Docs(vm), PaidAmount = Paid(vm), Amount = vm.FinalBalance,
+                        CurrencyID = defaultCurrencyId, CreatedByUserID = userId
+                    });
+                }
+                // Hech qaysi shartnomaga bog'lanmagan qoldiq (masalan shartnomasiz to'lov — avans)
+                if (restNet != 0)
+                {
+                    rows.Add(new ContractRow
+                    {
+                        SnapshotDate = date, BalanceType = type, CounterpartyID = counterpartyId,
+                        ContractID = null, ContractNo = "",
+                        TotalAmount = Math.Max(0m, restDocs), PaidAmount = Math.Max(0m, restDocs) - restNet, Amount = restNet,
+                        CurrencyID = defaultCurrencyId, CreatedByUserID = userId
+                    });
+                }
+            }
+
+            // 1) Mijozlar
+            var sContracts = db.S_CONTRACTS.AsNoTracking().Where(c => c.IsDeleted != true)
+                .Select(c => new { c.ID, c.CustomerID, c.ContractNo }).ToList();
+            foreach (var customerId in db.CUSTOMERS.AsNoTracking().Where(c => c.IsDeleted != true).Select(c => c.ID).ToList())
+            {
+                var cid = customerId;
+                AddCounterparty(TypeReceivable, cid, sContracts.Where(c => c.CustomerID == cid).ToList(), c => c.ID, c => c.ContractNo,
+                    (contractId, no) => ReconciliationService.BuildCustomerReconciliation(db, cid, contractId, date, null, "", no), receivable: true);
+            }
+
+            // 2) Ta'minotchilar
+            var pContracts = db.P_CONTRACTS.AsNoTracking().Where(c => c.IsDeleted != true)
+                .Select(c => new { c.ID, c.SupplierID, c.ContractNo }).ToList();
+            foreach (var supplierId in db.SUPPLIERS.AsNoTracking().Where(s => s.IsDeleted != true).Select(s => s.ID).ToList())
+            {
+                var sid = supplierId;
+                AddCounterparty(TypePayable, sid, pContracts.Where(c => c.SupplierID == sid).ToList(), c => c.ID, c => c.ContractNo,
+                    (contractId, no) => ReconciliationService.BuildSupplierReconciliation(db, sid, contractId, date, null, "", no), receivable: false);
+            }
+
+            // 3) Ekspeditorlar
+            var fContracts = db.F_CONTRACTS.AsNoTracking().Where(c => c.IsDeleted == false)
+                .Select(c => new { c.ID, c.ForwarderID, c.ContractNo }).ToList();
+            foreach (var forwarderId in db.FORWARDERS.AsNoTracking().Where(f => f.IsDeleted != true).Select(f => f.ID).ToList())
+            {
+                var fid = forwarderId;
+                AddCounterparty(TypeForwarder, fid, fContracts.Where(c => c.ForwarderID == fid).ToList(), c => c.ID, c => c.ContractNo,
+                    (contractId, no) => ReconciliationService.BuildForwarderReconciliation(db, fid, contractId, date, null, "", no), receivable: false);
+            }
+
+            // 4) Oylik — xodim kesimida, balans bilan bir xil funksiya (oldingi opening + hisoblangan − to'langan)
+            foreach (var e in FinLiabilities.PayrollByEmployee(db, new CounterpartyBalanceService(db), date).Employees.Where(e => e.Debt != 0))
+            {
                 rows.Add(new ContractRow
                 {
-                    SnapshotDate = date,
-                    BalanceType = type,
-                    CounterpartyID = counterpartyId,
-                    ContractID = contractId,
-                    ContractNo = contractNo,
-                    TotalAmount = total,
-                    PaidAmount = Math.Min(paid, total),
-                    Amount = net,
-                    CurrencyID = defaultCurrencyId,
-                    CreatedByUserID = userId
+                    SnapshotDate = date, BalanceType = TypePayroll, CounterpartyID = e.EmployeeID,
+                    TotalAmount = e.Calculated, PaidAmount = e.TotalPaid, Amount = e.Debt,
+                    CurrencyID = defaultCurrencyId, CreatedByUserID = userId
                 });
-            }
-
-            foreach (var key in cInvoiceTotalsByKey.Keys.Union(cPaymentTotalsByKey.Keys).Distinct())
-            {
-                AddPositive(TypeReceivable, key.Item1, cContractIdByKey.TryGetValue(key, out var cid) ? cid : null, key.Item2,
-                    cInvoiceTotalsByKey.TryGetValue(key, out var t) ? t : 0m,
-                    cPaymentTotalsByKey.TryGetValue(key, out var p) ? p : 0m);
-            }
-
-            foreach (var key in pInvoiceTotalsByKey.Keys.Union(pPaymentTotalsByKey.Keys).Distinct())
-            {
-                AddPositive(TypePayable, key.Item1, pContractIdByKey.TryGetValue(key, out var cid) ? cid : null, key.Item2,
-                    pInvoiceTotalsByKey.TryGetValue(key, out var t) ? t : 0m,
-                    pPaymentTotalsByKey.TryGetValue(key, out var p) ? p : 0m);
-            }
-
-            foreach (var employeeId in payrollCalculatedByEmployee.Keys.Union(payrollPaidByEmployee.Keys).Distinct())
-            {
-                AddPositive(TypePayroll, employeeId, null, null,
-                    payrollCalculatedByEmployee.TryGetValue(employeeId, out var t) ? t : 0m,
-                    payrollPaidByEmployee.TryGetValue(employeeId, out var p) ? p : 0m);
-            }
-
-            // 4) Logistikadan qarzimiz — ekspeditor shartnomasi kesimida (yo'l varaqalari − to'lovlar)
-            var fContractInfo = db.F_CONTRACTS
-                .Where(c => c.IsDeleted != true)
-                .Select(c => new { c.ID, c.ForwarderID, c.ContractNo })
-                .ToList()
-                .ToDictionary(c => c.ID);
-            // double ustunlar (Amount/Payment_Amount) xotirada decimal'ga yig'iladi
-            var waybillTotalsByContract = db.F_WAYBILLS
-                .Where(w => w.ContractID.HasValue && w.IsDeleted != true &&
-                            w.Amount.HasValue && w.IssueDate.HasValue && w.IssueDate.Value <= date)
-                .Select(w => new { ContractID = w.ContractID.Value, w.Amount })
-                .ToList()
-                .GroupBy(w => w.ContractID)
-                .ToDictionary(g => g.Key, g => g.Sum(x => (decimal)(x.Amount ?? 0d)));
-            var waybillPaidByContract = db.F_WAYBILL_PAYMENTS
-                .Where(p => !p.IsDeleted && p.F_WAYBILLS.ContractID.HasValue &&
-                            (!p.PaymentDate.HasValue || p.PaymentDate.Value <= date))
-                .Select(p => new { ContractID = p.F_WAYBILLS.ContractID.Value, p.Payment_Amount })
-                .ToList()
-                .GroupBy(p => p.ContractID)
-                .ToDictionary(g => g.Key, g => g.Sum(x => (decimal)x.Payment_Amount));
-
-            foreach (var contractId in waybillTotalsByContract.Keys.Union(waybillPaidByContract.Keys).Distinct())
-            {
-                if (!fContractInfo.TryGetValue(contractId, out var info) || info.ForwarderID <= 0) continue;
-                AddPositive(TypeForwarder, info.ForwarderID, contractId, info.ContractNo,
-                    waybillTotalsByContract.TryGetValue(contractId, out var t) ? t : 0m,
-                    waybillPaidByContract.TryGetValue(contractId, out var p) ? p : 0m);
             }
 
             AddContractRows(rows);
