@@ -126,7 +126,6 @@
         <EntityTypeShape EntityType="DBTHSNModel.WRHS_EXPENSE_DOCS" Width="1.5" PointX="12.75" PointY="161.75" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.WRHS_INCOME_DOCS" Width="1.5" PointX="12.75" PointY="129.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_FACT_MONTHLY" Width="1.5" PointX="9.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="DBTHSNModel.V_FIN_PL_PLAN_VS_FACT_MONTHLY" Width="1.5" PointX="9.75" PointY="4.75" IsExpanded="true" />
         <AssociationConnector Association="DBTHSNModel.FK_ADM_COMPANY_ORDERS_Document" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_APP_TASKS_PRIORITY" ManuallyRouted="false" />
         <AssociationConnector Association="DBTHSNModel.FK_APP_TASKS_PROJECT" ManuallyRouted="false" />

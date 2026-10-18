@@ -723,9 +723,6 @@
     <Compile Include="Models\SORDER_DELIVERY_SCHEDULE.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\sp_Fin_CashSummary_Result.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\STD_COMPANY_STANDARDS.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
@@ -787,9 +784,6 @@
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\V_FIN_PL_FACT_MONTHLY.cs">
-      <DependentUpon>DBTHSNModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\V_FIN_PL_PLAN_VS_FACT_MONTHLY.cs">
       <DependentUpon>DBTHSNModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\INVENTORY_ADJUSTMENTS.cs">

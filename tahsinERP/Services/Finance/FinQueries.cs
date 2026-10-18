@@ -148,31 +148,6 @@ namespace tahsinERP.Services.Finance
                             (l.HR_PAYROLL_HEADERS.Status == "Approved" || l.HR_PAYROLL_HEADERS.Status == "Posted") &&
                             l.HR_PAYROLL_HEADERS.ApprovedDT.HasValue);
         }
-
-        /// <summary>
-        /// Eng ko'p ishlatilgan valyuta (teng bo'lsa — birinchi uchragani). Tranzaksiyalarni xotiraga olmasdan, SQL'da.
-        /// </summary>
-        public static int? MostUsedCurrencyId(IQueryable<FIN_TRANSACTIONS> query)
-        {
-            var top = query
-                .GroupBy(t => t.CurrencyID)
-                .Select(g => new { CurrencyID = g.Key, Count = g.Count(), FirstID = g.Min(t => t.ID) })
-                .OrderByDescending(x => x.Count)
-                .ThenBy(x => x.FirstID)
-                .FirstOrDefault();
-            return top?.CurrencyID;
-        }
-
-        /// <summary>Asosiy valyuta qisqa nomi; tranzaksiya bo'lmasa — bazadagi birinchi valyuta, u ham bo'lmasa "UZS".</summary>
-        public static string PrimaryCurrencyShortname(DBTHSNEntities db, IQueryable<FIN_TRANSACTIONS> query)
-        {
-            var currencyId = MostUsedCurrencyId(query);
-            CURRENCy currency = currencyId.HasValue
-                ? db.CURRENCIES.AsNoTracking().FirstOrDefault(c => c.ID == currencyId.Value)
-                : null;
-            currency = currency ?? db.CURRENCIES.AsNoTracking().FirstOrDefault();
-            return currency?.Shortname ?? "UZS";
-        }
     }
 
     public sealed class AccountDayTotal
