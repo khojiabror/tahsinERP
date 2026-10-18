@@ -451,7 +451,7 @@ namespace tahsinERP.Services.Finance
                 .ToList()
                 .ToDictionary(x => x.ID, x => new HashSet<int>(x.Cats));
 
-            var plans = db.FIN_PL_PLANS
+            var plans = db.FIN_PL_PLANS.AsNoTracking()
                 .Where(p => p.Year == year && p.Month == month && p.IsDeleted != true)
                 .ToDictionary(p => p.ItemID, p => p.AmountPlan);
 

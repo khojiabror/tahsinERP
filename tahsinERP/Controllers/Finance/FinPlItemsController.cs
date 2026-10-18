@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_PL_ITEMS
+                var query = db.FIN_PL_ITEMS.AsNoTracking()
                     .Where(i => i.IsActive && (i.IsDeleted == false || i.IsDeleted == null));
 
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -64,7 +64,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var item = db.FIN_PL_ITEMS
+                var item = db.FIN_PL_ITEMS.AsNoTracking()
                     .Where(i => i.ID == id && (i.IsDeleted == false || i.IsDeleted == null))
                     .Include(i => i.FIN_PL_ITEMS2)
                     .FirstOrDefault();
@@ -74,13 +74,13 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                ViewBag.ChildItems = db.FIN_PL_ITEMS
+                ViewBag.ChildItems = db.FIN_PL_ITEMS.AsNoTracking()
                     .Where(i => i.ParentID == id && i.IsActive)
                     .OrderBy(i => i.SortOrder)
                     .ToList();
 
                 // Olish mapped categories
-                ViewBag.MappedCategories = db.FIN_CATEGORIES
+                ViewBag.MappedCategories = db.FIN_CATEGORIES.AsNoTracking()
                     .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == id) && c.IsActive)
                     .ToList();
 

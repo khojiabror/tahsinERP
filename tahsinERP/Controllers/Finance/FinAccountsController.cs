@@ -17,7 +17,7 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_ACCOUNTS
+                var query = db.FIN_ACCOUNTS.AsNoTracking()
                     .Include(a => a.CURRENCy)
                     .Where(a => a.IsActive);
 
@@ -69,7 +69,7 @@ namespace tahsinERP.Controllers.Finance
                 var accounts = query.ToList();
 
                 // ViewBag uchun filters
-                ViewBag.CurrencyList = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", currencyID);
+                ViewBag.CurrencyList = new SelectList(db.CURRENCIES.AsNoTracking().ToList(), "ID", "Shortname", currencyID);
                 ViewBag.AccountTypeList = new SelectList(new[] {
                     new { Value = "", Text = "Barcha" },
                     new { Value = "Cash", Text = "Naqd pul" },
@@ -93,7 +93,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var account = db.FIN_ACCOUNTS
+                var account = db.FIN_ACCOUNTS.AsNoTracking()
                     .Where(a => a.ID == id && (a.IsDeleted == false || a.IsDeleted == null))
                     .Include(a => a.CURRENCy)
                     .Include(a => a.USER)

@@ -28,7 +28,7 @@ namespace tahsinERP.Services.Finance
         /// </summary>
         private void OperatingCategories(out HashSet<int> incomeCategoryIds, out HashSet<int> expenseCategoryIds)
         {
-            var items = _db.FIN_PL_ITEMS
+            var items = _db.FIN_PL_ITEMS.AsNoTracking()
                 .Where(i => i.IsActive && (i.IsDeleted == null || i.IsDeleted == false))
                 .Select(i => new { i.Sign, i.Name, Cats = i.FIN_CATEGORIES.Select(c => c.ID) })
                 .ToList();

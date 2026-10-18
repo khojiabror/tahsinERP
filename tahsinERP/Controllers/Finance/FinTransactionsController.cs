@@ -222,7 +222,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var transaction = db.FIN_TRANSACTIONS
+                var transaction = db.FIN_TRANSACTIONS.AsNoTracking()
                     .Include(t => t.FIN_ACCOUNTS)
                     .Include(t => t.FIN_CATEGORIES)
                     .Include(t => t.CURRENCy)

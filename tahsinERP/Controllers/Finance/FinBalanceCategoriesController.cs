@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_BALANCE_CATEGORIES.Where(c => c.IsActive);
+                var query = db.FIN_BALANCE_CATEGORIES.AsNoTracking().Where(c => c.IsActive);
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
@@ -107,7 +107,7 @@ namespace tahsinERP.Controllers.Finance
 
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var category = db.FIN_BALANCE_CATEGORIES
+                var category = db.FIN_BALANCE_CATEGORIES.AsNoTracking()
                     .Where(c => c.ID == id && (c.IsDeleted == false || c.IsDeleted == null))
                     .Include(c => c.FIN_BALANCE_CATEGORIES2)
                     .FirstOrDefault();
@@ -117,7 +117,7 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                ViewBag.ChildCategories = db.FIN_BALANCE_CATEGORIES
+                ViewBag.ChildCategories = db.FIN_BALANCE_CATEGORIES.AsNoTracking()
                     .Where(c => c.ParentID == id && c.IsActive)
                     .OrderBy(c => c.SortOrder)
                     .ToList();
@@ -125,7 +125,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.SnapshotCount = db.FIN_BALANCE_SNAPSHOTS.Count(s => s.CategoryID == id);
 
                 // FIN-B20: M:N bog'lanish EDMX'da bor — xato bo'sh ro'yxat bilan yashirilmaydi
-                var mappedCategories = db.FIN_CATEGORIES
+                var mappedCategories = db.FIN_CATEGORIES.AsNoTracking()
                     .Where(c => c.IsActive && c.FIN_BALANCE_CATEGORIES.Any(b => b.ID == id))
                     .ToList();
                 ViewBag.MappedCategories = mappedCategories;

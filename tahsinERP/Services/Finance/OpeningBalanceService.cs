@@ -131,7 +131,7 @@ namespace tahsinERP.Services.Finance
         {
             var db = _db;
             // FIN-D11: subledger testi (SystemCode) balans bilan bitta funksiyada
-            var categories = db.FIN_BALANCE_CATEGORIES
+            var categories = db.FIN_BALANCE_CATEGORIES.AsNoTracking()
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.Type)
                 .ThenBy(c => c.SortOrder)
@@ -140,7 +140,7 @@ namespace tahsinERP.Services.Finance
                 .Where(c => !BalanceSheetService.IsDetailedSubledgerCategory(c))
                 .ToList();
 
-            var snapshots = db.FIN_BALANCE_SNAPSHOTS
+            var snapshots = db.FIN_BALANCE_SNAPSHOTS.AsNoTracking()
                 .Where(s => DbFunctions.TruncateTime(s.SnapshotDate) == DbFunctions.TruncateTime(date) &&
                             (s.SourceType == "OpeningBalance" || s.SourceType == null))
                 .ToList()
@@ -150,7 +150,7 @@ namespace tahsinERP.Services.Finance
             // Standart valyuta — asosiy (so'm)
             var defaultCurrencyId = DefaultCurrencyId();
             var defaultCurrency = db.CURRENCIES.FirstOrDefault(c => c.ID == defaultCurrencyId) ?? db.CURRENCIES.FirstOrDefault();
-            var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
+            var currencies = db.CURRENCIES.AsNoTracking().OrderBy(c => c.Shortname).ToList();
 
             var lookup = new FinCounterpartyLookupService(db);
             Func<byte, List<SelectListItem>> counterpartyList = type => lookup.Counterparties(type)
@@ -169,7 +169,7 @@ namespace tahsinERP.Services.Finance
                 CustomerList = counterpartyList(FinCounterpartyLookupService.Customer),
                 SupplierList = counterpartyList(FinCounterpartyLookupService.Supplier),
                 // Xodimlar: tabel raqami bilan, nofaollar ham (eski opening qatorlari uchun)
-                EmployeeList = db.HR_EMPLOYEES
+                EmployeeList = db.HR_EMPLOYEES.AsNoTracking()
                     .Where(e => e.IsDeleted != true)
                     .OrderBy(e => e.FullName)
                     .Select(e => new SelectListItem
