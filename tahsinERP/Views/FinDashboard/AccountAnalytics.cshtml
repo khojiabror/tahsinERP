@@ -131,7 +131,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         var accountData = @Html.Raw(Json.Encode(ViewBag.AccountUsage));
         var accountLabels = accountData.map(function(item) { return item.AccountName; });

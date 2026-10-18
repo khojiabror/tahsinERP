@@ -53,57 +53,9 @@
                                         </div>
                                     </form>
                                     
+                                    <link href="~/Content/fin-dashboard.css" rel="stylesheet" />
                                     <style>
-                                        .stat-card {
-                                            border-radius: 12px;
-                                            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-                                            transition: transform 0.3s ease, box-shadow 0.3s ease;
-                                            border: none;
-                                            overflow: hidden;
-                                        }
-                                        .stat-card:hover {
-                                            transform: translateY(-5px);
-                                            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                                        }
-                                        .stat-card-inflow {
-                                            background: linear-gradient(135deg, #28c76f 0%, #20b85c 100%);
-                                            color: white;
-                                        }
-                                        .stat-card-outflow {
-                                            background: linear-gradient(135deg, #ea5455 0%, #d43f3f 100%);
-                                            color: white;
-                                        }
-                                        .stat-card-net {
-                                            background: linear-gradient(135deg, #00cfe8 0%, #00a8b5 100%);
-                                            color: white;
-                                        }
-                                        .stat-card-balance {
-                                            background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%);
-                                            color: white;
-                                        }
-                                        .stat-card-body {
-                                            padding: 1.5rem;
-                                            text-align: center;
-                                        }
-                                        .stat-card-title {
-                                            font-size: 0.9rem;
-                                            font-weight: 600;
-                                            margin-bottom: 0.5rem;
-                                            opacity: 0.95;
-                                            text-transform: uppercase;
-                                            letter-spacing: 0.5px;
-                                        }
-                                        .stat-card-value {
-                                            font-size: 1.8rem;
-                                            font-weight: 700;
-                                            margin-bottom: 0.25rem;
-                                            line-height: 1.2;
-                                        }
-                                        .stat-card-currency {
-                                            font-size: 0.85rem;
-                                            font-weight: 500;
-                                            opacity: 0.9;
-                                        }
+                                        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
                                     </style>
                                     
                                     <div class="row mb-3">
@@ -157,7 +109,7 @@
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         var dailyData = @Html.Raw(Json.Encode(ViewBag.DailyData));
         

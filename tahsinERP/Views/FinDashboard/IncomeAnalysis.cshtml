@@ -150,44 +150,9 @@
         </div>
     </div>
 
-    <style>
-        .stat-card {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
-            overflow: hidden;
-        }
-        .stat-card-inflow {
-            background: linear-gradient(135deg, #28c76f 0%, #20b85c 100%);
-            color: white;
-        }
-        .stat-card-body {
-            padding: 1.5rem;
-            text-align: center;
-        }
-        .stat-card-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            opacity: 0.95;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .stat-card-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            line-height: 1.2;
-        }
-        .stat-card-currency {
-            font-size: 0.85rem;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-    </style>
+    <link href="~/Content/fin-dashboard.css" rel="stylesheet" />
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         // Income by Category Pie Chart
         var incomeCategoryData = @Html.Raw(Json.Encode(ViewBag.IncomeByCategory));

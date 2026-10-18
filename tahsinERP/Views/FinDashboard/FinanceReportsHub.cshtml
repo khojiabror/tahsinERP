@@ -263,7 +263,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         (function () {
             var receivables = @Html.Raw(System.Web.Helpers.Json.Encode(Model.CustomerReceivables.Take(10).ToList()));

@@ -111,7 +111,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         // Expense Pie Chart
         var expenseData = @Html.Raw(Json.Encode(ViewBag.ExpenseByCategory));
