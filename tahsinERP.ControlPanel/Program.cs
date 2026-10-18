@@ -14,7 +14,10 @@ using tahsinERP.ControlPanel.Services;
 if (Cli.IsCommand(args) && Cli.RunStandalone(args) is int standaloneExit)
     return standaloneExit;
 
-var builder = WebApplication.CreateBuilder(args);
+// CLI istalgan papkadan ishga tushirilsa ham appsettings.json ilova yonidan o'qilsin.
+var builder = Cli.IsCommand(args) && !File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"))
+    ? WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, ContentRootPath = AppContext.BaseDirectory })
+    : WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 var services = builder.Services;
 
