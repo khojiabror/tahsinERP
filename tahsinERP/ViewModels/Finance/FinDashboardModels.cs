@@ -40,30 +40,35 @@ namespace tahsinERP.ViewModels.Finance
         public decimal NetAmount { get; set; }
     }
 
-    public class ExpenseByCategoryData
+    /// <summary>Kirim/chiqim tahlili: kategoriya qatori (FIN-D20: Expense*/Income* DTO juftlari o'rniga).</summary>
+    public class DirectionCategoryData
     {
         public string CategoryName { get; set; }
         public decimal Amount { get; set; }
         public decimal Percentage { get; set; }
     }
 
-    public class ExpenseByAccountData
+    public class DirectionAccountData
     {
         public string AccountName { get; set; }
         public decimal Amount { get; set; }
     }
 
-    public class IncomeByCategoryData
+    /// <summary>Kirim (1) yoki chiqim (2) tahlili sahifasi — bitta view (DirectionAnalysis.cshtml) uchun matn va ranglar.</summary>
+    public class DirectionAnalysisPage
     {
-        public string CategoryName { get; set; }
-        public decimal Amount { get; set; }
-        public decimal Percentage { get; set; }
-    }
-
-    public class IncomeByAccountData
-    {
-        public string AccountName { get; set; }
-        public decimal Amount { get; set; }
+        public string Title { get; set; }
+        public string Action { get; set; }
+        /// <summary>"Chiqimlar" / "Kirimlar".</summary>
+        public string Plural { get; set; }
+        /// <summary>"Jami chiqim" / "Jami kirim".</summary>
+        public string TotalLabel { get; set; }
+        /// <summary>Element ID'lari prefiksi: "expense" / "income".</summary>
+        public string IdPrefix { get; set; }
+        public string CardClass { get; set; }
+        /// <summary>Chiziqli grafik rangi, "r, g, b".</summary>
+        public string LineRgb { get; set; }
+        public string[] PieColors { get; set; }
     }
 
     public class MonthlyData

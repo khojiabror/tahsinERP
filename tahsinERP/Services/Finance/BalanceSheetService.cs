@@ -86,7 +86,7 @@ namespace tahsinERP.Services.Finance
                 .ToList();
 
             // Faqat opening snapshot; qolgan snapshotlar balansni "muzlatmaydi" — tizim dinamik hisoblaydi.
-            var openingSnapshots = db.FIN_BALANCE_SNAPSHOTS
+            var openingSnapshots = db.FIN_BALANCE_SNAPSHOTS.AsNoTracking()
                 .Where(s => s.SnapshotDate <= asOfDate && s.SourceType == "OpeningBalance")
                 .GroupBy(s => s.CategoryID)
                 .Select(g => new
@@ -127,7 +127,7 @@ namespace tahsinERP.Services.Finance
             var transactionBasedIds = categories.Where(c => c.CalculationType == 2).Select(c => c.ID).ToList();
             var mappedFinCategories = transactionBasedIds.Count == 0
                 ? new Dictionary<int, List<int>>()
-                : db.FIN_BALANCE_CATEGORIES
+                : db.FIN_BALANCE_CATEGORIES.AsNoTracking()
                     .Where(c => transactionBasedIds.Contains(c.ID))
                     .Select(c => new { c.ID, Cats = c.FIN_CATEGORIES.Where(fc => fc.IsActive).Select(fc => fc.ID) })
                     .ToList()

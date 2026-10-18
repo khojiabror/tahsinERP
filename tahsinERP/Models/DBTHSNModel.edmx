@@ -2027,22 +2027,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="SortOrder" Type="int" Nullable="false" />
           <Property Name="AmountFact" Type="decimal" Precision="38" Scale="2" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
-          <Key>
-            <PropertyRef Name="ItemID" />
-            <PropertyRef Name="ItemName" />
-            <PropertyRef Name="SortOrder" />
-          </Key>
-          <Property Name="Year" Type="int" />
-          <Property Name="Month" Type="int" />
-          <Property Name="PeriodStartDate" Type="date" />
-          <Property Name="ItemID" Type="int" Nullable="false" />
-          <Property Name="ItemName" Type="nvarchar" MaxLength="100" Nullable="false" />
-          <Property Name="SortOrder" Type="int" Nullable="false" />
-          <Property Name="AmountFact" Type="decimal" Precision="38" Scale="2" />
-        </EntityType>
         <Association Name="FK__F_WAYBILL__Curre__4979DDF4">
           <End Role="CURRENCIES" Type="Self.CURRENCIES" Multiplicity="0..1" />
           <End Role="F_WAYBILL_PAYMENTS" Type="Self.F_WAYBILL_PAYMENTS" Multiplicity="*" />
@@ -5227,10 +5211,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Parameter Name="CreatedByUserID" Type="int" Mode="In" />
           <Parameter Name="NewID" Type="int" Mode="InOut" />
         </Function>
-        <Function Name="sp_Fin_CashSummary" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="From" Type="date" Mode="In" />
-          <Parameter Name="To" Type="date" Mode="In" />
-        </Function>
         <Function Name="sp_FIN_ShareholderValue_AsOf" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="AsOfDate" Type="date" Mode="In" />
         </Function>
@@ -5389,17 +5369,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
     [V_FIN_PL_FACT_MONTHLY].[SortOrder] AS [SortOrder], 
     [V_FIN_PL_FACT_MONTHLY].[AmountFact] AS [AmountFact]
     FROM [dbo].[V_FIN_PL_FACT_MONTHLY] AS [V_FIN_PL_FACT_MONTHLY]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY" EntityType="Self.V_FIN_PL_PLAN_VS_FACT_MONTHLY" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[Year] AS [Year], 
-    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[Month] AS [Month], 
-    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[PeriodStartDate] AS [PeriodStartDate], 
-    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[ItemID] AS [ItemID], 
-    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[ItemName] AS [ItemName], 
-    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[SortOrder] AS [SortOrder], 
-    [V_FIN_PL_PLAN_VS_FACT_MONTHLY].[AmountFact] AS [AmountFact]
-    FROM [dbo].[V_FIN_PL_PLAN_VS_FACT_MONTHLY] AS [V_FIN_PL_PLAN_VS_FACT_MONTHLY]</DefiningQuery>
           </EntitySet>
           <AssociationSet Name="FK__F_WAYBILL__Curre__4979DDF4" Association="Self.FK__F_WAYBILL__Curre__4979DDF4">
             <End Role="CURRENCIES" EntitySet="CURRENCIES" />
@@ -8868,20 +8837,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="SortOrder" Type="Int32" Nullable="false" />
           <Property Name="AmountFact" Type="Decimal" Precision="38" Scale="2" />
         </EntityType>
-        <EntityType Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
-          <Key>
-            <PropertyRef Name="ItemID" />
-            <PropertyRef Name="ItemName" />
-            <PropertyRef Name="SortOrder" />
-          </Key>
-          <Property Name="Year" Type="Int32" />
-          <Property Name="Month" Type="Int32" />
-          <Property Name="PeriodStartDate" Type="DateTime" Precision="0" />
-          <Property Name="ItemID" Type="Int32" Nullable="false" />
-          <Property Name="ItemName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="SortOrder" Type="Int32" Nullable="false" />
-          <Property Name="AmountFact" Type="Decimal" Precision="38" Scale="2" />
-        </EntityType>
         <Association Name="FK_ADM_COMPANY_ORDERS_Document">
           <End Role="DOC_DOCUMENTS" Type="Self.DOC_DOCUMENTS" Multiplicity="1" />
           <End Role="ADM_COMPANY_ORDERS" Type="Self.ADM_COMPANY_ORDERS" Multiplicity="0..1" />
@@ -11958,7 +11913,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <EntitySet Name="WRHS_EXPENSE_DOCS" EntityType="Self.WRHS_EXPENSE_DOCS" />
           <EntitySet Name="WRHS_INCOME_DOCS" EntityType="Self.WRHS_INCOME_DOCS" />
           <EntitySet Name="V_FIN_PL_FACT_MONTHLY" EntityType="Self.V_FIN_PL_FACT_MONTHLY" />
-          <EntitySet Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY" EntityType="Self.V_FIN_PL_PLAN_VS_FACT_MONTHLY" />
           <AssociationSet Name="FK_ADM_COMPANY_ORDERS_Document" Association="Self.FK_ADM_COMPANY_ORDERS_Document">
             <End Role="DOC_DOCUMENTS" EntitySet="DOC_DOCUMENTS" />
             <End Role="ADM_COMPANY_ORDERS" EntitySet="ADM_COMPANY_ORDERS" />
@@ -12967,10 +12921,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <Parameter Name="CreatedByUserID" Mode="In" Type="Int32" />
             <Parameter Name="NewID" Mode="InOut" Type="Int32" />
           </FunctionImport>
-          <FunctionImport Name="sp_Fin_CashSummary" ReturnType="Collection(DBTHSNModel.sp_Fin_CashSummary_Result)">
-            <Parameter Name="From" Mode="In" Type="DateTime" />
-            <Parameter Name="To" Mode="In" Type="DateTime" />
-          </FunctionImport>
           <FunctionImport Name="sp_FIN_ShareholderValue_AsOf">
           <Parameter Name="AsOfDate" Mode="In" Type="DateTime" />
           </FunctionImport>
@@ -13051,16 +13001,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             <End Role="USER_LICENSES" EntitySet="USER_LICENSES" />
           </AssociationSet>
         </EntityContainer>
-        <ComplexType Name="sp_Fin_CashSummary_Result">
-          <Property Type="Int32" Name="AccountID" Nullable="false" />
-          <Property Type="String" Name="AccountCode" Nullable="false" MaxLength="20" />
-          <Property Type="String" Name="AccountName" Nullable="false" MaxLength="100" />
-          <Property Type="String" Name="OwnerName" Nullable="true" MaxLength="100" />
-          <Property Type="Decimal" Name="OpeningBalance" Nullable="false" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="Income" Nullable="false" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="Expense" Nullable="false" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="ClosingBalance" Nullable="true" Precision="38" Scale="2" />
-        </ComplexType>
         <EntityType Name="EXPENSE_PRODUCT_ALLOCATIONS">
           <Key>
             <PropertyRef Name="ID" />
@@ -15361,19 +15301,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
-            <EntityTypeMapping TypeName="DBTHSNModel.V_FIN_PL_PLAN_VS_FACT_MONTHLY">
-              <MappingFragment StoreEntitySet="V_FIN_PL_PLAN_VS_FACT_MONTHLY">
-                <ScalarProperty Name="Year" ColumnName="Year" />
-                <ScalarProperty Name="Month" ColumnName="Month" />
-                <ScalarProperty Name="PeriodStartDate" ColumnName="PeriodStartDate" />
-                <ScalarProperty Name="ItemID" ColumnName="ItemID" />
-                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
-                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
-                <ScalarProperty Name="AmountFact" ColumnName="AmountFact" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <AssociationSetMapping Name="FIN_BALANCE_CATEGORY_CATEGORIES" TypeName="DBTHSNModel.FIN_BALANCE_CATEGORY_CATEGORIES" StoreEntitySet="FIN_BALANCE_CATEGORY_CATEGORIES">
             <EndProperty Name="FIN_BALANCE_CATEGORIES">
               <ScalarProperty Name="ID" ColumnName="BalanceCategoryID" />
@@ -15399,20 +15326,6 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
             </EndProperty>
           </AssociationSetMapping>
           <FunctionImportMapping FunctionImportName="sp_Fin_AddTransaction" FunctionName="DBTHSNModel.Store.sp_Fin_AddTransaction" />
-          <FunctionImportMapping FunctionImportName="sp_Fin_CashSummary" FunctionName="DBTHSNModel.Store.sp_Fin_CashSummary">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="DBTHSNModel.sp_Fin_CashSummary_Result">
-                <ScalarProperty Name="AccountID" ColumnName="AccountID" />
-                <ScalarProperty Name="AccountCode" ColumnName="AccountCode" />
-                <ScalarProperty Name="AccountName" ColumnName="AccountName" />
-                <ScalarProperty Name="OwnerName" ColumnName="OwnerName" />
-                <ScalarProperty Name="OpeningBalance" ColumnName="OpeningBalance" />
-                <ScalarProperty Name="Income" ColumnName="Income" />
-                <ScalarProperty Name="Expense" ColumnName="Expense" />
-                <ScalarProperty Name="ClosingBalance" ColumnName="ClosingBalance" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="sp_FIN_ShareholderValue_AsOf" FunctionName="DBTHSNModel.Store.sp_FIN_ShareholderValue_AsOf" />
           <FunctionImportMapping FunctionImportName="sp_GenerateMaterialRequirement_FromSalesOrders" FunctionName="DBTHSNModel.Store.sp_GenerateMaterialRequirement_FromSalesOrders" />
           <FunctionImportMapping FunctionImportName="sp_Norm_SaveCutMaterials" FunctionName="DBTHSNModel.Store.sp_Norm_SaveCutMaterials" />

@@ -255,40 +255,47 @@ namespace tahsinERP.Controllers.Finance
         // GET: FinDashboard/ExpenseAnalysis
         public ActionResult ExpenseAnalysis(DateTime? fromDate, DateTime? toDate)
         {
-            fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
-            toDate = toDate ?? DateTime.Now;
-
-            using (var db = new DBTHSNEntities())
+            return DirectionAnalysisView(fromDate, toDate, 2, new DirectionAnalysisPage
             {
-                var r = FinAnalyticsService.DirectionAnalysis(db, fromDate.Value, toDate.Value, 2);
-                var byCategory = r.ByCategory.Select(x => new ExpenseByCategoryData { CategoryName = x.Name, Amount = x.Amount }).ToList();
-                if (r.Total > 0)
-                {
-                    byCategory.ForEach(item => item.Percentage = (item.Amount / r.Total) * 100);
-                }
-
-                ViewBag.FromDate = fromDate;
-                ViewBag.ToDate = toDate;
-                ViewBag.ExpenseByCategory = byCategory;
-                ViewBag.ExpenseByAccount = r.ByAccount.Select(x => new ExpenseByAccountData { AccountName = x.Name, Amount = x.Amount }).ToList();
-                ViewBag.MonthlyExpense = r.Monthly;
-                ViewBag.TotalExpense = r.Total;
-                ViewBag.CurrencyShortname = r.CurrencyShortname;
-
-                return View();
-            }
+                Title = "Chiqimlar tahlili",
+                Action = "ExpenseAnalysis",
+                Plural = "Chiqimlar",
+                TotalLabel = "Jami chiqim",
+                IdPrefix = "expense",
+                CardClass = "stat-card-outflow",
+                LineRgb = "234, 84, 85",
+                PieColors = new[] { "rgba(234, 84, 85, 0.8)", "rgba(255, 159, 64, 0.8)", "rgba(255, 205, 86, 0.8)", "rgba(75, 192, 192, 0.8)",
+                                    "rgba(54, 162, 235, 0.8)", "rgba(153, 102, 255, 0.8)", "rgba(201, 203, 207, 0.8)", "rgba(255, 99, 132, 0.8)" }
+            });
         }
 
         // GET: FinDashboard/IncomeAnalysis
         public ActionResult IncomeAnalysis(DateTime? fromDate, DateTime? toDate)
+        {
+            return DirectionAnalysisView(fromDate, toDate, 1, new DirectionAnalysisPage
+            {
+                Title = "Kirimlar tahlili",
+                Action = "IncomeAnalysis",
+                Plural = "Kirimlar",
+                TotalLabel = "Jami kirim",
+                IdPrefix = "income",
+                CardClass = "stat-card-inflow",
+                LineRgb = "40, 199, 111",
+                PieColors = new[] { "rgba(40, 199, 111, 0.8)", "rgba(0, 207, 232, 0.8)", "rgba(115, 103, 240, 0.8)", "rgba(255, 159, 64, 0.8)",
+                                    "rgba(255, 205, 86, 0.8)", "rgba(75, 192, 192, 0.8)", "rgba(54, 162, 235, 0.8)", "rgba(153, 102, 255, 0.8)" }
+            });
+        }
+
+        /// <summary>Kirim/chiqim tahlili — bitta view (FIN-D20; avval ikki deyarli bir xil 270 qatorli view).</summary>
+        private ActionResult DirectionAnalysisView(DateTime? fromDate, DateTime? toDate, byte direction, DirectionAnalysisPage page)
         {
             fromDate = fromDate ?? DateTime.Now.AddMonths(-1);
             toDate = toDate ?? DateTime.Now;
 
             using (var db = new DBTHSNEntities())
             {
-                var r = FinAnalyticsService.DirectionAnalysis(db, fromDate.Value, toDate.Value, 1);
-                var byCategory = r.ByCategory.Select(x => new IncomeByCategoryData { CategoryName = x.Name, Amount = x.Amount }).ToList();
+                var r = FinAnalyticsService.DirectionAnalysis(db, fromDate.Value, toDate.Value, direction);
+                var byCategory = r.ByCategory.Select(x => new DirectionCategoryData { CategoryName = x.Name, Amount = x.Amount }).ToList();
                 if (r.Total > 0)
                 {
                     byCategory.ForEach(item => item.Percentage = (item.Amount / r.Total) * 100);
@@ -296,13 +303,13 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.FromDate = fromDate;
                 ViewBag.ToDate = toDate;
-                ViewBag.IncomeByCategory = byCategory;
-                ViewBag.IncomeByAccount = r.ByAccount.Select(x => new IncomeByAccountData { AccountName = x.Name, Amount = x.Amount }).ToList();
-                ViewBag.MonthlyIncome = r.Monthly;
-                ViewBag.TotalIncome = r.Total;
+                ViewBag.ByCategory = byCategory;
+                ViewBag.ByAccount = r.ByAccount.Select(x => new DirectionAccountData { AccountName = x.Name, Amount = x.Amount }).ToList();
+                ViewBag.Monthly = r.Monthly;
+                ViewBag.Total = r.Total;
                 ViewBag.CurrencyShortname = r.CurrencyShortname;
 
-                return View();
+                return View("DirectionAnalysis", page);
             }
         }
 

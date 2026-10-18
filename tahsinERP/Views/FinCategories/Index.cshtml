@@ -74,67 +74,7 @@
     </div>
 
     @section Scripts {
-        <script>
-            $(document).ready(function () {
-                var changePermit = @(changePermit ? "true" : "false");
-                
-                var columnDefs = [
-                    { "className": "text-center", "targets": [0, 1, 2, 3, 4] }
-                ];
-                if (changePermit) {
-                    columnDefs.push({ "orderable": false, "targets": -1, "className": "text-center" });
-                }
-                
-                $('#categoriesTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "paginate": {
-                            "first": "Birinchi",
-                            "last": "Oxirgi",
-                            "next": "Keyingi",
-                            "previous": "Oldingi"
-                        },
-                        "zeroRecords": "Ma'lumot topilmadi"
-                    },
-                    "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                    "order": [[0, "asc"]],
-                    "columnDefs": columnDefs,
-                    "dom": 'lBfrtip',
-                    "pagingType": "full_numbers",
-                    "buttons": [
-                        {
-                            extend: 'excelHtml5',
-                            text: '<i class="bx bxs-file-excel"></i> Excel',
-                            titleAttr: 'Excelga yuklash',
-                            className: 'btn btn-success mr-1',
-                            filename: function () {
-                                var now = new Date();
-                                var dateStr = now.getFullYear() + 
-                                    String(now.getMonth() + 1).padStart(2, '0') + 
-                                    String(now.getDate()).padStart(2, '0') + '_' +
-                                    String(now.getHours()).padStart(2, '0') + 
-                                    String(now.getMinutes()).padStart(2, '0') + 
-                                    String(now.getSeconds()).padStart(2, '0');
-                                return 'FinCategories_' + dateStr;
-                            },
-                            exportOptions: {
-                                columns: changePermit ? ':not(:last-child)' : ':visible',
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        return data.replace(/<[^>]*>/g, '').trim();
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                });
-            });
-        </script>
+        @Html.Partial("~/Views/FinCategories/_TreeIndexScripts.cshtml", null, new ViewDataDictionary { { "TableId", "categoriesTable" }, { "FilePrefix", "FinCategories_" }, { "CenterTargets", new[] { 0, 1, 2, 3, 4 } }, { "ChangePermit", changePermit } })
     }
 
 @helper RenderCategoryRow(tahsinERP.Controllers.Finance.CategoryTreeItem treeItem, int level, bool changePermit)

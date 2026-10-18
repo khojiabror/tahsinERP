@@ -24,6 +24,7 @@
                 </div>
             </div>
             <div class="content-body">
+                @Html.Partial("~/Views/FinDashboard/_CurrencyWarning.cshtml")
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
@@ -110,7 +111,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @Html.Partial("_ChartJs")
     <script>
         // Expense Pie Chart
         var expenseData = @Html.Raw(Json.Encode(ViewBag.ExpenseByCategory));
