@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 using tahsinERP.ViewModels.Finance;
 
 namespace tahsinERP.Services.Finance
@@ -25,25 +26,22 @@ namespace tahsinERP.Services.Finance
         /// <summary>
         /// P&amp;L bandlariga bog'langan kategoriyalar: daromad (Sign=1) va operatsion xarajat (Sign=2, dividendsiz).
         /// FIN-B05: avval barcha kirimlar daromad edi (qarz olish, ichki o'tkazma, aksiyador hissasi ham).
+        /// Dividend — kategoriyaning tahliliy guruhi (FIN_CATEGORIES.AnalyticsGroup = DIVIDEND), band/kategoriya nomi emas.
         /// </summary>
         private void OperatingCategories(out HashSet<int> incomeCategoryIds, out HashSet<int> expenseCategoryIds)
         {
             var items = _db.FIN_PL_ITEMS
                 .Where(i => i.IsActive && (i.IsDeleted == null || i.IsDeleted == false))
-                .Select(i => new { i.Sign, i.Name, Cats = i.FIN_CATEGORIES.Select(c => c.ID) })
+                .Select(i => new { i.Sign, Cats = i.FIN_CATEGORIES.Select(c => new { c.ID, c.AnalyticsGroup }) })
                 .ToList();
 
-            incomeCategoryIds = new HashSet<int>(items.Where(i => i.Sign == 1).SelectMany(i => i.Cats));
+            incomeCategoryIds = new HashSet<int>(items.Where(i => i.Sign == 1).SelectMany(i => i.Cats).Select(c => c.ID));
             var income = incomeCategoryIds;
             expenseCategoryIds = new HashSet<int>(items
-                .Where(i => i.Sign != 1 && !IsDividendItem(i.Name))
+                .Where(i => i.Sign != 1)
                 .SelectMany(i => i.Cats)
-                .Where(id => !income.Contains(id)));
-        }
-
-        private static bool IsDividendItem(string name)
-        {
-            return !string.IsNullOrEmpty(name) && name.ToLower().Contains("divid");
+                .Where(c => c.AnalyticsGroup != SystemCodes.FinAnalyticsGroup.Dividend && !income.Contains(c.ID))
+                .Select(c => c.ID));
         }
 
         /// <summary>Davrdagi operatsion daromad: P&amp;L daromad kategoriyalari bo'yicha (kirim +, chiqim −).</summary>
@@ -60,7 +58,8 @@ namespace tahsinERP.Services.Finance
 
         /// <summary>
         /// EBITDA = operatsion foyda + foiz + soliq + amortizatsiya.
-        /// Daromad/xarajat — P&amp;L bandlari bo'yicha (FIN-B05); soliq/foiz/amortizatsiya xarajat kategoriyasi nomidan aniqlanadi.
+        /// Daromad/xarajat — P&amp;L bandlari bo'yicha (FIN-B05); soliq (TAX, VAT) / foiz (INTEREST) / amortizatsiya (DEPRECIATION) —
+        /// xarajat kategoriyasining tahliliy guruhidan (FIN_CATEGORIES.AnalyticsGroup).
         /// </summary>
         public EbitdaData Ebitda(DateTime fromDate, DateTime toDate)
         {
@@ -68,9 +67,9 @@ namespace tahsinERP.Services.Finance
             var allIds = incomeIds.Concat(expenseIds).ToList();
 
             // FIN-B01: so'mda (kun kursi)
-            var names = allIds.Count == 0
+            var groups = allIds.Count == 0
                 ? new Dictionary<int, string>()
-                : _db.FIN_CATEGORIES.AsNoTracking().Where(c => allIds.Contains(c.ID)).Select(c => new { c.ID, c.Name }).ToList().ToDictionary(c => c.ID, c => c.Name);
+                : _db.FIN_CATEGORIES.AsNoTracking().Where(c => allIds.Contains(c.ID)).Select(c => new { c.ID, c.AnalyticsGroup }).ToList().ToDictionary(c => c.ID, c => c.AnalyticsGroup);
             var sums = allIds.Count == 0
                 ? new List<CategorySum>()
                 : FinQueries.Active(_db).InPeriod(fromDate, toDate).RealCash()
@@ -80,7 +79,7 @@ namespace tahsinERP.Services.Finance
                     .Select(g => new CategorySum
                     {
                         CategoryID = g.Key,
-                        Name = names.TryGetValue(g.Key, out var n) ? n : null,
+                        AnalyticsGroup = groups.TryGetValue(g.Key, out var grp) ? grp : null,
                         In = g.Where(b => b.Direction == 1).Sum(b => b.Uzs),
                         Out = g.Where(b => b.Direction != 1).Sum(b => b.Uzs)
                     })
@@ -93,18 +92,18 @@ namespace tahsinERP.Services.Finance
             {
                 var amount = e.Out - e.In;
                 totalExpenses += amount;
-                var name = (e.Name ?? string.Empty).ToLower();
-                if (name.Contains("soliq") || name.Contains("qqs") || name.Contains("nds"))
+                switch (e.AnalyticsGroup)
                 {
-                    taxExpense += amount;
-                }
-                else if (name.Contains("foiz") || name.Contains("kredit") || name.Contains("ssuda"))
-                {
-                    interestExpense += amount;
-                }
-                else if (name.Contains("amortizatsiya") || name.Contains("eskirish") || name.Contains("iznos"))
-                {
-                    depreciationExpense += amount;
+                    case SystemCodes.FinAnalyticsGroup.Tax:
+                    case SystemCodes.FinAnalyticsGroup.Vat:
+                        taxExpense += amount;
+                        break;
+                    case SystemCodes.FinAnalyticsGroup.Interest:
+                        interestExpense += amount;
+                        break;
+                    case SystemCodes.FinAnalyticsGroup.Depreciation:
+                        depreciationExpense += amount;
+                        break;
                 }
             }
 
@@ -123,7 +122,7 @@ namespace tahsinERP.Services.Finance
         private sealed class CategorySum
         {
             public int CategoryID { get; set; }
-            public string Name { get; set; }
+            public string AnalyticsGroup { get; set; }
             public decimal In { get; set; }
             public decimal Out { get; set; }
         }

@@ -61,7 +61,7 @@ namespace tahsinERP.Controllers
         // POST so'rovi: ProductCategory/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Code,Name,IsRawMaterial,IsFinishedGood,IsComponent,IsConsumable,RequiresNORM,RequiresCutting,IncludeInMRP,AllowPurchase,AllowSales,RawMaterialGroup,RawMaterialSubGrp,IsActive,CalculateByWeight")] PRODUCT_CATEGORIES category)
+        public ActionResult Create([Bind(Include = "Code,Name,IsRawMaterial,IsFinishedGood,IsComponent,IsConsumable,RequiresNORM,RequiresCutting,IncludeInMRP,AllowPurchase,AllowSales,RawMaterialGroup,RawMaterialSubGrp,IsActive,CalculateByWeight,MaterialKind")] PRODUCT_CATEGORIES category)
         {
             // O'chirish Code va SortOrder dan validation since they will be auto-generated
             //ModelState.Remove("Code");
@@ -89,6 +89,7 @@ namespace tahsinERP.Controllers
                             RawMaterialGroup = category.RawMaterialGroup,
                             RawMaterialSubGrp = category.RawMaterialSubGrp,
                             CalculateByWeight = category.CalculateByWeight ?? false,
+                            MaterialKind = tahsinERP.Services.Common.SystemCodes.MaterialKind.IsValid(category.MaterialKind) ? category.MaterialKind : null,
                             CreatedDT = DateTime.Now,
                             IsActive = true
                         };
@@ -156,7 +157,7 @@ namespace tahsinERP.Controllers
         // POST so'rovi: ProductCategory/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,Code,Name,IsRawMaterial,IsFinishedGood,IsComponent,IsConsumable,RequiresNORM,RequiresCutting,IncludeInMRP,AllowPurchase,AllowSales,RawMaterialGroup,RawMaterialSubGrp,SortOrder,IsActive,CreatedDT,CalculateByWeight")] PRODUCT_CATEGORIES category)
+        public ActionResult Edit([Bind(Include = "ID,Code,Name,IsRawMaterial,IsFinishedGood,IsComponent,IsConsumable,RequiresNORM,RequiresCutting,IncludeInMRP,AllowPurchase,AllowSales,RawMaterialGroup,RawMaterialSubGrp,SortOrder,IsActive,CreatedDT,CalculateByWeight,MaterialKind")] PRODUCT_CATEGORIES category)
         {
             if (ModelState.IsValid)
             {
@@ -186,6 +187,7 @@ namespace tahsinERP.Controllers
                         categoryToUpdate.SortOrder = category.SortOrder;
                         categoryToUpdate.IsActive = category.IsActive;
                         categoryToUpdate.CalculateByWeight = category.CalculateByWeight;
+                        categoryToUpdate.MaterialKind = tahsinERP.Services.Common.SystemCodes.MaterialKind.IsValid(category.MaterialKind) ? category.MaterialKind : null;
                         categoryToUpdate.UpdatedDT = DateTime.Now;
 
                         db.Entry(categoryToUpdate).State = EntityState.Modified;

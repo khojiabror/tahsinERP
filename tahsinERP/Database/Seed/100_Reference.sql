@@ -1,6 +1,6 @@
 /* =====================================================================
    tahsinERP вЂ” MAJBURIY SPRAVOCHNIK SEED (generatsiya qilingan, QO'LDA TAHRIR QILMANG)
-   Manba: DBTHSN-IPACK, 2026-10-18, Database/tools/Export-ReferenceSeed.ps1
+   Manba: DBTHSN-IPACK, 2026-10-19, Database/tools/Export-ReferenceSeed.ps1
    Idempotent: har qator kaliti bazada bo'lmasa qo'shiladi; ID'lar saqlanadi (IDENTITY_INSERT).
    Tranzaksiya va kontragent ma'lumotlari kirmaydi. Qo'shimcha qatorlar: Seed/110_Defaults.sql.
    ===================================================================== */
@@ -11966,11 +11966,11 @@ SET IDENTITY_INSERT dbo.[PERMISSIONMODULES] OFF;
 GO
 -- ---------- ROLES (2) ----------
 SET IDENTITY_INSERT dbo.[ROLES] ON;
-INSERT INTO dbo.[ROLES] ([ID], [RName], [Description], [IsDeleted])
-SELECT v.[ID], v.[RName], v.[Description], v.[IsDeleted] FROM (VALUES
-(1, N'Developer', N'Dasturchi uchun faqat', 0),
-(3, N'Admin', N'Tizim administratori, barcha narsaga ruxsati bor', 0)
-) v ([ID], [RName], [Description], [IsDeleted])
+INSERT INTO dbo.[ROLES] ([ID], [RName], [Description], [IsDeleted], [SystemCode])
+SELECT v.[ID], v.[RName], v.[Description], v.[IsDeleted], v.[SystemCode] FROM (VALUES
+(1, N'Developer', N'Dasturchi uchun faqat', 0, N'DEVELOPER'),
+(3, N'Admin', N'Tizim administratori, barcha narsaga ruxsati bor', 0, N'ADMIN')
+) v ([ID], [RName], [Description], [IsDeleted], [SystemCode])
 WHERE NOT EXISTS (SELECT 1 FROM dbo.[ROLES] t WHERE t.[ID] = v.[ID]);
 SET IDENTITY_INSERT dbo.[ROLES] OFF;
 GO
@@ -12936,24 +12936,24 @@ SET IDENTITY_INSERT dbo.[FIN_BALANCE_CATEGORIES] OFF;
 GO
 -- ---------- FIN_CATEGORIES (15) ----------
 SET IDENTITY_INSERT dbo.[FIN_CATEGORIES] ON;
-INSERT INTO dbo.[FIN_CATEGORIES] ([ID], [Name], [Type], [ParentID], [SortOrder], [IsActive], [IsDeleted], [SystemCode])
-SELECT v.[ID], v.[Name], v.[Type], v.[ParentID], v.[SortOrder], v.[IsActive], v.[IsDeleted], v.[SystemCode] FROM (VALUES
-(4, N'Boshqa', 1, NULL, 0, 1, 0, NULL),
-(8, N'Qarz olish', 1, NULL, 0, 1, 0, NULL),
-(10, N'Soliq', 1, NULL, 0, 1, 0, NULL),
-(11, N'Sotuv', 1, NULL, 0, 1, 0, N'SALES'),
-(12, N'Sotuv otx', 1, NULL, 0, 1, 0, NULL),
-(15, N'Bank xiz', 2, NULL, 0, 1, 0, NULL),
-(17, N'Divident', 2, NULL, 0, 1, 0, NULL),
-(19, N'Ijara', 2, NULL, 0, 1, 0, NULL),
-(21, N'Kommunal', 2, NULL, 0, 1, 0, NULL),
-(23, N'M.Tash', 2, NULL, 0, 1, 0, NULL),
-(24, N'Material', 2, NULL, 0, 1, 0, NULL),
-(25, N'Oylik', 2, NULL, 0, 1, 0, N'PAYROLL'),
-(27, N'Qarz berish', 2, NULL, 0, 1, 0, NULL),
-(29, N'T.Tash', 2, NULL, 0, 1, 0, NULL),
-(31, N'Xarid xarajatlari', 2, NULL, 1, 1, 0, N'PURCHASE')
-) v ([ID], [Name], [Type], [ParentID], [SortOrder], [IsActive], [IsDeleted], [SystemCode])
+INSERT INTO dbo.[FIN_CATEGORIES] ([ID], [Name], [Type], [ParentID], [SortOrder], [IsActive], [IsDeleted], [SystemCode], [AnalyticsGroup])
+SELECT v.[ID], v.[Name], v.[Type], v.[ParentID], v.[SortOrder], v.[IsActive], v.[IsDeleted], v.[SystemCode], v.[AnalyticsGroup] FROM (VALUES
+(4, N'Boshqa', 1, NULL, 0, 1, 0, NULL, N'OTHER'),
+(8, N'Qarz olish', 1, NULL, 0, 1, 0, NULL, N'FINANCING'),
+(10, N'Soliq', 1, NULL, 0, 1, 0, NULL, N'TAX'),
+(11, N'Sotuv', 1, NULL, 0, 1, 0, N'SALES', NULL),
+(12, N'Sotuv otx', 1, NULL, 0, 1, 0, NULL, NULL),
+(15, N'Bank xiz', 2, NULL, 0, 1, 0, NULL, N'BANK'),
+(17, N'Divident', 2, NULL, 0, 1, 0, NULL, N'DIVIDEND'),
+(19, N'Ijara', 2, NULL, 0, 1, 0, NULL, NULL),
+(21, N'Kommunal', 2, NULL, 0, 1, 0, NULL, NULL),
+(23, N'M.Tash', 2, NULL, 0, 1, 0, NULL, N'LOGISTICS'),
+(24, N'Material', 2, NULL, 0, 1, 0, NULL, N'MATERIAL'),
+(25, N'Oylik', 2, NULL, 0, 1, 0, N'PAYROLL', N'PAYROLL'),
+(27, N'Qarz berish', 2, NULL, 0, 1, 0, NULL, N'FINANCING'),
+(29, N'T.Tash', 2, NULL, 0, 1, 0, NULL, N'LOGISTICS'),
+(31, N'Xarid xarajatlari', 2, NULL, 1, 1, 0, N'PURCHASE', N'PURCHASE')
+) v ([ID], [Name], [Type], [ParentID], [SortOrder], [IsActive], [IsDeleted], [SystemCode], [AnalyticsGroup])
 WHERE NOT EXISTS (SELECT 1 FROM dbo.[FIN_CATEGORIES] t WHERE t.[ID] = v.[ID]);
 SET IDENTITY_INSERT dbo.[FIN_CATEGORIES] OFF;
 GO
@@ -13059,10 +13059,10 @@ SET IDENTITY_INSERT dbo.[F_TRANSPORT_TYPES] OFF;
 GO
 -- ---------- PRODUCT_CATEGORIES (1) ----------
 SET IDENTITY_INSERT dbo.[PRODUCT_CATEGORIES] ON;
-INSERT INTO dbo.[PRODUCT_CATEGORIES] ([ID], [Code], [Name], [IsRawMaterial], [IsFinishedGood], [IsComponent], [IsConsumable], [RequiresNORM], [RequiresCutting], [IncludeInMRP], [AllowPurchase], [AllowSales], [RawMaterialGroup], [RawMaterialSubGrp], [SortOrder], [IsActive], [CreatedDT], [UpdatedDT], [CalculateByWeight], [IsDeleted], [SystemCode])
-SELECT v.[ID], v.[Code], v.[Name], v.[IsRawMaterial], v.[IsFinishedGood], v.[IsComponent], v.[IsConsumable], v.[RequiresNORM], v.[RequiresCutting], v.[IncludeInMRP], v.[AllowPurchase], v.[AllowSales], v.[RawMaterialGroup], v.[RawMaterialSubGrp], v.[SortOrder], v.[IsActive], v.[CreatedDT], v.[UpdatedDT], v.[CalculateByWeight], v.[IsDeleted], v.[SystemCode] FROM (VALUES
-(27, N'00004', N'Jihoz', 0, 0, 0, 0, 0, 0, 1, 1, 0, N'Jihozlar', NULL, 11, 1, '2025-12-28T04:16:52.000', '2025-12-28T04:17:08.000', 0, 0, N'EQUIPMENT')
-) v ([ID], [Code], [Name], [IsRawMaterial], [IsFinishedGood], [IsComponent], [IsConsumable], [RequiresNORM], [RequiresCutting], [IncludeInMRP], [AllowPurchase], [AllowSales], [RawMaterialGroup], [RawMaterialSubGrp], [SortOrder], [IsActive], [CreatedDT], [UpdatedDT], [CalculateByWeight], [IsDeleted], [SystemCode])
+INSERT INTO dbo.[PRODUCT_CATEGORIES] ([ID], [Code], [Name], [IsRawMaterial], [IsFinishedGood], [IsComponent], [IsConsumable], [RequiresNORM], [RequiresCutting], [IncludeInMRP], [AllowPurchase], [AllowSales], [RawMaterialGroup], [RawMaterialSubGrp], [SortOrder], [IsActive], [CreatedDT], [UpdatedDT], [CalculateByWeight], [IsDeleted], [SystemCode], [MaterialKind])
+SELECT v.[ID], v.[Code], v.[Name], v.[IsRawMaterial], v.[IsFinishedGood], v.[IsComponent], v.[IsConsumable], v.[RequiresNORM], v.[RequiresCutting], v.[IncludeInMRP], v.[AllowPurchase], v.[AllowSales], v.[RawMaterialGroup], v.[RawMaterialSubGrp], v.[SortOrder], v.[IsActive], v.[CreatedDT], v.[UpdatedDT], v.[CalculateByWeight], v.[IsDeleted], v.[SystemCode], v.[MaterialKind] FROM (VALUES
+(27, N'00004', N'Jihoz', 0, 0, 0, 0, 0, 0, 1, 1, 0, N'Jihozlar', NULL, 11, 1, '2025-12-28T04:16:52.000', '2025-12-28T04:17:08.000', 0, 0, N'EQUIPMENT', NULL)
+) v ([ID], [Code], [Name], [IsRawMaterial], [IsFinishedGood], [IsComponent], [IsConsumable], [RequiresNORM], [RequiresCutting], [IncludeInMRP], [AllowPurchase], [AllowSales], [RawMaterialGroup], [RawMaterialSubGrp], [SortOrder], [IsActive], [CreatedDT], [UpdatedDT], [CalculateByWeight], [IsDeleted], [SystemCode], [MaterialKind])
 WHERE NOT EXISTS (SELECT 1 FROM dbo.[PRODUCT_CATEGORIES] t WHERE t.[ID] = v.[ID]);
 SET IDENTITY_INSERT dbo.[PRODUCT_CATEGORIES] OFF;
 GO

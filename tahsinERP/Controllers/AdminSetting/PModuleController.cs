@@ -44,10 +44,11 @@ namespace tahsinERP.Controllers
             return typeof(ActionResult).IsAssignableFrom(returnType);
         }
 
-        private static bool IsAdminRole(string roleName)
+        /// <summary>Yangi modul faqat Admin/Developer'ga ochiq — rol kodi bo'yicha (ROLES.SystemCode), nomi emas.</summary>
+        private static bool IsAdminRole(string systemCode)
         {
-            return string.Equals(roleName, "Admin", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(roleName, "Developer", System.StringComparison.OrdinalIgnoreCase);
+            return systemCode == tahsinERP.Services.Common.SystemCodes.Role.Admin
+                || systemCode == tahsinERP.Services.Common.SystemCodes.Role.Developer;
         }
 
         // Olish so'rovi: PModule
@@ -182,7 +183,7 @@ namespace tahsinERP.Controllers
                     // Yangi modul faqat Admin/Developer'ga ochiq; boshqa rollarga admin o'zi beradi (CORE-S04)
                     var roles = await db.ROLES
                         .Where(r => r.IsDeleted != true)
-                        .Select(r => new { r.ID, r.RName })
+                        .Select(r => new { r.ID, r.SystemCode })
                         .ToListAsync();
 
                     var permissionsToAdd = new List<PERMISSION>();
@@ -192,7 +193,7 @@ namespace tahsinERP.Controllers
                         {
                             PermissionModuleID = module.ID,
                             RoleID = role.ID,
-                            ViewPermit = IsAdminRole(role.RName),
+                            ViewPermit = IsAdminRole(role.SystemCode),
                             ChangePermit = false,
                             DeletePermit = false
                         }));
@@ -296,14 +297,14 @@ namespace tahsinERP.Controllers
                             // Yangi modul faqat Admin/Developer'ga ochiq (CORE-S04)
                             var roles = await db.ROLES
                                 .Where(r => r.IsDeleted != true)
-                                .Select(r => new { r.ID, r.RName })
+                                .Select(r => new { r.ID, r.SystemCode })
                                 .ToListAsync();
 
                             var permissionsToAdd = roles.Select(role => new PERMISSION
                             {
                                 PermissionModuleID = permissions.ID,
                                 RoleID = role.ID,
-                                ViewPermit = IsAdminRole(role.RName),
+                                ViewPermit = IsAdminRole(role.SystemCode),
                                 ChangePermit = false,
                                 DeletePermit = false
                             }).ToList();

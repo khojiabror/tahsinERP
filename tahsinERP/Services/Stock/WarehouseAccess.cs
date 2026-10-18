@@ -11,7 +11,7 @@ namespace tahsinERP.Services.Stock
 {
     /// <summary>
     /// Ombor modulining umumiy yordamchilari (avval Incomes/Expenses/Inventory controller'larida nusxalangan —
-    /// audit "Duplicates map"): foydalanuvchiga biriktirilgan omborlar, MES/Sotuv "faqat ko'rish" roli,
+    /// audit "Duplicates map"): foydalanuvchiga biriktirilgan omborlar, kirimlarni "faqat ko'rish" holati,
     /// standart valyuta, xato matni va yuklangan fayl.
     /// </summary>
     public static class WarehouseAccess
@@ -28,15 +28,13 @@ namespace tahsinERP.Services.Stock
         }
 
         /// <summary>
-        /// MES/ishlab chiqarish yoki Sotuv/CRM roli — ombor hujjatlarini faqat ko'radi (yaratish/tahrirlash yo'q).
-        /// Rol nomi bo'yicha aniqlanadi; rollarda tizim kodi paydo bo'lganda faqat shu yerni o'zgartirish kifoya.
+        /// Kirimlarni faqat ko'radi (yaratish/tahrirlash/o'chirish yo'q): "Incomes" moduli bo'yicha o'zgartirish huquqi yo'q.
+        /// Avval rol NOMIDA "MES/Production/Sales/CRM" bo'lsa deb aniqlanardi — nom faqat ko'rsatish uchun, MES/Sotuv
+        /// xodimlarining cheklovi endi Role → Huquqlar sahifasida (Incomes: o'zgartirish o'chirilgan) belgilanadi.
         /// </summary>
-        public static bool IsMesOrSalesReadOnly(string userName)
+        public static bool IsIncomesReadOnly(string userName)
         {
-            var roles = RoleHelper.GetUserRoles(userName);
-            if (roles == null)
-                return false;
-            return roles.Any(r => r != null && (r.Contains("MES") || r.Contains("Production") || r.Contains("Sales") || r.Contains("CRM")));
+            return !RoleHelper.IsChangePermitted(userName, "Incomes");
         }
 
         /// <summary>Standart valyuta: UZS, bo'lmasa birinchi valyuta.</summary>

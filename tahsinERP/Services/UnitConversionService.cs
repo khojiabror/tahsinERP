@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Services
 {
@@ -293,56 +294,14 @@ namespace tahsinERP.Services
                 return true;
             }
 
-            // Product stored in kg (unit name contains kg) -> norm in dona, stock in kg
-            if (product.UNIT != null)
-            {
-                var name = (product.UNIT.UnitName ?? "") + " " + (product.UNIT.ShortName ?? "");
-                if (name.IndexOf("kg", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            // Metiz (shurup, bolt va h.k.): kategoriyada CalculateByWeight qo'lda yoqilmagan bo'lsa ham,
-            // dona → kg (Weight dona massasi) — xarid/ombor bilan mos.
-            if (product.PRODUCT_CATEGORIES != null && IsMetizHardwareCategory(product.PRODUCT_CATEGORIES))
+            // Product stored in kg (UNITS.SystemCode = KG) -> norm in dona, stock in kg
+            if (IsKgUnit(product.UNIT))
             {
                 return true;
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// BOM/xarid generatsiyasida metiz guruhini aniqlash (CalculateByWeight flag qo'shilmagan mahsulotlar uchun).
-        /// </summary>
-        private static bool IsMetizHardwareCategory(PRODUCT_CATEGORIES c)
-        {
-            if (c == null)
-            {
-                return false;
-            }
-
-            var parts = new[] { c.Name, c.RawMaterialGroup, c.RawMaterialSubGrp, c.Code };
-            foreach (var p in parts)
-            {
-                if (string.IsNullOrWhiteSpace(p))
-                {
-                    continue;
-                }
-
-                var t = p.Trim().ToLowerInvariant();
-                if (t.IndexOf("metiz", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    t.IndexOf("shurup", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    t.IndexOf("murvat", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    t.IndexOf("bolt", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    t.IndexOf("gaika", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    t.IndexOf("крепеж", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return true;
-                }
-            }
-
+            // Metiz (shurup, bolt va h.k.) — kategoriyaning CalculateByWeight belgisi (yuqorida). Avval kategoriya nomidan
+            // "metiz/shurup/bolt..." deb aniqlanardi; migratsiya 007 shunday kategoriyalarda belgini yoqib qo'ygan.
             return false;
         }
 
@@ -454,29 +413,12 @@ namespace tahsinERP.Services
 
         public Task<int?> FindDonaUnitIdAsync() => FindFirstUnitIdAsync(IsDonaUnit);
 
-        private static bool IsKgUnit(UNIT u)
-        {
-            if (u == null) return false;
-            var s = ((u.ShortName ?? "") + " " + (u.UnitName ?? "")).ToLowerInvariant();
-            return s.IndexOf("kg", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
+        // Birlik turi faqat UNITS.SystemCode bo'yicha (nomi/qisqa nomi faqat ko'rsatish uchun).
+        private static bool IsKgUnit(UNIT u) => u != null && u.SystemCode == SystemCodes.Unit.Kilogram;
 
-        private static bool IsDonaUnit(UNIT u)
-        {
-            if (u == null) return false;
-            var s = ((u.ShortName ?? "") + " " + (u.UnitName ?? "")).ToLowerInvariant();
-            return s.IndexOf("dona", StringComparison.OrdinalIgnoreCase) >= 0 || s.IndexOf("pc", StringComparison.OrdinalIgnoreCase) >= 0 || s.IndexOf("pcs", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
+        private static bool IsDonaUnit(UNIT u) => u != null && u.SystemCode == SystemCodes.Unit.Pieces;
 
-        /// <summary>Metr (mm emas) — yog'och zaxira o'lchovi.</summary>
-        private static bool IsMeterUnit(UNIT u)
-        {
-            if (u == null) return false;
-            var sn = (u.ShortName ?? "").Trim().ToLowerInvariant();
-            var un = (u.UnitName ?? "").ToLowerInvariant();
-            if (sn == "mm" || un.Contains("milli") || un.Contains("мм")) return false;
-            if (sn == "m" || sn == "m." || un.Contains("metr") || un.Contains("метр")) return true;
-            return false;
-        }
+        /// <summary>Metr (mm/sm/m2/m3 emas) — yog'och zaxira o'lchovi.</summary>
+        private static bool IsMeterUnit(UNIT u) => u != null && u.SystemCode == SystemCodes.Unit.Meter;
     }
 }

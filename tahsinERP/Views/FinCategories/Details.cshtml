@@ -60,6 +60,9 @@
                                         
                                         <dt class="col-sm-4">Ota kategoriya:</dt>
                                         <dd class="col-sm-8">@(Model.FIN_CATEGORIES2?.Name ?? "-")</dd>
+
+                                        <dt class="col-sm-4">Tahliliy guruh:</dt>
+                                        <dd class="col-sm-8">@(tahsinERP.Services.Common.SystemCodes.FinAnalyticsGroup.All.Where(g => g.Key == Model.AnalyticsGroup).Select(g => g.Value).FirstOrDefault() ?? "-")</dd>
                                         
                                         <dt class="col-sm-4">Tartib raqami:</dt>
                                         <dd class="col-sm-8">@Model.SortOrder</dd>

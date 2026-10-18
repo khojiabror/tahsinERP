@@ -51,12 +51,27 @@ uni erkin o'zgartiradi. `SystemCode` bor qatorni UI'da o'chirib bo'lmaydi.
 | FIN_CATEGORIES | SystemCode | SALES, PURCHASE, PAYROLL, SHAREHOLDER_CONTRIBUTION |
 | PRODUCT_CATEGORIES | SystemCode | EQUIPMENT |
 | UNITS | SystemCode | PCS, KG, TONNE, GRAM, METER, M2, M3, LITER, MM, CM, PAIR |
+| ROLES | SystemCode (007) | ADMIN, DEVELOPER — `RoleHelper.IsDeveloper/IsAdminOrDeveloper/HasRoleCode` |
 | FIN_ACCOUNTS | Code (mavjud) | PAYABLES_{CurrencyID}, RECEIVABLES_{CurrencyID} |
 | APP_TASK_STATUS_REF | Code + IsFinal (mavjud) | TODO, IN_PROGRESS, DONE, CANCELLED |
 | WAREHOUSES | WarehouseType (mavjud) | SUPPLY, PRODUCTION, SALES |
 
 Lookup: `SystemRefs.BalanceCategory(db, SystemCodes.BalanceCategory.Cash)`, `SystemRefs.UnitId(db, SystemCodes.Unit.Pieces)`.
 Har ustunda `UNIQUE ... WHERE SystemCode IS NOT NULL` indeks bor.
+
+### Guruh belgilari (UNIQUE emas, foydalanuvchi formada tanlaydi)
+
+Bir nechta qatorga tegishli tushuncha (masalan "transport xarajatlari") — bitta tizim qatori emas, guruh. Kod uni nom
+kalit so'zlari bilan emas, shu ustunlar bilan taniydi:
+
+| Jadval.ustun | Qiymatlar | Kim ishlatadi |
+|---|---|---|
+| FIN_CATEGORIES.AnalyticsGroup (007) | MATERIAL, PAYROLL, PURCHASE, LOGISTICS, TAX, VAT, BANK, INTEREST, DEPRECIATION, CAPEX, DIVIDEND, FINANCING, OTHER | `ValuationService` (EBITDA: soliq/foiz/amortizatsiya, dividend chiqariladi), `TannarxFinanceCategoryClassifier` (fakt tannarx guruhi; `TANNARX_FIN_CATEGORY_MAP` undan ustun) |
+| PRODUCT_CATEGORIES.MaterialKind (007) | WOOD | `NormLineMath.IsWoodCategory` (norma/BOM: metr narxi, umumiy norma/chiqindi) |
+| PRODUCT_CATEGORIES.CalculateByWeight (mavjud) | 0/1 | `UnitConversionService.ShouldCalculateByWeightAsync` (metiz ham shu belgi bilan) |
+
+Ro'yxatlar va UI nomlari: `SystemCodes.FinAnalyticsGroup.All`, `SystemCodes.MaterialKind.All`. Yangi guruh qo'shilsa —
+shu ro'yxatga + uni ishlatadigan servisga; mavjud bazalarni to'ldirish kerak bo'lsa — NNN migratsiya.
 
 ## Ishga tushirish
 
