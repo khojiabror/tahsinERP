@@ -81,6 +81,43 @@ namespace tahsinERP.Services.Finance
                 i => incomeTotals.TryGetValue(i.ID, out var total) ? total : (i.Amount.HasValue ? Convert.ToDecimal(i.Amount.Value) : 0m));
         }
 
+        /// <summary>
+        /// <see cref="PurchaseInvoiceAmounts(DBTHSNEntities, IQueryable{P_INVOICES}, DateTime?)"/> so'mda (FIN-B01):
+        /// har kirim hujjati o'z valyutasida o'z sanasidagi kurs bilan, kirimi yo'q invoys — invoys sanasidagi kurs bilan.
+        /// Hisobotlar (balans, akt-sverki) uchun; FIN ko'zgu yozuvi hujjat valyutasida qoladi.
+        /// </summary>
+        public static Dictionary<int, decimal> PurchaseInvoiceAmountsUzs(DBTHSNEntities db, IQueryable<P_INVOICES> invoices, DateTime? asOf = null)
+        {
+            var money = FinMoney.For(db);
+            var baseRows = invoices
+                .Select(i => new { i.ID, i.Amount, i.CurrencyID, i.InvoiceDate })
+                .ToList();
+            if (baseRows.Count == 0)
+                return new Dictionary<int, decimal>();
+
+            var incomeQuery = db.INCOMES.AsNoTracking()
+                .Where(inc => inc.InvoiceID.HasValue &&
+                              inc.IsDeleted != true &&
+                              inc.TotalPrice.HasValue &&
+                              invoices.Any(i => i.ID == inc.InvoiceID.Value));
+            if (asOf.HasValue)
+            {
+                var to = asOf.Value;
+                incomeQuery = incomeQuery.Where(inc => inc.IssueDateTime <= to);
+            }
+            var incomeTotals = incomeQuery
+                .Select(inc => new { InvoiceID = inc.InvoiceID.Value, inc.TotalPrice, inc.CurrencyID, inc.IssueDateTime })
+                .ToList()
+                .GroupBy(inc => inc.InvoiceID)
+                .ToDictionary(g => g.Key, g => g.Sum(inc => money.Uzs(Convert.ToDecimal(inc.TotalPrice.Value), inc.CurrencyID, inc.IssueDateTime)));
+
+            return baseRows.ToDictionary(
+                i => i.ID,
+                i => incomeTotals.TryGetValue(i.ID, out var total)
+                    ? total
+                    : (i.Amount.HasValue ? money.Uzs(Convert.ToDecimal(i.Amount.Value), i.CurrencyID, i.InvoiceDate) : 0m));
+        }
+
         #endregion
 
         #region Opening
@@ -122,16 +159,20 @@ namespace tahsinERP.Services.Finance
             {
                 var d = snapshotDate.Date;
                 var bt = (byte)balanceType;
+                // FIN-B01: summalar so'mda (opening sanasidagi kurs)
+                var money = FinMoney.For(_db);
                 rows = _db.FIN_OPENING_CONTRACT_BALANCES.AsNoTracking()
                     .Where(x => x.SnapshotDate == d && x.BalanceType == bt)
                     .OrderBy(x => x.ID)
+                    .Select(x => new { x.CounterpartyID, x.ContractNo, x.TotalAmount, x.PaidAmount, x.Amount, x.CurrencyID })
+                    .ToList()
                     .Select(x => new OpeningContractBalance
                     {
                         CounterpartyID = x.CounterpartyID,
                         ContractNo = x.ContractNo,
-                        TotalAmount = x.TotalAmount,
-                        PaidAmount = x.PaidAmount,
-                        Amount = x.Amount
+                        TotalAmount = money.Uzs(x.TotalAmount, x.CurrencyID, d),
+                        PaidAmount = money.Uzs(x.PaidAmount, x.CurrencyID, d),
+                        Amount = money.Uzs(x.Amount, x.CurrencyID, d)
                     })
                     .ToList();
                 _openingRows[key] = rows;
@@ -210,6 +251,9 @@ namespace tahsinERP.Services.Finance
             public int ContractID { get; set; }
             public DateTime InvoiceDate { get; set; }
             public double? Amount { get; set; }
+            public int? CurrencyID { get; set; }
+            /// <summary>Invoys summasi so'mda (invoys sanasidagi kurs, FIN-B01).</summary>
+            public decimal AmountUzs { get; set; }
         }
 
         private sealed class IncomeRow
@@ -218,10 +262,14 @@ namespace tahsinERP.Services.Finance
             public DateTime IssueDateTime { get; set; }
             public double? TotalPrice { get; set; }
             public bool? IsDeleted { get; set; }
+            public int CurrencyID { get; set; }
+            /// <summary>Kirim summasi so'mda (kirim sanasidagi kurs, FIN-B01).</summary>
+            public decimal TotalUzs { get; set; }
         }
 
         private sealed class PaymentRow
         {
+            public int CurrencyID { get; set; }
             public DateTime TxnDate { get; set; }
             public byte? CounterpartyType { get; set; }
             public int? CounterpartyID { get; set; }
@@ -252,17 +300,22 @@ namespace tahsinERP.Services.Finance
             }
 
             var data = new SupplierData();
+            var money = FinMoney.For(db);
             data.Invoices = invoiceQuery
                 .OrderBy(i => i.ID)
-                .Select(i => new SupplierInvoiceRow { ID = i.ID, SupplierID = i.SupplierID, ContractID = i.ContractID, InvoiceDate = i.InvoiceDate, Amount = i.Amount })
+                .Select(i => new SupplierInvoiceRow { ID = i.ID, SupplierID = i.SupplierID, ContractID = i.ContractID, InvoiceDate = i.InvoiceDate, Amount = i.Amount, CurrencyID = i.CurrencyID })
                 .ToList();
+            foreach (var i in data.Invoices)
+                i.AmountUzs = i.Amount.HasValue ? money.Uzs(Convert.ToDecimal(i.Amount.Value), i.CurrencyID, i.InvoiceDate) : 0m;
 
             data.IncomesByInvoice = db.INCOMES.AsNoTracking()
                 .Where(inc => inc.InvoiceID.HasValue && inc.IssueDateTime <= maxAsOf && invoiceQuery.Any(i => i.ID == inc.InvoiceID.Value))
-                .Select(inc => new IncomeRow { InvoiceID = inc.InvoiceID.Value, IssueDateTime = inc.IssueDateTime, TotalPrice = inc.TotalPrice, IsDeleted = inc.IsDeleted })
+                .Select(inc => new IncomeRow { InvoiceID = inc.InvoiceID.Value, IssueDateTime = inc.IssueDateTime, TotalPrice = inc.TotalPrice, IsDeleted = inc.IsDeleted, CurrencyID = inc.CurrencyID })
                 .ToList()
                 .GroupBy(x => x.InvoiceID)
                 .ToDictionary(g => g.Key, g => g.ToList());
+            foreach (var inc in data.IncomesByInvoice.Values.SelectMany(x => x).Where(x => x.TotalPrice.HasValue))
+                inc.TotalUzs = money.Uzs(Convert.ToDecimal(inc.TotalPrice.Value), inc.CurrencyID, inc.IssueDateTime);
 
             var contractIds = data.Invoices.Select(i => i.ContractID).Distinct().ToList();
             data.ContractNoById = contractIds.Count == 0
@@ -285,8 +338,11 @@ namespace tahsinERP.Services.Finance
             }
             data.Payments = paymentQuery
                 .OrderBy(t => t.ID)
-                .Select(t => new PaymentRow { TxnDate = t.TxnDate, CounterpartyType = t.CounterpartyType, CounterpartyID = t.CounterpartyID, Amount = t.Amount, SourceDocType = t.SourceDocType, SourceDocID = t.SourceDocID, ContractNo = t.ContractNo })
+                .Select(t => new PaymentRow { TxnDate = t.TxnDate, CounterpartyType = t.CounterpartyType, CounterpartyID = t.CounterpartyID, Amount = t.Amount, CurrencyID = t.CurrencyID, SourceDocType = t.SourceDocType, SourceDocID = t.SourceDocID, ContractNo = t.ContractNo })
                 .ToList();
+            // FIN-B01: to'lovlar so'mda (to'lov sanasidagi kurs)
+            foreach (var pay in data.Payments)
+                pay.Amount = money.Uzs(pay.Amount, pay.CurrencyID, pay.TxnDate);
 
             var linkedIds = data.Payments
                 .Where(p => p.SourceDocType == "PurchaseInvoicePayment" && p.SourceDocID.HasValue)
@@ -323,9 +379,9 @@ namespace tahsinERP.Services.Finance
                 {
                     var valid = incs.Where(inc => inc.IsDeleted != true && inc.TotalPrice.HasValue && inc.IssueDateTime <= at).ToList();
                     if (valid.Count > 0)
-                        return Convert.ToDecimal(valid.Sum(inc => inc.TotalPrice.Value));
+                        return valid.Sum(inc => inc.TotalUzs);
                 }
-                return i.Amount.HasValue ? Convert.ToDecimal(i.Amount.Value) : 0m;
+                return i.AmountUzs;
             }
 
             // Opening'gacha chiqarilgan invoys (kirimi keyin kelgan): opening'da u o'sha sanadagi summa bilan bor —
@@ -484,9 +540,17 @@ namespace tahsinERP.Services.Finance
             }
 
             var data = new CustomerData();
+            var money = FinMoney.For(db);
             data.Invoices = invoiceQuery
                 .OrderBy(i => i.ID)
-                .Select(i => new SalesInvoiceRow { ID = i.ID, CustomerID = i.CustomerID, ContractID = i.ContractID, InvoiceDate = i.InvoiceDate, Amount = i.TotalWithVAT ?? i.TotalAmount })
+                .Select(i => new { Row = new SalesInvoiceRow { ID = i.ID, CustomerID = i.CustomerID, ContractID = i.ContractID, InvoiceDate = i.InvoiceDate, Amount = i.TotalWithVAT ?? i.TotalAmount }, i.CurrencyID })
+                .ToList()
+                .Select(x =>
+                {
+                    // FIN-B01: so'mda (invoys sanasidagi kurs)
+                    x.Row.Amount = money.Uzs(x.Row.Amount, x.CurrencyID, x.Row.InvoiceDate);
+                    return x.Row;
+                })
                 .ToList();
 
             var contractIds = data.Invoices.Where(i => i.ContractID.HasValue).Select(i => i.ContractID.Value).Distinct().ToList();
@@ -511,8 +575,10 @@ namespace tahsinERP.Services.Finance
             }
             data.Receipts = receiptQuery
                 .OrderBy(t => t.ID)
-                .Select(t => new PaymentRow { TxnDate = t.TxnDate, CounterpartyType = t.CounterpartyType, CounterpartyID = t.CounterpartyID, Amount = t.Amount, SourceDocType = t.SourceDocType, SourceDocID = t.SourceDocID, ContractNo = t.ContractNo })
+                .Select(t => new PaymentRow { TxnDate = t.TxnDate, CounterpartyType = t.CounterpartyType, CounterpartyID = t.CounterpartyID, Amount = t.Amount, CurrencyID = t.CurrencyID, SourceDocType = t.SourceDocType, SourceDocID = t.SourceDocID, ContractNo = t.ContractNo })
                 .ToList();
+            foreach (var r in data.Receipts)
+                r.Amount = money.Uzs(r.Amount, r.CurrencyID, r.TxnDate);
 
             var linkedIds = data.Receipts
                 .Where(r => r.SourceDocType == "SalesInvoicePayment" && r.SourceDocID.HasValue)

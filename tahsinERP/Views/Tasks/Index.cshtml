@@ -3,14 +3,12 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@{
+    bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString());
+}
+
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    bool changePermit = false;
-    if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
-    {
-        changePermit = true;
-    }
-    
     bool isAdminOrDeveloper = tahsinERP.Models.RoleHelper.IsAdminOrDeveloper(User.Identity.Name);
     <div class="app-content content">
         <div class="content-overlay"></div>
@@ -120,6 +118,14 @@
     </div>
 
 
+}
+else
+{
+    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
+}
+
+@section scripts
+{
     <script src="~/Scripts/srm/srm-server-table.js"></script>
     <script>
         $(document).ready(function () {
@@ -183,8 +189,4 @@
             });
         });
     </script>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

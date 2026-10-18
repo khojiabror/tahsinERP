@@ -1,4 +1,8 @@
 @using tahsinERP.Models;
+@{
+    // Korxona brendi (COMPANIES: Name, BrandColor, LogoImage) — bo'sh bo'lsa standart yashil ko'rinish
+    var brand = tahsinERP.Services.Common.BrandingService.Current();
+}
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -29,14 +33,14 @@
     <link rel="stylesheet" type="text/css" href="~/assets/css/app.css" />
     <link rel="stylesheet" type="text/css" href="~/Content/flatpickr.css" />
 
-    <!-- Custom Styles for iPack Branding - Green Theme -->
+    <!-- Korxona brendi: asosiy rang COMPANIES.BrandColor dan (standart — yashil #198754).
+         O'zgaruvchi nomlari (--ipack-*) tarixiy, pastdagi qoidalar ularni ishlatadi. -->
     <style>
-        /* To'q yashil rang - iPack korxonasi rangi */
         :root {
-            --ipack-green: #198754;
-            --ipack-green-light: rgba(25, 135, 84, 0.15);
-            --ipack-green-hover: #157347;
-            --ipack-green-dark: #146c43;
+            --ipack-green: @brand.Primary;
+            --ipack-green-light: @brand.PrimaryLight;
+            --ipack-green-hover: @brand.PrimaryHover;
+            --ipack-green-dark: @brand.PrimaryDark;
         }
 
         /* tahsinERP yozuvini to'q yashil rangga o'zgartirish */
@@ -981,7 +985,7 @@
                 <ul class="nav navbar-nav flex-row">
                     <li class="nav-item mr-auto">
                         <a class="navbar-brand" href="/Home">
-                            <div class="brand-logo"><img class="logo" src="~/app-assets/images/logo/logo-32x32.png" /></div>
+                            <div class="brand-logo"><img class="logo" src="@(brand.HasLogo ? Url.Action("Logo", "Branding", new { v = brand.LogoVersion }) : Url.Content("~/app-assets/images/logo/logo-32x32.png"))" alt="" /></div>
                             <h2 class="brand-text mb-0">tahsinERP</h2>
                         </a>
                     </li>
@@ -1712,7 +1716,7 @@
         <!-- Footer -->
         <footer class="footer footer-static footer-light">
             <p class="clearfix mb-0">
-                <span class="float-left d-inline-block">"iPack Eco Solutions" MChJ @DateTime.Now.Year &copy; tahsinERP</span>
+                <span class="float-left d-inline-block">@brand.CompanyName @DateTime.Now.Year &copy; tahsinERP</span>
             </p>
         </footer>
 

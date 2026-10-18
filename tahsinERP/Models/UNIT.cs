@@ -39,6 +39,7 @@ namespace tahsinERP.Models
         public string ShortName { get; set; }
         public int Code { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
+        public string SystemCode { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<BOM_LINES> BOM_LINES { get; set; }

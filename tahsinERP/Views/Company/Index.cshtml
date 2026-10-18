@@ -99,6 +99,31 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        @{ var brandInfo = tahsinERP.Services.Common.BrandingService.Current(); }
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>Brend rangi</label>
+                                                                    <input type="color" name="BrandColor" class="form-control" value="@brandInfo.Primary" />
+                                                                    <small class="text-muted">Menyu va tugmalar rangi</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-8">
+                                                            <div class="form-group">
+                                                                <div class="controls">
+                                                                    <label>Logo (PNG/JPG, 32×32 tavsiya, 200 KB gacha)</label>
+                                                                    <div class="d-flex align-items-center">
+                                                                        <img src="@(brandInfo.HasLogo ? Url.Action("Logo", "Branding", new { v = brandInfo.LogoVersion }) : Url.Content("~/app-assets/images/logo/logo-32x32.png"))" alt="" style="height:32px" class="mr-1" />
+                                                                        <input type="file" name="LogoFile" accept="image/png,image/jpeg" class="form-control-file" />
+                                                                    </div>
+                                                                    @if (brandInfo.HasLogo)
+                                                                    {
+                                                                        <label class="mt-50"><input type="checkbox" name="RemoveLogo" value="true" /> Standart logoga qaytarish</label>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">

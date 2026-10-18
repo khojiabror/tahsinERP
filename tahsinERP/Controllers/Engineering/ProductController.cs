@@ -499,6 +499,10 @@ namespace tahsinERP.Controllers
                     .FirstOrDefaultAsync(s => s.IsDeleted != true);
 
                 int defaultShopId = defaultShop?.ID ?? 1;
+                // Import qilingan mahsulot birligi — "dona" (UNITS.SystemCode = PCS)
+                int piecesUnitId = SystemRefs.UnitId(db, SystemCodes.Unit.Pieces) ?? 0;
+                if (piecesUnitId == 0)
+                    throw new InvalidOperationException("\"dona\" o'lchov birligi (SystemCode = PCS) bazada topilmadi.");
 
                 // Mavjud PNo'lar bir martada; yangi qatorlar birga qo'shiladi, bitta SaveChanges va bitta log
                 // (avval har qatorga AnyAsync + SaveChanges + log, MES-P24). Fayl ichidagi takror PNo ham o'tkazib yuboriladi.
@@ -523,7 +527,7 @@ namespace tahsinERP.Controllers
                         PNo2 = row.Table.Columns.Contains("PNo2") ? row["PNo2"].ToString() : null,
                         PNo3 = row.Table.Columns.Contains("PNo3") ? row["PNo3"].ToString() : null,
                         PNo4 = row.Table.Columns.Contains("PNo4") ? row["PNo4"].ToString() : null,
-                        UnitID = 1,
+                        UnitID = piecesUnitId,
                         ShopID = defaultShopId,
                         IsDeleted = false
                     };
