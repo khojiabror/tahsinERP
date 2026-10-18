@@ -1,0 +1,77 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Tenants.DetailsModel
+@{ var t = Model.Tenant; ViewData["Title"] = t.LegalName; }
+<h1>@t.LegalName <span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></h1>
+<div asp-validation-summary="ModelOnly"></div>
+@if (Model.NewRegToken is not null)
+{
+    <div class="secret">
+        <strong>Yangi reg_token (faqat hozir ko'rinadi, 7 kun amal qiladi):</strong>
+        <div class="mono">@Model.NewRegToken</div>
+        <div class="hint">On-prem: ERP License sahifasidagi «Panelga ulash» maydoniga kiriting. SaaS: provisioning LICENSE_STATE.RegToken ga yozadi.</div>
+    </div>
+}
+<div class="actions">
+    @if (Model.CanSell) { <a class="btn secondary" href="/Tenants/Edit/@t.Id">Tahrirlash</a> }
+    <form method="post" asp-page-handler="RegToken" class="inline"><button type="submit" class="secondary">reg_token chiqarish</button></form>
+    @if (Model.CanSell) { <form method="post" asp-page-handler="EnsureLicense" class="inline"><button type="submit" class="secondary">Kalitni obunadan yangilash</button></form> }
+</div>
+<div class="cols">
+    <div class="card">
+        <dl class="props">
+            <dt>Slug</dt><dd><code>@t.Slug</code></dd>
+            <dt>Joylashuv</dt><dd>@Labels.Of(t.Deployment)</dd>
+            <dt>STIR</dt><dd>@t.Inn</dd>
+            <dt>Mas'ul</dt><dd>@t.ContactName @t.Phone @t.Email</dd>
+            <dt>Telegram</dt><dd>@t.TelegramChatId</dd>
+            <dt>Baza / server</dt><dd>@t.DbName @t.Server?.Name</dd>
+            <dt>CompanyID</dt><dd>@t.CompanyId</dd>
+            <dt>InstallationId</dt><dd><code>@(t.InstallationId ?? "bog'lanmagan")</code></dd>
+            <dt>Oxirgi aloqa</dt><dd>@t.LastSeenUtc @t.LastVersion @t.LastHost</dd>
+        </dl>
+    </div>
+    <div class="card">
+        @if (Model.CanSell)
+        {
+            <form method="post" asp-page-handler="Status" class="stack">
+                <div><label asp-for="NewStatus">Holatni o'zgartirish</label>
+                    <select asp-for="NewStatus">@foreach (var s in Enum.GetValues<TenantStatus>()) { <option value="@s">@Labels.Of(s)</option> }</select></div>
+                <div><label asp-for="Reason">Sabab</label><input asp-for="Reason" type="text" /></div>
+                <div><button type="submit">Saqlash</button></div>
+            </form>
+        }
+    </div>
+</div>
+<h2>Obunalar</h2>
+<table>
+    <tr><th>#</th><th>Paket</th><th>Davr</th><th class="num">Foyd.</th><th>Boshlanish</th><th>Tugash</th><th>Holat</th></tr>
+    @foreach (var s in Model.Subscriptions)
+    {
+        <tr><td>@s.Id</td><td>@s.Plan?.Name</td><td>@Labels.Of(s.Period)</td><td class="num">@s.Users</td><td>@s.StartDate.ToString("dd.MM.yyyy")</td><td>@s.EndDate.ToString("dd.MM.yyyy")</td><td>@Labels.Of(s.Status)</td></tr>
+    }
+</table>
+<h2>Hisob-fakturalar</h2>
+<table>
+    <tr><th>Raqam</th><th>Sana</th><th class="num">Jami</th><th class="num">To'langan</th><th>Holat</th></tr>
+    @foreach (var i in Model.Invoices)
+    {
+        <tr><td>@(i.Number ?? "qoralama")</td><td>@i.IssueDate.ToString("dd.MM.yyyy")</td><td class="num">@Money.Format(i.TotalTiyin)</td><td class="num">@Money.Format(i.PaidTiyin)</td><td><span class="badge @Labels.Badge(i.Status)">@Labels.Of(i.Status)</span></td></tr>
+    }
+</table>
+<h2>Litsenziya kalitlari (tarix)</h2>
+<table>
+    <tr><th>#</th><th>Edition</th><th class="num">Foyd.</th><th>Muddat</th><th>Kalit</th><th>Manba</th><th>Holat</th></tr>
+    @foreach (var l in Model.Licenses)
+    {
+        <tr><td>@l.Id</td><td>@l.Edition</td><td class="num">@l.MaxUsers</td><td>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy")</td><td>@l.KeyId</td><td>@Labels.Of(l.Source)</td>
+            <td>@(l.RevokedAtUtc != null ? "bekor" : l.SupersededById != null ? "almashtirilgan" : "joriy")</td></tr>
+    }
+</table>
+<h2>Audit (oxirgi 30)</h2>
+<table>
+    <tr><th>Vaqt (UTC)</th><th>Xodim</th><th>Amal</th><th>Keyin</th></tr>
+    @foreach (var a in Model.Audit)
+    {
+        <tr><td>@a.AtUtc.ToString("dd.MM.yyyy HH:mm")</td><td>@(a.StaffUserId is int sid && Model.StaffNames.TryGetValue(sid, out var n) ? n : "tizim")</td><td>@a.Action</td><td class="mono">@a.After</td></tr>
+    }
+</table>

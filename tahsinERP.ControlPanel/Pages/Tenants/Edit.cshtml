@@ -1,0 +1,9 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Tenants.EditModel
+@{ ViewData["Title"] = "Tahrirlash: " + Model.Tenant.LegalName; }
+<h1>Tahrirlash: @Model.Tenant.LegalName</h1>
+<form method="post" class="stack card">
+    <div asp-validation-summary="All"></div>
+    <partial name="_TenantForm" model="(Model.Input, Model.Servers, false)" />
+    <div class="actions"><button type="submit">Saqlash</button><a class="btn secondary" href="/Tenants/Details/@Model.Tenant.Id">Bekor</a></div>
+</form>
