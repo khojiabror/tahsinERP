@@ -96,7 +96,7 @@ services.AddRateLimiter(o =>
         _ => new FixedWindowRateLimiterOptions { PermitLimit = config.GetValue("ControlPanel:Panel:ApiRateLimitPerMinute", 60), Window = TimeSpan.FromMinutes(1) }));
     o.AddPolicy("login", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "-",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = config.GetValue("ControlPanel:Panel:LoginRateLimitPerMinute", 20), Window = TimeSpan.FromMinutes(1) }));
 });
 
 services.AddRazorPages(o =>

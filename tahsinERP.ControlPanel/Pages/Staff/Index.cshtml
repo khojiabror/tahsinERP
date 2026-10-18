@@ -1,0 +1,19 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Staff.IndexModel
+@{ ViewData["Title"] = "Xodimlar"; }
+<h1>Xodimlar</h1>
+<div class="actions"><a class="btn" href="/Staff/Create">+ Xodim qo'shish</a></div>
+<p class="hint">Rollar: Owner — hammasi (storno, kalit chiqarish/bekor qilish, tariflar, serverlar, xodimlar); Sotuv — tashkilot, obuna, hisob-faktura, to'lov belgilash; Qo'llab-quvvatlash — ko'rish va reg_token.</p>
+<table>
+    <tr><th>Email</th><th>Ism</th><th>Rol</th><th>2FA</th><th>Holat</th><th>Oxirgi kirish (UTC)</th><th></th></tr>
+    @foreach (var s in Model.Rows)
+    {
+        <tr>
+            <td>@s.Email</td><td>@s.FullName</td><td>@Labels.Of(s.Role)</td>
+            <td>@(s.TotpSecretProtected is null ? "ulanmagan" : "ulangan")</td>
+            <td>@(s.IsActive ? (s.LockedUntilUtc > DateTime.UtcNow ? "bloklangan" : "faol") : "o'chirilgan")</td>
+            <td>@s.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td>
+            <td><a href="/Staff/Edit/@s.Id">Boshqarish</a></td>
+        </tr>
+    }
+</table>
