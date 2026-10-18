@@ -423,54 +423,11 @@ namespace tahsinERP.Controllers.SRM
                             await db.SaveChangesAsync();
 
                             // Qo'shish expense products va decrease stock
-                            double totalAmount = 0;
-                            double totalPrice = 0;
-
+                            // Qatorlar: saqlash → sof FIFO chiqim → FIFO tannarx (ExpenseDocumentService, SRM-M01/B13/B19)
                             if (model.ExpenseProducts != null && model.ExpenseProducts.Any())
                             {
-                                foreach (var product in model.ExpenseProducts)
-                                {
-                                    var expenseProduct = new EXPENSE_PRODUCTS
-                                    {
-                                        ExpenseID = expense.ID,
-                                        ProductID = product.ProductID,
-                                        Amount = product.Amount,
-                                        PiecePrice = 0,
-                                        UnitID = product.UnitID,
-                                        Comment = product.Comment ?? ""
-                                    };
+                                await ExpenseDocumentService.PostLinesAsync(db, expense, model.ExpenseProducts);
 
-                                    db.EXPENSE_PRODUCTS.Add(expenseProduct);
-                                    await db.SaveChangesAsync();
-
-                                    // SRM-B13: chiqim har doim sof FIFO — DLOC omborda eng eski lotdan (ajratmalar
-                                    // EXPENSE_PRODUCT_ALLOCATIONS ga), oddiy omborda umumiy qoldiqdan. Foydalanuvchi
-                                    // lot tanlamaydi (avval tanlangan lot e'tiborsiz qolar yoki faqat izohga yozilardi).
-                                    try
-                                    {
-                                        await StockLedger.IssueLineAsync(
-                                            db, expense.SenderWHID, product.ProductID, product.Amount,
-                                            product.UnitID, expenseProduct.ID);
-                                    }
-                                    catch (WarehouseDlocException wex)
-                                    {
-                                        throw new Exception(wex.Message);
-                                    }
-
-                                    // SRM-B19: narx — FIFO tannarxi (QQSsiz); formadagi narx e'tiborga olinmaydi
-                                    var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
-                                        product.ProductID, product.Amount, product.UnitID, expenseProduct.ID);
-                                    expenseProduct.PiecePrice = unitCost;
-                                    product.PiecePrice = unitCost;
-                                    product.TotalPrice = product.Amount * unitCost;
-
-                                    totalAmount += product.Amount;
-                                    totalPrice += product.TotalPrice;
-                                    // Ichki o'tkazmada qabul qiluvchi qoldig'i faqat kirim "Qabul qilish"da oshadi.
-                                }
-
-                            expense.Amount = totalAmount;
-                            expense.TotalPrice = totalPrice;
                             await db.SaveChangesAsync();
 
                             // Ichki o'tkazma bo'lsa linked income hujjatini majburiy upsert qilamiz.
@@ -811,54 +768,13 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             // Qo'shish updated expense products va yangilash stock
-                            double totalAmount = 0;
-                            double totalPrice = 0;
-
+                            // Qatorlar: saqlash → sof FIFO chiqim → FIFO tannarx (ExpenseDocumentService, SRM-M01/B13/B19)
+                            expense.Amount = 0;
+                            expense.TotalPrice = 0;
                             if (model.ExpenseProducts != null && model.ExpenseProducts.Any())
                             {
-                                foreach (var product in model.ExpenseProducts)
-                                {
-                                    var expenseProduct = new EXPENSE_PRODUCTS
-                                    {
-                                        ExpenseID = expense.ID,
-                                        ProductID = product.ProductID,
-                                        Amount = product.Amount,
-                                        PiecePrice = 0,
-                                        UnitID = product.UnitID,
-                                        Comment = product.Comment ?? ""
-                                    };
-
-                                    db.EXPENSE_PRODUCTS.Add(expenseProduct);
-                                    await db.SaveChangesAsync();
-
-                                    // SRM-B13: chiqim har doim sof FIFO — DLOC omborda eng eski lotdan (ajratmalar
-                                    // EXPENSE_PRODUCT_ALLOCATIONS ga), oddiy omborda umumiy qoldiqdan. Foydalanuvchi
-                                    // lot tanlamaydi (avval tanlangan lot e'tiborsiz qolar yoki faqat izohga yozilardi).
-                                    try
-                                    {
-                                        await StockLedger.IssueLineAsync(
-                                            db, expense.SenderWHID, product.ProductID, product.Amount,
-                                            product.UnitID, expenseProduct.ID);
-                                    }
-                                    catch (WarehouseDlocException wex)
-                                    {
-                                        throw new Exception(wex.Message);
-                                    }
-
-                                    // SRM-B19: narx — FIFO tannarxi (QQSsiz); formadagi narx e'tiborga olinmaydi
-                                    var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
-                                        product.ProductID, product.Amount, product.UnitID, expenseProduct.ID);
-                                    expenseProduct.PiecePrice = unitCost;
-                                    product.PiecePrice = unitCost;
-                                    product.TotalPrice = product.Amount * unitCost;
-
-                                    totalAmount += product.Amount;
-                                    totalPrice += product.TotalPrice;
-                                }
+                                await ExpenseDocumentService.PostLinesAsync(db, expense, model.ExpenseProducts);
                             }
-
-                            expense.Amount = totalAmount;
-                            expense.TotalPrice = totalPrice;
 
                             // Handle fayl upload
                             if (expenseFile != null && expenseFile.ContentLength > 0)
