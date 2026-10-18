@@ -13,6 +13,7 @@ using tahsinERP.ViewModels.POrder;
 using tahsinERP.Filters;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
+using tahsinERP.Helpers;
 
 namespace tahsinERP.Controllers
 {
@@ -316,7 +317,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        AppendDatabaseErrorsToModelState(ModelState, ex);
+                        ModelState.AddDbErrors(ex);
                     }
                 }
             }
@@ -433,7 +434,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        AppendDatabaseErrorsToModelState(ModelState, ex);
+                        ModelState.AddDbErrors(ex);
                     }
                 }
             }
@@ -592,83 +593,6 @@ namespace tahsinERP.Controllers
             ViewBag.PurchasableProductsList = products;
             ViewBag.UnitsList = ProcurementLookups.UnitItems();
             ViewBag.ContractVatRate = await PContractVatHelper.CalculateContractVatRateAsync(db, model.ContractID);
-        }
-
-        /// <summary>
-        /// EF EntityValidationErrors va yangilanish xatolarini ModelState orqali forma ustida ko'rsatish.
-        /// </summary>
-        private static void AppendDatabaseErrorsToModelState(System.Web.Mvc.ModelStateDictionary modelState, Exception ex)
-        {
-            if (ex == null)
-            {
-                return;
-            }
-
-            var dbVal = ex as DbEntityValidationException ?? FindInnerException<DbEntityValidationException>(ex);
-            if (dbVal != null)
-            {
-                foreach (var eve in dbVal.EntityValidationErrors)
-                {
-                    string entityLabel;
-                    try
-                    {
-                        entityLabel = eve.Entry?.Entity?.GetType()?.Name ?? "Entity";
-                    }
-                    catch
-                    {
-                        entityLabel = "Entity";
-                    }
-
-                    if (eve.ValidationErrors == null || !eve.ValidationErrors.Any())
-                    {
-                        modelState.AddModelError("", entityLabel + ": validatsiya xatosi (batafsil yo'q).");
-                        continue;
-                    }
-
-                    foreach (var ve in eve.ValidationErrors)
-                    {
-                        var prop = string.IsNullOrEmpty(ve.PropertyName) ? "(maydon)" : ve.PropertyName;
-                        modelState.AddModelError("", $"{entityLabel} — {prop}: {ve.ErrorMessage}");
-                    }
-                }
-
-                return;
-            }
-
-            var dbUp = ex as DbUpdateException ?? FindInnerException<DbUpdateException>(ex);
-            if (dbUp != null)
-            {
-                modelState.AddModelError("", "Ma'lumotlar bazasiga yozishda xatolik: " + dbUp.Message);
-                var inner = dbUp.InnerException;
-                while (inner != null)
-                {
-                    modelState.AddModelError("", "Ichki: " + inner.Message);
-                    inner = inner.InnerException;
-                }
-
-                return;
-            }
-
-            var msg = "Xatolik: " + ex.Message;
-            for (var innerEx = ex.InnerException; innerEx != null; innerEx = innerEx.InnerException)
-            {
-                msg += " | Ichki xatolik: " + innerEx.Message;
-            }
-
-            modelState.AddModelError("", msg);
-        }
-
-        private static T FindInnerException<T>(Exception ex) where T : Exception
-        {
-            for (var cur = ex.InnerException; cur != null; cur = cur.InnerException)
-            {
-                if (cur is T match)
-                {
-                    return match;
-                }
-            }
-
-            return null;
         }
     }
 }

@@ -367,8 +367,6 @@ namespace tahsinERP.Services.Procurement
         // ---------- buyurtma raqami ----------
 
         private const int POrderNoMaxLength = 50;
-        private const string ArchivedOrderNoSuffixDeleted = "_deleted";
-        private const string ArchivedOrderNoSuffixDl = "_dl";
 
         /// <summary>PO-{yil}-{oy}-NNNN — qulf bilan; o'chirilgan buyurtmalar raqami ham hisobga olinadi (qayta berilmaydi).</summary>
         private Task<string> GenerateOrderNoAsync()
@@ -377,78 +375,15 @@ namespace tahsinERP.Services.Procurement
             return DocumentNumberService.NextAsync(_db, "P_ORDERS", "OrderNo", $"PO-{now.Year}-{now.Month:D2}-", 4);
         }
 
-        private static string BuildArchivedOrderNo(string orderNo)
+        private Task<bool> ActiveOrderNoExistsAsync(string orderNo, int? excludeOrderId)
         {
-            if (string.IsNullOrWhiteSpace(orderNo))
-            {
-                return orderNo;
-            }
-
-            var trimmed = orderNo.Trim();
-            if (trimmed.EndsWith(ArchivedOrderNoSuffixDeleted, StringComparison.OrdinalIgnoreCase)
-                || trimmed.EndsWith(ArchivedOrderNoSuffixDl, StringComparison.OrdinalIgnoreCase))
-            {
-                return trimmed;
-            }
-
-            var withDeleted = trimmed + ArchivedOrderNoSuffixDeleted;
-            if (withDeleted.Length <= POrderNoMaxLength)
-            {
-                return withDeleted;
-            }
-
-            var withDl = trimmed + ArchivedOrderNoSuffixDl;
-            if (withDl.Length <= POrderNoMaxLength)
-            {
-                return withDl;
-            }
-
-            var keepBase = POrderNoMaxLength - ArchivedOrderNoSuffixDl.Length;
-            return trimmed.Substring(0, keepBase) + ArchivedOrderNoSuffixDl;
+            return DocumentNumberService.ActiveNumberExistsAsync(_db, "P_ORDERS", "OrderNo", orderNo, excludeOrderId);
         }
 
-        private async Task<bool> ActiveOrderNoExistsAsync(string orderNo, int? excludeOrderId)
+        /// <summary>O'chirilgan buyurtmalarning OrderNo sini arxivlaydi — yangi yozuv uchun UNIQUE constraint bo'shatiladi.</summary>
+        private Task ReleaseOrderNoFromSoftDeletedRowsAsync(string orderNo, int? excludeOrderId)
         {
-            if (string.IsNullOrWhiteSpace(orderNo))
-            {
-                return false;
-            }
-
-            var normalized = orderNo.Trim();
-            return await _db.P_ORDERS.AnyAsync(o =>
-                o.OrderNo == normalized
-                && o.IsDeleted != true
-                && (!excludeOrderId.HasValue || o.ID != excludeOrderId.Value));
-        }
-
-        /// <summary>
-        /// O'chirilgan buyurtmalarning OrderNo sini arxivlaydi — yangi yozuv uchun UNIQUE constraint bo'shatiladi.
-        /// </summary>
-        private async Task ReleaseOrderNoFromSoftDeletedRowsAsync(string orderNo, int? excludeOrderId)
-        {
-            if (string.IsNullOrWhiteSpace(orderNo))
-            {
-                return;
-            }
-
-            var normalized = orderNo.Trim();
-            var rows = await _db.P_ORDERS
-                .Where(o => o.IsDeleted == true
-                    && o.OrderNo == normalized
-                    && (!excludeOrderId.HasValue || o.ID != excludeOrderId.Value))
-                .ToListAsync();
-
-            if (!rows.Any())
-            {
-                return;
-            }
-
-            foreach (var row in rows)
-            {
-                row.OrderNo = BuildArchivedOrderNo(row.OrderNo);
-            }
-
-            await _db.SaveChangesAsync();
+            return DocumentNumberService.ReleaseNumberFromDeletedAsync(_db, "P_ORDERS", "OrderNo", orderNo, POrderNoMaxLength, excludeOrderId);
         }
 
         /// <summary>
