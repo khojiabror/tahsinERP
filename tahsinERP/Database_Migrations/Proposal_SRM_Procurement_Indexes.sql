@@ -13,6 +13,8 @@
     - Faqat FK/filtr indekslari yo'q (pastdagilar).
 */
 SET NOCOUNT ON;
+SET QUOTED_IDENTIFIER ON;  -- hisoblangan ustunli jadvallar (P_CONTRACT_PRODUCTS, P_INVOICE_PRODUCTS) indekslari uchun shart
+SET ANSI_NULLS ON;
 
 -- ---------- FK / issiq filtrlar ----------
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_P_ORDER_PRODUCTS_OrderID' AND object_id = OBJECT_ID('dbo.P_ORDER_PRODUCTS'))
