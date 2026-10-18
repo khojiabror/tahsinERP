@@ -280,67 +280,6 @@
                         </div>
                     </div>
 
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h4 class="card-title text-danger mb-0">
-                                        <i class="bx bx-list-ul"></i> FIFO jurnal
-                                    </h4>
-                                    <small class="text-muted">FIFO_VIOLATIONS jadvalidan (lot/DLOC chiqimlari)</small>
-                                </div>
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table id="fifoJournalTable" class="table table-striped table-bordered" style="width:100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Sana</th>
-                                                        <th>Mahsulot</th>
-                                                        <th>Ombor</th>
-                                                        <th>Chiqim hujjati</th>
-                                                        <th>Sabab</th>
-                                                        <th>Kutilgan lot</th>
-                                                        <th>Tanlangan lot</th>
-                                                        <th>Kutilgan kirim</th>
-                                                        <th>Tanlangan kirim</th>
-                                                        <th>Kim</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @if (Model.FifoJournal != null && Model.FifoJournal.Any())
-                                                    {
-                                                        foreach (var item in Model.FifoJournal)
-                                                        {
-                                                            <tr>
-                                                                <td>@item.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                                                                <td>@item.ProductPNo — @item.ProductName</td>
-                                                                <td>@item.WarehouseName</td>
-                                                                <td>@(string.IsNullOrEmpty(item.ExpenseDocNo) ? "—" : item.ExpenseDocNo)</td>
-                                                                <td>@(item.ReasonCode ?? "—")</td>
-                                                                <td>@(item.ExpectedLotNo ?? "—")</td>
-                                                                <td>@(item.SelectedLotNo ?? "—")</td>
-                                                                <td>@item.OldestIncomeDate.ToString("dd.MM.yyyy")</td>
-                                                                <td>@item.LatestExpenseDate.ToString("dd.MM.yyyy")</td>
-                                                                <td>@(item.CreatedBy ?? "—")</td>
-                                                            </tr>
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        <tr>
-                                                            <td colspan="10" class="text-center text-muted">Jurnalda yozuv yo'q</td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     @if (Model.FifoHeuristicAlerts != null && Model.FifoHeuristicAlerts.Any())
                     {
                         <div class="row mt-2">
@@ -585,9 +524,6 @@
                 "zeroRecords": "Ma'lumot topilmadi",
                 "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" }
             };
-            if ($('#fifoJournalTable').length) {
-                $('#fifoJournalTable').DataTable({ language: dtLang, pageLength: 25, order: [[0, 'desc']], scrollX: true });
-            }
             if ($('#fifoHeuristicTable').length) {
                 $('#fifoHeuristicTable').DataTable({ language: dtLang, pageLength: 25, order: [[2, 'desc']] });
             }

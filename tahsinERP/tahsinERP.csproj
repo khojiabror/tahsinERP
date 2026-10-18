@@ -936,6 +936,8 @@
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />
+    <Compile Include="ViewModels\Warehouse\WarehouseDocViewModels.cs" />
+    <Compile Include="Controllers\Settings\ReferenceCrudController.cs" />
     <Compile Include="Services\Stock\DocumentMarkers.cs" />
     <Compile Include="Services\Stock\ExpenseDocumentService.cs" />
     <Compile Include="Services\Stock\IncomeDocumentService.cs" />
@@ -3164,6 +3166,12 @@
     <Content Include="Views\Incomes\Delete.cshtml" />
     <Content Include="Views\Incomes\Details.cshtml" />
     <Content Include="Views\Incomes\Edit.cshtml" />
+    <Content Include="Views\Incomes\_DocDeleteConfirm.cshtml" />
+    <Content Include="Views\Incomes\_IncomeLinesTable.cshtml" />
+    <Content Include="Scripts\srm\srm-datatable.js" />
+    <Content Include="Scripts\srm\srm-doc-lines.js" />
+    <Content Include="Scripts\srm\srm-doc-forms.js" />
+    <Content Include="Views\Incomes\_DocFormActions.cshtml" />
     <Content Include="Views\Incomes\Index.cshtml" />
     <Content Include="Views\Inventory\Index.cshtml" />
     <Content Include="Views\Inventory\IndexDloc.cshtml" />

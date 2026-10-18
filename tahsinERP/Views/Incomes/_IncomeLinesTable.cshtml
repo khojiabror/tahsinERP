@@ -1,0 +1,86 @@
+@model tahsinERP.Models.INCOME
+@using tahsinERP.Services.DlocFifo
+@* Kirim mahsulotlari jadvali: qabul rejimi (DLOC tanlash, editableDloc = true) va ko'rish rejimi uchun umumiy
+   (avval Details.cshtml'da bir xil jadval ikki marta yozilgan edi). *@
+@{
+    var editableDloc = ViewData["editableDloc"] as bool? == true;
+    var dlocEnabled = ViewBag.DlocEnabled == true;
+    var hasDlocLocations = ViewBag.HasDlocLocations == true;
+    var putawayByLine = ViewBag.PutawayByLine as System.Collections.Generic.Dictionary<int, DlocFifoReporting.IncomePutawayRow>
+        ?? new System.Collections.Generic.Dictionary<int, DlocFifoReporting.IncomePutawayRow>();
+    var dlocList = ViewBag.DlocLocations as SelectList;
+    var hasProducts = Model.INCOME_PRODUCTS != null && Model.INCOME_PRODUCTS.Count > 0;
+    var productColSpan = dlocEnabled ? 9 : 7;
+}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mahsulot kodi</th>
+                <th>Mahsulot nomi</th>
+                @if (dlocEnabled)
+                {
+                    <th>DLOC</th>
+                    <th>Lot</th>
+                }
+                <th>Miqdor</th>
+                <th>Birlik</th>
+                <th>Dona narxi</th>
+                <th>Jami</th>
+                <th>Izoh</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (hasProducts)
+            {
+                foreach (var product in Model.INCOME_PRODUCTS)
+                {
+                    putawayByLine.TryGetValue(product.ID, out var putaway);
+                    <tr>
+                        <td>@(product.PRODUCT?.PNo ?? "-")</td>
+                        <td>@(product.PRODUCT?.Name ?? "-")</td>
+                        @if (dlocEnabled)
+                        {
+                            <td>
+                                @if (editableDloc && hasDlocLocations)
+                                {
+                                    @Html.DropDownList("locationId_" + product.ID, dlocList, "Tanlang...", new { @class = "form-control form-control-sm", required = "required", style = "min-width:120px" })
+                                }
+                                else if (editableDloc)
+                                {
+                                    <span class="text-muted">@(putaway?.LocationCode ?? "")</span>
+                                }
+                                else
+                                {
+                                    @(putaway?.LocationCode ?? "")
+                                }
+                            </td>
+                            <td>@(putaway?.LotNo ?? "")</td>
+                        }
+                        <td>@product.Amount.ToString("N2")</td>
+                        <td>@(product.UNIT?.ShortName ?? "-")</td>
+                        <td>@(product.PiecePrice?.ToString("N2") ?? "-")</td>
+                        <td>@(product.TotalPrice?.ToString("N2") ?? "-")</td>
+                        <td>
+                            @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(product.Comment) && product.Comment.Contains("Chiqimdan bog'langan:"))
+                            {
+                                <span>Chiqimdan bog'langan: </span>
+                                <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
+                            }
+                            else
+                            {
+                                @(product.Comment ?? "-")
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="@productColSpan" class="text-center">Mahsulotlar topilmadi</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

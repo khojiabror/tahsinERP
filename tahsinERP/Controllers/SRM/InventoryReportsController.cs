@@ -56,7 +56,6 @@ namespace tahsinERP.Controllers
                     StockItems = new List<InventoryDashboardItem>(),
                     HighRunnerItems = new List<InventoryDashboardItem>(),
                     LowRunnerItems = new List<InventoryDashboardItem>(),
-                    FifoJournal = new List<InventoryFifoViolationItem>(),
                     FifoHeuristicAlerts = new List<InventoryFifoViolationItem>(),
                     DlocAlerts = new List<DlocCapacityAlertRow>(),
                     StockByCategory = new List<CategoryStockSummary>(),
@@ -190,9 +189,6 @@ namespace tahsinERP.Controllers
 
                 if (DlocFifoSchema.IsEnabled(db))
                 {
-                    var logged = DlocFifoReporting.GetFifoViolations(db, fromDateValue, toDateValue, fifoWarehouseIds);
-                    model.FifoJournal = logged.Select(InventoryReportsFifoMapper.MapFifoJournalRow).ToList();
-
                     var dlocAlerts = DlocFifoReporting.GetDlocCapacityAlerts(db, fifoWarehouseIds);
                     model.DlocAlerts = dlocAlerts;
                     model.DlocBelowMinCount = dlocAlerts.Count(a => a.AlertType == "BELOW_MIN");
