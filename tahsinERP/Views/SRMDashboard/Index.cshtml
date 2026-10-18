@@ -7,173 +7,170 @@
     Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
     var totalPayablesBySupplier = payablesBySupplier != null ? payablesBySupplier.Sum(x => x.Outstanding) : 0m;
 }
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier"))
-{
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="breadcrumb-wrapper col-12">
-                        <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                            <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                            <li class="breadcrumb-item"><a href="~/Supplier">Ta'minot (SRM)</a></li>
-                            <li class="breadcrumb-item active">SRM Hisobotlar</li>
-                        </ol>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="breadcrumb-wrapper col-12">
+                    <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                        <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="~/Supplier">Ta'minot (SRM)</a></li>
+                        <li class="breadcrumb-item active">SRM Hisobotlar</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <div class="content-body">
+            <form method="get" action="@Url.Action("Index")" class="mb-3">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Dan sana</label>
+                        <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" />
+                    </div>
+                    <div class="col-md-4">
+                        <label>Gacha sana</label>
+                        <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
+                    </div>
+                    <div class="col-md-4">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- KPI Cards -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Ta'minotchilar soni</h6>
+                                    <h3 class="mb-0">@ViewBag.TotalSuppliers</h3>
+                                </div>
+                                <div class="avatar bg-light-primary"><i class="bx bxs-factory font-medium-5"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Jami xarajat</h6>
+                                    <h3 class="mb-0">@(((decimal)ViewBag.TotalSpend).ToString("N0"))</h3>
+                                </div>
+                                <div class="avatar bg-light-success"><i class="bx bx-dollar font-medium-5"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Qarzdorlik (kreditor)</h6>
+                                    <h3 class="mb-0">@(((decimal)ViewBag.TotalPayables).ToString("N0"))</h3>
+                                </div>
+                                <div class="avatar bg-light-warning"><i class="bx bx-money font-medium-5"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Vaqtida yetkazish</h6>
+                                    <h3 class="mb-0">@ViewBag.OnTimeRate%</h3>
+                                    <small>@ViewBag.OnTimeCount / @ViewBag.TotalDeliveries</small>
+                                </div>
+                                <div class="avatar bg-light-info"><i class="bx bx-time-five font-medium-5"></i></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <form method="get" action="@Url.Action("Index")" class="mb-3">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label>Dan sana</label>
-                            <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" />
-                        </div>
-                        <div class="col-md-4">
-                            <label>Gacha sana</label>
-                            <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
-                        </div>
-                        <div class="col-md-4">
-                            <label>&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
-                        </div>
-                    </div>
-                </form>
 
-                <!-- KPI Cards -->
-                <div class="row">
-                    <div class="col-xl-3 col-md-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">Ta'minotchilar soni</h6>
-                                        <h3 class="mb-0">@ViewBag.TotalSuppliers</h3>
-                                    </div>
-                                    <div class="avatar bg-light-primary"><i class="bx bxs-factory font-medium-5"></i></div>
-                                </div>
-                            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Xarajat ta'minotchi bo'yicha (top 15)</h5>
+                            <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">Batafsil</a>
                         </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">Jami xarajat</h6>
-                                        <h3 class="mb-0">@(((decimal)ViewBag.TotalSpend).ToString("N0"))</h3>
-                                    </div>
-                                    <div class="avatar bg-light-success"><i class="bx bx-dollar font-medium-5"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">Qarzdorlik (kreditor)</h6>
-                                        <h3 class="mb-0">@(((decimal)ViewBag.TotalPayables).ToString("N0"))</h3>
-                                    </div>
-                                    <div class="avatar bg-light-warning"><i class="bx bx-money font-medium-5"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">Vaqtida yetkazish</h6>
-                                        <h3 class="mb-0">@ViewBag.OnTimeRate%</h3>
-                                        <small>@ViewBag.OnTimeCount / @ViewBag.TotalDeliveries</small>
-                                    </div>
-                                    <div class="avatar bg-light-info"><i class="bx bx-time-five font-medium-5"></i></div>
-                                </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Ta'minotchi</th>
+                                            <th class="text-right">Invoyslar</th>
+                                            <th class="text-right">Summa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (spendBySupplier != null && spendBySupplier.Any())
+                                        {
+                                            foreach (var s in spendBySupplier)
+                                            {
+                                                <tr>
+                                                    <td><a href="~/Supplier/Details/@s.SupplierID">@s.SupplierName</a></td>
+                                                    <td class="text-right">@s.InvoiceCount</td>
+                                                    <td class="text-right">@s.TotalSpend.ToString("N2")</td>
+                                                </tr>
+                                            }
+                                        }
+                                        @if (spendBySupplier == null || !spendBySupplier.Any())
+                                        {
+                                            <tr><td colspan="3" class="text-center">Ma'lumot yo'q</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Xarajat ta'minotchi bo'yicha (top 15)</h5>
-                                <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">Batafsil</a>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Ta'minotchi</th>
-                                                <th class="text-right">Invoyslar</th>
-                                                <th class="text-right">Summa</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (spendBySupplier != null && spendBySupplier.Any())
-                                            {
-                                                foreach (var s in spendBySupplier)
-                                                {
-                                                    <tr>
-                                                        <td><a href="~/Supplier/Details/@s.SupplierID">@s.SupplierName</a></td>
-                                                        <td class="text-right">@s.InvoiceCount</td>
-                                                        <td class="text-right">@s.TotalSpend.ToString("N2")</td>
-                                                    </tr>
-                                                }
-                                            }
-                                            @if (spendBySupplier == null || !spendBySupplier.Any())
-                                            {
-                                                <tr><td colspan="3" class="text-center">Ma'lumot yo'q</td></tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Ta'minotchilar bo'yicha qarzimiz (top 15)</h5>
+                            <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">Batafsil</a>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Ta'minotchilar bo'yicha qarzimiz (top 15)</h5>
-                                <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">Batafsil</a>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th class="font-weight-bold">Tashkilot</th>
-                                                <th class="text-right text-danger font-weight-bold">Qarzimiz</th>
-                                            </tr>
-                                            <tr>
-                                                <th class="font-weight-bold">Jami</th>
-                                                <th class="text-right text-danger font-weight-bold">@fmtSom(totalPayablesBySupplier)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (payablesBySupplier != null && payablesBySupplier.Any())
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="font-weight-bold">Tashkilot</th>
+                                            <th class="text-right text-danger font-weight-bold">Qarzimiz</th>
+                                        </tr>
+                                        <tr>
+                                            <th class="font-weight-bold">Jami</th>
+                                            <th class="text-right text-danger font-weight-bold">@fmtSom(totalPayablesBySupplier)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (payablesBySupplier != null && payablesBySupplier.Any())
+                                        {
+                                            foreach (var p in payablesBySupplier)
                                             {
-                                                foreach (var p in payablesBySupplier)
-                                                {
-                                                    <tr>
-                                                        <td><a href="~/Supplier/Details/@p.SupplierID">@p.SupplierName</a></td>
-                                                        <td class="text-right text-danger">@fmtSom(p.Outstanding)</td>
-                                                    </tr>
-                                                }
+                                                <tr>
+                                                    <td><a href="~/Supplier/Details/@p.SupplierID">@p.SupplierName</a></td>
+                                                    <td class="text-right text-danger">@fmtSom(p.Outstanding)</td>
+                                                </tr>
                                             }
-                                            @if (payablesBySupplier == null || !payablesBySupplier.Any())
-                                            {
-                                                <tr><td colspan="2" class="text-center">Ma'lumot yo'q</td></tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        }
+                                        @if (payablesBySupplier == null || !payablesBySupplier.Any())
+                                        {
+                                            <tr><td colspan="2" class="text-center">Ma'lumot yo'q</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -181,8 +178,4 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>

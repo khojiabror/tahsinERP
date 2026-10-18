@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.Filters;
 using tahsinERP.Controllers;
 
 namespace tahsinERP.Controllers.Finance
@@ -12,17 +13,14 @@ namespace tahsinERP.Controllers.Finance
     /// Doimiy harajatlar (ijara, buxgalteriya va h.k.) — har oy shakllanadigan majburiyat, to'lovda kamayadi.
     /// Balans hisobotida "Doimiy harajatlar qarzi" ostida ko'rsatiladi.
     /// </summary>
+    [Permission("FinRecurringObligations")]
     public class FinRecurringObligationsController : Controller
     {
         private const string TableName = "FIN_RECURRING_OBLIGATIONS";
 
         public ActionResult Index()
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
+            ViewBag.Error = TempData["Error"] as string;
             try
             {
                 using (var db = new DBTHSNEntities())
@@ -46,11 +44,6 @@ namespace tahsinERP.Controllers.Finance
 
         public ActionResult Create()
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinDashboard"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (var db = new DBTHSNEntities())
             {
                 ViewBag.CurrencyID = new SelectList(db.CURRENCIES.OrderBy(c => c.Shortname).ToList(), "ID", "Shortname", 1);
@@ -72,11 +65,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(RecurringObligationViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinDashboard"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ModelState.IsValid)
             {
                 try
@@ -118,11 +106,6 @@ namespace tahsinERP.Controllers.Finance
 
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinDashboard"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null) return new HttpStatusCodeResult(400);
 
             try
@@ -141,9 +124,12 @@ namespace tahsinERP.Controllers.Finance
                     return View(item);
                 }
             }
-            catch
+            catch (SqlException ex)
             {
-                return HttpNotFound();
+                // FIN-B20: SQL xatosi "topilmadi" deb yashirilmaydi
+                LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Edit", "Doimiy harajatni o'qishda xatolik: " + ex.Message);
+                TempData["Error"] = "Doimiy harajatni o'qishda xatolik: " + ex.Message;
+                return RedirectToAction("Index");
             }
         }
 
@@ -151,11 +137,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(RecurringObligationViewModel model)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinDashboard"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (ModelState.IsValid)
             {
                 try
@@ -196,11 +177,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinDashboard"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             try
             {
                 using (var db = new DBTHSNEntities())
@@ -209,7 +185,12 @@ namespace tahsinERP.Controllers.Finance
                     LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Delete", "Doimiy harajat o'chirildi, ID: " + id);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // FIN-B20: avval xato yutilib, o'chirilmagan yozuv "o'chirildi" kabi ko'rinardi
+                LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Delete", "O'chirishda xatolik, ID: " + id + ". " + ex.Message);
+                TempData["Error"] = "O'chirishda xatolik: " + ex.Message;
+            }
             return RedirectToAction("Index");
         }
     }

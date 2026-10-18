@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Models;
 
@@ -94,7 +92,7 @@ namespace tahsinERP.Controllers
         // POST so'rovi: SupplierBase/yaratish
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(SUPPLIER_BASE supplierBase, FormCollection collection)
+        public async Task<ActionResult> Create(SUPPLIER_BASE supplierBase)
         {
             if (!CanChange("SupplierBase"))
             {
@@ -153,7 +151,7 @@ namespace tahsinERP.Controllers
         // POST so'rovi: SupplierBase/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(SUPPLIER_BASE supplierBase, FormCollection collection)
+        public async Task<ActionResult> Edit(SUPPLIER_BASE supplierBase)
         {
             if (!CanChange("SupplierBase"))
             {
@@ -228,7 +226,7 @@ namespace tahsinERP.Controllers
         // POST so'rovi: SupplierBase/o'chirish
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmed(int id, FormCollection collection)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             if (!CanChange("SupplierBase"))
             {

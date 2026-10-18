@@ -5,7 +5,7 @@
 }
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
 {
-    bool isAdminOrDeveloper = tahsinERP.Services.Tasks.TaskRules.IsAdminOrDeveloper(User.Identity.Name);
+    bool isAdminOrDeveloper = tahsinERP.Models.RoleHelper.IsAdminOrDeveloper(User.Identity.Name);
     using (Html.BeginForm("Edit", "Tasks", FormMethod.Post))
     {
         @Html.AntiForgeryToken()

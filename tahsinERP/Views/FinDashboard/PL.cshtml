@@ -4,8 +4,7 @@
     var plData = ViewBag.PLData as List<tahsinERP.ViewModels.Finance.PLItemData> ?? new List<tahsinERP.ViewModels.Finance.PLItemData>();
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "FinDashboard"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -105,8 +104,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

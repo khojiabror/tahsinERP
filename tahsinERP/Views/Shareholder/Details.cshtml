@@ -5,11 +5,12 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Shareholder"))
-{
+@* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
+@{
     bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Shareholder");
     var contributions = ViewBag.Contributions as List<tahsinERP.Models.SHAREHOLDER_CONTRIBUTIONS> ?? new List<tahsinERP.Models.SHAREHOLDER_CONTRIBUTIONS>();
-    
+}
+
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -29,6 +30,14 @@
                 </div>
             </div>
             <div class="content-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+                }
                 <div class="row">
                     <div class="col-md-10">
                         <div class="card">
@@ -119,8 +128,3 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}

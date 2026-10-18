@@ -4,309 +4,304 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "PurchaseOrderTracking", "Details"))
-{
+@{
     var trackingStatus = ViewBag.TrackingStatus as tahsinERP.ViewModels.OrderTrackingStatusViewModel;
     var contracts = ViewBag.Contracts as List<tahsinERP.Models.P_CONTRACTS>;
     var invoices = ViewBag.Invoices as List<tahsinERP.Models.P_INVOICES>;
     var incomes = ViewBag.Incomes as List<tahsinERP.Models.INCOME>;
+}
 
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-                <div class="content-header-left col-12 mb-2 mt-1">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <div class="breadcrumb-wrapper col-12">
-                                <ol class="breadcrumb rounded-pill breadcrumb-divider">
-                                    <li class="breadcrumb-item">
-                                        <a href="~/Home"><i class="bx bx-home-alt"></i></a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <a href="~/PurchaseOrderTracking/Index">Xarid buyurtmalari kuzatuv</a>
-                                    </li>
-                                    <li class="breadcrumb-item active">
-                                        @Model.OrderNo
-                                    </li>
-                                </ol>
-                            </div>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider">
+                                <li class="breadcrumb-item">
+                                    <a href="~/Home"><i class="bx bx-home-alt"></i></a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="~/PurchaseOrderTracking/Index">Xarid buyurtmalari kuzatuv</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    @Model.OrderNo
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
-                <div class="row">
-                    <div class="col-12">
-                        <!-- Status Timeline -->
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <h4 class="text-primary mb-3">Buyurtma holati</h4>
-                                    <div class="row">
-                                        <div class="col-md-3 text-center">
-                                            <div class="mb-2">
-                                                @if (trackingStatus != null && trackingStatus.OrderCreated)
-                                                {
-                                                    <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
-                                                }
-                                                else
-                                                {
-                                                    <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
-                                                }
-                                            </div>
-                                            <h6>Buyurtma yaratildi</h6>
-                                            <small>@(trackingStatus?.OrderCreatedDate?.ToString("dd.MM.yyyy") ?? "-")</small>
-                                        </div>
-                                        <div class="col-md-3 text-center">
-                                            <div class="mb-2">
-                                                @if (trackingStatus != null && trackingStatus.ContractCreated)
-                                                {
-                                                    <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
-                                                }
-                                                else
-                                                {
-                                                    <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
-                                                }
-                                            </div>
-                                            <h6>Shartnoma yaratildi</h6>
-                                            <small>@(trackingStatus?.ContractDate?.ToString("dd.MM.yyyy") ?? "-")</small>
-                                            @if (trackingStatus != null && !string.IsNullOrEmpty(trackingStatus.ContractNo))
+        </div>
+        <div class="content-body">
+            <div class="row">
+                <div class="col-12">
+                    <!-- Status Timeline -->
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <h4 class="text-primary mb-3">Buyurtma holati</h4>
+                                <div class="row">
+                                    <div class="col-md-3 text-center">
+                                        <div class="mb-2">
+                                            @if (trackingStatus != null && trackingStatus.OrderCreated)
                                             {
-                                                <br /><small class="text-muted">@trackingStatus.ContractNo</small>
-                                            }
-                                        </div>
-                                        <div class="col-md-3 text-center">
-                                            <div class="mb-2">
-                                                @if (trackingStatus != null && trackingStatus.InvoiceCreated)
-                                                {
-                                                    <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
-                                                }
-                                                else
-                                                {
-                                                    <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
-                                                }
-                                            </div>
-                                            <h6>Invoys yaratildi</h6>
-                                            <small>@(trackingStatus?.InvoiceDate?.ToString("dd.MM.yyyy") ?? "-")</small>
-                                            @if (trackingStatus != null && !string.IsNullOrEmpty(trackingStatus.InvoiceNo))
-                                            {
-                                                <br /><small class="text-muted">@trackingStatus.InvoiceNo</small>
-                                            }
-                                        </div>
-                                        <div class="col-md-3 text-center">
-                                            <div class="mb-2">
-                                                @if (trackingStatus != null && trackingStatus.WarehouseReceived)
-                                                {
-                                                    <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
-                                                }
-                                                else
-                                                {
-                                                    <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
-                                                }
-                                            </div>
-                                            <h6>Omborga keldi</h6>
-                                            <small>@(trackingStatus?.WarehouseReceiptDate?.ToString("dd.MM.yyyy") ?? "-")</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Order Details -->
-                        <div class="card mt-2">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <h4 class="text-primary mb-3">Buyurtma ma'lumotlari</h4>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <strong>Buyurtma raqami:</strong><br />
-                                            @Model.OrderNo
-                                        </div>
-                                        <div class="col-md-3">
-                                            <strong>Sana:</strong><br />
-                                            @Model.IssuedDate.ToString("dd.MM.yyyy")
-                                        </div>
-                                        <div class="col-md-3">
-                                            <strong>Ta'minotchi:</strong><br />
-                                            @(Model.SUPPLIER?.Name ?? "-")
-                                        </div>
-                                        <div class="col-md-3">
-                                            <strong>Turi:</strong><br />
-                                            @if (Model.PurchaseType == 1)
-                                            {
-                                                <span class="badge badge-info">Indirect Purchase</span>
+                                                <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
                                             }
                                             else
                                             {
-                                                <span class="badge badge-primary">Direct Purchase</span>
+                                                <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
                                             }
                                         </div>
-                                        <div class="col-md-3 mt-2">
-                                            <strong>Summa:</strong><br />
-                                            @(Model.Amount?.ToString("N2") ?? "0.00") @(Model.CURRENCy?.Shortname ?? "")
-                                        </div>
-                                        <div class="col-md-3 mt-2">
-                                            <strong>Status:</strong><br />
-                                            @{
-                                                var statusClass = "badge-secondary";
-                                                switch (Model.Status)
-                                                {
-                                                    case "Created": statusClass = "badge-info"; break;
-                                                    case "ContractCreated": statusClass = "badge-warning"; break;
-                                                    case "Invoiced": statusClass = "badge-primary"; break;
-                                                    case "Received": statusClass = "badge-success"; break;
-                                                }
-                                            }
-                                            <span class="badge @statusClass">@(Model.Status ?? "Created")</span>
-                                        </div>
+                                        <h6>Buyurtma yaratildi</h6>
+                                        <small>@(trackingStatus?.OrderCreatedDate?.ToString("dd.MM.yyyy") ?? "-")</small>
                                     </div>
-
-                                    @if (Model.PurchaseType == 1 && !string.IsNullOrEmpty(Model.Purpose))
-                                    {
-                                        <div class="row mt-3">
-                                            <div class="col-12">
-                                                <strong>Xarid maqsadi:</strong><br />
-                                                <p>@Model.Purpose</p>
-                                            </div>
+                                    <div class="col-md-3 text-center">
+                                        <div class="mb-2">
+                                            @if (trackingStatus != null && trackingStatus.ContractCreated)
+                                            {
+                                                <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
+                                            }
                                         </div>
-                                    }
+                                        <h6>Shartnoma yaratildi</h6>
+                                        <small>@(trackingStatus?.ContractDate?.ToString("dd.MM.yyyy") ?? "-")</small>
+                                        @if (trackingStatus != null && !string.IsNullOrEmpty(trackingStatus.ContractNo))
+                                        {
+                                            <br /><small class="text-muted">@trackingStatus.ContractNo</small>
+                                        }
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <div class="mb-2">
+                                            @if (trackingStatus != null && trackingStatus.InvoiceCreated)
+                                            {
+                                                <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
+                                            }
+                                        </div>
+                                        <h6>Invoys yaratildi</h6>
+                                        <small>@(trackingStatus?.InvoiceDate?.ToString("dd.MM.yyyy") ?? "-")</small>
+                                        @if (trackingStatus != null && !string.IsNullOrEmpty(trackingStatus.InvoiceNo))
+                                        {
+                                            <br /><small class="text-muted">@trackingStatus.InvoiceNo</small>
+                                        }
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <div class="mb-2">
+                                            @if (trackingStatus != null && trackingStatus.WarehouseReceived)
+                                            {
+                                                <i class="bx bx-check-circle text-success" style="font-size: 48px;"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
+                                            }
+                                        </div>
+                                        <h6>Omborga keldi</h6>
+                                        <small>@(trackingStatus?.WarehouseReceiptDate?.ToString("dd.MM.yyyy") ?? "-")</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Contracts -->
-                        @if (contracts != null && contracts.Any())
-                        {
-                            <div class="card mt-2">
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <h5 class="text-primary">Shartnomalar</h5>
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Shartnoma raqami</th>
-                                                        <th>Sana</th>
-                                                        <th>Summa</th>
-                                                        <th>Amallar</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (var contract in contracts)
-                                                    {
-                                                        <tr>
-                                                            <td>@contract.ContractNo</td>
-                                                            <td>@contract.IssuedDate.ToString("dd.MM.yyyy")</td>
-                                                            <td>@(contract.Amount?.ToString("N2") ?? "0.00")</td>
-                                                            <td>
-                                                                <a href="@Url.Action("Details", "PContracts", new { id = contract.ID })" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="bx bx-show"></i> Ko'rish
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
+                    <!-- Order Details -->
+                    <div class="card mt-2">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <h4 class="text-primary mb-3">Buyurtma ma'lumotlari</h4>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <strong>Buyurtma raqami:</strong><br />
+                                        @Model.OrderNo
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Sana:</strong><br />
+                                        @Model.IssuedDate.ToString("dd.MM.yyyy")
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Ta'minotchi:</strong><br />
+                                        @(Model.SUPPLIER?.Name ?? "-")
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Turi:</strong><br />
+                                        @if (Model.PurchaseType == 1)
+                                        {
+                                            <span class="badge badge-info">Indirect Purchase</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-primary">Direct Purchase</span>
+                                        }
+                                    </div>
+                                    <div class="col-md-3 mt-2">
+                                        <strong>Summa:</strong><br />
+                                        @(Model.Amount?.ToString("N2") ?? "0.00") @(Model.CURRENCy?.Shortname ?? "")
+                                    </div>
+                                    <div class="col-md-3 mt-2">
+                                        <strong>Status:</strong><br />
+                                        @{
+                                            var statusClass = "badge-secondary";
+                                            switch (Model.Status)
+                                            {
+                                                case "Created": statusClass = "badge-info"; break;
+                                                case "ContractCreated": statusClass = "badge-warning"; break;
+                                                case "Invoiced": statusClass = "badge-primary"; break;
+                                                case "Received": statusClass = "badge-success"; break;
+                                            }
+                                        }
+                                        <span class="badge @statusClass">@(Model.Status ?? "Created")</span>
+                                    </div>
+                                </div>
+
+                                @if (Model.PurchaseType == 1 && !string.IsNullOrEmpty(Model.Purpose))
+                                {
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <strong>Xarid maqsadi:</strong><br />
+                                            <p>@Model.Purpose</p>
                                         </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contracts -->
+                    @if (contracts != null && contracts.Any())
+                    {
+                        <div class="card mt-2">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <h5 class="text-primary">Shartnomalar</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Shartnoma raqami</th>
+                                                    <th>Sana</th>
+                                                    <th>Summa</th>
+                                                    <th>Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var contract in contracts)
+                                                {
+                                                    <tr>
+                                                        <td>@contract.ContractNo</td>
+                                                        <td>@contract.IssuedDate.ToString("dd.MM.yyyy")</td>
+                                                        <td>@(contract.Amount?.ToString("N2") ?? "0.00")</td>
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "PContracts", new { id = contract.ID })" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bx bx-show"></i> Ko'rish
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
-                        }
+                        </div>
+                    }
 
-                        <!-- Invoices -->
-                        @if (invoices != null && invoices.Any())
-                        {
-                            <div class="card mt-2">
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <h5 class="text-primary">Invoyslar</h5>
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered">
-                                                <thead>
+                    <!-- Invoices -->
+                    @if (invoices != null && invoices.Any())
+                    {
+                        <div class="card mt-2">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <h5 class="text-primary">Invoyslar</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Invoys raqami</th>
+                                                    <th>Sana</th>
+                                                    <th>Summa</th>
+                                                    <th>Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var invoice in invoices)
+                                                {
                                                     <tr>
-                                                        <th>Invoys raqami</th>
-                                                        <th>Sana</th>
-                                                        <th>Summa</th>
-                                                        <th>Amallar</th>
+                                                        <td>@invoice.InvoiceNo</td>
+                                                        <td>@invoice.InvoiceDate.ToString("dd.MM.yyyy")</td>
+                                                        <td>@((invoice.Amount ?? 0).ToString("N2"))</td>
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "PInvoices", new { id = invoice.ID })" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bx bx-show"></i> Ko'rish
+                                                            </a>
+                                                        </td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (var invoice in invoices)
-                                                    {
-                                                        <tr>
-                                                            <td>@invoice.InvoiceNo</td>
-                                                            <td>@invoice.InvoiceDate.ToString("dd.MM.yyyy")</td>
-                                                            <td>@((invoice.Amount ?? 0).ToString("N2"))</td>
-                                                            <td>
-                                                                <a href="@Url.Action("Details", "PInvoices", new { id = invoice.ID })" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="bx bx-show"></i> Ko'rish
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                }
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
-                        }
+                        </div>
+                    }
 
-                        <!-- Warehouse Receipts -->
-                        @if (incomes != null && incomes.Any())
-                        {
-                            <div class="card mt-2">
-                                <div class="card-content">
-                                    <div class="card-body">
-                                        <h5 class="text-primary">Ombor kirimlari</h5>
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered">
-                                                <thead>
+                    <!-- Warehouse Receipts -->
+                    @if (incomes != null && incomes.Any())
+                    {
+                        <div class="card mt-2">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <h5 class="text-primary">Ombor kirimlari</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Hujjat raqami</th>
+                                                    <th>Sana</th>
+                                                    <th>Summa</th>
+                                                    <th>Amallar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var income in incomes)
+                                                {
                                                     <tr>
-                                                        <th>Hujjat raqami</th>
-                                                        <th>Sana</th>
-                                                        <th>Summa</th>
-                                                        <th>Amallar</th>
+                                                        <td>@income.DocNo</td>
+                                                        <td>@income.IssueDateTime.ToString("dd.MM.yyyy")</td>
+                                                        <td>@(income.TotalPrice?.ToString("N2") ?? "0.00")</td>
+                                                        <td>
+                                                            <a href="@Url.Action("Details", "Incomes", new { id = income.ID })" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bx bx-show"></i> Ko'rish
+                                                            </a>
+                                                        </td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (var income in incomes)
-                                                    {
-                                                        <tr>
-                                                            <td>@income.DocNo</td>
-                                                            <td>@income.IssueDateTime.ToString("dd.MM.yyyy")</td>
-                                                            <td>@(income.TotalPrice?.ToString("N2") ?? "0.00")</td>
-                                                            <td>
-                                                                <a href="@Url.Action("Details", "Incomes", new { id = income.ID })" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="bx bx-show"></i> Ko'rish
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                }
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
-                        }
+                        </div>
+                    }
 
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <a href="@Url.Action("Index", "PurchaseOrderTracking")" class="btn btn-secondary">
-                                    <i class="bx bx-arrow-back"></i> Orqaga
-                                </a>
-                            </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <a href="@Url.Action("Index", "PurchaseOrderTracking")" class="btn btn-secondary">
+                                <i class="bx bx-arrow-back"></i> Orqaga
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
-}
+</div>
 

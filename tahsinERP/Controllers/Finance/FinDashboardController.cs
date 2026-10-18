@@ -57,9 +57,8 @@ namespace tahsinERP.Controllers.Finance
             {
                 ViewBag.Year = year;
                 ViewBag.Month = month;
-                ViewBag.YearList = new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 11).ToList(), year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
                 ViewBag.PLData = FinAnalyticsService.ProfitAndLoss(db, year.Value, month.Value);
 
                 return View();
@@ -79,6 +78,16 @@ namespace tahsinERP.Controllers.Finance
             }
         }
 
+        /// <summary>Aktivlar va passivlar tafsiloti — bitta view (FIN-D19).</summary>
+        private ActionResult DetailsView(List<BalanceCategoryDetailData> details, string heading, string totalLabel, bool isLiability)
+        {
+            ViewBag.Details = details;
+            ViewBag.Heading = heading;
+            ViewBag.TotalLabel = totalLabel;
+            ViewBag.IsLiability = isLiability;
+            return View("BalanceSheetDetails");
+        }
+
         // GET: FinDashboard/BalanceSheetLiabilityDetails
         public ActionResult BalanceSheetLiabilityDetails(DateTime? asOfDate)
         {
@@ -90,7 +99,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.LiabilityDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);
-                return View();
+                return DetailsView(details, "Passivlar va Kapital Tafsiloti", "Jami passivlar va kapital:", true);
             }
         }
 
@@ -105,7 +114,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.AssetDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);
-                return View();
+                return DetailsView(details, "Aktivlar Tafsiloti", "Jami aktivlar:", false);
             }
         }
 

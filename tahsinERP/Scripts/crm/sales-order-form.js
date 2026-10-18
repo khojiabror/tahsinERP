@@ -266,8 +266,11 @@
             }
         }
 
-        // Edit: mavjud maxsulotlar serverda render qilingan — qayta yuklanmaydi, faqat jami hisoblanadi
+        // Edit: mavjud maxsulotlar serverda render qilingan — qayta yuklanmaydi. Qator summalari
+        // miqdor x narx'dan qayta hisoblanadi: server "N2" bilan uz-UZ formatida ("37 440 000,00")
+        // yozgani uchun matnni parseFloat qilish 37 berardi.
         if (cfg.recalcOnInit) {
+            $('.order-quantity').trigger('input');
             calculateTotal();
         }
     }

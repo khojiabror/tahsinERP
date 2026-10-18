@@ -5,6 +5,9 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.Filters;
+using tahsinERP.Services.Common;
+using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
 using ClosedXML.Excel;
 using System.IO;
@@ -12,16 +15,12 @@ using System.Web;
 
 namespace tahsinERP.Controllers.Finance
 {
+    [Permission("FinPlPlans")]
     public class FinPlPlansController : Controller
     {
         // Olish so'rovi: FinPlPlans
         public ActionResult Index(int? year, int? month, int? itemID)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 year = year ?? DateTime.Now.Year;
@@ -42,10 +41,8 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.Year = year;
                 ViewBag.Month = month;
                 ViewBag.ItemID = itemID;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
                 ViewBag.ItemList = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder).ToList(),
                     "ID", "Name", itemID);
@@ -57,11 +54,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/yaratish
         public ActionResult Create(int? year, int? month, int? itemID)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 year = year ?? DateTime.Now.Year;
@@ -69,10 +61,8 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.Year = year;
                 ViewBag.Month = month;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder).ToList(),
                     "ID", "Name", itemID);
@@ -96,11 +86,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Create(FIN_PL_PLANS plan)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 // Tekshirish agar plan already mavjud
@@ -136,10 +121,8 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.Year = plan.Year;
                 ViewBag.Month = plan.Month;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, plan.Year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                     "ID", "Name", plan.ItemID);
@@ -151,11 +134,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -169,10 +147,8 @@ namespace tahsinERP.Controllers.Finance
                     return HttpNotFound();
                 }
 
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, plan.Year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                     "ID", "Name", plan.ItemID);
@@ -186,16 +162,8 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult Edit(FIN_PL_PLANS plan)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                // Declare years once at the beginning ga avoid scope conflicts
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
                 
                 if (ModelState.IsValid)
                 {
@@ -209,8 +177,8 @@ namespace tahsinERP.Controllers.Finance
                         if (existing != null)
                         {
                             ModelState.AddModelError("", "Bu oy va element uchun boshqa reja allaqachon mavjud.");
-                            ViewBag.YearList = new SelectList(years, plan.Year);
-                            ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                            ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                            ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                             ViewBag.ItemID = new SelectList(
                                 db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                                 "ID", "Name", plan.ItemID);
@@ -230,8 +198,8 @@ namespace tahsinERP.Controllers.Finance
                     }
                 }
 
-                ViewBag.YearList = new SelectList(years, plan.Year);
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", plan.Month);
+                ViewBag.YearList = FinSelectLists.Years(plan.Year);
+                ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                 ViewBag.ItemID = new SelectList(
                     db.FIN_PL_ITEMS.Where(i => i.IsActive).OrderBy(i => i.SortOrder),
                     "ID", "Name", plan.ItemID);
@@ -243,11 +211,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/o'chirish/5
         public ActionResult Delete(int? id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -273,11 +236,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var plan = db.FIN_PL_PLANS.Find(id);
@@ -300,13 +258,9 @@ namespace tahsinERP.Controllers.Finance
         }
 
         // Olish so'rovi: FinPlPlans/BulkEdit
+        [Permission("FinPlPlans", Change = true)]
         public ActionResult BulkEdit(int? year, int? month)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 year = year ?? DateTime.Now.Year;
@@ -327,10 +281,8 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.Year = year;
                 ViewBag.Month = month;
-                var years = Enumerable.Range(DateTime.Now.Year - 5, 11).ToList();
-                ViewBag.YearList = new SelectList(years, year);
-                var months = Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(2000, m, 1).ToString("MMMM") }).ToList();
-                ViewBag.MonthList = new SelectList(months, "Value", "Text", month);
+                ViewBag.YearList = FinSelectLists.Years(year);
+                ViewBag.MonthList = FinSelectLists.Months(month);
 
                 return View(model);
             }
@@ -341,11 +293,6 @@ namespace tahsinERP.Controllers.Finance
         [ValidateAntiForgeryToken]
         public ActionResult BulkEdit(int year, int month, BulkPlanItem[] plans)
         {
-            if (!RoleHelper.IsChangePermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var userId = UserHelper.GetUserId(User.Identity.Name);
@@ -394,11 +341,6 @@ namespace tahsinERP.Controllers.Finance
         // Olish so'rovi: FinPlPlans/ExportExcel
         public ActionResult ExportExcel(int? year, int? month)
         {
-            if (!RoleHelper.IsViewPermitted(User.Identity.Name, "FinPlPlans"))
-            {
-                return RedirectToAction("Index", "ViewNotAuthorized");
-            }
-
             year = year ?? DateTime.Now.Year;
             month = month ?? DateTime.Now.Month;
 
@@ -410,31 +352,12 @@ namespace tahsinERP.Controllers.Finance
                     .OrderBy(p => p.FIN_PL_ITEMS.SortOrder)
                     .ToList();
 
-                using (var workbook = new XLWorkbook())
-                {
-                    var worksheet = workbook.Worksheets.Add("P&L Plans");
-                    worksheet.Cell(1, 1).Value = "Kod";
-                    worksheet.Cell(1, 2).Value = "Nomi";
-                    worksheet.Cell(1, 3).Value = "Reja summasi";
-
-                    int row = 2;
-                    foreach (var plan in plans)
-                    {
-                        worksheet.Cell(row, 1).Value = plan.FIN_PL_ITEMS.Code;
-                        worksheet.Cell(row, 2).Value = plan.FIN_PL_ITEMS.Name;
-                        worksheet.Cell(row, 3).Value = plan.AmountPlan;
-                        row++;
-                    }
-
-                    worksheet.Columns().AdjustToContents();
-
-                    var stream = new MemoryStream();
-                    workbook.SaveAs(stream);
-                    stream.Position = 0;
-
-                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        $"P&L_Plans_{year}_{month}.xlsx");
-                }
+                // FIN-D22: umumiy ExcelExport
+                var bytes = ExcelExport.Create("P&L Plans", plans,
+                    ExcelExport.Col<FIN_PL_PLANS>("Kod", x => x.FIN_PL_ITEMS.Code),
+                    ExcelExport.Col<FIN_PL_PLANS>("Nomi", x => x.FIN_PL_ITEMS.Name),
+                    ExcelExport.Col<FIN_PL_PLANS>("Reja summasi", x => x.AmountPlan));
+                return File(bytes, ExcelExport.ContentType, $"P&L_Plans_{year}_{month}.xlsx");
             }
         }
     }

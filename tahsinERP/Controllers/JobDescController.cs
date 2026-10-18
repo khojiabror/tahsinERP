@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
+using tahsinERP.Services.Documents;
 
 namespace tahsinERP.Controllers
 {
@@ -126,16 +127,11 @@ namespace tahsinERP.Controllers
                 // Hujjat + JOB_DESC + fayl — bitta tranzaksiyada (HRM-M02); kod qulf ostida (HRM-B17)
                 using (var tx = db.Database.BeginTransaction())
                 {
-                    // DOC_DOCUMENTS yaratish
-                    var document = new DOC_DOCUMENTS
-                    {
-                        DocTypeID = GetOrCreateDocumentTypeID(db, "JobDescription"),
-                        StatusID = GetOrCreateStatusID(db, "Active"),
-                        Code = await GenerateDocumentCodeAsync(db),
-                        Title = model.JobDescriptionCode,
-                        CreatedDT = DateTime.Now,
-                        IntegrationUID = Guid.NewGuid()
-                    };
+                    // DOC_DOCUMENTS — tur/holat kod bo'yicha (avval nom bo'yicha qidirilib, nom o'zgarsa yangi tur yaratilardi)
+                    int typeId = await DocTemplateStore.EnsureDocTypeIdAsync(db, JobDescriptionType);
+                    int statusId = await DocumentService.EnsureStatusIdAsync(db, ActiveStatusCode);
+                    var document = DocumentService.NewHeader(typeId, statusId, await GenerateDocumentCodeAsync(db),
+                        model.JobDescriptionCode, RoleHelper.GetUserId(User.Identity.Name));
 
                     db.DOC_DOCUMENTS.Add(document);
                     await db.SaveChangesAsync();
@@ -174,20 +170,8 @@ namespace tahsinERP.Controllers
 
                     if (docxBytes != null && docxBytes.Length > 0)
                     {
-                        var docFile = new DOC_FILES
-                        {
-                            DocumentID = document.ID,
-                            VersionNo = 1,
-                            FileName = $"{model.JobDescriptionCode}_v1.00.docx",
-                            FileExtension = ".docx",
-                            MimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                            FileSizeBytes = docxBytes.Length,
-                            FileContent = docxBytes,
-                            IsMain = true,
-                            CreatedDT = DateTime.Now
-                        };
-
-                        db.DOC_FILES.Add(docFile);
+                        await DocFileService.AddMainVersionAsync(db, document.ID, docxBytes, $"{model.JobDescriptionCode}_v1.00.docx",
+                            ".docx", DocFileService.DocxMime, RoleHelper.GetUserId(User.Identity.Name), versionNo: 1);
                         await db.SaveChangesAsync();
                     }
 
@@ -233,10 +217,11 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Eng so'nggi versiya faylini olish
-                var latestFile = await db.DOC_FILES
-                    .Where(f => f.DocumentID == id && f.IsMain)
-                    .OrderByDescending(f => f.VersionNo)
+                // Eng so'nggi asosiy .docx (o'chirilganlar hisobga olinmaydi)
+                long? latestFileId = await DocFileService.LatestMainFileIdAsync(db, id.Value, ".docx");
+                var latestFile = latestFileId == null ? null : await db.DOC_FILES.AsNoTracking()
+                    .Where(f => f.ID == latestFileId.Value)
+                    .Select(f => new { f.ID, f.FileContent })
                     .FirstOrDefaultAsync();
 
                 // .docx ni HTML ga konvertatsiya qilish (editor uchun)
@@ -301,6 +286,8 @@ namespace tahsinERP.Controllers
             try
             {
                 using (var db = new DBTHSNEntities())
+                // Metadata va yangi fayl versiyasi bitta tranzaksiyada (avval fayl xatosida metadata yangilanib qolardi)
+                using (var tx = db.Database.BeginTransaction())
                 {
                     var jobDescription = await db.JOB_DESC
                         .Include(s => s.DOC_DOCUMENTS)
@@ -344,41 +331,15 @@ namespace tahsinERP.Controllers
 
                         if (docxBytes != null && docxBytes.Length > 0)
                         {
-                            // Eski faylni IsMain = false qilish
-                            var oldFiles = await db.DOC_FILES
-                                .Where(f => f.DocumentID == model.DocumentID && f.IsMain)
-                                .ToListAsync();
-
-                            foreach (var oldFile in oldFiles)
-                            {
-                                oldFile.IsMain = false;
-                            }
-
-                            // Yangi versiya faylini yaratish
-                            var maxVersion = await db.DOC_FILES
-                                .Where(f => f.DocumentID == model.DocumentID)
-                                .Select(f => (int?)f.VersionNo)
-                                .DefaultIfEmpty(0)
-                                .MaxAsync() ?? 0;
-
-                            var newFile = new DOC_FILES
-                            {
-                                DocumentID = model.DocumentID,
-                                VersionNo = maxVersion + 1,
-                                FileName = $"{model.JobDescriptionCode}_v{model.NewVersionNo:F2}.docx",
-                                FileExtension = ".docx",
-                                MimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                FileSizeBytes = docxBytes.Length,
-                                FileContent = docxBytes,
-                                IsMain = true,
-                                CreatedDT = DateTime.Now
-                            };
-
-                            db.DOC_FILES.Add(newFile);
+                            // Keyingi VersionNo SQL'da, avvalgi IsMain bitta UPDATE bilan (blob'lar yuklanmaydi)
+                            await DocFileService.AddMainVersionAsync(db, model.DocumentID, docxBytes,
+                                $"{model.JobDescriptionCode}_v{model.NewVersionNo:F2}.docx", ".docx", DocFileService.DocxMime,
+                                RoleHelper.GetUserId(User.Identity.Name));
                             await db.SaveChangesAsync();
                         }
                     }
 
+                    tx.Commit();
                     LogHelper.LogToDatabase(User.Identity.Name, "JobDesc", $"Lavozim yo'riqnomasi yangilandi: {model.JobDescriptionCode} (v{model.NewVersionNo:F2})");
                     TempData["Success"] = "Lavozim yo'riqnomasi muvaffaqiyatli yangilandi";
 
@@ -419,11 +380,8 @@ namespace tahsinERP.Controllers
                     return HttpNotFound();
                 }
 
-                // Versiya tarixini olish
-                var files = await db.DOC_FILES.AsNoTracking()
-                    .Where(f => f.DocumentID == id)
-                    .OrderByDescending(f => f.VersionNo)
-                    .ToListAsync();
+                // Versiya tarixi — metadata proyeksiyasi, blob'lar o'qilmaydi (avval har versiya fayli to'liq yuklanardi)
+                var files = await DocFileService.ListVersionsAsync(db, id.Value, ".docx");
 
                 var versionHistory = new List<VersionHistoryItem>();
                 for (int i = 0; i < files.Count; i++)
@@ -432,7 +390,8 @@ namespace tahsinERP.Controllers
                     versionHistory.Add(new VersionHistoryItem
                     {
                         VersionNo = file.VersionNo,
-                        VersionDecimal = jobDescription.VersionNo - (files.Count - 1 - i) * 0.01m,
+                        // Ro'yxat yangisidan boshlanadi (avval eng yangisiga eng kichik raqam chiqardi)
+                        VersionDecimal = jobDescription.VersionNo - i * 0.01m,
                         CreatedDT = file.CreatedDT,
                         FileName = file.FileName,
                         FileID = file.ID
@@ -571,41 +530,8 @@ namespace tahsinERP.Controllers
             }
         }
 
-        private int GetOrCreateDocumentTypeID(DBTHSNEntities db, string typeName)
-        {
-            var docType = db.DOC_DOCUMENT_TYPES.FirstOrDefault(dt => dt.Name == typeName);
-            if (docType == null)
-            {
-                docType = new DOC_DOCUMENT_TYPES
-                {
-                    Code = typeName.ToUpper().Replace(" ", "_"),
-                    Name = typeName,
-                    IsActive = true,
-                    SortOrder = 0
-                };
-                db.DOC_DOCUMENT_TYPES.Add(docType);
-                db.SaveChanges();
-            }
-            return docType.ID;
-        }
-
-        private int GetOrCreateStatusID(DBTHSNEntities db, string statusName)
-        {
-            var status = db.DOC_DOCUMENT_STATUS_REF.FirstOrDefault(s => s.Name == statusName);
-            if (status == null)
-            {
-                status = new DOC_DOCUMENT_STATUS_REF
-                {
-                    Code = statusName.ToUpper().Replace(" ", "_"),
-                    Name = statusName,
-                    IsActive = true,
-                    SortOrder = 0
-                };
-                db.DOC_DOCUMENT_STATUS_REF.Add(status);
-                db.SaveChanges();
-            }
-            return status.ID;
-        }
+        private const string JobDescriptionType = "JOB_DESCRIPTION";
+        private const string ActiveStatusCode = "Active";
 
         /// <summary>
         /// JD-YYYY-NNNNNN: shu prefiksli kodlarning eng kattasi + 1, tranzaksiya oxirigacha qulf ostida (HRM-B17).
@@ -631,55 +557,8 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var file = await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.JobDescription);
-                if (file == null || file.FileContent == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // Rasmlar uchun ga'g'ri MIME type
-                var mimeType = file.MimeType;
-                if (string.IsNullOrEmpty(mimeType))
-                {
-                    // fayl extension dan MIME type ni aniqlash
-                    mimeType = GetMimeTypeFromExtension(file.FileExtension);
-                }
-
-                // Rasmlar uchun inline ko'rsatish, boshqa fayllar uchun download
-                var contentDisposition = file.FileExtension != null && 
-                                         (file.FileExtension.ToLower() == ".png" || 
-                                          file.FileExtension.ToLower() == ".jpg" || 
-                                          file.FileExtension.ToLower() == ".jpeg" || 
-                                          file.FileExtension.ToLower() == ".gif" || 
-                                          file.FileExtension.ToLower() == ".bmp")
-                    ? "inline" 
-                    : "attachment";
-
-                Response.AppendHeader("Content-Disposition", $"{contentDisposition}; filename=\"{file.FileName}\"");
-
-                return File(file.FileContent, mimeType ?? "application/octet-stream");
+                return DocFileResult.For(await DocFileAccess.FindAsync(db, fileId.Value, DocFileAccess.Owner.JobDescription));
             }
-        }
-
-        private string GetMimeTypeFromExtension(string extension)
-        {
-            if (string.IsNullOrEmpty(extension))
-                return "application/octet-stream";
-
-            var ext = extension.ToLower().TrimStart('.');
-            var mimeTypes = new Dictionary<string, string>
-            {
-                { "png", "image/png" },
-                { "jpg", "image/jpeg" },
-                { "jpeg", "image/jpeg" },
-                { "gif", "image/gif" },
-                { "bmp", "image/bmp" },
-                { "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-                { "doc", "application/msword" },
-                { "pdf", "application/pdf" }
-            };
-
-            return mimeTypes.ContainsKey(ext) ? mimeTypes[ext] : "application/octet-stream";
         }
     }
 }

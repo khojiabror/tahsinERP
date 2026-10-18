@@ -5,8 +5,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductionToSalesTransfer", "Details"))
-{
+@* Ruxsat controller action'ida tekshiriladi (SRM-M05). *@
+@{
     var income = ViewBag.CorrespondingIncome as tahsinERP.Models.INCOME;
     
     <div class="app-content content">
@@ -184,8 +184,4 @@
             </div>
         </div>
     </div>
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }

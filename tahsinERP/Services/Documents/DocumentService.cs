@@ -74,6 +74,37 @@ namespace tahsinERP.Services.Documents
         }
 
         /// <summary>Hujjat turi va DRAFT holati ID'lari (seed bo'lmasa null).</summary>
+        /// <summary>
+        /// Yangi DOC_DOCUMENTS sarlavhasi (kichik tur qatori chaqiruvchida biriktiriladi va bitta SaveChanges/tranzaksiyada
+        /// saqlanadi). Avval xat (chiquvchi/kiruvchi), buyruq va STD'da bir xil initsializator nusxalangan edi (dublikat #13).
+        /// </summary>
+        public static DOC_DOCUMENTS NewHeader(int docTypeId, int statusId, string code, string title, int? userId)
+        {
+            return new DOC_DOCUMENTS
+            {
+                DocTypeID = docTypeId,
+                StatusID = statusId,
+                Code = code,
+                Title = title,
+                CreatedByUserID = userId,
+                CreatedDT = DateTime.Now,
+                IntegrationUID = Guid.NewGuid()
+            };
+        }
+
+        /// <summary>Holat ID'si kod bo'yicha; yo'q bo'lsa yaratiladi (STD'ning "Active" holati seed'da bo'lmasligi mumkin).</summary>
+        public static async Task<int> EnsureStatusIdAsync(DBTHSNEntities db, string statusCode)
+        {
+            var id = await db.DOC_DOCUMENT_STATUS_REF.Where(st => st.Code == statusCode).Select(st => (int?)st.ID).FirstOrDefaultAsync();
+            if (id.HasValue)
+                return id.Value;
+
+            var status = new DOC_DOCUMENT_STATUS_REF { Code = statusCode, Name = statusCode, IsActive = true, SortOrder = 0 };
+            db.DOC_DOCUMENT_STATUS_REF.Add(status);
+            await db.SaveChangesAsync();
+            return status.ID;
+        }
+
         public static async Task<Tuple<int, int>> DraftHeaderIdsAsync(DBTHSNEntities db, string docTypeCode)
         {
             var typeId = await db.DOC_DOCUMENT_TYPES.Where(t => t.Code == docTypeCode).Select(t => (int?)t.ID).FirstOrDefaultAsync();

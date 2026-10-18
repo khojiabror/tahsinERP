@@ -1,0 +1,170 @@
+@model tahsinERP.ViewModels.STDCompanyStandardsCreateViewModel
+@* STD Create va Edit uchun umumiy forma (dublikat #15). Edit modelda DocumentID bor — tahrirlash. Skriptlar: _FormScripts.cshtml *@
+@{
+    var editVm = Model as tahsinERP.ViewModels.STDCompanyStandardsEditViewModel;
+    bool isEdit = editVm != null;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 mt-1">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                                <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
+                                <li class="breadcrumb-item"><a href="~/STDCompanyStandards">Korxona Standartlari</a></li>
+                                <li class="breadcrumb-item active">@(isEdit ? "Tahrirlash" : "Yangi standart")</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            @if (isEdit)
+                            {
+                                <h4 class="card-title"><i class="bx bx-edit mr-1"></i>Standart ma'lumotlarini tahrirlash</h4>
+                            }
+                            else
+                            {
+                                <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>Yangi standart ma'lumotlari</h4>
+                            }
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                @using (Html.BeginForm(isEdit ? "Edit" : "Create", "STDCompanyStandards", FormMethod.Post, new { id = "stdForm" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                    if (isEdit)
+                                    {
+                                        @Html.Hidden("DocumentID", editVm.DocumentID)
+                                    }
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="StandardCode">Standart kodi <span class="text-danger">*</span></label>
+                                                @Html.TextBoxFor(model => model.StandardCode, isEdit
+                                                    ? (object)new { @class = "form-control", @placeholder = "Masalan: STD-001", @required = "required" }
+                                                    : new { @class = "form-control", @placeholder = "Masalan: STD-001", @required = "required", @autofocus = "autofocus" })
+                                                @Html.ValidationMessageFor(model => model.StandardCode, "", new { @class = "text-danger" })
+                                                <small class="form-text text-muted">Standart kodi takrorlanmasligi kerak</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="Area">Soha</label>
+                                                @Html.TextBoxFor(model => model.Area, new { @class = "form-control", @placeholder = "Masalan: Sifat nazorati, Xavfsizlik" })
+                                                @Html.ValidationMessageFor(model => model.Area, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    if (isEdit)
+                                    {
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Joriy versiya</label>
+                                                    <input type="text" class="form-control" value="v@(editVm.CurrentVersionNo.ToString("F2"))" disabled />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Yangi versiya <span class="text-danger">*</span></label>
+                                                    @Html.Hidden("NewVersionNo", editVm.NewVersionNo)
+                                                    <input type="text" class="form-control" value="v@(editVm.NewVersionNo.ToString("F2"))" disabled />
+                                                    <small class="form-text text-muted">Har safar tahrirlashda versiya avtomatik oshadi (v@(editVm.CurrentVersionNo.ToString("F2")) + 0.01 = v@(editVm.NewVersionNo.ToString("F2")))</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="form-group">
+                                        <label for="Notes">Eslatma</label>
+                                        @Html.TextAreaFor(model => model.Notes, new { @class = "form-control", @rows = "3", @placeholder = "Qo'shimcha ma'lumotlar..." })
+                                        @Html.ValidationMessageFor(model => model.Notes, "", new { @class = "text-danger" })
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Hujjat kontenti <span class="text-danger">*</span></label>
+                                        <div class="alert alert-info">
+                                            <i class="bx bx-info-circle"></i>
+                                            <strong>Eslatma:</strong> Quyida Word hujjatini tahrirlashingiz mumkin. Matn orasiga rasmlar qo'shishingiz mumkin.
+                                        </div>
+
+                                        <!-- Quill Editor -->
+                                        <div id="editor-container" style="height: 600px; border: 1px solid #ddd; margin-top: 10px;">
+                                            <div id="quill-toolbar">
+                                                @Html.Partial("~/Views/DocTemplates/_QuillToolbar.cshtml")
+                                                <span class="ql-formats">
+                                                    @if (isEdit)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadCurrentDocxBtn" title="Joriy versiyani yuklash">
+                                                            <i class="bx bx-file"></i> Joriy versiya
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        var stdTemplates = ViewBag.Templates as System.Collections.Generic.List<tahsinERP.Services.Documents.DocTemplateListItem>;
+                                                        if (stdTemplates != null && stdTemplates.Count > 1)
+                                                        {
+                                                            <select id="templateSelect" class="form-control form-control-sm d-inline-block" style="width: auto;" title="Shablon">
+                                                                @foreach (var t in stdTemplates)
+                                                                {
+                                                                    <option value="@t.ID">@t.Name</option>
+                                                                }
+                                                            </select>
+                                                        }
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadTemplateBtn" title="Shablonni muharrirga yuklash">
+                                                            <i class="bx bx-file"></i> Shablon
+                                                        </button>
+                                                        <a href="@Url.Action("Index", "DocTemplates", new { docType = "COMPANY_STANDARD" })" class="btn btn-sm btn-outline-secondary" title="Shablonlar" target="_blank">
+                                                            <i class="bx bx-cog"></i>
+                                                        </a>
+                                                    }
+                                                    <button type="button" class="btn btn-sm btn-outline-success" id="loadDocxBtn" title="Word fayl yuklash">
+                                                        <i class="bx bx-upload"></i> Word yuklash
+                                                    </button>
+                                                </span>
+                                            </div>
+                                            <div id="quill-editor" style="height: 550px;"></div>
+                                        </div>
+
+                                        @Html.HiddenFor(model => model.DocumentContent, new { id = "documentContent" })
+                                    </div>
+
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                                            <i class="bx bx-save"></i> @(isEdit ? "Saqlash (Yangi versiya yaratish)" : "Saqlash")
+                                        </button>
+                                        <a href="@(isEdit ? Url.Action("Details", "STDCompanyStandards", new { id = editVm.DocumentID }) : Url.Action("Index", "STDCompanyStandards"))" class="btn btn-outline-secondary">
+                                            <i class="bx bx-x"></i> Bekor qilish
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+    #quill-editor { background: white; }
+    .ql-container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; }
+    #quill-toolbar { border-bottom: 1px solid #ddd; background: #f8f9fa; padding: 8px; }
+    #quill-toolbar .ql-formats { margin-right: 10px; }
+    #quill-toolbar button { margin: 0 2px; }
+</style>

@@ -144,25 +144,17 @@ namespace tahsinERP.Controllers
                             string orderNo = await DocNumbering.EnsureOrderNoAsync(db, vm.OrderNo);
 
                             // Hujjat va buyruq bitta SaveChanges'da — yetim DOC_DOCUMENTS qolmaydi (DOC-B05)
-                            db.DOC_DOCUMENTS.Add(new DOC_DOCUMENTS
+                            var document = DocumentService.NewHeader(ids.Item1, ids.Item2, orderNo, vm.Title, CurrentUserId);
+                            document.OrgUnitID = vm.OrgUnitId;
+                            document.ADM_COMPANY_ORDERS = new ADM_COMPANY_ORDERS
                             {
-                                DocTypeID = ids.Item1,
-                                StatusID = ids.Item2,
-                                Code = orderNo,
-                                Title = vm.Title,
+                                OrderNo = orderNo,
+                                OrderDate = vm.OrderDate,
+                                OrderTypeCode = vm.OrderTypeCode,
                                 OrgUnitID = vm.OrgUnitId,
-                                CreatedByUserID = CurrentUserId,
-                                CreatedDT = DateTime.Now,
-                                IntegrationUID = Guid.NewGuid(),
-                                ADM_COMPANY_ORDERS = new ADM_COMPANY_ORDERS
-                                {
-                                    OrderNo = orderNo,
-                                    OrderDate = vm.OrderDate,
-                                    OrderTypeCode = vm.OrderTypeCode,
-                                    OrgUnitID = vm.OrgUnitId,
-                                    Notes = vm.BodyText
-                                }
-                            });
+                                Notes = vm.BodyText
+                            };
+                            db.DOC_DOCUMENTS.Add(document);
 
                             await db.SaveChangesAsync();
                             tx.Commit();
@@ -431,16 +423,7 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                var file = await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.CompanyOrder);
-                if (file == null || file.FileContent == null)
-                {
-                    return HttpNotFound();
-                }
-
-                // DOC_FILES qatori o'zgarmaydi (yangi versiya = yangi ID) — brauzer keshlay oladi
-                Response.Cache.SetCacheability(HttpCacheability.Private);
-                Response.Cache.SetMaxAge(TimeSpan.FromDays(1));
-                return File(file.FileContent, file.MimeType ?? "application/octet-stream", file.FileName);
+                return DocFileResult.For(await DocFileAccess.FindAsync(db, fileId, DocFileAccess.Owner.CompanyOrder));
             }
         }
 

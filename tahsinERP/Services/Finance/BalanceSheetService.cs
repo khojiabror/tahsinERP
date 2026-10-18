@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels.Finance;
 
 namespace tahsinERP.Services.Finance
@@ -260,14 +261,13 @@ namespace tahsinERP.Services.Finance
                     case 3: // Document-Based
                         if (FinQueries.IsSalaryLiabilityCategory(category.Name))
                         {
-                            var payroll = FinLiabilities.Payroll(db, asOfDate, openingDate);
+                            // FIN-B18: ReportsHub bilan bir xil funksiya; oylik opening'i (BalanceType 3) hisobga olinadi
+                            var payroll = FinLiabilities.PayrollByEmployee(db, _counterparties, asOfDate);
                             PopulateTransactionStats(payroll.PaymentQuery, detail);
-                            detail.Amount += payroll.Accrued - payroll.Paid;
-                            if (detail.Amount < 0)
-                            {
-                                detail.Amount = 0m;
-                            }
-                            detail.Explanation = $"Oyliklar bo'yicha: hisoblangan {payroll.Accrued:N2}, to'langan {payroll.Paid:N2}";
+                            detail.Amount = payroll.Total;
+                            detail.Explanation = payroll.OpeningDate.HasValue
+                                ? $"Oylik opening ({payroll.OpeningDate.Value:dd.MM.yyyy}) {payroll.OpeningNet:N2} + hisoblangan {payroll.Accrued:N2} − to'langan {payroll.Paid:N2}"
+                                : $"Oyliklar bo'yicha: hisoblangan {payroll.Accrued:N2}, to'langan {payroll.Paid:N2}";
                         }
                         else if (IsLogisticsLiabilityCategoryName(category.Name))
                         {
@@ -284,7 +284,7 @@ namespace tahsinERP.Services.Finance
                         else if (category.Name == FinLiabilities.RecurringObligationCategoryName)
                         {
                             // Avval faqat BalanceSheet'da bor edi, details/DCF/Liabilities'da yo'q edi (FIN-B02).
-                            var recurring = FinLiabilities.RecurringObligationsLiability(db, category.ID, asOfDate, openingDate);
+                            var recurring = FinLiabilities.RecurringObligationsLiability(db, category.ID, asOfDate, openingDate, includeUnassigned: true);
                             detail.Amount += recurring.Amount;
                             detail.Explanation = $"Doimiy harajatlar: {recurring.Count} ta majburiyat, hisoblangan {recurring.Accrued:N2}, to'langan {recurring.Paid:N2}";
                         }
@@ -488,7 +488,7 @@ namespace tahsinERP.Services.Finance
 
             if (category.Name == ReceivablesCategoryName)
             {
-                var added = db.SALES_INVOICES
+                var added = db.SALES_INVOICES.Active()
                     .Where(i => i.InvoiceDate <= asOfDate &&
                                 (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value))
                     .OrderByDescending(i => i.InvoiceDate)

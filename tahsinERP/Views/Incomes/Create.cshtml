@@ -24,8 +24,8 @@
     var dlocCreateUrl = Url.Action("Create", "WarehouseLocations", new { warehouseId = defaultWhId });
 }
 
-@if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes"))
-{
+@* Ruxsat controller action'ida tekshiriladi (SRM-M05). *@
+@{
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="content-wrapper">
@@ -133,7 +133,7 @@
 
                                                 <br />
                                                 <h5>Kirim mahsulotlari</h5>
-                                                <p class="text-muted small mb-2">QQS % kiritiladi (0–100). Jami = miqdor × dona narx × (1 + QQS/100). Izohga avtomatik <code>QQS %: …%</code> qo‘shiladi.</p>
+                                                <p class="text-muted small mb-2">QQS % kiritiladi (0–100). Jami = miqdor × dona narx × (1 + QQS/100).</p>
                                                 if (dlocEnabled && requireDloc)
                                                 {
                                                     <p class="text-muted small mb-2">DLOC tanlangach joriy qoldiq va MAX ko‘rinadi; miqdor o‘zgarganda kirimdan keyingi holat tekshiriladi.</p>
@@ -358,23 +358,6 @@
                         $row.find('.product-pno').val(pno);
                     }
 
-                    function stripQqsFromComment(text) {
-                        if (!text) return '';
-                        return String(text)
-                            .replace(/\s*\|\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
-                            .replace(/\s*QQS\s*%:\s*[\d.,]+\s*%/gi, '')
-                            .trim();
-                    }
-
-                    function mergeIncomeComment(userPart, vatRate) {
-                        var u = stripQqsFromComment(userPart || '');
-                        var v = isNaN(vatRate) ? 0 : Number(vatRate);
-                        var pct = (Math.round(v * 100) / 100).toString();
-                        var qqs = 'QQS %: ' + pct + '%';
-                        if (!u) return qqs;
-                        return u + ' | ' + qqs;
-                    }
-
                     function recalcRow($row) {
                         var amount = parseFloat($row.find('.amount-input').val()) || 0;
                         var price = parseFloat($row.find('.price-input').val()) || 0;
@@ -384,17 +367,11 @@
                         var base = amount * price;
                         var total = base * (1 + vat / 100);
                         $row.find('.total-price').val(total.toFixed(2));
-                        var $comm = $row.find('.comment-input');
-                        var user = $comm.data('userComment');
-                        if (user === undefined) user = stripQqsFromComment($comm.val());
-                        $comm.val(mergeIncomeComment(user, vat));
-                        $comm.data('userComment', user);
                     }
 
                     function addProductRow(productId, productPNo, productName, amount, unitId, piecePrice, totalPrice, comment, vatRate, locationId) {
                         var vr = typeof vatRate === 'number' && !isNaN(vatRate) ? vatRate : 0;
-                        var userComment = stripQqsFromComment(comment || '');
-                        var merged = mergeIncomeComment(userComment, vr);
+                        var merged = comment || '';
                         var dlocCols = '';
                         if (dlocEnabled) {
                             if (requireDloc) {
@@ -439,7 +416,6 @@
 
                         $('#incomeProductsTable tbody').append(row);
                         var $row = $('#incomeProductsTable tbody tr').last();
-                        $row.find('.comment-input').data('userComment', userComment);
 
                         if (typeof $.fn.select2 !== 'undefined') {
                             $row.find('select.product-select').select2();
@@ -478,11 +454,6 @@
 
                     $(document).on('change', '.dloc-select', function () {
                         refreshDlocCapacity($(this).closest('tr'));
-                    });
-
-                    $(document).on('input', '.comment-input', function () {
-                        var $c = $(this);
-                        $c.data('userComment', stripQqsFromComment($c.val()));
                     });
 
                     function updateTotal() {
@@ -525,8 +496,4 @@
             })(jQuery);
         </script>
     }
-}
-else
-{
-    Response.Redirect(Url.Action("Index", "ViewNotAuthorized"));
 }
