@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels.Finance;
 
 namespace tahsinERP.Services.Finance
@@ -487,7 +488,7 @@ namespace tahsinERP.Services.Finance
 
             if (category.Name == ReceivablesCategoryName)
             {
-                var added = db.SALES_INVOICES
+                var added = db.SALES_INVOICES.Active()
                     .Where(i => i.InvoiceDate <= asOfDate &&
                                 (!fromExclusive.HasValue || i.InvoiceDate > fromExclusive.Value))
                     .OrderByDescending(i => i.InvoiceDate)

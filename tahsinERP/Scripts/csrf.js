@@ -39,7 +39,10 @@
         form.appendChild(input);
     }
 
-    var xhrProto = XMLHttpRequest.prototype;
+    // Haqiqiy (native) prototip: vendors.min.js ichidagi Pace.js window.XMLHttpRequest'ni o'ram-funksiya
+    // bilan almashtiradi va uning .prototype'i native emas — avval patch o'ramga tushib, token hech
+    // qachon qo'shilmasdi (AJAX POST'lar 500). Namuna obyektdan olingan prototip ikkala holatda ham to'g'ri.
+    var xhrProto = Object.getPrototypeOf(new XMLHttpRequest());
     var nativeOpen = xhrProto.open;
     var nativeSend = xhrProto.send;
     var nativeSetHeader = xhrProto.setRequestHeader;
