@@ -838,6 +838,9 @@
     <Compile Include="Services\Crm\CrmPaging.cs" />
     <Compile Include="Services\Crm\CrmReport.cs" />
     <Compile Include="Services\Crm\FormRows.cs" />
+    <Compile Include="Services\Crm\EDocuments\EDocumentModels.cs" />
+    <Compile Include="Services\Crm\EDocuments\EDocumentProviders.cs" />
+    <Compile Include="Services\Crm\EDocuments\EDocumentService.cs" />
     <Compile Include="Services\Crm\SalesLookups.cs" />
     <Compile Include="Services\Crm\CrmNumber.cs" />
     <Compile Include="Services\Common\CurrencyRateService.cs" />
@@ -3021,6 +3024,7 @@
     <Content Include="Views\SalesTTNK\Edit.cshtml" />
     <Content Include="Views\SalesTTNK\Index.cshtml" />
     <Content Include="Views\SalesSF\Details.cshtml" />
+    <Content Include="Views\SalesSF\_EDocumentPanel.cshtml" />
     <Content Include="Views\SalesSF\Edit.cshtml" />
     <Content Include="Views\SalesSF\GenerateFromInvoice.cshtml" />
     <Content Include="Views\SalesSF\Index.cshtml" />
