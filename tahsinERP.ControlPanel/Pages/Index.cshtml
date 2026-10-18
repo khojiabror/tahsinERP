@@ -1,0 +1,73 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Bosh sahifa";
+    var d = Model.Data;
+    long max = Math.Max(1, d.Revenue.Max(r => r.AmountTiyin));
+}
+<h1>Bosh sahifa</h1>
+<div class="grid">
+    <div class="stat"><div class="l">Faol tenantlar</div><div class="v">@Model.Count(TenantStatus.Active)</div><div class="hint">SaaS @d.SaasCount · On-prem @d.OnPremCount</div></div>
+    <div class="stat"><div class="l">Sinovda</div><div class="v">@Model.Count(TenantStatus.Trial)</div></div>
+    <div class="stat"><div class="l">Imtiyozli / to'xtatilgan</div><div class="v">@Model.Count(TenantStatus.Grace) / @Model.Count(TenantStatus.Suspended)</div></div>
+    <div class="stat"><div class="l">To'lanmagan jami</div><div class="v">@Money.Format(d.UnpaidTotalTiyin)</div><div class="hint">so'm, QQS bilan</div></div>
+    <div class="stat"><div class="l">ERP'ga bog'lanmagan</div><div class="v">@Model.UnboundCount</div><div class="hint">reg_token kutilmoqda</div></div>
+</div>
+@if (Model.FailedNotifications > 0)
+{
+    <div class="flash bad">@Model.FailedNotifications ta eslatma yuborilmadi — <a href="/Notifications">Eslatmalar</a>.</div>
+}
+<div class="cols">
+    <div class="card">
+        <h2>Qarzdorlar (to'lov muddati o'tgan)</h2>
+        @if (d.Debtors.Count == 0) { <div class="empty">Qarzdor yo'q.</div> }
+        else
+        {
+            <table>
+                <tr><th>Tashkilot</th><th class="num">Hisob-faktura</th><th class="num">Qarz, so'm</th><th>Eng eski muddat</th></tr>
+                @foreach (var r in d.Debtors)
+                {
+                    <tr><td><a href="/Tenants/Details/@r.TenantId">@r.LegalName</a> <span class="hint">@r.Slug</span></td>
+                        <td class="num">@r.InvoiceCount</td><td class="num">@Money.Format(r.DebtTiyin)</td><td>@r.OldestDue.ToString("dd.MM.yyyy")</td></tr>
+                }
+            </table>
+        }
+    </div>
+    <div class="card">
+        <h2>Muddati yaqinlashganlar (14 kun)</h2>
+        @if (d.Expiring.Count == 0) { <div class="empty">Yo'q.</div> }
+        else
+        {
+            <table>
+                <tr><th>Tashkilot</th><th>Paket</th><th>Tugaydi</th><th class="num">Qoldi</th></tr>
+                @foreach (var r in d.Expiring)
+                {
+                    <tr><td><a href="/Tenants/Details/@r.TenantId">@r.LegalName</a> <span class="badge @Labels.Badge(r.Status)">@Labels.Of(r.Status)</span></td>
+                        <td>@r.Plan</td><td>@r.EndDate.ToString("dd.MM.yyyy")</td>
+                        <td class="num">@(r.DaysLeft < 0 ? $"{-r.DaysLeft} kun o'tdi" : $"{r.DaysLeft} kun")</td></tr>
+                }
+            </table>
+        }
+    </div>
+</div>
+<div class="card">
+    <h2>Oylik tushum (storno qilinmagan to'lovlar, to'lov sanasi bo'yicha)</h2>
+    <svg viewBox="0 0 600 160" width="100%" height="160" role="img" aria-label="Oylik tushum">
+        @for (int i = 0; i < d.Revenue.Count; i++)
+        {
+            var r = d.Revenue[i];
+            double w = 600.0 / d.Revenue.Count;
+            double h = r.AmountTiyin * 110.0 / max;
+            <g><rect x="@(i * w + 10)" y="@(125 - h)" width="@(w - 20)" height="@Math.Max(1, h)" fill="#4f7fcf" rx="2"></rect>
+            <text x="@(i * w + w / 2)" y="@(120 - h)" text-anchor="middle" font-size="11" fill="#374151">@Money.Format(r.AmountTiyin)</text>
+            <text x="@(i * w + w / 2)" y="145" text-anchor="middle" font-size="11" fill="#6b7280">@Labels.Month(r.Month) @r.Year</text></g>
+        }
+    </svg>
+    <table>
+        <tr><th>Oy</th><th class="num">To'lovlar soni</th><th class="num">Tushum, so'm</th></tr>
+        @foreach (var r in d.Revenue.AsEnumerable().Reverse())
+        {
+            <tr><td>@Labels.Month(r.Month) @r.Year</td><td class="num">@r.Count</td><td class="num">@Money.Format(r.AmountTiyin)</td></tr>
+        }
+    </table>
+</div>

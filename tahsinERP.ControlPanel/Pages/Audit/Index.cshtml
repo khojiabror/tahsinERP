@@ -1,0 +1,26 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Audit.IndexModel
+@{ ViewData["Title"] = "Audit"; }
+<h1>Audit jurnali</h1>
+<form method="get" class="toolbar">
+    <div><label for="Entity">Obyekt</label>
+        <select id="Entity" name="Entity">
+            <option value="">Hammasi</option>
+            @foreach (var e in new[] { "Tenant", "Subscription", "Invoice", "Payment", "License", "Plan", "Server", "StaffUser" }) { <option value="@e" selected="@(Model.Entity == e)">@e</option> }
+        </select></div>
+    <div><label for="EntityId">ID</label><input id="EntityId" name="EntityId" value="@Model.EntityId" type="text" /></div>
+    <div><label for="Action">Amal (boshi)</label><input id="Action" name="Action" value="@Model.Action" type="text" placeholder="payment." /></div>
+    <button type="submit" class="secondary">Ko'rsatish</button>
+</form>
+<table>
+    <tr><th>Vaqt (UTC)</th><th>Xodim</th><th>Amal</th><th>Obyekt</th><th>Oldin</th><th>Keyin</th><th>IP</th></tr>
+    @foreach (var a in Model.Rows)
+    {
+        <tr>
+            <td>@a.AtUtc.ToString("dd.MM.yyyy HH:mm:ss")</td>
+            <td>@(a.StaffUserId is int s ? Model.StaffNames.GetValueOrDefault(s, "#" + s) : "tizim")</td>
+            <td><code>@a.Action</code></td><td>@a.Entity #@a.EntityId</td>
+            <td class="mono">@a.Before</td><td class="mono">@a.After</td><td>@a.Ip</td>
+        </tr>
+    }
+</table>

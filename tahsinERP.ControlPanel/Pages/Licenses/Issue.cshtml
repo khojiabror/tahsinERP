@@ -1,0 +1,24 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Licenses.IssueModel
+@{ ViewData["Title"] = "Kalitni qo'lda chiqarish"; }
+<h1>Kalitni qo'lda chiqarish: @Model.Tenant.LegalName</h1>
+@if (Model.Tenant.InstallationId is null)
+{
+    <div class="flash bad">Tenant hali ERP'ga bog'lanmagan (InstallationId yo'q) — avval reg_token bilan ro'yxatdan o'tsin.</div>
+}
+<form method="post" class="stack card">
+    <div asp-validation-summary="All"></div>
+    <input type="hidden" asp-for="TenantId" />
+    <div class="row">
+        <div><label asp-for="Edition">Paket (Edition)</label>
+            <select asp-for="Edition">@foreach (var p in Model.Plans) { <option value="@p.Code">@p.Code — @p.Name</option> }</select></div>
+        <div><label asp-for="MaxUsers">Foydalanuvchilar (0 = cheksiz)</label><input asp-for="MaxUsers" type="number" min="0" /></div>
+    </div>
+    <div class="row">
+        <div><label asp-for="StartDate">Boshlanish</label><input asp-for="StartDate" type="date" /></div>
+        <div><label asp-for="ExpiryDate">Tugash</label><input asp-for="ExpiryDate" type="date" /></div>
+    </div>
+    <div><label asp-for="Reason">Sabab</label><input asp-for="Reason" type="text" placeholder="masalan: on-prem shartnoma №12, 2026–2027" /></div>
+    <div class="hint">InstallationId: <code>@Model.Tenant.InstallationId</code>, CompanyID: @Model.Tenant.CompanyId. On-prem kalit ≤ 1 yil (offline kalitni qaytarib olib bo'lmaydi).</div>
+    <div class="actions"><button type="submit">Imzolash va chiqarish</button><a class="btn secondary" href="/Tenants/Details/@Model.TenantId">Bekor</a></div>
+</form>

@@ -1,0 +1,87 @@
+@model tahsinERP.Services.Crm.EDocuments.EDocumentPanelViewModel
+@using tahsinERP.Services.Crm.EDocuments
+@*
+    SF va TTNK Details'dagi "Elektron hujjat" paneli (SalesTTNK ham shu faylni ishlatadi).
+    Hujjat doim tizimda yaratiladi; tashqi EDO provayderi (Didox, Faktura.uz) web.config'dagi
+    EDoc:Provider orqali yoqilgandagina "Yuborish" tugmasi chiqadi.
+*@
+@{
+    var docTitle = Model.Kind == EDocumentKind.Invoice ? "SF" : "TTN";
+    var isLocal = EDocumentStatus.IsLocal(Model.Status);
+}
+@if (TempData["EDocSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["EDocSuccess"]</div>
+}
+@if (TempData["EDocError"] != null)
+{
+    <div class="alert alert-danger">@TempData["EDocError"]</div>
+}
+<div class="row mt-2">
+    <div class="col-12">
+        <h5 class="text-primary mb-2">Elektron hujjat (EDO)</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <span><b>Holati</b>: <span class="badge badge-@EDocumentStatus.Badge(Model.Status)">@EDocumentStatus.Title(Model.Status)</span></span><br />
+                @if (!isLocal)
+                {
+                    <span><b>Provayder</b>: @(EDocumentProviders.ByCode(Model.ExternalSystemCode)?.Title ?? Model.ExternalSystemCode)</span><br />
+                    <span><b>Tashqi ID</b>: @(Model.ExternalKey ?? "—")</span><br />
+                    <span><b>Oxirgi sinxronlash</b>: @(Model.LastSyncDT?.ToString("dd.MM.yyyy HH:mm") ?? "—")</span><br />
+                }
+                @if (!string.IsNullOrEmpty(Model.LastMessage))
+                {
+                    <span><b>Xabar</b>: @Model.LastMessage</span><br />
+                }
+            </div>
+            <div class="col-md-6">
+                <span><b>Ulangan tizim</b>: @Model.ActiveProviderTitle</span><br />
+                @if (!Model.ActiveProviderIsExternal)
+                {
+                    <small class="text-muted">@docTitle tahsinERP ichida saqlanadi. Didox yoki Faktura.uz ulanganda shu yerdan yuboriladi.</small>
+                }
+                else if (!Model.ActiveProviderConfigured)
+                {
+                    <small class="text-danger">@Model.ActiveProviderTitle tanlangan, lekin ulanish sozlamalari to'liq emas (Docs/EDocuments_Integration.md).</small>
+                }
+            </div>
+        </div>
+
+        @if (Model.Warnings.Any())
+        {
+            <div class="alert alert-warning mt-1 mb-1">
+                <b>Yuborishdan oldin to'ldirish kerak:</b>
+                <ul class="mb-0">
+                    @foreach (var w in Model.Warnings)
+                    {
+                        <li>@w</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="mt-1">
+            <a href="@Url.Action("EDocumentPayload", Model.ControllerName, new { id = Model.DocumentID })" target="_blank" class="btn btn-sm btn-outline-secondary">
+                <i class="bx bx-code-alt"></i> E-hujjat ma'lumotlari (JSON)
+            </a>
+            @if (Model.CanChange && Model.ActiveProviderIsExternal && Model.ActiveProviderConfigured && !EDocumentStatus.IsDelivered(Model.Status) && !Model.Warnings.Any())
+            {
+                using (Html.BeginForm("SendEDocument", Model.ControllerName, new { id = Model.DocumentID }, FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('@docTitle @Model.ActiveProviderTitle ga yuborilsinmi?');">
+                        <i class="bx bx-send"></i> @Model.ActiveProviderTitle ga yuborish
+                    </button>
+                }
+            }
+            @if (Model.CanChange && !isLocal && !string.IsNullOrEmpty(Model.ExternalKey))
+            {
+                using (Html.BeginForm("RefreshEDocument", Model.ControllerName, new { id = Model.DocumentID }, FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bx bx-refresh"></i> Holatni yangilash</button>
+                }
+            }
+        </div>
+    </div>
+</div>

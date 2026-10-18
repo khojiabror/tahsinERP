@@ -1,0 +1,16 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Account.TotpModel
+@{ ViewData["Title"] = "Tasdiqlash kodi"; }
+<div class="card login">
+    <h1>Tasdiqlash kodi</h1>
+    <form method="post" class="stack">
+        <div asp-validation-summary="All"></div>
+        <div>
+            <label asp-for="Code">Autentifikator ilovasidagi kod</label>
+            <input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" autofocus />
+        </div>
+        <input type="hidden" asp-for="ReturnUrl" />
+        <button type="submit">Kirish</button>
+        <p class="hint">Telefon yo'qolgan bo'lsa — Owner 2FA'ni Xodimlar sahifasida qayta tiklaydi.</p>
+    </form>
+</div>

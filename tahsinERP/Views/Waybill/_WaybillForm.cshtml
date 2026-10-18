@@ -65,7 +65,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             <label>Sana</label>
-                                            @Html.TextBoxFor(model => model.IssueDate, new { @class = "form-control", @type = "date" })
+                                            @Html.TextBoxFor(model => model.IssueDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
                                             @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
                                         </div>
                                         <div class="col-md-3">
@@ -248,14 +248,14 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label>Rejalashtirilgan yetkazish</label>
-                                            @Html.TextBoxFor(model => model.PlannedDeliveryDate, new { @class = "form-control", @type = "date" })
+                                            @Html.TextBoxFor(model => model.PlannedDeliveryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-4">
                                             <label>Haqiqiy yetkazish</label>
-                                            @Html.TextBoxFor(model => model.ActualDeliveryDate, new { @class = "form-control", @type = "date" })
+                                            @Html.TextBoxFor(model => model.ActualDeliveryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
                                         </div>
                                         <div class="col-md-8">
                                             <label>Izoh</label>

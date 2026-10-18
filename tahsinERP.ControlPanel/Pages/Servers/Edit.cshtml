@@ -1,0 +1,19 @@
+@page "{id:int?}"
+@model tahsinERP.ControlPanel.Pages.Servers.EditModel
+@{ ViewData["Title"] = Model.IsNew ? "Yangi server" : "Server"; }
+<h1>@ViewData["Title"]</h1>
+<form method="post" class="stack card">
+    <div asp-validation-summary="ModelOnly"></div>
+    <div class="row">
+        <div><label asp-for="Name">Nomi</label><input asp-for="Name" /><span asp-validation-for="Name"></span></div>
+        <div><label asp-for="Region">Hudud</label><input asp-for="Region" placeholder="ap-south-1" /></div>
+    </div>
+    <div class="row">
+        <div><label asp-for="Host">ERP host (DNS/IP)</label><input asp-for="Host" /><span asp-validation-for="Host"></span></div>
+        <div><label asp-for="SqlInstance">SQL instance</label><input asp-for="SqlInstance" placeholder="localhost\SQLEXPRESS" /><span asp-validation-for="SqlInstance"></span></div>
+    </div>
+    <div><label asp-for="MaxTenants">Ko'pi bilan tenant</label><input asp-for="MaxTenants" type="number" /></div>
+    <div><label asp-for="Notes">Izoh</label><textarea asp-for="Notes"></textarea></div>
+    <label class="check"><input asp-for="IsActive" /> Faol (yangi tenantlar joylashtirilishi mumkin)</label>
+    <div class="actions"><button type="submit">Saqlash</button><a class="btn secondary" href="/Servers">Bekor</a></div>
+</form>

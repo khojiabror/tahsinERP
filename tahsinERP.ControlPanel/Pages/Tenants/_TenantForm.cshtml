@@ -1,0 +1,51 @@
+@model (TenantInput Input, List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> Servers, bool IsNew)
+@using tahsinERP.ControlPanel.Pages.Tenants
+@{ var i = Model.Input; }
+<div class="row">
+    <div>
+        <label for="Input_Slug">Slug (subdomen)</label>
+        @if (Model.IsNew)
+        {
+            <input id="Input_Slug" name="Input.Slug" value="@i.Slug" type="text" placeholder="firma1" />
+            <div class="hint">a-z, 0-9, '-'. SaaS manzili: &lt;slug&gt;.&lt;domen&gt;. Keyin o'zgartirilmaydi. Band: admin, my, pay, www, api…</div>
+        }
+        else
+        {
+            <input id="Input_Slug" value="@i.Slug" type="text" disabled />
+        }
+    </div>
+    <div>
+        <label for="Input_Deployment">Joylashuv</label>
+        <select id="Input_Deployment" name="Input.Deployment">
+            <option value="SaaS" selected="@(i.Deployment == DeploymentKind.SaaS)">SaaS (bizning server)</option>
+            <option value="OnPrem" selected="@(i.Deployment == DeploymentKind.OnPrem)">On-prem (mijoz serveri)</option>
+        </select>
+    </div>
+</div>
+<div><label for="Input_LegalName">Yuridik nom</label><input id="Input_LegalName" name="Input.LegalName" value="@i.LegalName" type="text" /></div>
+<div class="row">
+    <div><label for="Input_Inn">STIR / JShShIR</label><input id="Input_Inn" name="Input.Inn" value="@i.Inn" type="text" maxlength="14" /></div>
+    <div><label for="Input_CompanyId">CompanyID (ERP)</label><input id="Input_CompanyId" name="Input.CompanyId" value="@i.CompanyId" type="number" /><div class="hint">Ro'yxatdan o'tishda ERP o'zi yuboradi; odatda 1.</div></div>
+</div>
+<div class="row">
+    <div><label for="Input_ContactName">Mas'ul shaxs</label><input id="Input_ContactName" name="Input.ContactName" value="@i.ContactName" type="text" /></div>
+    <div><label for="Input_Phone">Telefon</label><input id="Input_Phone" name="Input.Phone" value="@i.Phone" type="text" placeholder="+998 90 123 45 67" /></div>
+</div>
+<div class="row">
+    <div><label for="Input_Email">Email</label><input id="Input_Email" name="Input.Email" value="@i.Email" type="email" /></div>
+    <div><label for="Input_TelegramChatId">Telegram chat ID</label><input id="Input_TelegramChatId" name="Input.TelegramChatId" value="@i.TelegramChatId" type="text" /><div class="hint">Muddat eslatmalari shu chatga keladi.</div></div>
+</div>
+<div><label for="Input_Address">Manzil</label><input id="Input_Address" name="Input.Address" value="@i.Address" type="text" /></div>
+<div class="row">
+    <div><label for="Input_DbName">Baza nomi (SaaS)</label><input id="Input_DbName" name="Input.DbName" value="@i.DbName" type="text" placeholder="DB_firma1 (bo'sh bo'lsa avtomatik)" /></div>
+    <div>
+        <label for="Input_ServerId">Server</label>
+        <select id="Input_ServerId" name="Input.ServerId">
+            @foreach (var s in Model.Servers)
+            {
+                <option value="@s.Value" selected="@(s.Value == i.ServerId?.ToString())">@s.Text</option>
+            }
+        </select>
+    </div>
+</div>
+<div><label for="Input_Notes">Izoh</label><textarea id="Input_Notes" name="Input.Notes">@i.Notes</textarea></div>

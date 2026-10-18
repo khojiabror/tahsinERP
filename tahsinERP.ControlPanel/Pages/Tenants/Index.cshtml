@@ -1,0 +1,40 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Tenants.IndexModel
+@{ ViewData["Title"] = "Tashkilotlar"; }
+<h1>Tashkilotlar</h1>
+<form method="get" class="toolbar">
+    <div><label for="Q">Qidiruv</label><input id="Q" name="Q" value="@Model.Q" type="text" placeholder="nom, slug, STIR, telefon" /></div>
+    <div>
+        <label for="Status">Holat</label>
+        <select id="Status" name="Status">
+            <option value="">Arxivdan tashqari hammasi</option>
+            @foreach (var s in Enum.GetValues<TenantStatus>())
+            {
+                <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="secondary">Ko'rsatish</button>
+    @if (Model.CanSell) { <a class="btn" href="/Tenants/Create">+ Yangi tashkilot</a> }
+</form>
+<table>
+    <tr><th>Tashkilot</th><th>Slug</th><th>Joylashuv</th><th>Holat</th><th>Paket</th><th>Tugaydi</th><th class="num">Qarz, so'm</th><th>ERP</th></tr>
+    @foreach (var r in Model.Rows)
+    {
+        var t = r.Tenant;
+        <tr>
+            <td><a href="/Tenants/Details/@t.Id">@t.LegalName</a> <span class="hint">@t.Inn</span></td>
+            <td><code>@t.Slug</code></td>
+            <td>@(t.Deployment == DeploymentKind.SaaS ? "SaaS" : "On-prem")</td>
+            <td><span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></td>
+            <td>@r.Plan</td>
+            <td>@r.EndDate?.ToString("dd.MM.yyyy")</td>
+            <td class="num">@(r.DebtTiyin > 0 ? Money.Format(r.DebtTiyin) : "")</td>
+            <td>@(t.InstallationId is null ? "bog'lanmagan" : "bog'langan")</td>
+        </tr>
+    }
+</table>
+@if (Model.Rows.Count == 0)
+{
+    <div class="empty">Topilmadi.</div>
+}
