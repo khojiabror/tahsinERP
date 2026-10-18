@@ -50,6 +50,7 @@
                                         @using (Html.BeginForm("Edit", "SalesTTNK", FormMethod.Post, new { @class = "form" }))
                                         {
                                             @Html.AntiForgeryToken()
+                                            @Html.ValidationSummary(false, "", new { @class = "alert alert-danger" })
                                             @Html.HiddenFor(m => m.ID)
                                             @Html.HiddenFor(m => m.InvoiceID)
                                             @Html.HiddenFor(m => m.OrderID)
