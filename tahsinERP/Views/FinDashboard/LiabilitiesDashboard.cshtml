@@ -25,6 +25,7 @@
                 </div>
             </div>
             <div class="content-body">
+                @Html.Partial("~/Views/FinDashboard/_CurrencyWarning.cshtml")
                 <form method="get" action="@Url.Action("LiabilitiesDashboard")" class="mb-3">
                     <div class="row">
                         <div class="col-md-4">

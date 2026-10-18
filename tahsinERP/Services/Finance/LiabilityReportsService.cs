@@ -102,8 +102,11 @@ namespace tahsinERP.Services.Finance
                 .Select(g => new { Date = g.Key, Amount = g.Sum(l => l.NetSalary) })
                 .ToList();
             var paidByDate = FinQueries.PayrollPayments(db, salaryCategoryIds, DateTime.MinValue, asOf)
-                .GroupBy(t => t.TxnDate)
-                .Select(g => new { Date = g.Key, Amount = g.Sum(t => t.Amount) })
+                .GroupBy(t => new { t.TxnDate, t.CurrencyID })
+                .Select(g => new { Date = g.Key.TxnDate, g.Key.CurrencyID, Amount = g.Sum(t => t.Amount) })
+                .ToList()
+                // FIN-B01: so'mda (to'lov sanasidagi kurs)
+                .Select(x => new { x.Date, Amount = FinMoney.For(db).Uzs(x.Amount, x.CurrencyID, x.Date) })
                 .ToList();
             var payrollOpening = payroll.OpeningDate;
             var openingNet = payroll.OpeningNet;
@@ -150,7 +153,7 @@ namespace tahsinERP.Services.Finance
                 var monthsCount = FinLiabilities.AccruedMonths(startDate, asOf);
                 if (monthsCount < 1) continue;
 
-                var accrued = ob.MonthlyAmount * monthsCount;
+                var accrued = FinLiabilities.AccruedUzs(db, ob, startDate, monthsCount);
                 var paid = paidByObligation.TryGetValue(ob.ID, out var p) ? p : 0m;
                 var debt = accrued - paid;
                 if (debt <= 0) continue;
@@ -224,11 +227,8 @@ namespace tahsinERP.Services.Finance
             var months = Months(fromDate, toDate);
             var result = new LiabilitiesResult();
 
-            // Asosiy valyuta — davrdagi invoys "mirror" yozuvlari bo'yicha (avval ular faqat shu uchun to'liq yuklanardi).
-            result.CurrencyShortname = FinQueries.PrimaryCurrencyShortname(db,
-                FinQueries.Active(db)
-                    .Where(t => t.SourceDocType == FinQueries.PurchaseInvoiceMirror || t.SourceDocType == FinQueries.SalesInvoiceMirror)
-                    .InPeriod(fromDate, toDate));
+            // FIN-B01: barcha summalar so'mda
+            result.CurrencyShortname = FinMoney.For(db).BaseShortname;
 
             // AR/AP: oy oxirlari + toDate — ma'lumot bir marta yuklanadi.
             var dates = months.Select(m => m.MonthEnd).Concat(new[] { toDate }).ToList();
@@ -278,8 +278,11 @@ namespace tahsinERP.Services.Finance
                 .Select(g => new { Date = g.Key, Amount = g.Sum(l => l.NetSalary) })
                 .ToList();
             var paidByDate = FinQueries.PayrollPayments(db, FinQueries.SalaryCategoryIds(db), rangeStart, rangeEnd)
-                .GroupBy(t => t.TxnDate)
-                .Select(g => new { Date = g.Key, Amount = g.Sum(t => t.Amount) })
+                .GroupBy(t => new { t.TxnDate, t.CurrencyID })
+                .Select(g => new { Date = g.Key.TxnDate, g.Key.CurrencyID, Amount = g.Sum(t => t.Amount) })
+                .ToList()
+                // FIN-B01: so'mda (to'lov sanasidagi kurs)
+                .Select(x => new { x.Date, Amount = FinMoney.For(db).Uzs(x.Amount, x.CurrencyID, x.Date) })
                 .ToList();
             result.MonthlyPayrollLiability = months.Select(m =>
             {

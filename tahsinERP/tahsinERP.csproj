@@ -3051,6 +3051,7 @@
     <Content Include="Views\Expenses\Details.cshtml" />
     <Content Include="Views\Expenses\Edit.cshtml" />
     <Content Include="Views\Expenses\Index.cshtml" />
+    <Content Include="Views\FinDashboard\_CurrencyWarning.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheetDetails.cshtml" />
     <Content Include="Views\FinDashboard\BalanceSheet.cshtml" />
     <Content Include="Views\FinDashboard\Cashflow.cshtml" />

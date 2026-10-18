@@ -644,10 +644,10 @@
                             || document.querySelector('select[name="SupplierPayableLines[0].CurrencyID"]')
                             || document.querySelector('select[name="EmployeePayrollLines[0].CurrencyID"]');
                     }
-                    return source ? source.innerHTML : '<option value="5">USD</option>';
+                    return source ? source.innerHTML : '<option value="@Model.DefaultCurrencyID">@Model.CurrencyList.Where(c => c.Value == Model.DefaultCurrencyID.ToString()).Select(c => c.Text).FirstOrDefault()</option>';
                 }
 
-                // Yangi qator qo'shilganda valyutani ushbu sahifaning standart valyutasiga (ID=5) o'rnatadi.
+                // Yangi qator qo'shilganda valyutani sahifaning standart valyutasiga (asosiy — so'm) o'rnatadi.
                 function applyDefaultCurrency($row) {
                     if (!$row || !$row.length) return;
                     var $cur = $row.find('select[name$=".CurrencyID"]');

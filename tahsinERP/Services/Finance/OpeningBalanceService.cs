@@ -49,11 +49,13 @@ namespace tahsinERP.Services.Finance
             public int? CreatedByUserID { get; set; }
         }
 
-        /// <summary>Sahifadagi standart valyuta: ID = 5 bo'lsa shu, aks holda birinchisi.</summary>
+        /// <summary>
+        /// Sahifadagi standart valyuta — asosiy valyuta (so'm). Avval qattiq "ID = 5" edi: ba'zi bazalarda bu USD,
+        /// natijada so'mdagi opening'lar USD deb saqlanardi (FIN-B01, DataFix_Finance_OpeningCurrency).
+        /// </summary>
         public int DefaultCurrencyId()
         {
-            var id = _db.CURRENCIES.Any(c => c.ID == 5) ? 5 : _db.CURRENCIES.Select(c => c.ID).FirstOrDefault();
-            return id > 0 ? id : 5;
+            return FinMoney.BaseCurrencyIdOrFirst(_db);
         }
 
         #region Ro'yxat va o'chirish
@@ -145,8 +147,9 @@ namespace tahsinERP.Services.Finance
                 .GroupBy(s => s.CategoryID)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.CreatedDT).FirstOrDefault());
 
-            // Bu sahifada standart valyuta ID = 5 (mavjud bo'lmasa, birinchi valyuta).
-            var defaultCurrency = db.CURRENCIES.FirstOrDefault(c => c.ID == 5) ?? db.CURRENCIES.FirstOrDefault();
+            // Standart valyuta — asosiy (so'm)
+            var defaultCurrencyId = DefaultCurrencyId();
+            var defaultCurrency = db.CURRENCIES.FirstOrDefault(c => c.ID == defaultCurrencyId) ?? db.CURRENCIES.FirstOrDefault();
             var currencies = db.CURRENCIES.OrderBy(c => c.Shortname).ToList();
 
             var lookup = new FinCounterpartyLookupService(db);
@@ -157,7 +160,7 @@ namespace tahsinERP.Services.Finance
             var model = new OpeningBalanceViewModel
             {
                 SnapshotDate = date,
-                DefaultCurrencyID = defaultCurrency?.ID ?? 5,
+                DefaultCurrencyID = defaultCurrency?.ID ?? defaultCurrencyId,
                 CurrencyList = currencies.Select(c => new SelectListItem
                 {
                     Value = c.ID.ToString(),
@@ -188,7 +191,7 @@ namespace tahsinERP.Services.Finance
                     Type = cat.Type,
                     TypeName = BalanceCategoryDisplayHelper.GetSideLabel(cat),
                     Amount = snap?.Amount ?? 0,
-                    CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? 5),
+                    CurrencyID = snap?.CurrencyID ?? (defaultCurrency?.ID ?? defaultCurrencyId),
                     CurrencyShortname = snap != null
                         ? currencies.FirstOrDefault(c => c.ID == snap.CurrencyID)?.Shortname ?? defaultCurrency?.Shortname
                         : defaultCurrency?.Shortname,
@@ -335,8 +338,9 @@ namespace tahsinERP.Services.Finance
 
             var currencyIds = new HashSet<int>(db.CURRENCIES.Select(c => c.ID).ToList());
             // model.DefaultCurrencyID POST'da 0 bo'lib kelishi mumkin — bazadagi haqiqiy valyutaga tayanamiz (FK).
-            int resolvedDefaultCurrencyId = currencyIds.Contains(5)
-                ? 5
+            var baseId = DefaultCurrencyId();
+            int resolvedDefaultCurrencyId = currencyIds.Contains(baseId)
+                ? baseId
                 : (currencyIds.Contains(model.DefaultCurrencyID) ? model.DefaultCurrencyID : currencyIds.FirstOrDefault());
             Func<int, int> clampCurrency = cid => (cid > 0 && currencyIds.Contains(cid)) ? cid : resolvedDefaultCurrencyId;
 
