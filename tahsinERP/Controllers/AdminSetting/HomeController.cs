@@ -16,7 +16,7 @@ namespace tahsinERP.Controllers
 
         public ActionResult Index()
         {
-            var shortname = System.Web.HttpRuntime.Cache.Get(PrimaryCurrencyCacheKey) as string;
+            var shortname = System.Web.HttpRuntime.Cache.Get(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(PrimaryCurrencyCacheKey)) as string;
             if (shortname == null)
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -35,7 +35,7 @@ namespace tahsinERP.Controllers
                             .FirstOrDefault()
                         ?? "";
                 }
-                System.Web.HttpRuntime.Cache.Insert(PrimaryCurrencyCacheKey, shortname, null,
+                System.Web.HttpRuntime.Cache.Insert(tahsinERP.Configuration.Tenancy.TenantContext.CacheKey(PrimaryCurrencyCacheKey), shortname, null,
                     DateTime.Now.AddMinutes(30), System.Web.Caching.Cache.NoSlidingExpiration);
             }
             ViewBag.CurrencyShortname = shortname;
