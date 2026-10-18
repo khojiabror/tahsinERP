@@ -13,8 +13,6 @@ namespace tahsinERP.Services.Finance
     /// </summary>
     public static class FinLiabilities
     {
-        public const string RecurringObligationCategoryName = "Doimiy harajatlar qarzi";
-
         #region Oylik
 
         /// <summary>Hisoblangan oylik qatorlari: ApprovedDT ∈ (opening; asOf].</summary>

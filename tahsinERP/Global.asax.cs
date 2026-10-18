@@ -13,7 +13,7 @@ namespace tahsinERP
             AreaRegistration.RegisterAllAreas();
             // X-Frame-Options web.config'dagi customHeaders orqali beriladi (dublikat bo'lmasin)
             System.Web.Helpers.AntiForgeryConfig.SuppressXFrameOptionsHeader = true;
-            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters); // HandleError, Authorize, LicenseCheck, EditionCheck
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters); // HandleError, Authorize, LicenseCheck, MustChangePassword, EditionCheck
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             tahsinERP.Services.LicenseSync.LicenseSyncService.Start(); // panel URL bo'sh bo'lsa (on-prem offline) hech narsa qilmaydi

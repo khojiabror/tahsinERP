@@ -327,7 +327,8 @@
     </style>
 
     <script>
-        $(document).ready(function() {
+        // jQuery layout oxirida yuklanadi — DOMContentLoaded undan keyin keladi
+        document.addEventListener('DOMContentLoaded', function() {
             // Drag and Drop functionality
             let draggedElement = null;
             let draggedTaskId = null;
