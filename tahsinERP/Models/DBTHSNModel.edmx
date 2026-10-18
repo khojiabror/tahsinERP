@@ -1930,6 +1930,7 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="HashCode" Type="varchar" MaxLength="30" />
           <Property Name="CompanyID" Type="int" />
+          <Property Name="MustChangePassword" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="WAREHOUSE_LOCATIONS">
           <Key>
@@ -8751,6 +8752,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="HashCode" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
           <Property Name="CompanyID" Type="Int32" />
+          <Property Name="MustChangePassword" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_USERS_COMPANIES" FromRole="USERS" ToRole="COMPANIES" />
           <NavigationProperty Name="COOKIES_CONFIRMATION" Relationship="Self.FK_COOKIES_CONFIRMATION_USERS" FromRole="USERS" ToRole="COOKIES_CONFIRMATION" />
           <NavigationProperty Name="FIN_ACCOUNTS" Relationship="Self.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="USERS" ToRole="FIN_ACCOUNTS" />
@@ -15283,6 +15285,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_PLAN_VS_FACT_MONTHLY' do
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="HashCode" ColumnName="HashCode" />
                 <ScalarProperty Name="CompanyID" ColumnName="CompanyID" />
+                <ScalarProperty Name="MustChangePassword" ColumnName="MustChangePassword" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

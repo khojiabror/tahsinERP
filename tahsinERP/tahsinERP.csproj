@@ -824,6 +824,7 @@
     <Compile Include="Services\LicenseSync\LicensePanelClient.cs" />
     <Compile Include="Services\LicenseSync\LicenseSyncService.cs" />
     <Compile Include="Filters\LicenseCheckAttribute.cs" />
+    <Compile Include="Filters\MustChangePasswordAttribute.cs" />
     <Compile Include="Filters\EditionCheckAttribute.cs" />
     <Compile Include="Services\Editions\EditionGate.cs" />
     <Compile Include="Services\Editions\EditionModules.cs" />

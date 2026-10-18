@@ -153,7 +153,7 @@ function Get-Plan {
 function Invoke-OneDatabase([string]$Label, [string]$ConnStr, $Plan) {
     $result = [ordered]@{ target = $Label; applied = @(); pending = @(); status = 'ok'; exitCode = $EXIT_OK; error = $null }
     $conn = New-Object System.Data.SqlClient.SqlConnection $ConnStr
-    $conn.add_InfoMessage({ param($s, $e) foreach ($m in $e.Errors) { if ($m.Message) { Write-Log 'SQL' ("  " + $m.Message) } } })
+    $conn.add_InfoMessage({ param($s, $e) foreach ($m in $e.Errors) { if ($m.Message -and $m.Message -notlike 'Checking constraint:*') { Write-Log 'SQL' ("  " + $m.Message) } } })
     try {
         try { $conn.Open() } catch { $result.status = 'connect-failed'; $result.exitCode = $EXIT_CONNECT; $result.error = $_.Exception.Message; Write-Log 'ERROR' "[$Label] ulanib bo'lmadi: $($_.Exception.Message)"; return $result }
 
