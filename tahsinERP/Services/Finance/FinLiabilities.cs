@@ -112,9 +112,13 @@ namespace tahsinERP.Services.Finance
             }
 
             var paymentQuery = PayrollPaymentQuery(db, asOf, openingDate);
+            // FIN-B01: to'lovlar so'mda (to'lov kunidagi kurs)
+            var money = FinMoney.For(db);
             var payments = paymentQuery
-                .GroupBy(t => t.CounterpartyType == 6 ? t.CounterpartyID : null)
-                .Select(g => new { EmployeeID = g.Key, Amount = g.Sum(t => t.Amount) })
+                .GroupBy(t => new { EmployeeID = t.CounterpartyType == 6 ? t.CounterpartyID : null, t.CurrencyID, Day = DbFunctions.TruncateTime(t.TxnDate) })
+                .Select(g => new { g.Key.EmployeeID, g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(t => t.Amount) })
+                .ToList()
+                .Select(x => new { x.EmployeeID, Amount = money.Uzs(x.Amount, x.CurrencyID, x.Day.Value) })
                 .ToList();
             decimal unattributed = 0m;
             foreach (var p in payments)
@@ -200,10 +204,13 @@ namespace tahsinERP.Services.Finance
                 var f = fromExclusive.Value;
                 q = q.Where(t => t.TxnDate > f);
             }
-            return q.GroupBy(t => t.SourceDocID.Value)
-                .Select(g => new { ID = g.Key, Paid = g.Sum(t => t.Amount) })
+            // FIN-B01: so'mda (to'lov kunidagi kurs)
+            var money = FinMoney.For(db);
+            return q.GroupBy(t => new { ID = t.SourceDocID.Value, t.CurrencyID, Day = DbFunctions.TruncateTime(t.TxnDate) })
+                .Select(g => new { g.Key.ID, g.Key.CurrencyID, g.Key.Day, Paid = g.Sum(t => t.Amount) })
                 .ToList()
-                .ToDictionary(x => x.ID, x => x.Paid);
+                .GroupBy(x => x.ID)
+                .ToDictionary(g => g.Key, g => g.Sum(x => money.Uzs(x.Paid, x.CurrencyID, x.Day.Value)));
         }
 
         public static int AccruedMonths(DateTime startMonth, DateTime endDate)
@@ -238,7 +245,10 @@ namespace tahsinERP.Services.Finance
                 var monthsCount = AccruedMonths(effectiveStart, endDate);
                 if (monthsCount < 1) continue;
 
-                var accrued = ob.MonthlyAmount * monthsCount;
+                // FIN-B01: har oy hisobi o'sha oy boshidagi kurs bilan so'mda
+                decimal accrued = 0m;
+                for (int m = 0; m < monthsCount; m++)
+                    accrued += FinMoney.For(db).Uzs(ob.MonthlyAmount, ob.CurrencyID, new DateTime(effectiveStart.Year, effectiveStart.Month, 1).AddMonths(m));
                 var paid = paidById.TryGetValue(ob.ID, out var p) ? p : 0m;
                 result.Accrued += accrued;
                 result.Paid += paid;
