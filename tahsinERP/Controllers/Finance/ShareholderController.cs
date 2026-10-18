@@ -7,6 +7,8 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Controllers;
+using tahsinERP.Services;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -410,21 +412,10 @@ namespace tahsinERP.Controllers.Finance
 
         private int GetContributionCategoryID(DBTHSNEntities db)
         {
-            // Find yoki yaratish a category uchun shareholder contributions
-            var category = db.FIN_CATEGORIES
-                .FirstOrDefault(c => c.Name.Contains("Aksiyador") && c.Type == 1 && c.IsActive);
-
-            if (category == null)
+            // Aksiyador hissalari — SHAREHOLDER_CONTRIBUTION tizim kategoriyasi (yo'q bo'lsa yaratiladi)
+            var category = FinancePostingService.EnsureSystemCategory(db, SystemCodes.FinCategory.ShareholderContribution, "Aksiyador hissalari", 1);
+            if (category.ID == 0 || db.Entry(category).State != System.Data.Entity.EntityState.Unchanged)
             {
-                // Yaratish standart category agar not mavjud
-                category = new FIN_CATEGORIES
-                {
-                    Name = "Aksiyador hissalari",
-                    Type = 1, // Income
-                    IsActive = true,
-                    SortOrder = 999
-                };
-                db.FIN_CATEGORIES.Add(category);
                 db.SaveChanges(); // ID kerak; chaqiruvchining DB tranzaksiyasi ichida
             }
 

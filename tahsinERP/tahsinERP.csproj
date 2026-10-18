@@ -327,6 +327,7 @@
     <Compile Include="Controllers\MES\QualityInspectionController.cs" />
     <Compile Include="Controllers\OfficialLettersController.cs" />
     <Compile Include="Controllers\Settings\CompanyController.cs" />
+    <Compile Include="Controllers\Settings\BrandingController.cs" />
     <Compile Include="Controllers\Settings\CurrencyController.cs" />
     <Compile Include="Controllers\Settings\UnitController.cs" />
     <Compile Include="Controllers\AdminSetting\LogController.cs" />
@@ -827,6 +828,7 @@
     <Compile Include="Services\LicenseSync\LicensePanelClient.cs" />
     <Compile Include="Services\LicenseSync\LicenseSyncService.cs" />
     <Compile Include="Filters\LicenseCheckAttribute.cs" />
+    <Compile Include="Filters\MustChangePasswordAttribute.cs" />
     <Compile Include="Filters\EditionCheckAttribute.cs" />
     <Compile Include="Services\Editions\EditionGate.cs" />
     <Compile Include="Services\Editions\EditionModules.cs" />
@@ -931,6 +933,8 @@
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
+    <Compile Include="Services\Common\SystemCodes.cs" />
+    <Compile Include="Services\Common\BrandingService.cs" />
     <Compile Include="Services\UserActionLogger.cs" />
     <Compile Include="Services\UserManualProvider.cs" />
     <Compile Include="Services\LogisticsMonthlyReportService.cs" />

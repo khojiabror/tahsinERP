@@ -8,6 +8,7 @@ using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -295,6 +296,10 @@ namespace tahsinERP.Controllers.Finance
                 var category = db.FIN_CATEGORIES.Find(id);
                 if (category != null)
                 {
+                    // Tizim kategoriyasi (SystemCode) — hisobotlar unga bog'langan, o'chirilmaydi
+                    if (SystemCodes.IsSystem(category.SystemCode))
+                        return RedirectToAction("Delete", new { id });
+
                     // Soft o'chirish
                     category.IsActive = false;
                     db.SaveChanges();
