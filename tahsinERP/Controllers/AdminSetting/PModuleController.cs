@@ -18,6 +18,32 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class PModuleController : Controller
     {
+        // Controller turlari ilova davomida o'zgarmaydi — reflection bir marta (CORE-P16)
+        private static readonly Lazy<List<Type>> ControllerTypes = new Lazy<List<Type>>(() =>
+            Assembly.GetExecutingAssembly().GetTypes()
+                .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
+                .ToList());
+
+        private static List<string> ControllerNames()
+        {
+            return ControllerTypes.Value
+                .Select(type => type.Name.Replace("Controller", ""))
+                .OrderBy(c => c)
+                .ToList();
+        }
+
+        // Action: NonAction emas va ActionResult (yoki Task<ActionResult>) qaytaradi — JsonResult,
+        // FileResult va boshqa hosilalar ham (avval operator ustuvorligi xatosi bor edi, CORE-B07)
+        private static bool IsActionMethod(MethodInfo m)
+        {
+            if (m.IsDefined(typeof(NonActionAttribute)) || m.IsSpecialName)
+                return false;
+            var returnType = m.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+                returnType = returnType.GetGenericArguments()[0];
+            return typeof(ActionResult).IsAssignableFrom(returnType);
+        }
+
         private static bool IsAdminRole(string roleName)
         {
             return string.Equals(roleName, "Admin", System.StringComparison.OrdinalIgnoreCase)
@@ -87,11 +113,7 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            var allControllers = Assembly.GetExecutingAssembly().GetTypes()
-                .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
-                .Select(type => type.Name.Replace("Controller", ""))
-                .OrderBy(c => c)
-                .ToList();
+            var allControllers = ControllerNames();
 
             using (var db = new DBTHSNEntities())
             {
@@ -242,7 +264,9 @@ namespace tahsinERP.Controllers
                         var controllerValue = permissions.Controller?.Trim();
                         var actionValue = string.IsNullOrWhiteSpace(permissions.Action) ? null : permissions.Action.Trim();
                         
+                        // Butun jadvalni emas, faqat shu controller'ning qatorlarini yuklaymiz
                         var existing = await db.PERMISSIONMODULES
+                            .Where(pm => pm.Controller.Trim() == controllerValue)
                             .ToListAsync();
                         
                         var existingMatch = existing.FirstOrDefault(pm => 
@@ -325,15 +349,13 @@ namespace tahsinERP.Controllers
                     return Json(new List<string>());
                 }
 
-                var controllerType = Assembly.GetExecutingAssembly().GetTypes()
-                    .FirstOrDefault(type => type.Name == $"{controller}Controller" && typeof(Controller).IsAssignableFrom(type));
+                var controllerType = ControllerTypes.Value
+                    .FirstOrDefault(type => type.Name == $"{controller}Controller");
 
                 if (controllerType != null)
                 {
                     var actions = controllerType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public)
-                        .Where(m => !m.IsDefined(typeof(NonActionAttribute)) && 
-                                    m.ReturnType == typeof(ActionResult) || 
-                                    m.ReturnType == typeof(Task<ActionResult>))
+                        .Where(IsActionMethod)
                         .Select(m => m.Name)
                         .Distinct()
                         .OrderBy(a => a)
@@ -673,11 +695,7 @@ namespace tahsinERP.Controllers
         /// </summary>
         private List<SelectListItem> GetAllControllerNames()
         {
-            var controllers = Assembly.GetExecutingAssembly().GetTypes()
-                .Where(type => typeof(Controller).IsAssignableFrom(type) && !type.IsAbstract)
-                .Select(type => type.Name.Replace("Controller", ""))
-                .OrderBy(c => c)
-                .ToList();
+            var controllers = ControllerNames();
 
             return controllers.Select(c => new SelectListItem { Text = c, Value = c }).ToList();
         }
