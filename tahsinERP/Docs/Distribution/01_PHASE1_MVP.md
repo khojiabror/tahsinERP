@@ -218,3 +218,15 @@ Umumiy tuzatishlar:
 Testlar: 120/120 (yangi: narx qoidalari, birliklar, STIR/telefon/GPS/shtrix-kod, hudud, tashrif kunlari, decimal parsing, resx kalitlari to'liqligi; integratsiya — har DbSet ↔ sxema, faqat-o'qish himoyasi, mijoz saqlash + audit, narx aniqlash, Excel import tekshirish rejimi va xato qatorlari).
 
 Tekshirilmagan: sahifalar brauzerda ochilmadi — test bazasida litsenziya yo'q (kalit RSA bilan imzolanadi, chetlab o'tilmadi). View'lar `aspnet_compiler` bilan kompilyatsiya qilib tekshirildi.
+
+## 12. S2 — boshlangan (WIP, 2026-10-19)
+
+Tayyor (kompilyatsiyaga hali ulanmagan, csproj'da yo'q): `Database/Migrations/017_DST_Orders.sql` (lokal bazada QO'LLANMAGAN), `Data/Entities/OrderEntities.cs`, `Services/Orders/OrderRules.cs` (holat mashinasi, hisob-kitob, limit/chegirma/min narx qoidalari). Qoldi: DbSet + model sozlamasi (decimal aniqliklari), `OrderService` (yaratish, tasdiqlash + rezerv `sp_getapplock`, jo'natish, bekor), web sahifalar (`DstOrders`, `DstStock`), chop etish, resx kalitlari (`Order_*`, `OrderStatus_*`, `Credit_*`, `Discount_OverLimit`, `MinPrice_Violation`), testlar.
+
+Ombor API (jo'natish shu orqali, `DistributionUnitOfWork.Erp` va uning tranzaksiyasida):
+- `DecreaseSalesStock` ISHLATILMAYDI (omborni tanlab bo'lmaydi, narx shartnomadan). Andoza — `Services/Stock/ExpenseDocumentService.PostLinesAsync`.
+- `EXPENS` (DocNo, SenderWHID, IssueDateTime, CurrencyID, IsDeleted=false, SendStatus=true, Description'da `DocumentMarkers` URL belgisi) + `EXPENSE_PRODUCTS` → SaveChanges → `StockLedger.IssueLine(db, wh, product, qty(double), unitId, expenseProductId)` → `StockCostService.IssuedLineUnitCost(...)` → PiecePrice.
+- Bekor: `StockLedger.ReverseIssueLine(...)` keyin EXPENSE_PRODUCTS/EXPENSES o'chiriladi (namuna `WarehouseFlowService.RollbackSalesInvoiceStockAndDeleteAutoExpenses`).
+- Qaytarish kirimi (S3): `INCOME` + `INCOME_PRODUCTS` (PiecePrice = chiqim tannarxi) → `StockLedger.ReceiveLine(...)`; bekor — `ReverseIncomeReceipt`.
+- Hujjat raqami: `DocumentNumberService.Next(db, table, column, prefix, pad)` — `db.Database.CurrentTransaction` talab qiladi (UoW'da UseTransaction bilan bor).
+- Moliya: `FinancePostingService.PostSalesInvoice` namunasi (RECEIVABLES_{valyuta} hisobi, SALES kategoriyasi).
