@@ -5,12 +5,12 @@ namespace tahsinERP.ViewModels
         public string FromLocation { get; set; }
         public string ToLocation { get; set; }
         public int TripCount { get; set; }
-        public double TotalTonnage { get; set; }
-        public double TotalCBM { get; set; }
-        public double TotalCost { get; set; }
-        public double TotalDistance { get; set; }
-        public double AvgCostPerTon { get; set; }
-        public double AvgCostPerKm { get; set; }
+        public decimal TotalTonnage { get; set; }
+        public decimal TotalCBM { get; set; }
+        public decimal TotalCost { get; set; }
+        public decimal TotalDistance { get; set; }
+        public decimal AvgCostPerTon { get; set; }
+        public decimal AvgCostPerKm { get; set; }
         public string MainForwarder { get; set; }
     }
 }

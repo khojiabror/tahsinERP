@@ -34,7 +34,7 @@ namespace tahsinERP.Services
 
         public const string FinSourceDocType = "WaybillPayment";
 
-        private const double Epsilon = 0.005;
+        private const decimal Epsilon = 0.005m;
 
         // ---------------------------------------------------------------- bazaviy so'rovlar
 
@@ -70,7 +70,7 @@ namespace tahsinERP.Services
         /// LOG-B13: natija yo'l varaqasi valyutasida — boshqa valyutadagi to'lov to'lov sanasidagi kurs bilan
         /// o'giriladi (kurs topilmasa qo'shilmaydi, <paramref name="money"/>.Warning).
         /// </remarks>
-        public static Dictionary<int, double> GetPaidLookup(DBTHSNEntities db, IQueryable<int> waybillIds,
+        public static Dictionary<int, decimal> GetPaidLookup(DBTHSNEntities db, IQueryable<int> waybillIds,
             int? excludePaymentId = null, LogisticsMoney money = null)
         {
             var direct = db.F_WAYBILL_PAYMENTS
@@ -107,10 +107,10 @@ namespace tahsinERP.Services
                          })
                 .ToList();
 
-            var result = new Dictionary<int, double>();
+            var result = new Dictionary<int, decimal>();
             foreach (var item in direct.Concat(split))
             {
-                double? amount = item.Amount;
+                decimal? amount = item.Amount;
                 if (item.CurrencyID.HasValue && item.WaybillCurrencyID.HasValue && item.CurrencyID != item.WaybillCurrencyID)
                 {
                     money = money ?? new LogisticsMoney(db);
@@ -118,7 +118,7 @@ namespace tahsinERP.Services
                     if (!amount.HasValue) continue;
                 }
 
-                double current;
+                decimal current;
                 result.TryGetValue(item.WaybillID, out current);
                 result[item.WaybillID] = current + amount.Value;
             }
@@ -131,29 +131,29 @@ namespace tahsinERP.Services
             public int? WaybillCurrencyID { get; set; }
             public int? CurrencyID { get; set; }
             public DateTime? Day { get; set; }
-            public double Amount { get; set; }
+            public decimal Amount { get; set; }
         }
 
         /// <summary>Kichik ro'yxat (sahifa, tanlangan yo'l varaqalari) uchun.</summary>
-        public static Dictionary<int, double> GetPaidLookup(DBTHSNEntities db, ICollection<int> waybillIds,
+        public static Dictionary<int, decimal> GetPaidLookup(DBTHSNEntities db, ICollection<int> waybillIds,
             int? excludePaymentId = null, LogisticsMoney money = null)
         {
             if (waybillIds == null || waybillIds.Count == 0)
-                return new Dictionary<int, double>();
+                return new Dictionary<int, decimal>();
             var ids = waybillIds.Distinct().ToList();
             return GetPaidLookup(db, db.F_WAYBILLS.Where(w => ids.Contains(w.ID)).Select(w => w.ID), excludePaymentId, money);
         }
 
-        public static double GetPaidTotal(DBTHSNEntities db, int waybillId, int? excludePaymentId = null, LogisticsMoney money = null)
+        public static decimal GetPaidTotal(DBTHSNEntities db, int waybillId, int? excludePaymentId = null, LogisticsMoney money = null)
         {
-            double paid;
+            decimal paid;
             GetPaidLookup(db, new[] { waybillId }, excludePaymentId, money).TryGetValue(waybillId, out paid);
             return paid;
         }
 
-        public static double PaidOf(IDictionary<int, double> lookup, int waybillId)
+        public static decimal PaidOf(IDictionary<int, decimal> lookup, int waybillId)
         {
-            double paid;
+            decimal paid;
             return lookup != null && lookup.TryGetValue(waybillId, out paid) ? paid : 0;
         }
 
@@ -173,7 +173,7 @@ namespace tahsinERP.Services
 
         // ---------------------------------------------------------------- to'lov holati
 
-        public static WaybillPaymentStatus StatusOf(double amount, double paid)
+        public static WaybillPaymentStatus StatusOf(decimal amount, decimal paid)
         {
             var outstanding = amount - paid;
             if (outstanding <= Epsilon) return WaybillPaymentStatus.Paid;
@@ -235,10 +235,10 @@ namespace tahsinERP.Services
         /// LOG-B13: taqsimot to'lov valyutasida — yo'l varaqasi qoldig'i to'lov sanasidagi kurs bilan
         /// to'lov valyutasiga o'giriladi (kurs bo'lishi ValidatePayment'da tekshiriladi).
         /// </remarks>
-        public static Dictionary<int, double> Allocate(DBTHSNEntities db, IList<int> waybillIds, double paymentAmount, int? paymentId,
+        public static Dictionary<int, decimal> Allocate(DBTHSNEntities db, IList<int> waybillIds, decimal paymentAmount, int? paymentId,
             int? paymentCurrencyId = null, DateTime? paymentDate = null)
         {
-            var result = new Dictionary<int, double>();
+            var result = new Dictionary<int, decimal>();
             if (waybillIds == null || waybillIds.Count == 0 || paymentAmount <= 0)
                 return result;
 
@@ -271,13 +271,15 @@ namespace tahsinERP.Services
 
             if (remaining > Epsilon)
             {
-                // Ortiqcha summa (avans) tanlangan yo'l varaqalariga teng bo'linadi
-                var per = remaining / existing.Count;
-                foreach (var id in existing)
+                // Ortiqcha summa (avans) tanlangan yo'l varaqalariga teng bo'linadi; ustun decimal(19,4) —
+                // ulush 4 xonaga yaxlitlanadi, qoldiq oxirgisiga (split'lar jami to'lovga aynan teng bo'lsin)
+                var per = Math.Round(remaining / existing.Count, 4, MidpointRounding.AwayFromZero);
+                for (int i = 0; i < existing.Count; i++)
                 {
-                    double current;
+                    var id = existing[i];
+                    decimal current;
                     result.TryGetValue(id, out current);
-                    result[id] = current + per;
+                    result[id] = current + (i == existing.Count - 1 ? remaining - per * (existing.Count - 1) : per);
                 }
             }
 
@@ -290,7 +292,7 @@ namespace tahsinERP.Services
         /// To'lov (<paramref name="paymentId"/>) allaqachon bazada bo'lishi kerak.
         /// </summary>
         public static void ReplacePaymentSplits(DBTHSNEntities db, int paymentId, IList<int> waybillIds,
-            double paymentAmount, int? currencyId, string comment, DateTime? paymentDate)
+            decimal paymentAmount, int? currencyId, string comment, DateTime? paymentDate)
         {
             var oldSplits = db.F_WAYBILL_PAYMENT_SPLITS
                 .Where(s => s.PayerType == SplitPayerType && s.PayerID == paymentId)
@@ -442,15 +444,15 @@ namespace tahsinERP.Services
     public sealed class ForwarderBalance
     {
         public int ForwarderID { get; set; }
-        public double FreightBefore { get; set; }
-        public double FreightInPeriod { get; set; }
-        public double PaidBefore { get; set; }
-        public double PaidInPeriod { get; set; }
+        public decimal FreightBefore { get; set; }
+        public decimal FreightInPeriod { get; set; }
+        public decimal PaidBefore { get; set; }
+        public decimal PaidInPeriod { get; set; }
         public int TripsInPeriod { get; set; }
 
-        public double OpeningDebt => FreightBefore - PaidBefore;
-        public double ClosingDebt => OpeningDebt + FreightInPeriod - PaidInPeriod;
-        public double TotalFreight => FreightBefore + FreightInPeriod;
-        public double TotalPaid => PaidBefore + PaidInPeriod;
+        public decimal OpeningDebt => FreightBefore - PaidBefore;
+        public decimal ClosingDebt => OpeningDebt + FreightInPeriod - PaidInPeriod;
+        public decimal TotalFreight => FreightBefore + FreightInPeriod;
+        public decimal TotalPaid => PaidBefore + PaidInPeriod;
     }
 }

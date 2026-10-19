@@ -4,10 +4,10 @@ namespace tahsinERP.ViewModels
     {
         public int WaybillID { get; set; }
         public string WaybillNo { get; set; }
-        public double Amount { get; set; }
-        public double Paid { get; set; }
-        public double Outstanding { get; set; }
-        public double Allocated { get; set; }
+        public decimal Amount { get; set; }
+        public decimal Paid { get; set; }
+        public decimal Outstanding { get; set; }
+        public decimal Allocated { get; set; }
         public string Currency { get; set; }
     }
 }

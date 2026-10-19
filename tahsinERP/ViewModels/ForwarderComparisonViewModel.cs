@@ -6,16 +6,16 @@ namespace tahsinERP.ViewModels
         public int? ForwarderID { get; set; }
         public string ForwarderName { get; set; }
         public int TripCount { get; set; }
-        public double TotalCost { get; set; }
-        public double TotalTonnage { get; set; }
-        public double TotalDistance { get; set; }
-        public double AvgCostPerTon { get; set; }
-        public double AvgCostPerKm { get; set; }
+        public decimal TotalCost { get; set; }
+        public decimal TotalTonnage { get; set; }
+        public decimal TotalDistance { get; set; }
+        public decimal AvgCostPerTon { get; set; }
+        public decimal AvgCostPerKm { get; set; }
         public int OnTimeDeliveries { get; set; }
         public int TotalDeliveries { get; set; }
         public double OTIFPercentage { get; set; }
 
         /// <summary>Dashboard uchun: to'langan summa (WaybillLedgerService).</summary>
-        public double TotalPaid { get; set; }
+        public decimal TotalPaid { get; set; }
     }
 }

@@ -85,7 +85,7 @@ namespace tahsinERP.Controllers
                 foreach (var stat in forwarderStats)
                 {
                     var fid = stat.ForwarderID.Value;
-                    double paid, fin;
+                    decimal paid, fin;
                     paidUzsByForwarder.TryGetValue(fid, out paid);
                     finByForwarder.TryGetValue(fid, out fin);
                     stat.TotalPaid = paid + fin;
@@ -204,7 +204,7 @@ namespace tahsinERP.Controllers
                         DocumentNo = i.InvoiceNo,
                         PartyName = i.CUSTOMER.Name,
                         Date = i.InvoiceDate,
-                        Amount = (double)i.TotalAmount,
+                        Amount = i.TotalAmount,
                         Currency = i.CURRENCy.Shortname
                     })
                     .ToListAsync();

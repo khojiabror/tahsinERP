@@ -18,20 +18,20 @@ namespace tahsinERP.ViewModels
         public int InternalTrips { get; set; }
         
         // Cargo statistics
-        public double TotalTonnage { get; set; }
-        public double TotalCBM { get; set; }
-        public double TotalNetWeight { get; set; }
+        public decimal TotalTonnage { get; set; }
+        public decimal TotalCBM { get; set; }
+        public decimal TotalNetWeight { get; set; }
         
         // Cost statistics
-        public double TotalCost { get; set; }
-        public double UnpaidAmount { get; set; }
-        public double PaidAmount { get; set; }
+        public decimal TotalCost { get; set; }
+        public decimal UnpaidAmount { get; set; }
+        public decimal PaidAmount { get; set; }
         
         // Performance metrics
-        public double AverageCostPerKm { get; set; }
-        public double AverageCostPerTon { get; set; }
-        public double AverageCostPerTrip { get; set; }
-        public double AverageCostPerCBM { get; set; }
+        public decimal AverageCostPerKm { get; set; }
+        public decimal AverageCostPerTon { get; set; }
+        public decimal AverageCostPerTrip { get; set; }
+        public decimal AverageCostPerCBM { get; set; }
         
         // OTIF (On Time In Full) performance
         public int OnTimeDeliveries { get; set; }

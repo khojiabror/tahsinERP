@@ -22,8 +22,8 @@ namespace tahsinERP.Models
         public string ToCity { get; set; }
         public Nullable<int> TransportTypeID { get; set; }
         public byte FreightBasis { get; set; }
-        public double Rate { get; set; }
-        public Nullable<double> MinimumCharge { get; set; }
+        public decimal Rate { get; set; }
+        public Nullable<decimal> MinimumCharge { get; set; }
         public Nullable<int> CurrencyID { get; set; }
         public bool IsActive { get; set; }
         public string Description { get; set; }
