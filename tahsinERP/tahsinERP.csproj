@@ -779,6 +779,7 @@
     <Compile Include="Helpers\DocFileAccess.cs" />
     <Compile Include="Helpers\LayoutBadges.cs" />
     <Compile Include="Helpers\ModelStateExtensions.cs" />
+    <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
@@ -2895,6 +2896,7 @@
     <Content Include="Views\User\Details.cshtml" />
     <Content Include="Views\Account\Settings.cshtml" />
     <Content Include="Views\Shared\_UserProfile.cshtml" />
+    <Content Include="Views\Shared\_HeaderUserName.cshtml" />
     <Content Include="Views\User\Delete.cshtml" />
     <Content Include="Views\PModule\Index.cshtml" />
     <Content Include="Views\PModule\Create.cshtml" />

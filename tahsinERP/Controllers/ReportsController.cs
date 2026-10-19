@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using tahsinERP.ViewModels.Reports;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers
 {
@@ -31,10 +32,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var warehouses = await db.WAREHOUSES
-                    .Where(w => w.IsDeleted != true)
-                    .OrderBy(w => w.WHName)
-                    .ToListAsync();
+                var warehouses = ReferenceDataCache.Get(ReferenceDataCache.Warehouses).OrderBy(w => w.Name).ToList();
 
                 if (!warehouses.Any())
                 {
@@ -62,12 +60,7 @@ namespace tahsinERP.Controllers
                     var emptyModel = new SRMABCSegmentationViewModel
                     {
                         SelectedWarehouseId = selectedWarehouseId,
-                        Warehouses = warehouses.Select(w => new SelectListItem
-                        {
-                            Value = w.ID.ToString(),
-                            Text = w.WHName,
-                            Selected = w.ID == selectedWarehouseId
-                        }).ToList(),
+                        Warehouses = WarehouseItems(warehouses, selectedWarehouseId),
                         FromDate = from,
                         ToDate = to,
                         Items = new List<SRMABCItemViewModel>()
@@ -105,21 +98,9 @@ namespace tahsinERP.Controllers
                     productDict.TryGetValue(pid, out var p);
 
                     // Daily demand statistics
-                    var dailyValues = Enumerable.Range(0, days)
-                        .Select(offset =>
-                        {
-                            var d = from.AddDays(offset);
-                            return v.Daily.ContainsKey(d) ? v.Daily[d] : 0.0;
-                        })
-                        .ToList();
-
+                    var dailyValues = DailySeries(v.Daily, from, days);
                     var avg = dailyValues.Average();
-                    double std = 0;
-                    if (dailyValues.Count > 1)
-                    {
-                        var variance = dailyValues.Average(x => Math.Pow(x - avg, 2));
-                        std = Math.Sqrt(variance);
-                    }
+                    var std = StdDev(dailyValues, avg);
 
                     var cov = avg > 0 ? std / avg : 0;
 
@@ -144,26 +125,14 @@ namespace tahsinERP.Controllers
                     item.SharePercent = share;
                     item.CumSharePercent = cum;
 
-                    if (cum <= 80) item.ABCClass = "A";
-                    else if (cum <= 95) item.ABCClass = "B";
-                    else item.ABCClass = "C";
-
-                    // XYZ by CoV
-                    var cov = item.CoefficientOfVariation;
-                    if (cov <= 0.1) item.XYZClass = "X";
-                    else if (cov <= 0.25) item.XYZClass = "Y";
-                    else item.XYZClass = "Z";
+                    item.ABCClass = AbcClass(cum);
+                    item.XYZClass = XyzClass(item.CoefficientOfVariation);
                 }
 
                 var model = new SRMABCSegmentationViewModel
                 {
                     SelectedWarehouseId = selectedWarehouseId,
-                    Warehouses = warehouses.Select(w => new SelectListItem
-                    {
-                        Value = w.ID.ToString(),
-                        Text = w.WHName,
-                        Selected = w.ID == selectedWarehouseId
-                    }).ToList(),
+                    Warehouses = WarehouseItems(warehouses, selectedWarehouseId),
                     FromDate = from,
                     ToDate = to,
                     Items = orderedByValue
@@ -187,10 +156,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var warehouses = await db.WAREHOUSES
-                    .Where(w => w.IsDeleted != true)
-                    .OrderBy(w => w.WHName)
-                    .ToListAsync();
+                var warehouses = ReferenceDataCache.Get(ReferenceDataCache.Warehouses).OrderBy(w => w.Name).ToList();
 
                 if (!warehouses.Any())
                 {
@@ -278,23 +244,11 @@ namespace tahsinERP.Controllers
                     if (!productIds.Contains(pid)) continue;
                     var dailyDict = kvp.Value;
 
-                    var dailyValues = Enumerable.Range(0, days)
-                        .Select(offset =>
-                        {
-                            var d = from.AddDays(offset);
-                            return dailyDict.ContainsKey(d) ? dailyDict[d] : 0.0;
-                        })
-                        .ToList();
-
+                    var dailyValues = DailySeries(dailyDict, from, days);
                     var avg = dailyValues.Average();
                     if (avg <= 0) continue; // talab yo'q bo'lsa hisoblash shart emas
 
-                    double std = 0;
-                    if (dailyValues.Count > 1)
-                    {
-                        var variance = dailyValues.Average(x => Math.Pow(x - avg, 2));
-                        std = Math.Sqrt(variance);
-                    }
+                    var std = StdDev(dailyValues, avg);
 
                     var safety = z * std * Math.Sqrt(leadTimeDays);
                     var reorderPoint = avg * leadTimeDays + safety;
@@ -328,12 +282,7 @@ namespace tahsinERP.Controllers
                 var model = new SRMSafetyStockViewModel
                 {
                     SelectedWarehouseId = selectedWarehouseId,
-                    Warehouses = warehouses.Select(w => new SelectListItem
-                    {
-                        Value = w.ID.ToString(),
-                        Text = w.WHName,
-                        Selected = w.ID == selectedWarehouseId
-                    }).ToList(),
+                    Warehouses = WarehouseItems(warehouses, selectedWarehouseId),
                     CategoryId = categoryId,
                     Categories = new[]
                     {
@@ -369,10 +318,7 @@ namespace tahsinERP.Controllers
 
             using (var db = new DBTHSNEntities())
             {
-                var warehouses = await db.WAREHOUSES
-                    .Where(w => w.IsDeleted != true)
-                    .OrderBy(w => w.WHName)
-                    .ToListAsync();
+                var warehouses = ReferenceDataCache.Get(ReferenceDataCache.Warehouses).OrderBy(w => w.Name).ToList();
 
                 if (!warehouses.Any())
                 {
@@ -492,21 +438,9 @@ namespace tahsinERP.Controllers
                     var pid = kvp.Key;
                     var dailyDict = kvp.Value;
 
-                    var dailyValues = Enumerable.Range(0, days)
-                        .Select(offset =>
-                        {
-                            var d = from.AddDays(offset);
-                            return dailyDict.ContainsKey(d) ? dailyDict[d] : 0.0;
-                        })
-                        .ToList();
-
+                    var dailyValues = DailySeries(dailyDict, from, days);
                     var avg = dailyValues.Average();
-                    double std = 0;
-                    if (dailyValues.Count > 1)
-                    {
-                        var variance = dailyValues.Average(x => Math.Pow(x - avg, 2));
-                        std = Math.Sqrt(variance);
-                    }
+                    var std = StdDev(dailyValues, avg);
 
                     var totalDemand = dailyValues.Sum();
                     var cov = avg > 0 ? std / avg : 0;
@@ -539,14 +473,8 @@ namespace tahsinERP.Controllers
                     item.SharePercent = share;
                     item.CumSharePercent = cumShare;
 
-                    if (cumShare <= 80) item.ABCClass = "A";
-                    else if (cumShare <= 95) item.ABCClass = "B";
-                    else item.ABCClass = "C";
-
-                    var cov = item.CoefficientOfVariation;
-                    if (cov <= 0.1) item.XYZClass = "X";
-                    else if (cov <= 0.25) item.XYZClass = "Y";
-                    else item.XYZClass = "Z";
+                    item.ABCClass = AbcClass(cumShare);
+                    item.XYZClass = XyzClass(item.CoefficientOfVariation);
                 }
 
                 var demandLookup = orderedByDemand.ToDictionary(i => i.ProductId);
@@ -830,12 +758,7 @@ namespace tahsinERP.Controllers
                 var model = new SRMCoverageViewModel
                 {
                     SelectedWarehouseId = selectedWarehouseId,
-                    Warehouses = warehouses.Select(w => new SelectListItem
-                    {
-                        Value = w.ID.ToString(),
-                        Text = w.WHName,
-                        Selected = w.ID == selectedWarehouseId
-                    }).ToList(),
+                    Warehouses = WarehouseItems(warehouses, selectedWarehouseId),
                     CategoryId = categoryId,
                     Categories = new[]
                         {
@@ -881,6 +804,45 @@ namespace tahsinERP.Controllers
             public int ProductID { get; set; }
             public DateTime Date { get; set; }
             public double Amount { get; set; }
+        }
+
+        // --- Talab statistikasi (ABC, SafetyStock, Coverage uchun umumiy; avval har birida ko'chirilgan) ---
+
+        /// <summary>Davrdagi har kun uchun talab (yo'q kunlar 0).</summary>
+        private static List<double> DailySeries(IDictionary<DateTime, double> daily, DateTime from, int days)
+        {
+            return Enumerable.Range(0, days)
+                .Select(offset => daily.TryGetValue(from.AddDays(offset), out var v) ? v : 0.0)
+                .ToList();
+        }
+
+        private static double StdDev(IList<double> values, double avg)
+        {
+            if (values.Count <= 1) return 0;
+            return Math.Sqrt(values.Average(x => Math.Pow(x - avg, 2)));
+        }
+
+        /// <summary>Kumulyativ ulush (%) bo'yicha: A ≤ 80, B ≤ 95, qolgani C.</summary>
+        private static string AbcClass(double cumulativePercent)
+        {
+            return cumulativePercent <= 80 ? "A" : cumulativePercent <= 95 ? "B" : "C";
+        }
+
+        /// <summary>Variatsiya koeffitsienti bo'yicha: X ≤ 0,1, Y ≤ 0,25, qolgani Z.</summary>
+        private static string XyzClass(double cov)
+        {
+            return cov <= 0.1 ? "X" : cov <= 0.25 ? "Y" : "Z";
+        }
+
+        // Hisobotlardagi ombor tanlovi (avval 4 joyda qo'lda; ro'yxat ReferenceDataCache'dan)
+        private static List<SelectListItem> WarehouseItems(IEnumerable<RefItem> warehouses, int selectedId)
+        {
+            return warehouses.Select(w => new SelectListItem
+            {
+                Value = w.ID.ToString(),
+                Text = w.Name,
+                Selected = w.ID == selectedId
+            }).ToList();
         }
 
         private class BomComponent
