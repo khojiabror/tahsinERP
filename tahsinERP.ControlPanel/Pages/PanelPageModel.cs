@@ -97,6 +97,33 @@ public static class Labels
         InvoiceStatus.Paid => "ok", InvoiceStatus.PartiallyPaid => "warn", InvoiceStatus.Issued => "info", InvoiceStatus.Cancelled => "muted", _ => "muted"
     };
 
+    public static string Of(ProvisioningJobType t) => t switch
+    {
+        ProvisioningJobType.Create => "Yaratish",
+        ProvisioningJobType.Reset => "Qayta tiklash",
+        ProvisioningJobType.Suspend => "To'xtatish",
+        ProvisioningJobType.Resume => "Qayta yoqish",
+        ProvisioningJobType.Archive => "Arxivlash",
+        ProvisioningJobType.Delete => "O'chirish",
+        _ => t.ToString()
+    };
+
+    public static string Of(ProvisioningJobStatus s) => s switch
+    {
+        ProvisioningJobStatus.Pending => "Navbatda",
+        ProvisioningJobStatus.Running => "Bajarilmoqda",
+        ProvisioningJobStatus.Succeeded => "Bajarildi",
+        ProvisioningJobStatus.Failed => "Xato",
+        ProvisioningJobStatus.Cancelled => "Bekor qilindi",
+        _ => s.ToString()
+    };
+
+    public static string Badge(ProvisioningJobStatus s) => s switch
+    {
+        ProvisioningJobStatus.Succeeded => "ok", ProvisioningJobStatus.Running => "info", ProvisioningJobStatus.Pending => "warn",
+        ProvisioningJobStatus.Failed => "bad", _ => "muted"
+    };
+
     public static string Month(int m) => m switch
     {
         1 => "Yanvar", 2 => "Fevral", 3 => "Mart", 4 => "Aprel", 5 => "May", 6 => "Iyun",

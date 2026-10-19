@@ -11,6 +11,14 @@
         <div class="hint">On-prem: ERP License sahifasidagi «Panelga ulash» maydoniga kiriting. SaaS: provisioning LICENSE_STATE.RegToken ga yozadi.</div>
     </div>
 }
+@if (Model.NewTempPassword is not null)
+{
+    <div class="secret">
+        <strong>Admin vaqtinchalik paroli (faqat hozir ko'rinadi):</strong>
+        <div class="mono">Login: admin &nbsp; Parol: @Model.NewTempPassword</div>
+        <div class="hint">Baza tayyor bo'lgach (job «Bajarildi») kirish mumkin; birinchi kirishda parol almashtiriladi. Tenant Telegram chati bo'lsa, xabar u yerga ham yuboriladi.</div>
+    </div>
+}
 <div class="actions">
     @if (Model.CanSell) { <a class="btn secondary" href="/Tenants/Edit/@t.Id">Tahrirlash</a> }
     <form method="post" asp-page-handler="RegToken" class="inline"><button type="submit" class="secondary">reg_token chiqarish</button></form>
@@ -42,6 +50,54 @@
         }
     </div>
 </div>
+@if (t.Deployment == DeploymentKind.SaaS)
+{
+    <h2>Provisioning (baza va ERP reestri)</h2>
+    <div class="card">
+        <dl class="props">
+            <dt>Manzil</dt><dd>@(Model.TenantUrl ?? $"{t.Slug}.<domen> (ControlPanel:Provisioning:BaseDomain sozlanmagan)")</dd>
+            <dt>Baza yaratilgan</dt><dd>@(t.ProvisionedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "yo'q")</dd>
+            <dt>tenants.json</dt><dd>@(t.RegistryEnabled switch { true => "enabled: true", false => "enabled: false", _ => "yozuv yo'q" })</dd>
+            @if (t.ArchiveLocation != null) { <dt>Arxiv</dt><dd class="mono">@t.ArchiveLocation</dd> }
+            @if (t.DeletedAtUtc != null) { <dt>O'chirilgan</dt><dd>@t.DeletedAtUtc?.ToString("dd.MM.yyyy HH:mm")</dd> }
+        </dl>
+        @if (Model.CanSell && t.DeletedAtUtc == null && Model.ActiveJob == null)
+        {
+            <form method="post" class="stack">
+                <div><label asp-for="ProvisionReason">Sabab / izoh</label><input asp-for="ProvisionReason" type="text" /></div>
+                <div class="actions">
+                    @if (t.ProvisionedAtUtc == null && t.Status != TenantStatus.Archived)
+                    {
+                        <button type="submit" asp-page-handler="Provision">Bazani yaratish</button>
+                    }
+                    @if (t.ProvisionedAtUtc != null && t.Status != TenantStatus.Archived)
+                    {
+                        @if (t.Status != TenantStatus.Suspended) { <button type="submit" class="secondary" asp-page-handler="Suspend">To'xtatish</button> }
+                        else { <button type="submit" class="secondary" asp-page-handler="Resume">Qayta yoqish</button> }
+                        @if (Model.IsDemo) { <button type="submit" class="secondary" asp-page-handler="Reset">Shablondan qayta tiklash</button> }
+                        @if (Model.IsOwner) { <button type="submit" class="danger" asp-page-handler="Archive">Arxivlash (backup + bazani o'chirish)</button> }
+                    }
+                    @if (Model.IsOwner && t.Status == TenantStatus.Archived)
+                    {
+                        <a class="btn danger" href="/Tenants/Delete/@t.Id">Butunlay o'chirish…</a>
+                    }
+                </div>
+            </form>
+        }
+        else if (Model.ActiveJob != null)
+        {
+            <div class="hint">Bajarilmoqda: <a href="/Provisioning/Job/@Model.ActiveJob.Id">@Labels.Of(Model.ActiveJob.Type) #@Model.ActiveJob.Id</a> — sahifa o'zi yangilanadi.</div>
+        }
+    </div>
+    <table>
+        <tr><th>#</th><th>Amal</th><th>Holat</th><th class="num">Urinish</th><th>Yaratilgan (UTC)</th><th>Tugagan</th><th>Xato</th></tr>
+        @foreach (var j in Model.Jobs)
+        {
+            <tr><td><a href="/Provisioning/Job/@j.Id">@j.Id</a></td><td>@Labels.Of(j.Type)</td><td><span class="badge @Labels.Badge(j.Status)">@Labels.Of(j.Status)</span></td>
+                <td class="num">@j.Attempts/@j.MaxAttempts</td><td>@j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")</td><td>@j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm")</td><td class="mono">@j.Error</td></tr>
+        }
+    </table>
+}
 <h2>Obunalar</h2>
 @if (Model.CanSell) { <div class="actions"><a class="btn" href="/Subscriptions/Create?tenantId=@t.Id">+ Pullik obuna</a><a class="btn secondary" href="/Invoices/Create?tenantId=@t.Id">+ Hisob-faktura</a></div> }
 <table>

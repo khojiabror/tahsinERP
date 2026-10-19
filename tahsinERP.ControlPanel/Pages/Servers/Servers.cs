@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
+using System.Security.Cryptography;
+using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Pages.Servers;
@@ -21,8 +23,12 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
     }
 }
 
-public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock) : PanelPageModel
+public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock, ISecretProtector protector) : PanelPageModel
 {
+    /// <summary>Yangi agent siri — faqat shu javobda bir marta ko'rsatiladi (bazada shifrlangan).</summary>
+    public string? NewAgentSecret { get; private set; }
+    public Server? Existing { get; private set; }
+
     [BindProperty, Required(ErrorMessage = "Nomi majburiy"), StringLength(100)] public string Name { get; set; } = "";
     [BindProperty, Required(ErrorMessage = "Host majburiy"), StringLength(253)] public string Host { get; set; } = "";
     [BindProperty, StringLength(50)] public string? Region { get; set; }
@@ -38,6 +44,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock) : Pa
         if (id is null) return Page();
         var s = await db.Servers.FindAsync(id);
         if (s is null) return NotFound();
+        Existing = s;
         Name = s.Name; Host = s.Host; Region = s.Region; SqlInstance = s.SqlInstance; MaxTenants = s.MaxTenants; IsActive = s.IsActive; Notes = s.Notes;
         return Page();
     }
@@ -69,5 +76,23 @@ public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock) : Pa
         await db.SaveChangesAsync();
         FlashOk = $"Server «{s.Name}» saqlandi.";
         return RedirectToPage("Index");
+    }
+
+    /// <summary>Provisioning agenti uchun yangi HMAC siri. Eskisi darhol bekor bo'ladi (agent sozlamasini yangilang).</summary>
+    public async Task<IActionResult> OnPostAgentSecretAsync(int id)
+    {
+        var s = await db.Servers.FindAsync(id);
+        if (s is null) return NotFound();
+        string secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        bool rotated = s.AgentSecretProtected != null;
+        s.AgentSecretProtected = protector.Protect(secret, SecretPurposes.AgentSecret);
+        audit.Add("server.agent-secret", "Server", s.Id, null, new { Rotated = rotated });
+        await db.SaveChangesAsync();
+        IsNew = false;
+        Existing = s;
+        Name = s.Name; Host = s.Host; Region = s.Region; SqlInstance = s.SqlInstance; MaxTenants = s.MaxTenants; IsActive = s.IsActive; Notes = s.Notes;
+        NewAgentSecret = secret;
+        ModelState.Clear();
+        return Page();
     }
 }

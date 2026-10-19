@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <!--
+    Provisioning agenti (CP 2-bosqich, Docs/ControlPanel/05_PROVISIONING.md). ERP serverida Windows Service (yoki konsol) bo'lib
+    ishlaydi: panel /api/agent dan ProvisioningJobs navbatini HMAC bilan oladi, lokal SQL'da Database/tools skriptlari orqali
+    bazalarni yaratadi/zaxiralaydi, ERP tenants.json ga atomik yozadi va natijani panelga qaytaradi.
+    Panel SQL serverga ulanmaydi — sysadmin/dbcreator huquqi faqat shu agentda (lokal).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>tahsinERP.ProvisioningAgent</RootNamespace>
+    <UserSecretsId>tahsinERP-ProvisioningAgent-4d2f8a61</UserSecretsId>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- ERP PasswordHasher.cs (net48 kodi) ulangan: RNGCryptoServiceProvider / Rfc2898DeriveBytes konstruktori eskirgan deb belgilanadi -->
+    <NoWarn>$(NoWarn);SYSLIB0023;SYSLIB0041;SYSLIB0060</NoWarn>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ERP parol formati — bitta manba -->
+    <Compile Include="..\tahsinERP\Helpers\PasswordHasher.cs" Link="Shared\PasswordHasher.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\tahsinERP.Provisioning.Contracts\tahsinERP.Provisioning.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.13" />
+    <!-- SqlClient tranzitiv 9.0.x versiyasida ma'lum zaiflik (GHSA-846f-f764-76mx) — yangisiga ko'tarilgan -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+</Project>

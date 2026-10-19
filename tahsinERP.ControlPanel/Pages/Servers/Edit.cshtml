@@ -17,3 +17,25 @@
     <label class="check"><input asp-for="IsActive" /> Faol (yangi tenantlar joylashtirilishi mumkin)</label>
     <div class="actions"><button type="submit">Saqlash</button><a class="btn secondary" href="/Servers">Bekor</a></div>
 </form>
+@if (!Model.IsNew && Model.Existing is not null)
+{
+    <h2>Provisioning agenti</h2>
+    <div class="card stack">
+        <dl class="props">
+            <dt>Server ID</dt><dd><code>@Model.Existing.Id</code> (agent sozlamasi <code>Panel:ServerId</code>)</dd>
+            <dt>Kalit</dt><dd>@(Model.Existing.AgentSecretProtected is null ? "chiqarilmagan" : "bor")</dd>
+            <dt>Oxirgi aloqa (UTC)</dt><dd>@Model.Existing.AgentLastSeenUtc?.ToString("dd.MM.yyyy HH:mm:ss") @Model.Existing.AgentVersion</dd>
+        </dl>
+        @if (Model.NewAgentSecret is not null)
+        {
+            <div class="secret">
+                <strong>Agent siri (faqat hozir ko'rinadi):</strong>
+                <div class="mono">@Model.NewAgentSecret</div>
+                <div class="hint">ERP serverida: <code>setx /M TAHSIN_AGENT_Panel__Secret "&lt;siri&gt;"</code> yoki xizmat env'i, so'ng agentni qayta ishga tushiring (05_PROVISIONING.md).</div>
+            </div>
+        }
+        <form method="post" asp-page-handler="AgentSecret" asp-route-id="@Model.Existing.Id" class="inline">
+            <button type="submit" class="secondary">@(Model.Existing.AgentSecretProtected is null ? "Agent kalitini chiqarish" : "Agent kalitini almashtirish (eskisi bekor bo'ladi)")</button>
+        </form>
+    </div>
+}
