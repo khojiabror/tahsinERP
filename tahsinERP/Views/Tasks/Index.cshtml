@@ -133,8 +133,9 @@ else
             var detailsUrl = '@Url.Action("Details", "Tasks")/';
             var statusUrl = '@Url.Action("ChangeStatus", "TaskChangeStatus")/';
             var editUrl = '@Url.Action("Edit", "Tasks")/';
-            // "Delete" amali topshiriqni o'chirmaydi, bekor qiladi (TSK-B06, foydalanuvchi qarori) — tugma nomi shunga mos
-            var cancelUrl = '@Url.Action("Delete", "Tasks")/';
+            // TSK-B06 (foydalanuvchi qarori): "Bekor qilish" — CANCELLED holati, "O'chirish" — ro'yxatdan butunlay olib tashlash
+            var cancelUrl = '@Url.Action("Cancel", "Tasks")/';
+            var deleteUrl = '@Url.Action("Delete", "Tasks")/';
             var changePermit = @(changePermit ? "true" : "false");
 
             function badge(text, cls, style) {
@@ -162,7 +163,8 @@ else
                                 + '<a href="' + statusUrl + r.id + '" class="btn btn-sm btn-outline-info" title="Status o&#39;zgartirish"><i class="bx bx-sync"></i></a> ';
                             if (changePermit) {
                                 html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-outline-warning" title="Tahrirlash"><i class="bx bx-edit"></i></a> '
-                                    + (r.closed ? '' : '<a href="#" data-post-url="' + cancelUrl + r.id + '" data-confirm="Topshiriqni bekor qilasizmi? U &quot;Bekor qilindi&quot; holatiga o&#39;tadi." class="btn btn-sm btn-outline-danger" title="Bekor qilish"><i class="bx bx-x-circle"></i></a>');
+                                    + (r.closed ? '' : '<a href="#" data-post-url="' + cancelUrl + r.id + '" data-confirm="Topshiriqni bekor qilasizmi? U &quot;Bekor qilindi&quot; holatiga o&#39;tadi." class="btn btn-sm btn-outline-secondary" title="Bekor qilish"><i class="bx bx-x-circle"></i></a> ')
+                                    + '<a href="#" data-post-url="' + deleteUrl + r.id + '" data-confirm="Topshiriqni o&#39;chirasizmi? U ro&#39;yxat, Kanban va hisobotlardan olib tashlanadi." class="btn btn-sm btn-outline-danger" title="O&#39;chirish"><i class="bx bx-trash"></i></a>';
                             }
                             return html;
                         }
