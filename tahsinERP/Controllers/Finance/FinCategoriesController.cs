@@ -21,7 +21,7 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.FIN_CATEGORIES.AsNoTracking()
-                    .Include(c => c.FIN_CATEGORIES2)  // ota element view'da ko'rsatiladi (AsNoTracking'da fixup yo'q)
+                    .Include(c => c.FIN_CATEGORIES2) // ota nomi view'da; AsNoTracking'da avtomatik bog'lanmaydi
                     .Where(c => c.IsActive && (c.IsDeleted == false || c.IsDeleted == null));
 
                 // Search filtrlash
@@ -142,9 +142,6 @@ namespace tahsinERP.Controllers.Finance
                 if (ModelState.IsValid)
                 {
                     category.IsActive = true;
-                    category.SystemCode = null; // tizim kodi faqat migratsiya/seed'dan
-                    if (!SystemCodes.FinAnalyticsGroup.IsValid(category.AnalyticsGroup))
-                        category.AnalyticsGroup = null;
                     if (category.SortOrder == 0)
                     {
                         category.SortOrder = db.FIN_CATEGORIES
@@ -241,7 +238,6 @@ namespace tahsinERP.Controllers.Finance
                         categoryToUpdate.Type = category.Type;
                         categoryToUpdate.ParentID = category.ParentID;
                         categoryToUpdate.SortOrder = category.SortOrder;
-                        categoryToUpdate.AnalyticsGroup = SystemCodes.FinAnalyticsGroup.IsValid(category.AnalyticsGroup) ? category.AnalyticsGroup : null;
 
                         db.SaveChanges();
 

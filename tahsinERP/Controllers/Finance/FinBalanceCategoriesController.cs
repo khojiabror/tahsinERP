@@ -21,7 +21,9 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var query = db.FIN_BALANCE_CATEGORIES.AsNoTracking().Include(c => c.FIN_BALANCE_CATEGORIES2).Where(c => c.IsActive); // ota element view'da ko'rsatiladi (AsNoTracking'da fixup yo'q, context yopilgach lazy-load yiqiladi)
+                var query = db.FIN_BALANCE_CATEGORIES.AsNoTracking()
+                    .Include(c => c.FIN_BALANCE_CATEGORIES2) // ota nomi view'da; AsNoTracking'da avtomatik bog'lanmaydi
+                    .Where(c => c.IsActive);
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
