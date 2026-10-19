@@ -1,5 +1,5 @@
 /* =====================================================================
-   016 — Spravochnik o'lchamlari: float → decimal (5-bosqich) (Docs/Audit-2026-10/DB_FLOAT_DECIMAL_PLAN.md).
+   017 — Spravochnik o'lchamlari: float → decimal (5-bosqich) (Docs/Audit-2026-10/DB_FLOAT_DECIMAL_PLAN.md).
    Spravochnik o'lchamlari: PRODUCTS (Length/Width/Height/StandardLengthMm decimal(18,4), Weight decimal(18,6) —
    IPACK'da 5 xonali og'irliklar bor), F_TRANSPORT_TYPES (o'lcham va yuk ko'tarish decimal(18,4)).
    Katta jadvalda ALTER COLUMN qulf oladi — prod'da texnik oynada.
@@ -9,7 +9,7 @@ SET ANSI_NULLS ON;
 SET XACT_ABORT ON;
 GO
 -- ---------------------------------------------------------------------------------------------
--- Umumiy yordamchi (014/015/016 da bir xil): #F2D dagi float ustunlarni decimal'ga o'tkazadi.
+-- Umumiy yordamchi (014/015/017 da bir xil; 016 raqami distributsiyaga tegishli): #F2D dagi float ustunlarni decimal'ga o'tkazadi.
 --  * qiymat tekshiruvi: chegaradan oshsa yoki yaxlitlash yo'qotishi > 0.0001 bo'lsa THROW;
 --    kichikroq farq (float "dumi", masalan 9053571.6000000015) yaxlitlanadi va soni PRINT qilinadi;
 --  * bog'liq indekslar (ustun yoki unga tayangan hisoblangan ustun bo'yicha, INCLUDE ham), default'lar,
@@ -175,7 +175,7 @@ INSERT #F2D VALUES
     ('F_TRANSPORT_TYPES', 'CapableOfLifting',  18, 4),
     ('F_TRANSPORT_TYPES', 'TransportWeight',   18, 4);
 
-EXEC #FloatToDecimal @Tag = N'016';
+EXEC #FloatToDecimal @Tag = N'017';
 
 DROP TABLE #F2D;
 DROP PROCEDURE #FloatToDecimal;

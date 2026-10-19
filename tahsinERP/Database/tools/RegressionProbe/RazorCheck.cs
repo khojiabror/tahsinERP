@@ -25,8 +25,22 @@ class RazorCheck
         Directory.CreateDirectory(outDir);
         foreach (var f in Directory.GetFiles(outDir, "*.cs")) File.Delete(f);
 
-        var namespaces = XDocument.Load(Path.Combine(web, "Views", "Web.config"))
-            .Descendants("namespaces").Elements("add").Select(e => (string)e.Attribute("namespace")).ToList();
+        // Har view uchun eng yaqin web.config (Views/ yoki Areas/X/Views/) dagi Razor namespace'lari
+        var nsCache = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        Func<string, List<string>> namespacesFor = null;
+        namespacesFor = dir =>
+        {
+            List<string> list;
+            if (nsCache.TryGetValue(dir, out list)) return list;
+            var cfg = Path.Combine(dir, "Web.config");
+            if (File.Exists(cfg) && XDocument.Load(cfg).Descendants("system.web.webPages.razor").Any())
+                list = XDocument.Load(cfg).Descendants("namespaces").Elements("add").Select(e => (string)e.Attribute("namespace")).ToList();
+            else if (dir.Length > web.Length)
+                list = namespacesFor(Path.GetDirectoryName(dir));
+            else
+                list = new List<string>();
+            return nsCache[dir] = list;
+        };
 
         var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // generatsiya fayli -> view
         int n = 0, genErrors = 0;
@@ -36,7 +50,7 @@ class RazorCheck
         {
             var virt = "~/" + view.Substring(web.Length).TrimStart('\\').Replace('\\', '/');
             var host = new MvcWebPageRazorHost(virt, view) { DefaultBaseClass = "System.Web.Mvc.WebViewPage" };
-            foreach (var ns in namespaces) host.NamespaceImports.Add(ns);
+            foreach (var ns in namespacesFor(Path.GetDirectoryName(view))) host.NamespaceImports.Add(ns);
             var engine = new RazorTemplateEngine(host);
             var cls = "V" + (++n);
             GeneratorResults res;
