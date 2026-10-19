@@ -1,5 +1,5 @@
 /* =====================================================================
-   012 — Distributsiya moduli poydevori (Docs/Distribution/01_PHASE1_MVP.md, S0).
+   013 — Distributsiya moduli poydevori (Docs/Distribution/01_PHASE1_MVP.md, S0).
 
    Distributsiya jadvallari alohida `dst` sxemasida va EF6 Code-First kontekst
    (Areas/Distribution/Data/DistributionDbContext) orqali ishlatiladi — EDMX'ga kirmaydi.
@@ -67,22 +67,26 @@ END
 GO
 
 -- ---------- ruxsat modullari ----------
-INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
-SELECT v.Module, v.Controller, v.Action, NULL
-FROM (VALUES
-    ('DstHome',              'DstHome', 'Index'),
-    ('DstSeeCost',           'Dst',     'SeeCost'),
-    ('DstOverrideCredit',    'Dst',     'OverrideCredit'),
-    ('DstDiscountUnlimited', 'Dst',     'DiscountUnlimited')
-) v (Module, Controller, Action)
-WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES pm WHERE pm.Module = v.Module);
-GO
+-- Bo'sh bazada (yangi tenant, seed hali ishlamagan) qo'shilmaydi — u yerda Seed/105_PermissionModules_Extra.sql
+-- qo'shadi (aks holda Seed/100 ning qat'iy ID'lari bilan to'qnashadi); Admin huquqini Seed/110 beradi.
+IF EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES)
+BEGIN
+    INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+    SELECT v.Module, v.Controller, v.Action, NULL
+    FROM (VALUES
+        ('DstHome',              'DstHome', 'Index'),
+        ('DstSeeCost',           'Dst',     'SeeCost'),
+        ('DstOverrideCredit',    'Dst',     'OverrideCredit'),
+        ('DstDiscountUnlimited', 'Dst',     'DiscountUnlimited')
+    ) v (Module, Controller, Action)
+    WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES pm WHERE pm.Module = v.Module);
 
-DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE SystemCode = 'ADMIN');
-IF @admin IS NOT NULL
-    INSERT INTO dbo.PERMISSIONS (ViewPermit, ChangePermit, RoleID, PermissionModuleID, DeletePermit)
-    SELECT 1, 1, @admin, pm.ID, 1
-    FROM dbo.PERMISSIONMODULES pm
-    WHERE pm.Module IN ('DstHome', 'DstSeeCost', 'DstOverrideCredit', 'DstDiscountUnlimited')
-      AND NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONS p WHERE p.RoleID = @admin AND p.PermissionModuleID = pm.ID);
+    DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE SystemCode = 'ADMIN');
+    IF @admin IS NOT NULL
+        INSERT INTO dbo.PERMISSIONS (ViewPermit, ChangePermit, RoleID, PermissionModuleID, DeletePermit)
+        SELECT 1, 1, @admin, pm.ID, 1
+        FROM dbo.PERMISSIONMODULES pm
+        WHERE pm.Module IN ('DstHome', 'DstSeeCost', 'DstOverrideCredit', 'DstDiscountUnlimited')
+          AND NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONS p WHERE p.RoleID = @admin AND p.PermissionModuleID = pm.ID);
+END
 GO

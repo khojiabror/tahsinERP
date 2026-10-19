@@ -177,7 +177,7 @@ Parallellik: tasdiqlashda rezerv `sp_getapplock` (ombor+tovar) bilan — ikki op
 
 | Ish | Joyi |
 |---|---|
-| `dst` sxemasi: `AUDIT_TRAIL`, `USER_SCOPES`, `USER_SETTINGS`; ruxsat modullari `DstHome`, `DstSeeCost`, `DstOverrideCredit`, `DstDiscountUnlimited` (Admin'ga beriladi) | `Database/Migrations/012_DST_Foundation.sql` (idempotent; lokal bazada qo'llangan, zaxira `DBTHSN-IPACK_pre_012_DST_20261019.bak`) |
+| `dst` sxemasi: `AUDIT_TRAIL`, `USER_SCOPES`, `USER_SETTINGS`; ruxsat modullari `DstHome`, `DstSeeCost`, `DstOverrideCredit`, `DstDiscountUnlimited` (Admin'ga beriladi) | `Database/Migrations/013_DST_Foundation.sql` (idempotent; lokal bazada qo'llangan, zaxira `DBTHSN-IPACK_pre_012_DST_20261019.bak`) |
 | Area va marshrut `/Distribution/{controller}/...`, controllerlar `Dst*` prefiksi bilan | `Areas/Distribution/DistributionAreaRegistration.cs` |
 | `DistributionDbContext` (EF6 Code-First, EDMX'siz) — SaveChanges'da audit (I/U/D, eski→yangi) va Posted hujjatni o'chirish/Cancelled'ni tahrirlash taqiqi | `Areas/Distribution/Data/DistributionDbContext.cs` |
 | **Bitta tranzaksiya:** `DistributionUnitOfWork` — `Dst` + `Erp` (EDMX) bitta SqlConnection/tranzaksiyada; `DBTHSNEntities.CreateOnConnection` | `Areas/Distribution/Data/DistributionUnitOfWork.cs`, `Models/DBTHSNModel.Context.SharedConnection.cs` |

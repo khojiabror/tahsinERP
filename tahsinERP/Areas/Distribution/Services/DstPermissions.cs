@@ -3,7 +3,7 @@ using tahsinERP.Models;
 namespace tahsinERP.Areas.Distribution.Services
 {
     /// <summary>
-    /// Maxsus (maydon/amal darajasidagi) huquqlar — PERMISSIONMODULES.Module (Controller = 'Dst'), migratsiya 012.
+    /// Maxsus (maydon/amal darajasidagi) huquqlar — PERMISSIONMODULES.Module (Controller = 'Dst'), migratsiya 013.
     /// Rol → Huquqlar sahifasida boshqa modullar kabi beriladi.
     /// </summary>
     public static class DstPermissions

@@ -1,6 +1,6 @@
 /* =====================================================================
    105 — 100_Reference eksportidan keyin qo'shilgan ruxsat modullari (yangi tenant bazalari uchun).
-   Mavjud bazalarga xuddi shu yozuvlarni NNN migratsiyalari qo'shadi (012_HSCode_PermissionModules).
+   Mavjud bazalarga xuddi shu yozuvlarni NNN migratsiyalari qo'shadi (012_HSCode_PermissionModules, 013_DST_Foundation).
    ID qat'iy emas (IDENTITY) — modul Controller+Action bo'yicha topiladi. Idempotent.
    Admin roliga to'liq huquqni keyingi 110_Defaults beradi.
    ===================================================================== */
@@ -20,4 +20,12 @@ JOIN dbo.PERMISSIONMODULES u ON u.Controller = 'Unit' AND u.Action = h.Action AN
 JOIN dbo.PERMISSIONS p ON p.PermissionModuleID = u.ID
 WHERE h.Controller = 'HSCode'
   AND NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONS x WHERE x.RoleID = p.RoleID AND x.PermissionModuleID = h.ID);
+GO
+
+-- Distributsiya (013_DST_Foundation): modul sahifasi va maxsus huquqlar (Controller = 'Dst')
+INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+SELECT v.Module, v.Controller, v.Action, NULL
+FROM (VALUES ('DstHome', 'DstHome', 'Index'), ('DstSeeCost', 'Dst', 'SeeCost'),
+             ('DstOverrideCredit', 'Dst', 'OverrideCredit'), ('DstDiscountUnlimited', 'Dst', 'DiscountUnlimited')) v (Module, Controller, Action)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Module);
 GO

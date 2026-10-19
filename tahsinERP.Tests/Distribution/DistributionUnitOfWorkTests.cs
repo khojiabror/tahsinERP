@@ -12,7 +12,7 @@ namespace tahsinERP.Tests.Distribution
     /// <summary>
     /// S0 spike: distributsiya (Code-First) va ERP (EDMX) kontekstlari bitta tranzaksiyada.
     /// Lokal bazada (DbConfig, Debug) ishlaydi va HECH NARSANI saqlamaydi — har test rollback bilan tugaydi.
-    /// Baza yoki dst sxemasi (migratsiya 012) bo'lmasa — Inconclusive.
+    /// Baza yoki dst sxemasi (migratsiya 013) bo'lmasa — Inconclusive.
     /// </summary>
     [TestClass]
     [TestCategory("Integration")]
@@ -46,7 +46,7 @@ namespace tahsinERP.Tests.Distribution
         public void RequireDatabase()
         {
             if (_sql == null)
-                Assert.Inconclusive("Lokal baza yoki dst sxemasi (migratsiya 012) mavjud emas.");
+                Assert.Inconclusive("Lokal baza yoki dst sxemasi (migratsiya 013) mavjud emas.");
         }
 
         private static object Scalar(string sql, params SqlParameter[] args)
