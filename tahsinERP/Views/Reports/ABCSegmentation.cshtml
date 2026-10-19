@@ -130,6 +130,7 @@
 }</div>
 
 @section Scripts {
+    <script src="~/Scripts/app/erp-datatable.js"></script>
     <script>
         $(document).ready(function () {
             $('#abcTable').DataTable({
@@ -150,21 +151,7 @@
                 pageLength: 50,
                 scrollX: true,
                 dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        className: 'btn btn-success mr-1'
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="bx bxs-file-pdf"></i> PDF',
-                        className: 'btn btn-danger',
-                        orientation: 'landscape',
-                        pageSize: 'A3',
-                        title: 'ABC / XYZ segmentatsiya'
-                    }
-                ]
+                buttons: erpDataTable.buttons({ landscape: true, pdfOptions: { title: 'ABC / XYZ segmentatsiya', pageSize: 'A3' } })
             });
         });
     </script>
