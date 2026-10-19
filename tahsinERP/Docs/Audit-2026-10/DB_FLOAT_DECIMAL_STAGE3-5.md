@@ -73,9 +73,9 @@ Lokal IPACK: 014/015/017 qo'llangan. Zaxiralar: `MSSQL\Backup\DBTHSN-IPACK_pre_0
 
 ## Ochiq qolgan (keyingi ish)
 
-- Ichki hisob-kitoblar hali `double`: StockLedger/FIFO (`IssueLine`, `GetOnHand` qaytaradi `double`), UnitConversionService, VatMath,
+- **Bajarildi** ([DB_FLOAT_DECIMAL_INTERNAL.md](DB_FLOAT_DECIMAL_INTERNAL.md)): ~~Ichki hisob-kitoblar hali `double`: StockLedger/FIFO (`IssueLine`, `GetOnHand` qaytaradi `double`), UnitConversionService, VatMath,
   SRM/CRM/MES view model'lari. Natija 6 xonaga yaxlitlab saqlanadi, lekin to'liq decimal quvur alohida bosqich (FIFO lot hisobi
-  bilan ehtiyotkor, harness bilan).
+  bilan ehtiyotkor, harness bilan).~~
 - Hisoblangan `TotalPrice` turlari `decimal(38,12)` — SUM 7.9·10¹⁶ dan oshsa System.Decimal'ga sig'maydi (amalda yo'q). Xohlansa
   ta'rifni `CAST(... AS decimal(19,4))` ga o'tkazish — yaxlitlash qoidasi biznes bilan kelishiladi.
 - `DisplayFor(Amount)` (FContract) MVC decimal shabloni bilan `0.00` ko'rsatadi (2-bosqichdan).
