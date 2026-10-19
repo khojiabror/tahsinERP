@@ -18,6 +18,10 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<InvoiceSequence> InvoiceSequences => Set<InvoiceSequence>();
     public DbSet<ApiNonce> ApiNonces => Set<ApiNonce>();
     public DbSet<ProvisioningJob> ProvisioningJobs => Set<ProvisioningJob>();
+    public DbSet<PortalUser> PortalUsers => Set<PortalUser>();
+    public DbSet<PortalInvite> PortalInvites => Set<PortalInvite>();
+    public DbSet<PortalOtp> PortalOtps => Set<PortalOtp>();
+    public DbSet<PortalRequest> PortalRequests => Set<PortalRequest>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -149,6 +153,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.ToTable("AuditLog");
             e.HasIndex(x => x.AtUtc);
             e.HasIndex(x => new { x.Entity, x.EntityId });
+            e.HasIndex(x => x.PortalUserId).HasFilter("[PortalUserId] IS NOT NULL");
             e.Property(x => x.Action).HasMaxLength(100);
             e.Property(x => x.Entity).HasMaxLength(50);
             e.Property(x => x.EntityId).HasMaxLength(50);
@@ -177,6 +182,56 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.RowVersion).IsRowVersion();
             e.Ignore(x => x.IsActive);
             e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<PortalUser>(e =>
+        {
+            e.HasIndex(x => x.Email).IsUnique().HasFilter("[Email] IS NOT NULL");
+            e.HasIndex(x => x.Phone).IsUnique().HasFilter("[Phone] IS NOT NULL");
+            e.HasIndex(x => x.TelegramLinkHash).IsUnique().HasFilter("[TelegramLinkHash] IS NOT NULL");
+            e.HasIndex(x => x.TenantId);
+            e.Property(x => x.FullName).HasMaxLength(200);
+            e.Property(x => x.Email).HasMaxLength(200);
+            e.Property(x => x.Phone).HasMaxLength(20);
+            e.Property(x => x.PasswordHash).HasMaxLength(200);
+            e.Property(x => x.TelegramChatId).HasMaxLength(50);
+            e.Property(x => x.TelegramLinkHash).HasMaxLength(64);
+            e.Property(x => x.SecurityStamp).HasMaxLength(64);
+            e.Property(x => x.RowVersion).IsRowVersion();
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<PortalInvite>(e =>
+        {
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.HasIndex(x => x.PortalUserId);
+            e.Property(x => x.TokenHash).HasMaxLength(64);
+            e.HasOne(x => x.PortalUser).WithMany().HasForeignKey(x => x.PortalUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<PortalOtp>(e =>
+        {
+            e.HasIndex(x => new { x.PortalUserId, x.CreatedAtUtc });
+            e.Property(x => x.Salt).HasMaxLength(32);
+            e.Property(x => x.CodeHash).HasMaxLength(64);
+            e.Property(x => x.Channel).HasMaxLength(20);
+            e.Property(x => x.Ip).HasMaxLength(64);
+            e.HasOne<PortalUser>().WithMany().HasForeignKey(x => x.PortalUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<PortalRequest>(e =>
+        {
+            e.HasIndex(x => new { x.TenantId, x.Status });
+            e.HasIndex(x => new { x.Status, x.Id });
+            e.Property(x => x.Comment).HasMaxLength(1000);
+            e.Property(x => x.DecisionReason).HasMaxLength(1000);
+            e.Property(x => x.RowVersion).IsRowVersion();
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.PortalUser).WithMany().HasForeignKey(x => x.PortalUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Plan).WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Subscription>().WithMany().HasForeignKey(x => x.SubscriptionId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Subscription>().WithMany().HasForeignKey(x => x.CurrentSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<InvoiceSequence>(e =>

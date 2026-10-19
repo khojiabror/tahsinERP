@@ -21,6 +21,10 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
 {
     public static readonly DateTimeOffset Start = new(2026, 10, 18, 5, 0, 0, TimeSpan.Zero); // Toshkent 10:00
     public TestClock Time { get; } = new(Start);
+    /// <summary>Telegram o'rnini bosuvchi: yuborilgan xabarlarni yig'adi. Standart — sozlanmagan (eski testlar: faqat log).</summary>
+    public FakeTelegram Telegram { get; } = new();
+    public const string WebhookSecret = "test-webhook-secret";
+    public const string BotUsername = "tahsin_test_bot";
     public string PublicKeyXml { get; }
     private readonly string _privateKeyXml;
     private readonly string _database = "tahsin_control_test_" + Guid.NewGuid().ToString("N")[..12];
@@ -51,12 +55,17 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
         builder.UseSetting("ControlPanel:Panel:LoginRateLimitPerMinute", "100000");
         builder.UseSetting("ControlPanel:Provisioning:DemoSlug", DemoSlug);
         builder.UseSetting("ControlPanel:Provisioning:BaseDomain", BaseDomain);
+        builder.UseSetting("ControlPanel:Telegram:WebhookSecret", WebhookSecret);
+        builder.UseSetting("ControlPanel:Telegram:BotUsername", BotUsername);
+        builder.UseSetting("ControlPanel:Hosts:Domain", "localhost");
         builder.ConfigureTestServices(s =>
         {
             s.RemoveAll<TimeProvider>();
             s.AddSingleton<TimeProvider>(Time);
             s.RemoveAll<ILicenseSigner>();
             s.AddSingleton<ILicenseSigner>(new LocalRsaSigner("k2", _privateKeyXml));
+            s.RemoveAll<ITelegramSender>();
+            s.AddSingleton<ITelegramSender>(Telegram);
         });
     }
 
@@ -121,4 +130,19 @@ public sealed class TestClock(DateTimeOffset start) : TimeProvider
     public override DateTimeOffset GetUtcNow() => _now;
     public void SetUtcNow(DateTimeOffset value) => _now = value;
     public void Advance(TimeSpan delta) => _now += delta;
+}
+/// <summary>Telegram o'rnini bosuvchi: <see cref="Enabled"/> false bo'lsa "sozlanmagan" (xabarlar faqat log'ga).</summary>
+public sealed class FakeTelegram : ITelegramSender
+{
+    public bool Enabled { get; set; }
+    public System.Collections.Concurrent.ConcurrentQueue<(string Chat, string Text)> Sent { get; } = new();
+    public bool IsConfigured => Enabled;
+
+    public Task SendAsync(string chatId, string text, CancellationToken ct = default)
+    {
+        Sent.Enqueue((chatId, text));
+        return Task.CompletedTask;
+    }
+
+    public IReadOnlyList<(string Chat, string Text)> To(string chat) => Sent.Where(m => m.Chat == chat).ToList();
 }

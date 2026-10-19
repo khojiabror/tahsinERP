@@ -1,0 +1,40 @@
+@page
+@model LicensesModel
+@{ ViewData["Title"] = "Litsenziya kaliti"; }
+<h1>Litsenziya kaliti (o'z serveringiz)</h1>
+<p class="hint">Kalitni ERP'dagi «Litsenziya» sahifasiga kiriting. Kalit faqat o'z o'rnatmangizda (InstallationId) ishlaydi. Internet bo'lsa ERP kalitni o'zi yangilaydi.</p>
+@if (Model.Current.Count == 0)
+{
+    <p class="empty">Amaldagi kalit yo'q. To'lovdan keyin kalit chiqariladi; savol bo'lsa xodimimizga murojaat qiling.</p>
+}
+@foreach (var l in Model.Current)
+{
+    <div class="card">
+        <dl class="props">
+            <dt>O'rnatma (InstallationId)</dt><dd><code>@l.InstallationId</code></dd>
+            <dt>Paket</dt><dd>@l.Edition, @l.MaxUsers foydalanuvchi</dd>
+            <dt>Amal qiladi</dt><dd>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy") @if (l.ExpiryDate < Model.Today) { <span class="badge bad">muddati o'tgan</span> }</dd>
+        </dl>
+        @if (Model.IsPortalOwner)
+        {
+            @if (Model.Revealed?.Id == l.Id)
+            {
+                <textarea id="key-@l.Id" class="key" readonly>@l.LicenseKey</textarea>
+                <div class="actions spaced"><button type="button" data-copy="key-@l.Id">Nusxa olish</button>
+                    <a class="btn secondary" href="/Licenses?handler=Download&amp;id=@l.Id">Fayl sifatida yuklab olish</a></div>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="Reveal" class="actions spaced">
+                    <input type="hidden" name="LicenseId" value="@l.Id" />
+                    <button type="submit">Kalitni ko'rsatish</button>
+                    <a class="btn secondary" href="/Licenses?handler=Download&amp;id=@l.Id">Yuklab olish (.txt)</a>
+                </form>
+            }
+        }
+        else
+        {
+            <p class="hint">Kalitni faqat tashkilot mas'uli (Owner) ko'ra oladi.</p>
+        }
+    </div>
+}

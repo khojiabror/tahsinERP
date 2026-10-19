@@ -1,0 +1,42 @@
+@page
+@model ProfileModel
+@{ ViewData["Title"] = "Profil"; var me = Model.Me; }
+<h1>Profil</h1>
+<div asp-validation-summary="ModelOnly"></div>
+<div class="card">
+    <dl class="props">
+        <dt>Ism</dt><dd>@me.FullName</dd>
+        <dt>Login</dt><dd>@me.Email @me.Phone</dd>
+        <dt>Rol</dt><dd>@(me.Role == PortalRole.Owner ? "Mas'ul (so'rov yuborish, kalit)" : "Ko'ruvchi")</dd>
+        <dt>Telegram</dt><dd>@(me.TelegramChatId is null ? "bog'lanmagan (kodlar tashkilot chatiga keladi)" : "bog'langan")</dd>
+    </dl>
+</div>
+<h2>Telegram</h2>
+<div class="card">
+    @if (Model.LinkToken is not null)
+    {
+        @if (Model.LinkUrl.Length > 0)
+        {
+            <p><a class="btn" href="@Model.LinkUrl" target="_blank" rel="noopener">Telegram botni ochish</a></p>
+        }
+        else
+        {
+            <p>Telegram botga yuboring:</p>
+            <p class="secret mono">/start @Model.LinkToken</p>
+        }
+        <p class="hint">Havola 24 soat amal qiladi va bir marta ishlaydi. Bog'langach kirish kodlari shu chatga keladi.</p>
+    }
+    else
+    {
+        <form method="post" asp-page-handler="Telegram">
+            <button type="submit" class="secondary">@(me.TelegramChatId is null ? "Telegram'ni bog'lash" : "Boshqa Telegram hisobiga o'tkazish")</button>
+        </form>
+    }
+</div>
+<h2>Parolni almashtirish</h2>
+<form method="post" asp-page-handler="Password" class="card stack">
+    <div><label asp-for="Current">Joriy parol</label><input asp-for="Current" type="password" autocomplete="current-password" /></div>
+    <div><label asp-for="New">Yangi parol</label><input asp-for="New" type="password" autocomplete="new-password" /></div>
+    <div><label asp-for="Confirm">Takrorlang</label><input asp-for="Confirm" type="password" autocomplete="new-password" /></div>
+    <div><button type="submit">Saqlash</button></div>
+</form>

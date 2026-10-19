@@ -92,11 +92,13 @@ public sealed class AuditLogger(ControlDbContext db, ICurrentActor actor, Clock 
 
     public static string? Serialize(object? value) => value is null ? null : JsonSerializer.Serialize(value, Json);
 
-    public void Add(string action, string entity, object? entityId, object? before = null, object? after = null, int? staffIdOverride = null)
+    public void Add(string action, string entity, object? entityId, object? before = null, object? after = null, int? staffIdOverride = null,
+        int? portalUserId = null)
     {
         db.AuditLog.Add(new AuditEntry
         {
             StaffUserId = staffIdOverride ?? actor.StaffId,
+            PortalUserId = portalUserId,
             Action = action,
             Entity = entity,
             EntityId = entityId?.ToString(),

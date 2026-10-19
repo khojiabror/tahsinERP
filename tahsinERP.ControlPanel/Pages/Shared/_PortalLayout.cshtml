@@ -1,0 +1,44 @@
+@{
+    var pm = Model as tahsinERP.ControlPanel.Pages.Portal.PortalPageModel;
+    bool signedIn = pm?.SignedIn == true;
+    bool onPrem = pm?.CurrentTenant?.Deployment == DeploymentKind.OnPrem;
+    string path = Context.Request.Path.Value ?? "/";
+    string Nav(string prefix) => (prefix == "/" ? path == "/" : path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>@ViewData["Title"] — tahsinERP mijoz kabineti</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="portal">
+<header class="topbar">
+    <a class="brand" href="/">tahsinERP <span>mijoz kabineti</span></a>
+    @if (signedIn)
+    {
+        <nav>
+            <a class="@Nav("/")" href="/">Bosh sahifa</a>
+            <a class="@Nav("/Invoices")" href="/Invoices">Hisob-fakturalar</a>
+            <a class="@Nav("/Payment")" href="/Payment">To'lov rekvizitlari</a>
+            <a class="@Nav("/Requests")" href="/Requests">Tarif so'rovi</a>
+            @if (onPrem) { <a class="@Nav("/Licenses")" href="/Licenses">Litsenziya kaliti</a> }
+        </nav>
+        <form method="post" action="/Logout" class="userbox">
+            <a href="/Profile">@User.Identity!.Name</a>
+            @Html.AntiForgeryToken()
+            <button type="submit" class="link">Chiqish</button>
+        </form>
+    }
+</header>
+<main>
+    @if (signedIn && pm!.CurrentTenant is { } ct) { <div class="tenant-line">@ct.LegalName</div> }
+    @if (!string.IsNullOrEmpty(pm?.FlashOk)) { <div class="flash ok">@pm.FlashOk</div> }
+    @if (!string.IsNullOrEmpty(pm?.FlashError)) { <div class="flash bad">@pm.FlashError</div> }
+    @RenderBody()
+</main>
+<script src="~/js/portal.js" asp-append-version="true"></script>
+</body>
+</html>

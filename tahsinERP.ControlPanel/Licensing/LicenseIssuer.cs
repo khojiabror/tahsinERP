@@ -125,8 +125,10 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
     {
         if (tenant.InstallationId is null || tenant.Status == TenantStatus.Archived)
             return null;
+        DateOnly today = clock.Today;
+        // Faqat boshlangan davr: kelajakdan boshlanadigan (to'langan) obuna kalitni oldindan o'zgartirmaydi.
         var sub = await db.Subscriptions.Include(s => s.Plan)
-            .Where(s => s.TenantId == tenant.Id && s.Status == SubscriptionStatus.Active)
+            .Where(s => s.TenantId == tenant.Id && s.Status == SubscriptionStatus.Active && s.StartDate <= today)
             .OrderByDescending(s => s.EndDate).FirstOrDefaultAsync(ct);
         var desired = DesiredFromSubscription(tenant, sub);
         if (desired is null)

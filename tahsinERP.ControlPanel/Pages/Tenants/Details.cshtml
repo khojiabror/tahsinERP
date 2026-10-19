@@ -98,6 +98,63 @@
         }
     </table>
 }
+<h2>Mijoz portali (my.&lt;domen&gt;)</h2>
+@if (Model.NewInviteUrl is not null)
+{
+    <div class="secret">
+        <strong>@Model.InviteFor uchun taklif havolasi (faqat hozir ko'rinadi, bir martalik):</strong>
+        <div class="mono">@Model.NewInviteUrl</div>
+        <div class="hint">Mijozga shaxsan yuboring (Telegram/email). Havola orqali parol o'rnatiladi; eski parol va sessiyalar bekor bo'ladi.
+            @(Model.InviteSentToTelegram ? "Foydalanuvchining bog'langan Telegram chatiga ham yuborildi." : "")</div>
+    </div>
+}
+<div class="card">
+    @if (Model.PortalUsers.Count > 0)
+    {
+        <table>
+            <tr><th>Ism</th><th>Login</th><th>Rol</th><th>Holat</th><th>Telegram</th><th>Oxirgi kirish (UTC)</th><th></th></tr>
+            @foreach (var u in Model.PortalUsers)
+            {
+                <tr>
+                    <td>@u.FullName</td><td>@u.Email @u.Phone</td><td>@u.Role</td>
+                    <td>@(!u.IsActive ? "o'chirilgan" : u.PasswordHash is null ? "taklif kutilmoqda" : u.LockedUntilUtc > DateTime.UtcNow ? "bloklangan" : "faol")</td>
+                    <td>@(u.TelegramChatId is null ? "—" : "bog'langan")</td>
+                    <td>@u.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>
+                        @if (Model.CanSell)
+                        {
+                            <form method="post" class="inline"><input type="hidden" name="PortalUserId" value="@u.Id" />
+                                <button type="submit" class="link" asp-page-handler="PortalInvite">@(u.PasswordHash is null ? "taklif havolasi" : "parolni tiklash")</button> ·
+                                <button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="role">rol → @(u.Role == PortalRole.Owner ? "Viewer" : "Owner")</button> ·
+                                <button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="active">@(u.IsActive ? "o'chirish" : "yoqish")</button>
+                                @if (u.TelegramChatId is not null) { <text> · </text><button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="telegram">Telegram'ni uzish</button> }
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+    else
+    {
+        <p class="empty">Portal foydalanuvchisi yo'q.</p>
+    }
+    @if (Model.CanSell && t.Status != TenantStatus.Archived)
+    {
+        <form method="post" asp-page-handler="PortalUser" class="stack spaced">
+            <div class="row">
+                <div><label asp-for="PuName">Ism</label><input asp-for="PuName" type="text" /></div>
+                <div><label asp-for="PuRole">Rol</label><select asp-for="PuRole"><option value="Owner">Owner (so'rov, kalit)</option><option value="Viewer">Viewer (faqat ko'rish)</option></select></div>
+            </div>
+            <div class="row">
+                <div><label asp-for="PuEmail">Email</label><input asp-for="PuEmail" type="email" /></div>
+                <div><label asp-for="PuPhone">Telefon</label><input asp-for="PuPhone" type="text" placeholder="+998901234567" /></div>
+            </div>
+            <p class="hint">Kirish: email yoki telefon + parol + Telegram kodi. Kod foydalanuvchi bog'lagan chatga, bo'lmasa tashkilotning Telegram chatiga yuboriladi.</p>
+            <div><button type="submit">Qo'shish va taklif havolasini olish</button></div>
+        </form>
+    }
+</div>
 <h2>Obunalar</h2>
 @if (Model.CanSell) { <div class="actions"><a class="btn" href="/Subscriptions/Create?tenantId=@t.Id">+ Pullik obuna</a><a class="btn secondary" href="/Invoices/Create?tenantId=@t.Id">+ Hisob-faktura</a></div> }
 <table>

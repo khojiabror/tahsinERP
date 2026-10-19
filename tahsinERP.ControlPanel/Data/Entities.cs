@@ -284,8 +284,10 @@ public class Notification
 public class AuditEntry
 {
     public long Id { get; set; }
-    /// <summary>Null — tizim (fon ishi yoki License API).</summary>
+    /// <summary>Null — tizim (fon ishi yoki License API) yoki mijoz portali (PortalUserId).</summary>
     public int? StaffUserId { get; set; }
+    /// <summary>Mijoz portali foydalanuvchisi amali (my.&lt;domen&gt;).</summary>
+    public int? PortalUserId { get; set; }
     public string Action { get; set; } = "";
     public string Entity { get; set; } = "";
     public string? EntityId { get; set; }
@@ -360,4 +362,115 @@ public class InvoiceSequence
 {
     public int Year { get; set; }
     public int LastValue { get; set; }
+}
+
+// ── Mijoz portali (3-bosqich, Docs/ControlPanel/06_CUSTOMER_PORTAL.md) ─────────────────────────────────────────────
+
+public enum PortalRole { Owner = 1, Viewer = 2 }
+
+/// <summary>
+/// Mijoz portali foydalanuvchisi (my.&lt;domen&gt;). Tenant'ga bog'liq; bir tenant'da bir nechta. Xodimlardan (StaffUser) butunlay
+/// alohida: boshqa jadval, boshqa cookie va authentication scheme. Kirish: email/telefon + parol (PBKDF2) + bir martalik kod (Telegram).
+/// </summary>
+public class PortalUser
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    public string FullName { get; set; } = "";
+    /// <summary>Kichik harfda; global noyob (kirishda tenant tanlanmaydi).</summary>
+    public string? Email { get; set; }
+    /// <summary>+998XXXXXXXXX ko'rinishida; global noyob.</summary>
+    public string? Phone { get; set; }
+    /// <summary>Null — taklif hali qabul qilinmagan (parol o'rnatilmagan).</summary>
+    public string? PasswordHash { get; set; }
+    public PortalRole Role { get; set; }
+    public bool IsActive { get; set; } = true;
+    /// <summary>Bot /start orqali bog'langan shaxsiy chat. Null bo'lsa kod tenant chatiga (Tenant.TelegramChatId) yuboriladi.</summary>
+    public string? TelegramChatId { get; set; }
+    /// <summary>Telegram bog'lash kodi xeshi (SHA-256 hex) — t.me/&lt;bot&gt;?start=&lt;kod&gt;.</summary>
+    public string? TelegramLinkHash { get; set; }
+    public DateTime? TelegramLinkExpiresUtc { get; set; }
+    public int FailedLogins { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
+    public DateTime? LastLoginUtc { get; set; }
+    public int? CreatedByStaffId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    /// <summary>Parol/rol/holat o'zgarsa almashadi — eski portal sessiyalari bekor bo'ladi.</summary>
+    public string SecurityStamp { get; set; } = Guid.NewGuid().ToString("N");
+    public byte[] RowVersion { get; set; } = [];
+}
+
+/// <summary>Taklif / parolni tiklash havolasi: bir martalik, muddatli, faqat SHA-256 xeshi saqlanadi.</summary>
+public class PortalInvite
+{
+    public int Id { get; set; }
+    public int PortalUserId { get; set; }
+    public PortalUser? PortalUser { get; set; }
+    public string TokenHash { get; set; } = "";
+    public DateTime ExpiresUtc { get; set; }
+    public DateTime? UsedAtUtc { get; set; }
+    /// <summary>Yangi taklif chiqarilganda eskisi yopiladi.</summary>
+    public DateTime? RevokedAtUtc { get; set; }
+    public int? CreatedByStaffId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+/// <summary>Bir martalik kirish kodi. Kodning o'zi saqlanmaydi — tuz + SHA-256.</summary>
+public class PortalOtp
+{
+    public long Id { get; set; }
+    public int PortalUserId { get; set; }
+    public string Salt { get; set; } = "";
+    public string CodeHash { get; set; } = "";
+    /// <summary>telegram / log / (keyin: sms, email).</summary>
+    public string Channel { get; set; } = "";
+    public int Attempts { get; set; }
+    public DateTime ExpiresUtc { get; set; }
+    public DateTime? ConsumedAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public string? Ip { get; set; }
+}
+
+public enum PortalRequestKind
+{
+    /// <summary>Joriy paket va davr — uzaytirish (joriy obunaga hisob-faktura).</summary>
+    Renew = 1,
+    /// <summary>Yuqoriroq paket — darhol (yangi obuna bugundan, to'langach eskisi yopiladi).</summary>
+    Upgrade = 2,
+    /// <summary>Pastroq paket yoki davr o'zgarishi — faqat joriy davr oxiridan.</summary>
+    ChangeAtPeriodEnd = 3,
+    /// <summary>Pullik obuna yo'q (sinov / to'xtatilgan) — yangi obuna bugundan.</summary>
+    New = 4,
+}
+
+public enum PortalRequestStatus { Pending = 1, Approved = 2, Rejected = 3, Cancelled = 4 }
+
+/// <summary>Tarifni oshirish / uzaytirish so'rovi: mijoz yuboradi → xodim tasdiqlaydi (qoralama hisob-faktura) yoki rad etadi.</summary>
+public class PortalRequest
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    public int PortalUserId { get; set; }
+    public PortalUser? PortalUser { get; set; }
+    public PortalRequestKind Kind { get; set; }
+    public int PlanId { get; set; }
+    public Plan? Plan { get; set; }
+    public BillingPeriod Period { get; set; }
+    public int PeriodCount { get; set; }
+    /// <summary>Yangi davr boshlanadigan sana (so'rov paytida hisoblangan; ChangeAtPeriodEnd — joriy davr oxiri + 1).</summary>
+    public DateOnly EffectiveDate { get; set; }
+    /// <summary>So'rov paytidagi joriy obuna (bo'lsa).</summary>
+    public int? CurrentSubscriptionId { get; set; }
+    public string? Comment { get; set; }
+    public PortalRequestStatus Status { get; set; }
+    public string? DecisionReason { get; set; }
+    public int? DecidedByStaffId { get; set; }
+    public DateTime? DecidedAtUtc { get; set; }
+    /// <summary>Tasdiqlanganda yaratilgan qoralama hisob-faktura va (kerak bo'lsa) yangi obuna.</summary>
+    public int? InvoiceId { get; set; }
+    public int? SubscriptionId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 }
