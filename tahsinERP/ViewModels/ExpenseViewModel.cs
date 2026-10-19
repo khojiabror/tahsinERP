@@ -145,8 +145,8 @@ namespace tahsinERP.ViewModels
         public string ReceiverWHName { get; set; }
         public int CurrencyID { get; set; }
         public string CurrencyName { get; set; }
-        public double? Amount { get; set; }
-        public double? TotalPrice { get; set; }
+        public decimal? Amount { get; set; }
+        public decimal? TotalPrice { get; set; }
         public string Description { get; set; }
         public bool SendStatus { get; set; }
         public bool IsDeleted { get; set; }
