@@ -402,8 +402,7 @@ namespace tahsinERP.Controllers
                             return View("Settings", uvm);
                         }
 
-                        byte[] avatar = new byte[Request.Files["userPhotoUpload"].InputStream.Length];
-                        Request.Files["userPhotoUpload"].InputStream.Read(avatar, 0, avatar.Length);
+                        byte[] avatar = UploadHelper.ReadAll(Request.Files["userPhotoUpload"]);
 
                         if (uImage == null)
                         {

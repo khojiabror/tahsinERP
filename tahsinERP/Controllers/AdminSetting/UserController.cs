@@ -143,8 +143,7 @@ namespace tahsinERP.Controllers
             {
                 if (photo.InputStream.Length < userPhotoMaxLength)
                 {
-                    avatar = new byte[photo.InputStream.Length];
-                    photo.InputStream.Read(avatar, 0, avatar.Length);
+                    avatar = UploadHelper.ReadAll(photo);
                 }
                 else
                 {
@@ -342,8 +341,7 @@ namespace tahsinERP.Controllers
                     var file = Request.Files["userPhotoUpload"];
                     if (file.InputStream.Length < userPhotoMaxLength)
                     {
-                        byte[] avatar = new byte[file.InputStream.Length];
-                        file.InputStream.Read(avatar, 0, avatar.Length);
+                        byte[] avatar = UploadHelper.ReadAll(file);
 
                         USERIMAGE uImage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == ID);
                         if (uImage == null)

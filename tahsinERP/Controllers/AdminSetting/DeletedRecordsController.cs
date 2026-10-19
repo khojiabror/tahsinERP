@@ -160,119 +160,9 @@ namespace tahsinERP.Controllers
         {
             using (var db = new DBTHSNEntities())
             {
-                switch (moduleKey)
-                {
-                    case "F_WAYBILLS":
-                        return await GetDeletedWaybills(db, searchTerm);
-                    case "CUSTOMER":
-                        return await GetDeletedCustomers(db, searchTerm);
-                    case "CUSTOMER_BASE":
-                        return await GetDeletedCustomerBase(db, searchTerm);
-                    case "SUPPLIER":
-                        return await GetDeletedSuppliers(db, searchTerm);
-                    case "SUPPLIER_BASE":
-                        return await GetDeletedSupplierBase(db, searchTerm);
-                    case "S_ORDERS":
-                        return await GetDeletedSOrders(db, searchTerm);
-                    case "S_CONTRACTS":
-                        return await GetDeletedSContracts(db, searchTerm);
-                    case "P_ORDERS":
-                        return await GetDeletedPOrders(db, searchTerm);
-                    case "P_CONTRACTS":
-                        return await GetDeletedPContracts(db, searchTerm);
-                    case "P_INVOICES":
-                        return await GetDeletedPInvoices(db, searchTerm);
-                    case "P_REQUISITIONS":
-                        return await GetDeletedPRequisitions(db, searchTerm);
-                    case "PRODUCT":
-                        return await GetDeletedProducts(db, searchTerm);
-                    case "FORWARDER":
-                        return await GetDeletedForwarders(db, searchTerm);
-                    case "F_CONTRACTS":
-                        return await GetDeletedFContracts(db, searchTerm);
-                    case "F_WAYBILL_PAYMENTS":
-                        return await GetDeletedWaybillPayments(db, searchTerm);
-                    case "WAREHOUSE":
-                        return await GetDeletedWarehouses(db, searchTerm);
-                    case "UNIT":
-                        return await GetDeletedUnits(db, searchTerm);
-                    case "CURRENCY":
-                        return await GetDeletedCurrencies(db, searchTerm);
-                    case "PRODUCT_CATEGORIES":
-                        return await GetDeletedProductCategories(db, searchTerm);
-                    case "FIN_ACCOUNTS":
-                        return await GetDeletedFinAccounts(db, searchTerm);
-                    case "FIN_CATEGORIES":
-                        return await GetDeletedFinCategories(db, searchTerm);
-                    case "FIN_TRANSACTIONS":
-                        return await GetDeletedFinTransactions(db, searchTerm);
-                    case "FIN_BALANCE_CATEGORIES":
-                        return await GetDeletedFinBalanceCategories(db, searchTerm);
-                    case "FIN_PL_PLANS":
-                        return await GetDeletedFinPlPlans(db, searchTerm);
-                    case "FIN_PL_ITEMS":
-                        return await GetDeletedFinPlItems(db, searchTerm);
-                    case "SHAREHOLDER":
-                        return await GetDeletedShareholders(db, searchTerm);
-                    case "PRODUCTPLAN":
-                        return await GetDeletedProductPlans(db, searchTerm);
-                    case "PRODUCTIONPROCESS":
-                        return await GetDeletedProductionProcesses(db, searchTerm);
-                    case "TANNARX":
-                        return await GetDeletedTannarx(db, searchTerm);
-                    case "SHOP":
-                        return await GetDeletedShops(db, searchTerm);
-                    case "DAMAGED_PRODUCTS":
-                        return await GetDeletedDamagedProducts(db, searchTerm);
-                    case "DEFECT_TYPES":
-                        return await GetDeletedDefectTypes(db, searchTerm);
-                    case "USER":
-                        return await GetDeletedUsers(db, searchTerm);
-                    case "ROLE":
-                        return await GetDeletedRoles(db, searchTerm);
-                    case "APP_TASKS":
-                        return await GetDeletedAppTasks(db, searchTerm);
-                    case "APP_TASK_PROJECTS":
-                        return await GetDeletedAppTaskProjects(db, searchTerm);
-                    case "APP_TASK_STATUS_REF":
-                        return await GetDeletedAppTaskStatusRef(db, searchTerm);
-                    case "APP_TASK_PRIORITY_REF":
-                        return await GetDeletedAppTaskPriorityRef(db, searchTerm);
-                    case "STD_COMPANY_STANDARDS":
-                        return await GetDeletedStdCompanyStandards(db, searchTerm);
-                    case "JOB_DESC":
-                        return await GetDeletedJobDesc(db, searchTerm);
-                    case "ADM_COMPANY_ORDERS":
-                        return await GetDeletedAdmCompanyOrders(db, searchTerm);
-                    case "COM_OFFICIAL_LETTERS":
-                        return await GetDeletedComOfficialLetters(db, searchTerm);
-                    case "NORMVERSION":
-                        return await GetDeletedNormVersions(db, searchTerm);
-                    case "WASTE":
-                        return await GetDeletedWastes(db, searchTerm);
-                    case "HR_EMPLOYEES":
-                        return await GetDeletedHrEmployees(db, searchTerm);
-                    case "HR_POSITIONS":
-                        return await GetDeletedHrPositions(db, searchTerm);
-                    case "HR_ORG_UNITS":
-                        return await GetDeletedHrOrgUnits(db, searchTerm);
-                    case "HR_SALARY_GRADES":
-                        return await GetDeletedHrSalaryGrades(db, searchTerm);
-                    case "HR_STAFFING_PLAN":
-                        return await GetDeletedHrStaffingPlan(db, searchTerm);
-                    case "HR_PIECE_RATE_TARIFFS":
-                        return await GetDeletedHrPieceRateTariffs(db, searchTerm);
-                    case "F_TRANSPORT_TYPES":
-                        return await GetDeletedFTransportTypes(db, searchTerm);
-                    case "EXPENSES":
-                        return await GetDeletedExpenses(db, searchTerm);
-                    case "INCOMES":
-                        return await GetDeletedIncomes(db, searchTerm);
-                    case "PRODUCT_PRODUCTION":
-                        return await GetDeletedProductProduction(db, searchTerm);
-                    default:
-                        return (new List<DeletedRecordItem>(), new[] { "ID", "Asosiy" });
-                }
+                if (!Registry.TryGetValue(moduleKey ?? "", out var def))
+                    return (new List<DeletedRecordItem>(), new[] { "ID", "Asosiy" });
+                return await def.Load(this, db, searchTerm);
             }
         }
 
@@ -758,6 +648,82 @@ namespace tahsinERP.Controllers
         }
         #endregion
 
+        // Modul kaliti -> entity turi + o'chirilganlarni yuklovchi (CORE dublikat: avval ikki katta switch —
+        // ro'yxat uchun va tiklash uchun — har yangi jadvalda ikki joyga qo'shilardi)
+        private sealed class DeletedModuleDef
+        {
+            public DeletedModuleDef(Type entityType, Func<DeletedRecordsController, DBTHSNEntities, string, Task<(List<DeletedRecordItem> Items, string[] ColumnNames)>> load, bool longKey = false)
+            {
+                EntityType = entityType;
+                Load = load;
+                LongKey = longKey;
+            }
+
+            /// <summary>Kalit bigint (Tasks/Docs jadvallari) — FindAsync to'g'ri turdagi qiymat talab qiladi.</summary>
+            public bool LongKey { get; }
+
+            public Type EntityType { get; }
+            public Func<DeletedRecordsController, DBTHSNEntities, string, Task<(List<DeletedRecordItem> Items, string[] ColumnNames)>> Load { get; }
+        }
+
+        private static readonly Dictionary<string, DeletedModuleDef> Registry = new Dictionary<string, DeletedModuleDef>
+        {
+            ["F_WAYBILLS"] = new DeletedModuleDef(typeof(F_WAYBILLS), (c, db, q) => c.GetDeletedWaybills(db, q)),
+            ["CUSTOMER"] = new DeletedModuleDef(typeof(CUSTOMER), (c, db, q) => c.GetDeletedCustomers(db, q)),
+            ["CUSTOMER_BASE"] = new DeletedModuleDef(typeof(CUSTOMER_BASE), (c, db, q) => c.GetDeletedCustomerBase(db, q)),
+            ["SUPPLIER"] = new DeletedModuleDef(typeof(SUPPLIER), (c, db, q) => c.GetDeletedSuppliers(db, q)),
+            ["SUPPLIER_BASE"] = new DeletedModuleDef(typeof(SUPPLIER_BASE), (c, db, q) => c.GetDeletedSupplierBase(db, q)),
+            ["S_ORDERS"] = new DeletedModuleDef(typeof(S_ORDERS), (c, db, q) => c.GetDeletedSOrders(db, q)),
+            ["S_CONTRACTS"] = new DeletedModuleDef(typeof(S_CONTRACTS), (c, db, q) => c.GetDeletedSContracts(db, q)),
+            ["P_ORDERS"] = new DeletedModuleDef(typeof(P_ORDERS), (c, db, q) => c.GetDeletedPOrders(db, q)),
+            ["P_CONTRACTS"] = new DeletedModuleDef(typeof(P_CONTRACTS), (c, db, q) => c.GetDeletedPContracts(db, q)),
+            ["P_INVOICES"] = new DeletedModuleDef(typeof(P_INVOICES), (c, db, q) => c.GetDeletedPInvoices(db, q)),
+            ["P_REQUISITIONS"] = new DeletedModuleDef(typeof(P_REQUISITIONS), (c, db, q) => c.GetDeletedPRequisitions(db, q)),
+            ["PRODUCT"] = new DeletedModuleDef(typeof(PRODUCT), (c, db, q) => c.GetDeletedProducts(db, q)),
+            ["FORWARDER"] = new DeletedModuleDef(typeof(FORWARDER), (c, db, q) => c.GetDeletedForwarders(db, q)),
+            ["F_CONTRACTS"] = new DeletedModuleDef(typeof(F_CONTRACTS), (c, db, q) => c.GetDeletedFContracts(db, q)),
+            ["F_WAYBILL_PAYMENTS"] = new DeletedModuleDef(typeof(F_WAYBILL_PAYMENTS), (c, db, q) => c.GetDeletedWaybillPayments(db, q)),
+            ["WAREHOUSE"] = new DeletedModuleDef(typeof(Warehouse), (c, db, q) => c.GetDeletedWarehouses(db, q)),
+            ["UNIT"] = new DeletedModuleDef(typeof(UNIT), (c, db, q) => c.GetDeletedUnits(db, q)),
+            ["CURRENCY"] = new DeletedModuleDef(typeof(CURRENCy), (c, db, q) => c.GetDeletedCurrencies(db, q)),
+            ["PRODUCT_CATEGORIES"] = new DeletedModuleDef(typeof(PRODUCT_CATEGORIES), (c, db, q) => c.GetDeletedProductCategories(db, q)),
+            ["FIN_ACCOUNTS"] = new DeletedModuleDef(typeof(FIN_ACCOUNTS), (c, db, q) => c.GetDeletedFinAccounts(db, q)),
+            ["FIN_CATEGORIES"] = new DeletedModuleDef(typeof(FIN_CATEGORIES), (c, db, q) => c.GetDeletedFinCategories(db, q)),
+            ["FIN_TRANSACTIONS"] = new DeletedModuleDef(typeof(FIN_TRANSACTIONS), (c, db, q) => c.GetDeletedFinTransactions(db, q)),
+            ["FIN_BALANCE_CATEGORIES"] = new DeletedModuleDef(typeof(FIN_BALANCE_CATEGORIES), (c, db, q) => c.GetDeletedFinBalanceCategories(db, q)),
+            ["FIN_PL_PLANS"] = new DeletedModuleDef(typeof(FIN_PL_PLANS), (c, db, q) => c.GetDeletedFinPlPlans(db, q)),
+            ["FIN_PL_ITEMS"] = new DeletedModuleDef(typeof(FIN_PL_ITEMS), (c, db, q) => c.GetDeletedFinPlItems(db, q)),
+            ["SHAREHOLDER"] = new DeletedModuleDef(typeof(SHAREHOLDER), (c, db, q) => c.GetDeletedShareholders(db, q)),
+            ["PRODUCTPLAN"] = new DeletedModuleDef(typeof(PRODUCTPLAN), (c, db, q) => c.GetDeletedProductPlans(db, q)),
+            ["PRODUCTIONPROCESS"] = new DeletedModuleDef(typeof(PRODUCTIONPROCESS), (c, db, q) => c.GetDeletedProductionProcesses(db, q)),
+            ["TANNARX"] = new DeletedModuleDef(typeof(TANNARX), (c, db, q) => c.GetDeletedTannarx(db, q)),
+            ["SHOP"] = new DeletedModuleDef(typeof(SHOP), (c, db, q) => c.GetDeletedShops(db, q)),
+            ["DAMAGED_PRODUCTS"] = new DeletedModuleDef(typeof(DAMAGED_PRODUCTS), (c, db, q) => c.GetDeletedDamagedProducts(db, q)),
+            ["DEFECT_TYPES"] = new DeletedModuleDef(typeof(DEFECT_TYPES), (c, db, q) => c.GetDeletedDefectTypes(db, q)),
+            ["USER"] = new DeletedModuleDef(typeof(USER), (c, db, q) => c.GetDeletedUsers(db, q)),
+            ["ROLE"] = new DeletedModuleDef(typeof(ROLE), (c, db, q) => c.GetDeletedRoles(db, q)),
+            ["APP_TASKS"] = new DeletedModuleDef(typeof(APP_TASKS), (c, db, q) => c.GetDeletedAppTasks(db, q), longKey: true),
+            ["APP_TASK_PROJECTS"] = new DeletedModuleDef(typeof(APP_TASK_PROJECTS), (c, db, q) => c.GetDeletedAppTaskProjects(db, q)),
+            ["APP_TASK_STATUS_REF"] = new DeletedModuleDef(typeof(APP_TASK_STATUS_REF), (c, db, q) => c.GetDeletedAppTaskStatusRef(db, q)),
+            ["APP_TASK_PRIORITY_REF"] = new DeletedModuleDef(typeof(APP_TASK_PRIORITY_REF), (c, db, q) => c.GetDeletedAppTaskPriorityRef(db, q)),
+            ["STD_COMPANY_STANDARDS"] = new DeletedModuleDef(typeof(STD_COMPANY_STANDARDS), (c, db, q) => c.GetDeletedStdCompanyStandards(db, q), longKey: true),
+            ["JOB_DESC"] = new DeletedModuleDef(typeof(JOB_DESC), (c, db, q) => c.GetDeletedJobDesc(db, q), longKey: true),
+            ["ADM_COMPANY_ORDERS"] = new DeletedModuleDef(typeof(ADM_COMPANY_ORDERS), (c, db, q) => c.GetDeletedAdmCompanyOrders(db, q), longKey: true),
+            ["COM_OFFICIAL_LETTERS"] = new DeletedModuleDef(typeof(COM_OFFICIAL_LETTERS), (c, db, q) => c.GetDeletedComOfficialLetters(db, q), longKey: true),
+            ["NORMVERSION"] = new DeletedModuleDef(typeof(NORMVERSION), (c, db, q) => c.GetDeletedNormVersions(db, q)),
+            ["WASTE"] = new DeletedModuleDef(typeof(WASTE), (c, db, q) => c.GetDeletedWastes(db, q)),
+            ["HR_EMPLOYEES"] = new DeletedModuleDef(typeof(HR_EMPLOYEES), (c, db, q) => c.GetDeletedHrEmployees(db, q)),
+            ["HR_POSITIONS"] = new DeletedModuleDef(typeof(HR_POSITIONS), (c, db, q) => c.GetDeletedHrPositions(db, q)),
+            ["HR_ORG_UNITS"] = new DeletedModuleDef(typeof(HR_ORG_UNITS), (c, db, q) => c.GetDeletedHrOrgUnits(db, q)),
+            ["HR_SALARY_GRADES"] = new DeletedModuleDef(typeof(HR_SALARY_GRADES), (c, db, q) => c.GetDeletedHrSalaryGrades(db, q)),
+            ["HR_STAFFING_PLAN"] = new DeletedModuleDef(typeof(HR_STAFFING_PLAN), (c, db, q) => c.GetDeletedHrStaffingPlan(db, q)),
+            ["HR_PIECE_RATE_TARIFFS"] = new DeletedModuleDef(typeof(HR_PIECE_RATE_TARIFFS), (c, db, q) => c.GetDeletedHrPieceRateTariffs(db, q)),
+            ["F_TRANSPORT_TYPES"] = new DeletedModuleDef(typeof(F_TRANSPORT_TYPES), (c, db, q) => c.GetDeletedFTransportTypes(db, q)),
+            ["EXPENSES"] = new DeletedModuleDef(typeof(EXPENS), (c, db, q) => c.GetDeletedExpenses(db, q)),
+            ["INCOMES"] = new DeletedModuleDef(typeof(INCOME), (c, db, q) => c.GetDeletedIncomes(db, q)),
+            ["PRODUCT_PRODUCTION"] = new DeletedModuleDef(typeof(PRODUCT_PRODUCTION), (c, db, q) => c.GetDeletedProductProduction(db, q)),
+        };
+
         private static readonly HashSet<string> NonRecoverableModules = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "EXPENSES", "INCOMES", "PRODUCT_PRODUCTION", "FIN_TRANSACTIONS", "P_INVOICES", "F_WAYBILL_PAYMENTS"
@@ -774,64 +740,9 @@ namespace tahsinERP.Controllers
         private async Task<bool> RecoverEntity(DBTHSNEntities db, string moduleKey, int id)
         {
             dynamic entity = null;
-            switch (moduleKey)
-            {
-                case "F_WAYBILLS": entity = await db.F_WAYBILLS.FindAsync(id); break;
-                case "CUSTOMER": entity = await db.CUSTOMERS.FindAsync(id); break;
-                case "CUSTOMER_BASE": entity = await db.CUSTOMER_BASE.FindAsync(id); break;
-                case "SUPPLIER": entity = await db.SUPPLIERS.FindAsync(id); break;
-                case "SUPPLIER_BASE": entity = await db.SUPPLIER_BASE.FindAsync(id); break;
-                case "S_ORDERS": entity = await db.S_ORDERS.FindAsync(id); break;
-                case "S_CONTRACTS": entity = await db.S_CONTRACTS.FindAsync(id); break;
-                case "P_ORDERS": entity = await db.P_ORDERS.FindAsync(id); break;
-                case "P_CONTRACTS": entity = await db.P_CONTRACTS.FindAsync(id); break;
-                case "P_INVOICES": entity = await db.P_INVOICES.FindAsync(id); break;
-                case "P_REQUISITIONS": entity = await db.P_REQUISITIONS.FindAsync(id); break;
-                case "PRODUCT": entity = await db.PRODUCTS.FindAsync(id); break;
-                case "FORWARDER": entity = await db.FORWARDERS.FindAsync(id); break;
-                case "F_CONTRACTS": entity = await db.F_CONTRACTS.FindAsync(id); break;
-                case "F_WAYBILL_PAYMENTS": entity = await db.F_WAYBILL_PAYMENTS.FindAsync(id); break;
-                case "WAREHOUSE": entity = await db.WAREHOUSES.FindAsync(id); break;
-                case "UNIT": entity = await db.UNITS.FindAsync(id); break;
-                case "CURRENCY": entity = await db.CURRENCIES.FindAsync(id); break;
-                case "PRODUCT_CATEGORIES": entity = await db.PRODUCT_CATEGORIES.FindAsync(id); break;
-                case "FIN_ACCOUNTS": entity = await db.FIN_ACCOUNTS.FindAsync(id); break;
-                case "FIN_CATEGORIES": entity = await db.FIN_CATEGORIES.FindAsync(id); break;
-                case "FIN_TRANSACTIONS": entity = await db.FIN_TRANSACTIONS.FindAsync(id); break;
-                case "FIN_BALANCE_CATEGORIES": entity = await db.FIN_BALANCE_CATEGORIES.FindAsync(id); break;
-                case "FIN_PL_PLANS": entity = await db.FIN_PL_PLANS.FindAsync(id); break;
-                case "FIN_PL_ITEMS": entity = await db.FIN_PL_ITEMS.FindAsync(id); break;
-                case "SHAREHOLDER": entity = await db.SHAREHOLDERS.FindAsync(id); break;
-                case "PRODUCTPLAN": entity = await db.PRODUCTPLANS.FindAsync(id); break;
-                case "PRODUCTIONPROCESS": entity = await db.PRODUCTIONPROCESSES.FindAsync(id); break;
-                case "TANNARX": entity = await db.TANNARXes.FindAsync(id); break;
-                case "SHOP": entity = await db.SHOPS.FindAsync(id); break;
-                case "DAMAGED_PRODUCTS": entity = await db.DAMAGED_PRODUCTS.FindAsync(id); break;
-                case "DEFECT_TYPES": entity = await db.DEFECT_TYPES.FindAsync(id); break;
-                case "USER": entity = await db.USERS.FindAsync(id); break;
-                case "ROLE": entity = await db.ROLES.FindAsync(id); break;
-                case "APP_TASKS": entity = await db.APP_TASKS.FindAsync((long)id); break;
-                case "APP_TASK_PROJECTS": entity = await db.APP_TASK_PROJECTS.FindAsync(id); break;
-                case "APP_TASK_STATUS_REF": entity = await db.APP_TASK_STATUS_REF.FindAsync(id); break;
-                case "APP_TASK_PRIORITY_REF": entity = await db.APP_TASK_PRIORITY_REF.FindAsync(id); break;
-                case "STD_COMPANY_STANDARDS": entity = await db.STD_COMPANY_STANDARDS.FindAsync((long)id); break;
-                case "JOB_DESC": entity = await db.JOB_DESC.FindAsync((long)id); break;
-                case "ADM_COMPANY_ORDERS": entity = await db.ADM_COMPANY_ORDERS.FindAsync((long)id); break;
-                case "COM_OFFICIAL_LETTERS": entity = await db.COM_OFFICIAL_LETTERS.FindAsync((long)id); break;
-                case "NORMVERSION": entity = await db.NORMVERSIONS.FindAsync(id); break;
-                case "WASTE": entity = await db.WASTES.FindAsync(id); break;
-                case "HR_EMPLOYEES": entity = await db.HR_EMPLOYEES.FindAsync(id); break;
-                case "HR_POSITIONS": entity = await db.HR_POSITIONS.FindAsync(id); break;
-                case "HR_ORG_UNITS": entity = await db.HR_ORG_UNITS.FindAsync(id); break;
-                case "HR_SALARY_GRADES": entity = await db.HR_SALARY_GRADES.FindAsync(id); break;
-                case "HR_STAFFING_PLAN": entity = await db.HR_STAFFING_PLAN.FindAsync(id); break;
-                case "HR_PIECE_RATE_TARIFFS": entity = await db.HR_PIECE_RATE_TARIFFS.FindAsync(id); break;
-                case "F_TRANSPORT_TYPES": entity = await db.F_TRANSPORT_TYPES.FindAsync(id); break;
-                case "EXPENSES": entity = await db.EXPENSES.FindAsync(id); break;
-                case "INCOMES": entity = await db.INCOMES.FindAsync(id); break;
-                case "PRODUCT_PRODUCTION": entity = await db.PRODUCT_PRODUCTION.FindAsync(id); break;
-                default: return false;
-            }
+            if (!Registry.TryGetValue(moduleKey ?? "", out var def))
+                return false;
+            entity = await db.Set(def.EntityType).FindAsync(def.LongKey ? (object)(long)id : id);
             if (entity == null) return false;
 
             // Foydalanuvchi: shu nom bilan yangi faol foydalanuvchi bo'lsa — tiklanmaydi
@@ -843,8 +754,8 @@ namespace tahsinERP.Controllers
                     return false;
             }
 
+            // Faqat IsDeleted yoziladi (avval butun qator Modified qilinardi, CORE-B02)
             try { entity.IsDeleted = false; } catch { return false; }
-            db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
             return true;
         }
