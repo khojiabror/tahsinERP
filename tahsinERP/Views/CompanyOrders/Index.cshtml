@@ -143,6 +143,7 @@
         </div>
     </div>
 
+    <script src="~/Scripts/app/erp-datatable.js"></script>
     <script>
         (function () {
             function initSOrderTable() {
@@ -181,63 +182,7 @@
                     "order": [[3, "desc"]],
                     "columnDefs": columnDefs,
                     dom: 'lBfrtip',
-                    buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            text: '<i class="bx bxs-file-excel"></i> Excel',
-                            titleAttr: 'Excelga yuklash',
-                            className: 'btn btn-success mr-1',
-                            filename: function () {
-                                var now = new Date();
-                                var dateStr = now.getFullYear() +
-                                    String(now.getMonth() + 1).padStart(2, '0') +
-                                    String(now.getDate()).padStart(2, '0') + '_' +
-                                    String(now.getHours()).padStart(2, '0') +
-                                    String(now.getMinutes()).padStart(2, '0') +
-                                    String(now.getSeconds()).padStart(2, '0');
-                                return 'Buyruqlar_' + dateStr;
-                            },
-                            exportOptions: {
-                                columns: true ? ':not(:last-child)' : ':visible',
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        return data.replace(/<[^>]*>/g, '').trim();
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            text: '<i class="bx bxs-file-pdf"></i> PDF',
-                            titleAttr: 'PDFga yuklash',
-                            className: 'btn btn-danger',
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-                            filename: function () {
-                                var now = new Date();
-                                var dateStr = now.getFullYear() +
-                                    String(now.getMonth() + 1).padStart(2, '0') +
-                                    String(now.getDate()).padStart(2, '0') + '_' +
-                                    String(now.getHours()).padStart(2, '0') +
-                                    String(now.getMinutes()).padStart(2, '0') +
-                                    String(now.getSeconds()).padStart(2, '0');
-                                return 'Buyruqlar_' + dateStr;
-                            },
-                            exportOptions: {
-                                columns: true ? ':not(:last-child)' : ':visible',
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        return data.replace(/<[^>]*>/g, '').trim();
-                                    }
-                                }
-                            },
-                            title: 'Buyruqlar ro\'yxati',
-                            customize: function (doc) {
-                                doc.defaultStyle.fontSize = 9;
-                                doc.styles.tableHeader.fontSize = 10;
-                            }
-                        }
-                    ],
+                    buttons: erpDataTable.buttons({ fileName: 'Buyruqlar', pdfTitle: "Buyruqlar ro'yxati", columns: true ? ':not(:last-child)' : ':visible' }),
                     "scrollX": true
                 });
             }

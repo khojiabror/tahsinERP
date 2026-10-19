@@ -96,7 +96,13 @@ HTML→DOCX konverter namunaviy HTML bilan sinaldi: OpenXmlValidator 0 xato, ras
 | 23 | Brauzer tekshiruvi tuzatishlari: inline skriptlar jQuery'dan keyin, Quill `clipboard.convert` (Word/shablon muharrirga tushmasdi) |
 | 24 | DOC-P10 sxema skripti; DOC-P10 kodi va DOC-P02 table splitting (EDMX + kod) |
 
-**Yakuniy holat (2026-10-19):** Bug 22/23 (TSK-B06 — foydalanuvchi qarori) · Xavfsizlik 8/8 · Perf 24/24 · Dublikat 19/20 (#16 — Core) · O'lik kod 2/2 · Maint 2/2.
+| 25 | TSK-B06: tugma "Bekor qilish" deb nomlandi (foydalanuvchi qarori — xatti-harakat CANCELLED) |
+| 26 | #16: `Scripts/app/erp-datatable.js` — 35 ta sahifa/skript bitta `erpDataTable.buttons()` ni chaqiradi; `Scripts/srm/srm-datatable.js` olib tashlandi |
+
+**Yakuniy holat (2026-10-19):** Bug 23/23 · Xavfsizlik 8/8 · Perf 24/24 · Dublikat 20/20 · O'lik kod 2/2 · Maint 2/2.
+#16 tekshiruvi: barcha o'zgargan view'lar aspnet_compiler bilan xatosiz; brauzerda 31 sahifada DataTable va tugmalar ishlaydi.
+Boshqa modullarda topilgan, bu o'zgarishga aloqasiz xatolar (eski view bilan ham takrorlanadi): FinBalanceCategories, FinPlItems,
+Reconciliation/AktSverki — HTTP 500; Tannarx — bo'sh jadvaldagi colspan qatori DataTables'ni buzadi.
 Brauzerda tekshirildi: Tasks, Kanban, Dashboard, TaskSettings, xat/buyruq/STD/JobDesc ro'yxat, Details, Create, Edit, fayl/rasm yuklab olish.
 
 Xulq-atvor o'zgarishlari:

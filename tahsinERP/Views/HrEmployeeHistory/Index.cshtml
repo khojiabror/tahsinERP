@@ -191,6 +191,7 @@
     </div>
 
 @section Scripts {
+    <script src="~/Scripts/app/erp-datatable.js"></script>
     <script>
         $(document).ready(function() {
             // Remove child rows from DOM before DataTables initialization
@@ -225,10 +226,7 @@
                 "searching": true,
                 "order": [[1, "asc"]],
                 "dom": "lBfrtip",
-                "buttons": [
-                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', title: 'Xodimlar_staji', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } },
-                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', title: 'Xodimlar staji', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d || '').toString().replace(/<[^>]*>/g, '').trim(); } } } }
-                ]
+                "buttons": erpDataTable.buttons({ title: 'Xodimlar_staji', small: true, pdfOptions: { title: 'Xodimlar staji' } })
             });
 
             // Handle click on parent row to show/hide child rows

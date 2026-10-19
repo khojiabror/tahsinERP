@@ -175,9 +175,9 @@
     </div>
 </div>
 
-<script src="~/Scripts/srm/srm-datatable.js"></script>
+<script src="~/Scripts/app/erp-datatable.js"></script>
 <script>
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         $('#dlocDataTable').DataTable({
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
@@ -186,7 +186,7 @@
             "pageLength": 25,
             "responsive": true,
             dom: 'lBfrtip',
-            buttons: srmDataTable.buttons({ small: true })
+            buttons: erpDataTable.buttons({ small: true })
         });
     });
 </script>

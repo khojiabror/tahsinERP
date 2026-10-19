@@ -20,26 +20,6 @@
         }
     }
 
-    function pad2(n) {
-        n = String(n);
-        return n.length < 2 ? '0' + n : n;
-    }
-
-    function exportFileName() {
-        var now = new Date();
-        var dateStr = now.getFullYear() +
-            pad2(now.getMonth() + 1) +
-            pad2(now.getDate()) + '_' +
-            pad2(now.getHours()) +
-            pad2(now.getMinutes()) +
-            pad2(now.getSeconds());
-        return 'Xaridorlar_' + dateStr;
-    }
-
-    function stripTags(data) {
-        return data.replace(/<[^>]*>/g, '').trim();
-    }
-
     function refreshDataTable() {
         var productType = document.getElementById('productTypeFilter').value;
         window.location.href = config.indexUrl + '?productType=' + (productType || '');
@@ -93,45 +73,7 @@
             ],
             "scrollX": true,
             dom: 'lBfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: '<i class="bx bxs-file-excel"></i> Excel',
-                    titleAttr: 'Excelga yuklash',
-                    className: 'btn btn-success mr-1',
-                    filename: exportFileName,
-                    exportOptions: {
-                        columns: ':visible',
-                        format: {
-                            body: function (data) {
-                                return stripTags(data);
-                            }
-                        }
-                    }
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: '<i class="bx bxs-file-pdf"></i> PDF',
-                    titleAttr: 'PDFga yuklash',
-                    className: 'btn btn-danger',
-                    filename: exportFileName,
-                    exportOptions: {
-                        columns: ':visible',
-                        format: {
-                            body: function (data) {
-                                return stripTags(data);
-                            }
-                        }
-                    },
-                    orientation: 'landscape',
-                    pageSize: 'A4',
-                    title: 'Xaridorlar',
-                    customize: function (doc) {
-                        doc.defaultStyle.fontSize = 9;
-                        doc.styles.tableHeader.fontSize = 10;
-                    }
-                }
-            ]
+            buttons: erpDataTable.buttons({ fileName: 'Xaridorlar', pdfTitle: 'Xaridorlar' })
         });
     }
 

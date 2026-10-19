@@ -41,14 +41,6 @@ namespace tahsinERP.Controllers
         });
 
         /// <summary>
-        /// Server IP manzili (keshlangan).
-        /// </summary>
-        public static string GetIpAddress()
-        {
-            return ServerIp.Value;
-        }
-
-        /// <summary>
         /// Mijozning IP manzili.
         /// </summary>
         public static string GetClientIpAddress(HttpRequestBase request)

@@ -115,8 +115,9 @@
         </div>
     </div>
 
+    <script src="~/Scripts/app/erp-datatable.js"></script>
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             $('#employeesTable').DataTable({
                 "language": {
                     "lengthMenu": "_MENU_ ta ko'rsatish",
@@ -135,10 +136,7 @@
                 "pageLength": 25,
                 "order": [[0, "asc"]],
                 dom: 'lBfrtip',
-                buttons: [
-                    { extend: 'excelHtml5', text: '<i class="bx bxs-file-excel"></i> Excel', titleAttr: 'Excelga yuklash', className: 'btn btn-success btn-sm mr-1', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } },
-                    { extend: 'pdfHtml5', text: '<i class="bx bxs-file-pdf"></i> PDF', titleAttr: 'PDFga yuklash', className: 'btn btn-danger btn-sm', pageSize: 'A4', exportOptions: { columns: ':visible', format: { body: function(d) { return (d||'').toString().replace(/<[^>]*>/g,'').trim(); } } } }
-                ]
+                buttons: erpDataTable.buttons({ small: true })
             });
         });
     </script>

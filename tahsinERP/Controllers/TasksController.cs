@@ -79,7 +79,8 @@ namespace tahsinERP.Controllers
                         statusStyle = TaskBadges.StatusStyle(r.StatusID),
                         created = r.CreatedDT.ToString("yyyy-MM-dd"),
                         due = r.DueDate.HasValue ? r.DueDate.Value.ToString("yyyy-MM-dd") : null,
-                        overdue = TaskBadges.IsOverdue(r.DueDate, r.StatusID)
+                        overdue = TaskBadges.IsOverdue(r.DueDate, r.StatusID),
+                        closed = TaskRules.IsClosedStatus(TaskLookups.AllStatuses().FirstOrDefault(st => st.ID == r.StatusID))
                     })
                 }, JsonRequestBehavior.AllowGet);
             }
@@ -370,7 +371,7 @@ namespace tahsinERP.Controllers
 
                 if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
-                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni o'chirishingiz mumkin";
+                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni bekor qilishingiz mumkin";
                     return RedirectToAction("Index");
                 }
 
@@ -389,7 +390,9 @@ namespace tahsinERP.Controllers
 
                 await db.SaveChangesAsync();
 
-                LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} o'chirildi");
+                LogHelper.LogToDatabase(CurrentUserName, "TasksController",
+                    $"Task {task.KeyCode} - {task.Title} " + (cancelledStatus != null ? "bekor qilindi" : "o'chirildi"));
+                TempData["Success"] = cancelledStatus != null ? "Topshiriq bekor qilindi" : "Topshiriq o'chirildi";
 
                 return RedirectToAction("Index");
             }
