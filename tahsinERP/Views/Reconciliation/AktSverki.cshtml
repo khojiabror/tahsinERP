@@ -198,7 +198,6 @@
 @section scripts {
     @if (Model.HasSelectedContract && Model.Rows != null && Model.Rows.Count > 0)
     {
-        <script src="~/Scripts/app/erp-datatable.js"></script>
         <script>
             $(document).ready(function () {
                 var partyName = @Html.Raw(Json.Encode(Model.Party2Name ?? "Akt_sverki"));

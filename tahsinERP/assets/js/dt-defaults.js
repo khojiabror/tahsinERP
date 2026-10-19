@@ -3,34 +3,16 @@
  * sahifa skriptlaridan oldin yuklanadi.
  *  - O'zbekcha til matnlari standart (sahifa o'z "language"ini bersa, o'shanisi ishlaydi).
  *  - PDF eksport: A4, ustunlar ko'p bo'lsa landscape, ustunlar teng kenglikda.
- *  - tahsinDt.exportButtons('Fayl_nomi') — view'lardagi copy-paste Excel/PDF tugmalari o'rniga:
- *      $('#t').DataTable({ dom: 'lBfrtip', buttons: tahsinDt.exportButtons('Valyutalar') });
+ *  - Eksport tugmalari: Scripts/app/erp-datatable.js — erpDataTable.buttons({ fileName: 'Valyutalar' })
+ *    (u ham layout'da shu fayldan oldin yuklanadi).
  */
 (function ($) {
     if (!($ && $.fn && $.fn.dataTable)) {
         return;
     }
 
-    var language = {
-        search: "Qidirish:",
-        lengthMenu: "_MENU_ ta ko'rsatish",
-        info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-        infoEmpty: "Yozuvlar yo'q",
-        infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
-        processing: "Yuklanmoqda...",
-        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
-        zeroRecords: "Ma'lumot topilmadi"
-    };
+    var language = $.extend({}, window.erpDataTable ? window.erpDataTable.language : {}, { processing: "Yuklanmoqda..." });
     $.extend(true, $.fn.dataTable.defaults, { language: language });
-
-    function stripTags(data) {
-        return (data == null ? '' : data.toString()).replace(/<[^>]*>/g, '').trim();
-    }
-
-    function stamp() {
-        var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
-        return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
-    }
 
     var buttons = $.fn.dataTable.ext.buttons;
     if (buttons && buttons.pdfHtml5) {
@@ -68,36 +50,4 @@
         };
     }
 
-    window.tahsinDt = {
-        language: language,
-        stripTags: stripTags,
-        /** Standart Excel + PDF tugmalari. opts: { title, small, columns, pdf: false } */
-        exportButtons: function (fileName, opts) {
-            opts = opts || {};
-            var size = opts.small === false ? '' : ' btn-sm';
-            var exportOptions = { columns: opts.columns || ':visible', format: { body: stripTags } };
-            var name = function () { return (fileName || 'export') + '_' + stamp(); };
-            var list = [{
-                extend: 'excelHtml5',
-                text: '<i class="bx bxs-file-excel"></i> Excel',
-                titleAttr: 'Excelga yuklash',
-                className: 'btn btn-success mr-1' + size,
-                filename: name,
-                title: opts.title || null,
-                exportOptions: exportOptions
-            }];
-            if (opts.pdf !== false) {
-                list.push({
-                    extend: 'pdfHtml5',
-                    text: '<i class="bx bxs-file-pdf"></i> PDF',
-                    titleAttr: 'PDFga yuklash',
-                    className: 'btn btn-danger' + size,
-                    filename: name,
-                    title: opts.title || '',
-                    exportOptions: exportOptions
-                });
-            }
-            return list;
-        }
-    };
 })(window.jQuery);
