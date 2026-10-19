@@ -50,7 +50,7 @@
                                         <dd class="col-sm-8">@Model.Name</dd>
                                         
                                         <dt class="col-sm-4">Valyuta:</dt>
-                                        <dd class="col-sm-8">@Model.CURRENCy?.Name</dd>
+                                        <dd class="col-sm-8">@(Model.CURRENCy?.Shortname)</dd>
                                     </dl>
                                     
                                     @using (Html.BeginForm("Delete", "FinAccounts", FormMethod.Post))

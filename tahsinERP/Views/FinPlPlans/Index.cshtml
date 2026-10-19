@@ -69,7 +69,7 @@
                                                 <tr>
                                                     <td>@item.Year</td>
                                                     <td>@(new DateTime(2000, item.Month, 1).ToString("MMMM"))</td>
-                                                    <td>@item.FIN_PL_ITEMS?.Name</td>
+                                                    <td>@(item.FIN_PL_ITEMS?.Name)</td>
                                                     <td>@item.AmountPlan.ToString("N2")</td>
                                                     <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
                                                     @if (changePermit)
