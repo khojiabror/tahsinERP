@@ -37,7 +37,7 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);";
                 lotNo, receivedAt, qty).First();
 
             UpsertLotLocation(db, lotId, locationId, productId, qty);
-            Stock.StockLedger.Adjust(db, warehouseId, productId, (double)qty, unitId);
+            Stock.StockLedger.Adjust(db, warehouseId, productId, qty, unitId);
             return true;
         }
 
@@ -108,7 +108,7 @@ UPDATE dbo.EXPENSE_PRODUCTS SET LotID=@p0, FromLocationID=@p1, AllocationPolicy=
                 db.Database.ExecuteSqlCommand(updEp, first.LotID, first.LocationID, expenseProductId);
             }
 
-            Stock.StockLedger.Adjust(db, warehouseId, productId, -(double)qty, unitId);
+            Stock.StockLedger.Adjust(db, warehouseId, productId, -qty, unitId);
             return true;
         }
 

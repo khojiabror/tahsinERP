@@ -27,14 +27,14 @@ namespace tahsinERP.ViewModels
         public int MaterialID { get; set; }
         public string MaterialPNo { get; set; }
         public string MaterialName { get; set; }
-        public double RequiredQtyPieces { get; set; }
-        public double TotalConsumption { get; set; }
+        public decimal RequiredQtyPieces { get; set; }
+        public decimal TotalConsumption { get; set; }
         public string UnitName { get; set; }
         public bool TotalConsumptionIsInKg { get; set; }
         /// <summary>Dona narxi (chiqim hujjatidan).</summary>
-        public double PiecePrice { get; set; }
+        public decimal PiecePrice { get; set; }
         /// <summary>Jami summa (chiqim hujjatidan).</summary>
-        public double TotalPrice { get; set; }
+        public decimal TotalPrice { get; set; }
     }
 
     public class ProductionExpenseLinkViewModel
@@ -42,8 +42,8 @@ namespace tahsinERP.ViewModels
         public int ExpenseID { get; set; }
         public string DocNo { get; set; }
         public DateTime IssueDateTime { get; set; }
-        public double Amount { get; set; }
-        public double TotalPrice { get; set; }
+        public decimal Amount { get; set; }
+        public decimal TotalPrice { get; set; }
         public int ProductCount { get; set; }
         /// <summary>Chiqim sahifasiga to'g'ridan-to'g'ri havola (URL).</summary>
         public string DetailsUrl { get; set; }

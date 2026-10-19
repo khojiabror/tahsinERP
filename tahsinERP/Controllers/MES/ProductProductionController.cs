@@ -166,7 +166,7 @@ namespace tahsinERP.Controllers.MES
                                 viewModel.ShopID,
                                 db,
                                 existingForCheck?.ProductID,
-                                (double?)(existingForCheck?.Total));
+                                existingForCheck?.Total);
 
                             if (!string.IsNullOrEmpty(stockError))
                             {
@@ -318,9 +318,9 @@ namespace tahsinERP.Controllers.MES
                     ProductID = production.ProductID,
                     ShopID = production.ShopID,
                     Date = production.Date,
-                    DayShift = (double)production.DayShift,
-                    NightShift = (double)production.NightShift,
-                    Total = (double)production.Total,
+                    DayShift = production.DayShift,
+                    NightShift = production.NightShift,
+                    Total = production.Total,
                     Comment = production.Comment,
                     Product = production.PRODUCT,
                     Shop = production.SHOP
@@ -362,7 +362,7 @@ namespace tahsinERP.Controllers.MES
                         viewModel.ShopID,
                         db,
                         production.ProductID,
-                        (double?)production.Total);
+                        production.Total);
                     if (!string.IsNullOrEmpty(stockError))
                     {
                         ModelState.AddModelError("", stockError);
@@ -522,18 +522,18 @@ namespace tahsinERP.Controllers.MES
                     : expensesInRangeFiltered.Union(expensesByDescDateFiltered).OrderByDescending(e => e.IssueDateTime).ToList();
 
                 // Chiqim hujjatlaridan material bo'yicha narx/summa (birinchi chiqimdan)
-                var materialPrices = new Dictionary<int, Tuple<double, double>>();
+                var materialPrices = new Dictionary<int, Tuple<decimal, decimal>>();
                 if (expenses.Any() && expenses.First().EXPENSE_PRODUCTS != null)
                 {
                     foreach (var ep in expenses.First().EXPENSE_PRODUCTS)
                     {
-                        materialPrices[ep.ProductID] = Tuple.Create((double)ep.PiecePrice, (double)ep.TotalPrice);
+                        materialPrices[ep.ProductID] = Tuple.Create(ep.PiecePrice, ep.TotalPrice);
                     }
                 }
 
                 // BOM/Norm bo'yicha sarf hisoblash va narx qo'shish
                 var consumptionService = new ProductionConsumptionService(db);
-                var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(production.ProductID, (double)production.Total);
+                var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(production.ProductID, production.Total);
                 // Har material uchun ko'rsatish birligi bir marta olinadi (avval ikki marta so'ralardi, MES-P10)
                 var displayUnitByMaterial = requirements
                     .Select(r => r.MaterialID)
@@ -546,7 +546,7 @@ namespace tahsinERP.Controllers.MES
 
                 foreach (var req in requirements)
                 {
-                    double piecePrice = 0, totalPrice = 0;
+                    decimal piecePrice = 0, totalPrice = 0;
                     if (materialPrices.ContainsKey(req.MaterialID))
                     {
                         piecePrice = materialPrices[req.MaterialID].Item1;
@@ -579,8 +579,8 @@ namespace tahsinERP.Controllers.MES
                         ExpenseID = exp.ID,
                         DocNo = exp.DocNo,
                         IssueDateTime = exp.IssueDateTime,
-                        Amount = (double)amount,
-                        TotalPrice = (double)totalPrice,
+                        Amount = amount,
+                        TotalPrice = totalPrice,
                         ProductCount = productCount,
                         DetailsUrl = Url.Action("Details", "Expenses", new { id = exp.ID })
                     });
@@ -662,11 +662,11 @@ namespace tahsinERP.Controllers.MES
         /// </summary>
         private async Task<string> ValidateRawMaterialStockForProductionAsync(
             int productId,
-            double producedQty,
+            decimal producedQty,
             int shopId,
             DBTHSNEntities db,
             int? oldProductId = null,
-            double? oldProducedQty = null)
+            decimal? oldProducedQty = null)
         {
             var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
             if (productionWarehouse == null)
@@ -683,7 +683,7 @@ namespace tahsinERP.Controllers.MES
         /// Consumes materials dan Production warehouse when production is confirmed.
         /// uchun weight-based materials (e.g. shurup) BOM dona is converted ga kg va deducted dan stock.
         /// </summary>
-        private async Task ConsumeMaterialsForProduction(int productId, double producedQty, int shopId, DBTHSNEntities db, int? productionId = null, DateTime? productionDate = null)
+        private async Task ConsumeMaterialsForProduction(int productId, decimal producedQty, int shopId, DBTHSNEntities db, int? productionId = null, DateTime? productionDate = null)
         {
             var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
             if (productionWarehouse == null)
@@ -752,8 +752,8 @@ namespace tahsinERP.Controllers.MES
 
                         var consumptionService = new ProductionConsumptionService(db);
                         var requirements = await consumptionService.CalculateRequiredRawMaterialsAsync(
-                            production.ProductID, (double)production.Total);
-                        var expectedTotal = requirements?.Sum(r => r.TotalConsumption) ?? 0d;
+                            production.ProductID, production.Total);
+                        var expectedTotal = requirements?.Sum(r => r.TotalConsumption) ?? 0m;
 
                         var productionId = production.ID;
                         var existingExpenses = await db.EXPENSES
@@ -761,10 +761,10 @@ namespace tahsinERP.Controllers.MES
                                 && e.ReceiverWhID == null
                                 && e.ProductionID == productionId)
                             .ToListAsync();
-                        var actualTotal = (double)existingExpenses.Sum(e => e.Amount ?? 0m);
+                        var actualTotal = existingExpenses.Sum(e => e.Amount ?? 0m);
 
                         // Allaqachon to'g'ri va bitta hujjat bo'lsa, tegmaymiz.
-                        if (existingExpenses.Count <= 1 && Math.Abs(actualTotal - expectedTotal) < 0.001)
+                        if (existingExpenses.Count <= 1 && Math.Abs(actualTotal - expectedTotal) < 0.001m)
                         {
                             alreadyOk++;
                             transaction.Rollback();
@@ -781,7 +781,7 @@ namespace tahsinERP.Controllers.MES
                         }
 
                         await consumptionService.ConsumeMaterialsForProductionAsync(
-                            production.ProductID, (double)production.Total, productionWarehouse.ID, production.ID, production.Date);
+                            production.ProductID, production.Total, productionWarehouse.ID, production.ID, production.Date);
 
                         await db.SaveChangesAsync();
                         transaction.Commit();
@@ -856,9 +856,9 @@ namespace tahsinERP.Controllers.MES
                     ProductID = d.PRODUCTPLAN.ProductID,
                     ProductNo = d.PRODUCTPLAN.PRODUCT.PNo,
                     ProductName = d.PRODUCTPLAN.PRODUCT.Name,
-                    PlannedDayShift = (double?)d.DayShift,
-                    PlannedNightShift = (double?)d.NightShift,
-                    PlannedTotal = (double?)d.Total,
+                    PlannedDayShift = d.DayShift,
+                    PlannedNightShift = d.NightShift,
+                    PlannedTotal = d.Total,
                     IsPlanned = true
                 })
                 .ToList();
@@ -888,9 +888,9 @@ namespace tahsinERP.Controllers.MES
                 if (item != null)
                 {
                     item.ID = existing.ID;
-                    item.DayShift = (double)existing.DayShift;
-                    item.NightShift = (double)existing.NightShift;
-                    item.Total = (double)existing.Total;
+                    item.DayShift = existing.DayShift;
+                    item.NightShift = existing.NightShift;
+                    item.Total = existing.Total;
                     item.Comment = existing.Comment;
                 }
                 else
@@ -902,9 +902,9 @@ namespace tahsinERP.Controllers.MES
                         ProductID = existing.ProductID,
                         ProductNo = existing.PNo,
                         ProductName = existing.Name,
-                        DayShift = (double)existing.DayShift,
-                        NightShift = (double)existing.NightShift,
-                        Total = (double)existing.Total,
+                        DayShift = existing.DayShift,
+                        NightShift = existing.NightShift,
+                        Total = existing.Total,
                         Comment = existing.Comment,
                         IsPlanned = false
                     });

@@ -87,7 +87,7 @@ namespace tahsinERP.Services.Finance
                     Qty = s.Qty,
                     Unit = s.UnitShortName ?? "",
                     UnitPrice = tx.SalesPriceCIPWithVAT,
-                    LineTotal = (decimal)s.Qty * tx.SalesPriceCIPWithVAT,
+                    LineTotal = s.Qty * tx.SalesPriceCIPWithVAT,
                     Note = $"Tannarx: {tx.Month:00}/{tx.Year}, SalesPriceCIPWithVAT"
                 });
             }
@@ -179,7 +179,7 @@ namespace tahsinERP.Services.Finance
                     Qty = s.Qty,
                     Unit = s.UnitShortName ?? "",
                     UnitPrice = unitPrice,
-                    LineTotal = (decimal)s.Qty * unitPrice,
+                    LineTotal = s.Qty * unitPrice,
                     Note = $"Qoldiq × oxirgi kirim narxi: {ip.INCOME.IssueDateTime:dd.MM.yyyy} {ip.INCOME.DocNo}"
                 });
             }
@@ -213,7 +213,7 @@ namespace tahsinERP.Services.Finance
         {
             public int ProductId { get; set; }
             public PRODUCT Product { get; set; }
-            public double Qty { get; set; }
+            public decimal Qty { get; set; }
             public string UnitShortName { get; set; }
         }
 

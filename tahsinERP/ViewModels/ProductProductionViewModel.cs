@@ -24,14 +24,14 @@ namespace tahsinERP.ViewModels
         
         [Display(Name = "Kunduzgi smena")]
         [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
-        public double DayShift { get; set; }
+        public decimal DayShift { get; set; }
         
         [Display(Name = "Tungi smena")]
         [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
-        public double NightShift { get; set; }
+        public decimal NightShift { get; set; }
         
         [Display(Name = "Jami")]
-        public double Total { get; set; }
+        public decimal Total { get; set; }
         
         [Display(Name = "Izoh")]
         public string Comment { get; set; }
@@ -71,12 +71,12 @@ namespace tahsinERP.ViewModels
         public int ProductID { get; set; }
         public string ProductNo { get; set; }
         public string ProductName { get; set; }
-        public double? PlannedDayShift { get; set; }
-        public double? PlannedNightShift { get; set; }
-        public double? PlannedTotal { get; set; }
-        public double DayShift { get; set; }
-        public double NightShift { get; set; }
-        public double Total { get; set; }
+        public decimal? PlannedDayShift { get; set; }
+        public decimal? PlannedNightShift { get; set; }
+        public decimal? PlannedTotal { get; set; }
+        public decimal DayShift { get; set; }
+        public decimal NightShift { get; set; }
+        public decimal Total { get; set; }
         public string Comment { get; set; }
         public bool IsPlanned { get; set; }
     }

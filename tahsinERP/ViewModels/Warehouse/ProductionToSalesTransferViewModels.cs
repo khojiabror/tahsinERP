@@ -15,7 +15,7 @@ namespace tahsinERP.ViewModels
     public class TransferLineViewModel
     {
         public int ProductID { get; set; }
-        public double Quantity { get; set; }
+        public decimal Quantity { get; set; }
         public int? IncomeID { get; set; }
         /// <summary>ProdID:123:7|ProdID:124:3</summary>
         public string LotAllocations { get; set; }

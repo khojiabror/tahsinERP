@@ -174,7 +174,7 @@ namespace tahsinERP.ViewModels.Finance
     {
         public string ProductCode { get; set; }
         public string ProductName { get; set; }
-        public double Qty { get; set; }
+        public decimal Qty { get; set; }
         public string Unit { get; set; }
         public decimal? UnitPrice { get; set; }
         public decimal LineTotal { get; set; }

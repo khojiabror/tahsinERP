@@ -523,12 +523,12 @@ namespace tahsinERP.Controllers.SRM
                                                 $"Mahsulot {productEntity?.PNo ?? product.ProductID.ToString()}: DLOC tanlanishi shart.");
 
                                         StockLedger.ReceiveLine(db, income.ReceivingWHID, income.ID, incomeProduct.ID,
-                                            product.ProductID, product.Amount, unitId, product.LocationID, income.IssueDateTime);
+                                            product.ProductID, (decimal)product.Amount, unitId, product.LocationID, income.IssueDateTime);
                                     }
                                     else if (income.RecieveStatus == true)
                                     {
                                         StockLedger.ReceiveLine(db, income.ReceivingWHID, income.ID, incomeProduct.ID,
-                                            product.ProductID, product.Amount, unitId, null, income.IssueDateTime);
+                                            product.ProductID, (decimal)product.Amount, unitId, null, income.IssueDateTime);
                                     }
                                 }
 
@@ -954,7 +954,7 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             StockLedger.ReceiveLine(db, income.ReceivingWHID, income.ID, product.ID, product.ProductID,
-                                (double)product.Amount, unitId, lineLocationId, income.IssueDateTime);
+                                product.Amount, unitId, lineLocationId, income.IssueDateTime);
                         }
 
                         income.RecieveStatus = true;
@@ -1034,7 +1034,7 @@ namespace tahsinERP.Controllers.SRM
                             foreach (var product in income.INCOME_PRODUCTS)
                             {
                                 var unitId = product.UnitID > 0 ? product.UnitID : 1;
-                                StockLedger.Increase(db, income.ReceivingWHID, product.ProductID, (double)product.Amount, unitId);
+                                StockLedger.Increase(db, income.ReceivingWHID, product.ProductID, product.Amount, unitId);
                             }
                         }
 
@@ -1110,7 +1110,7 @@ namespace tahsinERP.Controllers.SRM
                         // shuning uchun faqat yuboruvchi ombor chiqimi (DLOC lot ajratmalari bilan) qaytariladi.
                         foreach (var product in expense.EXPENSE_PRODUCTS)
                         {
-                            StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, (double)product.Amount,
+                            StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, product.Amount,
                                 product.UnitID > 0 ? product.UnitID : 1, product.ID);
                         }
 
@@ -1227,7 +1227,7 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var ep in linkedExpense.EXPENSE_PRODUCTS)
                                 {
-                                    StockLedger.ReverseIssueLine(db, linkedExpense.SenderWHID, ep.ProductID, (double)ep.Amount,
+                                    StockLedger.ReverseIssueLine(db, linkedExpense.SenderWHID, ep.ProductID, ep.Amount,
                                         ep.UnitID > 0 ? ep.UnitID : 1, ep.ID);
                                 }
 

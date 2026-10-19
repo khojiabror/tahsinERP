@@ -15,7 +15,7 @@ namespace tahsinERP.Services.Stock
         public string ProductPNo { get; set; }
         public int ProductID { get; set; }
         public int UnitID { get; set; }
-        public double Quantity { get; set; }
+        public decimal Quantity { get; set; }
     }
 
     /// <summary>
@@ -71,10 +71,10 @@ namespace tahsinERP.Services.Stock
 
             // Ombor qoldig'i bitta qulflangan so'rovda
             var lockedOnHand = StockLedger.GetOnHandForUpdate(db, warehouseId);
-            var diffs = new List<Tuple<InventoryCountLine, double>>();
+            var diffs = new List<Tuple<InventoryCountLine, decimal>>();
             foreach (var line in lines)
             {
-                double oldQty;
+                decimal oldQty;
                 lockedOnHand.TryGetValue(line.ProductID, out oldQty);
                 var diff = line.Quantity - oldQty;
                 if (Math.Abs(diff) >= StockLedger.Epsilon)
@@ -88,7 +88,7 @@ namespace tahsinERP.Services.Stock
             {
                 // Ortiqcha — oxirgi kirim narxida (QQSsiz), barcha mahsulotlar bitta so'rovda
                 var prices = await GetLatestIncomePricesAsync(db, plus.Select(d => d.Item1.ProductID).ToList());
-                Func<int, double> priceOf = id => { double p; prices.TryGetValue(id, out p); return p; };
+                Func<int, decimal> priceOf = id => { decimal p; prices.TryGetValue(id, out p); return p; };
 
                 var income = new INCOME
                 {
@@ -96,8 +96,8 @@ namespace tahsinERP.Services.Stock
                     ReceivingWHID = warehouseId,
                     IssueDateTime = now,
                     CurrencyID = currencyId,
-                    Amount = (decimal?)(plus.Sum(d => d.Item2)),
-                    TotalPrice = (decimal?)(plus.Sum(d => d.Item2 * priceOf(d.Item1.ProductID))),
+                    Amount = plus.Sum(d => d.Item2),
+                    TotalPrice = plus.Sum(d => d.Item2 * priceOf(d.Item1.ProductID)),
                     Description = $"Inventarizatsiya qo'shimcha kirim: {plus.Count} ta mahsulot",
                     RecieveStatus = true,
                     IsDeleted = false
@@ -107,8 +107,8 @@ namespace tahsinERP.Services.Stock
                 {
                     INCOME = income,
                     ProductID = d.Item1.ProductID,
-                    Amount = (decimal)d.Item2,
-                    PiecePrice = (decimal?)(priceOf(d.Item1.ProductID)),
+                    Amount = d.Item2,
+                    PiecePrice = priceOf(d.Item1.ProductID),
                     UnitID = d.Item1.UnitID,
                     VATRate = 0,
                     Comment = "Inventarizatsiya"
@@ -125,7 +125,7 @@ namespace tahsinERP.Services.Stock
                     if (requireDloc)
                     {
                         // Qo'shilgan miqdor DLOC ga avtomatik joylashtiriladi
-                        locationId = putaway.Resolve(d.Item1.ProductID, (decimal)d.Item2);
+                        locationId = putaway.Resolve(d.Item1.ProductID, d.Item2);
                         if (locationId <= 0)
                             throw new InvalidOperationException(
                                 $"Mahsulot {d.Item1.ProductPNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
@@ -144,7 +144,7 @@ namespace tahsinERP.Services.Stock
                     SenderWHID = warehouseId,
                     IssueDateTime = now,
                     CurrencyID = currencyId,
-                    Amount = (decimal?)(minus.Sum(d => -d.Item2)),
+                    Amount = minus.Sum(d => -d.Item2),
                     Description = $"Inventarizatsiya kamaytirish chiqimi: {minus.Count} ta mahsulot",
                     SendStatus = true,
                     IsDeleted = false
@@ -154,7 +154,7 @@ namespace tahsinERP.Services.Stock
                 {
                     EXPENS = expense,
                     ProductID = d.Item1.ProductID,
-                    Amount = (decimal)(-d.Item2),
+                    Amount = -d.Item2,
                     PiecePrice = 0,
                     UnitID = d.Item1.UnitID,
                     Comment = "Inventarizatsiya"
@@ -166,8 +166,8 @@ namespace tahsinERP.Services.Stock
                 // Kamomad: DLOC omborda FIFO lotlardan, oddiy omborda umumiy qoldiqdan; narxi FIFO tannarxi
                 foreach (var ep in expenseLines)
                 {
-                    await StockLedger.IssueLineAsync(db, warehouseId, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID);
-                    ep.PiecePrice = StockCostService.StoredUnitCost(StockCostService.IssuedLineUnitCost(db, warehouseId, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID));
+                    await StockLedger.IssueLineAsync(db, warehouseId, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
+                    ep.PiecePrice = StockCostService.StoredUnitCost(StockCostService.IssuedLineUnitCost(db, warehouseId, ep.ProductID, ep.Amount, ep.UnitID, ep.ID));
                 }
                 expense.TotalPrice = expenseLines.Sum(ep => ep.Amount * ep.PiecePrice);
             }
@@ -176,9 +176,9 @@ namespace tahsinERP.Services.Stock
         }
 
         /// <summary>Har mahsulotning eng so'nggi (o'chirilmagan) kirim narxi, QQSsiz — bitta so'rov.</summary>
-        private static async Task<Dictionary<int, double>> GetLatestIncomePricesAsync(DBTHSNEntities db, List<int> productIds)
+        private static async Task<Dictionary<int, decimal>> GetLatestIncomePricesAsync(DBTHSNEntities db, List<int> productIds)
         {
-            var result = new Dictionary<int, double>();
+            var result = new Dictionary<int, decimal>();
             if (productIds == null || productIds.Count == 0)
                 return result;
 
@@ -193,11 +193,11 @@ namespace tahsinERP.Services.Stock
 
             foreach (var ip in latest.Where(x => x != null))
             {
-                double price = 0;
+                decimal price = 0;
                 if (ip.PiecePrice.HasValue && ip.PiecePrice.Value > 0)
-                    price = (double)ip.PiecePrice.Value;
+                    price = ip.PiecePrice.Value;
                 else if (ip.TotalPrice.HasValue && ip.Amount > 0)
-                    price = (double)(ip.TotalPrice.Value / ip.Amount); // qator TotalPrice = Amount × PiecePrice (QQSsiz)
+                    price = ip.TotalPrice.Value / ip.Amount; // qator TotalPrice = Amount × PiecePrice (QQSsiz)
                 result[ip.ProductID] = price;
             }
             return result;

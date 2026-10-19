@@ -106,7 +106,7 @@ namespace tahsinERP.Services
 
                     // BOM bo'yicha 1 FG uchun xomashyo, sotuv soniga ko'paytirilgan, ombor (income) birligida.
                     // asOfDate berilsa — o'sha oyga tegishli BOM versiyasi ishlatiladi (eng yangisi emas).
-                    var reqs = await consumptionService.CalculateRequiredRawMaterialsAsync(fgId, (double)lineQty, asOfDate);
+                    var reqs = await consumptionService.CalculateRequiredRawMaterialsAsync(fgId, lineQty, asOfDate);
 
                     foreach (var r in reqs)
                     {
@@ -115,7 +115,7 @@ namespace tahsinERP.Services
                             continue;
                         }
 
-                        var finalQuantity = (decimal)r.TotalConsumption;
+                        var finalQuantity = r.TotalConsumption;
                         var finalUnitId = r.UnitID > 0 ? r.UnitID : 1;
                         var perUnitQty = lineQty > 0 ? finalQuantity / lineQty : finalQuantity; // 1 FG uchun (norma)
                         var finalUnitName = await GetUnitShortNameAsync(finalUnitId);

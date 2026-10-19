@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.Services.Stock;
 using tahsinERP.ViewModels;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 using tahsinERP.Controllers;
 using tahsinERP.Filters;
 
@@ -129,7 +130,7 @@ namespace tahsinERP.Controllers.SRM
                                 var product = db.PRODUCTS.Find(line.ProductID);
                                 ModelState.AddModelError("", 
                                     $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun ishlab chiqarish omborida yetarli qoldiq yo'q. " +
-                                    $"Mavjud: {availableStock}, Talab qilinmoqda: {line.Quantity}");
+                                    $"Mavjud: {QtyText.Plain(availableStock)}, Talab qilinmoqda: {QtyText.Plain(line.Quantity)}");
                                 ReloadViewBag(db, viewModel);
                                 return View(viewModel);
                             }
@@ -146,9 +147,9 @@ namespace tahsinERP.Controllers.SRM
                             if (allocations.Any())
                             {
                                 var allocSum = allocations.Sum(a => a.Quantity);
-                                if (Math.Abs(allocSum - line.Quantity) > 0.001)
+                                if (Math.Abs(allocSum - line.Quantity) > 0.001m)
                                 {
-                                    ModelState.AddModelError("", $"Mahsulot uchun tanlangan lotlar yig'indisi ({allocSum}) kiritilgan miqdor ({line.Quantity})ga mos kelmadi.");
+                                    ModelState.AddModelError("", $"Mahsulot uchun tanlangan lotlar yig'indisi ({QtyText.Plain(allocSum)}) kiritilgan miqdor ({QtyText.Plain(line.Quantity)})ga mos kelmadi.");
                                     ReloadViewBag(db, viewModel);
                                     return View(viewModel);
                                 }
