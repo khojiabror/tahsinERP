@@ -502,6 +502,20 @@ namespace tahsinERP.Services.Finance
             return keys.Select(k => _customerCache[k]).ToList();
         }
 
+        /// <summary>
+        /// Har sotuv invoysining to'lanmagan qoldig'i (so'mda) — <see cref="Customers"/> bilan aynan bir xil taqsimot:
+        /// invoysga bog'langan tushum, so'ng mijoz + shartnoma kesimida FIFO (qo'lda kiritilgan tushumlar ham).
+        /// Faqat oxirgi AR opening sanasidan keyingi invoyslar; undan oldingilari opening'ga singgan va lug'atda yo'q.
+        /// </summary>
+        public Dictionary<long, decimal> SalesInvoiceRemaining(DateTime asOf)
+        {
+            var from = LatestOpeningDate(asOf, BalanceTypeReceivable);
+            var data = LoadCustomerData(asOf, from);
+            var remaining = new Dictionary<int, decimal>();
+            ComputeCustomers(data, asOf, from, remaining);
+            return remaining.ToDictionary(x => (long)x.Key, x => x.Value);
+        }
+
         private sealed class CustomerData
         {
             public List<SalesInvoiceRow> Invoices;
@@ -595,7 +609,7 @@ namespace tahsinERP.Services.Finance
             return data;
         }
 
-        private List<CustomerOutstanding> ComputeCustomers(CustomerData data, DateTime asOf, DateTime? effectiveFrom)
+        private List<CustomerOutstanding> ComputeCustomers(CustomerData data, DateTime asOf, DateTime? effectiveFrom, Dictionary<int, decimal> invoiceRemainingOut = null)
         {
             var invoices = data.Invoices
                 .Where(i => i.InvoiceDate <= asOf && (!effectiveFrom.HasValue || i.InvoiceDate > effectiveFrom.Value))
@@ -714,6 +728,12 @@ namespace tahsinERP.Services.Finance
                         unappliedByKey[group.Key] = (unappliedByKey.ContainsKey(group.Key) ? unappliedByKey[group.Key] : 0m) + remaining;
                     }
                 }
+            }
+
+            if (invoiceRemainingOut != null)
+            {
+                foreach (var kv in invoiceRemaining.Where(x => x.Key > 0))
+                    invoiceRemainingOut[kv.Key] = kv.Value;
             }
 
             var invoiceTotalsByCustomer = invoices.GroupBy(i => i.CustomerID).ToDictionary(g => g.Key, g => new { Total = g.Sum(x => x.Amount), Count = g.Count() });

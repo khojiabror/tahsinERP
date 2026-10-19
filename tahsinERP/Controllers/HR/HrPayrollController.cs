@@ -1098,8 +1098,14 @@ namespace tahsinERP.Controllers.HR
             return new HashSet<int>(ids);
         }
 
+        /// <summary>Oylik qatorlarining standart valyutasi: asos valyuta (so'm), u bo'lmasa — eng kichik ID'li valyuta.</summary>
         private async Task<int> GetDefaultCurrencyIdAsync()
         {
+            var baseId = CurrencyRateService.BaseCurrencyId();
+            if (baseId.HasValue)
+            {
+                return baseId.Value;
+            }
             var id = await db.CURRENCIES.AsNoTracking()
                 .Where(c => c.IsDeleted == null || c.IsDeleted == false)
                 .OrderBy(c => c.ID)
