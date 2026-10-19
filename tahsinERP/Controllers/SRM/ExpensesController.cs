@@ -94,7 +94,7 @@ namespace tahsinERP.Controllers.SRM
                 SenderWHID = e.SenderWHID,
                 SenderName = e.Warehouse.WHName,
                 ReceiverName = e.Warehouse1.WHName,
-                TotalPrice = e.TotalPrice,
+                TotalPrice = (double?)e.TotalPrice,
                 Sent = e.SendStatus == true,
                 IssueDateTime = e.IssueDateTime
             });
@@ -306,7 +306,7 @@ namespace tahsinERP.Controllers.SRM
                             p.ProductID,
                             p.ProductPNo,
                             p.ProductName,
-                            AvailableStock = Math.Max(0, Math.Min((double)(approvedRemaining.ContainsKey(p.ProductID) ? approvedRemaining[p.ProductID] : 0), p.AvailableStock)),
+                            AvailableStock = Math.Max(0, Math.Min((decimal)(approvedRemaining.ContainsKey(p.ProductID) ? approvedRemaining[p.ProductID] : 0), p.AvailableStock)),
                             p.UnitID,
                             p.UnitName
                         })
@@ -653,8 +653,8 @@ namespace tahsinERP.Controllers.SRM
                     SenderWHID = expense.SenderWHID,
                     ReceiverWhID = expense.ReceiverWhID,
                     CurrencyID = expense.CurrencyID,
-                    Amount = expense.Amount,
-                    TotalPrice = expense.TotalPrice,
+                    Amount = (double?)expense.Amount,
+                    TotalPrice = (double?)expense.TotalPrice,
                     Description = expense.Description,
                     ExpenseProducts = expense.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
                     {
@@ -662,14 +662,14 @@ namespace tahsinERP.Controllers.SRM
                         ProductID = ep.ProductID,
                         ProductPNo = ep.PRODUCT.PNo,
                         ProductName = ep.PRODUCT.Name,
-                        Amount = ep.Amount,
+                        Amount = (double)ep.Amount,
                         UnitID = ep.UnitID,
                         UnitName = ep.UNIT != null ? ep.UNIT.ShortName : null,
-                        PiecePrice = ep.PiecePrice,
-                        TotalPrice = ep.TotalPrice,
+                        PiecePrice = (double)ep.PiecePrice,
+                        TotalPrice = (double)ep.TotalPrice,
                         // Eski yozuvlardagi "IncomeID:n" lot markeri foydalanuvchiga izoh sifatida ko'rsatilmaydi
                         Comment = LotTrackingService.ParseIncomeIdFromComment(ep.Comment).HasValue ? "" : (ep.Comment ?? ""),
-                        AvailableStock = stockMap.FirstOrDefault(s => s.ProductID == ep.ProductID)?.Amount ?? 0
+                        AvailableStock = (double)(stockMap.FirstOrDefault(s => s.ProductID == ep.ProductID)?.Amount ?? 0)
                     }).ToList()
                 };
 
@@ -736,7 +736,7 @@ namespace tahsinERP.Controllers.SRM
 
                             foreach (var oldProduct in oldProducts)
                             {
-                                StockLedger.ReverseIssueLine(db, expense.SenderWHID, oldProduct.ProductID, oldProduct.Amount,
+                                StockLedger.ReverseIssueLine(db, expense.SenderWHID, oldProduct.ProductID, (double)oldProduct.Amount,
                                     oldProduct.UnitID > 0 ? oldProduct.UnitID : 1, oldProduct.ID);
                             }
 
@@ -954,7 +954,7 @@ namespace tahsinERP.Controllers.SRM
 
                             foreach (var product in expenseProducts)
                             {
-                                StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, product.Amount,
+                                StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, (double)product.Amount,
                                     product.UnitID > 0 ? product.UnitID : 1, product.ID);
                             }
 
@@ -1039,9 +1039,9 @@ namespace tahsinERP.Controllers.SRM
                             var products = exp.EXPENSE_PRODUCTS.Select(ep => new ViewModels.ExpenseProductViewModel
                             {
                                 ProductID = ep.ProductID,
-                                Amount = ep.Amount,
-                                PiecePrice = ep.PiecePrice,
-                                TotalPrice = ep.TotalPrice,
+                                Amount = (double)ep.Amount,
+                                PiecePrice = (double)ep.PiecePrice,
+                                TotalPrice = (double)ep.TotalPrice,
                                 UnitID = ep.UnitID
                             }).ToList();
 
@@ -1225,9 +1225,9 @@ namespace tahsinERP.Controllers.SRM
                 {
                     IncomeID = linkedIncome.ID,
                     ProductID = product.ProductID,
-                    Amount = product.Amount,
-                    PiecePrice = product.PiecePrice,
-                    TotalPrice = lineTotal,
+                    Amount = (decimal)product.Amount,
+                    PiecePrice = (decimal?)product.PiecePrice,
+                    TotalPrice = (decimal?)lineTotal,
                     UnitID = product.UnitID,
                     Comment = $"Chiqimdan bog'langan: {expense.DocNo}"
                 };
@@ -1237,8 +1237,8 @@ namespace tahsinERP.Controllers.SRM
                 totalPrice += lineTotal;
             }
 
-            linkedIncome.Amount = totalAmount;
-            linkedIncome.TotalPrice = totalPrice;
+            linkedIncome.Amount = (decimal?)totalAmount;
+            linkedIncome.TotalPrice = (decimal?)totalPrice;
             await db.SaveChangesAsync();
 
             LogHelper.LogToDatabase(User.Identity.Name, "Expenses",

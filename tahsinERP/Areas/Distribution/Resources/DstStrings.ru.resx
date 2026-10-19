@@ -42,8 +42,17 @@
   <data name="All_Categories" xml:space="preserve">
     <value>Все категории</value>
   </data>
+  <data name="All_Statuses" xml:space="preserve">
+    <value>Все статусы</value>
+  </data>
   <data name="All_Territories" xml:space="preserve">
     <value>Все территории</value>
+  </data>
+  <data name="All_Warehouses" xml:space="preserve">
+    <value>Все склады</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Сумма</value>
   </data>
   <data name="Apply" xml:space="preserve">
     <value>Применить</value>
@@ -56,6 +65,9 @@
   </data>
   <data name="Auto" xml:space="preserve">
     <value>авто</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Доступно</value>
   </data>
   <data name="Back" xml:space="preserve">
     <value>Назад</value>
@@ -81,14 +93,23 @@
   <data name="City" xml:space="preserve">
     <value>Город</value>
   </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Комментарий</value>
+  </data>
   <data name="Confirm" xml:space="preserve">
     <value>Вы уверены?</value>
   </data>
   <data name="ContactPerson" xml:space="preserve">
     <value>Контактное лицо</value>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Себестоимость</value>
+  </data>
   <data name="Country" xml:space="preserve">
     <value>Страна</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Создал</value>
   </data>
   <data name="CreditLimit" xml:space="preserve">
     <value>Кредитный лимит</value>
@@ -96,8 +117,20 @@
   <data name="CreditLimit_Hint" xml:space="preserve">
     <value>Если долг + новый заказ превышает лимит или есть просрочка, заказ не подтверждается (без разрешения руководителя). 0 — только предоплата.</value>
   </data>
+  <data name="Credit_Available" xml:space="preserve">
+    <value>Остаток лимита</value>
+  </data>
+  <data name="Credit_LimitExceeded" xml:space="preserve">
+    <value>Долг + заказ {0} — превышает лимит {1}.</value>
+  </data>
+  <data name="Credit_Overdue" xml:space="preserve">
+    <value>Есть просроченный долг: {0}.</value>
+  </data>
   <data name="Currency_Sum" xml:space="preserve">
     <value>сум</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Клиент</value>
   </data>
   <data name="Customer_Add" xml:space="preserve">
     <value>Новый клиент</value>
@@ -107,6 +140,9 @@
   </data>
   <data name="Customer_AttachHint" xml:space="preserve">
     <value>Добавить в дистрибуцию одного из клиентов CRM.</value>
+  </data>
+  <data name="Customer_Credit" xml:space="preserve">
+    <value>Долг и лимит</value>
   </data>
   <data name="Customer_Main" xml:space="preserve">
     <value>Основные данные</value>
@@ -156,6 +192,9 @@
   <data name="Days" xml:space="preserve">
     <value>дн.</value>
   </data>
+  <data name="Debt" xml:space="preserve">
+    <value>Долг</value>
+  </data>
   <data name="Default" xml:space="preserve">
     <value>по умолчанию</value>
   </data>
@@ -168,6 +207,9 @@
   <data name="Delete" xml:space="preserve">
     <value>Удалить</value>
   </data>
+  <data name="DeliveryDate" xml:space="preserve">
+    <value>Дата доставки</value>
+  </data>
   <data name="Dictionaries" xml:space="preserve">
     <value>Справочники</value>
   </data>
@@ -176,6 +218,9 @@
   </data>
   <data name="DiscountLimits_Hint" xml:space="preserve">
     <value>Максимальная скидка по роли, %. Пусто — скидку давать нельзя (право «Безлимитная скидка» важнее).</value>
+  </data>
+  <data name="Discount_OverLimit" xml:space="preserve">
+    <value>Скидка {0}% — ваш лимит {1}%.</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Изменить</value>
@@ -306,6 +351,12 @@
   <data name="Forbidden" xml:space="preserve">
     <value>Нет доступа</value>
   </data>
+  <data name="GrossProfit" xml:space="preserve">
+    <value>Валовая прибыль</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>История</value>
+  </data>
   <data name="Home" xml:space="preserve">
     <value>Главная</value>
   </data>
@@ -429,6 +480,9 @@
   <data name="MinPrice" xml:space="preserve">
     <value>Мин. цена</value>
   </data>
+  <data name="MinPrice_Violation" xml:space="preserve">
+    <value>{0}: цена {1} ниже минимальной ({2}).</value>
+  </data>
   <data name="MinStock" xml:space="preserve">
     <value>Мин. остаток</value>
   </data>
@@ -444,6 +498,147 @@
   <data name="NameRu" xml:space="preserve">
     <value>Наименование (рус)</value>
   </data>
+  <data name="OrderStatus_Cancelled" xml:space="preserve">
+    <value>Отменён</value>
+  </data>
+  <data name="OrderStatus_Closed" xml:space="preserve">
+    <value>Закрыт</value>
+  </data>
+  <data name="OrderStatus_Confirmed" xml:space="preserve">
+    <value>Подтверждён</value>
+  </data>
+  <data name="OrderStatus_Delivered" xml:space="preserve">
+    <value>Доставлен</value>
+  </data>
+  <data name="OrderStatus_New" xml:space="preserve">
+    <value>Новый</value>
+  </data>
+  <data name="OrderStatus_PartiallyShipped" xml:space="preserve">
+    <value>Частично отгружен</value>
+  </data>
+  <data name="OrderStatus_Picking" xml:space="preserve">
+    <value>На сборке</value>
+  </data>
+  <data name="OrderStatus_Shipped" xml:space="preserve">
+    <value>Отгружен</value>
+  </data>
+  <data name="Order_AddProduct" xml:space="preserve">
+    <value>Добавить товар (название или артикул)...</value>
+  </data>
+  <data name="Order_BadTransition" xml:space="preserve">
+    <value>Нельзя изменить статус: {0} → {1}.</value>
+  </data>
+  <data name="Order_BarcodeNotFound" xml:space="preserve">
+    <value>Штрихкод не найден.</value>
+  </data>
+  <data name="Order_BelowMinAmount" xml:space="preserve">
+    <value>Минимальная сумма заказа для доставки — {0}.</value>
+  </data>
+  <data name="Order_Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Order_Cancelled" xml:space="preserve">
+    <value>Отменён</value>
+  </data>
+  <data name="Order_CannotShip" xml:space="preserve">
+    <value>Заказ в этом статусе нельзя отгрузить.</value>
+  </data>
+  <data name="Order_CloseRemainder" xml:space="preserve">
+    <value>Закрыть остаток</value>
+  </data>
+  <data name="Order_Concurrency" xml:space="preserve">
+    <value>Заказ изменён другим пользователем — обновите страницу.</value>
+  </data>
+  <data name="Order_Confirm" xml:space="preserve">
+    <value>Подтвердить</value>
+  </data>
+  <data name="Order_CreditOverridden" xml:space="preserve">
+    <value>Разрешил превышение лимита</value>
+  </data>
+  <data name="Order_CreditOverride" xml:space="preserve">
+    <value>Разрешить превышение лимита</value>
+  </data>
+  <data name="Order_CustomerNotApproved" xml:space="preserve">
+    <value>Клиент не подтверждён — сначала подтвердите карточку.</value>
+  </data>
+  <data name="Order_CustomerNotDistribution" xml:space="preserve">
+    <value>Клиент не добавлен в дистрибуцию.</value>
+  </data>
+  <data name="Order_Delivered" xml:space="preserve">
+    <value>Доставлен</value>
+  </data>
+  <data name="Order_Discount" xml:space="preserve">
+    <value>Скидка</value>
+  </data>
+  <data name="Order_HasShipments" xml:space="preserve">
+    <value>По заказу есть отгрузка — нужен документ возврата.</value>
+  </data>
+  <data name="Order_New" xml:space="preserve">
+    <value>Новый заказ</value>
+  </data>
+  <data name="Order_No" xml:space="preserve">
+    <value>Номер</value>
+  </data>
+  <data name="Order_NoLines" xml:space="preserve">
+    <value>Добавьте хотя бы один товар.</value>
+  </data>
+  <data name="Order_NoPrice" xml:space="preserve">
+    <value>{0}: цена не задана.</value>
+  </data>
+  <data name="Order_NoPriceShort" xml:space="preserve">
+    <value>нет цены</value>
+  </data>
+  <data name="Order_NoStockAnywhere" xml:space="preserve">
+    <value>Ни на одном складе нет этих товаров — выберите склад вручную.</value>
+  </data>
+  <data name="Order_NoWarehouse" xml:space="preserve">
+    <value>Склад не выбран.</value>
+  </data>
+  <data name="Order_NotEditable" xml:space="preserve">
+    <value>В этом статусе изменять нельзя.</value>
+  </data>
+  <data name="Order_PriceHint" xml:space="preserve">
+    <value>Цена берётся автоматически из типа цены клиента (или спеццены); скидка и мин. цена проверяются при сохранении.</value>
+  </data>
+  <data name="Order_ProductNotOnSale" xml:space="preserve">
+    <value>{0} снят с продажи.</value>
+  </data>
+  <data name="Order_QtyPositive" xml:space="preserve">
+    <value>Количество должно быть положительным.</value>
+  </data>
+  <data name="Order_Rereserve" xml:space="preserve">
+    <value>Обновить резерв</value>
+  </data>
+  <data name="Order_ScanBarcode" xml:space="preserve">
+    <value>Штрихкод + Enter</value>
+  </data>
+  <data name="Order_SelectCustomer" xml:space="preserve">
+    <value>Выберите клиента.</value>
+  </data>
+  <data name="Order_Ship" xml:space="preserve">
+    <value>Отгрузить</value>
+  </data>
+  <data name="Order_StartPicking" xml:space="preserve">
+    <value>Начать сборку</value>
+  </data>
+  <data name="Order_ToPick" xml:space="preserve">
+    <value>Собрать</value>
+  </data>
+  <data name="Order_Unconfirm" xml:space="preserve">
+    <value>Отменить подтверждение</value>
+  </data>
+  <data name="Order_Waiting" xml:space="preserve">
+    <value>ожидает поступления</value>
+  </data>
+  <data name="Order_WarehouseAuto" xml:space="preserve">
+    <value>выбирается автоматически</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Заказы</value>
+  </data>
+  <data name="Overdue" xml:space="preserve">
+    <value>Просрочено</value>
+  </data>
   <data name="OwnerName" xml:space="preserve">
     <value>Владелец</value>
   </data>
@@ -458,6 +653,9 @@
   </data>
   <data name="Phone2" xml:space="preserve">
     <value>Телефон 2</value>
+  </data>
+  <data name="Pickup" xml:space="preserve">
+    <value>Самовывоз</value>
   </data>
   <data name="PointType" xml:space="preserve">
     <value>Тип точки</value>
@@ -516,6 +714,33 @@
   <data name="Prices" xml:space="preserve">
     <value>Цены</value>
   </data>
+  <data name="Print" xml:space="preserve">
+    <value>Печать</value>
+  </data>
+  <data name="Print_Checker" xml:space="preserve">
+    <value>Проверил</value>
+  </data>
+  <data name="Print_Invoice" xml:space="preserve">
+    <value>Накладная</value>
+  </data>
+  <data name="Print_Picker" xml:space="preserve">
+    <value>Собрал</value>
+  </data>
+  <data name="Print_Picking" xml:space="preserve">
+    <value>Лист сборки</value>
+  </data>
+  <data name="Print_Received" xml:space="preserve">
+    <value>Получил</value>
+  </data>
+  <data name="Print_Receiver" xml:space="preserve">
+    <value>Получатель</value>
+  </data>
+  <data name="Print_Released" xml:space="preserve">
+    <value>Отпустил</value>
+  </data>
+  <data name="Print_Supplier" xml:space="preserve">
+    <value>Отправитель</value>
+  </data>
   <data name="Product" xml:space="preserve">
     <value>Товар</value>
   </data>
@@ -543,6 +768,12 @@
   <data name="Products" xml:space="preserve">
     <value>Товары</value>
   </data>
+  <data name="Qty" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
   <data name="ReasonType_CANCEL" xml:space="preserve">
     <value>Отмена</value>
   </data>
@@ -557,6 +788,12 @@
   </data>
   <data name="Reasons" xml:space="preserve">
     <value>Причины</value>
+  </data>
+  <data name="Remaining" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="Reserved" xml:space="preserve">
+    <value>Резерв</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Роль</value>
@@ -579,11 +816,53 @@
   <data name="Settings" xml:space="preserve">
     <value>Настройки</value>
   </data>
+  <data name="Ship_Hint" xml:space="preserve">
+    <value>Количество в базовой единице. По умолчанию — зарезервированное. Списывается по FIFO, записывается в долг клиента.</value>
+  </data>
+  <data name="Ship_NotEnoughStock" xml:space="preserve">
+    <value>Строка {0}: недостаточно на складе (доступно {1}).</value>
+  </data>
+  <data name="Ship_Nothing" xml:space="preserve">
+    <value>Нет количества для отгрузки.</value>
+  </data>
+  <data name="Ship_OverOrdered" xml:space="preserve">
+    <value>Строка {0}: нельзя отгрузить больше заказа.</value>
+  </data>
+  <data name="Ship_StockError" xml:space="preserve">
+    <value>Строка {0}: ошибка списания.</value>
+  </data>
+  <data name="Shipments" xml:space="preserve">
+    <value>Отгрузки</value>
+  </data>
+  <data name="Shipped" xml:space="preserve">
+    <value>Отгружено</value>
+  </data>
   <data name="SortOrder" xml:space="preserve">
     <value>Порядок</value>
   </data>
+  <data name="Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
   <data name="Status" xml:space="preserve">
     <value>Статус</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Остатки</value>
+  </data>
+  <data name="Stock_BelowMin" xml:space="preserve">
+    <value>Ниже минимума</value>
+  </data>
+  <data name="Stock_Hint" xml:space="preserve">
+    <value>Факт — из складского учёта; резерв — подтверждённые заказы; доступно = факт − резерв. Без выбора склада — итог по всем складам.</value>
+  </data>
+  <data name="Stock_NonZero" xml:space="preserve">
+    <value>С остатком</value>
+  </data>
+  <data name="Stock_OnHand" xml:space="preserve">
+    <value>Факт</value>
+  </data>
+  <data name="Stock_Short" xml:space="preserve">
+    <value>Резерв больше остатка</value>
   </data>
   <data name="Stop" xml:space="preserve">
     <value>Остановить</value>
@@ -593,6 +872,9 @@
   </data>
   <data name="SubCategory" xml:space="preserve">
     <value>Подкатегория</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Итого (до скидки)</value>
   </data>
   <data name="Supervisor" xml:space="preserve">
     <value>Супервайзер</value>
@@ -663,6 +945,9 @@
   <data name="Tile_Import" xml:space="preserve">
     <value>Загрузка из Excel</value>
   </data>
+  <data name="Tile_Orders" xml:space="preserve">
+    <value>Заказ, резерв, отгрузка</value>
+  </data>
   <data name="Tile_Prices" xml:space="preserve">
     <value>Типы цен и история</value>
   </data>
@@ -672,6 +957,9 @@
   <data name="Tile_Settings" xml:space="preserve">
     <value>Скидки, склады</value>
   </data>
+  <data name="Tile_Stock" xml:space="preserve">
+    <value>Факт / резерв / доступно</value>
+  </data>
   <data name="Tile_Teams" xml:space="preserve">
     <value>Агенты, супервайзеры</value>
   </data>
@@ -680,6 +968,9 @@
   </data>
   <data name="ToggleActive" xml:space="preserve">
     <value>Вкл / выкл</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Итого</value>
   </data>
   <data name="Type" xml:space="preserve">
     <value>Тип</value>
@@ -705,6 +996,9 @@
   <data name="VisitDays" xml:space="preserve">
     <value>Дни визита</value>
   </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
   <data name="VolumeM3" xml:space="preserve">
     <value>Объём, м³</value>
   </data>
@@ -725,6 +1019,9 @@
   </data>
   <data name="Warehouses" xml:space="preserve">
     <value>Склады</value>
+  </data>
+  <data name="Weight" xml:space="preserve">
+    <value>Вес</value>
   </data>
   <data name="WeightKg" xml:space="preserve">
     <value>Вес, кг</value>

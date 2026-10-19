@@ -646,7 +646,7 @@ namespace tahsinERP.Controllers
                                 var fromUnitId = comp.UnitID ?? compProduct?.UnitID ?? 1;
                                 int toUnitId;
                                 if (!rawIdToStockUnitId.TryGetValue(comp.RawProductId, out toUnitId)) toUnitId = 1;
-                                var qtyInSource = (decimal)(fg.Value * comp.QtyPerUnit);
+                                var qtyInSource = fg.Value * (decimal)comp.QtyPerUnit;
                                 var qtyInStockUnit = await unitConversionService.ConvertToUnitAsync(comp.RawProductId, qtyInSource, fromUnitId, toUnitId);
                                 planForDate[comp.RawProductId] += (double)qtyInStockUnit;
                             }
@@ -668,7 +668,7 @@ namespace tahsinERP.Controllers
                                 var fromUnitIdFact = comp.UnitID ?? compProductFact?.UnitID ?? 1;
                                 int toUnitIdFact;
                                 if (!rawIdToStockUnitId.TryGetValue(comp.RawProductId, out toUnitIdFact)) toUnitIdFact = 1;
-                                var qtyInSourceFact = (decimal)(fg.Value * comp.QtyPerUnit);
+                                var qtyInSourceFact = fg.Value * (decimal)comp.QtyPerUnit;
                                 var qtyInStockUnitFact = await unitConversionService.ConvertToUnitAsync(comp.RawProductId, qtyInSourceFact, fromUnitIdFact, toUnitIdFact);
                                 factForDate[comp.RawProductId] += (double)qtyInStockUnitFact;
                             }
@@ -710,7 +710,7 @@ namespace tahsinERP.Controllers
                             double? coverage = null;
                             if (cumulativeDemand > 0)
                             {
-                                coverage = currentStock / cumulativeDemand;
+                                coverage = (double)currentStock / cumulativeDemand;
                             }
 
                             dayCells.Add(new SRMCoverageDayCellViewModel
@@ -733,7 +733,7 @@ namespace tahsinERP.Controllers
                             ProductCode = product?.PNo ?? "N/A",
                             ProductName = product?.Name ?? "N/A",
                             UnitName = product?.UNIT?.ShortName ?? stock?.UNIT?.ShortName ?? "N/A",
-                            CurrentStock = currentStock,
+                            CurrentStock = (double)currentStock,
                             PlannedTotal = totalPlan,
                             ActualTotal = totalFact,
                             ABCClass = demandInfo?.ABCClass,
@@ -791,7 +791,7 @@ namespace tahsinERP.Controllers
                 .SelectMany(e => e.EXPENSE_PRODUCTS.Select(ep => new { ep.ProductID, e.IssueDateTime, ep.Amount }))
                 .ToListAsync();
 
-            return rows.Select(r => new DemandLine { ProductID = r.ProductID, Date = r.IssueDateTime.Date, Amount = r.Amount }).ToList();
+            return rows.Select(r => new DemandLine { ProductID = r.ProductID, Date = r.IssueDateTime.Date, Amount = (double)r.Amount }).ToList();
         }
 
         private class DemandLine

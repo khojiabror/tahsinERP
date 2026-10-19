@@ -17,15 +17,15 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int ContractID { get; set; }
         public int ProductID { get; set; }
-        public double Price { get; set; }
-        public double Quantity { get; set; }
-        public double Amount { get; set; }
-        public Nullable<double> MOQ { get; set; }
+        public decimal Price { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal Amount { get; set; }
+        public Nullable<decimal> MOQ { get; set; }
         public Nullable<bool> ActivePart { get; set; }
         public Nullable<int> UnitID { get; set; }
         public Nullable<int> HSCodeID { get; set; }
-        public Nullable<double> VATAmount { get; set; }
-        public Nullable<double> TotalAmount { get; set; }
+        public Nullable<decimal> VATAmount { get; set; }
+        public Nullable<decimal> TotalAmount { get; set; }
     
         public virtual HSCODE HSCODE { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }

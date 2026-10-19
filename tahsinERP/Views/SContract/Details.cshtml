@@ -139,16 +139,16 @@
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        @foreach (var item in ViewBag.ProductList)
+                                                                        @foreach (tahsinERP.Models.S_CONTRACT_PRODUCTS item in ViewBag.ProductList)
                                                                         {
                                                                             <tr>
                                                                                 @{
-                                                                                    var baseTotal = item.PiecePrice * item.Amount;
-                                                                                    var lineVat = item.vatamount ?? 0d;
+                                                                                    var baseTotal = (double)(item.PiecePrice * item.Amount);
+                                                                                    var lineVat = (double)(item.vatamount ?? 0m);
                                                                                     var vatPercent = baseTotal > 0 && lineVat > 0
                                                                                         ? Math.Round(lineVat / baseTotal * 100d, 2)
                                                                                         : 0d;
-                                                                                    var totalWithVat = item.totalamount ?? (baseTotal + lineVat);
+                                                                                    var totalWithVat = (double?)item.totalamount ?? (baseTotal + lineVat);
                                                                                 }
                                                                                 <td>
                                                                                     <a href="~/Product/Details/@item.PRODUCT.ID">@item.PRODUCT.PNo</a>
@@ -157,7 +157,7 @@
                                                                                     @item.PRODUCT.Name
                                                                                 </td>
                                                                                 <td>
-                                                                                    @item.PiecePrice
+                                                                                    @item.PiecePrice.ToString("0.######")
                                                                                 </td>
                                                                                 <td>
                                                                                     @vatPercent.ToString("N2")
@@ -169,7 +169,7 @@
                                                                                     @item.UNIT.ShortName
                                                                                 </td>
                                                                                 <td>
-                                                                                    @item.Amount
+                                                                                    @item.Amount.ToString("0.######")
                                                                                 </td>
                                                                             </tr>
                                                                         }

@@ -1,0 +1,255 @@
+@{
+    ViewBag.DstParent = DstLocalization.T("Orders");
+    ViewBag.Title = DstLocalization.T("Order_New");
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group col-md-7">
+                                    <label>@DstLocalization.T("Customer") *</label>
+                                    <select id="oCustomer" class="form-control" style="width:100%"></select>
+                                </div>
+                                <div class="form-group col-md-5">
+                                    <label>@DstLocalization.T("Agent")</label>
+                                    @Html.DropDownList("oAgent", (List<SelectListItem>)ViewBag.Agents, "—", new { @class = "form-control", id = "oAgent" })
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>@DstLocalization.T("Warehouse")</label>
+                                    @Html.DropDownList("oWarehouse", (List<SelectListItem>)ViewBag.Warehouses, DstLocalization.T("Order_WarehouseAuto"), new { @class = "form-control", id = "oWarehouse" })
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>@DstLocalization.T("DeliveryDate")</label>
+                                    <input id="oDelivery" type="date" class="form-control" />
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label>@DstLocalization.T("Order_Discount") %</label>
+                                    <input id="oDiscount" type="number" min="0" max="100" step="0.5" class="form-control" value="0" />
+                                </div>
+                                <div class="form-group col-md-3 d-flex align-items-end">
+                                    <div class="custom-control custom-checkbox mb-50">
+                                        <input type="checkbox" class="custom-control-input" id="oPickup" />
+                                        <label class="custom-control-label" for="oPickup">@DstLocalization.T("Pickup")</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label>@DstLocalization.T("Comment")</label>
+                                <input id="oComment" class="form-control" maxlength="500" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Customer_Credit")</h4></div>
+                        <div class="card-body" id="creditPanel">
+                            <p class="text-muted mb-0">@DstLocalization.T("Order_SelectCustomer")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Products")</h4></div>
+                <div class="card-body">
+                    <div class="form-row mb-1">
+                        <div class="col-md-9"><select id="oProduct" class="form-control" style="width:100%"></select></div>
+                        <div class="col-md-3"><input id="oBarcode" class="form-control" placeholder="@DstLocalization.T("Order_ScanBarcode")" /></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="linesTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>@DstLocalization.T("Product")</th>
+                                    <th style="width:120px">@DstLocalization.T("Unit")</th>
+                                    <th style="width:110px" class="text-right">@DstLocalization.T("Qty")</th>
+                                    <th class="text-right">@DstLocalization.T("Price")</th>
+                                    <th style="width:90px" class="text-right">%</th>
+                                    <th class="text-right">@DstLocalization.T("Amount")</th>
+                                    <th class="text-right">@DstLocalization.T("Available")</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr><th colspan="6" class="text-right">@DstLocalization.T("Subtotal")</th><th class="text-right" id="tSub">0</th><th colspan="2"></th></tr>
+                                <tr><th colspan="6" class="text-right">@DstLocalization.T("Order_Discount")</th><th class="text-right" id="tDisc">0</th><th colspan="2"></th></tr>
+                                <tr><th colspan="6" class="text-right">@DstLocalization.T("Total")</th><th class="text-right" id="tTotal">0</th><th colspan="2"></th></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <p class="small text-muted">@DstLocalization.T("Order_PriceHint")</p>
+                    <button type="button" class="btn btn-primary" id="oSave">@DstLocalization.T("Save")</button>
+                    <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var existing = @Html.Raw(ViewBag.OrderJson ?? "null");
+            var money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 });
+            var lines = [];   // { productId, text, units:[{productUnitId,name,factor,price}], unitIdx, qty, discountPct, available }
+            var urls = {
+                customers: '@Url.Action("SearchCustomers")', info: '@Url.Action("CustomerInfo")',
+                products: '@Url.Action("SearchProducts")', save: '@Url.Action("Save")', details: '@Url.Action("Details")/'
+            };
+
+            function num(v) { var n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; }
+
+            function render() {
+                var tb = $('#linesTable tbody').empty(), sub = 0;
+                lines.forEach(function (l, i) {
+                    var u = l.units[l.unitIdx] || {};
+                    var price = u.price;
+                    var gross = price === null || price === undefined ? 0 : Math.round(l.qty * price * 100) / 100;
+                    var amount = gross - Math.round(gross * l.discountPct) / 100;
+                    sub += amount;
+                    var opts = l.units.map(function (x, k) { return '<option value="' + k + '"' + (k === l.unitIdx ? ' selected' : '') + '>' + dstEsc(x.name) + (x.factor !== 1 ? ' (' + x.factor + ')' : '') + '</option>'; }).join('');
+                    var avail = l.available === undefined ? '' : money.format(l.available / (u.factor || 1));
+                    var short = l.available !== undefined && l.qty * (u.factor || 1) > l.available;
+                    tb.append('<tr data-i="' + i + '"><td>' + (i + 1) + '</td><td>' + dstEsc(l.text) + '</td>' +
+                        '<td><select class="form-control form-control-sm" data-f="unit">' + opts + '</select></td>' +
+                        '<td><input class="form-control form-control-sm text-right" type="number" min="0" step="0.001" data-f="qty" value="' + l.qty + '"/></td>' +
+                        '<td class="text-right">' + (price === null || price === undefined ? '<span class="text-danger">@DstLocalization.T("Order_NoPriceShort")</span>' : money.format(price)) + '</td>' +
+                        '<td><input class="form-control form-control-sm text-right" type="number" min="0" max="100" step="0.5" data-f="disc" value="' + l.discountPct + '"/></td>' +
+                        '<td class="text-right">' + money.format(amount) + '</td>' +
+                        '<td class="text-right ' + (short ? 'text-danger' : 'text-muted') + '">' + avail + '</td>' +
+                        '<td><button type="button" class="btn btn-sm btn-outline-danger" data-f="del"><i class="bx bx-x"></i></button></td></tr>');
+                });
+                var disc = Math.round(sub * num($('#oDiscount').val())) / 100;
+                $('#tSub').text(money.format(sub)); $('#tDisc').text(money.format(disc)); $('#tTotal').text(money.format(sub - disc));
+            }
+
+            function addProduct(p, qty, discountPct, productUnitId) {
+                var idx = 0;
+                p.units.forEach(function (u, k) {
+                    if (productUnitId !== undefined ? u.productUnitId === productUnitId : u.isDefault) idx = k;
+                });
+                var same = lines.filter(function (l) { return l.productId === p.id && l.unitIdx === idx; })[0];
+                if (same && productUnitId === undefined) { same.qty = num(same.qty) + 1; render(); return; }
+                lines.push({ productId: p.id, text: p.text, units: p.units, unitIdx: idx, qty: qty || 1, discountPct: discountPct || 0, available: p.available });
+                render();
+            }
+
+            function customerId() { return $('#oCustomer').val(); }
+
+            function loadCredit(id) {
+                if (!id) return;
+                $.getJSON(urls.info, { id: id }, function (c) {
+                    if (!c) { $('#creditPanel').html('<p class="text-danger mb-0">@DstLocalization.T("Order_CustomerNotDistribution")</p>'); return; }
+                    if (!$('#oAgent').val() && c.agentUserId) $('#oAgent').val(String(c.agentUserId));
+                    var free = c.creditLimit - c.balance;
+                    $('#creditPanel').html(
+                        (c.approved ? '' : '<div class="alert alert-warning p-50">@DstLocalization.T("Customer_Pending")</div>') +
+                        '<dl class="row mb-0 small">' +
+                        '<dt class="col-6">@DstLocalization.T("Debt")</dt><dd class="col-6 text-right">' + money.format(c.balance) + '</dd>' +
+                        '<dt class="col-6">@DstLocalization.T("Overdue")</dt><dd class="col-6 text-right ' + (c.overdue > 0 ? 'text-danger' : '') + '">' + money.format(c.overdue) + '</dd>' +
+                        '<dt class="col-6">@DstLocalization.T("CreditLimit")</dt><dd class="col-6 text-right">' + money.format(c.creditLimit) + '</dd>' +
+                        '<dt class="col-6">@DstLocalization.T("Credit_Available")</dt><dd class="col-6 text-right ' + (free < 0 ? 'text-danger' : 'text-success') + '">' + money.format(free) + '</dd>' +
+                        '<dt class="col-6">@DstLocalization.T("PriceType")</dt><dd class="col-6 text-right">' + dstEsc(c.priceType || '—') + '</dd>' +
+                        '<dt class="col-6">@DstLocalization.T("PaymentDays")</dt><dd class="col-6 text-right">' + c.paymentDays + '</dd></dl>');
+                });
+            }
+
+            /* narxlar mijozga bog'liq — mijoz o'zgarsa qatorlar narxini yangilaymiz */
+            function refreshPrices() {
+                var ids = lines.map(function (l) { return l.productId; });
+                if (!ids.length) return;
+                var pending = ids.length;
+                lines.forEach(function (l) {
+                    $.getJSON(urls.products, { q: l.text.split(' — ')[0], customerId: customerId(), warehouseId: $('#oWarehouse').val() }, function (r) {
+                        var p = (r.results || []).filter(function (x) { return x.id === l.productId; })[0];
+                        if (p) { l.units = p.units; l.available = p.available; }
+                        if (--pending === 0) render();
+                    });
+                });
+            }
+
+            $('#oCustomer').select2({ ajax: { url: urls.customers, dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } } })
+                .on('change', function () { loadCredit(customerId()); refreshPrices(); });
+            $('#oProduct').select2({
+                placeholder: '@DstLocalization.T("Order_AddProduct")',
+                ajax: {
+                    url: urls.products, dataType: 'json', delay: 300,
+                    data: function (p) { return { q: p.term, customerId: customerId(), warehouseId: $('#oWarehouse').val() }; },
+                    processResults: function (d) { return { results: d.results }; }
+                },
+                templateResult: function (p) { return p.loading ? p.text : $('<span>').text(p.text + (p.available !== undefined ? '  [' + money.format(p.available) + ']' : '')); }
+            }).on('select2:select', function (e) { addProduct(e.params.data); $(this).val(null).trigger('change.select2'); });
+
+            $('#oBarcode').on('keydown', function (e) {
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                var code = $(this).val().trim(); if (!code) return;
+                $.getJSON(urls.products, { q: code, customerId: customerId(), warehouseId: $('#oWarehouse').val() }, function (r) {
+                    if (r.results && r.results.length === 1) {
+                        var p = r.results[0], unit = p.units.filter(function (u) { return u.isDefault; })[0];
+                        addProduct(p, 1, 0, unit ? unit.productUnitId : undefined);
+                    } else dstNotify('@DstLocalization.T("Order_BarcodeNotFound")', true);
+                });
+                $(this).val('');
+            });
+
+            $('#linesTable').on('change', '[data-f]', function () {
+                var l = lines[$(this).closest('tr').data('i')], f = $(this).data('f');
+                if (f === 'unit') l.unitIdx = parseInt($(this).val(), 10);
+                if (f === 'qty') l.qty = num($(this).val());
+                if (f === 'disc') l.discountPct = num($(this).val());
+                render();
+            }).on('click', '[data-f=del]', function () { lines.splice($(this).closest('tr').data('i'), 1); render(); });
+            $('#oDiscount').on('change', render);
+            $('#oWarehouse').on('change', refreshPrices);
+
+            $('#oSave').on('click', function () {
+                var btn = $(this).prop('disabled', true);
+                var data = {
+                    ID: existing ? existing.id : '', CustomerID: customerId(), AgentUserID: $('#oAgent').val(), WarehouseID: $('#oWarehouse').val(),
+                    DeliveryDate: $('#oDelivery').val(), IsPickup: $('#oPickup').is(':checked'), Comment: $('#oComment').val(),
+                    DiscountPct: num($('#oDiscount').val())
+                };
+                lines.forEach(function (l, i) {
+                    var u = l.units[l.unitIdx];
+                    data['Lines[' + i + '].ProductID'] = l.productId;
+                    data['Lines[' + i + '].ProductUnitID'] = u.productUnitId === null ? '' : u.productUnitId;
+                    data['Lines[' + i + '].Qty'] = l.qty;
+                    data['Lines[' + i + '].DiscountPct'] = l.discountPct;
+                });
+                dstPost(urls.save, data).done(function (d) { location.href = urls.details + d.id; }).always(function () { btn.prop('disabled', false); });
+            });
+
+            if (existing) {
+                $('h2, .breadcrumb-item.active').last().text(existing.docNo);
+                $('#oCustomer').append(new Option(existing.customer, existing.customerId, true, true));
+                if (existing.agentUserId) $('#oAgent').val(String(existing.agentUserId));
+                if (existing.warehouseId) $('#oWarehouse').val(String(existing.warehouseId));
+                $('#oDelivery').val(existing.deliveryDate || '');
+                $('#oPickup').prop('checked', existing.isPickup);
+                $('#oComment').val(existing.comment || '');
+                $('#oDiscount').val(existing.discountPct);
+                loadCredit(existing.customerId);
+                existing.lines.forEach(function (l) {
+                    $.getJSON(urls.products, { q: l.text.split(' — ')[0], customerId: existing.customerId }, function (r) {
+                        var p = (r.results || []).filter(function (x) { return x.id === l.productId; })[0];
+                        if (p) addProduct(p, l.qty, l.discountPct, l.productUnitId);
+                    });
+                });
+            }
+        });
+    </script>
+}

@@ -85,18 +85,18 @@
                                                     <hr />
                                                     <div class="row mb-2">
                                                         <div class="col-4"><b>Og'irligi:</b></div>
-                                                        <div class="col-8">@(Model.Weight.HasValue ? Model.Weight.Value.ToString() + " kg" : "-")</div>
+                                                        <div class="col-8">@(Model.Weight.HasValue ? Model.Weight.Value.ToString("0.######") + " kg" : "-")</div>
                                                     </div>
                                                     <div class="row mb-2">
                                                         <div class="col-4"><b>O'lchamlari:</b></div>
-                                                        <div class="col-8">@Model.Length x @Model.Width x @Model.Height mm</div>
+                                                        <div class="col-8">@(Model.Length?.ToString("0.######")) x @(Model.Width?.ToString("0.######")) x @(Model.Height?.ToString("0.######")) mm</div>
                                                     </div>
                                                     <div class="row mb-2">
                                                         <div class="col-4"><b>Hajmi (CBM):</b></div>
                                                         <div class="col-8">
                                                             @if (Model.Length.HasValue && Model.Width.HasValue && Model.Height.HasValue)
                                                             {
-                                                                var cbm = (Model.Length.Value / 1000.0) * (Model.Width.Value / 1000.0) * (Model.Height.Value / 1000.0);
+                                                                var cbm = (Model.Length.Value / 1000m) * (Model.Width.Value / 1000m) * (Model.Height.Value / 1000m);
                                                                 @(cbm.ToString("F6") + " m³")
                                                             }
                                                             else

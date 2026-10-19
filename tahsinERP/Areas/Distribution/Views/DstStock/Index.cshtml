@@ -1,0 +1,59 @@
+@{
+    ViewBag.Title = DstLocalization.T("Stock");
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@ViewBag.Title</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Stock_Hint")</p>
+                    <form id="stockFilter" class="form-row mb-1">
+                        <div class="col-md-4 mb-50">@Html.DropDownList("warehouseId", (List<SelectListItem>)ViewBag.Warehouses, DstLocalization.T("All_Warehouses"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-4 mb-50">@Html.DropDownList("categoryId", (List<SelectListItem>)ViewBag.Categories, DstLocalization.T("All_Categories"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-4 mb-50">
+                            <select name="filter" class="form-control form-control-sm">
+                                <option value="nonzero">@DstLocalization.T("Stock_NonZero")</option>
+                                <option value="">@DstLocalization.T("All")</option>
+                                <option value="low">@DstLocalization.T("Stock_BelowMin")</option>
+                                <option value="short">@DstLocalization.T("Stock_Short")</option>
+                            </select>
+                        </div>
+                    </form>
+                    <table id="stockTable" class="table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Article")</th><th>@DstLocalization.T("Name")</th>
+                                <th class="text-right">@DstLocalization.T("Stock_OnHand")</th><th class="text-right">@DstLocalization.T("Reserved")</th>
+                                <th class="text-right">@DstLocalization.T("Available")</th><th class="text-right">@DstLocalization.T("MinStock")</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var n = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 4 });
+            dstServerTable('#stockTable', {
+                dataUrl: '@Url.Action("IndexData")', filterForm: '#stockFilter', order: [[1, 'asc']],
+                columns: [
+                    { data: 'pno', render: dstEsc },
+                    { data: 'name', render: function (v, t, r) { return dstEsc(v) + ' <span class="small text-muted">/ ' + dstEsc(r.unit) + '</span>'; } },
+                    { data: 'onHand', className: 'text-right', render: function (v) { return n.format(v); } },
+                    { data: 'reserved', className: 'text-right', render: function (v) { return v ? n.format(v) : ''; } },
+                    { data: 'available', className: 'text-right', render: function (v, t, r) { return '<b class="' + (v < 0 ? 'text-danger' : r.low ? 'text-warning' : '') + '">' + n.format(v) + '</b>'; } },
+                    { data: 'min', orderable: false, className: 'text-right', render: function (v) { return v === null ? '' : n.format(v); } }
+                ]
+            });
+        });
+    </script>
+}

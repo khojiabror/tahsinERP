@@ -241,7 +241,7 @@ namespace tahsinERP.Controllers.SRM
             var selectItems = products.Select(p => new SelectListItem
             {
                 Value = p.ProductID.ToString(),
-                Text = $"{p.PRODUCT.PNo} - {p.PRODUCT.Name} (Mavjud: {p.Amount})"
+                Text = $"{p.PRODUCT.PNo} - {p.PRODUCT.Name} (Mavjud: {p.Amount:0.######})"
             }).ToList();
 
             return new SelectList(selectItems, "Value", "Text", selectedProductId);

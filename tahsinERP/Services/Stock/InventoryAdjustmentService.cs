@@ -96,8 +96,8 @@ namespace tahsinERP.Services.Stock
                     ReceivingWHID = warehouseId,
                     IssueDateTime = now,
                     CurrencyID = currencyId,
-                    Amount = plus.Sum(d => d.Item2),
-                    TotalPrice = plus.Sum(d => d.Item2 * priceOf(d.Item1.ProductID)),
+                    Amount = (decimal?)(plus.Sum(d => d.Item2)),
+                    TotalPrice = (decimal?)(plus.Sum(d => d.Item2 * priceOf(d.Item1.ProductID))),
                     Description = $"Inventarizatsiya qo'shimcha kirim: {plus.Count} ta mahsulot",
                     RecieveStatus = true,
                     IsDeleted = false
@@ -107,8 +107,8 @@ namespace tahsinERP.Services.Stock
                 {
                     INCOME = income,
                     ProductID = d.Item1.ProductID,
-                    Amount = d.Item2,
-                    PiecePrice = priceOf(d.Item1.ProductID),
+                    Amount = (decimal)d.Item2,
+                    PiecePrice = (decimal?)(priceOf(d.Item1.ProductID)),
                     UnitID = d.Item1.UnitID,
                     VATRate = 0,
                     Comment = "Inventarizatsiya"
@@ -144,7 +144,7 @@ namespace tahsinERP.Services.Stock
                     SenderWHID = warehouseId,
                     IssueDateTime = now,
                     CurrencyID = currencyId,
-                    Amount = minus.Sum(d => -d.Item2),
+                    Amount = (decimal?)(minus.Sum(d => -d.Item2)),
                     Description = $"Inventarizatsiya kamaytirish chiqimi: {minus.Count} ta mahsulot",
                     SendStatus = true,
                     IsDeleted = false
@@ -154,7 +154,7 @@ namespace tahsinERP.Services.Stock
                 {
                     EXPENS = expense,
                     ProductID = d.Item1.ProductID,
-                    Amount = -d.Item2,
+                    Amount = (decimal)(-d.Item2),
                     PiecePrice = 0,
                     UnitID = d.Item1.UnitID,
                     Comment = "Inventarizatsiya"
@@ -166,8 +166,8 @@ namespace tahsinERP.Services.Stock
                 // Kamomad: DLOC omborda FIFO lotlardan, oddiy omborda umumiy qoldiqdan; narxi FIFO tannarxi
                 foreach (var ep in expenseLines)
                 {
-                    await StockLedger.IssueLineAsync(db, warehouseId, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
-                    ep.PiecePrice = StockCostService.IssuedLineUnitCost(db, warehouseId, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
+                    await StockLedger.IssueLineAsync(db, warehouseId, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID);
+                    ep.PiecePrice = StockCostService.StoredUnitCost(StockCostService.IssuedLineUnitCost(db, warehouseId, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID));
                 }
                 expense.TotalPrice = expenseLines.Sum(ep => ep.Amount * ep.PiecePrice);
             }
@@ -195,9 +195,9 @@ namespace tahsinERP.Services.Stock
             {
                 double price = 0;
                 if (ip.PiecePrice.HasValue && ip.PiecePrice.Value > 0)
-                    price = ip.PiecePrice.Value;
+                    price = (double)ip.PiecePrice.Value;
                 else if (ip.TotalPrice.HasValue && ip.Amount > 0)
-                    price = ip.TotalPrice.Value / ip.Amount; // qator TotalPrice = Amount × PiecePrice (QQSsiz)
+                    price = (double)(ip.TotalPrice.Value / ip.Amount); // qator TotalPrice = Amount × PiecePrice (QQSsiz)
                 result[ip.ProductID] = price;
             }
             return result;

@@ -24,9 +24,9 @@ namespace tahsinERP.Controllers
                     {
                         ID = t.ID,
                         TransportType = t.TransportType,
-                        IntLgth = t.IntLgth,
-                        IntWdth = t.IntWdth,
-                        IntHght = t.IntHght
+                        IntLgth = (double)t.IntLgth,
+                        IntWdth = (double)t.IntWdth,
+                        IntHght = (double)(t.IntHght)
                     })
                     .ToList();
 

@@ -46,15 +46,15 @@ namespace tahsinERP.Controllers
                 var transportType = new F_TRANSPORT_TYPES
                 {
                     TransportType = viewModel.TransportType,
-                    ExtLgth = viewModel.ExtLgth,
-                    ExtWdth = viewModel.ExtWdth,
-                    ExtHght = viewModel.ExtHght,
-                    IntLgth = viewModel.IntLgth,
-                    IntWdth = viewModel.IntWdth,
-                    IntHght = viewModel.IntHght,
+                    ExtLgth = (decimal)viewModel.ExtLgth,
+                    ExtWdth = (decimal)viewModel.ExtWdth,
+                    ExtHght = (decimal)viewModel.ExtHght,
+                    IntLgth = (decimal)viewModel.IntLgth,
+                    IntWdth = (decimal)viewModel.IntWdth,
+                    IntHght = (decimal)viewModel.IntHght,
                     UnitID = viewModel.UnitID,
-                    CapableOfLifting = viewModel.CapableOfLifting,
-                    TransportWeight = viewModel.TransportWeight
+                    CapableOfLifting = (decimal?)viewModel.CapableOfLifting,
+                    TransportWeight = (decimal?)(viewModel.TransportWeight)
                 };
 
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -135,16 +135,16 @@ namespace tahsinERP.Controllers
                 {
                     ID = transportType.ID,
                     TransportType = transportType.TransportType,
-                    ExtLgth = transportType.ExtLgth,
-                    ExtWdth = transportType.ExtWdth,
-                    ExtHght = transportType.ExtHght,
-                    IntLgth = transportType.IntLgth,
-                    IntWdth = transportType.IntWdth,
-                    IntHght = transportType.IntHght,
+                    ExtLgth = (double)transportType.ExtLgth,
+                    ExtWdth = (double)transportType.ExtWdth,
+                    ExtHght = (double)transportType.ExtHght,
+                    IntLgth = (double)transportType.IntLgth,
+                    IntWdth = (double)transportType.IntWdth,
+                    IntHght = (double)transportType.IntHght,
                     UnitID = (int)transportType.UnitID,
                     UNIT = transportType.UNIT,
-                    CapableOfLifting = transportType.CapableOfLifting,
-                    TransportWeight = transportType.TransportWeight
+                    CapableOfLifting = (double?)transportType.CapableOfLifting,
+                    TransportWeight = (double?)(transportType.TransportWeight)
                 };
                 ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                 return View(viewModel);
@@ -168,15 +168,15 @@ namespace tahsinERP.Controllers
 
                     // Yangilash entity bilan ma'lumot dan view model
                     transportTypeToUpdate.TransportType = viewModel.TransportType;
-                    transportTypeToUpdate.ExtLgth = viewModel.ExtLgth;
-                    transportTypeToUpdate.ExtWdth = viewModel.ExtWdth;
-                    transportTypeToUpdate.ExtHght = viewModel.ExtHght;
-                    transportTypeToUpdate.IntLgth = viewModel.IntLgth;
-                    transportTypeToUpdate.IntWdth = viewModel.IntWdth;
-                    transportTypeToUpdate.IntHght = viewModel.IntHght;
+                    transportTypeToUpdate.ExtLgth = (decimal)viewModel.ExtLgth;
+                    transportTypeToUpdate.ExtWdth = (decimal)viewModel.ExtWdth;
+                    transportTypeToUpdate.ExtHght = (decimal)viewModel.ExtHght;
+                    transportTypeToUpdate.IntLgth = (decimal)viewModel.IntLgth;
+                    transportTypeToUpdate.IntWdth = (decimal)viewModel.IntWdth;
+                    transportTypeToUpdate.IntHght = (decimal)viewModel.IntHght;
                     transportTypeToUpdate.UnitID = viewModel.UnitID;
-                    transportTypeToUpdate.CapableOfLifting = viewModel.CapableOfLifting;
-                    transportTypeToUpdate.TransportWeight = viewModel.TransportWeight;
+                    transportTypeToUpdate.CapableOfLifting = (decimal?)viewModel.CapableOfLifting;
+                    transportTypeToUpdate.TransportWeight = (decimal?)viewModel.TransportWeight;
 
                     try
                     {

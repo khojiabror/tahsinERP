@@ -17,10 +17,10 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int OrderID { get; set; }
         public int ProductID { get; set; }
-        public double Price { get; set; }
-        public double Amount { get; set; }
-        public double TotalPrice { get; set; }
-        public Nullable<double> MOQ { get; set; }
+        public decimal Price { get; set; }
+        public decimal Amount { get; set; }
+        public decimal TotalPrice { get; set; }
+        public Nullable<decimal> MOQ { get; set; }
         public Nullable<int> UnitID { get; set; }
         public string Priority { get; set; }
         public Nullable<System.DateTime> RequiredDate { get; set; }

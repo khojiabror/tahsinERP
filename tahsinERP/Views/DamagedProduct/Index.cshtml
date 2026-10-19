@@ -76,7 +76,7 @@
                                                         <td>
                                                             <a href="~/Products/Details/@item.ProductID">@item.PRODUCT.PNo</a>
                                                         </td>
-                                                        <td>@item.Quantity</td>
+                                                        <td>@item.Quantity.ToString("0.######")</td>
                                                         @if (changePermit)
                                                         {
                                                             <td>

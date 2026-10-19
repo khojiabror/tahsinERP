@@ -1,0 +1,288 @@
+@model tahsinERP.Areas.Distribution.Services.Orders.OrderDetailsModel
+@using tahsinERP.Areas.Distribution.Services.Orders
+@{
+    var o = Model.Order;
+    var st = Model.Status;
+    ViewBag.DstParent = DstLocalization.T("Orders");
+    ViewBag.Title = o.DocNo;
+    bool canChange = ViewBag.DstCanChange == true;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string Q(decimal v) => v.ToString("0.####");
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-25">@o.DocNo <span class="badge badge-light-primary">@DstLocalization.T("OrderStatus_" + st)</span></h3>
+                        <div class="text-muted">@o.DocDate.ToString("dd.MM.yyyy") · @DstLocalization.T("Created"): @Model.CreatedBy · @DstLocalization.T("Source"): @o.Source</div>
+                    </div>
+                    @if (canChange)
+                    {
+                        <div class="mt-50">
+                            @if (OrderStateMachine.IsEditable(st))
+                            {
+                                <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Edit", new { id = o.ID })"><i class="bx bx-edit-alt"></i> @DstLocalization.T("Edit")</a>
+                                <button type="button" class="btn btn-success btn-sm" data-act="Confirm"><i class="bx bx-check"></i> @DstLocalization.T("Order_Confirm")</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-act="Delete" data-confirm="1"><i class="bx bx-trash"></i></button>
+                            }
+                            @if (st == OrderStatus.Confirmed)
+                            {
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-act="Unconfirm" data-confirm="1">@DstLocalization.T("Order_Unconfirm")</button>
+                                <button type="button" class="btn btn-warning btn-sm" data-act="StartPicking">@DstLocalization.T("Order_StartPicking")</button>
+                            }
+                            @if (OrderStateMachine.CanShip(st))
+                            {
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-act="Rereserve">@DstLocalization.T("Order_Rereserve")</button>
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#shipModal"><i class="bx bx-package"></i> @DstLocalization.T("Order_Ship")</button>
+                            }
+                            @if (st == OrderStatus.PartiallyShipped)
+                            {
+                                <button type="button" class="btn btn-outline-warning btn-sm" data-reason="CloseRemainder">@DstLocalization.T("Order_CloseRemainder")</button>
+                            }
+                            @if (st == OrderStatus.Shipped || st == OrderStatus.PartiallyShipped)
+                            {
+                                <button type="button" class="btn btn-success btn-sm" data-act="Deliver"><i class="bx bx-check-double"></i> @DstLocalization.T("Order_Delivered")</button>
+                            }
+                            @if (OrderStateMachine.CanMove(st, OrderStatus.Cancelled))
+                            {
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-reason="Cancel">@DstLocalization.T("Order_Cancel")</button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">@DstLocalization.T("Products")</h4>
+                            <a class="btn btn-sm btn-outline-secondary" target="_blank" href="@Url.Action("Print", new { id = o.ID, kind = "picking" })"><i class="bx bx-printer"></i> @DstLocalization.T("Print_Picking")</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Qty")</th>
+                                            <th class="text-right">@DstLocalization.T("Price")</th><th class="text-right">%</th><th class="text-right">@DstLocalization.T("Amount")</th>
+                                            <th class="text-right">@DstLocalization.T("Reserved")</th><th class="text-right">@DstLocalization.T("Shipped")</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var l in Model.Lines)
+                                        {
+                                            <tr>
+                                                <td>@l.LineNo</td>
+                                                <td>@l.PNo — @l.Product</td>
+                                                <td class="text-right">@Q(l.Qty) @l.Unit @if (l.Factor != 1) { <div class="small text-muted">= @Q(l.QtyBase) @l.BaseUnit</div> }</td>
+                                                <td class="text-right">@l.UnitPrice.ToString("N0")</td>
+                                                <td class="text-right">@(l.DiscountPct > 0 ? l.DiscountPct.ToString("0.##") : "")</td>
+                                                <td class="text-right">@l.Amount.ToString("N0")</td>
+                                                <td class="text-right">
+                                                    @Q(l.ReservedBase)
+                                                    @if (l.WaitingBase > 0 && OrderStateMachine.HoldsReservation(st))
+                                                    {
+                                                        <div class="small text-danger">@DstLocalization.T("Order_Waiting"): @Q(l.WaitingBase)</div>
+                                                    }
+                                                </td>
+                                                <td class="text-right">@Q(l.QtyShippedBase) @l.BaseUnit</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr><th colspan="5" class="text-right">@DstLocalization.T("Subtotal")</th><th class="text-right">@o.Subtotal.ToString("N0")</th><th colspan="2"></th></tr>
+                                        @if (o.DiscountSum > 0)
+                                        {
+                                            <tr><th colspan="5" class="text-right">@DstLocalization.T("Order_Discount") (@o.DiscountPct.ToString("0.##")%)</th><th class="text-right">−@o.DiscountSum.ToString("N0")</th><th colspan="2"></th></tr>
+                                        }
+                                        <tr><th colspan="5" class="text-right">@DstLocalization.T("Total")</th><th class="text-right">@o.Total.ToString("N0")</th><th colspan="2"></th></tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <div class="small text-muted">@DstLocalization.T("Weight"): @o.WeightKg.ToString("0.###") kg · @DstLocalization.T("Volume"): @o.VolumeM3.ToString("0.####") m³</div>
+                        </div>
+                    </div>
+
+                    @if (Model.Shipments.Any())
+                    {
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Shipments")</h4></div>
+                            <div class="card-body">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>@DstLocalization.T("Order_No")</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("User")</th><th class="text-right">@DstLocalization.T("Total")</th>@if (Model.ShowCost) { <th class="text-right">@DstLocalization.T("Cost")</th> }<th></th></tr></thead>
+                                    <tbody>
+                                        @foreach (var s in Model.Shipments)
+                                        {
+                                            <tr>
+                                                <td>@s.DocNo</td><td>@s.Date.ToString("dd.MM.yyyy HH:mm")</td><td>@s.User</td>
+                                                <td class="text-right">@s.Total.ToString("N0")</td>
+                                                @if (Model.ShowCost) { <td class="text-right">@(s.Cost?.ToString("N0"))</td> }
+                                                <td class="text-right"><a class="btn btn-sm btn-outline-secondary" target="_blank" href="@Url.Action("Print", new { id = o.ID, kind = "invoice", shipmentId = s.ID })"><i class="bx bx-printer"></i> @DstLocalization.T("Print_Invoice")</a></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                @if (Model.ShowCost && Model.CostTotal.HasValue)
+                                {
+                                    <div class="small mt-50">@DstLocalization.T("GrossProfit"): <b class="@(o.ShippedTotal - Model.CostTotal.Value >= 0 ? "text-success" : "text-danger")">@((o.ShippedTotal - Model.CostTotal.Value).ToString("N0"))</b></div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Customer")</h4></div>
+                        <div class="card-body">
+                            <h5><a href="@Url.Action("Edit", "DstCustomers", new { id = o.CustomerID })">@Model.Customer.Name</a></h5>
+                            <div class="small text-muted mb-1">@Model.Customer.Address @Model.Customer.Telephone</div>
+                            <dl class="row small mb-0">
+                                <dt class="col-6">@DstLocalization.T("Agent")</dt><dd class="col-6 text-right">@Model.Agent</dd>
+                                <dt class="col-6">@DstLocalization.T("Warehouse")</dt><dd class="col-6 text-right">@(Model.Warehouse ?? DstLocalization.T("Order_WarehouseAuto"))</dd>
+                                <dt class="col-6">@DstLocalization.T("DeliveryDate")</dt><dd class="col-6 text-right">@(o.IsPickup ? DstLocalization.T("Pickup") : o.DeliveryDate?.ToString("dd.MM.yyyy"))</dd>
+                                <dt class="col-6">@DstLocalization.T("Debt")</dt><dd class="col-6 text-right">@Model.Credit.Balance.ToString("N0")</dd>
+                                <dt class="col-6">@DstLocalization.T("Overdue")</dt><dd class="col-6 text-right @(Model.Credit.Overdue > 0 ? "text-danger" : "")">@Model.Credit.Overdue.ToString("N0")</dd>
+                                <dt class="col-6">@DstLocalization.T("CreditLimit")</dt><dd class="col-6 text-right">@Model.Credit.CreditLimit.ToString("N0")</dd>
+                            </dl>
+                            @if (o.CreditOverrideBy.HasValue)
+                            {
+                                <div class="alert alert-warning p-50 mt-1 mb-0 small">@DstLocalization.T("Order_CreditOverridden"): @Model.OverrideBy — @o.CreditOverrideNote</div>
+                            }
+                            @if (!string.IsNullOrEmpty(o.Comment))
+                            {
+                                <div class="small mt-1">@o.Comment</div>
+                            }
+                            @if (o.CancelReason != null)
+                            {
+                                <div class="alert alert-danger p-50 mt-1 mb-0 small">@DstLocalization.T("Order_Cancelled"): @o.CancelReason</div>
+                            }
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("History")</h4></div>
+                        <div class="card-body">
+                            <ul class="list-unstyled small mb-0">
+                                @foreach (var h in Model.Log)
+                                {
+                                    <li class="mb-50">
+                                        <span class="text-muted">@h.At.ToString("dd.MM HH:mm")</span>
+                                        <b>@DstLocalization.T("OrderStatus_" + h.To)</b> — @h.User
+                                        @if (!string.IsNullOrEmpty(h.Note)) { <div class="text-muted">@h.Note</div> }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="shipModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Order_Ship")</h5></div>
+            <div class="modal-body">
+                <p class="small text-muted">@DstLocalization.T("Ship_Hint")</p>
+                <table class="table table-sm">
+                    <thead><tr><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Remaining")</th><th class="text-right">@DstLocalization.T("Reserved")</th><th style="width:150px">@DstLocalization.T("Qty") (@DstLocalization.T("BaseUnit"))</th></tr></thead>
+                    <tbody>
+                        @foreach (var l in Model.Lines.Where(x => x.RemainingBase > 0))
+                        {
+                            <tr>
+                                <td>@l.PNo — @l.Product</td>
+                                <td class="text-right">@Q(l.RemainingBase) @l.BaseUnit</td>
+                                <td class="text-right">@Q(l.ReservedBase)</td>
+                                <td><input type="number" class="form-control form-control-sm text-right" min="0" step="0.0001" max="@l.RemainingBase.ToString(inv)" data-ship-line="@l.ID" value="@Math.Min(l.ReservedBase, l.RemainingBase).ToString(inv)" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="shipSave">@DstLocalization.T("Order_Ship")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reasonModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="reasonTitle">@DstLocalization.T("Reason")</h5></div>
+            <div class="modal-body">
+                <div id="creditProblems" class="alert alert-danger" style="display:none"></div>
+                <textarea id="reasonText" class="form-control" rows="3" maxlength="300" placeholder="@DstLocalization.T("Reason")"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Back")</button>
+                <button type="button" class="btn btn-danger" id="reasonSave">@DstLocalization.T("Apply")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var id = @o.ID;
+            var base = '@Url.Action("Index")'.replace(/\/Index$/, '').replace(/\/$/, '') + '/';
+            function reload() { location.reload(); }
+            var pendingAction = null;
+
+            $('[data-act]').on('click', function () {
+                var act = $(this).data('act');
+                if ($(this).data('confirm') && !confirm(dstI18n.confirm)) return;
+                dstPost(base + act, { id: id }).done(function () {
+                    if (act === 'Delete') location.href = '@Url.Action("Index")'; else reload();
+                }).fail(function (r) {
+                    if (act === 'Confirm' && r && r.credit) {
+                        @if (tahsinERP.Areas.Distribution.Services.DstPermissions.Has(User.Identity.Name, tahsinERP.Areas.Distribution.Services.DstPermissions.OverrideCredit))
+                        {
+                            <text>
+                            pendingAction = 'ConfirmOverride';
+                            $('#reasonTitle').text('@DstLocalization.T("Order_CreditOverride")');
+                            $('#creditProblems').text(r.message).show();
+                            $('#reasonText').val('');
+                            $('#reasonModal').modal('show');
+                            </text>
+                        }
+                    }
+                });
+            });
+            $('[data-reason]').on('click', function () {
+                pendingAction = $(this).data('reason');
+                $('#reasonTitle').text($(this).text());
+                $('#creditProblems').hide();
+                $('#reasonText').val('');
+                $('#reasonModal').modal('show');
+            });
+            $('#reasonSave').on('click', function () {
+                var text = $('#reasonText').val();
+                var req = pendingAction === 'ConfirmOverride'
+                    ? dstPost(base + 'Confirm', { id: id, overrideNote: text })
+                    : dstPost(base + pendingAction, { id: id, reason: text });
+                req.done(reload);
+            });
+            $('#shipSave').on('click', function () {
+                var data = { id: id }, i = 0;
+                $('[data-ship-line]').each(function () {
+                    var q = parseFloat($(this).val());
+                    if (q > 0) { data['lines[' + i + '].LineId'] = $(this).data('shipLine'); data['lines[' + i + '].QtyBase'] = q; i++; }
+                });
+                if (!i) return;
+                var btn = $(this).prop('disabled', true);
+                dstPost(base + 'Ship', data).done(reload).always(function () { btn.prop('disabled', false); });
+            });
+        });
+    </script>
+}

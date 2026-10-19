@@ -83,7 +83,7 @@ namespace tahsinERP.Controllers.MES
                         .Where(s => s.WHID == productionWHID.Value && productIds.Contains(s.ProductID))
                         .ToListAsync();
                     foreach (var s in stocks)
-                        stockDict[s.ProductID] = s.Amount;
+                        stockDict[s.ProductID] = (double)s.Amount;
                 }
 
                 var rows = new List<ProductionMonthlyReportRow>();
@@ -98,9 +98,9 @@ namespace tahsinERP.Controllers.MES
                         ProductID = p.ID,
                         ProductCode = p.PNo ?? "",
                         ProductName = p.Name ?? "",
-                        Reja = reja,
-                        Fakt = fakt,
-                        Farq = farq,
+                        Reja = (double)reja,
+                        Fakt = (double)fakt,
+                        Farq = (double)farq,
                         Qoldiq = qoldiq
                     });
                 }
@@ -187,7 +187,7 @@ namespace tahsinERP.Controllers.MES
                 foreach (var row in byProduct)
                 {
                     var produced = producedByProduct.FirstOrDefault(x => x.ProductID == row.ProductID)?.Produced ?? 0;
-                    row.IshlabChiqarilgan = produced;
+                    row.IshlabChiqarilgan = (double)produced;
                     row.FTQPercent = row.TekshirilganMiqdor > 0
                         ? Math.Round((row.QabulQilingan / row.TekshirilganMiqdor) * 100, 1)
                         : (double?)null;
