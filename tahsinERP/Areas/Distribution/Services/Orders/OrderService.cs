@@ -506,7 +506,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 var eps = erp.EXPENSE_PRODUCTS.Where(p => p.ExpenseID == shipment.ExpenseID.Value).ToList();
                 foreach (var ep in eps)
                 {
-                    StockLedger.ReverseIssueLine(erp, shipment.WarehouseID, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID);
+                    StockLedger.ReverseIssueLine(erp, shipment.WarehouseID, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
                     erp.EXPENSE_PRODUCTS.Remove(ep);
                 }
                 if (expense != null) expense.IsDeleted = true;

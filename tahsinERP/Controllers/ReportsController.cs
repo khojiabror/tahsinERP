@@ -16,6 +16,15 @@ namespace tahsinERP.Controllers
     public class ReportsController : Controller
     {
         /// <summary>
+        /// /Reports — alohida sahifasi yo'q (PERMISSIONMODULES'dagi "Reports" moduli shu manzilga ishora qiladi);
+        /// menyudagi birinchi hisobotga yo'naltiriladi.
+        /// </summary>
+        public ActionResult Index()
+        {
+            return RedirectToAction("Coverage");
+        }
+
+        /// <summary>
         /// ABC/XYZ segmentatsiya - xomashyolarni value va variabiliti bo'yicha klassifikatsiya.
         /// </summary>
         public async System.Threading.Tasks.Task<ActionResult> ABCSegmentation(int? warehouseId, DateTime? fromDate, DateTime? toDate)
