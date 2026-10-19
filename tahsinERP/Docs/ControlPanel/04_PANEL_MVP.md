@@ -21,7 +21,7 @@ Bog'liq: `00_PLAN.md` (3–6, 10–11), `01_LICENSE_API.md` (ERP bilan kontrakt)
 | AuditLog | Pul (hisob-faktura, to'lov, storno), kalit (chiqarish, bekor), status, tarif, server, xodim, kirish — kim/qachon/IP/oldin/keyin JSON, amal bilan bitta tranzaksiyada. |
 | Dashboard | Faol/sinov/grace/suspended, qarzdorlar (muddati o'tgan), muddati yaqinlashganlar (14 kun), oylik tushum (6 oy), bog'lanmaganlar. |
 
-**2-bosqichda qo'shildi:** provisioning (ProvisioningJobs, agent, `tenants.json`, demo reset, sinov ochish) — `05_PROVISIONING.md`. **Yo'q:** mijoz portali, Didox, email/SMS.
+**2-bosqichda qo'shildi:** provisioning (ProvisioningJobs, agent, `tenants.json`, demo reset, sinov ochish — namuna ma'lumotlar bilan/bo'sh, sinovni erta yakunlash), tenant foydalanuvchi faolligi (Faollik sahifasi, «Faol emas sinovlar») — `05_PROVISIONING.md` (10-bo'limda maxfiylik: parol, F.I.Sh., email, IP/MAC panelga kelmaydi; amal matni maskalanadi; 90 kun). **Yo'q:** mijoz portali, Didox, email/SMS.
 
 ## 2. Lokal ishga tushirish
 

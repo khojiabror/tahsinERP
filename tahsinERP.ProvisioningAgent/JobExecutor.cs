@@ -148,8 +148,6 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
         var p = lease.Payload;
         if (!p.Demo || !string.Equals(p.Slug, options.Demo.Slug, StringComparison.OrdinalIgnoreCase))
             throw new InvalidJobException($"Reset faqat demo tenant ('{options.Demo.Slug}') uchun.");
-        if (string.IsNullOrEmpty(options.Demo.UserPassword))
-            throw new InvalidJobException("Demo:UserPassword sozlanmagan (agent env TAHSIN_AGENT_Demo__UserPassword).");
         string template = options.ResolveDemoTemplate();
         if (!File.Exists(template))
             await BuildDemoTemplateAsync(template, log, ct);
@@ -165,8 +163,12 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
         if (RetryExitCodes.Contains(r.ExitCode)) throw new TransientJobException($"Invoke-DbMigrations kod {r.ExitCode}");
         if (r.ExitCode != 0) throw new InvalidJobException($"Invoke-DbMigrations kod {r.ExitCode}");
 
-        await sql.EnsureDemoUserAsync(p.DbName, options.Demo.UserLogin, options.Demo.UserPassword, ct);
-        log.Info($"demo foydalanuvchi: {options.Demo.UserLogin}");
+        if (!string.IsNullOrEmpty(options.Demo.UserPassword))
+        {
+            await sql.EnsureDemoUserAsync(p.DbName, options.Demo.UserLogin, options.Demo.UserPassword, ct);
+            log.Info($"demo foydalanuvchi: {options.Demo.UserLogin} (parol agent sozlamasidan)");
+        }
+        else log.Info("demo foydalanuvchi — Database/Demo skriptidagi (demo / demo2026)");
         if (lease.Secrets?.RegToken is { Length: > 0 } token) log.Info(await sql.WriteRegTokenAsync(p.DbName, token, ct));
         Tenants().Upsert(p.Slug, p.DbName, p.CompanyId, true);
         c.RegistryEnabled = true;
