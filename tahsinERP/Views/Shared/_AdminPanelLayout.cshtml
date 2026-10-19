@@ -146,9 +146,14 @@
 
         <!-- Vendor JS -->
         <script src="~/app-assets/vendors/js/vendors.min.js"></script>
-        <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.tools.js"></script>
-        <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.defaults.js"></script>
-        <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.min.js"></script>
+        <script>
+            // LivIcons (261 KB) ishlatilmaydi; app-menu.js chaqiradigan metodlar uchun bo'sh stublar
+            (function ($) {
+                ['addLiviconEvo', 'removeLiviconEvo', 'updateLiviconEvo', 'playLiviconEvo', 'stopLiviconEvo'].forEach(function (m) {
+                    if (!$.fn[m]) { $.fn[m] = function () { return this; }; }
+                });
+            })(jQuery);
+        </script>
 
         <!-- DataTables -->
         <script src="~/app-assets/vendors/js/tables/datatable/datatables.min.js"></script>
