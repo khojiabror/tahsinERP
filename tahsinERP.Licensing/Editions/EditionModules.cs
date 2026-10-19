@@ -112,7 +112,7 @@ namespace tahsinERP.Services.Editions
             { ProductModule.Distribution, new[]
                 {
                     "DstHome", "DstTerritories", "DstCustomers", "DstProducts", "DstDictionaries", "DstPrices",
-                    "DstTeams", "DstSettings", "DstImport", "DstOrders", "DstStock", "DstPayments", "DstReturns", "DstDebts"
+                    "DstTeams", "DstSettings", "DstImport", "DstOrders", "DstStock", "DstPayments", "DstReturns", "DstDebts", "DstApi"
                 } },
         });
 

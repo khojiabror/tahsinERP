@@ -169,6 +169,24 @@ namespace tahsinERP.Areas.Distribution.Controllers
             });
         }
 
+        /// <summary>Mijozni Telegram botga ulash kodi (holat, nakladnoy, qarz eslatmasi uchun).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public JsonResult LinkCode(int customerId)
+        {
+            return DstJson(() =>
+            {
+                using (var db = NewDb())
+                {
+                    if (!CanAccess(db, customerId) || db.CustomerProfiles.Find(customerId) == null)
+                        throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+                    var code = Services.Bot.TelegramLinkService.CreateCode(db, null, customerId, BotRoles.Customer, CurrentUserId, DateTime.Now);
+                    db.SaveChanges();
+                    return DstTeamsController.LinkResult(db, code);
+                }
+            });
+        }
+
         /// <summary>Mavjud (ishlab chiqarish) mijozni distributsiyaga qo'shish — bo'sh profil yaratiladi.</summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]

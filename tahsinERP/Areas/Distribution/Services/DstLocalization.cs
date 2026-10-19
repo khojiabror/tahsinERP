@@ -55,6 +55,14 @@ namespace tahsinERP.Areas.Distribution.Services
             return string.Format(CultureInfo.CurrentCulture, T(key), args);
         }
 
+        /// <summary>Berilgan tilda (masalan, bildirishnoma qabul qiluvchining tilida).</summary>
+        public static string TFor(string language, string key, params object[] args)
+        {
+            var culture = CultureFor(language);
+            var text = Resources.GetString(key, culture) ?? key;
+            return args == null || args.Length == 0 ? text : string.Format(culture, text, args);
+        }
+
         public static CultureInfo CultureFor(string language)
         {
             return string.Equals(language, Russian, StringComparison.OrdinalIgnoreCase) ? RuCulture : UzCulture;

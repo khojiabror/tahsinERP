@@ -4,6 +4,7 @@ using System.Linq;
 using tahsinERP.Areas.Distribution.Data;
 using tahsinERP.Areas.Distribution.Data.Entities;
 using tahsinERP.Areas.Distribution.Services.Money;
+using tahsinERP.Areas.Distribution.Services.Bot;
 using tahsinERP.Models;
 using tahsinERP.Services.Stock;
 
@@ -188,7 +189,10 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             db.SaveChanges();
 
             if (input.ID == null)
+            {
                 Log(db, order, null, OrderStatus.New, actor.UserId, now, null);
+                NotifyNewOrder(db, order, customer.Name, actor.UserId, now);
+            }
             db.SaveChanges();
             return order.ID;
         }
@@ -256,6 +260,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             if (order.Status == DocumentStatus.Draft)
                 DocumentLifecycle.Post(order, actor.UserId, now);
             Move(db, order, OrderStatus.Confirmed, actor.UserId, now, order.CreditOverrideNote);
+            if (order.AgentUserID.HasValue && order.AgentUserID != actor.UserId)
+                NotificationService.ToUser(db, order.AgentUserID, NotificationService.OrderConfirmed,
+                    l => DstLocalization.TFor(l, "Notify_OrderConfirmed", order.DocNo, CustomerName(db, order.CustomerID), order.Total.ToString("N0")), null, now);
             db.SaveChanges();
         }
 
@@ -473,6 +480,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 order.DeliveredAt = now;
                 Move(db, order, OrderStatus.Delivered, userId, now, null);
             }
+            NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderShipped,
+                l => DstLocalization.TFor(l, "Notify_Shipped", order.DocNo, total.ToString("N0"),
+                    LedgerService.CreditState(db, order.CustomerID, now).Balance.ToString("N0")), now);
             db.SaveChanges();
             DebtService.SettleOrders(db, order.CustomerID, userId, now);   // oldindan to'langan bo'lsa — darhol yopiladi
             db.SaveChanges();
@@ -550,6 +560,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             var order = Load(db, orderId);
             Move(db, order, OrderStatus.Delivered, userId, now, null);
             order.DeliveredAt = now;
+            NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderDelivered,
+                l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);
             db.SaveChanges();
         }
 
@@ -564,6 +576,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             ReleaseReservations(db, orderId);
             DocumentLifecycle.Cancel(order, userId, reason, now);
             Move(db, order, OrderStatus.Cancelled, userId, now, order.CancelReason);
+            if (order.AgentUserID.HasValue && order.AgentUserID != userId)
+                NotificationService.ToUser(db, order.AgentUserID, NotificationService.OrderCancelled,
+                    l => DstLocalization.TFor(l, "Notify_OrderCancelled", order.DocNo, CustomerName(db, order.CustomerID), order.CancelReason), null, now);
             db.SaveChanges();
         }
 
@@ -574,6 +589,24 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             var raw = db.Settings.Where(s => s.Key == DstSetting.MinOrderAmount).Select(s => s.Value).FirstOrDefault();
             return DstModelBinder.TryParseDecimal(raw ?? "0", out var v) ? v : 0;
         }
+
+        /// <summary>Yangi buyurtma: katta summa yoki limitdan oshsa — rahbarlarga (ruxsat tugmasi bilan).</summary>
+        private static void NotifyNewOrder(DistributionDbContext db, DstOrder order, string customer, int userId, DateTime now)
+        {
+            var large = DstSettings.Decimal(db, DstSetting.LargeOrderAmount);
+            if (large > 0 && order.Total >= large)
+                NotificationService.ToManagers(db, NotificationService.LargeOrder,
+                    l => DstLocalization.TFor(l, "Notify_LargeOrder", order.DocNo, customer, order.Total.ToString("N0")), null, now, userId);
+            var credit = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, now), order.Total);
+            if (!credit.Ok)
+                NotificationService.ToManagers(db, NotificationService.CreditOverLimit,
+                    l => DstLocalization.TFor(l, "Notify_CreditOverLimit", order.DocNo, customer, order.Total.ToString("N0")) + Environment.NewLine
+                         + string.Join(Environment.NewLine, credit.Problems),
+                    "{\"action\":\"override\",\"orderId\":" + order.ID + "}", now, userId);
+        }
+
+        private static string CustomerName(DistributionDbContext db, int customerId) =>
+            db.Customers.Where(c => c.ID == customerId).Select(c => c.Name).FirstOrDefault();
 
         private static DstOrder Load(DistributionDbContext db, int orderId)
         {

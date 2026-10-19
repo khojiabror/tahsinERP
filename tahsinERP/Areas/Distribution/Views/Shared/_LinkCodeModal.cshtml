@@ -1,0 +1,30 @@
+@* Telegram'ga ulash kodi oynasi. Ochish: dstShowLink({ code, link, expires }). *@
+<div class="modal fade" id="linkModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title"><i class="bx bxl-telegram"></i> @DstLocalization.T("Bot_LinkTitle")</h5></div>
+            <div class="modal-body">
+                <p class="small text-muted">@DstLocalization.T("Bot_LinkHint")</p>
+                <h2 class="text-center" style="letter-spacing:3px"><code id="lkCode"></code></h2>
+                <div id="lkLinkBox" class="input-group mb-50">
+                    <input id="lkLink" class="form-control" readonly />
+                    <div class="input-group-append"><button type="button" class="btn btn-outline-primary" id="lkCopy"><i class="bx bx-copy"></i></button></div>
+                </div>
+                <div id="lkNoBot" class="alert alert-warning p-50 small" style="display:none">@DstLocalization.T("Bot_NoUsername")</div>
+                <div class="small text-muted">@DstLocalization.T("Bot_LinkExpires"): <span id="lkExpires"></span></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Back")</button></div>
+        </div>
+    </div>
+</div>
+<script>
+    window.dstShowLink = function (r) {
+        $('#lkCode').text(r.code); $('#lkExpires').text(r.expires);
+        if (r.link) { $('#lkLink').val(r.link); $('#lkLinkBox').show(); $('#lkNoBot').hide(); }
+        else { $('#lkLinkBox').hide(); $('#lkNoBot').show(); }
+        $('#linkModal').modal('show');
+    };
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#lkCopy').on('click', function () { $('#lkLink').select(); document.execCommand('copy'); dstNotify(); });
+    });
+</script>

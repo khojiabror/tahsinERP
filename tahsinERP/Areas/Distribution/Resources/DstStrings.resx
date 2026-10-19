@@ -87,6 +87,36 @@
   <data name="BaseUnit" xml:space="preserve">
     <value>Asosiy birlik</value>
   </data>
+  <data name="Bot_CodeInvalid" xml:space="preserve">
+    <value>Kod noto'g'ri yoki muddati o'tgan.</value>
+  </data>
+  <data name="Bot_DayNotStarted" xml:space="preserve">
+    <value>Avval ish kunini boshlang.</value>
+  </data>
+  <data name="Bot_GetCode" xml:space="preserve">
+    <value>Kod olish</value>
+  </data>
+  <data name="Bot_LinkExpires" xml:space="preserve">
+    <value>Amal qiladi</value>
+  </data>
+  <data name="Bot_LinkHint" xml:space="preserve">
+    <value>Havolani oching yoki botga /start va kodni yuboring. Kod bir martalik.</value>
+  </data>
+  <data name="Bot_LinkStaff" xml:space="preserve">
+    <value>Xodimni botga ulash</value>
+  </data>
+  <data name="Bot_LinkTitle" xml:space="preserve">
+    <value>Telegram'ga ulash</value>
+  </data>
+  <data name="Bot_NoUsername" xml:space="preserve">
+    <value>Bot nomi sozlanmagan (Sozlamalar → Umumiy). Kodni botga qo'lda yuboring.</value>
+  </data>
+  <data name="Bot_ReasonRequired" xml:space="preserve">
+    <value>Buyurtmasiz tashrif uchun sababni tanlang.</value>
+  </data>
+  <data name="Bot_TooFar" xml:space="preserve">
+    <value>Siz mijozdan {0} m uzoqdasiz (ruxsat: {1} m).</value>
+  </data>
   <data name="Brand" xml:space="preserve">
     <value>Brend</value>
   </data>
@@ -591,6 +621,30 @@
   <data name="NameRu" xml:space="preserve">
     <value>Nomi (rus)</value>
   </data>
+  <data name="Notify_CreditOverLimit" xml:space="preserve">
+    <value>Buyurtma {0} ({1}, {2} so'm) kredit shartidan chiqdi — tasdiqlash kerak:</value>
+  </data>
+  <data name="Notify_Delivered" xml:space="preserve">
+    <value>Buyurtmangiz {0} yetkazildi: {1} so'm. Rahmat!</value>
+  </data>
+  <data name="Notify_HandoverPending" xml:space="preserve">
+    <value>{0} kassaga {1} so'm topshirdi — qabul qiling.</value>
+  </data>
+  <data name="Notify_LargeOrder" xml:space="preserve">
+    <value>Yirik buyurtma {0}: {1}, {2} so'm.</value>
+  </data>
+  <data name="Notify_OrderCancelled" xml:space="preserve">
+    <value>Buyurtma {0} bekor qilindi: {1}. Sabab: {2}</value>
+  </data>
+  <data name="Notify_OrderConfirmed" xml:space="preserve">
+    <value>Buyurtma {0} tasdiqlandi: {1}, {2} so'm.</value>
+  </data>
+  <data name="Notify_PaymentReceived" xml:space="preserve">
+    <value>To'lovingiz qabul qilindi: {0} so'm ({1}). Qolgan qarz: {2} so'm.</value>
+  </data>
+  <data name="Notify_Shipped" xml:space="preserve">
+    <value>Buyurtmangiz {0} jo'natildi: {1} so'm. Joriy qarzingiz: {2} so'm.</value>
+  </data>
   <data name="OrderStatus_Cancelled" xml:space="preserve">
     <value>Bekor qilingan</value>
   </data>
@@ -981,6 +1035,18 @@
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
   </data>
+  <data name="Role_AGENT" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="Role_EXPEDITOR" xml:space="preserve">
+    <value>Ekspeditor</value>
+  </data>
+  <data name="Role_MANAGER" xml:space="preserve">
+    <value>Rahbar</value>
+  </data>
+  <data name="Role_STOREKEEPER" xml:space="preserve">
+    <value>Omborchi</value>
+  </data>
   <data name="Row" xml:space="preserve">
     <value>Qator</value>
   </data>
@@ -998,6 +1064,27 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Sozlamalar</value>
+  </data>
+  <data name="Settings_AgentAccount" xml:space="preserve">
+    <value>Agent naqdsiz to'lovlari hisobi</value>
+  </data>
+  <data name="Settings_BotUsername" xml:space="preserve">
+    <value>Telegram bot nomi</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>Umumiy sozlamalar</value>
+  </data>
+  <data name="Settings_GeneralHint" xml:space="preserve">
+    <value>Yirik buyurtma: 0 — xabar yuborilmaydi. Radius: agent mijozga shu masofada bo'lsagina tashrif belgilanadi.</value>
+  </data>
+  <data name="Settings_LargeOrder" xml:space="preserve">
+    <value>Yirik buyurtma, so'm</value>
+  </data>
+  <data name="Settings_MinOrder" xml:space="preserve">
+    <value>Minimal buyurtma, so'm</value>
+  </data>
+  <data name="Settings_Radius" xml:space="preserve">
+    <value>Tashrif radiusi, m</value>
   </data>
   <data name="Ship_Hint" xml:space="preserve">
     <value>Miqdor asosiy birlikda. Sukut bo'yicha — rezervdagi miqdor. Ombordan sof FIFO bilan chiqariladi, mijoz qarziga yoziladi.</value>
@@ -1094,6 +1181,17 @@
   </data>
   <data name="Subtotal" xml:space="preserve">
     <value>Jami (chegirmagacha)</value>
+  </data>
+  <data name="Summary_Text" xml:space="preserve">
+    <value>Kun yakuni {0}
+Buyurtmalar: {1} ta, {2} so'm
+Jo'natildi: {3} so'm
+Tushum: {4} so'm
+Umumiy qarz: {5} so'm (muddati o'tgan: {6})
+Faol agentlar: {7}/{8}</value>
+  </data>
+  <data name="Summary_TopAgent" xml:space="preserve">
+    <value>Kun yetakchisi: {0} — {1} so'm</value>
   </data>
   <data name="Supervisor" xml:space="preserve">
     <value>Supervayzer</value>

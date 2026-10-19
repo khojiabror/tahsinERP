@@ -35,6 +35,7 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public int? ConfirmedBy { get; set; }
         [Column(TypeName = "datetime2")] public DateTime? ConfirmedAt { get; set; }
         [Column(TypeName = "datetime2")] public DateTime? DeliveredAt { get; set; }
+        [StringLength(200)] public string SignatureKey { get; set; }
 
         [Timestamp] public byte[] RowVer { get; set; }
 
@@ -156,6 +157,10 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
     public class DstSetting
     {
         public const string MinOrderAmount = "MinOrderAmount";
+        public const string VisitRadiusM = "VisitRadiusM";
+        public const string AgentCashAccountId = "AgentCashAccountId";
+        public const string BotUsername = "BotUsername";
+        public const string LargeOrderAmount = "LargeOrderAmount";
 
         [Key, StringLength(50), DatabaseGenerated(DatabaseGeneratedOption.None)] public string Key { get; set; }
         [StringLength(400)] public string Value { get; set; }

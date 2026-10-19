@@ -156,6 +156,11 @@
                     @if (Model.ID.HasValue)
                     {
                         <a class="btn btn-outline-primary" href="@Url.Action("Customer", "DstPrices", new { id = Model.ID })">@DstLocalization.T("Customer_SpecialPrices")</a>
+                        <a class="btn btn-outline-primary" href="@Url.Action("Statement", "DstDebts", new { id = Model.ID })">@DstLocalization.T("Statement")</a>
+                        if (canChange)
+                        {
+                            <button type="button" class="btn btn-outline-info" id="custLink"><i class="bx bxl-telegram"></i> Telegram</button>
+                        }
                     }
                     <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
                 </div>
@@ -163,3 +168,16 @@
         </div>
     </div>
 </div>
+
+@Html.Partial("_LinkCodeModal")
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('#custLink').on('click', function () {
+                dstPost('@Url.Action("LinkCode")', { customerId: @(Model.ID ?? 0) }).done(dstShowLink);
+            });
+        });
+    </script>
+}

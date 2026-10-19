@@ -42,6 +42,22 @@
                             <p class="small text-muted mb-0">@DstLocalization.T("Teams_Hint")</p>
                         </div>
                     </div>
+                    @if (canChange)
+                    {
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title"><i class="bx bxl-telegram"></i> @DstLocalization.T("Bot_LinkStaff")</h4></div>
+                            <div class="card-body">
+                                @Html.DropDownList("lkUser", (List<SelectListItem>)ViewBag.Users, new { @class = "form-control mb-50", id = "lkUser" })
+                                <select id="lkRole" class="form-control mb-50">
+                                    <option value="MANAGER">@DstLocalization.T("Role_MANAGER")</option>
+                                    <option value="STOREKEEPER">@DstLocalization.T("Role_STOREKEEPER")</option>
+                                    <option value="AGENT">@DstLocalization.T("Role_AGENT")</option>
+                                    <option value="EXPEDITOR">@DstLocalization.T("Role_EXPEDITOR")</option>
+                                </select>
+                                <button type="button" class="btn btn-info btn-sm" id="lkStaff">@DstLocalization.T("Bot_GetCode")</button>
+                            </div>
+                        </div>
+                    }
                 </div>
                 <div class="col-lg-8">
                     <div class="card">
@@ -76,6 +92,7 @@
                                                                 data-warehouse="@a.WarehouseID" data-phone="@a.Phone" data-expeditor="@(a.IsExpeditor ? "1" : "")"
                                                                 data-active="@(a.IsActive ? "1" : "0")"><i class="bx bx-edit-alt"></i></button>
                                                         <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Scopes", new { id = a.UserID })" title="@DstLocalization.T("Scopes")"><i class="bx bx-lock-alt"></i></a>
+                                                        <button type="button" class="btn btn-sm btn-outline-info" title="Telegram" data-link="@a.UserID" data-role="@(a.IsExpeditor ? "EXPEDITOR" : "AGENT")"><i class="bx bxl-telegram"></i></button>
                                                     }
                                                 </td>
                                             </tr>
@@ -144,10 +161,18 @@
     </div>
 </div>
 
+@Html.Partial("_LinkCodeModal")
+
 @section Scripts {
     @Html.Partial("_DstScripts")
     <script>
         $(function () {
+            $('[data-link]').on('click', function () {
+                dstPost('@Url.Action("LinkCode")', { userId: $(this).data('link'), role: $(this).data('role') }).done(dstShowLink);
+            });
+            $('#lkStaff').on('click', function () {
+                dstPost('@Url.Action("LinkCode")', { userId: $('#lkUser').val(), role: $('#lkRole').val() }).done(dstShowLink);
+            });
             $('[data-team-edit]').on('click', function () {
                 var b = $(this);
                 $('#tmId').val(b.data('id') || '');
