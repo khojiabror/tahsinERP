@@ -61,6 +61,8 @@ namespace tahsinERP.Tests.Distribution
                 Assert.IsTrue(keys.Contains("PointType_" + p), p);
             foreach (var r in tahsinERP.Areas.Distribution.Data.Entities.ReasonTypes.All)
                 Assert.IsTrue(keys.Contains("ReasonType_" + r), r);
+            foreach (var st in System.Enum.GetNames(typeof(tahsinERP.Areas.Distribution.Services.Orders.OrderStatus)))
+                Assert.IsTrue(keys.Contains("OrderStatus_" + st), st);
         }
 
         [TestMethod]

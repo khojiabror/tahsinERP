@@ -73,7 +73,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
             }
             catch (DstValidationException ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                // credit = true — qarz limiti sabab rad etildi (UI ruxsat so'rash oynasini ochadi)
+                return Json(new { success = false, message = ex.Message, credit = ex is Services.Orders.CreditBlockedException });
             }
             catch (DbUpdateException ex) when (IsUniqueViolation(ex))
             {

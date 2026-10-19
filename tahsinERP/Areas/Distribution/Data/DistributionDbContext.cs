@@ -94,7 +94,18 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<WarehouseSetting> WarehouseSettings { get; set; }
         public virtual DbSet<ProductStockLimit> ProductStockLimits { get; set; }
 
+        // buyurtmalar (S2)
+        public virtual DbSet<DstOrder> Orders { get; set; }
+        public virtual DbSet<DstOrderLine> OrderLines { get; set; }
+        public virtual DbSet<DstOrderStatusLog> OrderStatusLog { get; set; }
+        public virtual DbSet<StockReservation> StockReservations { get; set; }
+        public virtual DbSet<DstShipment> Shipments { get; set; }
+        public virtual DbSet<DstShipmentLine> ShipmentLines { get; set; }
+        public virtual DbSet<CustomerLedgerEntry> CustomerLedger { get; set; }
+        public virtual DbSet<DstSetting> Settings { get; set; }
+
         // dbo jadvallari — faqat o'qish (join uchun)
+        public virtual DbSet<StockRef> Stocks { get; set; }
         public virtual DbSet<CustomerRef> Customers { get; set; }
         public virtual DbSet<ProductRef> Products { get; set; }
         public virtual DbSet<UnitRef> Units { get; set; }
@@ -166,6 +177,41 @@ namespace tahsinERP.Areas.Distribution.Data
             modelBuilder.Entity<DiscountLimit>().Property(e => e.MaxPercent).HasPrecision(5, 2);
             modelBuilder.Entity<Reason>().Property(e => e.Type).IsUnicode(false);
             modelBuilder.Entity<ProductStockLimit>().Property(e => e.MinQty).HasPrecision(18, 4);
+
+            var o = modelBuilder.Entity<DstOrder>();
+            o.Property(e => e.Subtotal).HasPrecision(19, 2);
+            o.Property(e => e.DiscountPct).HasPrecision(5, 2);
+            o.Property(e => e.DiscountSum).HasPrecision(19, 2);
+            o.Property(e => e.Total).HasPrecision(19, 2);
+            o.Property(e => e.ShippedTotal).HasPrecision(19, 2);
+            o.Property(e => e.WeightKg).HasPrecision(18, 3);
+            o.Property(e => e.VolumeM3).HasPrecision(18, 4);
+            o.Property(e => e.Source).IsUnicode(false);
+
+            var ol = modelBuilder.Entity<DstOrderLine>();
+            ol.Property(e => e.Factor).HasPrecision(18, 6);
+            ol.Property(e => e.Qty).HasPrecision(18, 4);
+            ol.Property(e => e.QtyBase).HasPrecision(18, 4);
+            ol.Property(e => e.UnitPrice).HasPrecision(19, 2);
+            ol.Property(e => e.MinUnitPrice).HasPrecision(19, 2);
+            ol.Property(e => e.DiscountPct).HasPrecision(5, 2);
+            ol.Property(e => e.DiscountSum).HasPrecision(19, 2);
+            ol.Property(e => e.Amount).HasPrecision(19, 2);
+            ol.Property(e => e.QtyShippedBase).HasPrecision(18, 4);
+
+            modelBuilder.Entity<StockReservation>().Property(e => e.QtyBase).HasPrecision(18, 4);
+            modelBuilder.Entity<DstShipment>().Property(e => e.Total).HasPrecision(19, 2);
+            modelBuilder.Entity<DstShipment>().Property(e => e.CostTotal).HasPrecision(19, 2);
+            var sl = modelBuilder.Entity<DstShipmentLine>();
+            sl.Property(e => e.QtyBase).HasPrecision(18, 4);
+            sl.Property(e => e.Amount).HasPrecision(19, 2);
+            sl.Property(e => e.CostAmount).HasPrecision(19, 2);
+            var cl = modelBuilder.Entity<CustomerLedgerEntry>();
+            cl.Property(e => e.Debit).HasPrecision(19, 2);
+            cl.Property(e => e.Credit).HasPrecision(19, 2);
+            cl.Property(e => e.DocType).IsUnicode(false);
+            modelBuilder.Entity<DstSetting>().Property(e => e.Key).IsUnicode(false);
+            modelBuilder.Entity<StockRef>().Property(e => e.Amount).HasPrecision(18, 6);
 
             base.OnModelCreating(modelBuilder);
         }

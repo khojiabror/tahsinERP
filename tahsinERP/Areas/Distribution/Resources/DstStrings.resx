@@ -42,8 +42,17 @@
   <data name="All_Categories" xml:space="preserve">
     <value>Barcha kategoriyalar</value>
   </data>
+  <data name="All_Statuses" xml:space="preserve">
+    <value>Barcha holatlar</value>
+  </data>
   <data name="All_Territories" xml:space="preserve">
     <value>Barcha hududlar</value>
+  </data>
+  <data name="All_Warehouses" xml:space="preserve">
+    <value>Barcha omborlar</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Summa</value>
   </data>
   <data name="Apply" xml:space="preserve">
     <value>Qo'llash</value>
@@ -56,6 +65,9 @@
   </data>
   <data name="Auto" xml:space="preserve">
     <value>avtomatik</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Mavjud</value>
   </data>
   <data name="Back" xml:space="preserve">
     <value>Orqaga</value>
@@ -81,14 +93,23 @@
   <data name="City" xml:space="preserve">
     <value>Shahar</value>
   </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Izoh</value>
+  </data>
   <data name="Confirm" xml:space="preserve">
     <value>Ishonchingiz komilmi?</value>
   </data>
   <data name="ContactPerson" xml:space="preserve">
     <value>Aloqa shaxsi</value>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Tannarx</value>
+  </data>
   <data name="Country" xml:space="preserve">
     <value>Davlat</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Yaratdi</value>
   </data>
   <data name="CreditLimit" xml:space="preserve">
     <value>Kredit limiti</value>
@@ -96,8 +117,20 @@
   <data name="CreditLimit_Hint" xml:space="preserve">
     <value>Qarz + yangi buyurtma limitdan oshsa yoki muddati o'tgan qarz bo'lsa, buyurtma tasdiqlanmaydi (rahbar ruxsatisiz). 0 — faqat oldindan to'lov.</value>
   </data>
+  <data name="Credit_Available" xml:space="preserve">
+    <value>Limitdan qolgan</value>
+  </data>
+  <data name="Credit_LimitExceeded" xml:space="preserve">
+    <value>Qarz + buyurtma {0} — limit {1} dan oshadi.</value>
+  </data>
+  <data name="Credit_Overdue" xml:space="preserve">
+    <value>Muddati o'tgan qarz bor: {0}.</value>
+  </data>
   <data name="Currency_Sum" xml:space="preserve">
     <value>so'm</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Mijoz</value>
   </data>
   <data name="Customer_Add" xml:space="preserve">
     <value>Yangi mijoz</value>
@@ -107,6 +140,9 @@
   </data>
   <data name="Customer_AttachHint" xml:space="preserve">
     <value>Ishlab chiqarish (CRM) mijozlaridan birini distributsiyaga qo'shish.</value>
+  </data>
+  <data name="Customer_Credit" xml:space="preserve">
+    <value>Qarz va limit</value>
   </data>
   <data name="Customer_Main" xml:space="preserve">
     <value>Asosiy ma'lumot</value>
@@ -156,6 +192,9 @@
   <data name="Days" xml:space="preserve">
     <value>kun</value>
   </data>
+  <data name="Debt" xml:space="preserve">
+    <value>Qarz</value>
+  </data>
   <data name="Default" xml:space="preserve">
     <value>standart</value>
   </data>
@@ -168,6 +207,9 @@
   <data name="Delete" xml:space="preserve">
     <value>O'chirish</value>
   </data>
+  <data name="DeliveryDate" xml:space="preserve">
+    <value>Yetkazish sanasi</value>
+  </data>
   <data name="Dictionaries" xml:space="preserve">
     <value>Ma'lumotnomalar</value>
   </data>
@@ -176,6 +218,9 @@
   </data>
   <data name="DiscountLimits_Hint" xml:space="preserve">
     <value>Rol bo'yicha maksimal chegirma %. Bo'sh — chegirma bera olmaydi ("Cheksiz chegirma" huquqi bundan ustun).</value>
+  </data>
+  <data name="Discount_OverLimit" xml:space="preserve">
+    <value>Chegirma {0}% — sizning limitingiz {1}%.</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Tahrirlash</value>
@@ -306,6 +351,12 @@
   <data name="Forbidden" xml:space="preserve">
     <value>Ruxsat yo'q</value>
   </data>
+  <data name="GrossProfit" xml:space="preserve">
+    <value>Yalpi foyda</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Tarix</value>
+  </data>
   <data name="Home" xml:space="preserve">
     <value>Bosh sahifa</value>
   </data>
@@ -429,6 +480,9 @@
   <data name="MinPrice" xml:space="preserve">
     <value>Minimal narx</value>
   </data>
+  <data name="MinPrice_Violation" xml:space="preserve">
+    <value>{0}: narx {1} minimal narxdan ({2}) past.</value>
+  </data>
   <data name="MinStock" xml:space="preserve">
     <value>Minimal qoldiq</value>
   </data>
@@ -444,6 +498,147 @@
   <data name="NameRu" xml:space="preserve">
     <value>Nomi (rus)</value>
   </data>
+  <data name="OrderStatus_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="OrderStatus_Closed" xml:space="preserve">
+    <value>Yopildi</value>
+  </data>
+  <data name="OrderStatus_Confirmed" xml:space="preserve">
+    <value>Tasdiqlangan</value>
+  </data>
+  <data name="OrderStatus_Delivered" xml:space="preserve">
+    <value>Yetkazildi</value>
+  </data>
+  <data name="OrderStatus_New" xml:space="preserve">
+    <value>Yangi</value>
+  </data>
+  <data name="OrderStatus_PartiallyShipped" xml:space="preserve">
+    <value>Qisman jo'natildi</value>
+  </data>
+  <data name="OrderStatus_Picking" xml:space="preserve">
+    <value>Yig'ilmoqda</value>
+  </data>
+  <data name="OrderStatus_Shipped" xml:space="preserve">
+    <value>Jo'natildi</value>
+  </data>
+  <data name="Order_AddProduct" xml:space="preserve">
+    <value>Tovar qo'shish (nom yoki artikul)...</value>
+  </data>
+  <data name="Order_BadTransition" xml:space="preserve">
+    <value>Holatni o'zgartirib bo'lmaydi: {0} → {1}.</value>
+  </data>
+  <data name="Order_BarcodeNotFound" xml:space="preserve">
+    <value>Shtrix-kod topilmadi.</value>
+  </data>
+  <data name="Order_BelowMinAmount" xml:space="preserve">
+    <value>Yetkazish uchun minimal buyurtma summasi — {0}.</value>
+  </data>
+  <data name="Order_Cancel" xml:space="preserve">
+    <value>Bekor qilish</value>
+  </data>
+  <data name="Order_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="Order_CannotShip" xml:space="preserve">
+    <value>Bu holatdagi buyurtmani jo'natib bo'lmaydi.</value>
+  </data>
+  <data name="Order_CloseRemainder" xml:space="preserve">
+    <value>Qolganidan voz kechish</value>
+  </data>
+  <data name="Order_Concurrency" xml:space="preserve">
+    <value>Buyurtmani boshqa foydalanuvchi o'zgartirdi — sahifani yangilang.</value>
+  </data>
+  <data name="Order_Confirm" xml:space="preserve">
+    <value>Tasdiqlash</value>
+  </data>
+  <data name="Order_CreditOverridden" xml:space="preserve">
+    <value>Limitdan oshishga ruxsat berdi</value>
+  </data>
+  <data name="Order_CreditOverride" xml:space="preserve">
+    <value>Limitdan oshishga ruxsat</value>
+  </data>
+  <data name="Order_CustomerNotApproved" xml:space="preserve">
+    <value>Mijoz hali tasdiqlanmagan — avval mijoz kartasini tasdiqlang.</value>
+  </data>
+  <data name="Order_CustomerNotDistribution" xml:space="preserve">
+    <value>Mijoz distributsiyaga qo'shilmagan.</value>
+  </data>
+  <data name="Order_Delivered" xml:space="preserve">
+    <value>Yetkazildi</value>
+  </data>
+  <data name="Order_Discount" xml:space="preserve">
+    <value>Chegirma</value>
+  </data>
+  <data name="Order_HasShipments" xml:space="preserve">
+    <value>Buyurtma bo'yicha jo'natish bor — avval qaytarish hujjati kerak.</value>
+  </data>
+  <data name="Order_New" xml:space="preserve">
+    <value>Yangi buyurtma</value>
+  </data>
+  <data name="Order_No" xml:space="preserve">
+    <value>Raqam</value>
+  </data>
+  <data name="Order_NoLines" xml:space="preserve">
+    <value>Kamida bitta tovar qo'shing.</value>
+  </data>
+  <data name="Order_NoPrice" xml:space="preserve">
+    <value>{0}: narx belgilanmagan.</value>
+  </data>
+  <data name="Order_NoPriceShort" xml:space="preserve">
+    <value>narx yo'q</value>
+  </data>
+  <data name="Order_NoStockAnywhere" xml:space="preserve">
+    <value>Hech bir savdo omborida bu tovarlar yo'q — omborni qo'lda tanlang.</value>
+  </data>
+  <data name="Order_NoWarehouse" xml:space="preserve">
+    <value>Ombor tanlanmagan.</value>
+  </data>
+  <data name="Order_NotEditable" xml:space="preserve">
+    <value>Bu holatda o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Order_PriceHint" xml:space="preserve">
+    <value>Narx mijozning narx turidan (yoki maxsus narxdan) avtomatik olinadi; chegirma va minimal narx saqlashda tekshiriladi.</value>
+  </data>
+  <data name="Order_ProductNotOnSale" xml:space="preserve">
+    <value>{0} sotuvdan olingan.</value>
+  </data>
+  <data name="Order_QtyPositive" xml:space="preserve">
+    <value>Miqdor musbat bo'lishi kerak.</value>
+  </data>
+  <data name="Order_Rereserve" xml:space="preserve">
+    <value>Rezervni yangilash</value>
+  </data>
+  <data name="Order_ScanBarcode" xml:space="preserve">
+    <value>Shtrix-kod + Enter</value>
+  </data>
+  <data name="Order_SelectCustomer" xml:space="preserve">
+    <value>Mijozni tanlang.</value>
+  </data>
+  <data name="Order_Ship" xml:space="preserve">
+    <value>Jo'natish</value>
+  </data>
+  <data name="Order_StartPicking" xml:space="preserve">
+    <value>Yig'ishni boshlash</value>
+  </data>
+  <data name="Order_ToPick" xml:space="preserve">
+    <value>Yig'ish</value>
+  </data>
+  <data name="Order_Unconfirm" xml:space="preserve">
+    <value>Tasdiqni qaytarish</value>
+  </data>
+  <data name="Order_Waiting" xml:space="preserve">
+    <value>kirimni kutmoqda</value>
+  </data>
+  <data name="Order_WarehouseAuto" xml:space="preserve">
+    <value>avtomatik tanlanadi</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Buyurtmalar</value>
+  </data>
+  <data name="Overdue" xml:space="preserve">
+    <value>Muddati o'tgan</value>
+  </data>
   <data name="OwnerName" xml:space="preserve">
     <value>Egasi</value>
   </data>
@@ -458,6 +653,9 @@
   </data>
   <data name="Phone2" xml:space="preserve">
     <value>Telefon 2</value>
+  </data>
+  <data name="Pickup" xml:space="preserve">
+    <value>O'zi olib ketadi</value>
   </data>
   <data name="PointType" xml:space="preserve">
     <value>Nuqta turi</value>
@@ -516,6 +714,33 @@
   <data name="Prices" xml:space="preserve">
     <value>Narxlar</value>
   </data>
+  <data name="Print" xml:space="preserve">
+    <value>Chop etish</value>
+  </data>
+  <data name="Print_Checker" xml:space="preserve">
+    <value>Tekshirdi</value>
+  </data>
+  <data name="Print_Invoice" xml:space="preserve">
+    <value>Nakladnoy</value>
+  </data>
+  <data name="Print_Picker" xml:space="preserve">
+    <value>Yig'di</value>
+  </data>
+  <data name="Print_Picking" xml:space="preserve">
+    <value>Yig'ish varaqasi</value>
+  </data>
+  <data name="Print_Received" xml:space="preserve">
+    <value>Qabul qildi</value>
+  </data>
+  <data name="Print_Receiver" xml:space="preserve">
+    <value>Qabul qiluvchi</value>
+  </data>
+  <data name="Print_Released" xml:space="preserve">
+    <value>Berdi</value>
+  </data>
+  <data name="Print_Supplier" xml:space="preserve">
+    <value>Jo'natuvchi</value>
+  </data>
   <data name="Product" xml:space="preserve">
     <value>Tovar</value>
   </data>
@@ -543,6 +768,12 @@
   <data name="Products" xml:space="preserve">
     <value>Tovarlar</value>
   </data>
+  <data name="Qty" xml:space="preserve">
+    <value>Miqdor</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Sabab</value>
+  </data>
   <data name="ReasonType_CANCEL" xml:space="preserve">
     <value>Bekor qilish</value>
   </data>
@@ -557,6 +788,12 @@
   </data>
   <data name="Reasons" xml:space="preserve">
     <value>Sabablar</value>
+  </data>
+  <data name="Remaining" xml:space="preserve">
+    <value>Qolgan</value>
+  </data>
+  <data name="Reserved" xml:space="preserve">
+    <value>Rezerv</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
@@ -579,11 +816,53 @@
   <data name="Settings" xml:space="preserve">
     <value>Sozlamalar</value>
   </data>
+  <data name="Ship_Hint" xml:space="preserve">
+    <value>Miqdor asosiy birlikda. Sukut bo'yicha — rezervdagi miqdor. Ombordan sof FIFO bilan chiqariladi, mijoz qarziga yoziladi.</value>
+  </data>
+  <data name="Ship_NotEnoughStock" xml:space="preserve">
+    <value>{0}-qator: omborda yetarli emas (mavjud {1}).</value>
+  </data>
+  <data name="Ship_Nothing" xml:space="preserve">
+    <value>Jo'natish uchun miqdor yo'q.</value>
+  </data>
+  <data name="Ship_OverOrdered" xml:space="preserve">
+    <value>{0}-qator: buyurtmadan ko'p jo'natib bo'lmaydi.</value>
+  </data>
+  <data name="Ship_StockError" xml:space="preserve">
+    <value>{0}-qator: ombor chiqimi xatosi.</value>
+  </data>
+  <data name="Shipments" xml:space="preserve">
+    <value>Jo'natishlar</value>
+  </data>
+  <data name="Shipped" xml:space="preserve">
+    <value>Jo'natildi</value>
+  </data>
   <data name="SortOrder" xml:space="preserve">
     <value>Tartib</value>
   </data>
+  <data name="Source" xml:space="preserve">
+    <value>Manba</value>
+  </data>
   <data name="Status" xml:space="preserve">
     <value>Holat</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Qoldiqlar</value>
+  </data>
+  <data name="Stock_BelowMin" xml:space="preserve">
+    <value>Minimaldan past</value>
+  </data>
+  <data name="Stock_Hint" xml:space="preserve">
+    <value>Haqiqiy qoldiq ombor hisobidan; rezerv — tasdiqlangan buyurtmalar; mavjud = haqiqiy − rezerv. Ombor tanlanmasa — barcha omborlar jami.</value>
+  </data>
+  <data name="Stock_NonZero" xml:space="preserve">
+    <value>Qoldig'i borlar</value>
+  </data>
+  <data name="Stock_OnHand" xml:space="preserve">
+    <value>Haqiqiy</value>
+  </data>
+  <data name="Stock_Short" xml:space="preserve">
+    <value>Rezerv qoldiqdan ko'p</value>
   </data>
   <data name="Stop" xml:space="preserve">
     <value>To'xtatish</value>
@@ -593,6 +872,9 @@
   </data>
   <data name="SubCategory" xml:space="preserve">
     <value>Subkategoriya</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Jami (chegirmagacha)</value>
   </data>
   <data name="Supervisor" xml:space="preserve">
     <value>Supervayzer</value>
@@ -663,6 +945,9 @@
   <data name="Tile_Import" xml:space="preserve">
     <value>Excel'dan yuklash</value>
   </data>
+  <data name="Tile_Orders" xml:space="preserve">
+    <value>Buyurtma, rezerv, jo'natish</value>
+  </data>
   <data name="Tile_Prices" xml:space="preserve">
     <value>Narx turlari va tarix</value>
   </data>
@@ -672,6 +957,9 @@
   <data name="Tile_Settings" xml:space="preserve">
     <value>Chegirma, omborlar</value>
   </data>
+  <data name="Tile_Stock" xml:space="preserve">
+    <value>Haqiqiy / rezerv / mavjud</value>
+  </data>
   <data name="Tile_Teams" xml:space="preserve">
     <value>Agentlar, supervayzerlar</value>
   </data>
@@ -680,6 +968,9 @@
   </data>
   <data name="ToggleActive" xml:space="preserve">
     <value>Faol / nofaol</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Jami</value>
   </data>
   <data name="Type" xml:space="preserve">
     <value>Turi</value>
@@ -705,6 +996,9 @@
   <data name="VisitDays" xml:space="preserve">
     <value>Tashrif kunlari</value>
   </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Hajm</value>
+  </data>
   <data name="VolumeM3" xml:space="preserve">
     <value>Hajm, m³</value>
   </data>
@@ -725,6 +1019,9 @@
   </data>
   <data name="Warehouses" xml:space="preserve">
     <value>Omborlar</value>
+  </data>
+  <data name="Weight" xml:space="preserve">
+    <value>Og'irlik</value>
   </data>
   <data name="WeightKg" xml:space="preserve">
     <value>Og'irlik, kg</value>

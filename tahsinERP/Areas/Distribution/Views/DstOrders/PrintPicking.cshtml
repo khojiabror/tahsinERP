@@ -1,0 +1,54 @@
+@model tahsinERP.Areas.Distribution.Services.Orders.OrderDetailsModel
+@{
+    Layout = null;
+    var o = Model.Order;
+    string Q(decimal v) => v.ToString("0.####");
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@DstLocalization.T("Print_Picking") @o.DocNo</title>
+    @Html.Partial("_PrintStyles")
+</head>
+<body>
+    <div class="sheet">
+        <div class="noprint"><button onclick="window.print()">@DstLocalization.T("Print")</button></div>
+        <h1>@DstLocalization.T("Print_Picking") — @o.DocNo</h1>
+        <div class="meta">
+            <div>
+                <b>@DstLocalization.T("Warehouse"):</b> @(Model.Warehouse ?? "—")<br />
+                <b>@DstLocalization.T("Date"):</b> @DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+            </div>
+            <div>
+                <b>@DstLocalization.T("Customer"):</b> @Model.Customer.Name<br />
+                <b>@DstLocalization.T("DeliveryDate"):</b> @(o.IsPickup ? DstLocalization.T("Pickup") : o.DeliveryDate?.ToString("dd.MM.yyyy"))
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="c">#</th><th>@DstLocalization.T("Article")</th><th>@DstLocalization.T("Product")</th><th>@DstLocalization.T("Barcodes")</th>
+                    <th class="r">@DstLocalization.T("Qty")</th><th class="r">@DstLocalization.T("Order_ToPick")</th><th class="c">✓</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in Model.Lines.Where(x => x.RemainingBase > 0))
+                {
+                    <tr>
+                        <td class="c">@l.LineNo</td>
+                        <td>@l.PNo</td>
+                        <td>@l.Product</td>
+                        <td>@l.Barcode</td>
+                        <td class="r">@Q(l.Qty) @l.Unit</td>
+                        <td class="r">@Q(Math.Min(l.ReservedBase, l.RemainingBase)) @l.BaseUnit @if (l.WaitingBase > 0) { <div class="muted">@DstLocalization.T("Order_Waiting"): @Q(l.WaitingBase)</div> }</td>
+                        <td></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <p class="muted">@DstLocalization.T("Weight"): @o.WeightKg.ToString("0.###") kg · @DstLocalization.T("Volume"): @o.VolumeM3.ToString("0.####") m³ @if (!string.IsNullOrEmpty(o.Comment)) { <br />@o.Comment }</p>
+        <div class="sign"><div>@DstLocalization.T("Print_Picker")</div><div>@DstLocalization.T("Print_Checker")</div></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+@using tahsinERP.Areas.Distribution.Services.Orders
+@{
+    ViewBag.Title = DstLocalization.T("Orders");
+    bool canChange = ViewBag.DstCanChange == true;
+    var statuses = new[] { OrderStatus.New, OrderStatus.Confirmed, OrderStatus.Picking, OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Closed, OrderStatus.Cancelled };
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">@ViewBag.Title</h4>
+                    @if (canChange)
+                    {
+                        <a class="btn btn-success btn-sm" href="@Url.Action("Edit")"><i class="bx bx-plus"></i> @DstLocalization.T("Order_New")</a>
+                    }
+                </div>
+                <div class="card-body">
+                    <form id="orderFilter" class="form-row mb-1">
+                        <div class="col-md-2 mb-50">
+                            <select name="status" class="form-control form-control-sm">
+                                <option value="">@DstLocalization.T("All_Statuses")</option>
+                                @foreach (var s in statuses)
+                                {
+                                    <option value="@((byte)s)">@DstLocalization.T("OrderStatus_" + s)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-50">@Html.DropDownList("agentId", (List<SelectListItem>)ViewBag.Agents, DstLocalization.T("All_Agents"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-3 mb-50">@Html.DropDownList("warehouseId", (List<SelectListItem>)ViewBag.Warehouses, DstLocalization.T("All_Warehouses"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-2 mb-50"><input type="date" name="from" class="form-control form-control-sm" title="@DstLocalization.T("ValidFrom")" /></div>
+                        <div class="col-md-2 mb-50"><input type="date" name="to" class="form-control form-control-sm" title="@DstLocalization.T("ValidTo")" /></div>
+                    </form>
+                    <table id="ordersTable" class="table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Order_No")</th>
+                                <th>@DstLocalization.T("Date")</th>
+                                <th>@DstLocalization.T("Customer")</th>
+                                <th>@DstLocalization.T("Agent")</th>
+                                <th>@DstLocalization.T("Status")</th>
+                                <th>@DstLocalization.T("Total")</th>
+                                <th>@DstLocalization.T("Warehouse")</th>
+                                <th>@DstLocalization.T("DeliveryDate")</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var detailsUrl = '@Url.Action("Details")/';
+            var money = new Intl.NumberFormat('ru-RU');
+            var badge = { 0: 'secondary', 1: 'info', 2: 'warning', 3: 'warning', 4: 'primary', 5: 'success', 6: 'dark', 9: 'danger' };
+            dstServerTable('#ordersTable', {
+                dataUrl: '@Url.Action("IndexData")', filterForm: '#orderFilter', order: [[1, 'desc']],
+                columns: [
+                    { data: 'docNo', render: function (v, t, r) { return '<a href="' + detailsUrl + r.id + '">' + dstEsc(v) + '</a>' + (r.source !== 'web' ? ' <span class="badge badge-light-info">' + dstEsc(r.source) + '</span>' : ''); } },
+                    { data: 'date' },
+                    { data: 'customer', render: dstEsc },
+                    { data: 'agent', orderable: false, render: dstEsc },
+                    { data: 'statusText', orderable: false, render: function (v, t, r) { return '<span class="badge badge-light-' + (badge[r.status] || 'secondary') + '">' + dstEsc(v) + '</span>'; } },
+                    { data: 'total', className: 'text-right', render: function (v, t, r) {
+                        return money.format(v) + (r.shipped > 0 && r.shipped !== v ? '<div class="small text-muted">' + money.format(r.shipped) + '</div>' : '');
+                    } },
+                    { data: 'warehouse', orderable: false, render: dstEsc },
+                    { data: 'delivery', orderable: false, render: function (v, t, r) { return r.pickup ? '<span class="badge badge-light-secondary">@DstLocalization.T("Pickup")</span>' : dstEsc(v); } }
+                ]
+            });
+        });
+    </script>
+}
