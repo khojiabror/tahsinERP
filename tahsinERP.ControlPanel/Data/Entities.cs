@@ -71,6 +71,13 @@ public class Server
     public bool IsActive { get; set; } = true;
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
+    /// <summary>
+    /// Provisioning agenti siri (HMAC kaliti), SecretProtector bilan shifrlangan. Null — agent ulanmagan.
+    /// Agent faqat shu server tenantlarining joblarini oladi (05_PROVISIONING.md).
+    /// </summary>
+    public string? AgentSecretProtected { get; set; }
+    public DateTime? AgentLastSeenUtc { get; set; }
+    public string? AgentVersion { get; set; }
 }
 
 public class Tenant
@@ -108,6 +115,15 @@ public class Tenant
     public DateTime? LastSeenUtc { get; set; }
     public string? LastVersion { get; set; }
     public string? LastHost { get; set; }
+
+    /// <summary>Create job muvaffaqiyatli tugagan vaqt (baza + admin + tenants.json tayyor). Null — hali provisioning qilinmagan.</summary>
+    public DateTime? ProvisionedAtUtc { get; set; }
+    /// <summary>ERP tenants.json dagi oxirgi qo'llangan holat: true/false — enabled, null — reestrda yo'q.</summary>
+    public bool? RegistryEnabled { get; set; }
+    /// <summary>Archive job yaratgan zaxira joyi (IBackupStore manzili). Delete'dan keyin null.</summary>
+    public string? ArchiveLocation { get; set; }
+    /// <summary>Delete job tugagan vaqt: baza, zaxira va reestr yozuvi o'chirilgan. Moliyaviy tarix uchun qator qoladi.</summary>
+    public DateTime? DeletedAtUtc { get; set; }
 
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
@@ -289,6 +305,54 @@ public class ApiNonce
     public string InstallationId { get; set; } = "";
     public string Nonce { get; set; } = "";
     public DateTime ExpiresUtc { get; set; }
+}
+
+public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6 }
+
+public enum ProvisioningJobStatus { Pending = 1, Running = 2, Succeeded = 3, Failed = 4, Cancelled = 5 }
+
+/// <summary>
+/// Provisioning navbati (00_PLAN.md 7, 05_PROVISIONING.md). Panel yozadi, ERP serveridagi agent /api/agent orqali oladi
+/// (lease) va natijani qaytaradi. Bir tenantda bir vaqtda faqat bitta faol (Pending/Running) job.
+/// </summary>
+public class ProvisioningJob
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    public ProvisioningJobType Type { get; set; }
+    public ProvisioningJobStatus Status { get; set; }
+    /// <summary>Agentga beriladigan ochiq parametrlar (JSON): slug, baza, kompaniya nomi, admin login, demo...</summary>
+    public string Payload { get; set; } = "{}";
+    /// <summary>
+    /// Maxfiy parametrlar (JSON: reg_token, admin paroli), SecretProtector bilan shifrlangan. Job tugagach (muvaffaqiyat
+    /// yoki yakuniy xato) o'chiriladi.
+    /// </summary>
+    public string? SecretsProtected { get; set; }
+    /// <summary>Takrorlanmaslik kaliti (masalan demo-reset:2026-10-19) — bir xil kalit bilan ikkinchi job yaratilmaydi.</summary>
+    public string? IdempotencyKey { get; set; }
+    public int Attempts { get; set; }
+    public int MaxAttempts { get; set; } = 5;
+    /// <summary>Pending job shu vaqtdan oldin berilmaydi (qayta urinish orasidagi pauza).</summary>
+    public DateTime NotBeforeUtc { get; set; }
+    /// <summary>Running: agent shu vaqtgacha band qilgan; o'tib ketsa (agent yiqilgan) — qayta beriladi.</summary>
+    public DateTime? LeaseUntilUtc { get; set; }
+    /// <summary>Joriy lease'ning tasodifiy tokeni — eski (muddati o'tgan) lease bilan natija qabul qilinmaydi.</summary>
+    public string? LeaseToken { get; set; }
+    public int? LeasedByServerId { get; set; }
+    /// <summary>Agent log'i (har urinish qo'shib yoziladi, maxfiy qiymatlarsiz).</summary>
+    public string Log { get; set; } = "";
+    /// <summary>Oxirgi natija JSON (maxfiy maydonlarsiz).</summary>
+    public string? Result { get; set; }
+    public string? Error { get; set; }
+    public int? ExitCode { get; set; }
+    public int? CreatedByStaffId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime? StartedAtUtc { get; set; }
+    public DateTime? FinishedAtUtc { get; set; }
+    public byte[] RowVersion { get; set; } = [];
+
+    public bool IsActive => Status is ProvisioningJobStatus.Pending or ProvisioningJobStatus.Running;
 }
 
 /// <summary>Hisob-faktura raqamlari hisoblagichi (yil bo'yicha).</summary>

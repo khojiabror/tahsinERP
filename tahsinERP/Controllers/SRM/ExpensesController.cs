@@ -1000,9 +1000,9 @@ namespace tahsinERP.Controllers.SRM
                     return HttpNotFound();
                 }
 
-                string extension;
-                var contentType = WarehouseAttachments.ContentType(doc.Doc, out extension);
-                return File(doc.Doc, contentType, $"Expense_{doc.ExpenseID}{extension}");
+                string fileName;
+                var contentType = WarehouseAttachments.ContentType(doc.Doc, $"Expense_{doc.ExpenseID}", out fileName);
+                return File(doc.Doc, contentType, fileName);
             }
         }
 

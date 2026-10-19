@@ -130,23 +130,11 @@
     </div>
 
     @section Scripts {
+        <script src="~/Scripts/srm/srm-datatable.js"></script>
         <script>
             $(document).ready(function () {
                 $('#inventoryTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "paginate": {
-                            "first": "Birinchi",
-                            "last": "Oxirgi",
-                            "next": "Keyingi",
-                            "previous": "Oldingi"
-                        },
-                        "zeroRecords": "Ma'lumot topilmadi"
-                    },
+                    "language": srmDataTable.language,
                     "pageLength": 25,
                     "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
                     "order": [[3, "desc"]],
@@ -155,63 +143,7 @@
                     ],
                     "scrollX": true,
                     dom: 'lBfrtip',
-                    buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            text: '<i class="bx bxs-file-excel"></i> Excel',
-                            titleAttr: 'Excelga yuklash',
-                            className: 'btn btn-success mr-1',
-                            filename: function () {
-                                var now = new Date();
-                                var dateStr = now.getFullYear() +
-                                    String(now.getMonth() + 1).padStart(2, '0') +
-                                    String(now.getDate()).padStart(2, '0') + '_' +
-                                    String(now.getHours()).padStart(2, '0') +
-                                    String(now.getMinutes()).padStart(2, '0') +
-                                    String(now.getSeconds()).padStart(2, '0');
-                                return 'Ombor_qoldiqlari_' + dateStr;
-                            },
-                            exportOptions: {
-                                columns: ':visible',
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        return data.replace(/<[^>]*>/g, '').trim();
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            text: '<i class="bx bxs-file-pdf"></i> PDF',
-                            titleAttr: 'PDFga yuklash',
-                            className: 'btn btn-danger',
-                            filename: function () {
-                                var now = new Date();
-                                var dateStr = now.getFullYear() +
-                                    String(now.getMonth() + 1).padStart(2, '0') +
-                                    String(now.getDate()).padStart(2, '0') + '_' +
-                                    String(now.getHours()).padStart(2, '0') +
-                                    String(now.getMinutes()).padStart(2, '0') +
-                                    String(now.getSeconds()).padStart(2, '0');
-                                return 'Ombor_qoldiqlari_' + dateStr;
-                            },
-                            exportOptions: {
-                                columns: ':visible',
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        return data.replace(/<[^>]*>/g, '').trim();
-                                    }
-                                }
-                            },
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-                            title: 'Ombor qoldiqlari',
-                            customize: function (doc) {
-                                doc.defaultStyle.fontSize = 9;
-                                doc.styles.tableHeader.fontSize = 10;
-                            }
-                        }
-                    ]
+                    buttons: srmDataTable.buttons({ fileName: 'Ombor_qoldiqlari', pdfTitle: 'Ombor qoldiqlari' })
                 });
             });
         </script>

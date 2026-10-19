@@ -10,7 +10,7 @@ Database/
   Migrations/NNN_nomi.sql      har sxema o'zgarishi — yangi fayl
   Seed/100_Reference.sql       majburiy spravochniklar (generatsiya: Export-ReferenceSeed.ps1)
   Seed/110_Defaults.sql        yangi korxona standart qatorlari (qo'lda)
-  Demo/*.sql                   (ixtiyoriy, hali yo'q) demo ma'lumot, New-TenantDb.ps1 -Demo
+  Demo/*.sql                   demo tenant ma'lumoti (New-TenantDb.ps1 -Demo -> DB_DEMO_TEMPLATE.bak; 05_PROVISIONING.md 6)
   tools/Invoke-DbMigrations.ps1  runner: bitta baza yoki tenants.json dagi barchasi
   tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> admin
   tools/Export-ReferenceSeed.ps1 seed'ni etalon bazadan qayta generatsiya

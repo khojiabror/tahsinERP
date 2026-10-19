@@ -69,4 +69,6 @@ public static class SecretPurposes
 {
     public const string TenantApiSecret = "tenant-api-secret";
     public const string StaffTotp = "staff-totp";
+    public const string AgentSecret = "agent-secret";
+    public const string JobSecrets = "provisioning-job-secrets";
 }

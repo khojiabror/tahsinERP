@@ -1,0 +1,39 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Tenants.TrialModel
+@{ ViewData["Title"] = "Sinov ochish"; }
+<h1>Sinov ochish (14 kun)</h1>
+@if (Model.Created is not null)
+{
+    <div class="secret">
+        <strong>«@Model.Created.LegalName» uchun sinov ochildi — baza yaratish navbatga qo'yildi (job <a href="/Provisioning/Job/@Model.Job!.Id">#@Model.Job.Id</a>).</strong>
+        <div class="mono">Manzil: @(Model.TenantUrl ?? Model.Created.Slug + ".<domen>")<br />Login: admin<br />Vaqtinchalik parol: @Model.TempPassword</div>
+        <div class="hint">Parol faqat hozir ko'rinadi — mijozga yetkazing. Baza tayyor bo'lgach (odatda 1 daqiqa) kirish mumkin; birinchi kirishda parol almashtiriladi.
+            @if (!string.IsNullOrEmpty(Model.Created.TelegramChatId)) { <text>Tayyor bo'lganda shu ma'lumot tenant Telegram chatiga ham yuboriladi.</text> }</div>
+    </div>
+    <div class="actions"><a class="btn" href="/Tenants/Details/@Model.Created.Id">Tashkilot sahifasi</a><a class="btn secondary" href="/Tenants/Trial">Yana bitta</a></div>
+}
+else
+{
+    <form method="post" class="stack card">
+        <div asp-validation-summary="All"></div>
+        <div class="row">
+            <div><label asp-for="Input.Slug">Slug (subdomen)</label><input asp-for="Input.Slug" type="text" placeholder="firma1" /><div class="hint">a-z, 0-9, '-'. Manzil: &lt;slug&gt;.&lt;domen&gt;.</div></div>
+            <div><label asp-for="Input.LegalName">Yuridik nom</label><input asp-for="Input.LegalName" type="text" /></div>
+        </div>
+        <div class="row">
+            <div><label asp-for="Input.Inn">STIR / JShShIR</label><input asp-for="Input.Inn" type="text" maxlength="14" /></div>
+            <div><label asp-for="Input.ContactName">Mas'ul shaxs</label><input asp-for="Input.ContactName" type="text" /></div>
+        </div>
+        <div class="row">
+            <div><label asp-for="Input.Phone">Telefon</label><input asp-for="Input.Phone" type="text" /></div>
+            <div><label asp-for="Input.Email">Email</label><input asp-for="Input.Email" type="email" /></div>
+        </div>
+        <div class="row">
+            <div><label asp-for="Input.TelegramChatId">Telegram chat ID</label><input asp-for="Input.TelegramChatId" type="text" /><div class="hint">Bo'lsa, kirish ma'lumotlari shu chatga yuboriladi.</div></div>
+            <div><label asp-for="Input.ServerId">Server</label>
+                <select asp-for="Input.ServerId">@foreach (var s in Model.Servers) { <option value="@s.Value">@(s.Value == "" ? "— avtomatik (bo'sh joyi ko'p) —" : s.Text)</option> }</select></div>
+        </div>
+        <div class="hint">TRIAL: Korporativ modullari, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</div>
+        <div class="actions"><button type="submit">Sinov ochish</button><a class="btn secondary" href="/Tenants">Bekor</a></div>
+    </form>
+}

@@ -24,6 +24,15 @@ namespace tahsinERP.Services
             return "application/octet-stream";
         }
 
+        /// <summary>Yuklab berish uchun MIME turi va fayl nomi (prefiks + imzodan aniqlangan kengaytma).</summary>
+        public static string ContentType(byte[] data, string namePrefix, out string fileName)
+        {
+            string extension;
+            var contentType = ContentType(data, out extension);
+            fileName = namePrefix + extension;
+            return contentType;
+        }
+
         private static bool StartsWith(byte[] data, params byte[] signature)
         {
             if (data.Length < signature.Length)

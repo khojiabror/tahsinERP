@@ -15,7 +15,6 @@
         }
     }
 
-    var productsData = ViewBag.ProductsData as IEnumerable<tahsinERP.ViewModels.ProductLookupItem> ?? new List<tahsinERP.ViewModels.ProductLookupItem>();
     var requireDloc = ViewBag.RequireDloc == true;
     var dlocEnabled = ViewBag.DlocEnabled == true;
     var dlocLocationsJson = ViewBag.DlocLocationsJson as string ?? "[]";
@@ -170,24 +169,7 @@
                                                     </table>
                                                 </div>
 
-                                                <div class="row mt-2">
-                                                    <div class="col-12">
-                                                        <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                            <i class="bx bx-plus"></i> Qo'shish
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row mt-3">
-                                                    <div class="col-12">
-                                                        <button type="submit" class="btn btn-success">
-                                                            <i class="bx bx-save"></i> Saqlash
-                                                        </button>
-                                                        <a href="@Url.Action("Index", "Incomes")" class="btn btn-secondary">
-                                                            <i class="bx bx-x"></i> Bekor qilish
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                                @Html.Partial("~/Views/Incomes/_DocFormActions.cshtml", "Incomes")
                                             }
                                         </div>
                                     </div>
@@ -201,13 +183,17 @@
     </div>
 
     @section scripts {
+        <script src="~/Scripts/srm/srm-doc-lines.js"></script>
+        <script src="~/Scripts/srm/srm-doc-forms.js"></script>
+        <script src="~/Scripts/app/indexed-rows.js"></script>
+        <script src="~/Scripts/app/product-select.js"></script>
         <script>
             (function ($) {
                 $(document).ready(function () {
                     $('.select2').select2();
 
                     var productRowIndex = 0;
-                    var products = @Html.Raw(Json.Encode(productsData));
+                    var productSearchUrl = '@Url.Action("Search", "ProductLookup")';
                     var units = @Html.Raw(Json.Encode(unitsData));
                     var requireDloc = @(requireDloc ? "true" : "false");
                     var dlocEnabled = @(dlocEnabled ? "true" : "false");
@@ -261,46 +247,13 @@
                         addProductRow(null, '', '', 0, null, 0, 0, '', 0);
                     });
 
-                    function escapeHtml(text) {
-                        return String(text == null ? '' : text)
-                            .replace(/&/g, '&amp;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;')
-                            .replace(/"/g, '&quot;')
-                            .replace(/'/g, '&#39;');
-                    }
+                    function escapeHtml(text) { return srmDocLines.escapeHtml(text); }
 
-                    function buildProductOptions(selectedId) {
-                        var options = '<option value="">---Tanlang---</option>';
-                        products.forEach(function (product) {
-                            var selected = product.Value == selectedId ? 'selected' : '';
-                            options += '<option value="' + escapeHtml(product.Value) + '" data-name="' + escapeHtml(product.Name) +
-                                '" data-pno="' + escapeHtml(product.PNo) + '" ' + selected + '>' +
-                                escapeHtml((product.PNo ? product.PNo + ' - ' : '') + (product.Name || '')) +
-                                '</option>';
-                        });
-                        return options;
-                    }
+                    function buildProductOptions(selectedId, pno, name) { return srmIncomeForm.productOptions(selectedId, pno, name); }
 
-                    function buildUnitOptions(selectedId) {
-                        var options = '<option value="">---Tanlang---</option>';
-                        units.forEach(function (unit) {
-                            var selected = unit.Value == selectedId ? 'selected' : '';
-                            options += '<option value="' + escapeHtml(unit.Value) + '" ' + selected + '>' + escapeHtml(unit.Text) + '</option>';
-                        });
-                        return options;
-                    }
+                    function buildUnitOptions(selectedId) { return srmDocLines.unitOptions(units, selectedId); }
 
-                    function buildDlocOptions(selectedId) {
-                        var options = '<option value="">---DLOC---</option>';
-                        (dlocLocations || []).forEach(function (loc) {
-                            var id = loc.ID || loc.id;
-                            var code = loc.LocationCode || loc.locationCode || '';
-                            var selected = selectedId && String(selectedId) === String(id) ? 'selected' : '';
-                            options += '<option value="' + escapeHtml(String(id)) + '" ' + selected + '>' + escapeHtml(code) + '</option>';
-                        });
-                        return options;
-                    }
+                    function buildDlocOptions(selectedId) { return srmIncomeForm.dlocOptions(dlocLocations, selectedId); }
 
                     function refreshDlocCapacity($row) {
                         if (!requireDloc) return;
@@ -341,33 +294,9 @@
                         });
                     }
 
-                    function syncProductFields($row) {
-                        var $selected = $row.find('.product-select option:selected');
-                        var name = $selected.data('name');
-                        var pno = $selected.data('pno');
+                    function syncProductFields($row) { srmIncomeForm.syncProduct($row); }
 
-                        if (!name) {
-                            name = $row.find('.product-name').val() || $row.find('.product-name-display').val() || '';
-                        }
-                        if (!pno) {
-                            pno = $row.find('.product-pno').val() || '';
-                        }
-
-                        $row.find('.product-name-display').val(name);
-                        $row.find('.product-name').val(name);
-                        $row.find('.product-pno').val(pno);
-                    }
-
-                    function recalcRow($row) {
-                        var amount = parseFloat($row.find('.amount-input').val()) || 0;
-                        var price = parseFloat($row.find('.price-input').val()) || 0;
-                        var vat = parseFloat($row.find('.vat-input').val());
-                        if (isNaN(vat)) vat = 0;
-                        vat = Math.max(0, Math.min(100, vat));
-                        var base = amount * price;
-                        var total = base * (1 + vat / 100);
-                        $row.find('.total-price').val(total.toFixed(2));
-                    }
+                    function recalcRow($row) { srmIncomeForm.recalcRow($row); }
 
                     function addProductRow(productId, productPNo, productName, amount, unitId, piecePrice, totalPrice, comment, vatRate, locationId) {
                         var vr = typeof vatRate === 'number' && !isNaN(vatRate) ? vatRate : 0;
@@ -392,7 +321,7 @@
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
                                 '<select name="IncomeProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
-                                    buildProductOptions(productId) +
+                                    buildProductOptions(productId, productPNo, productName) +
                                 '</select>' +
                                 '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="' + escapeHtml(productPNo || '') + '" />' +
                             '</td>' +
@@ -418,7 +347,7 @@
                         var $row = $('#incomeProductsTable tbody tr').last();
 
                         if (typeof $.fn.select2 !== 'undefined') {
-                            $row.find('select.product-select').select2();
+                            ProductSelect.attach($row.find('select.product-select'), productSearchUrl);
                             $row.find('select.unit-select').select2();
                             if (dlocEnabled && requireDloc) {
                                 $row.find('select.dloc-select').select2();
@@ -456,13 +385,7 @@
                         refreshDlocCapacity($(this).closest('tr'));
                     });
 
-                    function updateTotal() {
-                        var total = 0;
-                        $('.total-price').each(function () {
-                            total += parseFloat($(this).val()) || 0;
-                        });
-                        $('#totalAmount').text(total.toFixed(2));
-                    }
+                    function updateTotal() { srmDocLines.updateTotal(); }
 
                     $('#incomeForm').submit(function (e) {
                         if ($('#incomeProductsTable tbody tr').length === 0) {

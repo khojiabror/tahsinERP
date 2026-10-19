@@ -1,0 +1,24 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Tenants.DeleteModel
+@{ var t = Model.Tenant; ViewData["Title"] = "O'chirish: " + t.Slug; }
+<h1>Butunlay o'chirish: @t.LegalName <code>@t.Slug</code></h1>
+<form method="post" class="stack card">
+    <div asp-validation-summary="All"></div>
+    <input type="hidden" asp-for="Step" />
+    @if (Model.Step < 2)
+    {
+        <p>Bu amal <strong>qaytarilmaydi</strong>: serverdagi baza (agar qolgan bo'lsa), arxiv zaxirasi (<span class="mono">@t.ArchiveLocation</span>) va ERP reestridagi yozuv o'chiriladi. Hisob-fakturalar, to'lovlar va audit panelda qoladi.</p>
+        <div><label asp-for="ConfirmSlug">Tasdiqlash uchun slug'ni yozing: <code>@t.Slug</code></label><input asp-for="ConfirmSlug" type="text" autocomplete="off" /></div>
+        <div><label asp-for="Reason">Sabab</label><input asp-for="Reason" type="text" /></div>
+        <label class="check"><input asp-for="Understand" /> Ma'lumot va zaxira qayta tiklanmasligini tushunaman</label>
+        <div class="actions"><button type="submit" class="danger">Davom etish</button><a class="btn secondary" href="/Tenants/Details/@t.Id">Bekor</a></div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="ConfirmSlug" />
+        <input type="hidden" asp-for="Reason" />
+        <input type="hidden" asp-for="Understand" />
+        <div class="secret"><strong>Yakuniy tasdiq.</strong> «@t.LegalName» (@t.Slug) bazasi va zaxirasi o'chiriladi. Sabab: @Model.Reason</div>
+        <div class="actions"><button type="submit" class="danger">Ha, butunlay o'chirish</button><a class="btn secondary" href="/Tenants/Details/@t.Id">Yo'q, qaytish</a></div>
+    }
+</form>
