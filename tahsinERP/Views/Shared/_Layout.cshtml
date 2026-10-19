@@ -1676,6 +1676,10 @@
                             <li><a href="~/Company/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Korxona</span></a></li>
                             <li><a href="~/Warehouse/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Omborlar</span></a></li>
                             <li><a href="~/Unit/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">O'lchov birliklari</span></a></li>
+                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "HSCode", "Index"))
+                            {
+                                <li><a href="~/HSCode/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">ТНВЭД kodlari</span></a></li>
+                            }
                             <li><a href="~/Currency/Index"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Valyutalar</span></a></li>
                             <li><a href="@Url.Action("Settings", "Account")"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Mening Profilim</span></a></li>
                         </ul>

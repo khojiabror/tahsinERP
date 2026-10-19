@@ -7,6 +7,9 @@ using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Licensing;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.Hosting;
+using tahsinERP.ControlPanel.Portal;
+using Microsoft.Extensions.Options;
 
 namespace tahsinERP.ControlPanel.Pages.Tenants;
 
@@ -135,7 +138,8 @@ public class EditModel(ControlDbContext db, TenantService tenants) : PanelPageMo
     }
 }
 
-public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage) : PanelPageModel
+public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage,
+    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts) : PanelPageModel
 {
     /// <summary>Faqat sinov tenanti (pullik obunasi bo'lmagan) — «Sinovni yakunlash» ko'rinadi.</summary>
     public bool IsTrialOnly { get; private set; }
@@ -145,6 +149,18 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
     [BindProperty] public string? EndTrialConfirmSlug { get; set; }
     [BindProperty] public string? EndTrialReason { get; set; }
     [BindProperty] public bool EndTrialBackup { get; set; } = true;
+
+    // ── Mijoz portali foydalanuvchilari ──
+    public List<PortalUser> PortalUsers { get; private set; } = [];
+    /// <summary>Yangi taklif havolasi — faqat shu javobda bir marta ko'rsatiladi (bazada xeshi).</summary>
+    public string? NewInviteUrl { get; private set; }
+    public bool InviteSentToTelegram { get; private set; }
+    public string? InviteFor { get; private set; }
+    [BindProperty] public string? PuName { get; set; }
+    [BindProperty] public string? PuEmail { get; set; }
+    [BindProperty] public string? PuPhone { get; set; }
+    [BindProperty] public PortalRole PuRole { get; set; } = PortalRole.Owner;
+    [BindProperty] public int PortalUserId { get; set; }
 
     public List<ProvisioningJob> Jobs { get; private set; } = [];
     public ProvisioningJob? ActiveJob => Jobs.FirstOrDefault(j => j.IsActive);
@@ -182,6 +198,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
                                              || (a.Entity == "Invoice" && invIds.Contains(a.EntityId!)))
             .OrderByDescending(a => a.Id).Take(30).ToListAsync();
         StaffNames = await db.StaffUsers.ToDictionaryAsync(s => s.Id, s => s.FullName);
+        PortalUsers = await db.PortalUsers.Where(u => u.TenantId == id).OrderBy(u => u.Id).ToListAsync();
         Jobs = await db.ProvisioningJobs.AsNoTracking().Where(j => j.TenantId == id).OrderByDescending(j => j.Id).Take(30).ToListAsync();
         IsDemo = provisioning.IsDemo(t);
         IsTrialOnly = t.Deployment == DeploymentKind.SaaS && t.DeletedAtUtc == null && await provisioning.IsTrialOnlyAsync(t);
@@ -275,6 +292,65 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         if (await TryAsync(async () => job = await action(Tenant)))
         {
             FlashOk = ok + (job != null ? $" Job #{job.Id}." : "");
+            return RedirectToPage(new { id });
+        }
+        await LoadAsync(id);
+        return Page();
+    }
+
+    /// <summary>Portal foydalanuvchisini qo'shadi va darhol taklif havolasini chiqaradi.</summary>
+    public async Task<IActionResult> OnPostPortalUserAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!CanSell) return Forbidden();
+        PortalUser? user = null;
+        if (await TryAsync(async () => user = await portalAuth.CreateUserAsync(id, PuName ?? "", PuEmail, PuPhone, PuRole, StaffId)))
+            await IssueInviteAsync(user!);
+        await LoadAsync(id);
+        return Page();
+    }
+
+    /// <summary>Taklifni qayta yuborish / parolni tiklash: yangi bir martalik havola (eskisi yopiladi).</summary>
+    public async Task<IActionResult> OnPostPortalInviteAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!CanSell) return Forbidden();
+        var user = PortalUsers.FirstOrDefault(u => u.Id == PortalUserId);
+        if (user is null) return NotFound();
+        await IssueInviteAsync(user);
+        await LoadAsync(id);
+        return Page();
+    }
+
+    private async Task IssueInviteAsync(PortalUser user)
+    {
+        string baseUrl = HostZones.PortalBaseUrl(HttpContext, hosts.Value);
+        InviteResult? r = null;
+        if (await TryAsync(async () => r = await portalAuth.CreateInviteAsync(user, StaffId, baseUrl, notifier)))
+        {
+            NewInviteUrl = PortalAuthService.InviteUrl(baseUrl, r!.Token);
+            InviteSentToTelegram = r.SentToTelegram;
+            InviteFor = user.FullName;
+        }
+    }
+
+    /// <summary>Rol (Owner/Viewer), faollik yoki Telegram bog'lanishi. Foydalanuvchi sessiyalari yopiladi.</summary>
+    public async Task<IActionResult> OnPostPortalToggleAsync(int id, string what)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!CanSell) return Forbidden();
+        var user = PortalUsers.FirstOrDefault(u => u.Id == PortalUserId);
+        if (user is null) return NotFound();
+        Func<Task> action = what switch
+        {
+            "role" => () => portalAuth.UpdateUserAsync(user, user.Role == PortalRole.Owner ? PortalRole.Viewer : PortalRole.Owner, user.IsActive, StaffId),
+            "active" => () => portalAuth.UpdateUserAsync(user, user.Role, !user.IsActive, StaffId),
+            "telegram" => () => portalAuth.UnlinkTelegramAsync(user, StaffId),
+            _ => () => throw new DomainException("Noma'lum amal."),
+        };
+        if (await TryAsync(action))
+        {
+            FlashOk = "Portal foydalanuvchisi yangilandi (uning sessiyalari yopildi).";
             return RedirectToPage(new { id });
         }
         await LoadAsync(id);

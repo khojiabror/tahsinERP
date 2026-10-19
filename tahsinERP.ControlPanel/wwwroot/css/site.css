@@ -84,3 +84,28 @@ table.cohort td.heat-0 { background: #fdecea; }
 table.cohort td.heat-1 { background: #fff4e0; }
 table.cohort td.heat-2 { background: #eef6e8; }
 table.cohort td.heat-3, table.cohort td.heat-4 { background: #d4ecd9; }
+
+/* Mijoz portali (my.<domen>) — mobil ekranga moslashuv */
+body.portal main { max-width: 980px; }
+.tenant-line { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+.scroll table { min-width: 560px; }
+.warnbox { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; border: 1px solid #f0c98d; background: #fff7eb; color: var(--warn); }
+.warnbox.bad { border-color: #f2b1ab; background: #fff1f0; color: var(--bad); }
+textarea.key { min-height: 120px; font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.plans label.plan { border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-weight: 400; background: #fff; cursor: pointer; }
+.plans label.plan strong { display: block; font-size: 15px; }
+@media (max-width: 600px) {
+    main { padding: 12px; }
+    .topbar { padding: 8px 12px; gap: 8px; }
+    .topbar nav { order: 3; width: 100%; }
+    dl.props { grid-template-columns: 1fr; }
+    dl.props dd { margin-bottom: 6px; }
+    .row { grid-template-columns: 1fr; }
+    .login { margin: 20px auto; }
+    button, .btn { padding: 9px 14px; }
+    .stat .v { font-size: 20px; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+.spaced { margin-top: 10px; }

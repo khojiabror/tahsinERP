@@ -1,9 +1,11 @@
+@inject ControlDbContext LayoutDb
 @{
     bool signedIn = User.Identity?.IsAuthenticated == true && User.Identity.AuthenticationType == AuthSchemes.Staff;
     bool owner = User.IsInRole(nameof(StaffRole.Owner));
     string path = Context.Request.Path.Value ?? "/";
     string Nav(string prefix) => (prefix == "/" ? path == "/" : path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
     var flashPage = Model as PanelPageModel;
+    int openRequests = signedIn ? await LayoutDb.PortalRequests.CountAsync(r => r.Status == PortalRequestStatus.Pending) : 0;
 }
 <!DOCTYPE html>
 <html lang="uz">
@@ -23,6 +25,7 @@
             <a class="@Nav("/")" href="/">Bosh sahifa</a>
             <a class="@Nav("/Tenants")" href="/Tenants">Tashkilotlar</a>
             <a class="@Nav("/Invoices")" href="/Invoices">Hisob-fakturalar</a>
+            <a class="@Nav("/Requests")" href="/Requests">So'rovlar@(openRequests > 0 ? $" ({openRequests})" : "")</a>
             <a class="@Nav("/Licenses")" href="/Licenses">Kalitlar</a>
             <a class="@Nav("/Provisioning")" href="/Provisioning">Provisioning</a>
             <a class="@Nav("/Traction")" href="/Traction">Traction</a>

@@ -7,6 +7,10 @@ using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel;
 using tahsinERP.ControlPanel.Api;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.Hosting;
+using Microsoft.AspNetCore.Routing.Matching;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using tahsinERP.ControlPanel.Portal;
 using tahsinERP.ControlPanel.Licensing;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
@@ -28,6 +32,8 @@ services.Configure<SigningOptions>(config.GetSection("ControlPanel:Signing"));
 services.Configure<TelegramOptions>(config.GetSection("ControlPanel:Telegram"));
 services.Configure<ProvisioningOptions>(config.GetSection("ControlPanel:Provisioning"));
 services.Configure<UsageOptions>(config.GetSection("ControlPanel:Usage"));
+services.Configure<PanelHostOptions>(config.GetSection("ControlPanel:Hosts"));
+services.Configure<PortalOptions>(config.GetSection("ControlPanel:Portal"));
 PanelFontResolver.ExtraFontsDir = config["ControlPanel:Pdf:FontsDir"];
 
 services.AddDbContext<ControlDbContext>(o => o.UseSqlServer(
@@ -56,6 +62,13 @@ services.AddScoped<ExpiryReminderService>();
 services.AddScoped<ProvisioningService>();
 services.AddScoped<UsageService>();
 services.AddScoped<TractionService>();
+// Mijoz portali (my.<domen>): kirish, kod yuborish kanallari (IOtpSender — tartib bo'yicha birinchi mosi), so'rovlar.
+services.AddScoped<IOtpSender, TelegramOtpSender>();
+services.AddScoped<PortalAuthService>();
+services.AddScoped<PortalNotifier>();
+services.AddScoped<PortalRequestService>();
+// Host bo'yicha zona: xodim sahifalari faqat admin.*, portal sahifalari faqat my.* da topiladi (boshqasida 404).
+services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ZoneMatcherPolicy>());
 services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
@@ -72,7 +85,12 @@ if (config["ControlPanel:DataProtection:KeysDir"] is { Length: > 0 } keysDir)
 }
 
 bool isDev = builder.Environment.IsDevelopment();
-services.AddAuthentication(AuthSchemes.Staff)
+int portalSessionHours = Math.Clamp(config.GetValue("ControlPanel:Portal:SessionHours", 4), 1, 24);
+services.AddAuthentication(PortalSchemes.Zone)
+    // HttpContext.User — shu host zonasining foydalanuvchisi (admin.* → xodim, my.* → mijoz). Avtorizatsiya siyosatlari
+    // baribir o'z sxemasini aniq ko'rsatadi: xodim cookie'si portalda va mijoz cookie'si panelda hech narsa ochmaydi.
+    .AddPolicyScheme(PortalSchemes.Zone, null, o =>
+        o.ForwardDefaultSelector = ctx => HostZones.Resolve(ctx) == Zone.Portal ? PortalSchemes.Portal : AuthSchemes.Staff)
     .AddCookie(AuthSchemes.Staff, o =>
     {
         o.Cookie.Name = "tcp.auth";
@@ -96,6 +114,35 @@ services.AddAuthentication(AuthSchemes.Staff)
         o.ExpireTimeSpan = TimeSpan.FromMinutes(5);
         o.SlidingExpiration = false;
         o.Events.OnValidatePrincipal = StaffAuthService.ValidatePrincipalAsync;
+    })
+    // Mijoz portali: boshqa cookie nomi; Domain berilmaydi — cookie faqat my.<domen> host'iga qaytadi (admin.* ga hech qachon).
+    // Serverda "__Host-" prefiksi: brauzer uni faqat Secure, Path=/, Domain'siz qabul qiladi.
+    .AddCookie(PortalSchemes.Portal, o =>
+    {
+        o.Cookie.Name = isDev ? "tcp.my" : "__Host-tcp.my";
+        o.Cookie.Path = "/";
+        o.Cookie.HttpOnly = true;
+        o.Cookie.SameSite = SameSiteMode.Lax;
+        o.Cookie.SecurePolicy = isDev ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+        o.LoginPath = "/Login";
+        o.LogoutPath = "/Logout";
+        o.AccessDeniedPath = "/Login";
+        o.ReturnUrlParameter = "returnUrl";
+        o.ExpireTimeSpan = TimeSpan.FromHours(portalSessionHours);
+        o.SlidingExpiration = true;
+        o.Events.OnValidatePrincipal = PortalPrincipal.ValidateAsync;
+    })
+    .AddCookie(PortalSchemes.PortalTwoFactor, o =>
+    {
+        o.Cookie.Name = isDev ? "tcp.my2fa" : "__Host-tcp.my2fa";
+        o.Cookie.Path = "/";
+        o.Cookie.HttpOnly = true;
+        o.Cookie.SameSite = SameSiteMode.Strict;
+        o.Cookie.SecurePolicy = isDev ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+        o.LoginPath = "/Login";
+        o.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+        o.SlidingExpiration = false;
+        o.Events.OnValidatePrincipal = PortalPrincipal.ValidateAsync;
     });
 
 services.AddAuthorization(o =>
@@ -105,6 +152,8 @@ services.AddAuthorization(o =>
     o.FallbackPolicy = staff; // atributsiz har sahifa — faqat to'liq (2FA'dan o'tgan) xodim
     o.AddPolicy(Policies.Sales, p => p.AddAuthenticationSchemes(AuthSchemes.Staff).RequireRole(nameof(StaffRole.Owner), nameof(StaffRole.Sales)));
     o.AddPolicy(Policies.Owner, p => p.AddAuthenticationSchemes(AuthSchemes.Staff).RequireRole(nameof(StaffRole.Owner)));
+    // Mijoz: faqat Portal sxemasi (xodim cookie'si bu siyosatni hech qachon qondirmaydi).
+    o.AddPolicy(Policies.Portal, p => p.AddAuthenticationSchemes(PortalSchemes.Portal).RequireAuthenticatedUser().RequireClaim(PortalClaims.Tenant));
 });
 
 services.AddRateLimiter(o =>
@@ -120,6 +169,8 @@ services.AddRateLimiter(o =>
 
 services.AddRazorPages(o =>
 {
+    o.Conventions.Add(new ZonePageRouteConvention());
+    o.Conventions.AuthorizeFolder(ZonePageRouteConvention.PortalFolder, Policies.Portal);
     o.Conventions.AuthorizeFolder("/Staff", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Servers", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Audit", Policies.Owner);
@@ -153,6 +204,17 @@ app.Use(async (ctx, next) =>
 });
 app.UseStaticFiles();
 app.UseRouting();
+// Endpoint topilmadi (yoki boshqa zonaga tegishli — ZoneMatcherPolicy chiqarib tashlagan) → 404. Aks holda FallbackPolicy
+// anonim so'rovni login sahifasiga yo'naltirib, sahifa "bor"ligini oshkor qilardi.
+app.Use(async (ctx, next) =>
+{
+    if (ctx.GetEndpoint() is null)
+    {
+        ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+    await next();
+});
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -160,6 +222,7 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Text("ok")).AllowAnonymous();
 LicenseApi.Map(app);
 AgentApi.Map(app);
+TelegramWebhook.Map(app);
 app.MapRazorPages();
 
 app.Run();
