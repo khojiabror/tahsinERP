@@ -4,8 +4,8 @@
     ViewBag.Title = "Yo'l varaqasi tafsilotlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var currencyShortname = Model.CURRENCy?.Shortname ?? "";
-    var totalPaid = (ViewBag.TotalPaid as double?) ?? 0;
-    var outstanding = (ViewBag.Outstanding as double?) ?? 0;
+    var totalPaid = (ViewBag.TotalPaid as decimal?) ?? 0;
+    var outstanding = (ViewBag.Outstanding as decimal?) ?? 0;
     var paymentStatus = (ViewBag.PaymentStatus as string) ?? "To'lanmagan";
     var payments = ViewBag.Payments as IEnumerable<tahsinERP.Models.F_WAYBILL_PAYMENTS>;
     var hasPayments = false;

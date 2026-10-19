@@ -9,7 +9,7 @@ namespace tahsinERP.ViewModels
         public string DocumentNo { get; set; }
         public string PartyName { get; set; }
         public DateTime? Date { get; set; }
-        public double? Amount { get; set; }
+        public decimal? Amount { get; set; }
         public string Currency { get; set; }
     }
 }

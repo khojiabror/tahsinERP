@@ -24,18 +24,18 @@ namespace tahsinERP.ViewModels
         public int? ForwarderId { get; set; }
         public string ForwarderName { get; set; }
         public int TripsInMonth { get; set; }
-        public double OpeningDebt { get; set; }
-        public double FreightInMonth { get; set; }
-        public double PaymentInMonth { get; set; }
-        public double ClosingDebt { get; set; }
+        public decimal OpeningDebt { get; set; }
+        public decimal FreightInMonth { get; set; }
+        public decimal PaymentInMonth { get; set; }
+        public decimal ClosingDebt { get; set; }
     }
 
     public class LogisticsMonthlyReportTotalsViewModel
     {
         public int TotalTrips { get; set; }
-        public double TotalOpeningDebt { get; set; }
-        public double TotalFreight { get; set; }
-        public double TotalPayment { get; set; }
-        public double TotalClosingDebt { get; set; }
+        public decimal TotalOpeningDebt { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalPayment { get; set; }
+        public decimal TotalClosingDebt { get; set; }
     }
 }

@@ -15,6 +15,7 @@ Database/
   tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> admin
   tools/Export-ReferenceSeed.ps1 seed'ni etalon bazadan qayta generatsiya
   tools/Export-Baseline.ps1      baseline'ni qayta generatsiya ("squash", kamdan-kam)
+  tools/RegressionProbe/         hisobotlar oldin/keyin solishtiruvi (Balans, Tannarx, ombor, CRM/SRM, logistika)
 ```
 
 ## Asosiy qoida: endi har sxema o'zgarishi = yangi `NNN` fayl

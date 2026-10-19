@@ -529,13 +529,13 @@ namespace tahsinERP.Services
             }
             foreach (var wb in waybills)
             {
-                var amt = FinMoney.For(db).Uzs(Convert.ToDecimal(wb.Amount ?? 0), wb.CurrencyID, wb.IssueDate ?? asOfDate);
+                var amt = FinMoney.For(db).Uzs(wb.Amount ?? 0m, wb.CurrencyID, wb.IssueDate ?? asOfDate);
                 var prefix = !contractId.HasValue && wb.ContractID.HasValue && contractNoById.TryGetValue(wb.ContractID.Value, out var no) && no != "" ? $"[{no}] " : "";
                 items.Add(new Item { Date = wb.IssueDate ?? DateTime.MinValue, Order = 1, Content = $"{prefix}Yo'l varaqasi №{wb.WaybillNo} sanasi {(wb.IssueDate?.ToString("dd.MM.yyyy") ?? "")}", P1Cr = amt, P2Dr = amt });
             }
             foreach (var pay in payments)
             {
-                var amt = FinMoney.For(db).Uzs(Convert.ToDecimal(pay.Payment_Amount), pay.CurrencyID, pay.PaymentDate ?? asOfDate);
+                var amt = FinMoney.For(db).Uzs(pay.Payment_Amount, pay.CurrencyID, pay.PaymentDate ?? asOfDate);
                 items.Add(new Item { Date = pay.PaymentDate ?? DateTime.MinValue, Order = 2, Content = $"Yuk tashish to'lovi №{pay.ID} sanasi {(pay.PaymentDate?.ToString("dd.MM.yyyy") ?? "")}", P1Dr = amt, P2Cr = amt });
             }
             foreach (var pay in finPayments)
