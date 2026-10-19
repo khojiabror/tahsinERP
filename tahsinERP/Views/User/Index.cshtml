@@ -178,7 +178,7 @@
                     </text>
                 }
                 dom: 'lBfrtip',
-                buttons: erpDataTable.buttons({ fileName: 'Foydalanuvchilar', pdfTitle: "Foydalanuvchilar ro'yxati", columns: @(changePermit ? "':not(:last-child)'" : "':visible'") }),
+                buttons: erpDataTable.buttons({ fileName: 'Foydalanuvchilar', pdfTitle: "Foydalanuvchilar ro'yxati", columns: @(changePermit ? "true" : "false") ? ':not(:last-child)' : ':visible' }),
                 "scrollX": true
             });
 

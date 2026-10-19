@@ -1,8 +1,9 @@
 /*
- * DataTables Excel/PDF eksport tugmalari va o'zbekcha matnlar — butun tizim uchun bitta joy (audit dublikat #16).
+ * DataTables Excel/PDF eksport tugmalari — butun tizim uchun bitta joy (audit dublikat #16).
  * Avval ~30 ta sahifada har biri ~60 qatorlik nusxa edi (vaqt belgili fayl nomi, HTML'ni tozalash, PDF sozlamalari).
+ * Ikkala layout'da dt-defaults.js'dan oldin yuklanadi (sahifaga alohida ulash shart emas); dt-defaults
+ * bu yerdagi o'zbekcha matnlarni va umumiy PDF standartini DataTables'ga o'rnatadi (Core).
  *
- *   <script src="~/Scripts/app/erp-datatable.js"></script>
  *   $('#t').DataTable({
  *       dom: 'lBfrtip',
  *       buttons: erpDataTable.buttons({ fileName: 'Buyruqlar', pdfTitle: "Buyruqlar ro'yxati", columns: ':not(:last-child)' })
@@ -86,6 +87,7 @@
     }
 
     window.erpDataTable = {
+        // dt-defaults.js shu matnlarni DataTables standarti qiladi (sahifalarga berish shart emas)
         language: {
             search: 'Qidirish:',
             lengthMenu: "_MENU_ ta ko'rsatish",

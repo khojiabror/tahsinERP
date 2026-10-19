@@ -15,13 +15,13 @@ namespace tahsinERP.ViewModels
         public string ToLocation { get; set; }
         public string TruckNo { get; set; }
         public string DriverName { get; set; }
-        public double? DistanceKm { get; set; }
-        public double? GrWeight { get; set; }
-        public double? CBM { get; set; }
-        public double? Amount { get; set; }
+        public decimal? DistanceKm { get; set; }
+        public decimal? GrWeight { get; set; }
+        public decimal? CBM { get; set; }
+        public decimal? Amount { get; set; }
         public string Currency { get; set; }
-        public double TotalPaid { get; set; }
-        public double Outstanding { get; set; }
+        public decimal TotalPaid { get; set; }
+        public decimal Outstanding { get; set; }
         public string PaymentStatus { get; set; }
         public string CargoTypeText { get; set; }
         public string LinkedDoc { get; set; }

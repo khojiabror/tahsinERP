@@ -120,10 +120,10 @@ namespace tahsinERP.Controllers
                     ActiveContracts = await db.F_CONTRACTS.AsNoTracking()
                         .Where(c => c.ForwarderID == id && !c.IsDeleted && c.DueDate >= today)
                         .ToListAsync(),
-                    RecentWaybills = await waybills.AsNoTracking().OrderByDescending(w => w.IssueDate).Take(10).ToListAsync(),
+                    RecentWaybills = await waybills.AsNoTracking().OrderByDescending(w => w.IssueDate).ThenByDescending(w => w.ID).Take(10).ToListAsync(),
                     RecentPayments = await WaybillLedgerService.ActivePayments(db).AsNoTracking()
                         .Where(p => p.ForwarderID == id)
-                        .OrderByDescending(p => p.PaymentDate)
+                        .OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.ID)
                         .Take(10)
                         .ToListAsync(),
                     TopLanes = LogisticsAnalyticsService.GetLaneStats(db, waybills, 10, money: money)

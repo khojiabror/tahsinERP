@@ -26,18 +26,18 @@ namespace tahsinERP.Models
         public Nullable<int> ContractID { get; set; }
         public Nullable<int> TransportTypeID { get; set; }
         public Nullable<int> InvoiceID { get; set; }
-        public Nullable<double> CBM { get; set; }
-        public Nullable<double> GrWeight { get; set; }
+        public Nullable<decimal> CBM { get; set; }
+        public Nullable<decimal> GrWeight { get; set; }
         public string Description { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
-        public Nullable<double> Amount { get; set; }
+        public Nullable<decimal> Amount { get; set; }
         public Nullable<System.DateTime> IssueDate { get; set; }
         public Nullable<byte> Direction { get; set; }
         public string FromLocation { get; set; }
         public string ToLocation { get; set; }
-        public Nullable<double> DistanceKm { get; set; }
+        public Nullable<decimal> DistanceKm { get; set; }
         public Nullable<byte> FreightBasis { get; set; }
-        public Nullable<double> Rate { get; set; }
+        public Nullable<decimal> Rate { get; set; }
         public Nullable<int> CurrencyID { get; set; }
         public Nullable<byte> PayerType { get; set; }
         public Nullable<int> PayerID { get; set; }
@@ -49,7 +49,7 @@ namespace tahsinERP.Models
         public string TrailerModel { get; set; }
         public string DriverName { get; set; }
         public string DriverPINFL { get; set; }
-        public Nullable<double> NetWeight { get; set; }
+        public Nullable<decimal> NetWeight { get; set; }
         public Nullable<int> PalletsCount { get; set; }
         public string ManualCorrectionReason { get; set; }
         public Nullable<System.DateTime> PlannedDeliveryDate { get; set; }

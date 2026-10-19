@@ -26,13 +26,13 @@ namespace tahsinERP.Services
             public int? CurrencyID { get; set; }
             public DateTime? Day { get; set; }
             public int Trips { get; set; }
-            public double Tonnage { get; set; }
-            public double Cbm { get; set; }
-            public double Distance { get; set; }
-            public double Cost { get; set; }
-            public double PerTonSum { get; set; }
+            public decimal Tonnage { get; set; }
+            public decimal Cbm { get; set; }
+            public decimal Distance { get; set; }
+            public decimal Cost { get; set; }
+            public decimal PerTonSum { get; set; }
             public int PerTonCount { get; set; }
-            public double PerKmSum { get; set; }
+            public decimal PerKmSum { get; set; }
             public int PerKmCount { get; set; }
             public int OnTime { get; set; }
             public int Delivered { get; set; }
@@ -42,7 +42,7 @@ namespace tahsinERP.Services
         private sealed class Sum
         {
             public int Trips;
-            public double Tonnage, Cbm, Distance, Cost, PerTonSum, PerKmSum;
+            public decimal Tonnage, Cbm, Distance, Cost, PerTonSum, PerKmSum;
             public int PerTonCount, PerKmCount, OnTime, Delivered;
 
             public void Add(Part p, LogisticsMoney money)
@@ -61,8 +61,8 @@ namespace tahsinERP.Services
                 PerKmSum += money.ToUzs(p.PerKmSum, p.CurrencyID, p.Day);
             }
 
-            public double AvgPerTon => PerTonCount > 0 ? PerTonSum / PerTonCount : 0;
-            public double AvgPerKm => PerKmCount > 0 ? PerKmSum / PerKmCount : 0;
+            public decimal AvgPerTon => PerTonCount > 0 ? PerTonSum / PerTonCount : 0;
+            public decimal AvgPerKm => PerKmCount > 0 ? PerKmSum / PerKmCount : 0;
         }
 
         /// <summary>Marshrutlar bo'yicha statistika (trip soni bo'yicha kamayish tartibida), summalar so'mda.</summary>
@@ -86,9 +86,9 @@ namespace tahsinERP.Services
                     Cbm = g.Sum(w => w.CBM) ?? 0,
                     Cost = g.Sum(w => w.Amount) ?? 0,
                     Distance = g.Sum(w => w.DistanceKm) ?? 0,
-                    PerTonSum = g.Sum(w => w.GrWeight > 0 && w.Amount != null ? w.Amount / w.GrWeight : (double?)0) ?? 0,
+                    PerTonSum = g.Sum(w => w.GrWeight > 0 && w.Amount != null ? w.Amount / w.GrWeight : (decimal?)0) ?? 0,
                     PerTonCount = g.Count(w => w.GrWeight > 0 && w.Amount != null),
-                    PerKmSum = g.Sum(w => w.DistanceKm > 0 && w.Amount != null ? w.Amount / w.DistanceKm : (double?)0) ?? 0,
+                    PerKmSum = g.Sum(w => w.DistanceKm > 0 && w.Amount != null ? w.Amount / w.DistanceKm : (decimal?)0) ?? 0,
                     PerKmCount = g.Count(w => w.DistanceKm > 0 && w.Amount != null)
                 })
                 .ToList();
@@ -160,9 +160,9 @@ namespace tahsinERP.Services
                     Cost = g.Sum(w => w.Amount) ?? 0,
                     Tonnage = g.Sum(w => w.GrWeight) ?? 0,
                     Distance = g.Sum(w => w.DistanceKm) ?? 0,
-                    PerTonSum = g.Sum(w => w.GrWeight > 0 && w.Amount != null ? w.Amount / w.GrWeight : (double?)0) ?? 0,
+                    PerTonSum = g.Sum(w => w.GrWeight > 0 && w.Amount != null ? w.Amount / w.GrWeight : (decimal?)0) ?? 0,
                     PerTonCount = g.Count(w => w.GrWeight > 0 && w.Amount != null),
-                    PerKmSum = g.Sum(w => w.DistanceKm > 0 && w.Amount != null ? w.Amount / w.DistanceKm : (double?)0) ?? 0,
+                    PerKmSum = g.Sum(w => w.DistanceKm > 0 && w.Amount != null ? w.Amount / w.DistanceKm : (decimal?)0) ?? 0,
                     PerKmCount = g.Count(w => w.DistanceKm > 0 && w.Amount != null),
                     OnTime = g.Count(w => w.PlannedDeliveryDate != null && w.ActualDeliveryDate != null && w.ActualDeliveryDate <= w.PlannedDeliveryDate),
                     Delivered = g.Count(w => w.PlannedDeliveryDate != null && w.ActualDeliveryDate != null)
@@ -252,12 +252,12 @@ namespace tahsinERP.Services
     public sealed class WaybillTotals
     {
         public int Trips { get; set; }
-        public double Cost { get; set; }
-        public double Tonnage { get; set; }
-        public double Cbm { get; set; }
-        public double Distance { get; set; }
-        public double InboundCost { get; set; }
-        public double OutboundCost { get; set; }
-        public double InternalCost { get; set; }
+        public decimal Cost { get; set; }
+        public decimal Tonnage { get; set; }
+        public decimal Cbm { get; set; }
+        public decimal Distance { get; set; }
+        public decimal InboundCost { get; set; }
+        public decimal OutboundCost { get; set; }
+        public decimal InternalCost { get; set; }
     }
 }

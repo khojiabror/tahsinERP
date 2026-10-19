@@ -242,10 +242,7 @@
 
             // Initialize DataTable
             $(document).ready(function() {
-                $('#' + idPrefix + 'Table').DataTable({
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                    },
+                $('#' + idPrefix + 'Table').DataTable({
                     "order": [[2, "desc"]], // Sort by Amount column
                     "pageLength": 25,
                     "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],

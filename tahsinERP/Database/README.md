@@ -15,6 +15,7 @@ Database/
   tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> admin
   tools/Export-ReferenceSeed.ps1 seed'ni etalon bazadan qayta generatsiya
   tools/Export-Baseline.ps1      baseline'ni qayta generatsiya ("squash", kamdan-kam)
+  tools/RegressionProbe/         hisobotlar oldin/keyin solishtiruvi (Balans, Tannarx, ombor, CRM/SRM, logistika)
 ```
 
 ## Asosiy qoida: endi har sxema o'zgarishi = yangi `NNN` fayl
@@ -48,13 +49,14 @@ uni erkin o'zgartiradi. `SystemCode` bor qatorni UI'da o'chirib bo'lmaydi.
 | Jadval | Ustun | Kodlar (Services/Common/SystemCodes.cs) |
 |---|---|---|
 | FIN_BALANCE_CATEGORIES | SystemCode | CASH, BANK, PAYABLES, RECEIVABLES, CHARTER_CAPITAL, PAYROLL_DEBT, LOGISTICS_DEBT, RAW_MATERIALS, FINISHED_GOODS, EQUIPMENT, BUILDINGS, RECURRING_OBLIGATIONS |
-| FIN_CATEGORIES | SystemCode | SALES, PURCHASE, PAYROLL, SHAREHOLDER_CONTRIBUTION |
+| FIN_CATEGORIES | SystemCode | SALES, PURCHASE, PAYROLL, SHAREHOLDER_CONTRIBUTION, MATERIAL_TRANSPORT, FG_TRANSPORT |
 | PRODUCT_CATEGORIES | SystemCode | EQUIPMENT |
 | UNITS | SystemCode | PCS, KG, TONNE, GRAM, METER, M2, M3, LITER, MM, CM, PAIR |
 | ROLES | SystemCode (007) | ADMIN, DEVELOPER — `RoleHelper.IsDeveloper/IsAdminOrDeveloper/HasRoleCode` |
 | FIN_ACCOUNTS | Code (mavjud) | PAYABLES_{CurrencyID}, RECEIVABLES_{CurrencyID} |
 | APP_TASK_STATUS_REF | Code + IsFinal (mavjud) | TODO, IN_PROGRESS, DONE, CANCELLED |
-| WAREHOUSES | WarehouseType (mavjud) | SUPPLY, PRODUCTION, SALES |
+| WAREHOUSES | WarehouseType (mavjud) | SUPPLY, PRODUCTION, SALES (yangi bazada 3/6/7 — Seed/110) |
+| FIN_BALANCE_CATEGORY_CATEGORIES | bog'lanish | CHARTER_CAPITAL ← SHAREHOLDER_CONTRIBUTION (migratsiya 009, Seed/110) |
 
 Lookup: `SystemRefs.BalanceCategory(db, SystemCodes.BalanceCategory.Cash)`, `SystemRefs.UnitId(db, SystemCodes.Unit.Pieces)`.
 Har ustunda `UNIQUE ... WHERE SystemCode IS NOT NULL` indeks bor.

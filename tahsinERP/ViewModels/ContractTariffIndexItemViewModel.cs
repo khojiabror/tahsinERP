@@ -8,7 +8,7 @@ namespace tahsinERP.ViewModels
         public string FromLocation { get; set; }
         public string ToLocation { get; set; }
         public byte FreightBasis { get; set; }
-        public double Rate { get; set; }
+        public decimal Rate { get; set; }
         public string Currency { get; set; }
         public bool IsActive { get; set; }
     }

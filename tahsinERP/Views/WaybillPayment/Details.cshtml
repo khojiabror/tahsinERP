@@ -4,9 +4,9 @@
     ViewBag.Title = "Yo'l varaqasi to'lovi – tafsilotlar";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var hasFin = ViewBag.HasFinTransaction == true;
-    var totalPaid = ViewBag.TotalPaid as double?;
-    var outstanding = ViewBag.Outstanding as double?;
-    var waybillAmount = ViewBag.WaybillAmount as double?;
+    var totalPaid = ViewBag.TotalPaid as decimal?;
+    var outstanding = ViewBag.Outstanding as decimal?;
+    var waybillAmount = ViewBag.WaybillAmount as decimal?;
     var currencyShort = Model.CURRENCy != null ? Model.CURRENCy.Shortname : "";
     var finTransactionID = ViewBag.FinTransactionID as int?;
     var linkedWaybills = (ViewBag.LinkedWaybills as IEnumerable<tahsinERP.ViewModels.WaybillPaymentLinkedWaybillViewModel>)

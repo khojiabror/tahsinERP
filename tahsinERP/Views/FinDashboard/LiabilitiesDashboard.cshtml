@@ -442,18 +442,12 @@
                 // Initialize DataTables (only if jQuery + DataTables are available)
                 if (window.jQuery && $.fn && $.fn.DataTable) {
                     $('#payablesAccountsTable').DataTable({
-                        "language": {
-                            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                        },
                         "order": [[5, "desc"]],
                         "pageLength": 25,
                         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
                     });
 
                     $('#receivablesAccountsTable').DataTable({
-                        "language": {
-                            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                        },
                         "order": [[5, "desc"]],
                         "pageLength": 25,
                         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]

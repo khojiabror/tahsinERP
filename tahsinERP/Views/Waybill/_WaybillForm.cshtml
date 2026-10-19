@@ -128,22 +128,22 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label>Masofa (km)</label>
-                                            @Html.TextBoxFor(model => model.DistanceKm, new { @class = "form-control", @placeholder = "0.00" })
+                                            @Html.TextBoxFor(model => model.DistanceKm, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-3">
                                             <label>Brut vazn (ton)</label>
-                                            @Html.TextBoxFor(model => model.GrWeight, new { @class = "form-control", @placeholder = "0.00" })
+                                            @Html.TextBoxFor(model => model.GrWeight, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                         <div class="col-md-3">
                                             <label>Net vazn (ton)</label>
-                                            @Html.TextBoxFor(model => model.NetWeight, new { @class = "form-control", @placeholder = "0.00" })
+                                            @Html.TextBoxFor(model => model.NetWeight, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                         <div class="col-md-3">
                                             <label>CBM</label>
-                                            @Html.TextBoxFor(model => model.CBM, new { @class = "form-control", @placeholder = "0.00" })
+                                            @Html.TextBoxFor(model => model.CBM, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                         <div class="col-md-3">
                                             <label>Palletlar soni</label>
@@ -164,11 +164,11 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label>@LogisticsTerms.TariffRate</label>
-                                            @Html.TextBoxFor(model => model.Rate, new { @class = "form-control", @placeholder = "0.00", @id = "rateInput" })
+                                            @Html.TextBoxFor(model => model.Rate, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00", @id = "rateInput" })
                                         </div>
                                         <div class="col-md-4">
                                             <label>Jami summa</label>
-                                            @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @placeholder = "0.00", @id = "amountInput" })
+                                            @Html.TextBoxFor(model => model.Amount, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00", @id = "amountInput" })
                                         </div>
                                     </div>
 
