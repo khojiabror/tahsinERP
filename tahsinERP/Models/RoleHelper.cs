@@ -20,6 +20,22 @@ namespace tahsinERP.Models
     /// </summary>
     public static class RoleHelper
     {
+        /// <summary>
+        /// Yangi modul yoki rol uchun boshlang'ich huquq (faqat ko'rish yoki hech narsa) — PModule va Role
+        /// controller'larida 5 joyda qo'lda yozilgan "new PERMISSION { ... }" o'rniga.
+        /// </summary>
+        public static PERMISSION NewPermission(int moduleId, int roleId, bool view)
+        {
+            return new PERMISSION
+            {
+                PermissionModuleID = moduleId,
+                RoleID = roleId,
+                ViewPermit = view,
+                ChangePermit = false,
+                DeletePermit = false
+            };
+        }
+
         // Snapshot sliding muddati — faol foydalanuvchi uchun kesh yashab turadi
         private static readonly TimeSpan SnapshotSliding = TimeSpan.FromMinutes(20);
         // Ism/lavozim keshi (absolute)

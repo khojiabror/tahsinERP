@@ -44,6 +44,25 @@ namespace tahsinERP.Controllers
             return typeof(ActionResult).IsAssignableFrom(returnType);
         }
 
+        // Details va Delete sahifalari uchun bir xil model (avval ikki joyda ko'chirilgan)
+        private static PermissionModuleViewModel ToViewModel(PERMISSIONMODULE module, IEnumerable<PERMISSION> permissions)
+        {
+            var roleNames = permissions
+                .Select(p => p.ROLE?.RName)
+                .Where(r => r != null)
+                .Distinct();
+
+            return new PermissionModuleViewModel
+            {
+                ID = module.ID,
+                Module = module.Module,
+                Controller = module.Controller,
+                Action = module.Action,
+                Parametr = module.Parameter,
+                RoleNames = string.Join(", ", roleNames)
+            };
+        }
+
         private static bool IsAdminRole(string roleName)
         {
             return string.Equals(roleName, "Admin", System.StringComparison.OrdinalIgnoreCase)
@@ -188,14 +207,7 @@ namespace tahsinERP.Controllers
                     var permissionsToAdd = new List<PERMISSION>();
                     foreach (var module in newModules)
                     {
-                        permissionsToAdd.AddRange(roles.Select(role => new PERMISSION
-                        {
-                            PermissionModuleID = module.ID,
-                            RoleID = role.ID,
-                            ViewPermit = IsAdminRole(role.RName),
-                            ChangePermit = false,
-                            DeletePermit = false
-                        }));
+                        permissionsToAdd.AddRange(roles.Select(role => RoleHelper.NewPermission(module.ID, role.ID, IsAdminRole(role.RName))));
                     }
 
                     if (permissionsToAdd.Any())
@@ -299,14 +311,7 @@ namespace tahsinERP.Controllers
                                 .Select(r => new { r.ID, r.RName })
                                 .ToListAsync();
 
-                            var permissionsToAdd = roles.Select(role => new PERMISSION
-                            {
-                                PermissionModuleID = permissions.ID,
-                                RoleID = role.ID,
-                                ViewPermit = IsAdminRole(role.RName),
-                                ChangePermit = false,
-                                DeletePermit = false
-                            }).ToList();
+                            var permissionsToAdd = roles.Select(role => RoleHelper.NewPermission(permissions.ID, role.ID, IsAdminRole(role.RName))).ToList();
 
                             if (permissionsToAdd.Any())
                             {
@@ -489,14 +494,7 @@ namespace tahsinERP.Controllers
                             var existingRoleIds = existingPermissions.Select(p => p.RoleID).ToList();
                             var permissionsToAdd = validRoleIds
                                 .Where(roleId => !existingRoleIds.Contains(roleId))
-                                .Select(roleId => new PERMISSION
-                                {
-                                    PermissionModuleID = pModule.ID,
-                                    RoleID = roleId,
-                                    ViewPermit = true,
-                                    ChangePermit = false,
-                                    DeletePermit = false
-                                }).ToList();
+                                .Select(roleId => RoleHelper.NewPermission(pModule.ID, roleId, true)).ToList();
 
                             if (permissionsToAdd.Any())
                             {
@@ -571,21 +569,7 @@ namespace tahsinERP.Controllers
                     .Include(p => p.ROLE)
                     .ToListAsync();
 
-                var roleNames = permissions
-                    .Select(p => p.ROLE?.RName)
-                    .Where(r => r != null)
-                    .Distinct()
-                    .ToList();
-
-                var viewModel = new PermissionModuleViewModel
-                {
-                    ID = permissionModule.ID,
-                    Module = permissionModule.Module,
-                    Controller = permissionModule.Controller,
-                    Action = permissionModule.Action,
-                    Parametr = permissionModule.Parameter,
-                    RoleNames = string.Join(", ", roleNames)
-                };
+                var viewModel = ToViewModel(permissionModule, permissions);
 
                 ViewBag.PermissionsCount = permissions.Count;
 
@@ -670,21 +654,7 @@ namespace tahsinERP.Controllers
                     .Include(p => p.ROLE)
                     .ToListAsync();
 
-                var roleNames = permissions
-                    .Select(p => p.ROLE?.RName)
-                    .Where(r => r != null)
-                    .Distinct()
-                    .ToList();
-
-                var viewModel = new PermissionModuleViewModel
-                {
-                    ID = permissionModule.ID,
-                    Module = permissionModule.Module,
-                    Controller = permissionModule.Controller,
-                    Action = permissionModule.Action,
-                    Parametr = permissionModule.Parameter,
-                    RoleNames = string.Join(", ", roleNames)
-                };
+                var viewModel = ToViewModel(permissionModule, permissions);
 
                 return View(viewModel);
             }
