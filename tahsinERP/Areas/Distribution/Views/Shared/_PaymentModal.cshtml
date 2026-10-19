@@ -1,0 +1,51 @@
+@* To'lov qabul qilish oynasi. Ochish: dstPaymentModal({ customerId, customerName, orderId, amount }). ViewBag.Accounts, ViewBag.Methods kerak. *@
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Payment_Receive") — <span id="pmCustomerName"></span></h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="pmCustomer" /><input type="hidden" id="pmOrder" />
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label>@DstLocalization.T("Amount")</label>
+                        <input id="pmAmount" type="number" min="1" step="1" class="form-control" />
+                    </div>
+                    <div class="form-group col-6">
+                        <label>@DstLocalization.T("Payment_Method")</label>
+                        @Html.DropDownList("pmMethod", (List<SelectListItem>)ViewBag.Methods, new { @class = "form-control", id = "pmMethod" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>@DstLocalization.T("Payment_Account")</label>
+                    @Html.DropDownList("pmAccount", (List<SelectListItem>)ViewBag.Accounts, DstLocalization.T("Payment_OnHand"), new { @class = "form-control", id = "pmAccount" })
+                    <small class="text-muted">@DstLocalization.T("Payment_AccountHint")</small>
+                </div>
+                <div class="form-group mb-0"><label>@DstLocalization.T("Comment")</label><input id="pmNote" class="form-control" maxlength="300" /></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-success" id="pmSave">@DstLocalization.T("Payment_Receive")</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.dstPaymentModal = function (o) {
+        $('#pmCustomer').val(o.customerId); $('#pmOrder').val(o.orderId || '');
+        $('#pmCustomerName').text(o.customerName || '');
+        $('#pmAmount').val(o.amount > 0 ? Math.round(o.amount) : ''); $('#pmNote').val('');
+        $('#paymentModal').modal('show');
+        setTimeout(function () { $('#pmAmount').focus(); }, 300);
+    };
+    // partial sahifa o'rtasida — jQuery va dst.js keyinroq yuklanadi
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#pmSave').on('click', function () {
+            var btn = $(this).prop('disabled', true);
+            dstPost('@Url.Action("Receive", "DstPayments", new { area = "Distribution" })', {
+                CustomerID: $('#pmCustomer').val(), OrderID: $('#pmOrder').val(), Amount: $('#pmAmount').val(),
+                Method: $('#pmMethod').val(), FinAccountID: $('#pmAccount').val(), Note: $('#pmNote').val()
+            }).done(function () { $('#paymentModal').modal('hide'); dstNotify(); if (window.dstAfterPayment) window.dstAfterPayment(); else location.reload(); })
+              .always(function () { btn.prop('disabled', false); });
+        });
+    });
+</script>

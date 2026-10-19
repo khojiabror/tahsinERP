@@ -235,4 +235,21 @@ Testlar 128/128 (yangi: holat mashinasi, hisob-kitob, limit/muddati o'tgan qarz,
 
 Testlar topgan va tuzatilgan xatolar: EF to'plamni `null` bilan solishtira olmaydi (`StockService.Levels`); qoralamani o'chirishda jurnal FK tartibi; rad etilgan `SaveDraft` kontekstda yarim o'zgarish qoldirardi.
 
-Qolgan (S3'ga): jo'natishni bekor qilish (`ReverseIssueLine`) va qaytarish hujjati, to'lovlar va `Closed` holati (qarz yopilganda), moliyaga (FIN_TRANSACTIONS) yozish. Sahifalar brauzerda ochilmagan (test bazasida litsenziya yo'q).
+Sahifalar brauzerda ochilmagan (test bazasida litsenziya yo'q).
+
+## 13. S3 natijasi (2026-10-19, branch `feature/distribution`)
+
+Migratsiya `Database/Migrations/019_DST_Money.sql`: `D_PAYMENTS`, `CASH_HANDOVERS`, `D_RETURNS` (+lines); ruxsatlar `DstPayments`, `DstReturns`, `DstDebts` (+ Seed/105). Lokal bazada qo'llangan (zaxira `DBTHSN-IPACK_pre_019_DST_20261019.bak`).
+
+| Qism | Nima qiladi |
+|---|---|
+| To'lov (`PaymentService.Receive`) | Kassada/hisobga (naqd, karta, Click, Payme, Uzum, o'tkazma) — darhol `FIN_TRANSACTIONS` (Direction=1, kontragent = mijoz, SALES, `SourceDocType='DstPayment'`); agent olgan naqd — hisobsiz, "agent qo'lida". Har holda `CUSTOMER_LEDGER` kredit, to'liq yopilgan buyurtmalar "Yopildi". `ClientRequestId` — bot uchun idempotent. Bekor qilish: kassaga topshirilgani bekor qilinmaydi; moliya yozuvi `IsDeleted`, ledgerda teskari yozuv |
+| Kassaga topshirish | Agent topshiradi (bot, S4) → kassir sanab qabul qiladi yoki rad etadi; web'da bitta amal. Har to'lov moliyaga, farq (kamomad/ortiqcha) alohida `DST_CASH_DIFF` kategoriyasi bilan — kassa qoldig'i haqiqiy pulga teng |
+| Qaytarish (`ReturnService`) | Buyurtma bo'yicha (jo'natilgan − qaytarilgan, narx va FIFO tannarx jo'natishdan) yoki buyurtmasiz (joriy narx, oxirgi kirim tannarxi); `dbo.INCOMES` + `StockLedger.ReceiveLine` (DLOC omborda joylashuv majburiy), yaroqli/brak, sabab; qarzga kredit. Bekor qilish — `ReverseIncomeReceipt` (qaytgan tovar chiqarilgan bo'lsa rad) |
+| Jo'natishni bekor qilish | `OrderService.CancelShipment`: `ReverseIssueLine`, chiqim `IsDeleted`, ledgerda `SHIPMENT_REV`, buyurtma qatorlari va holati (qisman/tasdiqlangan) qaytadi, tovar yana rezervga. Yetkazilgan/yopilgan yoki qaytarishi bor jo'natish — faqat qaytarish orqali |
+| Qarz hisobi (`DebtMath`, `DebtService`) | Kreditlar eng eski debetlarni yopadi (FIFO); teskari yozuvlar asl yozuv bilan birga chiqariladi; muddatlar: muddati kelmagan, 1–7, 8–30, 31–60, 60+, avans; qarz limiti tekshiruvi ham shu hisobdan |
+| Sahifalar | `DstPayments` (ro'yxat, to'lov oynasi, bekor qilish), `DstPayments/Cash` (agentlar qo'lidagi naqd, qabul/rad, topshirishlar tarixi), `DstReturns` (ro'yxat, forma — jo'natilganlardan yoki buyurtmasiz), `DstDebts` (aging jadvali, filtrlar, akt sverki — ekran va chop etish), buyurtma kartasida "To'lov", "Qaytarish", jo'natishni bekor qilish; `DstImport` — kirish qarzlari (har mijozga bir marta) |
+
+Testlar 133/133 (yangi: aging va FIFO yopilish, teskari yozuvlar; integratsiya — agent naqdi → topshirish 10 000 kamomad bilan → moliya yozuvlari, ofis to'lovi buyurtmani yopadi, to'lovni bekor qilish, akt sverki; buyurtma bo'yicha qaytarish (ombor +4, qarz −220 000), ortiqcha qaytarish rad, qaytarishni bekor qilish, jo'natishni bekor qilish ombor/rezerv/qarzni tiklaydi). RazorCheck: 493 view, 0 xato.
+
+Qilinmagan (ataylab): kassalar o'rtasida o'tkazma/inkassatsiya — Moliya modulining ishi (FIN_TRANSACTIONS orqali qo'lda); qaytarishda mijozga pulni qaytarish (hozircha faqat qarzni kamaytiradi); jo'natishning moliyaga "mirror" yozuvi (mavjud moliya hisobotlari faqat `SalesInvoice` mirror'ni chetlab o'tadi — boshqasi kassa qoldig'ini buzardi). Moliya hisobotlarida distributsiya mijozlarining to'lovlari tushum sifatida ko'rinadi, ularning CRM invoyslari yo'q.

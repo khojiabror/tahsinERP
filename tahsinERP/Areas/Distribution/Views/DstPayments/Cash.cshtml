@@ -1,0 +1,133 @@
+@model List<tahsinERP.Areas.Distribution.Controllers.DstPaymentsController.AgentCashRow>
+@using tahsinERP.Areas.Distribution.Data.Entities
+@using tahsinERP.Areas.Distribution.Controllers
+@{
+    ViewBag.DstParent = DstLocalization.T("Payments");
+    ViewBag.Title = DstLocalization.T("Cash_Title");
+    bool canChange = ViewBag.DstCanChange == true;
+    var handovers = (List<DstPaymentsController.HandoverRow>)ViewBag.Handovers;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Cash_OnHand")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Cash_Hint")</p>
+                    <table class="table table-sm">
+                        <thead><tr><th>@DstLocalization.T("Agent")</th><th class="text-right">@DstLocalization.T("Payments")</th><th class="text-right">@DstLocalization.T("Amount")</th><th>@DstLocalization.T("Cash_Oldest")</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var r in Model)
+                            {
+                                <tr>
+                                    <td>@r.Agent @if (r.PendingHandoverID.HasValue) { <span class="badge badge-light-info">@DstLocalization.T("Cash_Submitted")</span> }</td>
+                                    <td class="text-right"><a href="#" data-onhand="@r.AgentUserID">@r.Count</a></td>
+                                    <td class="text-right"><b>@r.Amount.ToString("N0")</b></td>
+                                    <td>@r.Oldest.ToString("dd.MM.yyyy")</td>
+                                    <td class="text-right">
+                                        @if (canChange)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success" data-accept="@r.AgentUserID" data-name="@r.Agent" data-amount="@r.Amount.ToString(inv)">@DstLocalization.T("Cash_Accept")</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Any())
+                            {
+                                <tr><td colspan="5" class="text-muted">@DstLocalization.T("Table_Empty")</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div id="onHandList"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Cash_Handovers")</h4></div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>@DstLocalization.T("Order_No")</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Agent")</th><th>@DstLocalization.T("Payment_Account")</th><th class="text-right">@DstLocalization.T("Cash_Declared")</th><th class="text-right">@DstLocalization.T("Cash_Received")</th><th class="text-right">@DstLocalization.T("Cash_Difference")</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var h in handovers)
+                            {
+                                var diff = h.Received.HasValue ? h.Received.Value - h.Declared : (decimal?)null;
+                                <tr class="@(h.Status == DocumentStatus.Cancelled ? "text-muted" : "")">
+                                    <td>@h.DocNo</td><td>@h.Date.ToString("dd.MM.yyyy")</td><td>@h.Agent</td><td>@h.Account</td>
+                                    <td class="text-right">@h.Declared.ToString("N0")</td>
+                                    <td class="text-right">@(h.Received?.ToString("N0"))</td>
+                                    <td class="text-right @(diff < 0 ? "text-danger" : diff > 0 ? "text-success" : "")">@(diff?.ToString("N0"))</td>
+                                    <td class="text-right">
+                                        @if (h.Status == DocumentStatus.Draft && canChange)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-reject="@h.ID">@DstLocalization.T("Cash_Reject")</button>
+                                        }
+                                        else if (h.Status == DocumentStatus.Cancelled) { <span>@DstLocalization.T("Order_Cancelled")</span> }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="acceptModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Cash_Accept") — <span id="acName"></span></h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="acAgent" />
+                <p>@DstLocalization.T("Cash_Declared"): <b id="acDeclared"></b></p>
+                <div class="form-group">
+                    <label>@DstLocalization.T("Payment_Account")</label>
+                    @Html.DropDownList("acAccount", (List<SelectListItem>)ViewBag.Accounts, new { @class = "form-control", id = "acAccount" })
+                </div>
+                <div class="form-group"><label>@DstLocalization.T("Cash_Received")</label><input id="acReceived" type="number" min="0" step="1" class="form-control" /></div>
+                <div class="form-group mb-0"><label>@DstLocalization.T("Comment")</label><input id="acNote" class="form-control" maxlength="300" /></div>
+                <p class="small text-muted mt-50 mb-0">@DstLocalization.T("Cash_DifferenceHint")</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-success" id="acSave">@DstLocalization.T("Cash_Accept")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var money = new Intl.NumberFormat('ru-RU');
+            $('[data-onhand]').on('click', function (e) {
+                e.preventDefault();
+                $.getJSON('@Url.Action("OnHand")', { agentUserId: $(this).data('onhand') }, function (rows) {
+                    $('#onHandList').html('<table class="table table-sm small"><tbody>' + rows.map(function (r) {
+                        return '<tr><td>' + dstEsc(r.DocNo) + '</td><td>' + r.date + '</td><td>' + dstEsc(r.Customer) + '</td><td class="text-right">' + money.format(r.Amount) + '</td></tr>';
+                    }).join('') + '</tbody></table>');
+                });
+            });
+            $('[data-accept]').on('click', function () {
+                var b = $(this);
+                $('#acAgent').val(b.data('accept')); $('#acName').text(b.data('name'));
+                $('#acDeclared').text(money.format(b.data('amount'))); $('#acReceived').val(b.data('amount')); $('#acNote').val('');
+                $('#acceptModal').modal('show');
+            });
+            $('#acSave').on('click', function () {
+                dstPost('@Url.Action("AcceptCash")', {
+                    agentUserId: $('#acAgent').val(), finAccountId: $('#acAccount').val(), amountReceived: $('#acReceived').val(), note: $('#acNote').val()
+                }).done(function () { location.reload(); });
+            });
+            $('[data-reject]').on('click', function () {
+                var reason = prompt('@DstLocalization.T("Reason")');
+                if (!reason) return;
+                dstPost('@Url.Action("RejectHandover")', { id: $(this).data('reject'), reason: reason }).done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

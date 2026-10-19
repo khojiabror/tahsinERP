@@ -1,0 +1,75 @@
+@model List<tahsinERP.Areas.Distribution.Controllers.DstDebtsController.DebtRow>
+@{
+    ViewBag.Title = DstLocalization.T("Debts");
+    string filter = ViewBag.Filter;
+    string N(decimal v) => v == 0 ? "" : v.ToString("N0");
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="row">
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body"><div class="text-muted small">@DstLocalization.T("Debt")</div><h4 class="mb-0">@Model.Sum(r => r.Aging.Total).ToString("N0")</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body"><div class="text-muted small">@DstLocalization.T("Overdue")</div><h4 class="mb-0 text-danger">@Model.Sum(r => r.Aging.Overdue).ToString("N0")</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body"><div class="text-muted small">@DstLocalization.T("Aging_Over60")</div><h4 class="mb-0 text-danger">@Model.Sum(r => r.Aging.Over60).ToString("N0")</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body"><div class="text-muted small">@DstLocalization.T("Aging_Advance")</div><h4 class="mb-0 text-success">@Model.Sum(r => r.Aging.Advance).ToString("N0")</h4></div></div></div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="form-row mb-1">
+                        <div class="col-md-3 mb-50">@Html.DropDownList("agentId", (List<SelectListItem>)ViewBag.Agents, DstLocalization.T("All_Agents"), new { @class = "form-control form-control-sm", onchange = "this.form.submit()" })</div>
+                        <div class="col-md-4 mb-50">@Html.DropDownList("territoryId", (List<SelectListItem>)ViewBag.Territories, DstLocalization.T("All_Territories"), new { @class = "form-control form-control-sm", onchange = "this.form.submit()" })</div>
+                        <div class="col-md-3 mb-50">
+                            <select name="filter" class="form-control form-control-sm" onchange="this.form.submit()">
+                                <option value="">@DstLocalization.T("All")</option>
+                                <option value="overdue" @(filter == "overdue" ? "selected" : "")>@DstLocalization.T("Overdue")</option>
+                                <option value="overlimit" @(filter == "overlimit" ? "selected" : "")>@DstLocalization.T("Debt_OverLimit")</option>
+                                <option value="advance" @(filter == "advance" ? "selected" : "")>@DstLocalization.T("Aging_Advance")</option>
+                            </select>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="debtTable">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Agent")</th>
+                                    <th class="text-right">@DstLocalization.T("Debt")</th><th class="text-right">@DstLocalization.T("Aging_NotDue")</th>
+                                    <th class="text-right">1–7</th><th class="text-right">8–30</th><th class="text-right">31–60</th><th class="text-right">60+</th>
+                                    <th class="text-right">@DstLocalization.T("CreditLimit")</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in Model)
+                                {
+                                    <tr>
+                                        <td>@r.Customer<div class="small text-muted">@r.Territory</div></td>
+                                        <td>@r.Agent</td>
+                                        <td class="text-right"><b>@N(r.Aging.Total)</b>@if (r.Aging.Advance > 0) { <div class="small text-success">+@r.Aging.Advance.ToString("N0")</div> }</td>
+                                        <td class="text-right">@N(r.Aging.NotDue)</td>
+                                        <td class="text-right text-warning">@N(r.Aging.Days1To7)</td>
+                                        <td class="text-right text-warning">@N(r.Aging.Days8To30)</td>
+                                        <td class="text-right text-danger">@N(r.Aging.Days31To60)</td>
+                                        <td class="text-right text-danger"><b>@N(r.Aging.Over60)</b></td>
+                                        <td class="text-right @(r.Aging.Total > r.CreditLimit ? "text-danger" : "text-muted")">@r.CreditLimit.ToString("N0")</td>
+                                        <td class="text-right text-nowrap">
+                                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Statement", new { id = r.CustomerID })" title="@DstLocalization.T("Statement")"><i class="bx bx-file"></i></a>
+                                            <button type="button" class="btn btn-sm btn-outline-success" title="@DstLocalization.T("Payment_Receive")"
+                                                    onclick="dstPaymentModal({ customerId: @r.CustomerID, customerName: '@Html.Raw(HttpUtility.JavaScriptStringEncode(r.Customer))', amount: @r.Aging.Overdue.ToString(System.Globalization.CultureInfo.InvariantCulture) })"><i class="bx bx-money"></i></button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Partial("_PaymentModal")
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+}

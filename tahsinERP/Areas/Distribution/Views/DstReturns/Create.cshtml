@@ -1,0 +1,153 @@
+@{
+    ViewBag.DstParent = DstLocalization.T("Returns");
+    ViewBag.Title = DstLocalization.T("Return_New");
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label>@DstLocalization.T("Customer") *</label>
+                            <select id="rCustomer" class="form-control" style="width:100%"></select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>@DstLocalization.T("Warehouse") *</label>
+                            @Html.DropDownList("rWarehouse", (List<SelectListItem>)ViewBag.Warehouses, "—", new { @class = "form-control", id = "rWarehouse" })
+                        </div>
+                        <div class="form-group col-md-4" id="rLocationGroup" style="display:none">
+                            <label>@DstLocalization.T("Return_Location") *</label>
+                            <select id="rLocation" class="form-control"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label>@DstLocalization.T("Reason")</label>
+                            @Html.DropDownList("rReason", (List<SelectListItem>)ViewBag.Reasons, "—", new { @class = "form-control", id = "rReason" })
+                        </div>
+                        <div class="form-group col-md-3 d-flex align-items-end">
+                            <div class="custom-control custom-checkbox mb-50">
+                                <input type="checkbox" class="custom-control-input" id="rDefect" />
+                                <label class="custom-control-label" for="rDefect">@DstLocalization.T("Return_Defect")</label>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-4"><label>@DstLocalization.T("Comment")</label><input id="rNote" class="form-control" maxlength="300" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Return_FromShipments")</h4></div>
+                <div class="card-body">
+                    <table class="table table-sm" id="shippedTable">
+                        <thead><tr><th>@DstLocalization.T("Shipments")</th><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Return_Available")</th><th class="text-right">@DstLocalization.T("Price")</th><th style="width:140px">@DstLocalization.T("Qty")</th></tr></thead>
+                        <tbody><tr><td colspan="5" class="text-muted">@DstLocalization.T("Order_SelectCustomer")</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Return_WithoutOrder")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Return_WithoutOrderHint")</p>
+                    <div class="form-row mb-1">
+                        <div class="col-md-12"><select id="rProduct" class="form-control" style="width:100%"></select></div>
+                    </div>
+                    <table class="table table-sm" id="freeTable"><tbody></tbody></table>
+                    <button type="button" class="btn btn-primary" id="rSave">@DstLocalization.T("Save")</button>
+                    <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var preset = @Html.Raw(ViewBag.OrderJson ?? "null");
+            var money = new Intl.NumberFormat('ru-RU');
+            var free = [];
+
+            function loadShipped() {
+                var c = $('#rCustomer').val();
+                if (!c) return;
+                $.getJSON('@Url.Action("Returnable")', { customerId: c, orderId: preset ? preset.id : '' }, function (rows) {
+                    var tb = $('#shippedTable tbody').empty();
+                    if (!rows.length) tb.append('<tr><td colspan="5" class="text-muted">@DstLocalization.T("Table_Empty")</td></tr>');
+                    rows.forEach(function (r) {
+                        tb.append('<tr><td>' + dstEsc(r.shipment) + '<div class="small text-muted">' + dstEsc(r.order) + ' · ' + r.date + '</div></td><td>' + dstEsc(r.product) +
+                            '</td><td class="text-right">' + r.available + ' ' + dstEsc(r.unit) + '</td><td class="text-right">' + money.format(r.unitPrice) +
+                            '</td><td><input type="number" min="0" max="' + r.available + '" step="0.0001" class="form-control form-control-sm text-right" data-sl="' + r.shipmentLineId + '"/></td></tr>');
+                    });
+                });
+            }
+            function renderFree() {
+                $('#freeTable tbody').html(free.map(function (f, i) {
+                    return '<tr data-i="' + i + '"><td>' + dstEsc(f.text) + '</td><td style="width:140px"><input type="number" min="0" step="0.0001" class="form-control form-control-sm text-right" data-f="qty" value="' + f.qty + '" placeholder="@DstLocalization.T("Qty")"/></td>' +
+                        '<td style="width:160px"><input type="number" min="0" step="1" class="form-control form-control-sm text-right" data-f="price" value="' + (f.price === null ? '' : f.price) + '" placeholder="@DstLocalization.T("Price")"/></td>' +
+                        '<td style="width:50px"><button type="button" class="btn btn-sm btn-outline-danger" data-f="del"><i class="bx bx-x"></i></button></td></tr>';
+                }).join(''));
+            }
+
+            $('#rCustomer').select2({ ajax: { url: '@Url.Action("SearchCustomers", "DstOrders")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } } })
+                .on('change', loadShipped);
+            $('#rProduct').select2({
+                placeholder: '@DstLocalization.T("Order_AddProduct")',
+                ajax: { url: '@Url.Action("SearchProducts", "DstOrders")', dataType: 'json', delay: 300,
+                        data: function (p) { return { q: p.term, customerId: $('#rCustomer').val() }; } }
+            }).on('select2:select', function (e) {
+                var p = e.params.data, base = p.units.filter(function (u) { return u.productUnitId === null; })[0];
+                free.push({ productId: p.id, text: p.text, qty: 1, price: base ? base.price : null });
+                renderFree(); $(this).val(null).trigger('change.select2');
+            });
+            $('#freeTable').on('change', '[data-f]', function () {
+                var f = free[$(this).closest('tr').data('i')], k = $(this).data('f');
+                if (k === 'qty') f.qty = parseFloat($(this).val()) || 0;
+                if (k === 'price') f.price = $(this).val() === '' ? null : parseFloat($(this).val());
+            }).on('click', '[data-f=del]', function () { free.splice($(this).closest('tr').data('i'), 1); renderFree(); });
+
+            $('#rWarehouse').on('change', function () {
+                var wh = $(this).val();
+                $('#rLocationGroup').hide(); $('#rLocation').empty();
+                if (!wh) return;
+                $.getJSON('@Url.Action("Locations")', { warehouseId: wh }, function (r) {
+                    if (!r.dloc) return;
+                    r.locations.forEach(function (l) { $('#rLocation').append(new Option(l.text, l.id)); });
+                    $('#rLocationGroup').show();
+                });
+            });
+
+            $('#rSave').on('click', function () {
+                var data = {
+                    CustomerID: $('#rCustomer').val(), OrderID: preset ? preset.id : '', WarehouseID: $('#rWarehouse').val(),
+                    LocationID: $('#rLocationGroup').is(':visible') ? $('#rLocation').val() : '', ReasonID: $('#rReason').val(),
+                    IsDefect: $('#rDefect').is(':checked'), Note: $('#rNote').val()
+                }, i = 0;
+                $('[data-sl]').each(function () {
+                    var q = parseFloat($(this).val());
+                    if (q > 0) { data['Lines[' + i + '].ShipmentLineID'] = $(this).data('sl'); data['Lines[' + i + '].QtyBase'] = q; i++; }
+                });
+                free.forEach(function (f) {
+                    if (f.qty > 0) {
+                        data['Lines[' + i + '].ProductID'] = f.productId; data['Lines[' + i + '].QtyBase'] = f.qty;
+                        if (f.price !== null) data['Lines[' + i + '].UnitPrice'] = f.price;
+                        i++;
+                    }
+                });
+                var btn = $(this).prop('disabled', true);
+                dstPost('@Url.Action("Save")', data).done(function () { location.href = '@Url.Action("Index")'; }).always(function () { btn.prop('disabled', false); });
+            });
+
+            if (preset) {
+                $('#rCustomer').append(new Option(preset.customer, preset.customerId, true, true)).trigger('change');
+                if (preset.warehouseId) $('#rWarehouse').val(String(preset.warehouseId)).trigger('change');
+            }
+        });
+    </script>
+}

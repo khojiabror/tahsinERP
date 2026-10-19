@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using tahsinERP.Areas.Distribution.Data;
 using tahsinERP.Areas.Distribution.Data.Entities;
+using tahsinERP.Areas.Distribution.Services.Money;
 using tahsinERP.Models;
 using tahsinERP.Services.Stock;
 
@@ -473,7 +474,60 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 Move(db, order, OrderStatus.Delivered, userId, now, null);
             }
             db.SaveChanges();
+            DebtService.SettleOrders(db, order.CustomerID, userId, now);   // oldindan to'langan bo'lsa — darhol yopiladi
+            db.SaveChanges();
             return shipment.ID;
+        }
+
+        /// <summary>
+        /// Jo'natishni bekor qilish (xato jo'natildi): ombor chiqimi teskari (StockLedger.ReverseIssueLine), qarz teskari
+        /// yozuv bilan, buyurtma qatorlari va holati qaytariladi, tovar yana rezervga olinadi. Yetkazilgan/yopilgan yoki
+        /// qaytarish qilingan jo'natish bekor qilinmaydi — qaytarish hujjati bilan.
+        /// </summary>
+        public static void CancelShipment(DistributionUnitOfWork uow, int shipmentId, int userId, string reason, DateTime now)
+        {
+            var db = uow.Dst;
+            var erp = uow.Erp;
+            var shipment = db.Shipments.Find(shipmentId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+            var order = Load(db, shipment.OrderID);
+            var status = (OrderStatus)order.OrderStatus;
+            if (status != OrderStatus.Shipped && status != OrderStatus.PartiallyShipped)
+                throw new DstValidationException(DstLocalization.T("Shipment_CannotCancel"));
+            var shipmentLines = db.ShipmentLines.Where(l => l.ShipmentID == shipmentId).ToList();
+            var slIds = shipmentLines.Select(l => l.ID).ToList();
+            if (db.ReturnLines.Any(r => r.ShipmentLineID != null && slIds.Contains(r.ShipmentLineID.Value) && r.Return.Status != DocumentStatus.Cancelled))
+                throw new DstValidationException(DstLocalization.T("Shipment_HasReturns"));
+
+            DocumentLifecycle.Cancel(shipment, userId, reason, now);
+
+            if (shipment.ExpenseID.HasValue)
+            {
+                var expense = erp.EXPENSES.Find(shipment.ExpenseID.Value);
+                var eps = erp.EXPENSE_PRODUCTS.Where(p => p.ExpenseID == shipment.ExpenseID.Value).ToList();
+                foreach (var ep in eps)
+                {
+                    StockLedger.ReverseIssueLine(erp, shipment.WarehouseID, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID);
+                    erp.EXPENSE_PRODUCTS.Remove(ep);
+                }
+                if (expense != null) expense.IsDeleted = true;
+                erp.SaveChanges();
+            }
+
+            var lines = db.OrderLines.Where(l => l.OrderID == order.ID).ToList();
+            foreach (var sl in shipmentLines)
+            {
+                var line = lines.First(l => l.ID == sl.OrderLineID);
+                line.QtyShippedBase = Math.Max(0, line.QtyShippedBase - sl.QtyBase);
+            }
+            order.ShippedTotal = Math.Max(0, order.ShippedTotal - shipment.Total);
+            DebtService.Reverse(db, LedgerDocTypes.Shipment, shipment.ID, now, userId, shipment.DocNo + ": " + shipment.CancelReason);
+
+            bool anyShipped = lines.Any(l => l.QtyShippedBase > 0);
+            Move(db, order, anyShipped ? OrderStatus.PartiallyShipped : OrderStatus.Confirmed, userId, now, shipment.DocNo + ": " + shipment.CancelReason);
+            db.SaveChanges();
+            if (order.WarehouseID.HasValue)
+                Reserve(db, order.WarehouseID.Value, lines, now);
+            db.SaveChanges();
         }
 
         /// <summary>Qisman jo'natilganda qolganidan voz kechish: rezerv yechiladi, buyurtma "jo'natildi".</summary>

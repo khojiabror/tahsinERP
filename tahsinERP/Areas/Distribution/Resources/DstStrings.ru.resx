@@ -30,6 +30,15 @@
   <data name="Agents_Hint" xml:space="preserve">
     <value>Агент — пользователь ERP; видит только закреплённых за ним клиентов. Экспедитор — доставка (этап 2).</value>
   </data>
+  <data name="Aging_Advance" xml:space="preserve">
+    <value>Аванс (предоплата)</value>
+  </data>
+  <data name="Aging_NotDue" xml:space="preserve">
+    <value>Срок не наступил</value>
+  </data>
+  <data name="Aging_Over60" xml:space="preserve">
+    <value>Более 60 дней</value>
+  </data>
   <data name="All" xml:space="preserve">
     <value>Все</value>
   </data>
@@ -86,6 +95,42 @@
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Отмена</value>
+  </data>
+  <data name="Cash_Accept" xml:space="preserve">
+    <value>Принять</value>
+  </data>
+  <data name="Cash_Declared" xml:space="preserve">
+    <value>По оплатам</value>
+  </data>
+  <data name="Cash_Difference" xml:space="preserve">
+    <value>Разница</value>
+  </data>
+  <data name="Cash_DifferenceHint" xml:space="preserve">
+    <value>Недостача остаётся за агентом и отражается в кассе расходом, излишек — приходом.</value>
+  </data>
+  <data name="Cash_Handovers" xml:space="preserve">
+    <value>Сдачи в кассу</value>
+  </data>
+  <data name="Cash_Hint" xml:space="preserve">
+    <value>Наличные, полученные агентом, числятся за ним до сдачи в кассу. Кассир пересчитывает и принимает; разница отражается в финансах отдельно.</value>
+  </data>
+  <data name="Cash_Oldest" xml:space="preserve">
+    <value>Самый ранний</value>
+  </data>
+  <data name="Cash_OnHand" xml:space="preserve">
+    <value>Наличные на руках у агентов</value>
+  </data>
+  <data name="Cash_Received" xml:space="preserve">
+    <value>Пересчитано</value>
+  </data>
+  <data name="Cash_Reject" xml:space="preserve">
+    <value>Отклонить</value>
+  </data>
+  <data name="Cash_Submitted" xml:space="preserve">
+    <value>сдал, ожидает</value>
+  </data>
+  <data name="Cash_Title" xml:space="preserve">
+    <value>Наличные агентов и касса</value>
   </data>
   <data name="Category" xml:space="preserve">
     <value>Категория</value>
@@ -194,6 +239,12 @@
   </data>
   <data name="Debt" xml:space="preserve">
     <value>Долг</value>
+  </data>
+  <data name="Debt_OverLimit" xml:space="preserve">
+    <value>Сверх лимита</value>
+  </data>
+  <data name="Debts" xml:space="preserve">
+    <value>Долги</value>
   </data>
   <data name="Default" xml:space="preserve">
     <value>по умолчанию</value>
@@ -354,6 +405,12 @@
   <data name="GrossProfit" xml:space="preserve">
     <value>Валовая прибыль</value>
   </data>
+  <data name="Handover_NothingOnHand" xml:space="preserve">
+    <value>У агента нет наличных для сдачи.</value>
+  </data>
+  <data name="Handover_PendingExists" xml:space="preserve">
+    <value>У агента есть ожидающая сдача — сначала примите или отклоните её.</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>История</value>
   </data>
@@ -408,6 +465,15 @@
   <data name="Import_NoShop" xml:space="preserve">
     <value>В базе нет цеха (SHOPS) — нельзя создать товар.</value>
   </data>
+  <data name="Import_Opening" xml:space="preserve">
+    <value>Начальные долги</value>
+  </data>
+  <data name="Import_OpeningExists" xml:space="preserve">
+    <value>Начальный остаток этому клиенту уже введён.</value>
+  </data>
+  <data name="Import_OpeningHint" xml:space="preserve">
+    <value>Долги клиентов на момент перехода: ИНН или название, сумма (долг +, аванс −), срок (пусто — сегодня + отсрочка). Один раз на клиента.</value>
+  </data>
   <data name="Import_PnoNameRequired" xml:space="preserve">
     <value>Артикул и наименование обязательны.</value>
   </data>
@@ -461,6 +527,33 @@
   </data>
   <data name="Latitude" xml:space="preserve">
     <value>Широта</value>
+  </data>
+  <data name="Ledger_ADJUSTMENT" xml:space="preserve">
+    <value>Корректировка</value>
+  </data>
+  <data name="Ledger_OPENING" xml:space="preserve">
+    <value>Начальный остаток</value>
+  </data>
+  <data name="Ledger_OPENING_REV" xml:space="preserve">
+    <value>Отмена начального остатка</value>
+  </data>
+  <data name="Ledger_PAYMENT" xml:space="preserve">
+    <value>Оплата</value>
+  </data>
+  <data name="Ledger_PAYMENT_REV" xml:space="preserve">
+    <value>Отмена оплаты</value>
+  </data>
+  <data name="Ledger_RETURN" xml:space="preserve">
+    <value>Возврат</value>
+  </data>
+  <data name="Ledger_RETURN_REV" xml:space="preserve">
+    <value>Отмена возврата</value>
+  </data>
+  <data name="Ledger_SHIPMENT" xml:space="preserve">
+    <value>Отгрузка</value>
+  </data>
+  <data name="Ledger_SHIPMENT_REV" xml:space="preserve">
+    <value>Отмена отгрузки</value>
   </data>
   <data name="Level" xml:space="preserve">
     <value>Уровень</value>
@@ -645,8 +738,62 @@
   <data name="Parent" xml:space="preserve">
     <value>Родитель</value>
   </data>
+  <data name="PayMethod_CARD" xml:space="preserve">
+    <value>Карта</value>
+  </data>
+  <data name="PayMethod_CASH" xml:space="preserve">
+    <value>Наличные</value>
+  </data>
+  <data name="PayMethod_CLICK" xml:space="preserve">
+    <value>Click</value>
+  </data>
+  <data name="PayMethod_PAYME" xml:space="preserve">
+    <value>Payme</value>
+  </data>
+  <data name="PayMethod_TRANSFER" xml:space="preserve">
+    <value>Перечисление</value>
+  </data>
+  <data name="PayMethod_UZUM" xml:space="preserve">
+    <value>Uzum</value>
+  </data>
   <data name="PaymentDays" xml:space="preserve">
     <value>Отсрочка (дней)</value>
+  </data>
+  <data name="Payment_Account" xml:space="preserve">
+    <value>Касса / счёт</value>
+  </data>
+  <data name="Payment_AccountHint" xml:space="preserve">
+    <value>Если наличные получил агент — не выбирайте счёт, они попадут в кассу при сдаче.</value>
+  </data>
+  <data name="Payment_AccountNotSum" xml:space="preserve">
+    <value>Выберите кассу или счёт в сумах.</value>
+  </data>
+  <data name="Payment_AccountRequired" xml:space="preserve">
+    <value>Выберите кассу или счёт (безналичная оплата сразу поступает на счёт).</value>
+  </data>
+  <data name="Payment_AlreadyHandedOver" xml:space="preserve">
+    <value>Эта оплата уже сдана в кассу — отменить нельзя.</value>
+  </data>
+  <data name="Payment_AmountPositive" xml:space="preserve">
+    <value>Сумма должна быть больше 0.</value>
+  </data>
+  <data name="Payment_Method" xml:space="preserve">
+    <value>Способ оплаты</value>
+  </data>
+  <data name="Payment_MethodRequired" xml:space="preserve">
+    <value>Выберите способ оплаты.</value>
+  </data>
+  <data name="Payment_OnHand" xml:space="preserve">
+    <value>У агента (наличные)</value>
+  </data>
+  <data name="Payment_Receive" xml:space="preserve">
+    <value>Принять оплату</value>
+  </data>
+  <data name="Payment_ReceivedBy" xml:space="preserve">
+    <value>Принял</value>
+  </data>
+  <data name="Payments" xml:space="preserve">
+    <value>Оплаты</value>
   </data>
   <data name="Phone" xml:space="preserve">
     <value>Телефон</value>
@@ -795,6 +942,42 @@
   <data name="Reserved" xml:space="preserve">
     <value>Резерв</value>
   </data>
+  <data name="Return_AlreadyIssued" xml:space="preserve">
+    <value>Возвращённый товар уже списан — отменить нельзя.</value>
+  </data>
+  <data name="Return_Available" xml:space="preserve">
+    <value>Можно вернуть</value>
+  </data>
+  <data name="Return_Defect" xml:space="preserve">
+    <value>Брак</value>
+  </data>
+  <data name="Return_FromShipments" xml:space="preserve">
+    <value>Из отгруженных товаров</value>
+  </data>
+  <data name="Return_Location" xml:space="preserve">
+    <value>Ячейка</value>
+  </data>
+  <data name="Return_LocationRequired" xml:space="preserve">
+    <value>Выберите ячейку на этом складе.</value>
+  </data>
+  <data name="Return_New" xml:space="preserve">
+    <value>Возврат</value>
+  </data>
+  <data name="Return_OverShipped" xml:space="preserve">
+    <value>Нельзя вернуть больше отгруженного (осталось {0}).</value>
+  </data>
+  <data name="Return_StockError" xml:space="preserve">
+    <value>Ошибка оприходования.</value>
+  </data>
+  <data name="Return_WithoutOrder" xml:space="preserve">
+    <value>Без заказа</value>
+  </data>
+  <data name="Return_WithoutOrderHint" xml:space="preserve">
+    <value>Пустая цена — текущая цена клиента; себестоимость — цена последнего прихода.</value>
+  </data>
+  <data name="Returns" xml:space="preserve">
+    <value>Возвраты</value>
+  </data>
   <data name="Role" xml:space="preserve">
     <value>Роль</value>
   </data>
@@ -831,6 +1014,18 @@
   <data name="Ship_StockError" xml:space="preserve">
     <value>Строка {0}: ошибка списания.</value>
   </data>
+  <data name="Shipment_Cancel" xml:space="preserve">
+    <value>Отменить отгрузку</value>
+  </data>
+  <data name="Shipment_CancelReason" xml:space="preserve">
+    <value>Причина отмены отгрузки</value>
+  </data>
+  <data name="Shipment_CannotCancel" xml:space="preserve">
+    <value>Отменить можно только отгрузку недоставленного заказа — иначе оформите возврат.</value>
+  </data>
+  <data name="Shipment_HasReturns" xml:space="preserve">
+    <value>По отгрузке есть возврат — сначала отмените его.</value>
+  </data>
   <data name="Shipments" xml:space="preserve">
     <value>Отгрузки</value>
   </data>
@@ -842,6 +1037,30 @@
   </data>
   <data name="Source" xml:space="preserve">
     <value>Источник</value>
+  </data>
+  <data name="Statement" xml:space="preserve">
+    <value>Акт сверки</value>
+  </data>
+  <data name="Statement_Balance" xml:space="preserve">
+    <value>Сальдо</value>
+  </data>
+  <data name="Statement_Closing" xml:space="preserve">
+    <value>Конечное сальдо</value>
+  </data>
+  <data name="Statement_Credit" xml:space="preserve">
+    <value>Кредит (оплата)</value>
+  </data>
+  <data name="Statement_CustomerOwes" xml:space="preserve">
+    <value>Задолженность клиента</value>
+  </data>
+  <data name="Statement_Debit" xml:space="preserve">
+    <value>Дебет (продажа)</value>
+  </data>
+  <data name="Statement_Opening" xml:space="preserve">
+    <value>Начальное сальдо</value>
+  </data>
+  <data name="Statement_WeOwe" xml:space="preserve">
+    <value>Аванс клиента</value>
   </data>
   <data name="Status" xml:space="preserve">
     <value>Статус</value>
@@ -939,6 +1158,9 @@
   <data name="Tile_Customers" xml:space="preserve">
     <value>Торговые точки, лимит, агент</value>
   </data>
+  <data name="Tile_Debts" xml:space="preserve">
+    <value>Сроки, акт сверки</value>
+  </data>
   <data name="Tile_Dictionaries" xml:space="preserve">
     <value>Бренды, причины</value>
   </data>
@@ -948,11 +1170,17 @@
   <data name="Tile_Orders" xml:space="preserve">
     <value>Заказ, резерв, отгрузка</value>
   </data>
+  <data name="Tile_Payments" xml:space="preserve">
+    <value>Оплата, наличные агента, касса</value>
+  </data>
   <data name="Tile_Prices" xml:space="preserve">
     <value>Типы цен и история</value>
   </data>
   <data name="Tile_Products" xml:space="preserve">
     <value>Единицы, штрихкоды</value>
+  </data>
+  <data name="Tile_Returns" xml:space="preserve">
+    <value>Возврат годного / брака</value>
   </data>
   <data name="Tile_Settings" xml:space="preserve">
     <value>Скидки, склады</value>

@@ -633,5 +633,80 @@ namespace tahsinERP.Areas.Distribution.Services
             }
             return result;
         }
+    
+
+        // ---------- kirish qoldiqlari (mijoz qarzlari) ----------
+
+        public static readonly Column[] OpeningColumns =
+        {
+            new Column("customer", "Mijoz (STIR yoki nomi)", "Клиент (ИНН или название)", true),
+            new Column("amount", "Qarz (+) / avans (-)", "Долг (+) / аванс (-)", true),
+            new Column("due", "To'lov muddati", "Срок оплаты"),
+        };
+
+        /// <summary>
+        /// Tizimga o'tishdagi qarzlar: har mijozga bitta OPENING yozuvi (takror import rad etiladi). Musbat — mijoz qarzi
+        /// (debet, muddati bilan), manfiy — avans (kredit).
+        /// </summary>
+        public static ImportResult ImportOpening(Stream stream, int? userId, Func<DistributionUnitOfWork> openUow, bool dryRun = false)
+        {
+            var result = new ImportResult();
+            var sheet = Read(stream);
+            var map = MapColumns(sheet, OpeningColumns, result);
+            if (!result.Ok) return result;
+
+            using (var uow = openUow())
+            {
+                var db = uow.Dst;
+                var customers = (from p in db.CustomerProfiles
+                                 join c in db.Customers on p.CustomerID equals c.ID
+                                 where c.IsDeleted != true
+                                 select new { c.ID, c.Name, p.INN, p.AgentUserID, p.PaymentDays }).ToList();
+                var already = new HashSet<int>(db.CustomerLedger.Where(l => l.DocType == LedgerDocTypes.Opening).Select(l => l.CustomerID).Distinct().ToList());
+                var seen = new HashSet<int>();
+                var entries = new List<CustomerLedgerEntry>();
+                var now = DateTime.Now;
+
+                foreach (var (row, cells) in sheet.Rows)
+                {
+                    Collect(result, row, () =>
+                    {
+                        var key = Get(cells, map, "customer")?.Trim();
+                        var matches = customers.Where(c => c.INN == key).ToList();
+                        if (matches.Count == 0) matches = customers.Where(c => string.Equals(c.Name, key, StringComparison.OrdinalIgnoreCase)).ToList();
+                        if (matches.Count != 1)
+                            throw new DstValidationException(DstLocalization.T(matches.Count == 0 ? "Import_UnknownValue" : "Import_AmbiguousName", key));
+                        var c0 = matches[0];
+                        if (already.Contains(c0.ID)) throw new DstValidationException(DstLocalization.T("Import_OpeningExists"));
+                        if (!seen.Add(c0.ID)) throw new DstValidationException(DstLocalization.T("Import_DuplicateInFile", key));
+                        var amount = Dec(Get(cells, map, "amount")) ?? 0;
+                        if (amount == 0) return;
+                        DateTime? due = null;
+                        var dueText = Get(cells, map, "due");
+                        if (!string.IsNullOrWhiteSpace(dueText))
+                        {
+                            if (DateTime.TryParse(dueText, CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.None, out var d)) due = d.Date;
+                            else if (double.TryParse(dueText, NumberStyles.Any, CultureInfo.InvariantCulture, out var serial)) due = DateTime.FromOADate(serial).Date;
+                            else throw new DstValidationException(DstLocalization.T("Import_UnknownValue", dueText));
+                        }
+                        entries.Add(new CustomerLedgerEntry
+                        {
+                            CustomerID = c0.ID, EntryDate = now, DocType = LedgerDocTypes.Opening,
+                            Debit = amount > 0 ? amount : 0, Credit = amount < 0 ? -amount : 0,
+                            DueDate = amount > 0 ? (due ?? now.Date.AddDays(c0.PaymentDays)) : (DateTime?)null,
+                            AgentUserID = c0.AgentUserID, CreatedBy = userId, Note = DstLocalization.T("Ledger_OPENING")
+                        });
+                    });
+                }
+                if (!result.Ok) return result;
+
+                db.CustomerLedger.AddRange(entries);
+                db.SaveChanges();
+                result.Created = entries.Count;
+                result.Skipped = sheet.Rows.Count - entries.Count;
+                if (!dryRun) uow.Commit();
+            }
+            return result;
+        }
     }
 }

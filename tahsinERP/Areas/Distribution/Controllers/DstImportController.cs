@@ -12,12 +12,13 @@ namespace tahsinERP.Areas.Distribution.Controllers
         public const string Customers = "customers";
         public const string Products = "products";
         public const string Prices = "prices";
+        public const string Opening = "opening";
 
         public const int MaxFileBytes = 10 * 1024 * 1024;
 
         public ActionResult Index(string kind)
         {
-            ViewBag.Kind = new[] { Customers, Products, Prices }.Contains(kind) ? kind : Customers;
+            ViewBag.Kind = new[] { Customers, Products, Prices, Opening }.Contains(kind) ? kind : Customers;
             return View();
         }
 
@@ -29,6 +30,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
             {
                 case Products:
                     bytes = ImportService.Template(ImportService.ProductColumns, IsRussian);
+                    break;
+                case Opening:
+                    bytes = ImportService.Template(ImportService.OpeningColumns, IsRussian);
                     break;
                 case Prices:
                     using (var db = NewDb())
@@ -50,7 +54,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Upload(string kind, HttpPostedFileBase file, bool dryRun = false)
         {
-            kind = new[] { Customers, Products, Prices }.Contains(kind) ? kind : Customers;
+            kind = new[] { Customers, Products, Prices, Opening }.Contains(kind) ? kind : Customers;
             ViewBag.Kind = kind;
             if (file == null || file.ContentLength == 0 || !file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
@@ -73,6 +77,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
                         break;
                     case Prices:
                         result = ImportService.ImportPrices(file.InputStream, CurrentUserId, NewUnitOfWork, dryRun);
+                        break;
+                    case Opening:
+                        result = ImportService.ImportOpening(file.InputStream, CurrentUserId, NewUnitOfWork, dryRun);
                         break;
                     default:
                         result = ImportService.ImportCustomers(file.InputStream, CurrentUserId, NewUnitOfWork, dryRun);

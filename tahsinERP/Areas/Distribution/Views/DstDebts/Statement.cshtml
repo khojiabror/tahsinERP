@@ -1,0 +1,59 @@
+@model tahsinERP.Areas.Distribution.Services.Money.DebtService.Statement
+@{
+    var customer = (tahsinERP.Areas.Distribution.Data.Entities.CustomerRef)ViewBag.Customer;
+    var aging = (tahsinERP.Areas.Distribution.Services.Money.AgingBuckets)ViewBag.Aging;
+    DateTime from = ViewBag.From, to = ViewBag.To;
+    ViewBag.DstParent = DstLocalization.T("Debts");
+    ViewBag.Title = DstLocalization.T("Statement") + ": " + customer.Name;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="form-row align-items-end">
+                        <input type="hidden" name="id" value="@customer.ID" />
+                        <div class="col-md-3"><label>@DstLocalization.T("ValidFrom")</label><input type="date" name="from" value="@from.ToString("yyyy-MM-dd")" class="form-control" /></div>
+                        <div class="col-md-3"><label>@DstLocalization.T("ValidTo")</label><input type="date" name="to" value="@to.ToString("yyyy-MM-dd")" class="form-control" /></div>
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">@DstLocalization.T("Apply")</button>
+                            <a class="btn btn-outline-secondary" target="_blank" href="@Url.Action("Statement", new { id = customer.ID, from = from.ToString("yyyy-MM-dd"), to = to.ToString("yyyy-MM-dd"), print = true })"><i class="bx bx-printer"></i> @DstLocalization.T("Print")</a>
+                            <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead><tr><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Type")</th><th>@DstLocalization.T("Order_No")</th><th class="text-right">@DstLocalization.T("Statement_Debit")</th><th class="text-right">@DstLocalization.T("Statement_Credit")</th><th class="text-right">@DstLocalization.T("Statement_Balance")</th></tr></thead>
+                        <tbody>
+                            <tr class="table-active"><td colspan="5">@DstLocalization.T("Statement_Opening") @from.ToString("dd.MM.yyyy")</td><td class="text-right"><b>@Model.Opening.ToString("N0")</b></td></tr>
+                            @foreach (var r in Model.Rows)
+                            {
+                                <tr>
+                                    <td>@r.Date.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>@DstLocalization.T("Ledger_" + r.DocType)</td>
+                                    <td>@r.Doc</td>
+                                    <td class="text-right">@(r.Debit != 0 ? r.Debit.ToString("N0") : "")</td>
+                                    <td class="text-right">@(r.Credit != 0 ? r.Credit.ToString("N0") : "")</td>
+                                    <td class="text-right">@r.Balance.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr><th colspan="3">@DstLocalization.T("Total")</th><th class="text-right">@Model.TotalDebit.ToString("N0")</th><th class="text-right">@Model.TotalCredit.ToString("N0")</th><th></th></tr>
+                            <tr class="table-active"><th colspan="5">@DstLocalization.T("Statement_Closing") @to.ToString("dd.MM.yyyy")</th><th class="text-right">@Model.Closing.ToString("N0")</th></tr>
+                        </tfoot>
+                    </table>
+                    <div class="small text-muted">
+                        @DstLocalization.T("Overdue"): <b class="text-danger">@aging.Overdue.ToString("N0")</b> ·
+                        1–7: @aging.Days1To7.ToString("N0") · 8–30: @aging.Days8To30.ToString("N0") · 31–60: @aging.Days31To60.ToString("N0") · 60+: @aging.Over60.ToString("N0")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -49,13 +49,14 @@ namespace tahsinERP.Tests.Distribution
             if (_sql == null) Assert.Inconclusive("Lokal baza yoki migratsiya 018 yo'q.");
         }
 
-        private sealed class Fixture
+        internal sealed class Fixture
         {
             public int WarehouseId, ProductId, CustomerId, UserId, PriceTypeId;
+            public int? LocationId;
         }
 
         /// <summary>Shu tranzaksiyada: yangi tovar, narx, DLOC'siz omborga 100 dona kirim (birlik narxi 40 000), mijoz.</summary>
-        private static Fixture Arrange(DistributionUnitOfWork uow, decimal creditLimit)
+        internal static Fixture Arrange(DistributionUnitOfWork uow, decimal creditLimit)
         {
             var erp = uow.Erp;
             var db = uow.Dst;
@@ -112,10 +113,10 @@ namespace tahsinERP.Tests.Distribution
                 Name = "Flow test " + product.PNo, CreditLimit = creditLimit, PaymentDays = 10
             }, user.ID, AuditActor.Web, now);
 
-            return new Fixture { WarehouseId = warehouse.ID, ProductId = product.ID, CustomerId = customerId, UserId = user.ID, PriceTypeId = priceType.ID };
+            return new Fixture { WarehouseId = warehouse.ID, ProductId = product.ID, CustomerId = customerId, UserId = user.ID, PriceTypeId = priceType.ID, LocationId = locationId };
         }
 
-        private static OrderActor Actor(Fixture f, decimal? maxDiscount = 5, bool overrideCredit = false) =>
+        internal static OrderActor Actor(Fixture f, decimal? maxDiscount = 5, bool overrideCredit = false) =>
             new OrderActor { UserId = f.UserId, MaxDiscountPct = maxDiscount, CanOverrideCredit = overrideCredit };
 
         [TestMethod]

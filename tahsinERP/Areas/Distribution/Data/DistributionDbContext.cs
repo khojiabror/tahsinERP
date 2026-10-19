@@ -104,7 +104,14 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<CustomerLedgerEntry> CustomerLedger { get; set; }
         public virtual DbSet<DstSetting> Settings { get; set; }
 
+        // pul va qaytarish (S3)
+        public virtual DbSet<DstPayment> Payments { get; set; }
+        public virtual DbSet<CashHandover> CashHandovers { get; set; }
+        public virtual DbSet<DstReturn> Returns { get; set; }
+        public virtual DbSet<DstReturnLine> ReturnLines { get; set; }
+
         // dbo jadvallari — faqat o'qish (join uchun)
+        public virtual DbSet<FinAccountRef> FinAccounts { get; set; }
         public virtual DbSet<StockRef> Stocks { get; set; }
         public virtual DbSet<CustomerRef> Customers { get; set; }
         public virtual DbSet<ProductRef> Products { get; set; }
@@ -212,6 +219,24 @@ namespace tahsinERP.Areas.Distribution.Data
             cl.Property(e => e.DocType).IsUnicode(false);
             modelBuilder.Entity<DstSetting>().Property(e => e.Key).IsUnicode(false);
             modelBuilder.Entity<StockRef>().Property(e => e.Amount).HasPrecision(18, 6);
+
+            var pay = modelBuilder.Entity<DstPayment>();
+            pay.Property(e => e.Amount).HasPrecision(19, 2);
+            pay.Property(e => e.Method).IsUnicode(false);
+            pay.Property(e => e.Source).IsUnicode(false);
+            var ho = modelBuilder.Entity<CashHandover>();
+            ho.Property(e => e.AmountDeclared).HasPrecision(19, 2);
+            ho.Property(e => e.AmountReceived).HasPrecision(19, 2);
+            var ret = modelBuilder.Entity<DstReturn>();
+            ret.Property(e => e.Total).HasPrecision(19, 2);
+            ret.Property(e => e.CostTotal).HasPrecision(19, 2);
+            ret.Property(e => e.PhotoKey).IsUnicode(false);
+            ret.Property(e => e.Source).IsUnicode(false);
+            var rl = modelBuilder.Entity<DstReturnLine>();
+            rl.Property(e => e.QtyBase).HasPrecision(18, 4);
+            rl.Property(e => e.UnitPrice).HasPrecision(19, 4);
+            rl.Property(e => e.Amount).HasPrecision(19, 2);
+            rl.Property(e => e.UnitCost).HasPrecision(19, 6);
 
             base.OnModelCreating(modelBuilder);
         }

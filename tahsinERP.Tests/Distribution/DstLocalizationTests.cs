@@ -61,6 +61,10 @@ namespace tahsinERP.Tests.Distribution
                 Assert.IsTrue(keys.Contains("PointType_" + p), p);
             foreach (var r in tahsinERP.Areas.Distribution.Data.Entities.ReasonTypes.All)
                 Assert.IsTrue(keys.Contains("ReasonType_" + r), r);
+            foreach (var m in tahsinERP.Areas.Distribution.Data.Entities.PaymentMethods.All)
+                Assert.IsTrue(keys.Contains("PayMethod_" + m), m);
+            foreach (var d in new[] { "SHIPMENT", "PAYMENT", "RETURN", "ADJUSTMENT", "OPENING" })
+                Assert.IsTrue(keys.Contains("Ledger_" + d) && keys.Contains("Ledger_" + d + "_REV") || d == "ADJUSTMENT", d);
             foreach (var st in System.Enum.GetNames(typeof(tahsinERP.Areas.Distribution.Services.Orders.OrderStatus)))
                 Assert.IsTrue(keys.Contains("OrderStatus_" + st), st);
         }
