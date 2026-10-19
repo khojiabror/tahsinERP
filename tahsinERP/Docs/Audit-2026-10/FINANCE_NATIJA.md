@@ -215,7 +215,13 @@ Natija: akt-sverki va qarz hisoboti turli raqam berardi, balans esa teng emasdi.
 - **Balans popup'lari so'mda:** har qator o'z sanasidagi kurs bilan (`BalanceMovementQueries.UzsMovementRows`, xarid invoyslari `PurchaseInvoiceAmountsUzs`).
 - **Kirim valyutasi data-fix:** INCOMES 699 (300-invoys) so'mda kiritilgan, lekin USD deb belgilangan edi — popup va AP'da kurs yo'qligi uchun 0 bo'lib chiqardi. `DataFix_Finance_IncomeCurrency_Check/Fix.sql`, zaxira `INCOMES_CURRENCY_BAK_20261019`.
 - **InvoiceMirrorAmounts_Fix bajarildi:** SRM invoys summasi tuzatishi lokal bazada allaqachon qo'llangan (farq 0). Zaxira `DBTHSN-IPACK_finance_before_mirror_20261019.bak`. Mirror farqi 39 → 0; faqat kreditor/debitor hisob qoldiqlari o'zgardi (AP hisobi −1 835,3 → −1 998,1 mln, AR hisobi 224,7 → 251,7 mln), hujjatdan hisoblanadigan balans/akt o'zgarmadi.
-- **Brauzerda tekshirish:** login kerak.
+- **Brauzerda tekshirildi (2026-10-19):** 62 ta Finance sahifasi (Details/Edit/Delete real ID bilan) va 20 ta sahifaning JS xatolari. Topilib tuzatildi:
+  - FinAccounts Create/Edit 500: valyuta ro'yxati yo'q `CURRENCy.Name` bo'yicha qurilardi (eski xato);
+  - FinBalanceCategories/FinPlItems Index 500: P17 `AsNoTracking`'dan keyin ota nomi lazy-load qilinardi — `Include`;
+  - Delete sahifalari va FinPlPlans Index: `@Model.X?.Name` proksi tur nomini chiqarardi;
+  - DirectionAnalysis, AccountBalances, FinanceReportsHub, LiabilitiesDashboard: skriptlar jQuery'dan oldin ishlab `$ is not defined` (jadval/filtr ishlamasdi) — `@section Scripts`;
+  - FinanceReportsHub: bo'sh jadval DataTable'ni sindirardi.
+  - Finance'dan tashqari (tegilmadi): Core `datatable.js` `cdn.datatables.net/.../Uzbek.json` ni http orqali so'raydi — CORS xatosi.
 
 ## Qolganlar (bajarilmadi)
 

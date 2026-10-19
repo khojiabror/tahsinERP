@@ -124,19 +124,22 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function() {
-            $('#accountBalancesTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                },
-                "order": [[5, "desc"]], // Sort by Qoldiq column
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                "columnDefs": [
-                    { "orderable": true, "targets": [0, 1, 2, 3, 4, 5] },
-                    { "type": "num", "targets": [0] }
-                ]
+@* jQuery layout oxirida yuklanadi — skriptlar Scripts section'da bo'lishi kerak *@
+@section Scripts {
+        <script>
+            $(document).ready(function() {
+                $('#accountBalancesTable').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                    },
+                    "order": [[5, "desc"]], // Sort by Qoldiq column
+                    "pageLength": 25,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "columnDefs": [
+                        { "orderable": true, "targets": [0, 1, 2, 3, 4, 5] },
+                        { "type": "num", "targets": [0] }
+                    ]
+                });
             });
-        });
-    </script>
+        </script>
+}
