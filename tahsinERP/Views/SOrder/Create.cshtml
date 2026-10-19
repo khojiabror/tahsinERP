@@ -106,7 +106,7 @@
                                                                         <td>@product.ProductName</td>
                                                                         <td>@product.UnitName</td>
                                                                         <td class="text-right">@product.ContractAmount.ToString("N2")</td>
-                                                                        <td class="text-right">@((product.PiecePrice * (1 + product.VatRate / 100d)).ToString("N2"))</td>
+                                                                        <td class="text-right">@((product.PiecePrice * (1 + product.VatRate / 100m)).ToString("N2"))</td>
                                                                         <td>
                                                                             <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />

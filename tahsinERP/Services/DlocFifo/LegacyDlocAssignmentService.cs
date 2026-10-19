@@ -12,7 +12,7 @@ namespace tahsinERP.Services.DlocFifo
     {
         public int ProductID { get; set; }
         public int LocationID { get; set; }
-        public double AssignQty { get; set; }
+        public decimal AssignQty { get; set; }
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ namespace tahsinERP.Services.DlocFifo
         /// <summary>Joylashtirish kirimlarining DocNo prefiksi (qoldiqqa ta'sir qilmaydigan kirim belgisi).</summary>
         public const string AssignmentDocNoPrefix = "DLOC-ASN-";
 
-        private const double QtyEpsilon = 1e-6;
+        private const decimal QtyEpsilon = 0.000001m;
 
         /// <summary>DocNo bo'yicha: bu kirim faqat ledger'ga joylashtirishmi (qoldiqni oshirmagan).</summary>
         public static bool IsAssignmentIncome(string docNo)
@@ -49,9 +49,9 @@ namespace tahsinERP.Services.DlocFifo
 )
 SELECT w.ID AS WarehouseID, w.WHName AS WarehouseName, p.ID AS ProductID,
        ISNULL(p.PNo, CAST(p.ID AS NVARCHAR(20))) AS ProductPNo, ISNULL(p.Name, N'') AS ProductName,
-       CAST(stk.StockQty AS FLOAT) AS StockQty,
-       CAST(ISNULL(led.LedgerQty, 0) AS FLOAT) AS LedgerQty,
-       CAST(stk.StockQty - ISNULL(led.LedgerQty, 0) AS FLOAT) AS UnassignedQty,
+       CAST(stk.StockQty AS DECIMAL(38,6)) AS StockQty,
+       CAST(ISNULL(led.LedgerQty, 0) AS DECIMAL(38,6)) AS LedgerQty,
+       CAST(stk.StockQty - ISNULL(led.LedgerQty, 0) AS DECIMAL(38,6)) AS UnassignedQty,
        ISNULL(stk.UnitID, 1) AS UnitID,
        ISNULL(ISNULL(u.ShortName, u.UnitName), N'') AS UnitName
 FROM Stk stk
@@ -115,7 +115,7 @@ ORDER BY w.WHName, p.PNo";
 
                 foreach (var g in validLines.GroupBy(l => l.ProductID))
                 {
-                    double unassigned;
+                    decimal unassigned;
                     unassignedByProduct.TryGetValue(g.Key, out unassigned);
                     var requested = g.Sum(x => x.AssignQty);
                     if (requested > unassigned + QtyEpsilon)
@@ -155,7 +155,7 @@ ORDER BY w.WHName, p.PNo";
                 {
                     INCOME = income,
                     ProductID = line.ProductID,
-                    Amount = (decimal)line.AssignQty,
+                    Amount = line.AssignQty,
                     PiecePrice = 0,
                     UnitID = unitByProduct.ContainsKey(line.ProductID) ? unitByProduct[line.ProductID] : 1
                 }).ToList();
@@ -167,7 +167,7 @@ ORDER BY w.WHName, p.PNo";
                 {
                     LocationLotStockLedger.AssignExistingStockToLocation(
                         db, warehouseId, income.ID, incomeLines[i].ID, validLines[i].ProductID,
-                        (decimal)validLines[i].AssignQty, validLines[i].LocationID, now, "OPENING");
+                        validLines[i].AssignQty, validLines[i].LocationID, now, "OPENING");
                     assignedCount++;
                 }
 

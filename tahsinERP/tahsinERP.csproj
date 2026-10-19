@@ -976,6 +976,7 @@
     <Compile Include="Services\Common\ExcelExport.cs" />
     <Compile Include="Services\Common\DataTablesRequest.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
+    <Compile Include="Services\Common\QtyText.cs" />
     <Compile Include="Services\Common\SystemCodes.cs" />
     <Compile Include="Services\Common\BrandingService.cs" />
     <Compile Include="Services\UserActionLogger.cs" />

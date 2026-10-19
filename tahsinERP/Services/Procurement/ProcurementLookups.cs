@@ -26,7 +26,7 @@ namespace tahsinERP.Services.Procurement
     {
         public int ID { get; set; }
         public string ContractNo { get; set; }
-        public double VatRate { get; set; }
+        public decimal VatRate { get; set; }
     }
 
     /// <summary>
@@ -230,8 +230,8 @@ namespace tahsinERP.Services.Procurement
             var vatByContract = await PContractVatHelper.GetContractVatRatesAsync(db, contracts.Select(c => c.ID).ToList());
             foreach (var c in contracts)
             {
-                double rate;
-                c.VatRate = vatByContract.TryGetValue(c.ID, out rate) ? rate : 0d;
+                decimal rate;
+                c.VatRate = vatByContract.TryGetValue(c.ID, out rate) ? rate : 0m;
             }
 
             return contracts;

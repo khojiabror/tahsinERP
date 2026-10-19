@@ -418,21 +418,21 @@ namespace tahsinERP.Services.Crm
                 .OrderBy(p => p.PNo)
                 .Select(p =>
                 {
-                    double qty;
+                    decimal qty;
                     stock.TryGetValue(p.ID, out qty);
                     decimal own = 0;
                     if (ownQty != null) ownQty.TryGetValue(p.ID, out own);
                     return new SelectListItem
                     {
                         Value = p.ID.ToString(),
-                        Text = $"{p.PNo} - {p.Name} (Mavjud: {qty + (double)own:N2})"
+                        Text = $"{p.PNo} - {p.Name} (Mavjud: {qty + own:N2})"
                     };
                 })
                 .ToList();
         }
 
         /// <summary>Sotuv ombori qoldig'i (ProductID → miqdor); ombor topilmasa null.</summary>
-        public static Dictionary<int, double> GetSalesStockMap(DBTHSNEntities db)
+        public static Dictionary<int, decimal> GetSalesStockMap(DBTHSNEntities db)
         {
             var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
             if (salesWH == null)
@@ -515,7 +515,7 @@ namespace tahsinERP.Services.Crm
                 .ToList()
                 .GroupBy(cp => cp.ProductID)
                 .Where(g => g.Select(x => x.PiecePrice).Distinct().Count() == 1)
-                .ToDictionary(g => g.Key, g => (decimal)g.First().PiecePrice);
+                .ToDictionary(g => g.Key, g => g.First().PiecePrice);
 
             // QQS foizi ham shartnomadan (CRM-S03): formadagi qiymatga faqat shartnomada yo'q mahsulot uchun ishoniladi
             var vatRates = SContractVatHelper.GetProductVatRates(db, contractId);
@@ -526,9 +526,9 @@ namespace tahsinERP.Services.Crm
                 if (prices.TryGetValue(line.ProductID, out price))
                     line.UnitPrice = price;
 
-                double vatRate;
+                decimal vatRate;
                 if (vatRates.TryGetValue(line.ProductID, out vatRate))
-                    line.VATRate = (decimal)vatRate;
+                    line.VATRate = vatRate;
             }
         }
 
@@ -542,12 +542,12 @@ namespace tahsinERP.Services.Crm
             var errors = new List<string>();
             foreach (var g in lines.GroupBy(l => l.ProductID))
             {
-                double available;
+                decimal available;
                 stock.TryGetValue(g.Key, out available);
                 decimal own = 0;
                 if (credit != null) credit.TryGetValue(g.Key, out own);
 
-                var total = (decimal)available + own;
+                var total = available + own;
                 var needed = g.Sum(l => l.Qty);
                 if (needed > total + 0.000000001m)
                     errors.Add($"Mahsulot {names(g.Key)} uchun sotuv omborida yetarli qoldiq yo'q. Mavjud: {total:N2}, Talab: {needed:N2}");

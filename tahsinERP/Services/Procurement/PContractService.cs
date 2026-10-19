@@ -58,7 +58,7 @@ namespace tahsinERP.Services.Procurement
             public int SupplierID { get; set; }
             public string SupplierName { get; set; }
             public byte PurchaseType { get; set; }
-            public double? Amount { get; set; }
+            public decimal? Amount { get; set; }
             public string PaymentTerms { get; set; }
             public DateTime IssuedDate { get; set; }
         }
@@ -102,7 +102,7 @@ namespace tahsinERP.Services.Procurement
                 SupplierID = c.SupplierID,
                 SupplierName = c.SUPPLIER.Name,
                 PurchaseType = c.PurchaseType,
-                Amount = (double?)c.Amount,
+                Amount = c.Amount,
                 PaymentTerms = c.PaymentTerms,
                 IssuedDate = c.IssuedDate
             });
@@ -259,7 +259,7 @@ namespace tahsinERP.Services.Procurement
         /// Shartnoma qatorlarini qo'shadi va QQS bilan jami summani qaytaradi.
         /// Mahsulot birligi va "kesiladimi" belgisi bitta so'rovda olinadi (avval har qatorga 2 so'rov, SRM-P06).
         /// </summary>
-        private async Task<double> AddLinesAsync(P_CONTRACTS contract, IEnumerable<PContractProductViewModel> lines)
+        private async Task<decimal> AddLinesAsync(P_CONTRACTS contract, IEnumerable<PContractProductViewModel> lines)
         {
             var list = (lines ?? Enumerable.Empty<PContractProductViewModel>()).ToList();
             if (list.Count == 0)
@@ -278,7 +278,7 @@ namespace tahsinERP.Services.Procurement
                 })
                 .ToDictionaryAsync(p => p.ID);
 
-            double total = 0;
+            decimal total = 0;
             foreach (var line in list)
             {
                 var vatPercent = VatMath.ClampPercent(line.VatPercent);
@@ -295,10 +295,10 @@ namespace tahsinERP.Services.Procurement
                 {
                     P_CONTRACTS = contract,
                     ProductID = line.ProductID,
-                    Price = (decimal)line.Price,
-                    Quantity = (decimal)line.Quantity, // kesiladiganlarda allaqachon CBM'da
+                    Price = line.Price,
+                    Quantity = line.Quantity, // kesiladiganlarda allaqachon CBM'da
                     UnitID = unitId,
-                    MOQ = (decimal?)line.MOQ,
+                    MOQ = line.MOQ,
                     HSCodeID = line.HSCodeID,
                     ActivePart = true,
                     VATAmount = (decimal?)(vatAmount)

@@ -55,7 +55,7 @@ namespace tahsinERP.Controllers.SRM
             public string InvoiceNo { get; set; }
             public int ReceivingWHID { get; set; }
             public string WarehouseName { get; set; }
-            public double? TotalPrice { get; set; }
+            public decimal? TotalPrice { get; set; }
             public bool Received { get; set; }
             public DateTime IssueDateTime { get; set; }
         }
@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers.SRM
                 InvoiceNo = i.P_INVOICES.InvoiceNo,
                 ReceivingWHID = i.ReceivingWHID,
                 WarehouseName = i.Warehouse.WHName,
-                TotalPrice = (double?)i.TotalPrice,
+                TotalPrice = i.TotalPrice,
                 Received = i.RecieveStatus == true,
                 IssueDateTime = i.IssueDateTime
             });
@@ -361,7 +361,7 @@ namespace tahsinERP.Controllers.SRM
                     .Include(i => i.P_ORDERS)
                     .FirstOrDefaultAsync(i => i.ID == invoiceId);
 
-                Dictionary<int, double> vatByProduct = new Dictionary<int, double>();
+                Dictionary<int, decimal> vatByProduct = new Dictionary<int, decimal>();
                 int? contractId = null;
                 if (invoice != null)
                 {
@@ -405,7 +405,7 @@ namespace tahsinERP.Controllers.SRM
                     ip.UnitID,
                     ip.PiecePrice,
                     ip.TotalPrice,
-                    VATRate = vatByProduct.ContainsKey(ip.ProductID) ? vatByProduct[ip.ProductID] : 0d
+                    VATRate = vatByProduct.ContainsKey(ip.ProductID) ? vatByProduct[ip.ProductID] : 0m
                 }).ToList();
 
                 return Json(new { success = true, data });
@@ -492,8 +492,8 @@ namespace tahsinERP.Controllers.SRM
 
                             // Qo'shish income products va yangilash stock
                             var conversionService = new UnitConversionService(db);
-                            double totalAmount = 0;
-                            double totalPrice = 0;
+                            decimal totalAmount = 0;
+                            decimal totalPrice = 0;
 
                             if (model.IncomeProducts != null && model.IncomeProducts.Any())
                             {
@@ -684,8 +684,8 @@ namespace tahsinERP.Controllers.SRM
                     SenderWHID = income.SenderWHID,
                     InvoiceID = income.InvoiceID,
                     CurrencyID = income.CurrencyID,
-                    Amount = (double?)income.Amount,
-                    TotalPrice = (double?)income.TotalPrice,
+                    Amount = income.Amount,
+                    TotalPrice = income.TotalPrice,
                     Description = income.Description,
                     IncomeProducts = income.INCOME_PRODUCTS.Select(ip => new ViewModels.IncomeProductViewModel
                     {
@@ -693,12 +693,12 @@ namespace tahsinERP.Controllers.SRM
                         ProductID = ip.ProductID,
                         ProductPNo = ip.PRODUCT.PNo,
                         ProductName = ip.PRODUCT.Name,
-                        Amount = (double)ip.Amount,
+                        Amount = ip.Amount,
                         UnitID = ip.UnitID,
-                        PiecePrice = (double?)ip.PiecePrice,
-                        TotalPrice = (double?)ip.TotalPrice,
+                        PiecePrice = ip.PiecePrice,
+                        TotalPrice = ip.TotalPrice,
                         Comment = ip.Comment,
-                        VATRate = (double)(ip.VATRate ?? 0)
+                        VATRate = (ip.VATRate ?? 0)
                     }).ToList()
                 };
 
@@ -791,8 +791,8 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             // Qo'shish updated income products va yangilash stock
-                            double totalAmount = 0;
-                            double totalPrice = 0;
+                            decimal totalAmount = 0;
+                            decimal totalPrice = 0;
 
                             if (model.IncomeProducts != null && model.IncomeProducts.Any())
                             {
@@ -954,7 +954,7 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             StockLedger.ReceiveLine(db, income.ReceivingWHID, income.ID, product.ID, product.ProductID,
-                                (double)product.Amount, unitId, lineLocationId, income.IssueDateTime);
+                                product.Amount, unitId, lineLocationId, income.IssueDateTime);
                         }
 
                         income.RecieveStatus = true;
@@ -1034,7 +1034,7 @@ namespace tahsinERP.Controllers.SRM
                             foreach (var product in income.INCOME_PRODUCTS)
                             {
                                 var unitId = product.UnitID > 0 ? product.UnitID : 1;
-                                StockLedger.Increase(db, income.ReceivingWHID, product.ProductID, (double)product.Amount, unitId);
+                                StockLedger.Increase(db, income.ReceivingWHID, product.ProductID, product.Amount, unitId);
                             }
                         }
 
@@ -1110,7 +1110,7 @@ namespace tahsinERP.Controllers.SRM
                         // shuning uchun faqat yuboruvchi ombor chiqimi (DLOC lot ajratmalari bilan) qaytariladi.
                         foreach (var product in expense.EXPENSE_PRODUCTS)
                         {
-                            StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, (double)product.Amount,
+                            StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, product.Amount,
                                 product.UnitID > 0 ? product.UnitID : 1, product.ID);
                         }
 
@@ -1227,7 +1227,7 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var ep in linkedExpense.EXPENSE_PRODUCTS)
                                 {
-                                    StockLedger.ReverseIssueLine(db, linkedExpense.SenderWHID, ep.ProductID, (double)ep.Amount,
+                                    StockLedger.ReverseIssueLine(db, linkedExpense.SenderWHID, ep.ProductID, ep.Amount,
                                         ep.UnitID > 0 ? ep.UnitID : 1, ep.ID);
                                 }
 

@@ -179,7 +179,7 @@ namespace tahsinERP.Controllers.HR
                     .Where(l => payrollTxnIds.Contains(l.PayrollID) &&
                                 l.EmployeeID == employeeId &&
                                 (l.IsDeleted == null || l.IsDeleted == false))
-                    .SumAsync(l => (decimal?)l.NetSalary) ?? 0m;
+                    .SumAsync(l => l.NetSalary) ?? 0m;
             }
 
             var paidTotal = directPaidTotal + postedPayrollPaid;
@@ -244,7 +244,7 @@ namespace tahsinERP.Controllers.HR
                             l.HR_PAYROLL_HEADERS.PayrollType == payrollType &&
                             ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) >= fromMonthKey &&
                             ((l.HR_PAYROLL_HEADERS.Year * 100) + l.HR_PAYROLL_HEADERS.Month) <= toMonthKey)
-                .SumAsync(l => (decimal?)l.NetSalary) ?? 0m;
+                .SumAsync(l => l.NetSalary) ?? 0m;
         }
 
         /// <summary>

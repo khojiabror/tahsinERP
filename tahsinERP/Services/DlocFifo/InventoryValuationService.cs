@@ -15,7 +15,7 @@ namespace tahsinERP.Services.DlocFifo
     /// </summary>
     public static class InventoryValuationService
     {
-        public static double GetQty(DBTHSNEntities db, int warehouseId, int productId)
+        public static decimal GetQty(DBTHSNEntities db, int warehouseId, int productId)
         {
             return StockLedger.GetOnHand(db, warehouseId, productId);
         }
@@ -25,7 +25,7 @@ namespace tahsinERP.Services.DlocFifo
             return db.PRODUCT_STOCKS
                 .Where(s => s.WHID == warehouseId)
                 .GroupBy(s => s.ProductID)
-                .Select(g => new StockQtyRow { ProductID = g.Key, Qty = (double)(g.Sum(x => x.Amount)) })
+                .Select(g => new StockQtyRow { ProductID = g.Key, Qty = g.Sum(x => x.Amount) })
                 .Where(r => r.Qty > 0)
                 .ToList();
         }
@@ -33,7 +33,7 @@ namespace tahsinERP.Services.DlocFifo
         public class StockQtyRow
         {
             public int ProductID { get; set; }
-            public double Qty { get; set; }
+            public decimal Qty { get; set; }
         }
     }
 }

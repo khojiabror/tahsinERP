@@ -108,7 +108,7 @@
                                             @for (int i = 0; i < Model.Rows.Count; i++)
                                             {
                                                 var row = Model.Rows[i];
-                                                <tr data-unassigned="@row.UnassignedQty.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                                <tr data-unassigned="@row.UnassignedQty.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)">
                                                     <td>
                                                         <input type="checkbox" name="Lines[@i].Selected" value="true" class="row-select" />
                                                         <input type="hidden" name="Lines[@i].ProductID" value="@row.ProductID" />
@@ -131,8 +131,8 @@
                                                     </td>
                                                     <td>
                                                         <input type="number" name="Lines[@i].AssignQty" class="form-control assign-qty"
-                                                               step="0.001" min="0.001" max="@row.UnassignedQty.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                                                               value="@row.UnassignedQty.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                                                               step="0.001" min="0.001" max="@row.UnassignedQty.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)"
+                                                               value="@row.UnassignedQty.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" />
                                                     </td>
                                                 </tr>
                                             }

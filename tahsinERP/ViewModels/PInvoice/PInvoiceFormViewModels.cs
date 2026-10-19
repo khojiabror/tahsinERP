@@ -31,7 +31,7 @@ namespace tahsinERP.ViewModels.PInvoice
         public int? CompanyID { get; set; }
         public int? ContractID { get; set; }
         public int CurrencyID { get; set; }
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         public List<PInvoiceProductViewModel> InvoiceProducts { get; set; }
 
         public PInvoiceEditViewModel()
@@ -46,9 +46,9 @@ namespace tahsinERP.ViewModels.PInvoice
         public int ProductID { get; set; }
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
-        public double Quantity { get; set; }
-        public double Price { get; set; }
-        public double TotalPrice { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal Price { get; set; }
+        public decimal TotalPrice { get; set; }
         public int UnitID { get; set; }
     }
 }

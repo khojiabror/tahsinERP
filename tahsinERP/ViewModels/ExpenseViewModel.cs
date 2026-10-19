@@ -85,10 +85,10 @@ namespace tahsinERP.ViewModels
         public bool SendStatus { get; set; }
         
         [Display(Name = "Jami miqdor")]
-        public double? Amount { get; set; }
+        public decimal? Amount { get; set; }
         
         [Display(Name = "Jami summa")]
-        public double? TotalPrice { get; set; }
+        public decimal? TotalPrice { get; set; }
         
         public ExpenseEditViewModel()
         {
@@ -110,7 +110,7 @@ namespace tahsinERP.ViewModels
         [Required(ErrorMessage = "Miqdor kiritilishi shart")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Miqdor 0 dan katta bo'lishi kerak")]
         [Display(Name = "Miqdor")]
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         
         [Required(ErrorMessage = "Birlik tanlanishi shart")]
         [Display(Name = "Birlik")]
@@ -119,10 +119,10 @@ namespace tahsinERP.ViewModels
         public string UnitName { get; set; }
         
         [Display(Name = "Narx (dona)")]
-        public double PiecePrice { get; set; }
+        public decimal PiecePrice { get; set; }
         
         [Display(Name = "Jami summa")]
-        public double TotalPrice { get; set; }
+        public decimal TotalPrice { get; set; }
         
         [Display(Name = "Izoh")]
         public string Comment { get; set; }
@@ -131,7 +131,7 @@ namespace tahsinERP.ViewModels
         public int? IncomeID { get; set; }
         
         // For stock availability check
-        public double AvailableStock { get; set; }
+        public decimal AvailableStock { get; set; }
     }
 
     public class ExpenseDetailsViewModel
@@ -145,8 +145,8 @@ namespace tahsinERP.ViewModels
         public string ReceiverWHName { get; set; }
         public int CurrencyID { get; set; }
         public string CurrencyName { get; set; }
-        public double? Amount { get; set; }
-        public double? TotalPrice { get; set; }
+        public decimal? Amount { get; set; }
+        public decimal? TotalPrice { get; set; }
         public string Description { get; set; }
         public bool SendStatus { get; set; }
         public bool IsDeleted { get; set; }

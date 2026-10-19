@@ -95,8 +95,8 @@ namespace tahsinERP.Services.Crm
                 .Select(p => new SContractVatHelper.ContractProductVatLine
                 {
                     ContractID = p.ContractID,
-                    LineBaseAmount = SContractVatHelper.GetLineBaseAmount((double)p.PiecePrice, (double)p.Amount),
-                    VATAmount = (double?)(p.vatamount)
+                    LineBaseAmount = SContractVatHelper.GetLineBaseAmount(p.PiecePrice, p.Amount),
+                    VATAmount = (p.vatamount)
                 });
 
             var vatByContract = SContractVatHelper.BuildContractVatRates(lines);
@@ -105,7 +105,7 @@ namespace tahsinERP.Services.Crm
             {
                 c.ID,
                 c.ContractNo,
-                VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 0d
+                VatRate = vatByContract.ContainsKey(c.ID) ? vatByContract[c.ID] : 0m
             }).ToList();
         }
     }

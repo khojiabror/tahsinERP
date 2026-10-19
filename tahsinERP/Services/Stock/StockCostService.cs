@@ -19,36 +19,41 @@ namespace tahsinERP.Services.Stock
     /// </summary>
     public static class StockCostService
     {
-        private sealed class AllocationCost
+        private sealed class AllocationRow
         {
             public decimal Qty { get; set; }
-            public double Cost { get; set; }
+            public decimal LineAmount { get; set; }
+            public decimal PiecePrice { get; set; }
+            public decimal QtyReceived { get; set; }
         }
 
         private sealed class ReceiptLayer
         {
             public int ProductID { get; set; }
-            public double Amount { get; set; }
+            public decimal Amount { get; set; }
             public int UnitID { get; set; }
-            public double Price { get; set; }
+            public decimal PiecePrice { get; set; }
+            public decimal TotalPrice { get; set; }
+
+            /// <summary>Dona narxi: PiecePrice, bo'lmasa TotalPrice / Amount.</summary>
+            public decimal Price => PiecePrice > 0 ? PiecePrice : (Amount > 0 ? TotalPrice / Amount : 0m);
         }
 
         /// <summary>
         /// Saqlanadigan dona tannarxi: EXPENSE_PRODUCTS.PiecePrice — decimal(19,6). EF ortiqcha xonani kesadi, shuning uchun
         /// shu yerda yaxlitlanadi — hujjat jami (C#) va qator TotalPrice (bazada Amount × PiecePrice) bir xil narxdan hisoblanadi.
         /// </summary>
-        public static decimal StoredUnitCost(double unitCost)
+        public static decimal StoredUnitCost(decimal unitCost)
         {
-            if (double.IsNaN(unitCost) || double.IsInfinity(unitCost)) return 0m;
-            return Math.Round((decimal)unitCost, 6, MidpointRounding.AwayFromZero);
+            return Math.Round(unitCost, 6, MidpointRounding.AwayFromZero);
         }
 
         /// <summary>
         /// Chiqim qatorining FIFO tannarxi: qator birligidagi dona narxi (qator TotalPrice = Amount × PiecePrice
         /// bazada hisoblanadi). Narx topilmasa 0.
         /// </summary>
-        public static double IssuedLineUnitCost(DBTHSNEntities db, int warehouseId, int productId,
-            double lineQty, int lineUnitId, int expenseProductId)
+        public static decimal IssuedLineUnitCost(DBTHSNEntities db, int warehouseId, int productId,
+            decimal lineQty, int lineUnitId, int expenseProductId)
         {
             if (lineQty <= StockLedger.Epsilon)
                 return 0;
@@ -56,23 +61,23 @@ namespace tahsinERP.Services.Stock
             var qtyStock = StockLedger.ToStockUnit(db, warehouseId, productId, lineQty, lineUnitId, out var stockUnitId,
                 allowReunit: false);
 
-            double total = 0;
-            double covered = 0;
+            decimal total = 0;
+            decimal covered = 0;
             if (DlocFifoSchema.IsEnabled(db))
             {
+                // Lot narxi C# da (decimal) — SQL decimal bo'linmasi kasr xonalarini 6 gacha kesadi
                 const string allocSql = @"
-SELECT CAST(ISNULL(SUM(a.Qty), 0) AS DECIMAL(18,6)) AS Qty,
-       CAST(ISNULL(SUM(a.Qty * CASE WHEN il.QtyReceived > 0
-                                    THEN ip.Amount * ISNULL(ip.PiecePrice, 0) / il.QtyReceived ELSE 0 END), 0) AS FLOAT) AS Cost
+SELECT a.Qty, ISNULL(ip.Amount, 0) AS LineAmount, ISNULL(ip.PiecePrice, 0) AS PiecePrice, il.QtyReceived
 FROM dbo.EXPENSE_PRODUCT_ALLOCATIONS a
 JOIN dbo.INCOME_LOTS il ON il.ID = a.LotID
 LEFT JOIN dbo.INCOME_PRODUCTS ip ON ip.ID = il.IncomeProductID
 WHERE a.ExpenseProductID = @p0";
-                var alloc = db.Database.SqlQuery<AllocationCost>(allocSql, expenseProductId).FirstOrDefault();
-                if (alloc != null && alloc.Qty > 0)
+                var allocs = db.Database.SqlQuery<AllocationRow>(allocSql, expenseProductId).ToList();
+                var allocQty = allocs.Sum(a => a.Qty);
+                if (allocQty > 0)
                 {
-                    covered = (double)alloc.Qty;
-                    total = alloc.Cost;
+                    covered = allocQty;
+                    total = allocs.Sum(a => a.QtyReceived > 0 ? a.Qty * (a.LineAmount * a.PiecePrice / a.QtyReceived) : 0m);
                 }
             }
 
@@ -90,14 +95,13 @@ WHERE a.ExpenseProductID = @p0";
         /// <paramref name="qty"/> (qoldiq birligida) uchun FIFO qatlam tannarxi: eng yangi
         /// <paramref name="newerQty"/> birlik (omborda qolgan) o'tkazib yuboriladi.
         /// </summary>
-        private static double FifoLayerCost(DBTHSNEntities db, int warehouseId, int productId, int stockUnitId,
-            double qty, double newerQty)
+        private static decimal FifoLayerCost(DBTHSNEntities db, int warehouseId, int productId, int stockUnitId,
+            decimal qty, decimal newerQty)
         {
             // Omborga haqiqatda qabul qilingan kirimlar (DLOC-ASN — mavjud qoldiqni joyga bog'lash, kirim emas)
             const string sql = @"
-SELECT ip.ProductID, CAST(ip.Amount AS FLOAT) AS Amount, ip.UnitID,
-       CAST(CASE WHEN ISNULL(ip.PiecePrice, 0) > 0 THEN ip.PiecePrice
-                 WHEN ip.Amount > 0 THEN ISNULL(ip.TotalPrice, 0) / ip.Amount ELSE 0 END AS FLOAT) AS Price
+SELECT ip.ProductID, ip.Amount, ip.UnitID, ISNULL(ip.PiecePrice, 0) AS PiecePrice,
+       CAST(ISNULL(ip.TotalPrice, 0) AS DECIMAL(38,12)) AS TotalPrice
 FROM dbo.INCOME_PRODUCTS ip
 JOIN dbo.INCOMES i ON i.ID = ip.IncomeID
 WHERE i.ReceivingWHID = @p0 AND ip.ProductID = @p1 AND ip.Amount > 0
@@ -110,21 +114,21 @@ ORDER BY i.IssueDateTime DESC, i.ID DESC, ip.ID DESC";
                 return 0;
 
             var conversion = new UnitConversionService(db);
-            double skip = Math.Max(0, newerQty);
-            double need = qty;
-            double cost = 0;
-            double lastPrice = 0;
+            decimal skip = Math.Max(0m, newerQty);
+            decimal need = qty;
+            decimal cost = 0;
+            decimal lastPrice = 0;
             foreach (var layer in layers)
             {
                 // Qatlam miqdori va narxi qoldiq birligida
-                double layerQty = layer.Amount;
-                double price = layer.Price;
+                decimal layerQty = layer.Amount;
+                decimal price = layer.Price;
                 if (stockUnitId > 0 && layer.UnitID > 0 && layer.UnitID != stockUnitId)
                 {
-                    var converted = conversion.TryConvert(productId, (decimal)layer.Amount, layer.UnitID, stockUnitId);
+                    var converted = conversion.TryConvert(productId, layer.Amount, layer.UnitID, stockUnitId);
                     if (!converted.HasValue || converted.Value <= 0)
                         continue;
-                    layerQty = (double)converted.Value;
+                    layerQty = converted.Value;
                     price = layer.Price * layer.Amount / layerQty;
                 }
                 lastPrice = price;

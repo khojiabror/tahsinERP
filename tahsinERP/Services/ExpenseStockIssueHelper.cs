@@ -14,7 +14,7 @@ namespace tahsinERP.Services
     /// </summary>
     public static class ExpenseStockIssueHelper
     {
-        private const double QtyEpsilon = 1e-6;
+        private const decimal QtyEpsilon = 0.000001m;
 
         /// <summary>
         /// Chiqim (qo'lda, ishlab chiqarish BOM, o'tkazma, sotuv): DLOC omborda FIFO lotlardan; lotlarda yetmasa
@@ -22,7 +22,7 @@ namespace tahsinERP.Services
         /// Qoldiq yetmasa — xato (hech narsa yozilmaydi).
         /// </summary>
         public static void ApplyAutoIssueForExpenseProduct(DBTHSNEntities db, int warehouseId,
-            int productId, double amount, int unitId, int expenseProductId)
+            int productId, decimal amount, int unitId, int expenseProductId)
         {
             if (amount <= QtyEpsilon)
                 return;
@@ -42,15 +42,15 @@ namespace tahsinERP.Services
                 try
                 {
                     if (LocationLotStockLedger.TryIssueFifo(
-                        db, warehouseId, productId, (decimal)amount, unitId, expenseProductId, out _))
+                        db, warehouseId, productId, amount, unitId, expenseProductId, out _))
                     {
                         return;
                     }
                 }
                 catch (WarehouseDlocException ex) when (ex.ErrorCode == "INSUFFICIENT_STOCK")
                 {
-                    var ledger = (double)DlocFifoDataAccess.GetLedgerQty(db, warehouseId, productId);
-                    var unassigned = Math.Max(0, stockQty - ledger);
+                    var ledger = DlocFifoDataAccess.GetLedgerQty(db, warehouseId, productId);
+                    var unassigned = Math.Max(0m, stockQty - ledger);
                     if (amount <= unassigned + QtyEpsilon)
                     {
                         StockLedger.Decrease(db, warehouseId, productId, amount, unitId);
@@ -68,7 +68,7 @@ namespace tahsinERP.Services
 
         /// <summary>Async chaqiruvchilar uchun (ish sinxron bajariladi).</summary>
         public static Task ApplyAutoIssueForExpenseProductAsync(DBTHSNEntities db, int warehouseId,
-            int productId, double amount, int unitId, int expenseProductId)
+            int productId, decimal amount, int unitId, int expenseProductId)
         {
             ApplyAutoIssueForExpenseProduct(db, warehouseId, productId, amount, unitId, expenseProductId);
             return Task.CompletedTask;
@@ -83,7 +83,7 @@ namespace tahsinERP.Services
 
         /// <summary>Avtomatik chiqimni bekor qilish (invoys o'chirish va h.k.).</summary>
         public static void ReverseExpenseProductIssue(DBTHSNEntities db, int warehouseId, int productId,
-            double amount, int unitId, int expenseProductId)
+            decimal amount, int unitId, int expenseProductId)
         {
             if (amount <= QtyEpsilon)
                 return;

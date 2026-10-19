@@ -11,7 +11,7 @@ namespace tahsinERP.ViewModels.PContract
         public int? CompanyID { get; set; }
         public int SupplierID { get; set; }
         public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
+        public decimal? Amount { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
         public DateTime DueDate { get; set; }
@@ -32,7 +32,7 @@ namespace tahsinERP.ViewModels.PContract
         public int? CompanyID { get; set; }
         public int SupplierID { get; set; }
         public int CurrencyID { get; set; }
-        public double? Amount { get; set; }
+        public decimal? Amount { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
         public DateTime DueDate { get; set; }
@@ -51,13 +51,13 @@ namespace tahsinERP.ViewModels.PContract
         public int ProductID { get; set; }
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
-        public double Price { get; set; }
-        public double Quantity { get; set; }
-        public double Amount { get; set; }
+        public decimal Price { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal Amount { get; set; }
         public int? UnitID { get; set; }
-        public double? MOQ { get; set; }
+        public decimal? MOQ { get; set; }
         public int? HSCodeID { get; set; }
-        public double VatPercent { get; set; }
+        public decimal VatPercent { get; set; }
 
         // uchun display: indicates agar product requires cutting (uses CBM)
         public bool RequiresCutting { get; set; }

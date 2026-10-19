@@ -896,7 +896,7 @@ namespace tahsinERP.Controllers.Engineering
                             if (line.ConsumptionPerProduct != 0)
                                 consumption = (double)line.ConsumptionPerProduct * 1000.0;
                             else
-                                consumption = (double)line.CalculatedLengthMm.Value * line.Quantity;
+                                consumption = line.CalculatedLengthMm.Value * line.Quantity;
                         }
                         else
                         {
@@ -915,7 +915,7 @@ namespace tahsinERP.Controllers.Engineering
                             && line.CalculatedLengthMm.HasValue
                             && line.CalculatedLengthMm.Value > 0)
                         {
-                            var wastePerPiece = Math.Max(0, standardLengthMm - (double)line.CalculatedLengthMm.Value);
+                            var wastePerPiece = Math.Max(0, standardLengthMm - line.CalculatedLengthMm.Value);
                             wasteAmount = wastePerPiece * line.Quantity;
                         }
                         else
@@ -954,12 +954,12 @@ namespace tahsinERP.Controllers.Engineering
                         // QtyPerUnit = Sum of Consumption
                         var qtyPerUnit = group
                             .Where(il => il.Consumption.HasValue)
-                            .Sum(il => (decimal)il.Consumption.Value);
+                            .Sum(il => il.Consumption.Value);
 
                         // WastePercent = Sum of WasteAmount / QtyPerUnit (as percentage)
                         var totalWasteAmount = group
                             .Where(il => il.WasteAmount.HasValue)
-                            .Sum(il => (decimal)il.WasteAmount.Value);
+                            .Sum(il => il.WasteAmount.Value);
 
                         decimal wastePercent = 0;
                         if (qtyPerUnit > 0 && totalWasteAmount > 0)

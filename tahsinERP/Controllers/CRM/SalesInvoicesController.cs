@@ -334,7 +334,7 @@ namespace tahsinERP.Controllers
                         op.PNo,
                         op.Qty,
                         op.UnitPrice,
-                        VATRate = vatByProduct.ContainsKey(op.ProductID) ? vatByProduct[op.ProductID] : 0d
+                        VATRate = vatByProduct.ContainsKey(op.ProductID) ? vatByProduct[op.ProductID] : 0m
                     })
                     .ToList();
                 return Json(lines, JsonRequestBehavior.AllowGet);
@@ -350,12 +350,12 @@ namespace tahsinERP.Controllers
                 var cp = db.S_CONTRACT_PRODUCTS
                     .FirstOrDefault(c => c.ContractID == contractId && c.ProductID == productId);
                 if (cp == null)
-                    return Json(new { PiecePrice = (decimal?)null, VatRate = 0d }, JsonRequestBehavior.AllowGet);
+                    return Json(new { PiecePrice = (decimal?)null, VatRate = 0m }, JsonRequestBehavior.AllowGet);
                 return Json(new
                 {
-                    PiecePrice = (decimal)cp.PiecePrice,
+                    PiecePrice = cp.PiecePrice,
                     VatRate = SContractVatHelper.GetVatPercentFromLine(
-                        SContractVatHelper.GetLineBaseAmount(cp), (double?)cp.vatamount)
+                        SContractVatHelper.GetLineBaseAmount(cp), cp.vatamount)
                 }, JsonRequestBehavior.AllowGet);
             }
         }

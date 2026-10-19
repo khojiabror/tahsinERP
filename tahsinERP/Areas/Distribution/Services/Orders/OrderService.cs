@@ -424,13 +424,13 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 erp.SaveChanges();
                 try
                 {
-                    StockLedger.IssueLine(erp, warehouseId, line.ProductID, (double)qty, ep.UnitID, ep.ID);
+                    StockLedger.IssueLine(erp, warehouseId, line.ProductID, qty, ep.UnitID, ep.ID);
                 }
                 catch (Exception ex) when (!(ex is DstValidationException))
                 {
                     throw new DstValidationException(DstLocalization.T("Ship_StockError", line.LineNo) + " " + ex.Message);
                 }
-                var unitCost = StockCostService.IssuedLineUnitCost(erp, warehouseId, line.ProductID, (double)qty, ep.UnitID, ep.ID);
+                var unitCost = StockCostService.IssuedLineUnitCost(erp, warehouseId, line.ProductID, qty, ep.UnitID, ep.ID);
                 ep.PiecePrice = StockCostService.StoredUnitCost(unitCost);
                 decimal cost = Math.Round(qty * ep.PiecePrice, 2, MidpointRounding.AwayFromZero);
 

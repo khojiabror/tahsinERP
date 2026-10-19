@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Controllers;
 using tahsinERP.Models;
+using tahsinERP.Services.Common;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
 
@@ -30,7 +31,7 @@ namespace tahsinERP.Services
         /// <summary>
         /// BOM Details jadvalidagi 1 FG sarfini BomMaterialSummaryService orqali oladi va producedQty ga ko'paytiradi.
         /// </summary>
-        public async Task<List<ProductionRawMaterialRequirement>> CalculateRequiredRawMaterialsAsync(int productId, double producedQty, DateTime? asOfDate = null)
+        public async Task<List<ProductionRawMaterialRequirement>> CalculateRequiredRawMaterialsAsync(int productId, decimal producedQty, DateTime? asOfDate = null)
         {
             var requirements = new List<ProductionRawMaterialRequirement>();
             if (producedQty <= 0)
@@ -63,7 +64,7 @@ namespace tahsinERP.Services
                     continue;
                 }
 
-                var totalConsumption = (double)(summary.TotalQuantity * (decimal)producedQty);
+                var totalConsumption = summary.TotalQuantity * producedQty;
                 var unitId = summary.UnitId > 0
                     ? summary.UnitId
                     : (material.UnitID > 0 ? material.UnitID : 1);
@@ -108,8 +109,8 @@ namespace tahsinERP.Services
                 }
 
                 var qty = await _conversionService.ConvertToUnitAsync(
-                    req.MaterialID, (decimal)req.TotalConsumption, sourceUnitId.Value, invUnitId.Value);
-                req.TotalConsumption = (double)qty;
+                    req.MaterialID, req.TotalConsumption, sourceUnitId.Value, invUnitId.Value);
+                req.TotalConsumption = qty;
 
                 req.UnitID = invUnitId.Value;
                 req.TotalConsumptionIsInKg = false;
@@ -167,7 +168,7 @@ namespace tahsinERP.Services
         /// Yetmasa foydalanuvchiga ko'rsatiladigan xabar, yetsa null qaytaradi.
         /// </summary>
         public async Task<string> FindStockShortageAsync(IList<ProductionRawMaterialRequirement> requirements, int warehouseId,
-            IDictionary<int, double> credit = null)
+            IDictionary<int, decimal> credit = null)
         {
             if (requirements == null || requirements.Count == 0)
                 return null;
@@ -175,11 +176,11 @@ namespace tahsinERP.Services
             foreach (var req in requirements)
             {
                 var availableQty = InventoryValuationService.GetQty(_db, warehouseId, req.MaterialID);
-                double extra;
+                decimal extra;
                 if (credit != null && credit.TryGetValue(req.MaterialID, out extra))
                     availableQty += extra;
 
-                if (availableQty + 1e-9 >= req.TotalConsumption)
+                if (availableQty + 0.000000001m >= req.TotalConsumption)
                     continue;
 
                 var unitName = await _db.PRODUCT_STOCKS.AsNoTracking()
@@ -200,19 +201,19 @@ namespace tahsinERP.Services
         /// Ishlab chiqarish uchun xomashyo yetarliligi. oldProductId/oldProducedQty berilsa (tahrirlash),
         /// eski yozuv sarfi omborga qaytgandek hisoblanadi.
         /// </summary>
-        public async Task<string> ValidateStockForProductionAsync(int productId, double producedQty, int warehouseId,
-            int? oldProductId = null, double? oldProducedQty = null)
+        public async Task<string> ValidateStockForProductionAsync(int productId, decimal producedQty, int warehouseId,
+            int? oldProductId = null, decimal? oldProducedQty = null)
         {
             var requirements = await CalculateRequiredRawMaterialsAsync(productId, producedQty);
             if (requirements.Count == 0)
                 return null;
 
-            var credit = new Dictionary<int, double>();
+            var credit = new Dictionary<int, decimal>();
             if (oldProductId.HasValue && oldProducedQty.HasValue && oldProducedQty.Value > 0)
             {
                 foreach (var req in await CalculateRequiredRawMaterialsAsync(oldProductId.Value, oldProducedQty.Value))
                 {
-                    double q;
+                    decimal q;
                     credit.TryGetValue(req.MaterialID, out q);
                     credit[req.MaterialID] = q + req.TotalConsumption;
                 }
@@ -226,7 +227,7 @@ namespace tahsinERP.Services
         /// Og'irlik bo'yicha (kg) va kesish (m → dona) uchun UnitConversionService ishlatiladi.
         /// Creates Expense document without linked Income.
         /// </summary>
-        public async Task ConsumeMaterialsForProductionAsync(int productId, double producedQty, int warehouseId, int? productionProcessId = null, DateTime? productionDate = null)
+        public async Task ConsumeMaterialsForProductionAsync(int productId, decimal producedQty, int warehouseId, int? productionProcessId = null, DateTime? productionDate = null)
         {
             var requirements = await CalculateRequiredRawMaterialsAsync(productId, producedQty);
             if (requirements.Count == 0)
@@ -249,10 +250,11 @@ namespace tahsinERP.Services
             var product = await _db.PRODUCTS.FindAsync(productId);
             var productPNo = product?.PNo ?? productId.ToString();
             var dateStr = DateTime.Now.ToString("yyyyMMdd");
-            var docNo = $"{dateStr}_{productPNo}_{producedQty}";
+            var qtyText = QtyText.Plain(producedQty);
+            var docNo = $"{dateStr}_{productPNo}_{qtyText}";
             var description = productionDate.HasValue
-                ? $"{productionDate.Value:dd.MM.yyyy}y. kunlik reja asosida Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {producedQty}"
-                : $"Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {producedQty}";
+                ? $"{productionDate.Value:dd.MM.yyyy}y. kunlik reja asosida Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {qtyText}"
+                : $"Ishlab chiqarish uchun xomashyo chiqimi: {productPNo}, Miqdor {qtyText}";
             if (productionProcessId.HasValue && productionProcessId.Value > 0)
             {
                 description += $" | ProductionID:{productionProcessId.Value}";
@@ -275,7 +277,7 @@ namespace tahsinERP.Services
             };
 
             var lines = new List<EXPENSE_PRODUCTS>();
-            double totalAmount = 0;
+            decimal totalAmount = 0;
 
             foreach (var req in requirements)
             {
@@ -289,7 +291,7 @@ namespace tahsinERP.Services
                 var line = new EXPENSE_PRODUCTS
                 {
                     ProductID = req.MaterialID,
-                    Amount = (decimal)req.TotalConsumption,
+                    Amount = req.TotalConsumption,
                     UnitID = displayUnitId.Value,
                     Comment = "BOM/NORM sarfi"
                 };
@@ -298,7 +300,7 @@ namespace tahsinERP.Services
                 totalAmount += req.TotalConsumption;
             }
 
-            expense.Amount = (decimal?)totalAmount;
+            expense.Amount = totalAmount;
 
             // Hujjat + barcha qatorlar bitta SaveChanges'da (avval har qatorga alohida, MES-P11);
             // chiqim (lot ajratmasi) qator ID'sini talab qiladi - shuning uchun undan keyin
@@ -308,20 +310,20 @@ namespace tahsinERP.Services
             // Chiqim va tannarx: StockLedger (DLOC FIFO / umumiy qoldiq), keyin StockCostService —
             // lot ajratmalari bo'yicha aniq tannarx, qolgani FIFO qatlamlari, QQSsiz (MES-B11, SRM-B19 bilan yagona hisob).
             // TotalPrice bazada hisoblanadigan ustun (Amount x PiecePrice).
-            double totalExpensePrice = 0;
+            decimal totalExpensePrice = 0;
             foreach (var line in lines)
             {
-                await StockLedger.IssueLineAsync(_db, warehouseId, line.ProductID, (double)line.Amount, line.UnitID, line.ID);
+                await StockLedger.IssueLineAsync(_db, warehouseId, line.ProductID, line.Amount, line.UnitID, line.ID);
                 line.PiecePrice = StockCostService.StoredUnitCost(StockCostService.IssuedLineUnitCost(_db, warehouseId, line.ProductID,
-                    (double)line.Amount, line.UnitID, line.ID));
-                totalExpensePrice += (double)(line.Amount * line.PiecePrice);
+                    line.Amount, line.UnitID, line.ID));
+                totalExpensePrice += line.Amount * line.PiecePrice;
             }
 
-            expense.TotalPrice = (decimal?)totalExpensePrice;
+            expense.TotalPrice = totalExpensePrice;
             await _db.SaveChangesAsync();
 
             LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",
-                $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Mahsulot ID: {productId}, Miqdor: {producedQty}");
+                $"Xomashyo chiqimi yaratildi. Expense ID: {expense.ID}, Mahsulot ID: {productId}, Miqdor: {qtyText}");
         }
 
         /// <summary>
@@ -358,7 +360,7 @@ namespace tahsinERP.Services
                 {
                     var unitId = line.UnitID > 0 ? line.UnitID : 1;
                     StockLedger.ReverseIssueLine(
-                        _db, expense.SenderWHID, line.ProductID, (double)line.Amount, unitId, line.ID);
+                        _db, expense.SenderWHID, line.ProductID, line.Amount, unitId, line.ID);
                 }
 
                 if (lines.Any())
@@ -392,8 +394,8 @@ namespace tahsinERP.Services
         public int MaterialID { get; set; }
         public string MaterialPNo { get; set; }
         public string MaterialName { get; set; }
-        public double RequiredQtyPieces { get; set; }
-        public double TotalConsumption { get; set; }
+        public decimal RequiredQtyPieces { get; set; }
+        public decimal TotalConsumption { get; set; }
         public int UnitID { get; set; }
         public bool RequiresCutting { get; set; }
         /// <summary>True bo'lsa, TotalConsumption kg (piece→kg konversiyasidan keyin).</summary>

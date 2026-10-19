@@ -124,7 +124,7 @@ namespace tahsinERP.Controllers
                     .GroupBy(c => new { c.CurrencyID, Day = DbFunctions.TruncateTime(c.IssuedDate) })
                     .Select(g => new { g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(c => c.Amount) ?? 0 })
                     .ToList()
-                    .Sum(g => uzs.ToUzsOrZero((decimal)g.Amount, g.CurrencyID, g.Day ?? today));
+                    .Sum(g => uzs.ToUzsOrZero(g.Amount, g.CurrencyID, g.Day ?? today));
 
                 // ——— Buyurtmalar ———
                 var ordersQ = db.S_ORDERS.AsNoTracking().Where(o => o.IsDeleted != true);
@@ -135,7 +135,7 @@ namespace tahsinERP.Controllers
                     .GroupBy(o => new { o.CurrencyID, Day = DbFunctions.TruncateTime(o.IssuedDate) })
                     .Select(g => new { g.Key.CurrencyID, g.Key.Day, Amount = g.Sum(o => o.Amount) ?? 0 })
                     .ToList()
-                    .Sum(g => uzs.ToUzsOrZero((decimal)g.Amount, g.CurrencyID, g.Day ?? today));
+                    .Sum(g => uzs.ToUzsOrZero(g.Amount, g.CurrencyID, g.Day ?? today));
 
                 // Yetkazib berish rejasi bo'yicha kechikkan (DeliveryDate o'tgan, QtyShipped < QtyPlanned)
                 var deliveryOverdueQ = db.SORDER_DELIVERY_SCHEDULE.AsNoTracking()
@@ -240,7 +240,7 @@ namespace tahsinERP.Controllers
                         OrderNo = o.OrderNo ?? "",
                         CustomerName = o.CustomerName ?? "",
                         IssuedDate = o.IssuedDate,
-                        Amount = (decimal?)o.Amount,
+                        Amount = o.Amount,
                         CurrencyCode = o.Cur ?? ""
                     })
                     .ToList();
@@ -259,7 +259,7 @@ namespace tahsinERP.Controllers
                         CustomerName = c.CustomerName ?? "",
                         DueDate = c.DueDate,
                         DaysOverdue = (today - c.DueDate.Date).Days,
-                        Amount = (decimal?)c.Amount
+                        Amount = c.Amount
                     })
                     .ToList();
 
@@ -278,7 +278,7 @@ namespace tahsinERP.Controllers
                         CustomerId = g.Key,
                         CustomerName = ReferenceDataCache.NameOf(ReferenceDataCache.Customers, g.Key) ?? "",
                         OrderCount = g.Sum(x => x.OrderCount),
-                        TotalAmount = g.Sum(x => uzs.ToUzsOrZero((decimal)x.Total, x.CurrencyID, x.Day ?? today))
+                        TotalAmount = g.Sum(x => uzs.ToUzsOrZero(x.Total, x.CurrencyID, x.Day ?? today))
                     })
                     .OrderByDescending(x => x.TotalAmount)
                     .Take(10)
