@@ -356,46 +356,74 @@ namespace tahsinERP.Controllers
             return View(viewModel);
         }
 
-        // POST so'rovi: Tasks/o'chirish/5
+        // POST so'rovi: Tasks/Cancel/5 — topshiriqni bekor qilish (CANCELLED holati, tarix saqlanadi)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Cancel(long id)
+        {
+            using (DBTHSNEntities db = new DBTHSNEntities())
+            {
+                var task = await FindOwnTaskAsync(db, id, "bekor qilishingiz");
+                if (task == null)
+                {
+                    return TempData["Error"] != null ? (ActionResult)RedirectToAction("Index") : HttpNotFound();
+                }
+
+                var cancelledStatus = TaskLookups.Statuses().FirstOrDefault(s => s.Code == TaskRules.CancelledCode);
+                if (cancelledStatus == null)
+                {
+                    TempData["Error"] = "\"Bekor qilindi\" (CANCELLED) holati sozlanmagan — Task sozlamalarida qo'shing";
+                    return RedirectToAction("Index");
+                }
+
+                task.StatusID = cancelledStatus.ID;
+                task.UpdatedDT = DateTime.Now;
+                await db.SaveChangesAsync();
+
+                LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} bekor qilindi");
+                TempData["Success"] = "Topshiriq bekor qilindi";
+                return RedirectToAction("Index");
+            }
+        }
+
+        // POST so'rovi: Tasks/Delete/5 — topshiriqni o'chirish (IsDeleted; ro'yxat, Kanban va Dashboard'dan chiqadi).
+        // Foydalanuvchi qarori (TSK-B06, 2026-10-19): "Bekor qilish" va "O'chirish" alohida amallar.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(long id)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var task = await db.APP_TASKS.FindAsync(id);
-                if (task == null || task.IsDeleted)
+                var task = await FindOwnTaskAsync(db, id, "o'chirishingiz");
+                if (task == null)
                 {
-                    return HttpNotFound();
+                    return TempData["Error"] != null ? (ActionResult)RedirectToAction("Index") : HttpNotFound();
                 }
 
-                if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
-                {
-                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni bekor qilishingiz mumkin";
-                    return RedirectToAction("Index");
-                }
-
-                // Biznes qarori (TSK-B06, 2026-10-17): "o'chirish" = bekor qilish — CANCELLED holati bo'lsa
-                // status o'zgaradi (tarix saqlanadi), aks holda IsDeleted
-                var cancelledStatus = TaskLookups.Statuses().FirstOrDefault(s => s.Code == TaskRules.CancelledCode);
-                if (cancelledStatus != null)
-                {
-                    task.StatusID = cancelledStatus.ID;
-                    task.UpdatedDT = DateTime.Now;
-                }
-                else
-                {
-                    task.IsDeleted = true;
-                }
-
+                task.IsDeleted = true;
+                task.UpdatedDT = DateTime.Now;
                 await db.SaveChangesAsync();
 
-                LogHelper.LogToDatabase(CurrentUserName, "TasksController",
-                    $"Task {task.KeyCode} - {task.Title} " + (cancelledStatus != null ? "bekor qilindi" : "o'chirildi"));
-                TempData["Success"] = cancelledStatus != null ? "Topshiriq bekor qilindi" : "Topshiriq o'chirildi";
-
+                LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} o'chirildi");
+                TempData["Success"] = "Topshiriq o'chirildi";
                 return RedirectToAction("Index");
             }
+        }
+
+        /// <summary>O'chirilmagan va joriy foydalanuvchi boshqara oladigan topshiriq; ruxsat bo'lmasa TempData["Error"] bilan null.</summary>
+        private async Task<APP_TASKS> FindOwnTaskAsync(DBTHSNEntities db, long id, string verb)
+        {
+            var task = await db.APP_TASKS.FindAsync(id);
+            if (task == null || task.IsDeleted)
+            {
+                return null;
+            }
+            if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
+            {
+                TempData["Error"] = $"Siz faqat o'zingizga tegishli tasklarni {verb} mumkin";
+                return null;
+            }
+            return task;
         }
 
         /// <summary>Create/Edit dropdownlari (avval 5 joyda 4 tadan so'rov — TSK-P07).</summary>
