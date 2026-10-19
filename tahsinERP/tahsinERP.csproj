@@ -2853,7 +2853,6 @@
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
-    <Content Include="Scripts\device-identifier.js" />
     <Content Include="Scripts\csrf.js" />
     <Content Include="Scripts\hr\piece-rate-grid.js" />
     <Content Include="Scripts\flatpickr.js" />

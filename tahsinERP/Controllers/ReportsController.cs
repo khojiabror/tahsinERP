@@ -15,11 +15,6 @@ namespace tahsinERP.Controllers
 {
     public class ReportsController : Controller
     {
-        public ActionResult Index()
-        {
-            return View();
-        }
-
         /// <summary>
         /// ABC/XYZ segmentatsiya - xomashyolarni value va variabiliti bo'yicha klassifikatsiya.
         /// </summary>

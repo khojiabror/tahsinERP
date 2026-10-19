@@ -239,7 +239,6 @@ namespace tahsinERP.Controllers
             }
 
             ViewBag.ControllerNames = GetAllControllerNames();
-            ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
 
             return View();
         }
@@ -337,7 +336,6 @@ namespace tahsinERP.Controllers
 
             // xatolik bo'lsa, ViewBag ni qayta yuklash
             ViewBag.ControllerNames = GetAllControllerNames();
-            ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
 
             return View(permissions);
         }
@@ -410,7 +408,6 @@ namespace tahsinERP.Controllers
 
                 ViewBag.Roles = new MultiSelectList(roles, "ID", "RName", selectedRoleIDs);
                 ViewBag.ControllerNames = new SelectList(GetAllControllerNames(), "Value", "Text", pModule.Controller);
-                ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
 
                 return View(pModule);
             }
@@ -537,7 +534,6 @@ namespace tahsinERP.Controllers
 
                 ViewBag.Roles = new MultiSelectList(roles, "ID", "RName", RoleID);
                 ViewBag.ControllerNames = new SelectList(GetAllControllerNames(), "Value", "Text", permissions.Controller);
-                ViewBag.Parametr = ConfigurationManager.AppSettings["Parametr"]?.Split(',').ToList() ?? new List<string>();
             }
 
             return View(permissions);
