@@ -441,6 +441,8 @@ namespace tahsinERP.Services.Finance
             }
 
             const int top = 20;
+            // Popup qatorlari ham so'mda (FIN-B01): har summa o'z sanasidagi kurs bilan.
+            var money = FinMoney.For(db);
 
             if (Is(category, SystemCodes.BalanceCategory.Payables))
             {
@@ -452,25 +454,16 @@ namespace tahsinERP.Services.Finance
                     .Select(i => new { i.ID, i.InvoiceDate, i.InvoiceNo, i.Amount, SupplierName = i.SUPPLIER != null ? i.SUPPLIER.Name : "" })
                     .ToList();
 
+                // So'mda (FIN-B01): kirim hujjatlari yig'indisi, kirimi yo'q invoys — invoys summasi, har biri o'z sanasidagi kurs bilan.
                 var invoiceIds = addedRaw.Select(i => i.ID).ToList();
-                var incomeTotalsByInvoice = invoiceIds.Count == 0
-                    ? new Dictionary<int, decimal>()
-                    : db.INCOMES
-                        .Where(inc => inc.InvoiceID.HasValue &&
-                                      invoiceIds.Contains(inc.InvoiceID.Value) &&
-                                      inc.IsDeleted != true &&
-                                      inc.TotalPrice.HasValue)
-                        .GroupBy(inc => inc.InvoiceID.Value)
-                        .Select(g => new { InvoiceID = g.Key, Total = g.Sum(x => x.TotalPrice.Value) })
-                        .ToList()
-                        .ToDictionary(x => x.InvoiceID, x => Convert.ToDecimal(x.Total));
+                var amountsUzs = CounterpartyBalanceService.PurchaseInvoiceAmountsUzs(db, db.P_INVOICES.Where(i => invoiceIds.Contains(i.ID)));
 
                 var added = addedRaw
                     .Select(i => new
                     {
                         date = i.InvoiceDate,
                         doc = i.InvoiceNo,
-                        amount = incomeTotalsByInvoice.ContainsKey(i.ID) ? incomeTotalsByInvoice[i.ID] : (decimal)(i.Amount ?? 0d),
+                        amount = amountsUzs.TryGetValue(i.ID, out var amountUzs) ? amountUzs : 0m,
                         note = i.SupplierName
                     })
                     .ToList();
@@ -485,13 +478,13 @@ namespace tahsinERP.Services.Finance
                                  !string.IsNullOrEmpty(t.ContractNo)))
                     .OrderByDescending(t => t.TxnDate)
                     .Take(top)
-                    .Select(t => new { t.TxnDate, t.SourceDocType, t.Amount, t.ContractNo, t.Purpose, t.Comment })
+                    .Select(t => new { t.TxnDate, t.SourceDocType, t.Amount, t.CurrencyID, t.ContractNo, t.Purpose, t.Comment })
                     .ToList()
                     .Select(t => new
                     {
                         date = t.TxnDate,
                         doc = t.SourceDocType ?? "FinTransaction",
-                        amount = t.Amount,
+                        amount = money.Uzs(t.Amount, t.CurrencyID, t.TxnDate),
                         note = (!string.IsNullOrEmpty(t.ContractNo) ? "[" + t.ContractNo + "] " : "") + (t.Purpose ?? t.Comment ?? "")
                     })
                     .ToList();
@@ -511,8 +504,11 @@ namespace tahsinERP.Services.Finance
                         date = i.InvoiceDate,
                         doc = i.InvoiceNo,
                         amount = i.TotalWithVAT ?? i.TotalAmount,
+                        i.CurrencyID,
                         note = (i.CUSTOMER != null ? i.CUSTOMER.Name : "")
                     })
+                    .ToList()
+                    .Select(i => new { i.date, i.doc, amount = money.Uzs(i.amount, i.CurrencyID, i.date), i.note })
                     .ToList();
 
                 // Sotuv tushumi — SALES tizim kategoriyasi (avval nomida "Sotuv" bo'lgan barcha daromad kategoriyalari)
@@ -530,14 +526,7 @@ namespace tahsinERP.Services.Finance
                                  salesCategoryIds.Contains(t.CategoryID)))
                     .OrderByDescending(t => t.TxnDate)
                     .Take(top)
-                    .Select(t => new
-                    {
-                        date = t.TxnDate,
-                        doc = t.SourceDocType ?? "FinTransaction",
-                        amount = t.Amount,
-                        note = t.Purpose ?? t.Comment
-                    })
-                    .ToList();
+                    .UzsMovementRows(money);
 
                 return new { success = true, added, subtracted };
             }
@@ -578,14 +567,7 @@ namespace tahsinERP.Services.Finance
                         asOfDate)
                     .OrderByDescending(t => t.TxnDate)
                     .Take(top)
-                    .Select(t => new
-                    {
-                        date = t.TxnDate,
-                        doc = t.SourceDocType ?? "FinTransaction",
-                        amount = t.Amount,
-                        note = t.Purpose ?? t.Comment
-                    })
-                    .ToList();
+                    .UzsMovementRows(money);
 
                 return new { success = true, added, subtracted };
             }
@@ -608,16 +590,42 @@ namespace tahsinERP.Services.Finance
                 .Where(t => t.Direction == 1)
                 .OrderByDescending(t => t.TxnDate)
                 .Take(top)
-                .Select(t => new { date = t.TxnDate, doc = t.SourceDocType ?? "FinTransaction", amount = t.Amount, note = t.Purpose ?? t.Comment })
-                .ToList();
+                .UzsMovementRows(money);
             var defaultSubtracted = baseQuery
                 .Where(t => t.Direction != 1)
                 .OrderByDescending(t => t.TxnDate)
                 .Take(top)
-                .Select(t => new { date = t.TxnDate, doc = t.SourceDocType ?? "FinTransaction", amount = t.Amount, note = t.Purpose ?? t.Comment })
-                .ToList();
+                .UzsMovementRows(money);
 
             return new { success = true, added = defaultAdded, subtracted = defaultSubtracted };
+        }
+    }
+
+    /// <summary>Balans popup qatori (date, doc, amount, note) — summa so'mda.</summary>
+    public sealed class BalanceMovementRow
+    {
+        public DateTime date { get; set; }
+        public string doc { get; set; }
+        public decimal amount { get; set; }
+        public string note { get; set; }
+    }
+
+    internal static class BalanceMovementQueries
+    {
+        /// <summary>FIN harakatlarini popup qatorlariga aylantiradi, summani tranzaksiya sanasidagi kurs bilan so'mga o'girib (FIN-B01).</summary>
+        public static List<BalanceMovementRow> UzsMovementRows(this IQueryable<FIN_TRANSACTIONS> query, FinMoney money)
+        {
+            return query
+                .Select(t => new { t.TxnDate, t.SourceDocType, t.Amount, t.CurrencyID, t.Purpose, t.Comment })
+                .ToList()
+                .Select(t => new BalanceMovementRow
+                {
+                    date = t.TxnDate,
+                    doc = t.SourceDocType ?? "FinTransaction",
+                    amount = money.Uzs(t.Amount, t.CurrencyID, t.TxnDate),
+                    note = t.Purpose ?? t.Comment
+                })
+                .ToList();
         }
     }
 }

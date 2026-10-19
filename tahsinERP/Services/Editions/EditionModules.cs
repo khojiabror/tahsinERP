@@ -66,7 +66,7 @@ namespace tahsinERP.Services.Editions
                     "Home", "Account", "License", "Error", "ViewNotAuthorized", "ComingSoon", "HelpDocs", "UserManual",
                     "AdminPanel", "DeletedRecords", "Log", "PModule", "Role", "User", "UserEntries",
                     "Company", "Currency", "CurrencyRates", "Unit", "Warehouse", "WarehouseLocations",
-                    "Product", "ProductCategory", "Shop",
+                    "Product", "ProductCategory", "ProductImage", "ProductLookup", "Shop", "Branding",
                     "Reconciliation"    // akt-sverka: xarid, sotuv va yuk tashish shartnomalari uchun umumiy
                 } },
             { ProductModule.Srm, new[]

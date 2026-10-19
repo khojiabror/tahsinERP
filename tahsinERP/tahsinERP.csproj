@@ -779,6 +779,7 @@
     <Compile Include="Helpers\DocFileAccess.cs" />
     <Compile Include="Helpers\LayoutBadges.cs" />
     <Compile Include="Helpers\ModelStateExtensions.cs" />
+    <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
@@ -2755,6 +2756,7 @@
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
       <LastGenOutput>DBTHSNModel.cs</LastGenOutput>
     </Content>
+    <Content Include="Scripts\chartjs\chart.umd.min.js" />
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
     <Content Include="Scripts\app\contract-picker.js" />
@@ -2852,7 +2854,6 @@
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
-    <Content Include="Scripts\device-identifier.js" />
     <Content Include="Scripts\csrf.js" />
     <Content Include="Scripts\hr\piece-rate-grid.js" />
     <Content Include="Scripts\flatpickr.js" />
@@ -2895,6 +2896,7 @@
     <Content Include="Views\User\Details.cshtml" />
     <Content Include="Views\Account\Settings.cshtml" />
     <Content Include="Views\Shared\_UserProfile.cshtml" />
+    <Content Include="Views\Shared\_HeaderUserName.cshtml" />
     <Content Include="Views\User\Delete.cshtml" />
     <Content Include="Views\PModule\Index.cshtml" />
     <Content Include="Views\PModule\Create.cshtml" />

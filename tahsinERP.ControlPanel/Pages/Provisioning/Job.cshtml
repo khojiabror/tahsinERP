@@ -1,0 +1,32 @@
+@page "{id:long}"
+@model tahsinERP.ControlPanel.Pages.Provisioning.JobModel
+@{ var j = Model.Job; ViewData["Title"] = $"Job #{j.Id}"; }
+<h1>Job #@j.Id — @Labels.Of(j.Type) <span class="badge @Labels.Badge(j.Status)">@Labels.Of(j.Status)</span></h1>
+<div asp-validation-summary="ModelOnly"></div>
+<div class="actions">
+    <a class="btn secondary" href="/Tenants/Details/@j.TenantId">← @j.Tenant?.LegalName</a>
+    @if (Model.CanSell && j.Status == ProvisioningJobStatus.Failed)
+    {
+        <form method="post" asp-page-handler="Retry" class="inline"><button type="submit">Qayta urinish</button></form>
+    }
+    @if (Model.CanSell && j.Status is ProvisioningJobStatus.Pending or ProvisioningJobStatus.Failed)
+    {
+        <form method="post" asp-page-handler="Cancel" class="inline"><button type="submit" class="secondary">Bekor qilish</button></form>
+    }
+</div>
+<div class="card">
+    <dl class="props">
+        <dt>Tashkilot</dt><dd><code>@j.Tenant?.Slug</code></dd>
+        <dt>Urinishlar</dt><dd>@j.Attempts / @j.MaxAttempts</dd>
+        <dt>Yaratdi</dt><dd>@(Model.CreatedBy ?? "tizim") — @j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm:ss") UTC</dd>
+        <dt>Boshlangan / tugagan</dt><dd>@j.StartedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss") — @j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
+        <dt>Keyingi urinish</dt><dd>@(j.Status == ProvisioningJobStatus.Pending ? j.NotBeforeUtc.ToString("dd.MM.yyyy HH:mm:ss") : "")</dd>
+        <dt>Lease</dt><dd>@j.LeaseUntilUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
+        <dt>Chiqish kodi</dt><dd>@j.ExitCode</dd>
+        <dt>Xato</dt><dd class="mono">@j.Error</dd>
+        <dt>Parametrlar</dt><dd class="mono">@j.Payload</dd>
+        <dt>Natija</dt><dd class="mono">@j.Result</dd>
+    </dl>
+</div>
+<h2>Log</h2>
+<pre class="log">@j.Log</pre>
