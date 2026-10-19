@@ -2750,6 +2750,7 @@
       <DependentUpon>DBTHSNModel.edmx</DependentUpon>
       <LastGenOutput>DBTHSNModel.cs</LastGenOutput>
     </Content>
+    <Content Include="Scripts\chartjs\chart.umd.min.js" />
     <Content Include="Scripts\404.js" />
     <Content Include="Scripts\srm\srm-server-table.js" />
     <Content Include="Scripts\app\contract-picker.js" />
