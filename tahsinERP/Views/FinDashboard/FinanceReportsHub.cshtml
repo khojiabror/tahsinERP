@@ -263,130 +263,136 @@
         </div>
     </div>
 
-    @Html.Partial("_ChartJs")
-    <script>
-        (function () {
-            var receivables = @Html.Raw(System.Web.Helpers.Json.Encode(Model.CustomerReceivables.Take(10).ToList()));
-            var payables = @Html.Raw(System.Web.Helpers.Json.Encode(Model.SupplierPayables.Take(10).ToList()));
+@* jQuery layout oxirida yuklanadi — skriptlar Scripts section'da bo'lishi kerak *@
+@section Scripts {
+        @Html.Partial("_ChartJs")
+        <script>
+            (function () {
+                var receivables = @Html.Raw(System.Web.Helpers.Json.Encode(Model.CustomerReceivables.Take(10).ToList()));
+                var payables = @Html.Raw(System.Web.Helpers.Json.Encode(Model.SupplierPayables.Take(10).ToList()));
 
-            if (typeof Chart !== 'undefined' && receivables.length > 0) {
-                new Chart(document.getElementById('chartReceivables'), {
-                    type: 'bar',
-                    data: {
-                        labels: receivables.map(function (x) { return x.CustomerName; }),
-                        datasets: [{ label: "Haqqimiz", data: receivables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(54, 162, 235, 0.7)' }]
-                    },
-                    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
-                });
-            }
-            if (typeof Chart !== 'undefined' && payables.length > 0) {
-                new Chart(document.getElementById('chartPayables'), {
-                    type: 'bar',
-                    data: {
-                        labels: payables.map(function (x) { return x.SupplierName; }),
-                        datasets: [{ label: "Qarzimiz", data: payables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(255, 99, 132, 0.7)' }]
-                    },
-                    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
-                });
-            }
-
-            if (window.jQuery && $.fn && $.fn.DataTable) {
-                var options = {
-                    pageLength: 25,
-                    lengthMenu: [[25, 50, 100, -1], ["25", "50", "100", "Barchasi"]],
-                    order: [[1, "desc"]],
-                    language: {
-                        lengthMenu: "Ko'rsatish: _MENU_",
-                        info: "_TOTAL_ ta yozuvdan _START_ - _END_",
-                        infoEmpty: "Yozuv yo'q",
-                        infoFiltered: "(_MAX_ ta yozuvdan filtrlangan)",
-                        search: "Qidirish:",
-                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
-                        zeroRecords: "Hech narsa topilmadi"
-                    }
-                };
-                $('.finance-hub-table').DataTable(options);
-            }
-
-            function loadScript(src) {
-                return new Promise(function (resolve, reject) {
-                    var existing = document.querySelector('script[src="' + src + '"]');
-                    if (existing) {
-                        if (existing.dataset.loaded === '1') return resolve();
-                        existing.addEventListener('load', function () { resolve(); });
-                        existing.addEventListener('error', function () { reject(new Error('Script load failed: ' + src)); });
-                        return;
-                    }
-                    var s = document.createElement('script');
-                    s.src = src;
-                    s.async = true;
-                    s.onload = function () { s.dataset.loaded = '1'; resolve(); };
-                    s.onerror = function () { reject(new Error('Script load failed: ' + src)); };
-                    document.head.appendChild(s);
-                });
-            }
-
-            async function exportHubToPdf() {
-                var btn = document.getElementById('btnExportHubPdf');
-                var root = document.getElementById('financeHubExportRoot');
-                if (!root) return;
-
-                var originalText = btn ? btn.textContent : '';
-                try {
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.textContent = 'PDF tayyorlanmoqda...';
-                    }
-
-                    await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
-                    await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
-
-                    var canvas = await window.html2canvas(root, {
-                        scale: 2,
-                        useCORS: true,
-                        backgroundColor: '#ffffff',
-                        scrollX: 0,
-                        scrollY: -window.scrollY
+                if (typeof Chart !== 'undefined' && receivables.length > 0) {
+                    new Chart(document.getElementById('chartReceivables'), {
+                        type: 'bar',
+                        data: {
+                            labels: receivables.map(function (x) { return x.CustomerName; }),
+                            datasets: [{ label: "Haqqimiz", data: receivables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(54, 162, 235, 0.7)' }]
+                        },
+                        options: { indexAxis: 'y', plugins: { legend: { display: false } } }
                     });
+                }
+                if (typeof Chart !== 'undefined' && payables.length > 0) {
+                    new Chart(document.getElementById('chartPayables'), {
+                        type: 'bar',
+                        data: {
+                            labels: payables.map(function (x) { return x.SupplierName; }),
+                            datasets: [{ label: "Qarzimiz", data: payables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(255, 99, 132, 0.7)' }]
+                        },
+                        options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+                    });
+                }
 
-                    var jsPDF = window.jspdf.jsPDF;
-                    var pdf = new jsPDF('p', 'mm', 'a4');
-                    var pageWidth = pdf.internal.pageSize.getWidth();
-                    var pageHeight = pdf.internal.pageSize.getHeight();
+                if (window.jQuery && $.fn && $.fn.DataTable) {
+                    var options = {
+                        pageLength: 25,
+                        lengthMenu: [[25, 50, 100, -1], ["25", "50", "100", "Barchasi"]],
+                        order: [[1, "desc"]],
+                        language: {
+                            lengthMenu: "Ko'rsatish: _MENU_",
+                            info: "_TOTAL_ ta yozuvdan _START_ - _END_",
+                            infoEmpty: "Yozuv yo'q",
+                            infoFiltered: "(_MAX_ ta yozuvdan filtrlangan)",
+                            search: "Qidirish:",
+                            paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
+                            zeroRecords: "Hech narsa topilmadi"
+                        }
+                    };
+                    // Bo'sh jadvaldagi "Ma'lumot yo'q" (colspan) qatori DataTables'ni sindiradi — ular oddiy jadval bo'lib qoladi
+                    $('.finance-hub-table').filter(function () {
+                        return $(this).find('tbody td[colspan]').length === 0;
+                    }).DataTable(options);
+                }
 
-                    var imgWidth = pageWidth;
-                    var imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    var heightLeft = imgHeight;
-                    var position = 0;
-                    var imgData = canvas.toDataURL('image/png', 1.0);
+                function loadScript(src) {
+                    return new Promise(function (resolve, reject) {
+                        var existing = document.querySelector('script[src="' + src + '"]');
+                        if (existing) {
+                            if (existing.dataset.loaded === '1') return resolve();
+                            existing.addEventListener('load', function () { resolve(); });
+                            existing.addEventListener('error', function () { reject(new Error('Script load failed: ' + src)); });
+                            return;
+                        }
+                        var s = document.createElement('script');
+                        s.src = src;
+                        s.async = true;
+                        s.onload = function () { s.dataset.loaded = '1'; resolve(); };
+                        s.onerror = function () { reject(new Error('Script load failed: ' + src)); };
+                        document.head.appendChild(s);
+                    });
+                }
 
-                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
+                async function exportHubToPdf() {
+                    var btn = document.getElementById('btnExportHubPdf');
+                    var root = document.getElementById('financeHubExportRoot');
+                    if (!root) return;
 
-                    while (heightLeft > 0) {
-                        position = heightLeft - imgHeight;
-                        pdf.addPage();
+                    var originalText = btn ? btn.textContent : '';
+                    try {
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.textContent = 'PDF tayyorlanmoqda...';
+                        }
+
+                        await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+                        await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+
+                        var canvas = await window.html2canvas(root, {
+                            scale: 2,
+                            useCORS: true,
+                            backgroundColor: '#ffffff',
+                            scrollX: 0,
+                            scrollY: -window.scrollY
+                        });
+
+                        var jsPDF = window.jspdf.jsPDF;
+                        var pdf = new jsPDF('p', 'mm', 'a4');
+                        var pageWidth = pdf.internal.pageSize.getWidth();
+                        var pageHeight = pdf.internal.pageSize.getHeight();
+
+                        var imgWidth = pageWidth;
+                        var imgHeight = (canvas.height * imgWidth) / canvas.width;
+                        var heightLeft = imgHeight;
+                        var position = 0;
+                        var imgData = canvas.toDataURL('image/png', 1.0);
+
                         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
                         heightLeft -= pageHeight;
-                    }
 
-                    var dateInput = document.querySelector('input[name="asOfDate"]');
-                    var asOf = dateInput && dateInput.value ? dateInput.value : '';
-                    var fileName = 'FinanceReportsHub' + (asOf ? ('_' + asOf) : '') + '.pdf';
-                    pdf.save(fileName);
-                } catch (e) {
-                    alert('PDF exportda xatolik: ' + (e && e.message ? e.message : e));
-                } finally {
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.textContent = originalText || 'PDF yuklab olish (butun sahifa)';
+                        while (heightLeft > 0) {
+                            position = heightLeft - imgHeight;
+                            pdf.addPage();
+                            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                            heightLeft -= pageHeight;
+                        }
+
+                        var dateInput = document.querySelector('input[name="asOfDate"]');
+                        var asOf = dateInput && dateInput.value ? dateInput.value : '';
+                        var fileName = 'FinanceReportsHub' + (asOf ? ('_' + asOf) : '') + '.pdf';
+                        pdf.save(fileName);
+                    } catch (e) {
+                        alert('PDF exportda xatolik: ' + (e && e.message ? e.message : e));
+                    } finally {
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.textContent = originalText || 'PDF yuklab olish (butun sahifa)';
+                        }
                     }
                 }
-            }
 
-            var exportBtn = document.getElementById('btnExportHubPdf');
-            if (exportBtn) {
-                exportBtn.addEventListener('click', exportHubToPdf);
-            }
-        })();
-    </script>
+                var exportBtn = document.getElementById('btnExportHubPdf');
+                if (exportBtn) {
+                    exportBtn.addEventListener('click', exportHubToPdf);
+                }
+            })();
+        </script>
+}

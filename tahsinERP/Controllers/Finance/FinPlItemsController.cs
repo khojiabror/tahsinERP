@@ -21,6 +21,7 @@ namespace tahsinERP.Controllers.Finance
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var query = db.FIN_PL_ITEMS.AsNoTracking()
+                    .Include(i => i.FIN_PL_ITEMS2) // ota nomi view'da; AsNoTracking'da avtomatik bog'lanmaydi
                     .Where(i => i.IsActive && (i.IsDeleted == false || i.IsDeleted == null));
 
                 if (!string.IsNullOrEmpty(searchTerm))
