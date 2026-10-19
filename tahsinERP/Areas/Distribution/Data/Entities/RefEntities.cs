@@ -84,6 +84,18 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public bool? IsDeleted { get; set; }
     }
 
+    /// <summary>dbo.PRODUCT_STOCKS — haqiqiy qoldiq (ombor ledgeri yozadi).</summary>
+    [Table("PRODUCT_STOCKS", Schema = "dbo")]
+    public class StockRef : IReadOnlyRef
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int ID { get; set; }
+        public int WHID { get; set; }
+        public int ProductID { get; set; }
+        public decimal Amount { get; set; }
+        public int UnitID { get; set; }
+    }
+
     [Table("ROLES", Schema = "dbo")]
     public class RoleRef : IReadOnlyRef
     {

@@ -1,5 +1,5 @@
 /* =====================================================================
-   017 — Distributsiya buyurtmalari, rezerv, jo'natish va mijoz ledgeri (01_PHASE1_MVP.md, S2).
+   018 — Distributsiya buyurtmalari, rezerv, jo'natish va mijoz ledgeri (01_PHASE1_MVP.md, S2).
 
      dst.D_ORDERS              buyurtma (holat: 0 yangi .. 6 yopildi, 9 bekor)
      dst.D_ORDER_LINES         qatorlar: sotish birligi + asosiy birlikdagi miqdor, narx/min narx surati
@@ -69,7 +69,7 @@ BEGIN
     CREATE TABLE dst.D_ORDER_LINES (
         ID             int IDENTITY(1, 1) NOT NULL,
         OrderID        int            NOT NULL,
-        LineNo         int            NOT NULL,
+        [LineNo]       int            NOT NULL,
         ProductID      int            NOT NULL,
         ProductUnitID  int            NULL,          -- NULL = asosiy birlik
         UnitID         int            NOT NULL,

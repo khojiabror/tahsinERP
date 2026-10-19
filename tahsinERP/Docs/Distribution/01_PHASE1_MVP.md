@@ -219,14 +219,20 @@ Testlar: 120/120 (yangi: narx qoidalari, birliklar, STIR/telefon/GPS/shtrix-kod,
 
 Tekshirilmagan: sahifalar brauzerda ochilmadi — test bazasida litsenziya yo'q (kalit RSA bilan imzolanadi, chetlab o'tilmadi). View'lar `aspnet_compiler` bilan kompilyatsiya qilib tekshirildi.
 
-## 12. S2 — boshlangan (WIP, 2026-10-19)
+## 12. S2 natijasi (2026-10-19, branch `feature/distribution`)
 
-Tayyor (kompilyatsiyaga hali ulanmagan, csproj'da yo'q): `Database/Migrations/017_DST_Orders.sql` (lokal bazada QO'LLANMAGAN), `Data/Entities/OrderEntities.cs`, `Services/Orders/OrderRules.cs` (holat mashinasi, hisob-kitob, limit/chegirma/min narx qoidalari). Qoldi: DbSet + model sozlamasi (decimal aniqliklari), `OrderService` (yaratish, tasdiqlash + rezerv `sp_getapplock`, jo'natish, bekor), web sahifalar (`DstOrders`, `DstStock`), chop etish, resx kalitlari (`Order_*`, `OrderStatus_*`, `Credit_*`, `Discount_OverLimit`, `MinPrice_Violation`), testlar.
+Migratsiya `Database/Migrations/018_DST_Orders.sql` (017 master'da float→decimal'ga band): `D_ORDERS`, `D_ORDER_LINES`, `D_ORDER_STATUS_LOG`, `STOCK_RESERVATIONS`, `D_SHIPMENTS` (+lines), `CUSTOMER_LEDGER`, `SETTINGS` (`MinOrderAmount`); ruxsat modullari `DstOrders`, `DstStock` (+ Seed/105). Lokal bazada qo'llangan (zaxira `DBTHSN-IPACK_pre_018_DST_20261019.bak`).
 
-Ombor API (jo'natish shu orqali, `DistributionUnitOfWork.Erp` va uning tranzaksiyasida):
-- `DecreaseSalesStock` ISHLATILMAYDI (omborni tanlab bo'lmaydi, narx shartnomadan). Andoza — `Services/Stock/ExpenseDocumentService.PostLinesAsync`.
-- `EXPENS` (DocNo, SenderWHID, IssueDateTime, CurrencyID, IsDeleted=false, SendStatus=true, Description'da `DocumentMarkers` URL belgisi) + `EXPENSE_PRODUCTS` → SaveChanges → `StockLedger.IssueLine(db, wh, product, qty(double), unitId, expenseProductId)` → `StockCostService.IssuedLineUnitCost(...)` → PiecePrice.
-- Bekor: `StockLedger.ReverseIssueLine(...)` keyin EXPENSE_PRODUCTS/EXPENSES o'chiriladi (namuna `WarehouseFlowService.RollbackSalesInvoiceStockAndDeleteAutoExpenses`).
-- Qaytarish kirimi (S3): `INCOME` + `INCOME_PRODUCTS` (PiecePrice = chiqim tannarxi) → `StockLedger.ReceiveLine(...)`; bekor — `ReverseIncomeReceipt`.
-- Hujjat raqami: `DocumentNumberService.Next(db, table, column, prefix, pad)` — `db.Database.CurrentTransaction` talab qiladi (UoW'da UseTransaction bilan bor).
-- Moliya: `FinancePostingService.PostSalesInvoice` namunasi (RECEIVABLES_{valyuta} hisobi, SALES kategoriyasi).
+| Qism | Nima qiladi |
+|---|---|
+| `OrderService.SaveDraft` | Narx har doim narx varag'idan (maxsus → narx turi → standart), birlik × Factor; chegirma (qator × buyurtma samarali %) rol limiti bilan; chegirmadan keyingi narx min narxdan past bo'lmasin (`DstDiscountUnlimited` ozod); sotuvdan olingan tovar rad; og'irlik/hajm; `ClientRequestId` — bot qayta yuborsa ikki buyurtma bo'lmaydi. Hamma tekshiruv o'zgarishdan oldin |
+| `Confirm` | Mijoz tasdiqlangan, yetkazish uchun minimal summa, qarz + buyurtma ≤ limit va muddati o'tgan qarz yo'q (bo'lmasa `CreditBlockedException`; `DstOverrideCredit` + izoh bilan ruxsat); ombor tanlanmasa — savdo omborlaridan to'liq (yoki eng ko'p) qoplaydigani; rezerv `sp_getapplock` (ombor+tovar) ostida, yetmagani "kirimni kutmoqda" |
+| `Ship` | `dbo.EXPENSES` + `EXPENSE_PRODUCTS` → `StockLedger.IssueLine` (sof FIFO, DLOC ham) → `StockCostService` tannarx; boshqa buyurtmalar rezervi daxlsiz; rezerv kamayadi; `CUSTOMER_LEDGER` debet (muddat = sana + PaymentDays); qisman/to'liq; o'zi olib ketishda darhol "yetkazildi" |
+| Boshqa | `Unconfirm` (rezerv yechiladi), `Rereserve`, `StartPicking`, `CloseRemainder` (sabab bilan), `MarkDelivered`, `Cancel` (faqat jo'natilmagan, sabab majburiy), `DeleteDraft` |
+| Sahifalar | `DstOrders`: ro'yxat (holat/agent/ombor/sana filtri; agent — o'zi, supervayzer — jamoasi, mijoz/ombor scope), forma (mijoz → qarz/limit paneli, tovar qidiruvi va shtrix-kod skaneri, birlik, narx, chegirma, mavjud qoldiq), karta (holatga qarab amallar, limitdan oshganda ruxsat oynasi, jo'natish miqdorlari, jo'natishlar, yalpi foyda — `DstSeeCost` bilan, tarix), chop etish: yig'ish varaqasi va nakladnoy (brauzer → PDF). `DstStock`: haqiqiy / rezerv / mavjud, ombor yoki jami, minimaldan past |
+
+Testlar 128/128 (yangi: holat mashinasi, hisob-kitob, limit/muddati o'tgan qarz, chegirma/min narx, ombor taklifi; integratsiya — kirim (DLOC joylashuv bilan) → qoralama → tasdiq/rezerv → 12 + 18 dona jo'natish (FIFO tannarx 40 000, qarz 1 567 500, muddat +10 kun) → yetkazildi; limit bloki va ruxsat; bekor rezervni yechadi; idempotentlik; hammasi rollback). View'lar: `Run-RazorCheck.ps1` — 485 view, 0 xato.
+
+Testlar topgan va tuzatilgan xatolar: EF to'plamni `null` bilan solishtira olmaydi (`StockService.Levels`); qoralamani o'chirishda jurnal FK tartibi; rad etilgan `SaveDraft` kontekstda yarim o'zgarish qoldirardi.
+
+Qolgan (S3'ga): jo'natishni bekor qilish (`ReverseIssueLine`) va qaytarish hujjati, to'lovlar va `Closed` holati (qarz yopilganda), moliyaga (FIN_TRANSACTIONS) yozish. Sahifalar brauzerda ochilmagan (test bazasida litsenziya yo'q).
