@@ -88,12 +88,18 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<int?>("PortalUserId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("StaffUserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AtUtc");
+
+                    b.HasIndex("PortalUserId")
+                        .HasFilter("[PortalUserId] IS NOT NULL");
 
                     b.HasIndex("Entity", "EntityId");
 
@@ -528,6 +534,269 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalInvite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedByStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiresUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RevokedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("UsedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PortalUserId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("PortalInvites");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalOtp", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("ConsumedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PortalUserId", "CreatedAtUtc");
+
+                    b.ToTable("PortalOtps");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CurrentSubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DecidedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DecidedByStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DecisionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Period")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PeriodCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrentSubscriptionId");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("PortalUserId");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.HasIndex("Status", "Id");
+
+                    b.HasIndex("TenantId", "Status");
+
+                    b.ToTable("PortalRequests");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedByStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("FailedLogins")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LockedUntilUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("TelegramChatId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("TelegramLinkExpiresUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TelegramLinkHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
+
+                    b.HasIndex("Phone")
+                        .IsUnique()
+                        .HasFilter("[Phone] IS NOT NULL");
+
+                    b.HasIndex("TelegramLinkHash")
+                        .IsUnique()
+                        .HasFilter("[TelegramLinkHash] IS NOT NULL");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("PortalUsers");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.ProvisioningJob", b =>
                 {
                     b.Property<long>("Id")
@@ -894,6 +1163,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<bool>("SampleData")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ServerId")
                         .HasColumnType("int");
 
@@ -908,6 +1180,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<string>("TelegramChatId")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("TrialEndedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -929,6 +1204,210 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Tenants");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyDoc", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DocType")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Date", "DocType");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("UsageDailyDocs");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyModule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<byte>("ActionType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Controller")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date", "Module");
+
+                    b.HasIndex("TenantId", "Date", "Module", "Controller", "ActionType")
+                        .IsUnique();
+
+                    b.ToTable("UsageDailyModules");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyUser", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Actions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Logins")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Date", "UserId");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("UsageDailyUsers");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<byte>("ActionType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime>("AtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Controller")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Module")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("SourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AtUtc");
+
+                    b.HasIndex("TenantId", "AtUtc");
+
+                    b.HasIndex("TenantId", "Kind", "SourceId", "AtUtc")
+                        .IsUnique();
+
+                    b.ToTable("UsageEvents");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageState", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("EntryCursor")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("LastActionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("LogCursor")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("More")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("SyncedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TenantId");
+
+                    b.ToTable("UsageStates");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastActionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("UsageUsers");
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>
@@ -980,6 +1459,79 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Navigation("Invoice");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalInvite", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.PortalUser", "PortalUser")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalOtp", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.PortalUser", null)
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalRequest", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Subscription", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentSubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.Plan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.PortalUser", "PortalUser")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.Subscription", null)
+                        .WithMany()
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("PortalUser");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalUser", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.ProvisioningJob", b =>
                 {
                     b.HasOne("tahsinERP.ControlPanel.Data.Tenant", "Tenant")
@@ -1018,6 +1570,60 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Server");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyDoc", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyModule", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyUser", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageEvent", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageState", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithOne()
+                        .HasForeignKey("tahsinERP.ControlPanel.Data.UsageState", "TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageUser", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>

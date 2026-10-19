@@ -23,11 +23,12 @@ Holat: 2026-10-19. Bog'liq: `00_PLAN.md` (7), `02_MULTI_TENANT.md` (tenants.json
 
 | Tur | Kim | Shart | Agent nima qiladi | Muvaffaqiyatda panel |
 |---|---|---|---|---|
-| Create | Sales/Owner | SaaS, `DbName`, baza hali yaratilmagan | baza bor-yo'qligini tekshiradi → `New-TenantDb.ps1` (parol env orqali) → `LICENSE_STATE.RegToken` → `tenants.json` upsert → bazaga ulanib tekshiradi | `ProvisionedAtUtc`, `RegistryEnabled`; Telegram'ga URL/login/parol |
+| Create | Sales/Owner | SaaS, `DbName`, baza hali yaratilmagan | baza bor-yo'qligini tekshiradi → `New-TenantDb.ps1` (parol env orqali; `SampleData` bo'lsa `-Demo` — Database/Demo namuna ma'lumotlari, so'ng demo skripti yaratgan `demo/demo2026` foydalanuvchisi o'chirib qo'yiladi va paroli tasodifiy qilinadi) → `LICENSE_STATE.RegToken` → `tenants.json` upsert → bazaga ulanib tekshiradi | `ProvisionedAtUtc`, `RegistryEnabled`; Telegram'ga URL/login/parol |
 | Suspend | Sales/Owner yoki avtomatik | baza yaratilgan | `enabled: false` | `RegistryEnabled=false` |
 | Resume | Sales/Owner yoki avtomatik | faol obuna bor | `enabled: true` | `RegistryEnabled=true` |
 | Archive | **Owner**, sabab majburiy | baza yaratilgan | `enabled:false` → `BACKUP ... COPY_ONLY, CHECKSUM` + `RESTORE VERIFYONLY` → `IBackupStore` (hozir lokal papka) → `DROP DATABASE` | `Status=Archived`, `ArchiveLocation` |
 | Delete | **Owner**, ikki bosqichli tasdiq (slug yozish + yakuniy sahifa) | faqat `Archived` | baza (qolgan bo'lsa) va arxivlarni o'chiradi, `tenants.json` dan yozuvni olib tashlaydi | `DeletedAtUtc` (hisob-fakturalar/to'lovlar/audit qoladi) |
+| EndTrial | Sales/Owner, sabab + slug qayta yoziladi; faqat pullik obunasi bo'lmagan sinov tenanti (Trial yoki Suspended) | `tenants.json` dan chiqaradi → (standart: `.bak` arxiv, `IBackupStore`) → `DROP DATABASE` | darhol: TRIAL obunasi Cancelled, tenant Suspended; job tugagach Archived + `TrialEndedAtUtc`; arxivsiz bo'lsa `DeletedAtUtc` ham. Baza yaratilmagan bo'lsa job yo'q — shu zahoti Archived. Pullik tenant — Archive → Delete. |
 | Reset | demo tenant (`Provisioning:DemoSlug`); agent har kecha o'zi rejalashtiradi | demo, baza yaratilgan | `DB_DEMO_TEMPLATE.bak` dan RESTORE → `Invoke-DbMigrations.ps1` → demo foydalanuvchi → yangi RegToken → `enabled:true` | `InstallationId` tozalanadi (ERP qayta register qiladi) |
 
 **Avtomatik Suspend/Resume.** Agent har lease so'rovida panel `ReconcileAsync` qiladi: tenant holati (Trial/Active/Grace → `enabled:true`,
@@ -86,7 +87,7 @@ Sozlama: `C:\tahsinERP\Agent\appsettings.json` (sirsiz) + env (`TAHSIN_AGENT_` p
 | `Paths:BackupDir` | SQL xizmati yoza oladigan papka (vaqtinchalik .bak, demo shabloni). `icacls <papka> /grant "NT Service\MSSQLSERVER:(OI)(CI)M"` |
 | `Paths:ArchiveDir` | `LocalBackupStore` ildizi (`<slug>\DB_x_yyyyMMdd_HHmmss.bak` + `.sha256`) |
 | `Paths:StateDir` | agent holati (demo reset sanasi) va `logs\job-<id>.log` |
-| `Demo:*` | `Slug` (panel `Provisioning:DemoSlug` bilan bir xil), `ResetHour` 3, `ResetWindowHours` 3, `TimeZone` Asia/Tashkent, `UserLogin` demo, `UserPassword` (**env**) |
+| `Demo:*` | `Slug` (panel `Provisioning:DemoSlug` bilan bir xil), `ResetHour` 3, `ResetWindowHours` 3, `TimeZone` Asia/Tashkent, `UserLogin` demo, `UserPassword` (**env**; bo'sh — Database/Demo skriptidagi `demo2026` qoladi) |
 
 Windows Service (Administrator):
 
@@ -193,3 +194,25 @@ dotnet test tahsinERP.ControlPanel.Tests
 - Demo foydalanuvchini ERP login sahifasida ko'rsatish — ERP UI o'zgarishi kerak.
 - Bir server = bitta agent. Bir nechta agent bitta serverda ishlasa ham xavfsiz (lease RowVersion bilan), lekin kerak emas.
 - Agent Windows Service sifatida haqiqiy serverda hali ishga tushirilmagan (testlar konsol/in-process).
+
+## 10. Foydalanuvchi faolligi (Faollik) va maxfiylik
+
+Maqsad: sotuv bosqichida sinov/demo tenant ishlatilyaptimi — ko'rish (oxirgi kirish, kunlik kirish/amallar, modullar, so'nggi yozuvlar).
+Arxitektura o'zgarmaydi: **panel tenant bazalariga ulanmaydi**.
+
+- Agent har `Usage:CheckMinutes` (2) daqiqada `POST /api/agent/usage/targets` so'raydi; panel muddati kelgan tenantlarni beradi
+  (`ControlPanel:Usage:TrialIntervalMinutes` 15 — sinov va demo, `IntervalMinutes` 60 — qolganlar) va kursorlarni (oxirgi ID).
+- Agent tenant bazasidan faqat **SELECT** qiladi: `USERS(ID, Uname, IsActive, IsDeleted)`, `USER_ENTRIES(ID, UserID, DateTime)`,
+  `USERLOGS(ID, UserID, DateTime, ControllerName, ActionName)` — kursordan keyingi, ko'pi bilan `BatchLimit` (2000) qator, oxirgi 90 kun.
+  ERP vaqtni server lokal vaqtida yozadi — agent (ERP bilan bir serverda) UTC'ga o'giradi. `POST /api/agent/usage` ga yuboradi.
+- Demo reset: bazadagi MAX(ID) kursordan kichik bo'lsa `ResetDetected` — kursorlar boshidan; panel yozuvlari (TenantId, Tur, ID, vaqt) bo'yicha takrorlanmaydi.
+- Panel: `UsageStates` (kursor, oxirgi kirish/amal, xato), `UsageUsers` (login + holat), `UsageEvents` (90 kun, `Usage:RetentionDays`;
+  kunlik ish eskilarini o'chiradi). Tenant sahifasida «Faollik» bloki → `/Tenants/Activity/{id}`: kunlik grafik (7/30/90 kun),
+  foydalanuvchilar, modullar, so'nggi 200 yozuv filtr bilan (foydalanuvchi, modul, tur, matn). Dashboard: «Faol emas sinovlar» —
+  baza yaratilganiga va oxirgi kirishga `InactiveTrialDays` (3) kundan oshgan sinov tenantlari (demo kirmaydi).
+
+**Maxfiylik (nima yuborilMAYDI):** `USERS.Password`, `HashCode`, `FullName`, `Email`; `USER_ENTRIES.IP/MAC`; `USERLOGS.IP/MacAddr` —
+agent ularni o'qimaydi ham. `ActionName` erkin matn (hujjat/kontragent nomi bo'lishi mumkin): agentda email → `[email]`,
+9+ xonali raqam/telefon (STIR, karta, hisob raqami) → `[raqam]`, 200 belgigacha qisqartiriladi; butunlay o'chirish —
+agent `Usage:IncludeActionText=false` (faqat modul va vaqt). Ma'lumot faqat xodimlarga (barcha rollar o'qiydi), 90 kundan keyin o'chadi.
+Mijoz bilan shartnoma/maxfiylik siyosatida «xizmat sifati uchun foydalanish statistikasi yig'iladi» bandi bo'lishi kerak.

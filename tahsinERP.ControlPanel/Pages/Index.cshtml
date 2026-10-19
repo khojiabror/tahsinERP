@@ -51,6 +51,22 @@
     </div>
 </div>
 <div class="card">
+    <h2>Faol emas sinovlar (3+ kun kirilmagan)</h2>
+    @if (Model.InactiveTrials.Count == 0) { <div class="empty">Yo'q.</div> }
+    else
+    {
+        <table>
+            <tr><th>Tashkilot</th><th>Oxirgi kirish (UTC)</th><th class="num">Kun</th><th></th></tr>
+            @foreach (var x in Model.InactiveTrials)
+            {
+                <tr><td><a href="/Tenants/Details/@x.Tenant.Id">@x.Tenant.LegalName</a> <code>@x.Tenant.Slug</code></td>
+                    <td>@(x.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? "umuman kirmagan")</td><td class="num">@x.DaysIdle</td>
+                    <td><a href="/Tenants/Activity/@x.Tenant.Id">faollik</a></td></tr>
+            }
+        </table>
+    }
+</div>
+<div class="card">
     <h2>Oylik tushum (storno qilinmagan to'lovlar, to'lov sanasi bo'yicha)</h2>
     <svg viewBox="0 0 600 160" width="100%" height="160" role="img" aria-label="Oylik tushum">
         @for (int i = 0; i < d.Revenue.Count; i++)

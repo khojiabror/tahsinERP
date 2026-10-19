@@ -22,7 +22,9 @@ namespace tahsinERP.Services.Editions
     }
 
     /// <summary>
-    /// Paket (litsenziya kalitidagi Edition) → modullar → controllerlar xaritasi. YAGONA joy.
+    /// Paket (litsenziya kalitidagi Edition) → modullar → controllerlar xaritasi. YAGONA joy — umumiy kutubxonada
+    /// (tahsinERP.Licensing, netstandard2.0): ERP (EditionCheck, menyu), provisioning agenti (USERLOGS → modul) va panel
+    /// (Traction: paketda bor, lekin ishlatilmayotgan modullar) bir xil xaritadan foydalanadi. Namespace ERP'dagi eski joyi bilan bir xil.
     /// Kalit = controller nomi ("Controller" qo'shimchasisiz) = PERMISSIONMODULE.Controller ustuni.
     ///
     /// Paketlar (00_PLAN.md, 11-bo'lim):
@@ -127,6 +129,47 @@ namespace tahsinERP.Services.Editions
         {
             ProductModule m;
             return controller != null && ControllerMap.TryGetValue(controller.Trim(), out m) ? m : ProductModule.Core;
+        }
+
+        /// <summary>Barcha modullar (Core'dan tashqari) — paket tartibida.</summary>
+        public static IReadOnlyList<ProductModule> PaidModules { get { return KorpModules; } }
+
+        /// <summary>Paketga kirgan modullar (Core'siz). Cheklovsiz/noma'lum paket — hammasi.</summary>
+        public static IReadOnlyList<ProductModule> ModulesOf(string edition)
+        {
+            return IsRestrictedEdition(edition) ? KorpModules.Where(m => EditionMap[edition.Trim()].Contains(m)).ToArray() : KorpModules;
+        }
+
+        // USERLOGS.ControllerName ba'zan controller nomi emas (LogHelper chaqiruvlarida o'zbekcha bo'lim nomi) — shu nomlar uchun.
+        private static readonly Dictionary<string, string> LogAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Foydalanuvchilar", "User" },
+            { "Omborlar", "Warehouse" },
+            { "Korxona ma'lumotlari", "Company" },
+            { "ТНВЭД kodlar", "HSCode" },
+        };
+
+        /// <summary>
+        /// USERLOGS.ControllerName → xaritadagi controller nomi: "ProductProductionController.Details" → "ProductProduction",
+        /// "SOrderController" → "SOrder", o'zbekcha bo'lim nomlari — LogAliases. Bo'sh — null.
+        /// </summary>
+        public static string NormalizeLogController(string logName)
+        {
+            if (string.IsNullOrWhiteSpace(logName)) return null;
+            string s = logName.Trim();
+            string alias;
+            if (LogAliases.TryGetValue(s, out alias)) return alias;
+            int dot = s.IndexOf('.');
+            if (dot > 0) s = s.Substring(0, dot);
+            if (s.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) && s.Length > "Controller".Length)
+                s = s.Substring(0, s.Length - "Controller".Length);
+            return s;
+        }
+
+        /// <summary>Log nomi xaritada bormi (Traction: «xaritada yo'q log nomlari» — log gigiyenasi uchun).</summary>
+        public static bool IsMapped(string controller)
+        {
+            return controller != null && ControllerMap.ContainsKey(controller.Trim());
         }
 
         /// <summary>Edition modul cheklovi qo'yadimi (START/BIZNES/KORP/TRIAL). Bo'sh/v1/noma'lum — yo'q.</summary>

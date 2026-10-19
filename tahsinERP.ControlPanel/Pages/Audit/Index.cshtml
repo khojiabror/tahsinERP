@@ -18,7 +18,7 @@
     {
         <tr>
             <td>@a.AtUtc.ToString("dd.MM.yyyy HH:mm:ss")</td>
-            <td>@(a.StaffUserId is int s ? Model.StaffNames.GetValueOrDefault(s, "#" + s) : "tizim")</td>
+            <td>@(a.StaffUserId is int s ? Model.StaffNames.GetValueOrDefault(s, "#" + s) : a.PortalUserId is int pu ? "mijoz #" + pu : "tizim")</td>
             <td><code>@a.Action</code></td><td>@a.Entity #@a.EntityId</td>
             <td class="mono">@a.Before</td><td class="mono">@a.After</td><td>@a.Ip</td>
         </tr>

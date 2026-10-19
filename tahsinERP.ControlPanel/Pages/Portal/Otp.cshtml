@@ -1,0 +1,21 @@
+@page
+@model OtpModel
+@{ ViewData["Title"] = "Tasdiqlash kodi"; }
+<div class="card login">
+    <h1>Tasdiqlash kodi</h1>
+    <p>Kod yuborildi: <strong>@Model.Destination</strong></p>
+    <form method="post" class="stack">
+        <div asp-validation-summary="All"></div>
+        <div>
+            <label asp-for="Code">6 xonali kod</label>
+            <input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" autofocus />
+        </div>
+        <input type="hidden" asp-for="ReturnUrl" />
+        <button type="submit">Kirish</button>
+    </form>
+    <form method="post" asp-page-handler="Resend" class="stack spaced">
+        <input type="hidden" asp-for="ReturnUrl" />
+        <button type="submit" class="secondary">Kodni qayta yuborish</button>
+    </form>
+    <p class="hint"><a href="/Login">Boshqa hisob bilan kirish</a></p>
+</div>

@@ -1,0 +1,126 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Traction.IndexModel
+@using tahsinERP.ControlPanel.Services
+@{
+    ViewData["Title"] = "Traction";
+    var r = Model.R;
+    var o = r.Overview;
+    string Pct(double v) => (v * 100).ToString("0.#") + "%";
+    string SortLink(string key, string text) => $"<a href=\"{Model.Query(key)}\">{text}{(Model.Sort == key ? " ▾" : "")}</a>";
+}
+<h1>Traction</h1>
+<p class="hint">Davr: @r.Filter.From.ToString("dd.MM.yyyy") – @r.Filter.To.ToString("dd.MM.yyyy") (@r.Filter.Days kun; trend — oldingi shuncha kun bilan). Demo tenant hisobga olinmaydi. Metrika ta'riflari: Docs/ControlPanel/07_TRACTION.md.</p>
+<form method="get" class="actions">
+    @foreach (var d in new[] { 7, 30, 90 })
+    {
+        <a class="btn @(Model.From == null && Model.To == null && Model.Days == d ? "" : "secondary")" href="?Days=@d&Plan=@Model.Plan&Status=@Model.Status">@d kun</a>
+    }
+    <input type="date" name="From" value="@Model.From?.ToString("yyyy-MM-dd")" />
+    <input type="date" name="To" value="@Model.To?.ToString("yyyy-MM-dd")" />
+    <select name="Plan"><option value="">— paket —</option>@foreach (var p in new[] { "START", "BIZNES", "KORP", "TRIAL" }) { <option value="@p" selected="@(Model.Plan == p)">@p</option> }</select>
+    <select name="Status"><option value="">— holat —</option>@foreach (var s in Enum.GetValues<TenantStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }</select>
+    <input type="hidden" name="Days" value="@Model.Days" />
+    <button type="submit" class="secondary">Qo'llash</button>
+</form>
+
+<h2>Umumiy</h2>
+<div class="tiles">
+    <div class="tile"><div class="tile-v">@o.ActiveTenants <small>/ @o.TotalTenants</small></div><div class="tile-l">Faol tenantlar</div></div>
+    <div class="tile"><div class="tile-v">@o.Dau</div><div class="tile-l">DAU (o'rtacha)</div></div>
+    <div class="tile"><div class="tile-v">@o.Wau</div><div class="tile-l">WAU</div></div>
+    <div class="tile"><div class="tile-v">@o.Mau</div><div class="tile-l">MAU</div></div>
+    <div class="tile"><div class="tile-v">@Pct(o.Stickiness)</div><div class="tile-l">Stickiness (DAU/MAU)</div></div>
+    <div class="tile"><div class="tile-v">@Pct(o.Conversion) <small>@o.TrialsConverted/@o.TrialsStarted</small></div><div class="tile-l">Sinov → pullik</div></div>
+    <div class="tile"><div class="tile-v">@Money.Format(o.MrrTiyin)</div><div class="tile-l">MRR (so'm)</div></div>
+    <div class="tile"><div class="tile-v">@Money.Format(o.RevenueTiyin)</div><div class="tile-l">Davr tushumi</div></div>
+    <div class="tile"><div class="tile-v">@Pct(o.ChurnRate) <small>@o.Churned/@o.PayingAtStart</small></div><div class="tile-l">Churn</div></div>
+    <div class="tile"><div class="tile-v">@o.DocsTotal</div><div class="tile-l">Asosiy hujjatlar</div></div>
+</div>
+<div class="cols">
+    <div class="card"><h3>Kunlik faollik</h3><canvas id="chart-active" height="160"></canvas></div>
+    <div class="card"><h3>Modullar bo'yicha amallar (kunlik)</h3><canvas id="chart-modules" height="160"></canvas></div>
+</div>
+
+<h2>Modullar <a class="hint" href="@Model.Query(csv: "modules")">CSV</a></h2>
+<table>
+    <tr><th>Modul</th><th class="num">Tenantlar</th><th class="num">Amallar</th><th class="num">Oldingi davr</th><th class="num">Trend</th><th class="num">Paketda bor, ishlatilmagan</th></tr>
+    @foreach (var m in r.Modules)
+    {
+        <tr><td>@m.Name</td><td class="num">@m.Tenants</td><td class="num">@m.Actions</td><td class="num">@m.PrevActions</td>
+            <td class="num">@(m.TrendPct is double tp ? (tp > 0 ? "+" : "") + tp.ToString("0.#") + "%" : "yangi")</td>
+            <td class="num">@if (m.UnusedInPackage > 0) { <span class="badge warn">@m.UnusedInPackage tenant</span> }</td></tr>
+    }
+</table>
+<p class="hint">«Paketda bor, ishlatilmagan» — faol (sinov/faol/imtiyozli) tenantlardan nechtasining paketida modul bor, lekin davrda bitta ham amal yo'q: o'qitish, UX yoki modulning o'zi ustida ishlash kerak bo'lgan joy.</p>
+
+<div class="cols">
+    <div>
+        <h2>Eng ko'p amallar <a class="hint" href="@Model.Query(csv: "pages")">CSV</a></h2>
+        <table>
+            <tr><th>Sahifa (controller)</th><th>Modul</th><th>Amal</th><th class="num">Soni</th><th class="num">Tenant</th></tr>
+            @foreach (var p in r.Pages.Take(25))
+            {
+                <tr><td>@p.Controller @if (!p.Mapped) { <span class="badge muted" title="EditionModules xaritasida yo'q">xaritada yo'q</span> }</td><td>@TractionService.ModuleLabel(p.Module)</td><td>@p.ActionType</td><td class="num">@p.Actions</td><td class="num">@p.Tenants</td></tr>
+            }
+        </table>
+        <div class="hint">Amal turlari: @string.Join(", ", r.ActionTypes.OrderByDescending(x => x.Value).Select(x => $"{x.Key} {x.Value}")). ERP ko'rishni loglamaydi — asosan yaratish/tahrir/o'chirish.</div>
+    </div>
+    <div>
+        <h2>Biznes hajmi (hujjatlar)</h2>
+        <table>
+            <tr><th>Hujjat</th><th class="num">Soni</th><th class="num">Tenant</th></tr>
+            @foreach (var d in r.Docs) { <tr><td>@TractionService.DocLabel(d.DocType)</td><td class="num">@d.Count</td><td class="num">@d.Tenants</td></tr> }
+        </table>
+        <h2>Funnel (davrda sinov ochganlar)</h2>
+        <canvas id="chart-funnel" height="140"></canvas>
+        <table>
+            @{ int first = Math.Max(1, r.Funnel.FirstOrDefault()?.Count ?? 1); }
+            @foreach (var s in r.Funnel) { <tr><td>@s.Name</td><td class="num">@s.Count</td><td class="num">@((100.0 * s.Count / first).ToString("0"))%</td></tr> }
+        </table>
+    </div>
+</div>
+
+<h2>Tenantlar <a class="hint" href="@Model.Query(csv: "tenants")">CSV</a></h2>
+<table>
+    <tr>
+        <th>@Html.Raw(SortLink("name", "Tashkilot"))</th><th>Holat</th><th>Paket</th><th class="num">@Html.Raw(SortLink("mrr", "MRR"))</th>
+        <th>@Html.Raw(SortLink("last", "Oxirgi kirish"))</th><th class="num">Foyd. / limit</th><th class="num">Modullar</th>
+        <th class="num">@Html.Raw(SortLink("actions", "Amallar"))</th><th class="num">Trend</th><th class="num">Hujjat</th><th class="num">@Html.Raw(SortLink("score", "Ball"))</th><th>Xavf</th>
+    </tr>
+    @foreach (var t in Model.Rows)
+    {
+        <tr>
+            <td><a href="/Tenants/Activity/@t.Tenant.Id">@t.Tenant.LegalName</a> <code>@t.Tenant.Slug</code></td>
+            <td><span class="badge @Labels.Badge(t.Tenant.Status)">@Labels.Of(t.Tenant.Status)</span></td>
+            <td>@t.Plan</td><td class="num">@Money.Format(t.MrrTiyin)</td>
+            <td>@(t.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
+            <td class="num">@t.ActiveUsers / @t.SeatLimit</td>
+            <td class="num" title="Ishlatilmagan: @string.Join(", ", t.UnusedModules)">@t.ModulesUsed / @t.ModulesAllowed</td>
+            <td class="num">@t.Actions</td>
+            <td class="num">@(t.PrevActions == 0 ? (t.Actions > 0 ? "yangi" : "—") : ((100.0 * (t.Actions - t.PrevActions) / t.PrevActions).ToString("+0;-0") + "%"))</td>
+            <td class="num">@t.Docs</td>
+            <td class="num"><strong>@t.Score</strong></td>
+            <td><span class="badge @(t.Risk == "Yuqori" ? "bad" : t.Risk == "O'rta" ? "warn" : "ok")">@t.Risk</span></td>
+        </tr>
+    }
+</table>
+@if (Model.Rows.Count == 0) { <div class="empty">Tenant yo'q.</div> }
+
+<h2>Kohortalar va retensiya <a class="hint" href="@Model.Query(csv: "cohorts")">CSV</a></h2>
+<p class="hint">Qator — tenant yaratilgan oy; ustun — yaratilgandan keyingi hafta (H0 = birinchi 7 kun); qiymat — o'sha haftada kamida bir marta faol bo'lgan tenantlar ulushi.</p>
+<table class="cohort">
+    <tr><th>Oy</th><th class="num">Tenant</th>@for (int w = 0; w < 12; w++) { <th class="num">H@(w)</th> }</tr>
+    @foreach (var c in r.Cohorts)
+    {
+        <tr><td>@c.Month</td><td class="num">@c.Size</td>
+            @foreach (var v in c.Weeks)
+            {
+                <td class="num heat-@(v is null ? "na" : ((int)(v.Value / 25)).ToString())">@(v is null ? "" : v.Value.ToString("0") + "%")</td>
+            }
+        </tr>
+    }
+</table>
+
+<script type="application/json" id="traction-data">@Html.Raw(Model.ChartJson)</script>
+<script src="~/lib/chartjs/chart.umd.js"></script>
+<script src="~/js/traction.js" asp-append-version="true"></script>

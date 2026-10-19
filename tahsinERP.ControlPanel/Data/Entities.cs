@@ -124,6 +124,10 @@ public class Tenant
     public string? ArchiveLocation { get; set; }
     /// <summary>Delete job tugagan vaqt: baza, zaxira va reestr yozuvi o'chirilgan. Moliyaviy tarix uchun qator qoladi.</summary>
     public DateTime? DeletedAtUtc { get; set; }
+    /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (Database/Demo skriptlari).</summary>
+    public bool SampleData { get; set; }
+    /// <summary>Sinov muddatidan oldin yakunlangan vaqt (EndTrial job tugagan).</summary>
+    public DateTime? TrialEndedAtUtc { get; set; }
 
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
@@ -284,8 +288,10 @@ public class Notification
 public class AuditEntry
 {
     public long Id { get; set; }
-    /// <summary>Null — tizim (fon ishi yoki License API).</summary>
+    /// <summary>Null — tizim (fon ishi yoki License API) yoki mijoz portali (PortalUserId).</summary>
     public int? StaffUserId { get; set; }
+    /// <summary>Mijoz portali foydalanuvchisi amali (my.&lt;domen&gt;).</summary>
+    public int? PortalUserId { get; set; }
     public string Action { get; set; } = "";
     public string Entity { get; set; } = "";
     public string? EntityId { get; set; }
@@ -307,7 +313,7 @@ public class ApiNonce
     public DateTime ExpiresUtc { get; set; }
 }
 
-public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6 }
+public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7 }
 
 public enum ProvisioningJobStatus { Pending = 1, Running = 2, Succeeded = 3, Failed = 4, Cancelled = 5 }
 
@@ -355,9 +361,204 @@ public class ProvisioningJob
     public bool IsActive => Status is ProvisioningJobStatus.Pending or ProvisioningJobStatus.Running;
 }
 
+/// <summary>
+/// Tenant faolligini yig'ish holati (agent → /api/agent/usage). Tenants qatoridan alohida — agent yozuvlari xodim tahririda
+/// RowVersion to'qnashuvi bermasin.
+/// </summary>
+public class UsageState
+{
+    public int TenantId { get; set; }
+    public long EntryCursor { get; set; }
+    public long LogCursor { get; set; }
+    public DateTime? SyncedAtUtc { get; set; }
+    public DateTime? LastLoginUtc { get; set; }
+    public DateTime? LastActionUtc { get; set; }
+    public string? Error { get; set; }
+    /// <summary>Agent limitga yetdi — keyingi so'rovda darhol davom etadi.</summary>
+    public bool More { get; set; }
+}
+
+/// <summary>Tenant ERP foydalanuvchisi (faqat login va holat; F.I.Sh./email/parol panelga kelmaydi).</summary>
+public class UsageUser
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public int UserId { get; set; }
+    public string Login { get; set; } = "";
+    public bool IsActive { get; set; }
+    public DateTime? LastLoginUtc { get; set; }
+    public DateTime? LastActionUtc { get; set; }
+}
+
+public enum UsageEventKind { Login = 1, Action = 2 }
+
+/// <summary>Kirish yoki amal (USER_ENTRIES / USERLOGS nusxasi, 90 kun saqlanadi; IP/MAC yo'q).</summary>
+public class UsageEvent
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public UsageEventKind Kind { get; set; }
+    public long SourceId { get; set; }
+    public int UserId { get; set; }
+    public DateTime AtUtc { get; set; }
+    /// <summary>Modul (ProductModule nomi: Srm, Crm, ..., Core).</summary>
+    public string? Module { get; set; }
+    /// <summary>Normallashtirilgan controller — «sahifa».</summary>
+    public string? Controller { get; set; }
+    public UsageActionType ActionType { get; set; }
+    public string? Action { get; set; }
+}
+
+/// <summary>USERLOGS amal turi (contracts bilan bir xil qiymatlar).</summary>
+public enum UsageActionType : byte { Other = 0, View = 1, Create = 2, Edit = 3, Delete = 4, Export = 5 }
+
+// ---------------- Traction agregatlari (07_TRACTION.md) — Toshkent sanasi bo'yicha, 2+ yil saqlanadi ----------------
+
+/// <summary>Kunlik: tenant × modul × controller × amal turi → amallar soni. UsageEvents'dan qayta hisoblanadi.</summary>
+public class UsageDailyModule
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public DateOnly Date { get; set; }
+    public string Module { get; set; } = "";
+    public string Controller { get; set; } = "";
+    public UsageActionType ActionType { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>Kunlik: tenantning faol foydalanuvchisi (DAU/WAU/MAU, kohortalar, faol kunlar shu jadvaldan).</summary>
+public class UsageDailyUser
+{
+    public int TenantId { get; set; }
+    public DateOnly Date { get; set; }
+    public int UserId { get; set; }
+    public int Logins { get; set; }
+    public int Actions { get; set; }
+}
+
+/// <summary>Kunlik biznes hajmi: hujjat turi bo'yicha soni (hujjat sanasi bo'yicha, agent jadvallardan hisoblaydi).</summary>
+public class UsageDailyDoc
+{
+    public int TenantId { get; set; }
+    public DateOnly Date { get; set; }
+    public string DocType { get; set; } = "";
+    public int Count { get; set; }
+}
+
 /// <summary>Hisob-faktura raqamlari hisoblagichi (yil bo'yicha).</summary>
 public class InvoiceSequence
 {
     public int Year { get; set; }
     public int LastValue { get; set; }
+}
+
+// ── Mijoz portali (3-bosqich, Docs/ControlPanel/06_CUSTOMER_PORTAL.md) ─────────────────────────────────────────────
+
+public enum PortalRole { Owner = 1, Viewer = 2 }
+
+/// <summary>
+/// Mijoz portali foydalanuvchisi (my.&lt;domen&gt;). Tenant'ga bog'liq; bir tenant'da bir nechta. Xodimlardan (StaffUser) butunlay
+/// alohida: boshqa jadval, boshqa cookie va authentication scheme. Kirish: email/telefon + parol (PBKDF2) + bir martalik kod (Telegram).
+/// </summary>
+public class PortalUser
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    public string FullName { get; set; } = "";
+    /// <summary>Kichik harfda; global noyob (kirishda tenant tanlanmaydi).</summary>
+    public string? Email { get; set; }
+    /// <summary>+998XXXXXXXXX ko'rinishida; global noyob.</summary>
+    public string? Phone { get; set; }
+    /// <summary>Null — taklif hali qabul qilinmagan (parol o'rnatilmagan).</summary>
+    public string? PasswordHash { get; set; }
+    public PortalRole Role { get; set; }
+    public bool IsActive { get; set; } = true;
+    /// <summary>Bot /start orqali bog'langan shaxsiy chat. Null bo'lsa kod tenant chatiga (Tenant.TelegramChatId) yuboriladi.</summary>
+    public string? TelegramChatId { get; set; }
+    /// <summary>Telegram bog'lash kodi xeshi (SHA-256 hex) — t.me/&lt;bot&gt;?start=&lt;kod&gt;.</summary>
+    public string? TelegramLinkHash { get; set; }
+    public DateTime? TelegramLinkExpiresUtc { get; set; }
+    public int FailedLogins { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
+    public DateTime? LastLoginUtc { get; set; }
+    public int? CreatedByStaffId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    /// <summary>Parol/rol/holat o'zgarsa almashadi — eski portal sessiyalari bekor bo'ladi.</summary>
+    public string SecurityStamp { get; set; } = Guid.NewGuid().ToString("N");
+    public byte[] RowVersion { get; set; } = [];
+}
+
+/// <summary>Taklif / parolni tiklash havolasi: bir martalik, muddatli, faqat SHA-256 xeshi saqlanadi.</summary>
+public class PortalInvite
+{
+    public int Id { get; set; }
+    public int PortalUserId { get; set; }
+    public PortalUser? PortalUser { get; set; }
+    public string TokenHash { get; set; } = "";
+    public DateTime ExpiresUtc { get; set; }
+    public DateTime? UsedAtUtc { get; set; }
+    /// <summary>Yangi taklif chiqarilganda eskisi yopiladi.</summary>
+    public DateTime? RevokedAtUtc { get; set; }
+    public int? CreatedByStaffId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+/// <summary>Bir martalik kirish kodi. Kodning o'zi saqlanmaydi — tuz + SHA-256.</summary>
+public class PortalOtp
+{
+    public long Id { get; set; }
+    public int PortalUserId { get; set; }
+    public string Salt { get; set; } = "";
+    public string CodeHash { get; set; } = "";
+    /// <summary>telegram / log / (keyin: sms, email).</summary>
+    public string Channel { get; set; } = "";
+    public int Attempts { get; set; }
+    public DateTime ExpiresUtc { get; set; }
+    public DateTime? ConsumedAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public string? Ip { get; set; }
+}
+
+public enum PortalRequestKind
+{
+    /// <summary>Joriy paket va davr — uzaytirish (joriy obunaga hisob-faktura).</summary>
+    Renew = 1,
+    /// <summary>Yuqoriroq paket — darhol (yangi obuna bugundan, to'langach eskisi yopiladi).</summary>
+    Upgrade = 2,
+    /// <summary>Pastroq paket yoki davr o'zgarishi — faqat joriy davr oxiridan.</summary>
+    ChangeAtPeriodEnd = 3,
+    /// <summary>Pullik obuna yo'q (sinov / to'xtatilgan) — yangi obuna bugundan.</summary>
+    New = 4,
+}
+
+public enum PortalRequestStatus { Pending = 1, Approved = 2, Rejected = 3, Cancelled = 4 }
+
+/// <summary>Tarifni oshirish / uzaytirish so'rovi: mijoz yuboradi → xodim tasdiqlaydi (qoralama hisob-faktura) yoki rad etadi.</summary>
+public class PortalRequest
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    public int PortalUserId { get; set; }
+    public PortalUser? PortalUser { get; set; }
+    public PortalRequestKind Kind { get; set; }
+    public int PlanId { get; set; }
+    public Plan? Plan { get; set; }
+    public BillingPeriod Period { get; set; }
+    public int PeriodCount { get; set; }
+    /// <summary>Yangi davr boshlanadigan sana (so'rov paytida hisoblangan; ChangeAtPeriodEnd — joriy davr oxiri + 1).</summary>
+    public DateOnly EffectiveDate { get; set; }
+    /// <summary>So'rov paytidagi joriy obuna (bo'lsa).</summary>
+    public int? CurrentSubscriptionId { get; set; }
+    public string? Comment { get; set; }
+    public PortalRequestStatus Status { get; set; }
+    public string? DecisionReason { get; set; }
+    public int? DecidedByStaffId { get; set; }
+    public DateTime? DecidedAtUtc { get; set; }
+    /// <summary>Tasdiqlanganda yaratilgan qoralama hisob-faktura va (kerak bo'lsa) yangi obuna.</summary>
+    public int? InvoiceId { get; set; }
+    public int? SubscriptionId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 }

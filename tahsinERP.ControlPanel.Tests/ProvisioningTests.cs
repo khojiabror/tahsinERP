@@ -337,11 +337,12 @@ public class ProvisioningQueueTests(PanelFactory f) : IClassFixture<PanelFactory
 /// Test tenant yaratiladi, tenants.json ERP'ning haqiqiy TenantRegistry'si bilan o'qiladi, bazaga ERP kabi ulaniladi, so'ng
 /// Suspend/Resume/Archive/Delete va demo Reset — oxirida hamma narsa tozalanadi.
 /// </summary>
-public class ProvisioningIntegrationTests(PanelFactory f) : IClassFixture<PanelFactory>, IAsyncLifetime
+public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixture<PanelFactory>, IAsyncLifetime
 {
     private readonly string _work = Path.Combine(@"C:\ProgramData\tahsinERP-test", "cp2-" + Guid.NewGuid().ToString("N")[..8]);
     private readonly string _suffix = Guid.NewGuid().ToString("N")[..6];
     private readonly List<string> _databases = [];
+    private IServiceProvider? _agentServices;
 
     public Task InitializeAsync()
     {
@@ -356,7 +357,7 @@ public class ProvisioningIntegrationTests(PanelFactory f) : IClassFixture<PanelF
     public async Task DisposeAsync()
     {
         SqlConnection.ClearAllPools();
-        foreach (var db in _databases.Append("DB_DEMO_TEMPLATE_BUILD"))
+        foreach (var db in _databases) // shablon yig'ish bazasi noyob nomli, agent o'zi o'chiradi
         {
             await using var c = new SqlConnection($"Server={f.SqlServer};Database=master;Trusted_Connection=True;TrustServerCertificate=True");
             await c.OpenAsync();
@@ -403,8 +404,10 @@ public class ProvisioningIntegrationTests(PanelFactory f) : IClassFixture<PanelF
         services.AddSingleton<IBackupStore, LocalBackupStore>();
         services.AddSingleton<DemoScheduler>();
         services.AddScoped<JobExecutor>();
+        services.AddSingleton<UsageCollector>();
         services.AddTransient(sp => new PanelClient(new HttpClient(f.Server.CreateHandler()), opts, f.Time));
         var sp = services.BuildServiceProvider();
+        _agentServices = sp;
         return (new AgentWorker(sp, opts, sp.GetRequiredService<ILogger<AgentWorker>>()), opts);
     }
 
@@ -583,7 +586,7 @@ public class ProvisioningIntegrationTests(PanelFactory f) : IClassFixture<PanelF
 
         Assert.True(File.Exists(opts.ResolveDemoTemplate()));
         Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.CUSTOMERS WHERE Name = 'Mehmon yozuvi'"));
-        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCTS WHERE PNo = 'DEMO-FG-001'"));
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCTS WHERE PNo = 'TM-011'")); // Demo/200_Demo_Master.sql
         Assert.Equal("0", await ScalarAsync(dbName, "SELECT CAST(MustChangePassword AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
         Assert.NotNull(await ScalarAsync(dbName, "SELECT Value FROM dbo.LICENSE_STATE WHERE Name = 'RegToken'"));
         Assert.Null(await ScalarAsync(dbName, "SELECT Value FROM dbo.LICENSE_STATE WHERE Name = 'InstallationId'"));

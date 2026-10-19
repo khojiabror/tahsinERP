@@ -1,0 +1,66 @@
+@page
+@model RequestsModel
+@{ ViewData["Title"] = "Tarif so'rovi"; var cur = Model.Overview.Current; }
+<h1>Tarifni oshirish / uzaytirish</h1>
+<p class="hint">
+    Joriy paket: <strong>@(cur?.Plan?.Name ?? "yo'q")</strong>@if (cur is not null) { <text>, @cur.EndDate.ToString("dd.MM.yyyy") gacha</text> }.
+    So'rovni xodim ko'rib chiqadi va hisob-faktura chiqaradi. Paketni pasaytirish faqat joriy davr oxiridan kuchga kiradi.
+</p>
+<div asp-validation-summary="ModelOnly"></div>
+@if (Model.IsPortalOwner)
+{
+    <form method="post" class="card stack">
+        <div>
+            <label>Paket</label>
+            <div class="plans">
+                @foreach (var p in Model.Plans)
+                {
+                    <label class="plan">
+                        <input type="radio" name="PlanId" value="@p.Id" checked="@(p.Id == Model.PlanId)" />
+                        <strong>@p.Name</strong>
+                        @p.MaxUsers foydalanuvchigacha<br />
+                        Oyiga: @(p.PriceMonthTiyin is long m ? Money.FormatSom(m) : "kelishiladi")<br />
+                        Yiliga: @(p.PriceYearTiyin is long y ? Money.FormatSom(y) : "kelishiladi")<br />
+                        <span class="hint">@Model.Explain(p, Model.Period)</span>
+                    </label>
+                }
+            </div>
+        </div>
+        <div class="row">
+            <div><label asp-for="Period">Davr</label>
+                <select asp-for="Period"><option value="Month">Oylik</option><option value="Year">Yillik</option></select></div>
+            <div><label asp-for="PeriodCount">Necha davr</label><input asp-for="PeriodCount" type="number" min="1" max="12" /></div>
+        </div>
+        <div><label asp-for="Comment">Izoh (ixtiyoriy)</label><textarea asp-for="Comment" maxlength="1000"></textarea></div>
+        <div><button type="submit">So'rov yuborish</button></div>
+    </form>
+}
+else
+{
+    <div class="warnbox">So'rov yuborish faqat tashkilot mas'uli (Owner) uchun.</div>
+}
+<h2>So'rovlar tarixi</h2>
+@if (Model.Rows.Count == 0)
+{
+    <p class="empty">So'rovlar yo'q.</p>
+}
+else
+{
+    <div class="scroll"><table>
+        <tr><th>#</th><th>Sana</th><th>So'rov</th><th>Holat</th><th>Izoh / natija</th><th></th></tr>
+        @foreach (var r in Model.Rows)
+        {
+            <tr>
+                <td>@r.Id</td>
+                <td>@r.CreatedAtUtc.ToString("dd.MM.yyyy")</td>
+                <td>«@r.Plan?.Name», @r.PeriodCount @PortalRequestService.PeriodUnit(r.Period) — @PortalRequestService.KindText(r.Kind)<br /><span class="hint">@r.EffectiveDate.ToString("dd.MM.yyyy") dan</span></td>
+                <td><span class="badge @PortalPageModel.Badge(r.Status)">@PortalPageModel.Of(r.Status)</span></td>
+                <td>@r.DecisionReason @if (r.InvoiceId is int iid) { if (Model.InvoiceNumbers.TryGetValue(iid, out var num)) { <a href="/Invoices">@num</a> } else { <span class="hint">hisob-faktura tayyorlanmoqda</span> } }</td>
+                <td>@if (r.Status == PortalRequestStatus.Pending && Model.IsPortalOwner)
+                    {
+                        <form method="post" asp-page-handler="Cancel" class="inline"><input type="hidden" name="RequestId" value="@r.Id" /><button type="submit" class="link">bekor qilish</button></form>
+                    }</td>
+            </tr>
+        }
+    </table></div>
+}

@@ -13,6 +13,8 @@ public static class Policies
     public const string Sales = "Sales";
     /// <summary>Faqat Owner: storno, kalit chiqarish/bekor qilish, tariflar, serverlar, xodimlar.</summary>
     public const string Owner = "Owner";
+    /// <summary>Mijoz portali foydalanuvchisi (Portal sxemasi, my.&lt;domen&gt;).</summary>
+    public const string Portal = "Portal";
 }
 
 public static class StaffClaims

@@ -13,11 +13,13 @@
   Birinchi Owner: o'rnatishdan keyin qo'lda —  dotnet <PhysicalPath>\tahsinERP.ControlPanel.dll create-owner --email ...
 
 .EXAMPLE
-  .\Install-PanelIis.ps1 -HostName admin.example.uz -CertThumbprint 0123ABCD...
+  .\Install-PanelIis.ps1 -HostName admin.example.uz -PortalHostName my.example.uz -CertThumbprint 0123ABCD...
+  (-PortalHostName — mijoz portali, o'sha ilova va sayt; ikkinchi https binding. Sertifikat ikkala nomni qamrasin, masalan wildcard.)
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [string] $HostName,
+    [string] $PortalHostName,   # mijoz portali host'i (my.<domen>); bo'sh — portal ochilmaydi
     [string] $SiteName = 'tahsinERP.ControlPanel',
     [string] $PhysicalPath = 'C:\inetpub\tahsinERP.ControlPanel',
     [string] $DataDir = "$env:ProgramData\tahsinERP\ControlPanel",
@@ -66,9 +68,14 @@ if (-not (Get-Website -Name $SiteName)) {
     Set-ItemProperty "IIS:\Sites\$SiteName" -Name physicalPath -Value $PhysicalPath
 }
 Set-ItemProperty "IIS:\Sites\$SiteName" -Name applicationDefaults.preloadEnabled -Value $true
+if ($PortalHostName -and -not (Get-WebBinding -Name $SiteName -Protocol https -HostHeader $PortalHostName)) {
+    New-WebBinding -Name $SiteName -Protocol https -Port 443 -HostHeader $PortalHostName -SslFlags 1 | Out-Null   # SNI
+}
 if ($CertThumbprint) {
-    $binding = Get-WebBinding -Name $SiteName -Protocol https -HostHeader $HostName
-    $binding.AddSslCertificate($CertThumbprint, 'My')
+    foreach ($h in @($HostName, $PortalHostName) | Where-Object { $_ }) {
+        $binding = Get-WebBinding -Name $SiteName -Protocol https -HostHeader $h
+        $binding.AddSslCertificate($CertThumbprint, 'My')
+    }
 }
 
 # 3. Sirlar
@@ -76,12 +83,18 @@ Set-PoolEnv 'ASPNETCORE_ENVIRONMENT' 'Production'
 Set-PoolEnv 'ConnectionStrings__Control' $ConnectionString
 Set-PoolEnv 'ControlPanel__Signing__KeyFile' $SigningKeyFile
 Set-PoolEnv 'ControlPanel__DataProtection__KeysDir' (Join-Path $DataDir 'keys')
+# Host zonalari (06_CUSTOMER_PORTAL.md): xodim sahifalari faqat $HostName, portal faqat $PortalHostName; boshqa host — 404.
+Set-PoolEnv 'ControlPanel__Hosts__AdminHost' $HostName
+if ($PortalHostName) { Set-PoolEnv 'ControlPanel__Hosts__PortalHost' $PortalHostName; Set-PoolEnv 'ControlPanel__Hosts__PortalPublicUrl' "https://$PortalHostName" }
+Set-PoolEnv 'ControlPanel__Hosts__OtherHosts' 'None'
 if (-not $KeepSecrets) {
     Write-Host 'MasterKey: `dotnet tahsinERP.ControlPanel.dll gen-master-key` bilan yaratilgan qiymat (zaxira nusxasi bazadan ALOHIDA saqlansin).'
     Set-PoolEnv 'ControlPanel__Security__MasterKey' (Read-Secret 'MasterKey')
     Set-PoolEnv 'ControlPanel__Signing__Passphrase' (Read-Secret 'Imzolash kaliti fayli paroli')
     $tg = Read-Secret 'Telegram bot token (bo''sh — faqat log)'
     if ($tg) { Set-PoolEnv 'ControlPanel__Telegram__BotToken' $tg }
+    $hook = Read-Secret 'Telegram webhook secret_token (bo''sh — bot /start bog''lash o''chiq)'
+    if ($hook) { Set-PoolEnv 'ControlPanel__Telegram__WebhookSecret' $hook }
 }
 
 # 4. Papkalar va ruxsatlar

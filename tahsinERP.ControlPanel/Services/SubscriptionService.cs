@@ -95,7 +95,10 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
         invoice.SubscriptionAppliedUtc = clock.UtcNow;
         audit.Add("subscription.extend", "Subscription", sub.Id, before, new { Snapshot = Snapshot(sub), InvoiceId = invoice.Id, invoice.Number });
 
-        var others = await db.Subscriptions.Where(s => s.TenantId == sub.TenantId && s.Id != sub.Id && s.Status == SubscriptionStatus.Active).ToListAsync(ct);
+        // Kelajakdan boshlanadigan davr (masalan portal so'rovi: pasaytirish faqat joriy davr oxirida) — joriy obuna
+        // o'z muddatigacha ishlayveradi; yangi davr boshlanganda kunlik ish kalitni yangilaydi.
+        var others = sub.StartDate > today ? new List<Subscription>()
+            : await db.Subscriptions.Where(s => s.TenantId == sub.TenantId && s.Id != sub.Id && s.Status == SubscriptionStatus.Active).ToListAsync(ct);
         foreach (var o in others)
         {
             o.Status = SubscriptionStatus.Expired;
