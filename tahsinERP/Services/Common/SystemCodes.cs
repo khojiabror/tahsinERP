@@ -60,6 +60,10 @@ namespace tahsinERP.Services.Common
             public const string Payroll = "PAYROLL";
             /// <summary>Aksiyador hissalari (Type=1).</summary>
             public const string ShareholderContribution = "SHAREHOLDER_CONTRIBUTION";
+            /// <summary>Xomashyo tashuvi (Type=2) — yo'l varaqasi to'lovi, xarid yuki.</summary>
+            public const string MaterialTransport = "MATERIAL_TRANSPORT";
+            /// <summary>Tayyor mahsulot tashuvi (Type=2) — yo'l varaqasi to'lovi, sotuv yuki.</summary>
+            public const string FinishedGoodsTransport = "FG_TRANSPORT";
         }
 
         /// <summary>PRODUCT_CATEGORIES.SystemCode</summary>

@@ -94,7 +94,7 @@ namespace tahsinERP.Services
             // Already posted bo'lsa, mavjud yozuvni yangilaymiz (edit oqimi uchun)
 
             // Find or create account for receivables
-            var currencyId = invoice.CurrencyID ?? 1;
+            var currencyId = invoice.CurrencyID ?? DefaultCurrencyId(db);
             var receivableCode = "RECEIVABLES_" + currencyId;
 
             var account = ResolveCounterpartyAccount(db, receivableCode, currencyId, "Debitorlar qarzi", userId);
@@ -159,7 +159,7 @@ namespace tahsinERP.Services
 
             // FIN-B29: hisob kod bo'yicha (PAYABLES_{valyuta}), PostSalesInvoice kabi. Avval nom bo'yicha
             // ("Kreditorlar") qidirilardi, CurrencyID bo'sh va hisob yo'q bo'lsa — posting jimgina o'tkazib yuborilardi.
-            var currencyId = invoice.CurrencyID ?? 1;
+            var currencyId = invoice.CurrencyID ?? DefaultCurrencyId(db);
             if (!invoice.CurrencyID.HasValue)
             {
                 LogHelper.LogToDatabase("System", "FinancePosting", "PostPurchaseInvoice",
@@ -270,7 +270,7 @@ namespace tahsinERP.Services
                 CategoryID = category.ID,
                 Direction = WaybillLedgerService.FinDirectionOut,
                 Amount = (decimal)payment.Payment_Amount,
-                CurrencyID = payment.CurrencyID ?? 1,
+                CurrencyID = payment.CurrencyID ?? DefaultCurrencyId(db),
                 CounterpartyType = WaybillLedgerService.FinCounterpartyForwarder,
                 CounterpartyID = payment.ForwarderID,
                 CounterpartyName = payment.FORWARDER?.ForwarderName,
@@ -288,33 +288,35 @@ namespace tahsinERP.Services
             return true;
         }
 
+        /// <summary>
+        /// Tashuv xarajati kategoriyasi SystemCode bo'yicha (migratsiya 009): sotuvga bog'langan yo'l varaqasi —
+        /// FG_TRANSPORT, aks holda MATERIAL_TRANSPORT. Avval "T.Tash"/"M.Tash" nomi bilan qidirilardi —
+        /// nom o'zgarsa har to'lovda yangi dublikat kategoriya yaratilardi.
+        /// </summary>
         private static FIN_CATEGORIES ResolveLogisticsCategory(F_WAYBILLS waybill, DBTHSNEntities db)
         {
             var isFinishedGoods = waybill?.SalesInvoiceID.HasValue == true ||
                                   waybill?.SalesOrderID.HasValue == true ||
                                   waybill?.TTNKID.HasValue == true;
 
-            var preferredNames = isFinishedGoods
-                ? new[] { "T.Tash" }
-                : new[] { "M.Tash" };
-
-            var category = db.FIN_CATEGORIES
-                .FirstOrDefault(c => preferredNames.Contains(c.Name) && c.Type == 2 && c.IsActive);
-
-            if (category == null)
+            var category = isFinishedGoods
+                ? EnsureSystemCategory(db, SystemCodes.FinCategory.FinishedGoodsTransport, "Tayyor mahsulot tashuvi", 2)
+                : EnsureSystemCategory(db, SystemCodes.FinCategory.MaterialTransport, "Material tashuvi", 2);
+            if (category.ID == 0)
             {
-                category = new FIN_CATEGORIES
-                {
-                    Name = preferredNames[0],
-                    Type = 2, // Expense
-                    IsActive = true,
-                    SortOrder = 10
-                };
-                db.FIN_CATEGORIES.Add(category);
                 db.SaveChanges();
             }
-
             return category;
+        }
+
+        /// <summary>
+        /// Hujjatda valyuta bo'lmasa: asos valyuta (so'm), u ham bo'lmasa eng kichik ID'li valyuta.
+        /// Avval doim 1 olinardi — CURRENCIES'da ID=1 yo'q (seed: 2 USD, 3 RUB, 4 KRW, 5 UZS), FK xato berardi.
+        /// </summary>
+        private static int DefaultCurrencyId(DBTHSNEntities db)
+        {
+            return CurrencyRateService.BaseCurrencyId()
+                   ?? db.CURRENCIES.Where(c => c.IsDeleted == null || c.IsDeleted == false).OrderBy(c => c.ID).Select(c => c.ID).First();
         }
 
         public static void RemovePurchaseInvoicePosting(int invoiceID, DBTHSNEntities db)
