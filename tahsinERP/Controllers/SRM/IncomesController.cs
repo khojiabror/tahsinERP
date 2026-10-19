@@ -1475,35 +1475,18 @@ namespace tahsinERP.Controllers.SRM
         }
 
         /// <summary>
-        /// Qator spravochniklari: mahsulotlar (faqat ID/PNo/Name proyeksiyasi) va birliklar (keshdan).
+        /// Qator spravochniklari: birliklar (keshdan). Mahsulot — server qidiruvi (/ProductLookup/Search, SRM-P05).
         /// GET'da ham, har xato bilan qaytishda ham chaqiriladi (SRM-B24).
         /// </summary>
-        private async Task PopulateLineLookupsAsync(DBTHSNEntities db)
+        private Task PopulateLineLookupsAsync(DBTHSNEntities db)
         {
-            var products = await db.PRODUCTS
-                .AsNoTracking()
-                .Where(p => p.IsDeleted != true)
-                .OrderBy(p => p.PNo)
-                .Select(p => new { p.ID, p.PNo, p.Name })
-                .ToListAsync();
-
-            ViewBag.Products = new SelectList(products.Select(p => new SelectListItem
-            {
-                Value = p.ID.ToString(),
-                Text = $"{p.PNo} - {p.Name ?? ""}"
-            }).ToList(), "Value", "Text");
-            ViewBag.ProductsData = products.Select(p => new ViewModels.ProductLookupItem
-            {
-                Value = p.ID.ToString(),
-                PNo = p.PNo,
-                Name = p.Name ?? ""
-            }).ToList();
-
+            // Mahsulotlar sahifaga yozilmaydi — formadagi select2 /ProductLookup/Search dan qidiradi (SRM-P05)
             ViewBag.Units = new SelectList(
                 ReferenceDataCache.Get(ReferenceDataCache.Units)
                     .Select(u => new { u.ID, ShortName = u.Extra ?? u.Name })
                     .ToList(),
                 "ID", "ShortName");
+            return Task.CompletedTask;
         }
 
         /// <summary>
