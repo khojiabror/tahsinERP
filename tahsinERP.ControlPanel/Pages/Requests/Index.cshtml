@@ -1,0 +1,52 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Requests.IndexModel
+@using tahsinERP.ControlPanel.Portal
+@{ ViewData["Title"] = "So'rovlar"; }
+<h1>Mijoz so'rovlari (portal)</h1>
+<div class="toolbar">
+    <a class="btn @(Model.All || Model.Status != PortalRequestStatus.Pending ? "secondary" : "")" href="/Requests">Navbat (kutilmoqda)</a>
+    <a class="btn @(Model.All ? "" : "secondary")" href="/Requests?all=true">Hammasi</a>
+</div>
+<div asp-validation-summary="ModelOnly"></div>
+<p class="hint">Tasdiqlash: kerak bo'lsa yangi obuna (pasaytirish — joriy davr oxiridan) va qoralama hisob-faktura avtomatik yaratiladi. Narx paketdan olinadi; qoralamani tahrirlash mumkin (masalan joriy davr qoldig'i uchun chegirma).</p>
+@if (Model.Rows.Count == 0)
+{
+    <p class="empty">So'rov yo'q.</p>
+}
+else
+{
+    <table>
+        <tr><th>#</th><th>Sana (UTC)</th><th>Tashkilot</th><th>Kim</th><th>So'rov</th><th>Izoh</th><th>Holat</th><th>Natija</th></tr>
+        @foreach (var r in Model.Rows)
+        {
+            <tr>
+                <td>@r.Id</td>
+                <td>@r.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
+                <td><a href="/Tenants/Details/@r.TenantId">@r.Tenant?.LegalName</a></td>
+                <td>@r.PortalUser?.FullName</td>
+                <td>«@r.Plan?.Name», @r.PeriodCount @PortalRequestService.PeriodUnit(r.Period) — @PortalRequestService.KindText(r.Kind), @r.EffectiveDate.ToString("dd.MM.yyyy") dan</td>
+                <td>@r.Comment</td>
+                <td><span class="badge @tahsinERP.ControlPanel.Pages.Requests.IndexModel.Badge(r.Status)">@tahsinERP.ControlPanel.Pages.Requests.IndexModel.Of(r.Status)</span></td>
+                <td>
+                    @if (r.Status == PortalRequestStatus.Pending && Model.CanSell)
+                    {
+                        <form method="post" class="inline"><input type="hidden" name="RequestId" value="@r.Id" />
+                            <button type="submit" asp-page-handler="Approve">Tasdiqlash</button></form>
+                        <form method="post" class="inline"><input type="hidden" name="RequestId" value="@r.Id" />
+                            <input type="text" name="Reason" placeholder="Rad etish sababi" />
+                            <button type="submit" class="secondary" asp-page-handler="Reject">Rad etish</button></form>
+                    }
+                    else
+                    {
+                        @if (r.InvoiceId is int iid && Model.Invoices.TryGetValue(iid, out var inv))
+                        {
+                            <a href="/Invoices/Details/@iid">@(inv.Number ?? "qoralama")</a> <span class="hint">@Labels.Of(inv.Status)</span>
+                        }
+                        @r.DecisionReason
+                        @if (r.DecidedByStaffId is int sid) { <span class="hint">— @Model.StaffNames.GetValueOrDefault(sid)</span> }
+                    }
+                </td>
+            </tr>
+        }
+    </table>
+}

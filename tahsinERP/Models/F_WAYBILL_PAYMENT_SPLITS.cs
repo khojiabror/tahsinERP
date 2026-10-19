@@ -18,7 +18,7 @@ namespace tahsinERP.Models
         public int WaybillID { get; set; }
         public byte PayerType { get; set; }
         public Nullable<int> PayerID { get; set; }
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         public Nullable<int> CurrencyID { get; set; }
         public string Comment { get; set; }
     

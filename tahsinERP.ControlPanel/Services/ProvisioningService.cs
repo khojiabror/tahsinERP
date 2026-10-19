@@ -62,7 +62,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
 
     /// <summary>Job qo'shadi. Xodim amali — staffId (null — tizim/agent). Biznes qoidasi buzilsa DomainException.</summary>
     public async Task<EnqueueResult> EnqueueAsync(Tenant t, ProvisioningJobType type, string? reason = null, string? idempotencyKey = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default, bool backup = true)
     {
         if (idempotencyKey != null)
         {
@@ -118,6 +118,11 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                 if (t.Status != TenantStatus.Archived) throw new DomainException("O'chirish faqat arxivlangan tenant uchun.");
                 if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("O'chirish sababi majburiy.");
                 break;
+            case ProvisioningJobType.EndTrial:
+                if (!provisioned) throw new DomainException("Baza hali yaratilmagan.");
+                if (t.Status == TenantStatus.Archived) throw new DomainException("Allaqachon arxivda.");
+                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Sinovni yakunlash sababi majburiy.");
+                break;
         }
         if (t.ServerId is null) throw new DomainException("Tenant serverga biriktirilmagan.");
 
@@ -125,7 +130,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         {
             Slug = t.Slug, DbName = t.DbName!, CompanyId = t.CompanyId, CompanyName = t.LegalName,
             AdminLogin = O.DefaultAdminLogin, AdminFullName = "Administrator", AdminEmail = t.Email,
-            Demo = IsDemo(t), Reason = reason?.Trim(),
+            Demo = IsDemo(t), SampleData = t.SampleData, Backup = backup, Reason = reason?.Trim(),
         };
         var job = new ProvisioningJob
         {
@@ -165,6 +170,54 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         await tenants.ChangeStatusAsync(t, target, reason ?? "Qayta yoqildi", ct);
         return t.ProvisionedAtUtc != null && t.Deployment == DeploymentKind.SaaS
             ? (await EnqueueAsync(t, ProvisioningJobType.Resume, reason, ct: ct)).Job : null;
+    }
+
+    /// <summary>
+    /// Sinov tenantimi: pullik obuna (Pending/Active/Expired) hech qachon bo'lmagan. Bekor qilingan pullik obuna hisobga olinmaydi.
+    /// </summary>
+    public async Task<bool> IsTrialOnlyAsync(Tenant t, CancellationToken ct = default) =>
+        t.Status is TenantStatus.Trial or TenantStatus.Suspended
+        && await db.Subscriptions.AnyAsync(s => s.TenantId == t.Id && s.Period == BillingPeriod.Trial, ct)
+        && !await db.Subscriptions.AnyAsync(s => s.TenantId == t.Id && s.Period != BillingPeriod.Trial && s.Status != SubscriptionStatus.Cancelled, ct);
+
+    /// <summary>
+    /// Sinovni muddatidan oldin yakunlash (Owner/Sales; sabab majburiy, slug qayta yozib tasdiqlanadi): TRIAL obunasi bekor qilinadi,
+    /// tenant darhol to'xtatiladi va EndTrial job — (ixtiyoriy .bak) → baza o'chiriladi → tenants.json dan chiqariladi.
+    /// Baza yaratilmagan bo'lsa job kerak emas — tenant shu zahoti arxivlanadi. Pullik tenantlar uchun — Archive → Delete.
+    /// </summary>
+    public async Task<ProvisioningJob?> EndTrialAsync(Tenant t, string? reason, string? confirmSlug, bool backup, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Sinovni yakunlash sababi majburiy.");
+        if (!string.Equals(confirmSlug?.Trim(), t.Slug, StringComparison.Ordinal)) throw new DomainException("Tasdiqlash uchun slug mos kelmadi.");
+        if (t.Deployment != DeploymentKind.SaaS) throw new DomainException("Faqat SaaS sinov tenantlari uchun.");
+        if (!await IsTrialOnlyAsync(t, ct)) throw new DomainException("Faqat sinov (TRIAL) tenanti yakunlanadi — pullik tenant uchun «Arxivlash» → «O'chirish».");
+
+        var subs = await db.Subscriptions.Where(s => s.TenantId == t.Id && s.Period == BillingPeriod.Trial
+            && (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Pending)).ToListAsync(ct);
+        foreach (var s in subs)
+        {
+            audit.Add("subscription.cancel", "Subscription", s.Id, new { s.Status }, new { Status = SubscriptionStatus.Cancelled, Reason = "Sinov yakunlandi: " + reason });
+            s.Status = SubscriptionStatus.Cancelled;
+        }
+        audit.Add("tenant.trial-end", "Tenant", t.Id, new { t.Status }, new { Reason = reason, Backup = backup, Provisioned = t.ProvisionedAtUtc != null });
+
+        if (t.ProvisionedAtUtc is null || t.DeletedAtUtc != null)
+        {
+            var before = t.Status;
+            t.Status = TenantStatus.Archived;
+            t.TrialEndedAtUtc = clock.UtcNow;
+            audit.Add("tenant.status", "Tenant", t.Id, new { Status = before }, new { t.Status, Reason = "Sinov yakunlandi (baza yo'q): " + reason });
+            await db.SaveChangesAsync(ct);
+            return null;
+        }
+        var job = (await EnqueueAsync(t, ProvisioningJobType.EndTrial, reason, ct: ct, backup: backup)).Job;
+        if (t.Status != TenantStatus.Suspended)
+        {
+            audit.Add("tenant.status", "Tenant", t.Id, new { t.Status }, new { Status = TenantStatus.Suspended, Reason = "Sinov yakunlanmoqda" });
+            t.Status = TenantStatus.Suspended;
+        }
+        await db.SaveChangesAsync(ct);
+        return job;
     }
 
     /// <summary>
@@ -297,6 +350,13 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                     t.DeletedAtUtc = now;
                     t.RegistryEnabled = null;
                     t.ArchiveLocation = null;
+                    break;
+                case ProvisioningJobType.EndTrial:
+                    t.Status = TenantStatus.Archived;
+                    t.TrialEndedAtUtc = now;
+                    t.RegistryEnabled = null;
+                    t.ArchiveLocation = Truncate(c.ArchiveLocation, 500);
+                    if (t.ArchiveLocation is null) t.DeletedAtUtc = now; // arxivsiz — ma'lumot butunlay o'chdi
                     break;
             }
             audit.Add("provisioning.succeeded", "Tenant", t.Id, before,

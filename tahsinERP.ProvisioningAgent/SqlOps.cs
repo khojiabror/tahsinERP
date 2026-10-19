@@ -142,14 +142,14 @@ public sealed class SqlOps(AgentOptions options)
 
     /// <summary>
     /// Demo foydalanuvchi: Admin roli, MustChangePassword = 0 (har kecha tiklanadi — birinchi kelgan mehmon parolni almashtirib qo'ymasin).
-    /// Admin roli SystemCode'siz — seed'dagi RName = 'Admin' (New-TenantDb.ps1 bilan bir xil qoida).
+    /// Admin roli SystemCode = 'ADMIN' bo'yicha (Migrations/007, New-TenantDb.ps1 bilan bir xil qoida).
     /// </summary>
     public async Task EnsureDemoUserAsync(string db, string login, string password, CancellationToken ct)
     {
         string hash = PasswordHasher.Hash(password, out string salt);
         await using var c = await OpenAsync(db, ct);
         await ScalarAsync(c, """
-            DECLARE @role int = (SELECT TOP 1 ID FROM dbo.ROLES WHERE RName = N'Admin' AND ISNULL(IsDeleted, 0) = 0);
+            DECLARE @role int = (SELECT TOP 1 ID FROM dbo.ROLES WHERE SystemCode = 'ADMIN' AND ISNULL(IsDeleted, 0) = 0);
             IF @role IS NULL THROW 50002, 'Admin roli topilmadi', 1;
             DECLARE @uid int = (SELECT TOP 1 ID FROM dbo.USERS WHERE Uname = @u);
             IF @uid IS NULL
@@ -163,6 +163,20 @@ public sealed class SqlOps(AgentOptions options)
             IF NOT EXISTS (SELECT 1 FROM dbo.USERROLES WHERE UserID = @uid AND RoleID = @role)
                 INSERT INTO dbo.USERROLES (UserID, RoleID) VALUES (@uid, @role);
             """, ct, ("@u", login), ("@p", hash), ("@s", salt));
+    }
+
+    /// <summary>
+    /// Namuna ma'lumotli sinov bazasi: demo skriptlari yaratgan ochiq parolli <c>demo</c> foydalanuvchisi (Database/Demo/200) mijoz
+    /// bazasida qolmasin — o'chirib qo'yiladi va paroli tasodifiyga almashtiriladi (hujjatlar CreatedBy FK uchun qator qoladi).
+    /// </summary>
+    public async Task<int> DisableSampleUserAsync(string db, string sampleLogin, string adminLogin, CancellationToken ct)
+    {
+        if (string.Equals(sampleLogin, adminLogin, StringComparison.OrdinalIgnoreCase)) return 0;
+        string hash = PasswordHasher.Hash(Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24)), out string salt);
+        await using var c = await OpenAsync(db, ct);
+        return Convert.ToInt32(await ScalarAsync(c,
+            "UPDATE dbo.USERS SET IsActive = 0, Password = @p, HashCode = @s, MustChangePassword = 1 WHERE Uname = @u; SELECT @@ROWCOUNT;",
+            ct, ("@p", hash), ("@s", salt), ("@u", sampleLogin)));
     }
 
     /// <summary>ERP ulanishini tekshirish: ERP qiladigan kabi bazaga ulanib, COMPANIES va USERS o'qiladi.</summary>

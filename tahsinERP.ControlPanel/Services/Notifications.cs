@@ -11,6 +11,10 @@ public class TelegramOptions
     public string? BotToken { get; set; }
     /// <summary>Xodimlar guruhi chat ID'si (ixtiyoriy) — barcha eslatmalarning nusxasi.</summary>
     public string? StaffChatId { get; set; }
+    /// <summary>Bot foydalanuvchi nomi (@siz) — portalda t.me/&lt;BotUsername&gt;?start=... bog'lash havolasi uchun.</summary>
+    public string? BotUsername { get; set; }
+    /// <summary>setWebhook secret_token — /api/telegram/webhook shu sarlavhasiz so'rovni rad etadi. Faqat env/user-secrets.</summary>
+    public string? WebhookSecret { get; set; }
 }
 
 public interface ITelegramSender
@@ -147,14 +151,46 @@ public sealed class DailyJobHostedService(IServiceScopeFactory scopes, TimeProvi
             using var scope = scopes.CreateScope();
             var sp = scope.ServiceProvider;
             int changed = await sp.GetRequiredService<SubscriptionService>().RunLifecycleAsync(ct);
+            int keys = await EnsureKeysForStartedPeriodsAsync(sp, log, ct);
             int sent = await sp.GetRequiredService<ExpiryReminderService>().RunAsync(ct);
             int purged = await PurgeExpiredNoncesAsync(sp.GetRequiredService<ControlDbContext>(), sp.GetRequiredService<Clock>(), ct);
-            log.LogInformation("Kunlik ish: {Changed} tenant holati o'zgardi, {Sent} eslatma, {Purged} eski nonce o'chirildi", changed, sent, purged);
+            int usagePurged = await sp.GetRequiredService<UsageService>().PurgeAsync(ct);
+            log.LogInformation("Kunlik ish: {Changed} tenant holati o'zgardi, {Keys} kalit yangilandi, {Sent} eslatma, {Purged} eski nonce, {Usage} eski faollik yozuvi o'chirildi",
+                changed, keys, sent, purged, usagePurged);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             log.LogError(ex, "Kunlik ish xatosi");
         }
+    }
+
+    /// <summary>
+    /// Oldindan to'langan, oxirgi 3 kunda boshlangan davrlar (masalan davr oxirida paket almashuvi) uchun kalitni obunaga
+    /// moslaydi. EnsureForTenantAsync idempotent — mos kalit bo'lsa hech narsa qilmaydi.
+    /// </summary>
+    public static async Task<int> EnsureKeysForStartedPeriodsAsync(IServiceProvider sp, ILogger log, CancellationToken ct)
+    {
+        var db = sp.GetRequiredService<ControlDbContext>();
+        DateOnly today = sp.GetRequiredService<Clock>().Today;
+        DateOnly from = today.AddDays(-3);
+        var tenantIds = await db.Subscriptions
+            .Where(s => s.Status == SubscriptionStatus.Active && s.StartDate <= today && s.StartDate >= from && s.Tenant!.InstallationId != null)
+            .Select(s => s.TenantId).Distinct().ToListAsync(ct);
+        var issuer = sp.GetRequiredService<Licensing.LicenseIssuer>();
+        int n = 0;
+        foreach (int id in tenantIds)
+        {
+            try
+            {
+                var tenant = await db.Tenants.FirstAsync(t => t.Id == id, ct);
+                if (await issuer.EnsureForTenantAsync(tenant, ct) is not null) n++;
+            }
+            catch (Exception ex) when (ex is DomainException or System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)
+            {
+                log.LogError(ex, "Yangi davr kaliti chiqmadi (tenant {Tenant})", id);
+            }
+        }
+        return n;
     }
 
     /// <summary>License API nonce'lari: replay oynasidan (10 daq) o'tganlari endi kerak emas.</summary>

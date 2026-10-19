@@ -57,7 +57,7 @@ public static class AgentProtocol
     }
 }
 
-public enum JobKind { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6 }
+public enum JobKind { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7 }
 
 public enum JobOutcome { Succeeded = 1, Failed = 2, Retry = 3 }
 
@@ -91,6 +91,10 @@ public sealed class JobPayload
     /// <summary>tenants.json dagi enabled qiymati (panel holatidan: Suspended/Archived → false).</summary>
     public bool Enabled { get; set; } = true;
     public bool Demo { get; set; }
+    /// <summary>Create: namuna ma'lumotlar bilan (Database/Demo skriptlari; demo foydalanuvchi o'chirib qo'yiladi).</summary>
+    public bool SampleData { get; set; }
+    /// <summary>EndTrial: bazani o'chirishdan oldin .bak arxiv olinsinmi.</summary>
+    public bool Backup { get; set; }
     /// <summary>Panel Servers.SqlInstance — ma'lumot uchun; agent o'z sozlamasidagi SQL instance'ga ulanadi.</summary>
     public string? SqlInstance { get; set; }
     public string? Reason { get; set; }
@@ -137,4 +141,90 @@ public sealed class ScheduleResponse
 {
     public long JobId { get; set; }
     public bool Created { get; set; }
+}
+
+// ---------------- Foydalanuvchi faolligi (05_PROVISIONING.md, 10-bo'lim) ----------------
+// Maxfiylik: parol, HashCode, Email, FullName, IP va MAC YUBORILMAYDI. Amal matni agentda qisqartiriladi va email/telefon/uzun
+// raqamlar yashiriladi (UsageRedactor).
+
+/// <summary>Panel: hozir qaysi tenantlarning faolligi yig'ilsin (muddati kelganlar) va qayerdan davom etilsin.</summary>
+public sealed class UsageTargetsResponse
+{
+    public List<UsageTarget> Targets { get; set; } = [];
+}
+
+public sealed class UsageTarget
+{
+    public string Slug { get; set; } = "";
+    public string DbName { get; set; } = "";
+    /// <summary>USER_ENTRIES.ID kursori — shundan kattalari yuboriladi.</summary>
+    public long EntryCursor { get; set; }
+    /// <summary>USERLOGS.ID kursori.</summary>
+    public long LogCursor { get; set; }
+}
+
+public sealed class UsageReport
+{
+    public string Slug { get; set; } = "";
+    public DateTime CollectedAtUtc { get; set; }
+    /// <summary>Baza qayta tiklangan (demo reset) — ID'lar kursordan kichik; kursorlar yangidan.</summary>
+    public bool ResetDetected { get; set; }
+    public long EntryCursor { get; set; }
+    public long LogCursor { get; set; }
+    /// <summary>Limitga yetildi — qolgani keyingi aylanishda.</summary>
+    public bool More { get; set; }
+    public List<UsageUserDto> Users { get; set; } = [];
+    public List<UsageEventDto> Events { get; set; } = [];
+    /// <summary>Biznes hajmi: hujjat sanasi bo'yicha kunlik soni, DocsFromDate dan bugungacha (har safar qayta hisoblanadi).</summary>
+    public List<UsageDocDay> Docs { get; set; } = [];
+    public DateOnly? DocsFromDate { get; set; }
+    public string? Error { get; set; }
+}
+
+/// <summary>Asosiy hujjat turlari (07_TRACTION.md): jadval va sana ustuni agentda.</summary>
+public static class UsageDocTypes
+{
+    public const string SalesOrder = "SALES_ORDER";
+    public const string PurchaseOrder = "PURCHASE_ORDER";
+    public const string Income = "INCOME";
+    public const string SalesInvoice = "SALES_INVOICE";
+    public const string Production = "PRODUCTION";
+    public const string Waybill = "WAYBILL";
+    public const string Payroll = "PAYROLL";
+    public static readonly string[] All = [SalesOrder, PurchaseOrder, Income, SalesInvoice, Production, Waybill, Payroll];
+}
+
+public sealed class UsageDocDay
+{
+    public string DocType { get; set; } = "";
+    public DateOnly Date { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>USERLOGS amal turi (matndagi fe'l bo'yicha). ERP ko'rishni (GET) loglamaydi — View kam uchraydi.</summary>
+public enum UsageActionType { Other = 0, View = 1, Create = 2, Edit = 3, Delete = 4, Export = 5 }
+
+public sealed class UsageUserDto
+{
+    public int UserId { get; set; }
+    /// <summary>Login (USERS.Uname). F.I.Sh. va email yuborilmaydi.</summary>
+    public string Login { get; set; } = "";
+    public bool IsActive { get; set; }
+}
+
+public enum UsageEventKind { Login = 1, Action = 2 }
+
+public sealed class UsageEventDto
+{
+    public UsageEventKind Kind { get; set; }
+    public long SourceId { get; set; }
+    public int UserId { get; set; }
+    public DateTime AtUtc { get; set; }
+    /// <summary>Modul (EditionModules.ProductModule nomi: Srm, Crm, ... yoki Core).</summary>
+    public string? Module { get; set; }
+    /// <summary>Normallashtirilgan controller (EditionModules.NormalizeLogController) — «sahifa».</summary>
+    public string? Controller { get; set; }
+    public UsageActionType ActionType { get; set; }
+    /// <summary>USERLOGS.ActionName — qisqartirilgan va maskalangan.</summary>
+    public string? Action { get; set; }
 }

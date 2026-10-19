@@ -80,11 +80,11 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label>@LogisticsTerms.TariffRate</label>
-                                    @Html.TextBoxFor(model => model.Rate, new { @class = "form-control" })
+                                    @Html.TextBoxFor(model => model.Rate, "{0:0.######}", new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
                                     <label>Eng kam to'lov summasi</label>
-                                    @Html.TextBoxFor(model => model.MinimumCharge, new { @class = "form-control" })
+                                    @Html.TextBoxFor(model => model.MinimumCharge, "{0:0.######}", new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
                                     <label>Faol</label>

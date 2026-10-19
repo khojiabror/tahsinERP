@@ -273,12 +273,12 @@ namespace tahsinERP.Services.Finance
         {
             public DateTime? OpeningDate { get; set; }
             public decimal OpeningNet { get; set; }
-            public double WaybillTotal { get; set; }
+            public decimal WaybillTotal { get; set; }
             public decimal Paid { get; set; }
             /// <summary>Akt-sverki tuzatishlari (opening'dan keyingi): + qarzni oshiradi.</summary>
             public decimal Adjustments { get; set; }
             public IQueryable<FIN_TRANSACTIONS> PaymentQuery { get; set; }
-            public decimal Amount => OpeningNet + (decimal)WaybillTotal - Paid + Adjustments;
+            public decimal Amount => OpeningNet + WaybillTotal - Paid + Adjustments;
         }
 
         /// <summary>
@@ -298,15 +298,15 @@ namespace tahsinERP.Services.Finance
                 ? counterparties.OpeningContractBalances(logiOpening.Value, CounterpartyBalanceService.BalanceTypeLogistics).Sum(x => x.Amount)
                 : 0m;
 
-            // double ustunlar xotirada decimal'ga yig'iladi; FIN-B01: so'mda (varaqa sanasidagi kurs)
+            // FIN-B01: so'mda (varaqa sanasidagi kurs)
             var money = FinMoney.For(db);
-            result.WaybillTotal = (double)db.F_WAYBILLS.AsNoTracking()
+            result.WaybillTotal = db.F_WAYBILLS.AsNoTracking()
                 .Where(w => (w.IsDeleted == null || w.IsDeleted == false) && w.Amount.HasValue &&
                             (!logiOpening.HasValue || w.IssueDate > logiOpening.Value) &&
                             w.IssueDate <= asOf)
                 .Select(w => new { w.Amount, w.CurrencyID, w.IssueDate })
                 .ToList()
-                .Sum(w => money.Uzs((decimal)(w.Amount ?? 0d), w.CurrencyID, w.IssueDate ?? asOf));
+                .Sum(w => money.Uzs(w.Amount ?? 0m, w.CurrencyID, w.IssueDate ?? asOf));
 
             // Ekspeditor to'lovlari: varaqa shu sanagacha chiqarilgan, to'lov opening'dan keyin (sanasizi opening'ga kirgan)
             var waybillPaid = db.F_WAYBILL_PAYMENTS.AsNoTracking()
@@ -319,7 +319,7 @@ namespace tahsinERP.Services.Finance
                             (!logiOpening.HasValue || (p.PaymentDate.HasValue && p.PaymentDate.Value > logiOpening.Value)))
                 .Select(p => new { p.Payment_Amount, p.CurrencyID, p.PaymentDate })
                 .ToList()
-                .Sum(p => money.Uzs((decimal)p.Payment_Amount, p.CurrencyID, p.PaymentDate ?? asOf));
+                .Sum(p => money.Uzs(p.Payment_Amount, p.CurrencyID, p.PaymentDate ?? asOf));
 
             result.PaymentQuery = FinQueries.Active(db)
                 .Where(t => t.CounterpartyType == 4 &&

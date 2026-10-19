@@ -17,7 +17,7 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int ForwarderID { get; set; }
         public int WaybillID { get; set; }
-        public double Payment_Amount { get; set; }
+        public decimal Payment_Amount { get; set; }
         public bool IsDeleted { get; set; }
         public string Comment { get; set; }
         public Nullable<int> CurrencyID { get; set; }

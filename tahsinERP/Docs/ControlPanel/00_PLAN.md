@@ -85,6 +85,7 @@ Asosiy qarorlar:
 | `Licenses` | Id, TenantId, InstallationId, KeyId (k1/k2), LicenseKey, MaxUsers, StartDate, ExpiryDate, Edition, IssuedBy (user/auto), IssuedAt, Reason, SupersededById |
 | `ProvisioningJobs` | Id, TenantId, Type (Create/Reset/Suspend/Resume/Archive/Delete), Status, Attempts, Lease, Payload, Secrets (shifrlangan), Log, Result, StartedAt, FinishedAt — 05_PROVISIONING.md |
 | `Notifications` | Id, TenantId, Channel (Telegram/Email/SMS), Template, SentAt, Status |
+| `PortalUsers`, `PortalInvites`, `PortalOtps`, `PortalRequests` | Mijoz portali (3-bosqich): tenant foydalanuvchilari (Owner/Viewer), taklif xeshlari, bir martalik kodlar, tarif so'rovlari — 06_CUSTOMER_PORTAL.md |
 | `StaffUsers` | Id, Email, PasswordHash (PBKDF2), Role (Owner/Sales/Support), TotpSecret |
 | `AuditLog` | Id, StaffUserId, Action, Entity, EntityId, Before/After (JSON), Ip, At |
 
@@ -139,11 +140,15 @@ Ishlash usuli: panel `ProvisioningJobs` ga yozadi; ERP serverida kichik **agent*
 
 Demo tenant: `demo.tahsinerp.uz`, har kecha 03:00 da `DB_DEMO_TEMPLATE.bak` dan qayta tiklanadi; login sahifasida demo foydalanuvchi ko'rsatiladi.
 
-## 8. Mijoz portali (`my.tahsinerp.uz`, 2-bosqich)
-- Tarif va muddat, foydalanuvchi soni, hisob-fakturalar ro'yxati (PDF yuklab olish, to'lov rekvizitlari).
-- Tarifni oshirish so'rovi (xodim tasdiqlaydi va yangi hisob-faktura chiqaradi).
-- Kirish: ERP admin hisobi orqali SSO emas — alohida, telefon + SMS kod (oddiy va xavfsiz).
-- On-prem mijoz: InstallationId ni kiritib kalitni yuklab olish.
+## 8. Mijoz portali (`my.<domen>`, 3-bosqich — TAYYOR, 06_CUSTOMER_PORTAL.md)
+- O'sha ControlPanel ilovasi, host bo'yicha ajratilgan: xodimlar `admin.<domen>`, mijozlar `my.<domen>`; alohida sxema, cookie,
+  siyosat; boshqa zonaning sahifasi 404.
+- Tarif va muddat, foydalanuvchi limiti, qolgan kunlar, ogohlantirishlar; hisob-fakturalar (holat, PDF), to'lov rekvizitlari.
+- Tarifni oshirish/uzaytirish so'rovi → xodim tasdiqlaydi (qoralama hisob-faktura avtomatik) yoki rad etadi → Telegram xabar.
+  Pasaytirish — faqat joriy davr oxiridan.
+- Kirish: ERP SSO emas — taklif havolasi → parol (PBKDF2) → **Telegram** orqali bir martalik kod (SMS/email — 4-bosqich,
+  `IOtpSender` orqali qo'shiladi).
+- On-prem mijoz: o'z InstallationId'lari bo'yicha amaldagi kalitni ko'rish va yuklab olish (faqat Owner).
 
 ## 9. AWS deploy
 
@@ -165,8 +170,8 @@ Xavfsizlik:
 | 0 | Tayyorgarlik (ERP) | `DbConfig` host bo'yicha tenant DB; `LicenseHelper` → `netstandard2.0` umumiy kutubxona (`tahsinERP.Licensing`), bir nechta public key; `LicenseSyncService` (register + pull); Edition bo'yicha modul cheklovi | 2–2.5 hafta |
 | 1 | Panel MVP | Loyiha skeleti, StaffUsers + 2FA, Plans, Tenants, Subscriptions, Invoices, bank to'lovini qo'lda belgilash, KMS bilan kalit chiqarish, License API (register/pull), Telegram eslatmalar | 2–3 hafta |
 | 2 | Provisioning | Shablon baza, agent, wildcard DNS/TLS, demo tenant kechki reset, trial | 1–1.5 hafta |
-| 3 | Mijoz portali | Hisob-fakturalar, rekvizitlar, tarifni oshirish so'rovi | 1–2 hafta |
-| 4 | Qo'shimcha | Didox e-hisob-faktura, bank ko'chirmasi importi, on-prem online tekshiruv siyosati, hisobotlar (MRR, churn) | 1–2 hafta |
+| 3 | Mijoz portali ✅ | Hisob-fakturalar, rekvizitlar, tarifni oshirish so'rovi, Telegram OTP, on-prem kalit (06_CUSTOMER_PORTAL.md) | 1–2 hafta |
+| 4 | Qo'shimcha | Didox e-hisob-faktura, bank ko'chirmasi importi, on-prem online tekshiruv siyosati, hisobotlar (MRR, churn), portalga SMS/email kod va o'z-o'ziga parol tiklash | 1–2 hafta |
 
 Jami: **~7–10 hafta** bitta dasturchi + AI yordamida. 0–2 bosqichdan keyin birinchi pullik SaaS mijozni ulash mumkin (to'lov qo'lda belgilanadi).
 

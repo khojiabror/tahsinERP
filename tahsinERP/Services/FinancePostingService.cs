@@ -269,7 +269,7 @@ namespace tahsinERP.Services
                 AccountID = account.ID,
                 CategoryID = category.ID,
                 Direction = WaybillLedgerService.FinDirectionOut,
-                Amount = (decimal)payment.Payment_Amount,
+                Amount = payment.Payment_Amount,
                 CurrencyID = payment.CurrencyID ?? DefaultCurrencyId(db),
                 CounterpartyType = WaybillLedgerService.FinCounterpartyForwarder,
                 CounterpartyID = payment.ForwarderID,
