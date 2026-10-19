@@ -11,6 +11,23 @@ public sealed class AgentOptions
     public PathsSection Paths { get; set; } = new();
     public DemoSection Demo { get; set; } = new();
     public PowerShellSection PowerShell { get; set; } = new();
+    public UsageSection Usage { get; set; } = new();
+
+    /// <summary>Foydalanuvchi faolligini yig'ish (05_PROVISIONING.md, 10). Qaysi tenant va qachon — panel hal qiladi.</summary>
+    public sealed class UsageSection
+    {
+        public bool Enabled { get; set; } = true;
+        /// <summary>Paneldan maqsadlar shuncha daqiqada bir so'raladi.</summary>
+        public int CheckMinutes { get; set; } = 2;
+        /// <summary>Bir yig'ishda har jadvaldan ko'pi bilan shuncha yozuv (qolgani keyingi safar).</summary>
+        public int BatchLimit { get; set; } = 2000;
+        /// <summary>Birinchi yig'ishda shuncha kunlik tarix (panel saqlash muddati bilan bir xil).</summary>
+        public int LookbackDays { get; set; } = 90;
+        /// <summary>USERLOGS.ActionName matni (maskalangan) yuborilsinmi. false — faqat modul va vaqt.</summary>
+        public bool IncludeActionText { get; set; } = true;
+        /// <summary>Biznes hajmi (hujjatlar soni) shuncha kun orqaga har safar qayta hisoblanadi (orqa sana bilan kiritilganlar uchun).</summary>
+        public int DocsWindowDays { get; set; } = 35;
+    }
 
     public sealed class PanelSection
     {

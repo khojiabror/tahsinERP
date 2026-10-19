@@ -56,6 +56,9 @@ namespace tahsinERP.Configuration
 
         private const string ProviderName = "System.Data.SqlClient";
 
+        /// <summary>EDMX metadata resurslari (MetadataWorkspace qurish uchun, '|' bilan ajratilgan).</summary>
+        public static string EntityMetadata => Metadata;
+
         /// <summary>
         /// Entity Framework DbContext uchun to'liq EntityConnection string qaytaradi.
         /// DBTHSNEntities context ana shu qiymatdan foydalanadi.

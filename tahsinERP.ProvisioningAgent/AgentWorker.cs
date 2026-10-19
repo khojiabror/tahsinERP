@@ -46,6 +46,8 @@ public sealed class DemoScheduler(AgentOptions options, TimeProvider time, ILogg
 /// <summary>Asosiy sikl: demo rejalashtirish → lease → bajarish (lease uzaytirib turiladi) → natija.</summary>
 public sealed class AgentWorker(IServiceProvider services, AgentOptions options, ILogger<AgentWorker> log) : BackgroundService
 {
+    private DateTime _nextUsageUtc = DateTime.MinValue;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         log.LogInformation("Provisioning agenti {Version}: panel {Url}, server #{ServerId}, SQL {Sql}, tenants.json {File}",
@@ -89,7 +91,15 @@ public sealed class AgentWorker(IServiceProvider services, AgentOptions options,
         }
 
         var lease = await panel.LeaseAsync(ct);
-        if (lease is null) return false;
+        if (lease is null)
+        {
+            if (options.Usage.Enabled && DateTime.UtcNow >= _nextUsageUtc)
+            {
+                _nextUsageUtc = DateTime.UtcNow.AddMinutes(Math.Max(1, options.Usage.CheckMinutes));
+                await CollectUsageAsync(panel, scope.ServiceProvider.GetRequiredService<UsageCollector>(), ct);
+            }
+            return false;
+        }
         log.LogInformation("Job #{JobId}: {Type} {Slug} (urinish {Attempt})", lease.JobId, lease.Type, lease.Payload.Slug, lease.Attempt);
 
         using var extendCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -123,6 +133,29 @@ public sealed class AgentWorker(IServiceProvider services, AgentOptions options,
             }
         }
         return true;
+    }
+
+    /// <summary>Panel bergan tenantlar faolligini yig'ib yuboradi. Qaytaradi: yuborilgan hisobotlar soni.</summary>
+    public async Task<int> CollectUsageAsync(PanelClient panel, UsageCollector collector, CancellationToken ct)
+    {
+        var targets = await panel.UsageTargetsAsync(ct);
+        int sent = 0;
+        foreach (var t in targets.Targets)
+        {
+            var report = await collector.CollectAsync(t, ct);
+            try
+            {
+                await panel.UsageAsync(report, ct);
+                sent++;
+                if (report.Error != null) log.LogWarning("Faollik {Slug}: {Error}", t.Slug, report.Error);
+                if (report.More) _nextUsageUtc = DateTime.UtcNow; // davomi darhol
+            }
+            catch (PanelClient.PanelException ex) when (ex.Status == (HttpStatusCode)422)
+            {
+                log.LogWarning("Faollik {Slug} rad etildi: {Message}", t.Slug, ex.Message);
+            }
+        }
+        return sent;
     }
 
     private async Task ExtendLoopAsync(PanelClient panel, JobLease lease, CancellationToken ct)

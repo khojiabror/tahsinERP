@@ -9,6 +9,9 @@ namespace tahsinERP.ControlPanel.Tests;
 /// <summary>Provisioning UI: agent kaliti, «Sinov ochish», job sahifalari, o'chirish tasdig'i, rollar.</summary>
 public partial class WebUiTests
 {
+    /// <summary>Boshqa test klasslari uchun to'liq (2FA bilan) kirgan klient.</summary>
+    internal static Task<HttpClient> LoginStaticAsync(PanelFactory factory, string email, StaffRole role) => new WebUiTests(factory).LoginAsync(email, role);
+
     [Fact]
     public async Task Provisioning_Ui_TrialShowsPasswordOnce_JobPages_AgentKey_DeleteGuard()
     {
@@ -63,5 +66,44 @@ public partial class WebUiTests
         using var support = await LoginAsync("ui-prov-support@test.uz", StaffRole.Support);
         Assert.Contains("/Account/Denied", (await support.GetAsync("/Tenants/Trial")).Headers.Location!.OriginalString);
         Assert.Equal(HttpStatusCode.OK, (await support.GetAsync("/Provisioning")).StatusCode);
+    }
+
+    [Fact]
+    public async Task TrialActivity_Ui_SampleCheckbox_EndTrialForm_ActivityPage_Dashboard()
+    {
+        using var c = await LoginAsync("ui-ta-sales@test.uz", StaffRole.Sales);
+        string form = await (await c.GetAsync("/Tenants/Trial")).Content.ReadAsStringAsync();
+        Assert.Matches("<input[^>]*(checked[^>]*name=\"Input.SampleData\"|name=\"Input.SampleData\"[^>]*checked)", form);
+
+        var (tenantId, serverId) = await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            var s = new Server { Name = "ui-ta-srv", Host = "h", SqlInstance = ".", MaxTenants = 5, CreatedAtUtc = DateTime.UtcNow };
+            db.Servers.Add(s);
+            await db.SaveChangesAsync();
+            var t = await sp.GetRequiredService<tahsinERP.ControlPanel.Services.TenantService>().CreateAsync(
+                new Tenant { Slug = "ui-ta", LegalName = "UI TA", Deployment = DeploymentKind.SaaS, ServerId = s.Id }, true);
+            t = await db.Tenants.FirstAsync(x => x.Id == t.Id);
+            t.ProvisionedAtUtc = DateTime.UtcNow.AddDays(-10);
+            db.UsageStates.Add(new UsageState { TenantId = t.Id, SyncedAtUtc = DateTime.UtcNow, LastLoginUtc = DateTime.UtcNow.AddDays(-6) });
+            db.UsageUsers.Add(new UsageUser { TenantId = t.Id, UserId = 1, Login = "admin", IsActive = true });
+            db.UsageEvents.Add(new UsageEvent { TenantId = t.Id, Kind = UsageEventKind.Action, SourceId = 1, UserId = 1, AtUtc = DateTime.UtcNow.AddDays(-6), Module = "SOrder", Action = "Buyurtma" });
+            await db.SaveChangesAsync();
+            return (t.Id, s.Id);
+        });
+        string details = await (await c.GetAsync($"/Tenants/Details/{tenantId}")).Content.ReadAsStringAsync();
+        Assert.Contains("Sinovni yakunlash", details);
+        Assert.Contains($"/Tenants/Activity/{tenantId}", details);
+        var activity = await c.GetAsync($"/Tenants/Activity/{tenantId}?Days=7&Module=SOrder");
+        Assert.Equal(HttpStatusCode.OK, activity.StatusCode);
+        Assert.Contains("Buyurtma", await activity.Content.ReadAsStringAsync());
+        Assert.Contains("ui-ta", await (await c.GetAsync("/")).Content.ReadAsStringAsync()); // faol emas sinovlar
+
+        // noto'g'ri slug — xato, holat o'zgarmaydi
+        var bad = await PostAsync(c, $"/Tenants/Details/{tenantId}?handler=EndTrial", new() { ["EndTrialReason"] = "x", ["EndTrialConfirmSlug"] = "boshqa", ["EndTrialBackup"] = "true" }, tokenFrom: $"/Tenants/Details/{tenantId}");
+        Assert.Contains("slug mos kelmadi", await bad.Content.ReadAsStringAsync());
+        var ok = await PostAsync(c, $"/Tenants/Details/{tenantId}?handler=EndTrial", new() { ["EndTrialReason"] = "kirmadi", ["EndTrialConfirmSlug"] = "ui-ta", ["EndTrialBackup"] = "true" }, tokenFrom: $"/Tenants/Details/{tenantId}");
+        Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
+        Assert.Equal(TenantStatus.Suspended, await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().Tenants.Where(t => t.Id == tenantId).Select(t => t.Status).FirstAsync()));
     }
 }

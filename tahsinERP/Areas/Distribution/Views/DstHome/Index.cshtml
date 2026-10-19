@@ -1,0 +1,41 @@
+@{
+    ViewBag.Title = DstLocalization.T("Module_Title");
+    string current = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
+}
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-md-8 col-12 mb-2 mt-1">
+                <div class="breadcrumb-wrapper">
+                    <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                        <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active">@DstLocalization.T("Module_Title")</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="content-header-right col-md-4 col-12 mb-2 mt-1 text-md-right">
+                @using (Html.BeginForm("SetLanguage", "DstHome", new { area = "Distribution" }, FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="btn-group btn-group-sm" role="group" aria-label="@DstLocalization.T("Language")">
+                        <button type="submit" name="language" value="uz" class="btn @(current == "ru" ? "btn-outline-primary" : "btn-primary")">O'zbekcha</button>
+                        <button type="submit" name="language" value="ru" class="btn @(current == "ru" ? "btn-primary" : "btn-outline-primary")">Русский</button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@DstLocalization.T("Module_Title")</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@DstLocalization.T("Module_Intro")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

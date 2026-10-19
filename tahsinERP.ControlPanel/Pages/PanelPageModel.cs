@@ -105,6 +105,7 @@ public static class Labels
         ProvisioningJobType.Resume => "Qayta yoqish",
         ProvisioningJobType.Archive => "Arxivlash",
         ProvisioningJobType.Delete => "O'chirish",
+        ProvisioningJobType.EndTrial => "Sinovni yakunlash",
         _ => t.ToString()
     };
 

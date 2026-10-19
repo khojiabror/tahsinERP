@@ -1,0 +1,82 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Tenants.ActivityModel
+@{
+    var t = Model.Tenant;
+    ViewData["Title"] = "Faollik: " + t.Slug;
+    int max = Math.Max(1, Model.DayRows.Count == 0 ? 1 : Model.DayRows.Max(d => d.Logins + d.Actions));
+    int n = Math.Max(1, Model.DayRows.Count);
+    double bw = 700.0 / n;
+}
+<h1>Faollik: @t.LegalName <code>@t.Slug</code> <span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></h1>
+<div class="actions"><a class="btn secondary" href="/Tenants/Details/@t.Id">← Tashkilot</a></div>
+<p class="hint">Agent ERP bazasidagi USER_ENTRIES / USERLOGS dan yig'adi (sinov va demo — 15 daqiqada, qolganlar — soatda). Panelda 90 kun saqlanadi. IP, MAC, F.I.Sh., email va parollar panelga yuborilmaydi; amal matnida email/telefon/uzun raqamlar yashirilgan.</p>
+<div class="card">
+    <dl class="props">
+        <dt>Oxirgi kirish</dt><dd>@(Model.State?.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC</dd>
+        <dt>Oxirgi amal</dt><dd>@(Model.State?.LastActionUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC</dd>
+        <dt>Yig'ilgan</dt><dd>@(Model.State?.SyncedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "hali yo'q") @if (Model.State?.Error != null) { <span class="badge bad">@Model.State.Error</span> }</dd>
+        <dt>@Model.Days kunda</dt><dd>@Model.DayRows.Sum(d => d.Logins) kirish, @Model.DayRows.Sum(d => d.Actions) amal, faol foydalanuvchilar: @Model.Users.Count(u => (u.LastLoginUtc ?? u.LastActionUtc) >= DateTime.UtcNow.AddDays(-Model.Days))</dd>
+    </dl>
+</div>
+<form method="get" class="actions">
+    @foreach (var d in new[] { 7, 30, 90 })
+    {
+        <a class="btn @(Model.Days == d ? "" : "secondary")" href="?Days=@d">@d kun</a>
+    }
+</form>
+<h2>Kunlik faollik</h2>
+<svg class="chart" viewBox="0 0 720 180" role="img" aria-label="Kunlik kirish va amallar">
+    <line x1="10" y1="150" x2="710" y2="150" stroke="#ccc" />
+    @for (int i = 0; i < Model.DayRows.Count; i++)
+    {
+        var d = Model.DayRows[i];
+        double x = 10 + i * bw;
+        double ha = 130.0 * d.Actions / max, hl = 130.0 * d.Logins / max;
+        <rect x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="@((150 - ha - hl).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" width="@((bw * 0.8).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" height="@ha.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" fill="#7aa7e0"><title>@d.Date.ToString("dd.MM") — @d.Actions amal</title></rect>
+        <rect x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="@((150 - hl).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" width="@((bw * 0.8).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" height="@hl.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" fill="#2e7d4f"><title>@d.Date.ToString("dd.MM") — @d.Logins kirish, @d.ActiveUsers foydalanuvchi</title></rect>
+        @if (n <= 31 && (i % Math.Max(1, n / 10) == 0 || i == n - 1))
+        {
+<g><text x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="168" font-size="10" fill="#666">@d.Date.ToString("dd.MM")</text></g>
+        }
+    }
+    <text x="10" y="12" font-size="11" fill="#2e7d4f">■ kirish</text><text x="70" y="12" font-size="11" fill="#7aa7e0">■ amal</text><text x="650" y="12" font-size="10" fill="#666">max @max</text>
+</svg>
+<div class="cols">
+    <div>
+        <h2>Foydalanuvchilar</h2>
+        <table>
+            <tr><th>Login</th><th>Holat</th><th>Oxirgi kirish (UTC)</th><th>Oxirgi amal</th></tr>
+            @foreach (var u in Model.Users)
+            {
+                <tr><td><a href="?Days=@Model.Days&UserId=@u.UserId">@u.Login</a></td><td>@(u.IsActive ? "faol" : "o'chirilgan")</td><td>@u.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td><td>@u.LastActionUtc?.ToString("dd.MM.yyyy HH:mm")</td></tr>
+            }
+        </table>
+    </div>
+    <div>
+        <h2>Modullar (@Model.Days kun)</h2>
+        <table>
+            <tr><th>Modul</th><th class="num">Amallar</th></tr>
+            @foreach (var m in Model.Modules)
+            {
+                <tr><td><a href="?Days=@Model.Days&Module=@Uri.EscapeDataString(m.Module)">@m.Module</a></td><td class="num">@m.Actions</td></tr>
+            }
+        </table>
+    </div>
+</div>
+<h2>So'nggi kirish va amallar</h2>
+<form method="get" class="actions">
+    <input type="hidden" name="Days" value="@Model.Days" />
+    <select name="UserId"><option value="">— foydalanuvchi —</option>@foreach (var u in Model.Users) { <option value="@u.UserId" selected="@(Model.UserId == u.UserId)">@u.Login</option> }</select>
+    <select name="Module"><option value="">— modul —</option>@foreach (var m in Model.Modules) { <option value="@m.Module" selected="@(Model.Module == m.Module)">@m.Module</option> }</select>
+    <select name="Kind"><option value="">— tur —</option><option value="Login" selected="@(Model.Kind == UsageEventKind.Login)">Kirish</option><option value="Action" selected="@(Model.Kind == UsageEventKind.Action)">Amal</option></select>
+    <input type="text" name="Q" value="@Model.Q" placeholder="matn bo'yicha" />
+    <button type="submit" class="secondary">Filtr</button>
+</form>
+<table>
+    <tr><th>Vaqt (Toshkent)</th><th>Foydalanuvchi</th><th>Tur</th><th>Modul</th><th>Amal</th></tr>
+    @foreach (var e in Model.Events)
+    {
+        <tr><td>@Model.Local(e.AtUtc).ToString("dd.MM.yyyy HH:mm:ss")</td><td>@Model.LoginOf(e.UserId)</td><td>@(e.Kind == UsageEventKind.Login ? "kirish" : "amal")</td><td>@e.Module</td><td>@e.Action</td></tr>
+    }
+</table>
+@if (Model.Events.Count == 0) { <div class="empty">Yozuv yo'q.</div> }

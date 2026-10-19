@@ -1,0 +1,43 @@
+@page
+@model InviteModel
+@{ ViewData["Title"] = "Parol o'rnatish"; }
+<div class="card login">
+    @if (Model.Done)
+    {
+        <h1>Parol o'rnatildi</h1>
+        @if (Model.LinkToken is not null)
+        {
+            <p><strong>Telegram'ni bog'lang</strong> — kirish kodlari shu yerga keladi@(Model.Info?.Tenant.TelegramChatId is not null ? " (bog'lamasangiz — tashkilot chatiga)" : "").</p>
+            @if (Model.LinkUrl.Length > 0)
+            {
+                <p><a class="btn" href="@Model.LinkUrl" target="_blank" rel="noopener">Telegram botni ochish</a></p>
+                <p class="hint">Botda «Start» tugmasini bosing. Havola 24 soat amal qiladi va bir marta ishlaydi.</p>
+            }
+            else
+            {
+                <p>Telegram botga quyidagi buyruqni yuboring:</p>
+                <p class="secret mono" id="link-cmd">/start @Model.LinkToken</p>
+            }
+        }
+        <p><a class="btn secondary" href="/Login">Kirish sahifasiga</a></p>
+    }
+    else if (Model.Info is null)
+    {
+        <h1>Havola yaroqsiz</h1>
+        <p>@Model.Error</p>
+    }
+    else
+    {
+        <h1>@(Model.Info.User.PasswordHash is null ? "Xush kelibsiz" : "Yangi parol")</h1>
+        <p>@Model.Info.User.FullName — <strong>@Model.Info.Tenant.LegalName</strong></p>
+        <p class="hint">Login: @(Model.Info.User.Email ?? Model.Info.User.Phone)</p>
+        <form method="post" class="stack">
+            <div asp-validation-summary="All"></div>
+            <input type="hidden" asp-for="Token" />
+            <div><label asp-for="Password">Yangi parol</label><input asp-for="Password" autocomplete="new-password" autofocus /></div>
+            <div><label asp-for="Confirm">Parolni takrorlang</label><input asp-for="Confirm" autocomplete="new-password" /></div>
+            <p class="hint">Kamida 12 belgi, harf va raqam bo'lsin.</p>
+            <button type="submit">Parolni saqlash</button>
+        </form>
+    }
+</div>

@@ -22,6 +22,8 @@ public static class AgentApi
         group.MapPost("/jobs/{id:long}/extend", ExtendAsync);
         group.MapPost("/jobs/{id:long}/complete", CompleteAsync);
         group.MapPost("/schedule", ScheduleAsync);
+        group.MapPost("/usage/targets", UsageTargetsAsync);
+        group.MapPost("/usage", UsageAsync);
     }
 
     private static IResult Error(int status, string error, string? message = null) =>
@@ -115,6 +117,29 @@ public static class AgentApi
         var r = Read<ScheduleRequest>(a.Body);
         if (r is null) return Error(400, "bad_request");
         try { return Results.Json(await provisioning.ScheduleAsync(a.Server, r, ct), AgentProtocol.Json); }
+        catch (DomainException ex) { return Error(422, "rejected", ex.Message); }
+    }
+
+    internal static async Task<IResult> UsageTargetsAsync(HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UsageService usage, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        return Results.Json(await usage.TargetsAsync(a.Server, ct), AgentProtocol.Json);
+    }
+
+    internal static async Task<IResult> UsageAsync(HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UsageService usage, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        var r = Read<UsageReport>(a.Body);
+        if (r is null || string.IsNullOrWhiteSpace(r.Slug) || r.Events.Count > 20_000 || r.Users.Count > 5_000) return Error(400, "bad_request");
+        try
+        {
+            await usage.IngestAsync(a.Server, r, ct);
+            return Results.Json(new { ok = true });
+        }
         catch (DomainException ex) { return Error(422, "rejected", ex.Message); }
     }
 
