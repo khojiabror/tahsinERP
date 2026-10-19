@@ -132,8 +132,8 @@ namespace tahsinERP.Controllers.Engineering
                             requiresCuttingByMaterial.TryGetValue(il.MaterialID, out var requiresCutting);
 
                             // ViewDetails bilan bir xil mantiq (NormLineMath)
-                            var consumptionMeters = NormLineMath.LineConsumption(requiresCutting, il.CutLengthMm, il.PiecesPerProduct, il.Consumption);
-                            var wasteMeters = NormLineMath.WasteToDisplay(il.WasteAmount);
+                            var consumptionMeters = NormLineMath.LineConsumption(requiresCutting, il.CutLengthMm, il.PiecesPerProduct, (double?)il.Consumption);
+                            var wasteMeters = NormLineMath.WasteToDisplay((double?)il.WasteAmount);
 
                             totalSarfSumma += consumptionMeters * il.Price;
                             totalChiqindiSumma += wasteMeters * il.Price;
@@ -559,8 +559,8 @@ namespace tahsinERP.Controllers.Engineering
                 // Use StandardLengthMm agar available, otherwise use Length
                 double standardLengthMm = NormLineMath.EffectiveStandardLengthMm(material);
 
-                double price;
-                double? unitPrice = latestPrices.TryGetValue(material.ID, out price) ? price : (double?)null;
+                decimal price;
+                double? unitPrice = latestPrices.TryGetValue(material.ID, out price) ? (double)price : (double?)null;
                 if (isWoodMaterial && unitPrice.HasValue && standardLengthMm > 0)
                 {
                     // Example: 24000 UZS (4000 mm bar) => 24000 / (4000/1000) = 6000 UZS/m
@@ -934,8 +934,8 @@ namespace tahsinERP.Controllers.Engineering
                             CreatedByUserID = userId,
                             CreatedDT = DateTime.Now,
                             Price = line.UnitPrice ?? 0,
-                            Consumption = consumption > 0 ? (double?)consumption : null,
-                            WasteAmount = line.IsWasteManual ? (double?)wasteAmount : (wasteAmount > 0 ? (double?)wasteAmount : null),
+                            Consumption = (decimal?)(consumption > 0 ? (double?)consumption : null),
+                            WasteAmount = (decimal?)(line.IsWasteManual ? (double?)wasteAmount : (wasteAmount > 0 ? (double?)wasteAmount : null)),
                             // material topilmasa (o'chirilgan) — NRE emas, birliksiz saqlanadi (MES-B21)
                             UnitID = NormalizeUnitFk(line.UnitID) ?? NormalizeUnitFk(material != null && material.UnitID > 0 ? material.UnitID : (int?)null),
                             Comment = string.IsNullOrWhiteSpace(line.CuttingMethod) ? null : line.CuttingMethod.Trim()
@@ -1077,7 +1077,7 @@ namespace tahsinERP.Controllers.Engineering
                 Name = p.Name,
                 UnitID = p.UnitID,
                 RequiresCutting = p.RequiresCutting,
-                StandardLengthMm = NormLineMath.EffectiveStandardLengthMm(p.StandardLengthMm, p.Length)
+                StandardLengthMm = NormLineMath.EffectiveStandardLengthMm((double?)p.StandardLengthMm, (double?)p.Length)
             });
         }
 
@@ -1236,8 +1236,8 @@ namespace tahsinERP.Controllers.Engineering
                         MaterialID = il.MaterialID,
                         CutLengthMm = il.CutLengthMm,
                         Quantity = il.PiecesPerProduct,
-                        ConsumptionMeters = NormLineMath.LineConsumption(requiresCutting, il.CutLengthMm, il.PiecesPerProduct, il.Consumption),
-                        WasteMeters = NormLineMath.LineWaste(requiresCutting, m?.StandardLengthMm ?? 0, il.CutLengthMm, il.PiecesPerProduct, il.WasteAmount),
+                        ConsumptionMeters = NormLineMath.LineConsumption(requiresCutting, il.CutLengthMm, il.PiecesPerProduct, (double?)il.Consumption),
+                        WasteMeters = NormLineMath.LineWaste(requiresCutting, m?.StandardLengthMm ?? 0, il.CutLengthMm, il.PiecesPerProduct, (double?)il.WasteAmount),
                         UnitID = il.UnitID
                     };
                 }).ToList();
@@ -1457,8 +1457,8 @@ namespace tahsinERP.Controllers.Engineering
                 var standardLengthMm = NormLineMath.EffectiveStandardLengthMm(material);
 
                 // Saqlangan Consumption/WasteAmount, bo'lmasa kesim bo'yicha hisob (NormLineMath)
-                var consumption = NormLineMath.LineConsumption(requiresCutting, inputLine.CutLengthMm, inputLine.PiecesPerProduct, inputLine.Consumption);
-                var waste = NormLineMath.LineWaste(requiresCutting, standardLengthMm, inputLine.CutLengthMm, inputLine.PiecesPerProduct, inputLine.WasteAmount);
+                var consumption = NormLineMath.LineConsumption(requiresCutting, inputLine.CutLengthMm, inputLine.PiecesPerProduct, (double?)inputLine.Consumption);
+                var waste = NormLineMath.LineWaste(requiresCutting, standardLengthMm, inputLine.CutLengthMm, inputLine.PiecesPerProduct, (double?)inputLine.WasteAmount);
 
                 var totalAmount = consumption * unitPrice + waste * unitPrice;
 

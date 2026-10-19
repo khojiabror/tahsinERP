@@ -114,14 +114,14 @@ namespace tahsinERP.Services
             var openingSumByProduct = new Dictionary<int, decimal>();
             foreach (var x in incomeBefore)
             {
-                openingByProduct[x.ProductId] = x.Total;
+                openingByProduct[x.ProductId] = (double)x.Total;
                 openingSumByProduct[x.ProductId] = (decimal)x.TotalSum;
             }
             foreach (var x in expenseBefore)
             {
                 double q;
                 openingByProduct.TryGetValue(x.ProductId, out q);
-                openingByProduct[x.ProductId] = q - x.Total;
+                openingByProduct[x.ProductId] = q - (double)x.Total;
                 decimal s;
                 openingSumByProduct.TryGetValue(x.ProductId, out s);
                 openingSumByProduct[x.ProductId] = s - (decimal)x.TotalSum;
@@ -142,7 +142,7 @@ namespace tahsinERP.Services
                 {
                     x.ProductID,
                     x.Amount,
-                    Sum = (decimal)IncomeValueWithoutVat(x.Amount, x.PiecePrice, x.TotalPrice),
+                    Sum = (decimal)IncomeValueWithoutVat((double)x.Amount, (double?)x.PiecePrice, (double?)x.TotalPrice),
                     IsAdjustment = IsInventarizatsiyaDoc(x.DocNo, x.Description, x.Comment, isIncome: true)
                 })
                 .ToList();
@@ -165,10 +165,10 @@ namespace tahsinERP.Services
                 .ToList();
 
             // Operatsion harakat va inventarizatsiya (net = qo'shimcha kirim − kamaytirish chiqimi) alohida
-            var incomeByProduct = incomeLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-            var expenseByProduct = expenseLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-            var adjustmentInByProduct = incomeLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-            var adjustmentOutByProduct = expenseLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+            var incomeByProduct = incomeLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => (double)g.Sum(x => x.Amount));
+            var expenseByProduct = expenseLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => (double)g.Sum(x => x.Amount));
+            var adjustmentInByProduct = incomeLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => (double)g.Sum(x => x.Amount));
+            var adjustmentOutByProduct = expenseLinesInPeriod.Where(x => x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => (double)g.Sum(x => x.Amount));
 
             var incomeSumByProduct = incomeLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Sum));
             var expenseSumByProduct = expenseLinesInPeriod.Where(x => !x.IsAdjustment).GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Sum));
@@ -248,7 +248,7 @@ namespace tahsinERP.Services
                     OpeningBalance = open,
                     AdjustmentQty = adj,
                     IncomeQty = inc,
-                    ExpenseQty = exp,
+                    ExpenseQty = (double)exp,
                     ClosingBalance = close,
                     OpeningBalanceSum = openSum,
                     AdjustmentSum = adjSum,

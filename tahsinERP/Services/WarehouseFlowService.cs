@@ -290,7 +290,7 @@ namespace tahsinERP.Services
                     {
                         INCOME = income,
                         ProductID = productID,
-                        Amount = quantity,
+                        Amount = (decimal)quantity,
                         PiecePrice = 0,
                         UnitID = unitId
                     };
@@ -407,7 +407,7 @@ namespace tahsinERP.Services
                         {
                             EXPENS = expense,
                             ProductID = line.ProductID,
-                            Amount = line.Quantity,
+                            Amount = (decimal)line.Quantity,
                             PiecePrice = 0, // chiqimdan keyin FIFO tannarxi bilan to'ldiriladi
                             UnitID = product.UnitID > 0 ? product.UnitID : 1,
                             Comment = ProductionLotService.BuildLotAllocationsComment(line.LotAllocations)
@@ -425,9 +425,9 @@ namespace tahsinERP.Services
                     // SRM-B19: o'tkazma tannarxda (FIFO, QQSsiz) — avval sotuv shartnomasi narxi (sotish narxi) olinardi
                     foreach (var ep in expenseLines)
                     {
-                        StockLedger.IssueLine(db, productionWH.ID, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
-                        ep.PiecePrice = StockCostService.IssuedLineUnitCost(db, productionWH.ID, ep.ProductID,
-                            ep.Amount, ep.UnitID, ep.ID);
+                        StockLedger.IssueLine(db, productionWH.ID, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID);
+                        ep.PiecePrice = StockCostService.StoredUnitCost(StockCostService.IssuedLineUnitCost(db, productionWH.ID, ep.ProductID,
+                            (double)ep.Amount, ep.UnitID, ep.ID));
                     }
                     expense.TotalPrice = expenseLines.Sum(x => x.Amount * x.PiecePrice);
 
@@ -533,7 +533,7 @@ namespace tahsinERP.Services
                     }
                     if (contractProduct != null)
                     {
-                        piecePrice = contractProduct.PiecePrice;
+                        piecePrice = (double)contractProduct.PiecePrice;
                     }
                     var totalPrice = piecePrice * qtyToDeduct;
                     var invoiceUrl = DocumentMarkers.SalesInvoiceUrl + invoiceID;
@@ -547,8 +547,8 @@ namespace tahsinERP.Services
                         CurrencyID = currencyId,
                         IsDeleted = false,
                         SendStatus = true,
-                        Amount = qtyToDeduct,
-                        TotalPrice = totalPrice,
+                        Amount = (decimal?)qtyToDeduct,
+                        TotalPrice = (decimal?)totalPrice,
                         Description = $"{issueDate:dd.MM.yyyy}y. sotuv invoysi asosida tayyor mahsulot chiqimi: {product.PNo}, Miqdor {qtyStr}. Invoys raqami: {invoiceNo}. URL: {invoiceUrl}"
                     };
 
@@ -556,9 +556,9 @@ namespace tahsinERP.Services
                     {
                         EXPENS = expense,
                         ProductID = productID,
-                        Amount = qtyToDeduct,
-                        PiecePrice = piecePrice,
-                        TotalPrice = totalPrice,
+                        Amount = (decimal)qtyToDeduct,
+                        PiecePrice = (decimal)piecePrice,
+                        TotalPrice = (decimal)totalPrice,
                         UnitID = product.UnitID > 0 ? product.UnitID : 1,
                         Comment = $"Invoys raqami: {invoiceNo}. URL: {invoiceUrl}"
                     };
@@ -638,7 +638,7 @@ namespace tahsinERP.Services
                         var expense = expenses.First(e => e.ID == line.ExpenseID);
                         if (expense.IsDeleted == true)
                             continue;
-                        StockLedger.ReverseIssueLine(db, senderByExpense[line.ExpenseID], line.ProductID, line.Amount,
+                        StockLedger.ReverseIssueLine(db, senderByExpense[line.ExpenseID], line.ProductID, (double)line.Amount,
                             line.UnitID > 0 ? line.UnitID : 1, line.ID);
                     }
 

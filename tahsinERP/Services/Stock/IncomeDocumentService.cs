@@ -42,10 +42,10 @@ namespace tahsinERP.Services.Stock
             {
                 IncomeID = incomeId,
                 ProductID = line.ProductID,
-                Amount = line.Amount,
-                PiecePrice = line.PiecePrice,
+                Amount = (decimal)line.Amount,
+                PiecePrice = (decimal?)line.PiecePrice,
                 UnitID = unitId,
-                VATRate = VatMath.ClampPercent(line.VATRate),
+                VATRate = (decimal?)(VatMath.ClampPercent(line.VATRate)),
                 Comment = string.IsNullOrWhiteSpace(line.Comment) ? null : line.Comment.Trim()
             };
         }

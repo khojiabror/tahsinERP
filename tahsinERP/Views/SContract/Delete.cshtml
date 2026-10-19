@@ -66,7 +66,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Summa:</th>
-                                                    <td><strong>@Model.Amount</strong></td>
+                                                    <td><strong>@(Model.Amount?.ToString("0.######"))</strong></td>
                                                 </tr>
                                                 <tr>
                                                     <th>Valyuta:</th>
@@ -106,7 +106,7 @@
                                                             <td>@(item.PRODUCT?.PNo ?? "-")</td>
                                                             <td>@(item.PRODUCT?.Name ?? "-")</td>
                                                             <td>@(item.UNIT?.ShortName ?? item.UNIT?.UnitName ?? "-")</td>
-                                                            <td>@item.Amount</td>
+                                                            <td>@item.Amount.ToString("0.######")</td>
                                                             <td>@item.PiecePrice.ToString("N2")</td>
                                                             <td>@lineTotal.ToString("N2")</td>
                                                         </tr>

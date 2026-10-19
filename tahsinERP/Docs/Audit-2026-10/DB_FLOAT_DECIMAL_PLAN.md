@@ -1,7 +1,8 @@
 ﻿# float → decimal: ta'sir ro'yxati va xavfsiz reja
 
-> Holat 2026-10-19: 1- va 2-bosqich bajarildi (migratsiya 011, harness `Database/tools/RegressionProbe`) —
-> [DB_FLOAT_DECIMAL_STAGE1-2.md](DB_FLOAT_DECIMAL_STAGE1-2.md). 3–5 qo'llanmagan.
+> Holat 2026-10-19: hamma 5 bosqich bajarildi — 1–2: migratsiya 011, [DB_FLOAT_DECIMAL_STAGE1-2.md](DB_FLOAT_DECIMAL_STAGE1-2.md);
+> 3–5: migratsiyalar 014/015/017, [DB_FLOAT_DECIMAL_STAGE3-5.md](DB_FLOAT_DECIMAL_STAGE3-5.md). Sxemada float qolmadi;
+> ichki hisoblarni (StockLedger/FIFO, UnitConversion, VatMath) to'liq decimal'ga o'tkazish — ochiq.
 
 Holat (2026-10-18, master + db-foundation): sxemada **76 ta `float`** ustun (pul, narx, miqdor, o'lcham).
 `float` ikkilik kasr: `0.1 + 0.2 ≠ 0.3`, SUM/GROUP BY'da tiyinlar "suzadi", tenglik solishtiruvi ishonchsiz.

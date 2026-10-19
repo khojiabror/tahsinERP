@@ -102,7 +102,7 @@ namespace tahsinERP.Services.Procurement
                 SupplierID = c.SupplierID,
                 SupplierName = c.SUPPLIER.Name,
                 PurchaseType = c.PurchaseType,
-                Amount = c.Amount,
+                Amount = (double?)c.Amount,
                 PaymentTerms = c.PaymentTerms,
                 IssuedDate = c.IssuedDate
             });
@@ -159,7 +159,7 @@ namespace tahsinERP.Services.Procurement
                 _db.P_CONTRACTS.Add(contract);
 
                 // Jami (QQS bilan) — bog'langan model qatorlaridan (avval Request.Form qayta o'qilardi, SRM-D10)
-                contract.Amount = await AddLinesAsync(contract, model.ContractProducts);
+                contract.Amount = (decimal?)(await AddLinesAsync(contract, model.ContractProducts));
                 AddDocument(contract, file);
 
                 await _db.SaveChangesAsync();
@@ -192,7 +192,7 @@ namespace tahsinERP.Services.Procurement
                 var existingProducts = await _db.P_CONTRACT_PRODUCTS.Where(cp => cp.ContractID == contract.ID).ToListAsync();
                 _db.P_CONTRACT_PRODUCTS.RemoveRange(existingProducts);
 
-                contract.Amount = await AddLinesAsync(contract, model.ContractProducts);
+                contract.Amount = (decimal?)(await AddLinesAsync(contract, model.ContractProducts));
 
                 if (PdfUpload.HasFile(file))
                 {
@@ -295,13 +295,13 @@ namespace tahsinERP.Services.Procurement
                 {
                     P_CONTRACTS = contract,
                     ProductID = line.ProductID,
-                    Price = line.Price,
-                    Quantity = line.Quantity, // kesiladiganlarda allaqachon CBM'da
+                    Price = (decimal)line.Price,
+                    Quantity = (decimal)line.Quantity, // kesiladiganlarda allaqachon CBM'da
                     UnitID = unitId,
-                    MOQ = line.MOQ,
+                    MOQ = (decimal?)line.MOQ,
                     HSCodeID = line.HSCodeID,
                     ActivePart = true,
-                    VATAmount = vatAmount
+                    VATAmount = (decimal?)(vatAmount)
                 });
 
                 // Avvalgi qoida saqlandi: jamiga faqat mahsuloti tanlangan, narx va miqdori musbat qatorlar kiradi

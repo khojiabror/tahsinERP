@@ -1,5 +1,6 @@
 // Regressiya solishtiruv harness'i (float → decimal rejasi, DB_FLOAT_DECIMAL_PLAN.md 1-bosqich).
-// Balans/Moliya, Tannarx, ombor qoldig'i, CRM/SRM va logistika natijalarini JSON'ga yozadi;
+// Balans/Moliya, Tannarx, ombor qoldig'i, CRM/SRM, logistika, xarid/sotuv hujjatlari, ishlab chiqarish va
+// spravochnik natijalarini JSON'ga yozadi;
 // "oldin" va "keyin" JSON'lari "compare" rejimida raqamli tolerans bilan solishtiriladi.
 //
 //   RegressionProbe.exe run <out.json> [user]
@@ -299,6 +300,78 @@ class RegressionProbe
         }
     }
 
+    /// <summary>Oxirgi va eng birinchi yozuvlar (har jadvaldan ~20 ta) — hujjat tafsilotlari uchun namunaviy ID'lar.</summary>
+    static List<int> SampleIds(Func<DBTHSNEntities, IQueryable<int>> ids, int each = 10)
+    {
+        using (var db = new DBTHSNEntities())
+        {
+            var q = ids(db);
+            return q.OrderByDescending(x => x).Take(each).ToList().Concat(q.OrderBy(x => x).Take(each).ToList()).Distinct().OrderBy(x => x).ToList();
+        }
+    }
+
+    static void Documents()
+    {
+        var from = new DateTime(2024, 1, 1);
+        Put("srm/pcontracts", () => Action<tahsinERP.Controllers.PContractsController>(c => c.Index("", null, null, from, Today)));
+        Put("srm/porders", () => Action<tahsinERP.Controllers.POrdersController>(c => c.Index("", null, null)));
+        Put("srm/pinvoices", () => Action<tahsinERP.Controllers.PInvoicesController>(c => c.Index("", null, null, from, Today)));
+        Put("srm/prequisitions", () => Action<tahsinERP.Controllers.SRM.PRequisitionsController>(c => c.Index("")));
+        Put("crm/scontracts", () => Action<tahsinERP.Controllers.SContractController>(c => c.Index(null, null, null, from, Today, null, 1, 1000)));
+        Put("crm/sorders", () => Action<tahsinERP.Controllers.SOrderController>(c => c.Index(null, null, null, null, from, Today, null, 1, 1000)));
+        Put("stock/incomes", () => Action<tahsinERP.Controllers.SRM.IncomesController>(c => c.Index(null, null, from, Today)));
+        Put("stock/expenses", () => Action<tahsinERP.Controllers.SRM.ExpensesController>(c => c.Index(null, null, from, Today)));
+        Put("stock/inventory", () => Action<tahsinERP.Controllers.InventoryController>(c => c.Index(null, null, null, null)));
+        Put("stock/inventoryDashboard", () => Action<tahsinERP.Controllers.InventoryReportsController>(c => c.Dashboard(null, null, from, Today, null, null, null, null)));
+        Put("stock/damaged", () => Action<tahsinERP.Controllers.DamagedProductController>(c => c.Index()));
+        Put("home/dashboard", () => Action<tahsinERP.Controllers.HomeController>(c => c.Index()));
+
+        foreach (var id in SampleIds(db => db.P_CONTRACTS.Select(x => x.ID)))
+            Put("srm/pcontract " + id, () => Action<tahsinERP.Controllers.PContractsController>(c => c.Details(id)));
+        foreach (var id in SampleIds(db => db.P_ORDERS.Select(x => x.ID)))
+            Put("srm/porder " + id, () => Action<tahsinERP.Controllers.POrdersController>(c => c.Details(id)));
+        foreach (var id in SampleIds(db => db.P_INVOICES.Select(x => x.ID)))
+            Put("srm/pinvoice " + id, () => Action<tahsinERP.Controllers.PInvoicesController>(c => c.Details(id)));
+        foreach (var id in SampleIds(db => db.S_CONTRACTS.Select(x => x.ID)))
+            Put("crm/scontract " + id, () => Action<tahsinERP.Controllers.SContractController>(c => c.Details(id)));
+        foreach (var id in SampleIds(db => db.S_ORDERS.Select(x => x.ID)))
+            Put("crm/sorder " + id, () => Action<tahsinERP.Controllers.SOrderController>(c => c.Details(id)));
+        foreach (var id in SampleIds(db => db.INCOMES.Select(x => x.ID)))
+            Put("stock/income " + id, () => Action<tahsinERP.Controllers.SRM.IncomesController>(c => c.Details(id)));
+        foreach (var id in SampleIds(db => db.EXPENSES.Select(x => x.ID)))
+            Put("stock/expense " + id, () => Action<tahsinERP.Controllers.SRM.ExpensesController>(c => c.Details(id)));
+    }
+
+    static void Production()
+    {
+        var from = new DateTime(2024, 1, 1);
+        foreach (var ym in Months)
+        {
+            int y = ym[0], m = ym[1];
+            Put("mes/dashboard " + y + "-" + m, () => Action<tahsinERP.Controllers.MES.MESDashboardController>(c => c.Dashboard(y, m, null)));
+            Put("mes/productionMonthly " + y + "-" + m, () => Action<tahsinERP.Controllers.MES.MESReportsController>(c => c.ProductionMonthly(y, m)));
+        }
+        Put("mes/plans", () => Action<tahsinERP.Controllers.MES.ProductPlanController>(c => c.Index(null, from, Today)));
+        Put("mes/production", () => Action<tahsinERP.Controllers.MES.ProductProductionController>(c => c.Index(from, Today, null, null)));
+        foreach (var id in SampleIds(db => db.PRODUCTPLANS.Select(x => x.ID), 5))
+            Put("mes/plan " + id, () => Action<tahsinERP.Controllers.MES.ProductPlanController>(c => c.Details(id)));
+        foreach (var id in SampleIds(db => db.NORMVERSIONS.Select(x => x.ID), 8))
+            Put("eng/norm " + id, () => Action<tahsinERP.Controllers.Engineering.NormController>(c => c.Details(id)));
+        foreach (var pid in SampleIds(db => db.BOM_HEADERS.Where(b => b.ProductID.HasValue).Select(b => b.ProductID.Value), 6))
+            using (var db = new DBTHSNEntities())
+                Put("eng/bomMaterials " + pid, () => new BomMaterialSummaryService(db).GetMaterialSummariesPerUnitAsync(pid, null, Today));
+
+        // 5-bosqich: spravochnik o'lchamlari
+        Put("ref/products", () => Action<tahsinERP.Controllers.ProductController>(c => c.Index()));
+        // ProductController.Details rasm yo'li uchun ilova virtual yo'lini talab qiladi (konsolda yo'q) — o'lchamlar bevosita
+        using (var db = new DBTHSNEntities())
+            Put("ref/productDims", () => db.PRODUCTS.OrderBy(p => p.ID)
+                .Select(p => new { p.ID, p.Length, p.Width, p.Height, p.Weight, p.StandardLengthMm }).ToList());
+        Put("ref/transportTypes", () => Action<tahsinERP.Controllers.FTransportTypeController>(c => c.Index()));
+        using (var db = new DBTHSNEntities())
+            Put("ref/transportCbm", () => db.F_TRANSPORT_TYPES.ToList().Select(t => new { t.ID, Cbm = TransportLoadCalculator.InternalCbm(t) }).ToList());
+    }
+
     // ---------------- Solishtirish ----------------
 
     static int Compare(string beforeFile, string afterFile, decimal tol)
@@ -376,6 +449,8 @@ class RegressionProbe
         Stock();
         CrmSrm();
         Logistics();
+        Documents();
+        Production();
         var errors = Result.Count(kv => kv.Value is string && ((string)kv.Value).StartsWith("ERROR"));
         File.WriteAllText(args[1], JsonConvert.SerializeObject(new SortedDictionary<string, object>(Result), Settings));
         Console.WriteLine("yozildi: {0} ({1} bo'lim, {2} xato)", args[1], Result.Count, errors);

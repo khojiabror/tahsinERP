@@ -27,7 +27,7 @@ namespace tahsinERP.Models
         public string InvoiceNo { get; set; }
         public Nullable<int> OrderID { get; set; }
         public int SupplierID { get; set; }
-        public Nullable<double> Amount { get; set; }
+        public Nullable<decimal> Amount { get; set; }
         public System.DateTime InvoiceDate { get; set; }
         public Nullable<int> CompanyID { get; set; }
         public Nullable<bool> IsDeleted { get; set; }

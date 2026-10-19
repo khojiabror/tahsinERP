@@ -68,10 +68,10 @@
                                                     <td>
                                                         <a href="~/FTransportType/Details/@item.ID">@item.TransportType</a>
                                                     </td>
-                                                    <td>@item.ExtHght</td>
-                                                    <td>@item.IntHght</td>
-                                                    <td>@item.CapableOfLifting</td>
-                                                    <td>@item.TransportWeight</td>
+                                                    <td>@item.ExtHght.ToString("0.######")</td>
+                                                    <td>@item.IntHght.ToString("0.######")</td>
+                                                    <td>@(item.CapableOfLifting?.ToString("0.######"))</td>
+                                                    <td>@(item.TransportWeight?.ToString("0.######"))</td>
                                                     @if (changePermit)
                                                     {
                                                         <td>

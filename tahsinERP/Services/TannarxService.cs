@@ -159,8 +159,8 @@ namespace tahsinERP.Services
                 bool requiresCutting;
                 requiresCuttingByMaterial.TryGetValue(line.MaterialID, out requiresCutting);
 
-                var consumptionMeters = NormLineMath.LineConsumption(requiresCutting, line.CutLengthMm, line.PiecesPerProduct, line.Consumption);
-                var wasteMeters = NormLineMath.WasteToDisplay(line.WasteAmount);
+                var consumptionMeters = NormLineMath.LineConsumption(requiresCutting, line.CutLengthMm, line.PiecesPerProduct, (double?)line.Consumption);
+                var wasteMeters = NormLineMath.WasteToDisplay((double?)line.WasteAmount);
 
                 total += (consumptionMeters + wasteMeters) * line.Price;
             }

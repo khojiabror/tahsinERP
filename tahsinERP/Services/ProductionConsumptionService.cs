@@ -289,7 +289,7 @@ namespace tahsinERP.Services
                 var line = new EXPENSE_PRODUCTS
                 {
                     ProductID = req.MaterialID,
-                    Amount = req.TotalConsumption,
+                    Amount = (decimal)req.TotalConsumption,
                     UnitID = displayUnitId.Value,
                     Comment = "BOM/NORM sarfi"
                 };
@@ -298,7 +298,7 @@ namespace tahsinERP.Services
                 totalAmount += req.TotalConsumption;
             }
 
-            expense.Amount = totalAmount;
+            expense.Amount = (decimal?)totalAmount;
 
             // Hujjat + barcha qatorlar bitta SaveChanges'da (avval har qatorga alohida, MES-P11);
             // chiqim (lot ajratmasi) qator ID'sini talab qiladi - shuning uchun undan keyin
@@ -311,13 +311,13 @@ namespace tahsinERP.Services
             double totalExpensePrice = 0;
             foreach (var line in lines)
             {
-                await StockLedger.IssueLineAsync(_db, warehouseId, line.ProductID, line.Amount, line.UnitID, line.ID);
-                line.PiecePrice = StockCostService.IssuedLineUnitCost(_db, warehouseId, line.ProductID,
-                    line.Amount, line.UnitID, line.ID);
-                totalExpensePrice += line.Amount * line.PiecePrice;
+                await StockLedger.IssueLineAsync(_db, warehouseId, line.ProductID, (double)line.Amount, line.UnitID, line.ID);
+                line.PiecePrice = StockCostService.StoredUnitCost(StockCostService.IssuedLineUnitCost(_db, warehouseId, line.ProductID,
+                    (double)line.Amount, line.UnitID, line.ID));
+                totalExpensePrice += (double)(line.Amount * line.PiecePrice);
             }
 
-            expense.TotalPrice = totalExpensePrice;
+            expense.TotalPrice = (decimal?)totalExpensePrice;
             await _db.SaveChangesAsync();
 
             LogHelper.LogToDatabase("system", "ProductionConsumptionService", "ConsumeMaterialsForProductionAsync",
@@ -358,7 +358,7 @@ namespace tahsinERP.Services
                 {
                     var unitId = line.UnitID > 0 ? line.UnitID : 1;
                     StockLedger.ReverseIssueLine(
-                        _db, expense.SenderWHID, line.ProductID, line.Amount, unitId, line.ID);
+                        _db, expense.SenderWHID, line.ProductID, (double)line.Amount, unitId, line.ID);
                 }
 
                 if (lines.Any())

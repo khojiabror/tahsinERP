@@ -30,7 +30,7 @@ namespace tahsinERP.Services.Norm
 
         public static double EffectiveStandardLengthMm(PRODUCT material)
         {
-            return material == null ? 0 : EffectiveStandardLengthMm(material.StandardLengthMm, material.Length);
+            return material == null ? 0 : EffectiveStandardLengthMm((double?)material.StandardLengthMm, (double?)material.Length);
         }
 
         /// <summary>

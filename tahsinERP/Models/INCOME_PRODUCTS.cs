@@ -23,12 +23,12 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int IncomeID { get; set; }
         public int ProductID { get; set; }
-        public double Amount { get; set; }
-        public Nullable<double> PiecePrice { get; set; }
-        public Nullable<double> TotalPrice { get; set; }
+        public decimal Amount { get; set; }
+        public Nullable<decimal> PiecePrice { get; set; }
+        public Nullable<decimal> TotalPrice { get; set; }
         public string Comment { get; set; }
         public int UnitID { get; set; }
-        public Nullable<double> VATRate { get; set; }
+        public Nullable<decimal> VATRate { get; set; }
     
         public virtual INCOME INCOME { get; set; }
         public virtual PRODUCT PRODUCT { get; set; }

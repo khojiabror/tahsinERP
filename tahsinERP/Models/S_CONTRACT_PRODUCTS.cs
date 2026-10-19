@@ -17,11 +17,11 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int ContractID { get; set; }
         public int ProductID { get; set; }
-        public double PiecePrice { get; set; }
-        public double Amount { get; set; }
+        public decimal PiecePrice { get; set; }
+        public decimal Amount { get; set; }
         public int UnitID { get; set; }
-        public Nullable<double> vatamount { get; set; }
-        public Nullable<double> totalamount { get; set; }
+        public Nullable<decimal> vatamount { get; set; }
+        public Nullable<decimal> totalamount { get; set; }
     
         public virtual PRODUCT PRODUCT { get; set; }
         public virtual S_CONTRACTS S_CONTRACTS { get; set; }

@@ -29,7 +29,7 @@ namespace tahsinERP.Services.Stock
                 {
                     ExpenseID = expense.ID,
                     ProductID = line.ProductID,
-                    Amount = line.Amount,
+                    Amount = (decimal)line.Amount,
                     PiecePrice = 0,
                     UnitID = line.UnitID,
                     Comment = line.Comment ?? ""
@@ -49,16 +49,16 @@ namespace tahsinERP.Services.Stock
 
                 var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
                     line.ProductID, line.Amount, line.UnitID, expenseProduct.ID);
-                expenseProduct.PiecePrice = unitCost;
-                line.PiecePrice = unitCost;
-                line.TotalPrice = line.Amount * unitCost;
+                expenseProduct.PiecePrice = StockCostService.StoredUnitCost(unitCost);
+                line.PiecePrice = (double)expenseProduct.PiecePrice;
+                line.TotalPrice = line.Amount * line.PiecePrice;
 
                 totalAmount += line.Amount;
                 totalPrice += line.TotalPrice;
             }
 
-            expense.Amount = totalAmount;
-            expense.TotalPrice = totalPrice;
+            expense.Amount = (decimal?)totalAmount;
+            expense.TotalPrice = (decimal?)totalPrice;
         }
     }
 }

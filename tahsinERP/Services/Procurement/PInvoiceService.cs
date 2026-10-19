@@ -104,7 +104,7 @@ namespace tahsinERP.Services.Procurement
                 ContractNo = i.P_CONTRACTS.ContractNo,
                 // QQS stavkasi shartnomadan: invoysning o'zi yoki buyurtmasi orqali (SRM-B18)
                 VatContractID = i.ContractID > 0 ? (int?)i.ContractID : i.P_ORDERS.ContractID,
-                Amount = i.Amount,
+                Amount = (double?)i.Amount,
                 // Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa — qatorlar yig'indisi
                 Net = i.P_INVOICE_PRODUCTS.Sum(x => (double?)x.TotalPrice),
                 InvoiceDate = i.InvoiceDate
@@ -188,7 +188,7 @@ namespace tahsinERP.Services.Procurement
                 // Qatorlar navigatsiya orqali — EF FK'ni o'zi qo'yadi, bitta SaveChanges.
                 // Amount QQS bilan saqlanadi (SRM-B25 qarori): net + shartnoma QQS stavkasi.
                 var net = await AddLinesAsync(invoice, model.InvoiceProducts);
-                invoice.Amount = VatMath.ApplyVat(net, await ResolveVatRateAsync(model.ContractID, order));
+                invoice.Amount = (decimal?)(VatMath.ApplyVat(net, await ResolveVatRateAsync(model.ContractID, order)));
                 AddDocument(invoice, file);
 
                 await _db.SaveChangesAsync();
@@ -235,7 +235,7 @@ namespace tahsinERP.Services.Procurement
                 var existingProducts = await _db.P_INVOICE_PRODUCTS.Where(ip => ip.InvoiceID == invoice.ID).ToListAsync();
                 _db.P_INVOICE_PRODUCTS.RemoveRange(existingProducts);
                 var net = await AddLinesAsync(invoice, model.InvoiceProducts);
-                invoice.Amount = VatMath.ApplyVat(net, await ResolveVatRateAsync(model.ContractID, order));
+                invoice.Amount = (decimal?)(VatMath.ApplyVat(net, await ResolveVatRateAsync(model.ContractID, order)));
 
                 if (PdfUpload.HasFile(file))
                 {
@@ -418,16 +418,16 @@ namespace tahsinERP.Services.Procurement
                 var invoiceProduct = new P_INVOICE_PRODUCTS
                 {
                     ProductID = line.ProductID,
-                    Quantity = line.Quantity,
-                    Price = line.Price,
-                    TotalPrice = line.Price * line.Quantity,
+                    Quantity = (decimal)line.Quantity,
+                    Price = (decimal)line.Price,
+                    TotalPrice = (decimal)(line.Price * line.Quantity),
                     UnitID = unitId
                 };
 
                 // FK navigatsiya orqali: yangi invoysda ID SaveChanges'da beriladi
                 invoiceProduct.P_INVOICES = invoice;
                 _db.P_INVOICE_PRODUCTS.Add(invoiceProduct);
-                total += invoiceProduct.TotalPrice;
+                total += (double)invoiceProduct.TotalPrice;
             }
 
             return total;

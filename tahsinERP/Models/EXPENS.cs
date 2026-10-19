@@ -23,8 +23,8 @@ namespace tahsinERP.Models
     
         public int ID { get; set; }
         public string DocNo { get; set; }
-        public Nullable<double> Amount { get; set; }
-        public Nullable<double> TotalPrice { get; set; }
+        public Nullable<decimal> Amount { get; set; }
+        public Nullable<decimal> TotalPrice { get; set; }
         public Nullable<int> ReceiverWhID { get; set; }
         public int SenderWHID { get; set; }
         public bool IsDeleted { get; set; }

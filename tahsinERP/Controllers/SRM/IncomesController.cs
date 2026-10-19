@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers.SRM
                 InvoiceNo = i.P_INVOICES.InvoiceNo,
                 ReceivingWHID = i.ReceivingWHID,
                 WarehouseName = i.Warehouse.WHName,
-                TotalPrice = i.TotalPrice,
+                TotalPrice = (double?)i.TotalPrice,
                 Received = i.RecieveStatus == true,
                 IssueDateTime = i.IssueDateTime
             });
@@ -535,8 +535,8 @@ namespace tahsinERP.Controllers.SRM
                                 if (requireDloc)
                                     income.RecieveStatus = true;
 
-                                income.Amount = totalAmount;
-                                income.TotalPrice = totalPrice;
+                                income.Amount = (decimal?)totalAmount;
+                                income.TotalPrice = (decimal?)totalPrice;
                                 await db.SaveChangesAsync();
                             }
 
@@ -684,8 +684,8 @@ namespace tahsinERP.Controllers.SRM
                     SenderWHID = income.SenderWHID,
                     InvoiceID = income.InvoiceID,
                     CurrencyID = income.CurrencyID,
-                    Amount = income.Amount,
-                    TotalPrice = income.TotalPrice,
+                    Amount = (double?)income.Amount,
+                    TotalPrice = (double?)income.TotalPrice,
                     Description = income.Description,
                     IncomeProducts = income.INCOME_PRODUCTS.Select(ip => new ViewModels.IncomeProductViewModel
                     {
@@ -693,12 +693,12 @@ namespace tahsinERP.Controllers.SRM
                         ProductID = ip.ProductID,
                         ProductPNo = ip.PRODUCT.PNo,
                         ProductName = ip.PRODUCT.Name,
-                        Amount = ip.Amount,
+                        Amount = (double)ip.Amount,
                         UnitID = ip.UnitID,
-                        PiecePrice = ip.PiecePrice,
-                        TotalPrice = ip.TotalPrice,
+                        PiecePrice = (double?)ip.PiecePrice,
+                        TotalPrice = (double?)ip.TotalPrice,
                         Comment = ip.Comment,
-                        VATRate = ip.VATRate ?? 0
+                        VATRate = (double)(ip.VATRate ?? 0)
                     }).ToList()
                 };
 
@@ -812,8 +812,8 @@ namespace tahsinERP.Controllers.SRM
                                 }
                             }
 
-                            income.Amount = totalAmount;
-                            income.TotalPrice = totalPrice;
+                            income.Amount = (decimal?)totalAmount;
+                            income.TotalPrice = (decimal?)totalPrice;
 
                             // Handle fayl upload
                             if (incomeFile != null && incomeFile.ContentLength > 0)
@@ -954,7 +954,7 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             StockLedger.ReceiveLine(db, income.ReceivingWHID, income.ID, product.ID, product.ProductID,
-                                product.Amount, unitId, lineLocationId, income.IssueDateTime);
+                                (double)product.Amount, unitId, lineLocationId, income.IssueDateTime);
                         }
 
                         income.RecieveStatus = true;
@@ -1034,7 +1034,7 @@ namespace tahsinERP.Controllers.SRM
                             foreach (var product in income.INCOME_PRODUCTS)
                             {
                                 var unitId = product.UnitID > 0 ? product.UnitID : 1;
-                                StockLedger.Increase(db, income.ReceivingWHID, product.ProductID, product.Amount, unitId);
+                                StockLedger.Increase(db, income.ReceivingWHID, product.ProductID, (double)product.Amount, unitId);
                             }
                         }
 
@@ -1110,7 +1110,7 @@ namespace tahsinERP.Controllers.SRM
                         // shuning uchun faqat yuboruvchi ombor chiqimi (DLOC lot ajratmalari bilan) qaytariladi.
                         foreach (var product in expense.EXPENSE_PRODUCTS)
                         {
-                            StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, product.Amount,
+                            StockLedger.ReverseIssueLine(db, expense.SenderWHID, product.ProductID, (double)product.Amount,
                                 product.UnitID > 0 ? product.UnitID : 1, product.ID);
                         }
 
@@ -1227,7 +1227,7 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 foreach (var ep in linkedExpense.EXPENSE_PRODUCTS)
                                 {
-                                    StockLedger.ReverseIssueLine(db, linkedExpense.SenderWHID, ep.ProductID, ep.Amount,
+                                    StockLedger.ReverseIssueLine(db, linkedExpense.SenderWHID, ep.ProductID, (double)ep.Amount,
                                         ep.UnitID > 0 ? ep.UnitID : 1, ep.ID);
                                 }
 
