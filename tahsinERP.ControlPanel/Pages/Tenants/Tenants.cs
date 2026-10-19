@@ -135,8 +135,17 @@ public class EditModel(ControlDbContext db, TenantService tenants) : PanelPageMo
     }
 }
 
-public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning) : PanelPageModel
+public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage) : PanelPageModel
 {
+    /// <summary>Faqat sinov tenanti (pullik obunasi bo'lmagan) — «Sinovni yakunlash» ko'rinadi.</summary>
+    public bool IsTrialOnly { get; private set; }
+    public UsageState? Usage { get; private set; }
+    public int Logins7d { get; private set; }
+    public int Actions7d { get; private set; }
+    [BindProperty] public string? EndTrialConfirmSlug { get; set; }
+    [BindProperty] public string? EndTrialReason { get; set; }
+    [BindProperty] public bool EndTrialBackup { get; set; } = true;
+
     public List<ProvisioningJob> Jobs { get; private set; } = [];
     public ProvisioningJob? ActiveJob => Jobs.FirstOrDefault(j => j.IsActive);
     public bool IsDemo { get; private set; }
@@ -175,6 +184,13 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         StaffNames = await db.StaffUsers.ToDictionaryAsync(s => s.Id, s => s.FullName);
         Jobs = await db.ProvisioningJobs.AsNoTracking().Where(j => j.TenantId == id).OrderByDescending(j => j.Id).Take(30).ToListAsync();
         IsDemo = provisioning.IsDemo(t);
+        IsTrialOnly = t.Deployment == DeploymentKind.SaaS && t.DeletedAtUtc == null && await provisioning.IsTrialOnlyAsync(t);
+        Usage = await db.UsageStates.AsNoTracking().FirstOrDefaultAsync(s => s.TenantId == id);
+        var weekAgo = DateTime.UtcNow.AddDays(-7);
+        var counts = await db.UsageEvents.Where(e => e.TenantId == id && e.AtUtc >= weekAgo).GroupBy(e => e.Kind)
+            .Select(g => new { g.Key, C = g.Count() }).ToListAsync();
+        Logins7d = counts.FirstOrDefault(c => c.Key == Data.UsageEventKind.Login)?.C ?? 0;
+        Actions7d = counts.FirstOrDefault(c => c.Key == Data.UsageEventKind.Action)?.C ?? 0;
         TenantUrl = provisioning.TenantUrl(t);
         if (ActiveJob != null) ViewData["AutoRefresh"] = 10;
         NewStatus = t.Status;
@@ -234,6 +250,22 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
 
     public Task<IActionResult> OnPostArchiveAsync(int id) => RunAsync(id, true,
         async t => (await provisioning.EnqueueAsync(t, ProvisioningJobType.Archive, ProvisionReason)).Job, "Arxivlash navbatga qo'yildi.");
+
+    /// <summary>Sinovni muddatidan oldin yakunlash (Owner/Sales, sabab + slug tasdig'i, ixtiyoriy arxiv).</summary>
+    public async Task<IActionResult> OnPostEndTrialAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!CanSell) return Forbidden();
+        ProvisioningJob? job = null;
+        if (await TryAsync(async () => job = await provisioning.EndTrialAsync(Tenant, EndTrialReason, EndTrialConfirmSlug, EndTrialBackup)))
+        {
+            FlashOk = job is null ? "Sinov yakunlandi (baza yaratilmagan edi) — tenant arxivlandi."
+                : $"Sinov yakunlanmoqda: kirish yopildi, baza o'chiriladi{(EndTrialBackup ? " (oldin .bak arxiv)" : "")}. Job #{job.Id}.";
+            return RedirectToPage(new { id });
+        }
+        await LoadAsync(id);
+        return Page();
+    }
 
     private async Task<IActionResult> RunAsync(int id, bool ownerOnly, Func<Tenant, Task<ProvisioningJob?>> action, string ok)
     {
@@ -350,6 +382,8 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
         [StringLength(200), EmailAddress(ErrorMessage = "Email noto'g'ri")] public string? Email { get; set; }
         [StringLength(50)] public string? TelegramChatId { get; set; }
         public int? ServerId { get; set; }
+        /// <summary>Namuna ma'lumotlar bilan (Database/Demo): mijoz bo'sh emas, to'ldirilgan tizimni ko'radi.</summary>
+        public bool SampleData { get; set; } = true;
     }
 
     [BindProperty] public TrialInput Input { get; set; } = new();
@@ -369,7 +403,7 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
         {
             Slug = Input.Slug, LegalName = Input.LegalName, Inn = Input.Inn, ContactName = Input.ContactName?.Trim(), Phone = Input.Phone?.Trim(),
             Email = Input.Email?.Trim(), TelegramChatId = Input.TelegramChatId?.Trim(), Deployment = DeploymentKind.SaaS, CompanyId = 1,
-            ServerId = Input.ServerId,
+            ServerId = Input.ServerId, SampleData = Input.SampleData,
         };
         if (!await TryAsync(async () =>
             {

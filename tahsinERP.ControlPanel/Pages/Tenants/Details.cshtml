@@ -98,6 +98,7 @@
         }
     </table>
 }
+<partial name="_TrialActivity" model="Model" />
 <h2>Obunalar</h2>
 @if (Model.CanSell) { <div class="actions"><a class="btn" href="/Subscriptions/Create?tenantId=@t.Id">+ Pullik obuna</a><a class="btn secondary" href="/Invoices/Create?tenantId=@t.Id">+ Hisob-faktura</a></div> }
 <table>

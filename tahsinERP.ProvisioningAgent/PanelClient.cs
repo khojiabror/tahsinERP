@@ -68,6 +68,18 @@ public sealed class PanelClient
         await ReadAsync<JsonElement>(r, ct);
     }
 
+    public async Task<UsageTargetsResponse> UsageTargetsAsync(CancellationToken ct)
+    {
+        using var r = await PostAsync("api/agent/usage/targets", new { }, ct);
+        return await ReadAsync<UsageTargetsResponse>(r, ct);
+    }
+
+    public async Task UsageAsync(UsageReport report, CancellationToken ct)
+    {
+        using var r = await PostAsync("api/agent/usage", report, ct);
+        await ReadAsync<JsonElement>(r, ct);
+    }
+
     public async Task<ScheduleResponse> ScheduleAsync(ScheduleRequest request, CancellationToken ct)
     {
         using var r = await PostAsync("api/agent/schedule", request, ct);

@@ -33,6 +33,8 @@ else
             <div><label asp-for="Input.ServerId">Server</label>
                 <select asp-for="Input.ServerId">@foreach (var s in Model.Servers) { <option value="@s.Value">@(s.Value == "" ? "— avtomatik (bo'sh joyi ko'p) —" : s.Text)</option> }</select></div>
         </div>
+        <label class="check"><input asp-for="Input.SampleData" /> Namuna ma'lumotlar bilan (mahsulotlar, kontragentlar, ~3 oylik xarid/ishlab chiqarish/sotuv, xodimlar)</label>
+        <div class="hint">Belgilanmasa — bo'sh baza (faqat spravochniklar). Namuna bazada demo foydalanuvchi o'chirib qo'yiladi, kirish faqat admin orqali.</div>
         <div class="hint">TRIAL: Korporativ modullari, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</div>
         <div class="actions"><button type="submit">Sinov ochish</button><a class="btn secondary" href="/Tenants">Bekor</a></div>
     </form>

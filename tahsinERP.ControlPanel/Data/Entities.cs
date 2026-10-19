@@ -124,6 +124,10 @@ public class Tenant
     public string? ArchiveLocation { get; set; }
     /// <summary>Delete job tugagan vaqt: baza, zaxira va reestr yozuvi o'chirilgan. Moliyaviy tarix uchun qator qoladi.</summary>
     public DateTime? DeletedAtUtc { get; set; }
+    /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (Database/Demo skriptlari).</summary>
+    public bool SampleData { get; set; }
+    /// <summary>Sinov muddatidan oldin yakunlangan vaqt (EndTrial job tugagan).</summary>
+    public DateTime? TrialEndedAtUtc { get; set; }
 
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
@@ -307,7 +311,7 @@ public class ApiNonce
     public DateTime ExpiresUtc { get; set; }
 }
 
-public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6 }
+public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7 }
 
 public enum ProvisioningJobStatus { Pending = 1, Running = 2, Succeeded = 3, Failed = 4, Cancelled = 5 }
 
@@ -353,6 +357,50 @@ public class ProvisioningJob
     public byte[] RowVersion { get; set; } = [];
 
     public bool IsActive => Status is ProvisioningJobStatus.Pending or ProvisioningJobStatus.Running;
+}
+
+/// <summary>
+/// Tenant faolligini yig'ish holati (agent → /api/agent/usage). Tenants qatoridan alohida — agent yozuvlari xodim tahririda
+/// RowVersion to'qnashuvi bermasin.
+/// </summary>
+public class UsageState
+{
+    public int TenantId { get; set; }
+    public long EntryCursor { get; set; }
+    public long LogCursor { get; set; }
+    public DateTime? SyncedAtUtc { get; set; }
+    public DateTime? LastLoginUtc { get; set; }
+    public DateTime? LastActionUtc { get; set; }
+    public string? Error { get; set; }
+    /// <summary>Agent limitga yetdi — keyingi so'rovda darhol davom etadi.</summary>
+    public bool More { get; set; }
+}
+
+/// <summary>Tenant ERP foydalanuvchisi (faqat login va holat; F.I.Sh./email/parol panelga kelmaydi).</summary>
+public class UsageUser
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public int UserId { get; set; }
+    public string Login { get; set; } = "";
+    public bool IsActive { get; set; }
+    public DateTime? LastLoginUtc { get; set; }
+    public DateTime? LastActionUtc { get; set; }
+}
+
+public enum UsageEventKind { Login = 1, Action = 2 }
+
+/// <summary>Kirish yoki amal (USER_ENTRIES / USERLOGS nusxasi, 90 kun saqlanadi; IP/MAC yo'q).</summary>
+public class UsageEvent
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public UsageEventKind Kind { get; set; }
+    public long SourceId { get; set; }
+    public int UserId { get; set; }
+    public DateTime AtUtc { get; set; }
+    public string? Module { get; set; }
+    public string? Action { get; set; }
 }
 
 /// <summary>Hisob-faktura raqamlari hisoblagichi (yil bo'yicha).</summary>

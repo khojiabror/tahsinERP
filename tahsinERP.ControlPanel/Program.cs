@@ -27,6 +27,7 @@ services.Configure<SecurityOptions>(config.GetSection("ControlPanel:Security"));
 services.Configure<SigningOptions>(config.GetSection("ControlPanel:Signing"));
 services.Configure<TelegramOptions>(config.GetSection("ControlPanel:Telegram"));
 services.Configure<ProvisioningOptions>(config.GetSection("ControlPanel:Provisioning"));
+services.Configure<UsageOptions>(config.GetSection("ControlPanel:Usage"));
 PanelFontResolver.ExtraFontsDir = config["ControlPanel:Pdf:FontsDir"];
 
 services.AddDbContext<ControlDbContext>(o => o.UseSqlServer(
@@ -53,6 +54,7 @@ services.AddScoped<LicenseIssuer>();
 services.AddScoped<DashboardService>();
 services.AddScoped<ExpiryReminderService>();
 services.AddScoped<ProvisioningService>();
+services.AddScoped<UsageService>();
 services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))

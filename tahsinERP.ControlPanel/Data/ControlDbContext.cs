@@ -18,6 +18,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<InvoiceSequence> InvoiceSequences => Set<InvoiceSequence>();
     public DbSet<ApiNonce> ApiNonces => Set<ApiNonce>();
     public DbSet<ProvisioningJob> ProvisioningJobs => Set<ProvisioningJob>();
+    public DbSet<UsageState> UsageStates => Set<UsageState>();
+    public DbSet<UsageUser> UsageUsers => Set<UsageUser>();
+    public DbSet<UsageEvent> UsageEvents => Set<UsageEvent>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -177,6 +180,32 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.RowVersion).IsRowVersion();
             e.Ignore(x => x.IsActive);
             e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<UsageState>(e =>
+        {
+            e.HasKey(x => x.TenantId);
+            e.Property(x => x.TenantId).ValueGeneratedNever();
+            e.Property(x => x.Error).HasMaxLength(1000);
+            e.HasOne<Tenant>().WithOne().HasForeignKey<UsageState>(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<UsageUser>(e =>
+        {
+            e.HasIndex(x => new { x.TenantId, x.UserId }).IsUnique();
+            e.Property(x => x.Login).HasMaxLength(50);
+            e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<UsageEvent>(e =>
+        {
+            // Demo reset'dan keyin ID'lar qaytadan boshlanadi — vaqt bilan birga noyob.
+            e.HasIndex(x => new { x.TenantId, x.Kind, x.SourceId, x.AtUtc }).IsUnique();
+            e.HasIndex(x => new { x.TenantId, x.AtUtc });
+            e.HasIndex(x => x.AtUtc);
+            e.Property(x => x.Module).HasMaxLength(50);
+            e.Property(x => x.Action).HasMaxLength(300);
+            e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<InvoiceSequence>(e =>

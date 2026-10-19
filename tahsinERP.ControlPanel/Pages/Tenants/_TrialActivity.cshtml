@@ -1,0 +1,28 @@
+@model tahsinERP.ControlPanel.Pages.Tenants.DetailsModel
+@{ var t = Model.Tenant; }
+@if (t.Deployment == DeploymentKind.SaaS && (t.ProvisionedAtUtc != null || Model.Usage != null))
+{
+    <h2>Faollik</h2>
+    <div class="card">
+        <dl class="props">
+            <dt>Oxirgi kirish</dt><dd>@(Model.Usage?.LastLoginUtc is DateTime ll ? ll.ToString("dd.MM.yyyy HH:mm") + " UTC" : "ma'lumot yo'q")</dd>
+            <dt>Oxirgi amal</dt><dd>@(Model.Usage?.LastActionUtc?.ToString("dd.MM.yyyy HH:mm"))</dd>
+            <dt>7 kun</dt><dd>@Model.Logins7d kirish, @Model.Actions7d amal</dd>
+            <dt>Yig'ilgan</dt><dd>@(Model.Usage?.SyncedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "hali yo'q") @if (Model.Usage?.Error != null) { <span class="badge bad">@Model.Usage.Error</span> }</dd>
+        </dl>
+        <a class="btn secondary" href="/Tenants/Activity/@t.Id">Faollik va loglar →</a>
+    </div>
+}
+@if (Model.IsTrialOnly && Model.CanSell && t.Status != TenantStatus.Archived && Model.ActiveJob == null)
+{
+    <h2>Sinovni yakunlash</h2>
+    <form method="post" asp-page-handler="EndTrial" class="stack card">
+        <div class="hint">Mijoz sinovdan foydalanmayotgan bo'lsa — 14 kunni kutmasdan: TRIAL obunasi bekor qilinadi, kirish darhol yopiladi, baza o'chiriladi va ERP reestridan chiqariladi. Pullik tenantlar uchun — «Arxivlash» → «O'chirish».</div>
+        <div class="row">
+            <div><label asp-for="EndTrialReason">Sabab</label><input asp-for="EndTrialReason" type="text" placeholder="masalan: 5 kun kirmadi, mijoz javob bermadi" /></div>
+            <div><label asp-for="EndTrialConfirmSlug">Tasdiqlash uchun slug: <code>@t.Slug</code></label><input asp-for="EndTrialConfirmSlug" type="text" autocomplete="off" /></div>
+        </div>
+        <label class="check"><input asp-for="EndTrialBackup" /> O'chirishdan oldin arxiv (.bak) olinsin</label>
+        <div class="actions"><button type="submit" class="danger">Sinovni yakunlash va bazani o'chirish</button></div>
+    </form>
+}

@@ -149,7 +149,9 @@ public sealed class DailyJobHostedService(IServiceScopeFactory scopes, TimeProvi
             int changed = await sp.GetRequiredService<SubscriptionService>().RunLifecycleAsync(ct);
             int sent = await sp.GetRequiredService<ExpiryReminderService>().RunAsync(ct);
             int purged = await PurgeExpiredNoncesAsync(sp.GetRequiredService<ControlDbContext>(), sp.GetRequiredService<Clock>(), ct);
-            log.LogInformation("Kunlik ish: {Changed} tenant holati o'zgardi, {Sent} eslatma, {Purged} eski nonce o'chirildi", changed, sent, purged);
+            int usagePurged = await sp.GetRequiredService<UsageService>().PurgeAsync(ct);
+            log.LogInformation("Kunlik ish: {Changed} tenant holati o'zgardi, {Sent} eslatma, {Purged} eski nonce, {Usage} eski faollik yozuvi o'chirildi",
+                changed, sent, purged, usagePurged);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

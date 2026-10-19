@@ -17,6 +17,7 @@ builder.Services.AddSingleton<ScriptRunner>();
 builder.Services.AddSingleton<IBackupStore, LocalBackupStore>();
 builder.Services.AddSingleton<DemoScheduler>();
 builder.Services.AddScoped<JobExecutor>();
+builder.Services.AddSingleton<UsageCollector>();
 builder.Services.AddHttpClient<PanelClient>();
 builder.Services.AddSingleton<AgentWorker>();
 

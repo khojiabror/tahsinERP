@@ -894,6 +894,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<bool>("SampleData")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ServerId")
                         .HasColumnType("int");
 
@@ -908,6 +911,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<string>("TelegramChatId")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("TrialEndedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -929,6 +935,117 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Tenants");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("AtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Module")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("SourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AtUtc");
+
+                    b.HasIndex("TenantId", "AtUtc");
+
+                    b.HasIndex("TenantId", "Kind", "SourceId", "AtUtc")
+                        .IsUnique();
+
+                    b.ToTable("UsageEvents");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageState", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("EntryCursor")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("LastActionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("LogCursor")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("More")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("SyncedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TenantId");
+
+                    b.ToTable("UsageStates");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastActionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("UsageUsers");
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>
@@ -1018,6 +1135,33 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Server");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageEvent", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageState", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithOne()
+                        .HasForeignKey("tahsinERP.ControlPanel.Data.UsageState", "TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageUser", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>

@@ -12,6 +12,9 @@ namespace tahsinERP.ProvisioningAgent;
 /// </summary>
 public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner scripts, IBackupStore backups, ILogger<JobExecutor> logger)
 {
+    /// <summary>Database/Demo/200_Demo_Master.sql yaratadigan foydalanuvchi (demo / demo2026).</summary>
+    public const string SampleUserLogin = "demo";
+
     // 03_DB_PROVISIONING.md, 3-bo'lim
     private static readonly int[] RetryExitCodes = [3, 6, 8];
 
@@ -51,6 +54,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
                 case JobKind.Resume: await SetEnabledAsync(lease.Type == JobKind.Resume, p, c, log, ct); break;
                 case JobKind.Archive: await ArchiveAsync(p, c, log, ct); break;
                 case JobKind.Delete: await DeleteAsync(p, c, log, ct); break;
+                case JobKind.EndTrial: await EndTrialAsync(p, c, log, ct); break;
                 default: throw new InvalidJobException($"Noma'lum job turi: {lease.Type}");
             }
             c.Outcome = JobOutcome.Succeeded;
@@ -101,7 +105,8 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             if (!string.IsNullOrWhiteSpace(p.CompanyName)) { args.Add("-CompanyName"); args.Add(p.CompanyName!); }
             if (!string.IsNullOrWhiteSpace(p.AdminEmail)) { args.Add("-AdminEmail"); args.Add(p.AdminEmail!); }
             if (!string.IsNullOrWhiteSpace(options.Sql.User)) { args.Add("-SqlUser"); args.Add(options.Sql.User!); }
-            log.Info("New-TenantDb.ps1 ishga tushirildi");
+            if (p.SampleData) args.Add("-Demo");
+            log.Info("New-TenantDb.ps1 ishga tushirildi" + (p.SampleData ? " (namuna ma'lumotlar bilan: Database/Demo)" : ""));
             var r = await scripts.RunAsync("New-TenantDb.ps1", args, new Dictionary<string, string?> { ["TAHSINERP_ADMIN_PASSWORD"] = password }, ct);
             log.Raw(r.Log);
             c.ExitCode = r.ExitCode;
@@ -116,6 +121,8 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             else if (r.ExitCode != 0) throw new InvalidJobException($"New-TenantDb kod {r.ExitCode}: {err}");
         }
 
+        if (p.SampleData)
+            log.Info($"namuna foydalanuvchisi '{SampleUserLogin}' o'chirib qo'yildi ({await sql.DisableSampleUserAsync(p.DbName, SampleUserLogin, p.AdminLogin, ct)})");
         log.Info(await sql.WriteRegTokenAsync(p.DbName, regToken, ct));
         bool changed = Tenants().Upsert(p.Slug, p.DbName, p.CompanyId, p.Enabled);
         log.Info($"tenants.json: {p.Slug} → {p.DbName}, enabled={p.Enabled.ToString().ToLowerInvariant()}" + (changed ? "" : " (o'zgarishsiz)"));
@@ -220,6 +227,35 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
                 ?? throw new InvalidJobException($"'{p.DbName}' bazasi ham, arxivi ham topilmadi — operator tekshirsin.");
             log.Info($"baza allaqachon yo'q, arxiv bor (oldingi urinish): {c.ArchiveLocation}");
         }
+    }
+
+    // ---------------- EndTrial ----------------
+    /// <summary>Sinovni erta yakunlash: tenants.json dan chiqarish → (ixtiyoriy .bak arxiv) → bazani o'chirish. Idempotent.</summary>
+    private async Task EndTrialAsync(JobPayload p, JobCompletion c, JobLog log, CancellationToken ct)
+    {
+        bool removed = Tenants().Remove(p.Slug);
+        log.Info("tenants.json: " + (removed ? "yozuv olib tashlandi (kirish yopildi)" : "yozuv yo'q edi"));
+        c.RegistryEnabled = null;
+        if (await sql.DatabaseExistsAsync(p.DbName, ct))
+        {
+            if (p.Backup)
+            {
+                Directory.CreateDirectory(options.Paths.BackupDir);
+                string bak = Path.Combine(options.Paths.BackupDir, $"{p.DbName}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.bak");
+                log.Info($"BACKUP {p.DbName} → {bak} (COPY_ONLY, CHECKSUM) + VERIFYONLY");
+                await sql.BackupAsync(p.DbName, bak, ct);
+                c.ArchiveLocation = await backups.StoreAsync(bak, p.Slug, ct);
+                log.Info($"arxiv: {c.ArchiveLocation}");
+            }
+            await sql.DropAsync(p.DbName, ct);
+            log.Info($"baza o'chirildi: {p.DbName}");
+        }
+        else if (p.Backup)
+        {
+            c.ArchiveLocation = await backups.FindLatestAsync(p.Slug, ct);
+            log.Info("baza allaqachon yo'q" + (c.ArchiveLocation != null ? $", arxiv bor (oldingi urinish): {c.ArchiveLocation}" : " va arxiv topilmadi"));
+        }
+        else log.Info("baza allaqachon yo'q");
     }
 
     // ---------------- Delete ----------------
