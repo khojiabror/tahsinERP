@@ -27,8 +27,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             { OrderStatus.New, new[] { OrderStatus.Confirmed, OrderStatus.Cancelled } },
             { OrderStatus.Confirmed, new[] { OrderStatus.New, OrderStatus.Picking, OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Cancelled } },
             { OrderStatus.Picking, new[] { OrderStatus.Confirmed, OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Cancelled } },
-            { OrderStatus.PartiallyShipped, new[] { OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Delivered } },
-            { OrderStatus.Shipped, new[] { OrderStatus.Delivered, OrderStatus.Closed } },
+            // jo'natish bekor qilinsa: qisman/to'liq -> qisman yoki tasdiqlangan
+            { OrderStatus.PartiallyShipped, new[] { OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Confirmed, OrderStatus.Closed } },
+            { OrderStatus.Shipped, new[] { OrderStatus.Delivered, OrderStatus.Closed, OrderStatus.PartiallyShipped, OrderStatus.Confirmed } },
             { OrderStatus.Delivered, new[] { OrderStatus.Closed } },
             { OrderStatus.Closed, new OrderStatus[0] },
             { OrderStatus.Cancelled, new OrderStatus[0] },

@@ -48,6 +48,12 @@
                             {
                                 <button type="button" class="btn btn-success btn-sm" data-act="Deliver"><i class="bx bx-check-double"></i> @DstLocalization.T("Order_Delivered")</button>
                             }
+                            @if (o.ShippedTotal > 0 && st != OrderStatus.Cancelled)
+                            {
+                                <button type="button" class="btn btn-outline-success btn-sm"
+                                        onclick="dstPaymentModal({ customerId: @o.CustomerID, orderId: @o.ID, customerName: '@Html.Raw(HttpUtility.JavaScriptStringEncode(Model.Customer.Name))', amount: @Math.Max(0, Model.Credit.Balance).ToString(System.Globalization.CultureInfo.InvariantCulture) })"><i class="bx bx-money"></i> @DstLocalization.T("Payment_Receive")</button>
+                                <a class="btn btn-outline-warning btn-sm" href="@Url.Action("Create", "DstReturns", new { orderId = o.ID })"><i class="bx bx-undo"></i> @DstLocalization.T("Return_New")</a>
+                            }
                             @if (OrderStateMachine.CanMove(st, OrderStatus.Cancelled))
                             {
                                 <button type="button" class="btn btn-outline-danger btn-sm" data-reason="Cancel">@DstLocalization.T("Order_Cancel")</button>
@@ -123,7 +129,13 @@
                                                 <td>@s.DocNo</td><td>@s.Date.ToString("dd.MM.yyyy HH:mm")</td><td>@s.User</td>
                                                 <td class="text-right">@s.Total.ToString("N0")</td>
                                                 @if (Model.ShowCost) { <td class="text-right">@(s.Cost?.ToString("N0"))</td> }
-                                                <td class="text-right"><a class="btn btn-sm btn-outline-secondary" target="_blank" href="@Url.Action("Print", new { id = o.ID, kind = "invoice", shipmentId = s.ID })"><i class="bx bx-printer"></i> @DstLocalization.T("Print_Invoice")</a></td>
+                                                <td class="text-right text-nowrap">
+                                                    <a class="btn btn-sm btn-outline-secondary" target="_blank" href="@Url.Action("Print", new { id = o.ID, kind = "invoice", shipmentId = s.ID })"><i class="bx bx-printer"></i> @DstLocalization.T("Print_Invoice")</a>
+                                                    @if (canChange && (st == OrderStatus.Shipped || st == OrderStatus.PartiallyShipped))
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" data-cancel-shipment="@s.ID" title="@DstLocalization.T("Shipment_Cancel")"><i class="bx bx-x"></i></button>
+                                                    }
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -230,6 +242,8 @@
     </div>
 </div>
 
+@Html.Partial("_PaymentModal")
+
 @section Scripts {
     @Html.Partial("_DstScripts")
     <script>
@@ -258,6 +272,11 @@
                         }
                     }
                 });
+            });
+            $('[data-cancel-shipment]').on('click', function () {
+                var reason = prompt('@DstLocalization.T("Shipment_CancelReason")');
+                if (!reason) return;
+                dstPost(base + 'CancelShipment', { id: id, shipmentId: $(this).data('cancelShipment'), reason: reason }).done(reload);
             });
             $('[data-reason]').on('click', function () {
                 pendingAction = $(this).data('reason');

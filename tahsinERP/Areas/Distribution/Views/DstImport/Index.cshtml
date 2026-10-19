@@ -8,7 +8,8 @@
     {
         new { Kind = DstImportController.Customers, Title = DstLocalization.T("Customers"), Hint = DstLocalization.T("Import_CustomersHint") },
         new { Kind = DstImportController.Products, Title = DstLocalization.T("Products"), Hint = DstLocalization.T("Import_ProductsHint") },
-        new { Kind = DstImportController.Prices, Title = DstLocalization.T("Prices"), Hint = DstLocalization.T("Import_PricesHint") }
+        new { Kind = DstImportController.Prices, Title = DstLocalization.T("Prices"), Hint = DstLocalization.T("Import_PricesHint") },
+        new { Kind = DstImportController.Opening, Title = DstLocalization.T("Import_Opening"), Hint = DstLocalization.T("Import_OpeningHint") }
     };
     var current = tabs.First(t => t.Kind == kind);
 }

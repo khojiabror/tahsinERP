@@ -127,7 +127,10 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public const string Return = "RETURN";
         public const string Adjustment = "ADJUSTMENT";
         public const string Opening = "OPENING";
-        public const string Reversal = "REVERSAL";
+
+        /// <summary>Teskari yozuv turi: asl tur + "_REV", DocID — o'sha hujjat (masalan SHIPMENT_REV).</summary>
+        public const string ReversalSuffix = "_REV";
+        public static string ReversalOf(string docType) => docType + ReversalSuffix;
     }
 
     /// <summary>dst.CUSTOMER_LEDGER — mijoz qarzining yagona manbai (yozuvlar o'zgartirilmaydi, teskari yozuv bilan tuzatiladi).</summary>

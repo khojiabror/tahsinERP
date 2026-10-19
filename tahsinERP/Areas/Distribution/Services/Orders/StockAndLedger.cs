@@ -92,17 +92,15 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         public static CreditState CreditState(DistributionDbContext db, int customerId, DateTime today)
         {
             var profile = db.CustomerProfiles.AsNoTracking().FirstOrDefault(p => p.CustomerID == customerId);
-            var rows = db.CustomerLedger.Where(l => l.CustomerID == customerId);
-            decimal debit = rows.Sum(l => (decimal?)l.Debit) ?? 0;
-            decimal credit = rows.Sum(l => (decimal?)l.Credit) ?? 0;
-            var day = today.Date;
-            decimal overdueDebit = rows.Where(l => l.DueDate != null && l.DueDate < day).Sum(l => (decimal?)l.Debit) ?? 0;
+            var rows = db.CustomerLedger.AsNoTracking().Where(l => l.CustomerID == customerId).ToList();
+            var net = Money.DebtService.Net(rows);
+            var aging = Money.DebtMath.Aging(net.Debits, net.Credits, today);
             return new CreditState
             {
                 HasProfile = profile != null,
                 CreditLimit = profile?.CreditLimit ?? 0,
-                Balance = debit - credit,
-                Overdue = OrderRules.Overdue(overdueDebit, credit)
+                Balance = rows.Sum(l => l.Debit - l.Credit),
+                Overdue = aging.Overdue
             };
         }
 
@@ -123,7 +121,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
     /// <summary>Distributsiya hujjatlari raqami: PREFIKS-YYYY-00001 (tranzaksiya ichida, sp_getapplock bilan).</summary>
     public static class DstNumbering
     {
-        private static readonly string[] Tables = { "D_ORDERS", "D_SHIPMENTS", "D_RETURNS", "D_PAYMENTS" };
+        private static readonly string[] Tables = { "D_ORDERS", "D_SHIPMENTS", "D_RETURNS", "D_PAYMENTS", "CASH_HANDOVERS" };
 
         public static string Next(DistributionDbContext db, string table, string prefix, DateTime date, int pad = 5)
         {

@@ -158,6 +158,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
             {
                 var order = Scoped(db).FirstOrDefault(o => o.ID == id);
                 if (order == null) return HttpNotFound();
+                DstPaymentsController.FillPaymentLookups(ViewBag, db);
                 return View(OrderDetailsModel.Load(db, order, CanSeeCost, IsRussian));
             }
         }
@@ -239,6 +240,15 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
         [HttpPost, ValidateAntiForgeryHeader]
         public JsonResult Delete(int id) => Act(id, (uow, a) => OrderService.DeleteDraft(uow, id));
+
+        [HttpPost, ValidateAntiForgeryHeader]
+        public JsonResult CancelShipment(int id, int shipmentId, string reason) =>
+            Act(id, (uow, a) =>
+            {
+                if (!uow.Dst.Shipments.Any(s => s.ID == shipmentId && s.OrderID == id))
+                    throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+                OrderService.CancelShipment(uow, shipmentId, a.UserId, reason, DateTime.Now);
+            });
 
         // ---------- chop etish ----------
 

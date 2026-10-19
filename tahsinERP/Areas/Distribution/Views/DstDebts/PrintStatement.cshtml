@@ -1,0 +1,48 @@
+@model tahsinERP.Areas.Distribution.Services.Money.DebtService.Statement
+@{
+    Layout = null;
+    var customer = (tahsinERP.Areas.Distribution.Data.Entities.CustomerRef)ViewBag.Customer;
+    var profile = (tahsinERP.Areas.Distribution.Data.Entities.CustomerProfile)ViewBag.Profile;
+    DateTime from = ViewBag.From, to = ViewBag.To;
+    string company = ViewBag.Company;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@DstLocalization.T("Statement") — @customer.Name</title>
+    @Html.Partial("~/Areas/Distribution/Views/DstOrders/_PrintStyles.cshtml")
+</head>
+<body>
+    <div class="sheet">
+        <div class="noprint"><button onclick="window.print()">@DstLocalization.T("Print")</button></div>
+        <h1>@DstLocalization.T("Statement")</h1>
+        <div class="muted">@from.ToString("dd.MM.yyyy") — @to.ToString("dd.MM.yyyy")</div>
+        <div class="meta">
+            <div><b>@company</b></div>
+            <div><b>@customer.Name</b>@if (!string.IsNullOrEmpty(profile?.INN)) { <span><br />@DstLocalization.T("INN"): @profile.INN</span> }<br />@customer.Address</div>
+        </div>
+        <table>
+            <thead><tr><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Type")</th><th>@DstLocalization.T("Order_No")</th><th class="r">@DstLocalization.T("Statement_Debit")</th><th class="r">@DstLocalization.T("Statement_Credit")</th><th class="r">@DstLocalization.T("Statement_Balance")</th></tr></thead>
+            <tbody>
+                <tr><td colspan="5"><b>@DstLocalization.T("Statement_Opening")</b></td><td class="r"><b>@Model.Opening.ToString("N2")</b></td></tr>
+                @foreach (var r in Model.Rows)
+                {
+                    <tr>
+                        <td>@r.Date.ToString("dd.MM.yyyy")</td><td>@DstLocalization.T("Ledger_" + r.DocType)</td><td>@r.Doc</td>
+                        <td class="r">@(r.Debit != 0 ? r.Debit.ToString("N2") : "")</td>
+                        <td class="r">@(r.Credit != 0 ? r.Credit.ToString("N2") : "")</td>
+                        <td class="r">@r.Balance.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr><th colspan="3">@DstLocalization.T("Total")</th><th class="r">@Model.TotalDebit.ToString("N2")</th><th class="r">@Model.TotalCredit.ToString("N2")</th><th></th></tr>
+                <tr><th colspan="5">@DstLocalization.T("Statement_Closing")</th><th class="r">@Model.Closing.ToString("N2")</th></tr>
+            </tfoot>
+        </table>
+        <p>@(Model.Closing >= 0 ? DstLocalization.T("Statement_CustomerOwes") : DstLocalization.T("Statement_WeOwe")): <b>@Math.Abs(Model.Closing).ToString("N2") @DstLocalization.T("Currency_Sum")</b></p>
+        <div class="sign"><div>@company</div><div>@customer.Name</div></div>
+    </div>
+</body>
+</html>
