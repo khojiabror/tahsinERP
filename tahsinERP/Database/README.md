@@ -9,6 +9,7 @@ Database/
   Schema/000_Baseline.sql      toza sxema (generatsiya qilingan, QO'LDA TAHRIR QILINMAYDI)
   Migrations/NNN_nomi.sql      har sxema o'zgarishi — yangi fayl
   Seed/100_Reference.sql       majburiy spravochniklar (generatsiya: Export-ReferenceSeed.ps1)
+  Seed/105_PermissionModules_Extra.sql  eksportdan keyin qo'shilgan ruxsat modullari (mavjud bazalarga — NNN migratsiya)
   Seed/110_Defaults.sql        yangi korxona standart qatorlari (qo'lda)
   Demo/*.sql                   demo tenant ma'lumoti (New-TenantDb.ps1 -Demo -> DB_DEMO_TEMPLATE.bak; 05_PROVISIONING.md 6)
   tools/Invoke-DbMigrations.ps1  runner: bitta baza yoki tenants.json dagi barchasi
