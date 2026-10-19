@@ -8,15 +8,18 @@
 
     var escapeHtml = window.srmDocLines.escapeHtml;
 
-    function incomeProductOptions(products, selectedId) {
+    /**
+     * Mahsulot <select>'i uchun variantlar: bo'sh + (bo'lsa) faqat tanlangan mahsulot. Ro'yxat select2 orqali
+     * serverdan qidiriladi (/ProductLookup/Search, SRM-P05) — butun katalog sahifaga JSON qilib yozilmaydi.
+     */
+    function incomeProductOptions(selectedId, pno, name) {
         var options = '<option value="">---Tanlang---</option>';
-        products.forEach(function (product) {
-            var selected = product.Value == selectedId ? 'selected' : '';
-            options += '<option value="' + escapeHtml(product.Value) + '" data-name="' + escapeHtml(product.Name) +
-                '" data-pno="' + escapeHtml(product.PNo) + '" ' + selected + '>' +
-                escapeHtml((product.PNo ? product.PNo + ' - ' : '') + (product.Name || '')) +
+        if (selectedId) {
+            options += '<option value="' + escapeHtml(selectedId) + '" data-name="' + escapeHtml(name || '') +
+                '" data-pno="' + escapeHtml(pno || '') + '" selected>' +
+                escapeHtml((pno ? pno + ' - ' : '') + (name || '')) +
                 '</option>';
-        });
+        }
         return options;
     }
 
@@ -33,8 +36,16 @@
 
     function syncIncomeProduct($row) {
         var $selected = $row.find('.product-select option:selected');
-        var name = $selected.data('name');
-        var pno = $selected.data('pno');
+        var name = $selected.attr('data-name');
+        var pno = $selected.attr('data-pno');
+
+        // Serverdan qidirib tanlangan mahsulot: variant matni "PNo - Nomi"
+        if (name === undefined && $selected.val()) {
+            var text = $selected.text() || '';
+            var sep = text.indexOf(' - ');
+            pno = sep >= 0 ? text.substring(0, sep) : text;
+            name = sep >= 0 ? text.substring(sep + 3) : '';
+        }
 
         if (!name) {
             name = $row.find('.product-name').val() || $row.find('.product-name-display').val() || '';

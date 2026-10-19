@@ -15,7 +15,6 @@
         }
     }
 
-    var productsData = ViewBag.ProductsData as IEnumerable<tahsinERP.ViewModels.ProductLookupItem> ?? new List<tahsinERP.ViewModels.ProductLookupItem>();
     var requireDloc = ViewBag.RequireDloc == true;
     var dlocEnabled = ViewBag.DlocEnabled == true;
     var dlocLocationsJson = ViewBag.DlocLocationsJson as string ?? "[]";
@@ -186,13 +185,15 @@
     @section scripts {
         <script src="~/Scripts/srm/srm-doc-lines.js"></script>
         <script src="~/Scripts/srm/srm-doc-forms.js"></script>
+        <script src="~/Scripts/app/indexed-rows.js"></script>
+        <script src="~/Scripts/app/product-select.js"></script>
         <script>
             (function ($) {
                 $(document).ready(function () {
                     $('.select2').select2();
 
                     var productRowIndex = 0;
-                    var products = @Html.Raw(Json.Encode(productsData));
+                    var productSearchUrl = '@Url.Action("Search", "ProductLookup")';
                     var units = @Html.Raw(Json.Encode(unitsData));
                     var requireDloc = @(requireDloc ? "true" : "false");
                     var dlocEnabled = @(dlocEnabled ? "true" : "false");
@@ -248,7 +249,7 @@
 
                     function escapeHtml(text) { return srmDocLines.escapeHtml(text); }
 
-                    function buildProductOptions(selectedId) { return srmIncomeForm.productOptions(products, selectedId); }
+                    function buildProductOptions(selectedId, pno, name) { return srmIncomeForm.productOptions(selectedId, pno, name); }
 
                     function buildUnitOptions(selectedId) { return srmDocLines.unitOptions(units, selectedId); }
 
@@ -320,7 +321,7 @@
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +
                                 '<select name="IncomeProducts[' + productRowIndex + '].ProductID" class="form-control product-select select2" required>' +
-                                    buildProductOptions(productId) +
+                                    buildProductOptions(productId, productPNo, productName) +
                                 '</select>' +
                                 '<input type="hidden" name="IncomeProducts[' + productRowIndex + '].ProductPNo" class="product-pno" value="' + escapeHtml(productPNo || '') + '" />' +
                             '</td>' +
@@ -346,7 +347,7 @@
                         var $row = $('#incomeProductsTable tbody tr').last();
 
                         if (typeof $.fn.select2 !== 'undefined') {
-                            $row.find('select.product-select').select2();
+                            ProductSelect.attach($row.find('select.product-select'), productSearchUrl);
                             $row.find('select.unit-select').select2();
                             if (dlocEnabled && requireDloc) {
                                 $row.find('select.dloc-select').select2();
