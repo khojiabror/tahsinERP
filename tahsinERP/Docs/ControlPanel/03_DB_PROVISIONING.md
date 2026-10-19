@@ -32,7 +32,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File Database\tools\New-TenantDb.
 | `-AdminLogin` | 3–30 belgi `A-Za-z0-9_.-`, standart `admin`. Admin roli bilan yaratiladi, `MustChangePassword=1`. |
 | `-AdminPassword` | berilmasa 12 belgili tasodifiy parol. Har holda birinchi kirishda almashtirish majburiy. |
 | `-NoAdmin` | admin yaratilmaydi (shablon baza uchun). |
-| `-Demo` | `Database/Demo/*.sql` ham qo'llanadi (demo tenant). Demo skriptlari hali yo'q bo'lsa — kod 2. |
+| `-Demo` | `Database/Demo/*.sql` ham qo'llanadi (demo tenant, "Demo Plast" MChJ; kirish `demo` / `demo2026`). Sanalar skript ishlagan kunga nisbatan — `DB_DEMO_TEMPLATE.bak` ni muntazam (masalan haftada) qayta yarating, aks holda dashboard oynalari (so'nggi 30 kun, joriy oy) bo'shab qoladi. Demo skriptlari topilmasa — kod 2. |
 | `-BackupTo` | seed (+demo) dan keyin, **admin yaratilishidan oldin** `COPY_ONLY` backup — `DB_TEMPLATE.bak` / `DB_DEMO_TEMPLATE.bak`. Yo'l SQL Server xizmati yoza oladigan joy bo'lishi kerak. |
 | `-KeepOnFailure` | xato bo'lsa yarim yaratilgan bazani o'chirmaslik (tahlil uchun). Standart: o'chiriladi. |
 
