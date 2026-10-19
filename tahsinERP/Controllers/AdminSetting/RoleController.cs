@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -38,7 +39,7 @@ namespace tahsinERP.Controllers
                 if (!RoleHelper.IsDeveloper(User.Identity.Name))
                 {
                     roles = roles
-                        .Where(r => !string.Equals(r.RName, "Developer", StringComparison.OrdinalIgnoreCase))
+                        .Where(r => !SystemCodes.Role.IsDeveloper(r))
                         .ToList();
                 }
 
@@ -165,7 +166,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Developer rolini faqat Developer rol egasi o'zgartira oladi
-                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                if (SystemCodes.Role.IsDeveloper(role)
                     && !RoleHelper.IsDeveloper(User.Identity.Name))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
@@ -202,9 +203,7 @@ namespace tahsinERP.Controllers
                     }
 
                     // Developer rolini faqat Developer rol egasi o'zgartira oladi
-                    if ((string.Equals(roleToUpdate.RName, "Developer", StringComparison.OrdinalIgnoreCase)
-                            || string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase))
-                        && !RoleHelper.IsDeveloper(User.Identity.Name))
+                    if (SystemCodes.Role.IsDeveloper(roleToUpdate) && !RoleHelper.IsDeveloper(User.Identity.Name))
                     {
                         return RedirectToAction("Index", "ViewNotAuthorized");
                     }
@@ -266,10 +265,16 @@ namespace tahsinERP.Controllers
                 }
 
                 // Developer rolini faqat Developer rol egasi ko'ra/o'chira oladi
-                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                if (SystemCodes.Role.IsDeveloper(role)
                     && !RoleHelper.IsDeveloper(User.Identity.Name))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
+                }
+
+                if (SystemCodes.IsSystem(role.SystemCode))
+                {
+                    TempData["Error"] = SystemCodes.DeleteForbiddenMessage;
+                    return RedirectToAction("Index");
                 }
 
                 // Bu rolga ega foydalanuvchilar borligini tekshirish
@@ -304,10 +309,16 @@ namespace tahsinERP.Controllers
                     }
 
                     // Developer rolini faqat Developer rol egasi o'chira oladi
-                    if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    if (SystemCodes.Role.IsDeveloper(role)
                         && !RoleHelper.IsDeveloper(User.Identity.Name))
                     {
                         return RedirectToAction("Index", "ViewNotAuthorized");
+                    }
+
+                    if (SystemCodes.IsSystem(role.SystemCode))
+                    {
+                        TempData["Error"] = SystemCodes.DeleteForbiddenMessage;
+                        return RedirectToAction("Index");
                     }
 
                     // Soft o'chirish + foydalanuvchi–rol bog‘lanishlarini uzish
@@ -356,7 +367,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Developer rolining tafsilotlari faqat Developer'ga
-                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                if (SystemCodes.Role.IsDeveloper(role)
                     && !RoleHelper.IsDeveloper(User.Identity.Name))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
@@ -391,7 +402,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Developer rolining permissionlari faqat Developer'ga
-                if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                if (SystemCodes.Role.IsDeveloper(role)
                     && !RoleHelper.IsDeveloper(User.Identity.Name))
                 {
                     return RedirectToAction("Index", "ViewNotAuthorized");
@@ -464,7 +475,7 @@ namespace tahsinERP.Controllers
                     }
 
                     // Developer rolining permissionlarini faqat Developer o'zgartira oladi
-                    if (string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase)
+                    if (SystemCodes.Role.IsDeveloper(role)
                         && !RoleHelper.IsDeveloper(User.Identity.Name))
                     {
                         return RedirectToAction("Index", "ViewNotAuthorized");

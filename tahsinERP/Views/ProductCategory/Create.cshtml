@@ -56,6 +56,13 @@
                                                         @Html.TextBoxFor(model => model.Name, new { @class = "form-control", @placeholder = "Nomi", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
                                                     </fieldset>
+                                                    <h6 class="invoice-to">Material turi</h6>
+                                                    <fieldset class="invoice-address form-group">
+                                                        @Html.DropDownListFor(model => model.MaterialKind,
+                                                            new SelectList(tahsinERP.Services.Common.SystemCodes.MaterialKind.All, "Key", "Value", Model?.MaterialKind),
+                                                            "— oddiy —", new { @class = "form-control" })
+                                                        <small class="text-muted">Yog'och: norma/BOM'da kirim narxi brus uzunligi bo'yicha metrga aylantiriladi, umumiy norma va chiqindi shulardan.</small>
+                                                    </fieldset>
                                                     <h6 class="invoice-to">Xomashyo guruhi</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.RawMaterialGroup, new { @class = "form-control", @placeholder = "Xomashyo guruhi" })

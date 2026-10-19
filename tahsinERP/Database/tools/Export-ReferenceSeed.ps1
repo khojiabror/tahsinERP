@@ -27,8 +27,8 @@ $specs = @(
     @{ T = 'UNITS';                   Key = 'ID' }
     @{ T = 'HSCODES';                 Key = 'ID' }
     @{ T = 'PERMISSIONMODULES';       Key = 'ID' }
-    @{ T = 'ROLES';                   Key = 'ID'; Where = "RName IN ('Admin', 'Developer')" }
-    @{ T = 'PERMISSIONS';             Key = 'ID'; Where = "RoleID IN (SELECT ID FROM dbo.ROLES WHERE RName IN ('Admin', 'Developer'))" }
+    @{ T = 'ROLES';                   Key = 'ID'; Where = "SystemCode IS NOT NULL" }
+    @{ T = 'PERMISSIONS';             Key = 'ID'; Where = "RoleID IN (SELECT ID FROM dbo.ROLES WHERE SystemCode IS NOT NULL)" }
     @{ T = 'FIN_BALANCE_CATEGORIES';  Key = 'ID'; Where = "SystemCode IS NOT NULL"; Order = 'CASE WHEN ParentID IS NULL THEN 0 ELSE 1 END, ID' }
     # Umumiy moliya kategoriyalari (shaxsga/iPack'ka xos nomlar — G'ayratdan, Birja, Naqdlash... — kirmaydi)
     @{ T = 'FIN_CATEGORIES';          Key = 'ID'; Where = "ID IN (4, 8, 10, 11, 12, 15, 17, 19, 21, 23, 24, 25, 27, 29, 31)"; Order = 'CASE WHEN ParentID IS NULL THEN 0 ELSE 1 END, ID' }

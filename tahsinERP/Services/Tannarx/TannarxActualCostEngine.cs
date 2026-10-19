@@ -561,7 +561,7 @@ namespace tahsinERP.Services.Tannarx
 
             var categories = await _db.FIN_CATEGORIES
                 .Where(c => c.IsDeleted != true)
-                .Select(c => new TannarxFinanceCategoryClassifier.CategoryRow { ID = c.ID, Name = c.Name, Type = c.Type, ParentID = c.ParentID })
+                .Select(c => new TannarxFinanceCategoryClassifier.CategoryRow { ID = c.ID, Name = c.Name, Type = c.Type, ParentID = c.ParentID, AnalyticsGroup = c.AnalyticsGroup })
                 .ToListAsync();
             var manualMap = await new TannarxFinanceCategoryMapStore(_db).LoadAsync();
             _financeClasses = TannarxFinanceCategoryClassifier.Classify(categories, manualMap);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Services.Tannarx
 {
@@ -9,9 +10,9 @@ namespace tahsinERP.Services.Tannarx
         Excluded = 0,
         Material = 1,
         TaxBank = 2,
-        /// <summary>Nomida "boshqa" bor kategoriya.</summary>
+        /// <summary>Tahliliy guruhi "Boshqa" (OTHER) kategoriya.</summary>
         Other = 3,
-        /// <summary>Nomi bo'yicha aniqlanmagan, boshqa joyda hisoblanmaydigan xarajat — "Boshqa" ga qo'shiladi.</summary>
+        /// <summary>Guruhi tannarx uchun aniqlanmagan, boshqa joyda hisoblanmaydigan xarajat — "Boshqa" ga qo'shiladi.</summary>
         OtherAuto = 4
     }
 
@@ -23,74 +24,67 @@ namespace tahsinERP.Services.Tannarx
     }
 
     /// <summary>
-    /// FIN_CATEGORIES (faqat xarajat, Type = 2) ni fakt tannarx guruhlariga ajratadi. Tamoyil: oydagi BARCHA xarajat
-    /// tannarxga tushadi, faqat boshqa joyda allaqachon hisoblanadigan yoki xarajat bo'lmagan pul harakati chiqariladi:
-    /// - kredit / o'tkazma / naqd yechish / qarz — xarajat emas;
-    /// - dividend, aksiyador — foydani taqsimlash;
-    /// - QQS — tannarx emas (qaytariladigan soliq);
-    /// - asosiy vosita / uskuna / jihoz / qurilish / investitsiya — kapital xarajat;
-    /// - xarid / ta'minotchi — material PATH0/1/2 (ombor, PI) orqali;
-    /// - transport (tash, logist, yuk) — yo'l varaqalari (F_WAYBILLS) orqali;
-    /// - oylik / ish haqi — HR ish haqi (ishbay va soatbay) orqali.
-    /// Har kategoriya faqat BITTA guruhga tushadi; o'z nomi bo'yicha aniqlanmagan bola kategoriya ota kategoriyasining
-    /// guruhini oladi; hech qayerga tushmaganlari OtherAuto ("Boshqa").
+    /// FIN_CATEGORIES (faqat xarajat, Type = 2) ni fakt tannarx guruhlariga ajratadi — kategoriyaning tahliliy guruhi
+    /// (FIN_CATEGORIES.AnalyticsGroup, migratsiya 007) bo'yicha; NOM bo'yicha emas (nom faqat ko'rsatish uchun).
+    /// Tamoyil: oydagi BARCHA xarajat tannarxga tushadi, faqat boshqa joyda allaqachon hisoblanadigan yoki xarajat
+    /// bo'lmagan pul harakati chiqariladi:
+    /// - FINANCING (kredit / o'tkazma / naqd yechish / qarz) — xarajat emas;
+    /// - DIVIDEND (dividend, aksiyador) — foydani taqsimlash;
+    /// - VAT (QQS) — tannarx emas (qaytariladigan soliq);
+    /// - CAPEX (asosiy vosita / uskuna / qurilish / investitsiya) — kapital xarajat;
+    /// - PURCHASE (xarid / ta'minotchi) — material PATH0/1/2 (ombor, PI) orqali;
+    /// - LOGISTICS (transport) — yo'l varaqalari (F_WAYBILLS) orqali;
+    /// - PAYROLL (oylik / ish haqi) — HR ish haqi (ishbay va soatbay) orqali.
+    /// MATERIAL -> Material (PATH3), TAX/BANK -> soliq va bank, OTHER -> Boshqa. Har kategoriya faqat BITTA guruhga tushadi;
+    /// tannarx uchun guruhi aniqlanmagan (bo'sh, INTEREST, DEPRECIATION) bola kategoriya ota kategoriyasining guruhini oladi;
+    /// hech qayerga tushmaganlari OtherAuto ("Boshqa").
     /// </summary>
     internal static class TannarxFinanceCategoryClassifier
     {
         internal const byte ExpenseCategoryType = 2;
 
-        private static readonly (string[] Keywords, string Reason)[] ExclusionRules =
+        /// <summary>Tannarxdan chiqariladigan guruhlar va sababi.</summary>
+        private static readonly Dictionary<string, string> ExclusionReasons = new Dictionary<string, string>
         {
-            (new[] { "kredit", "o'tkazma", "otkazma", "naqd", "transfer", "qarz", "hisob raqam", "hisobraqam" }, "Moliyaviy harakat (kredit/o'tkazma/naqd/qarz)"),
-            (new[] { "divid", "aksiyador" }, "Foydani taqsimlash (dividend/aksiyador)"),
-            (new[] { "qqs", "nds", "vat" }, "QQS — tannarx emas"),
-            (new[] { "asosiy vosita", "uskuna", "jihoz", "jixoz", "qurilish", "investitsiya", "kapital" }, "Kapital xarajat (asosiy vosita/uskuna/qurilish)"),
-            (new[] { "tash", "transport", "logist", "yuk" }, "Transport — yo'l varaqalari orqali hisoblanadi"),
-            (new[] { "oylik", "ish haqi", "ish xaqi", "maosh", "salary", "avans" }, "Ish haqi — HR ish haqi orqali hisoblanadi"),
-            (new[] { "xarid", "ta'minotchi", "taminotchi", "supplier" }, "Xarid — material ombor/PI orqali hisoblanadi")
+            [SystemCodes.FinAnalyticsGroup.Financing] = "Moliyaviy harakat (kredit/o'tkazma/naqd/qarz)",
+            [SystemCodes.FinAnalyticsGroup.Dividend] = "Foydani taqsimlash (dividend/aksiyador)",
+            [SystemCodes.FinAnalyticsGroup.Vat] = "QQS — tannarx emas",
+            [SystemCodes.FinAnalyticsGroup.Capex] = "Kapital xarajat (asosiy vosita/uskuna/qurilish)",
+            [SystemCodes.FinAnalyticsGroup.Logistics] = "Transport — yo'l varaqalari orqali hisoblanadi",
+            [SystemCodes.FinAnalyticsGroup.Payroll] = "Ish haqi — HR ish haqi orqali hisoblanadi",
+            [SystemCodes.FinAnalyticsGroup.Purchase] = "Xarid — material ombor/PI orqali hisoblanadi"
         };
-
-        private static readonly string[] TaxBankKeywords = { "soliq", "solig", "bank" };
 
         internal class CategoryRow
         {
             public int ID { get; set; }
+            /// <summary>Faqat ko'rsatish uchun.</summary>
             public string Name { get; set; }
             public byte Type { get; set; }
             public int? ParentID { get; set; }
+            /// <summary>FIN_CATEGORIES.AnalyticsGroup — sinf shundan aniqlanadi.</summary>
+            public string AnalyticsGroup { get; set; }
         }
 
-        internal static string Normalize(string name)
+        /// <summary>O'z tahliliy guruhi bo'yicha sinf; null — tannarx uchun aniqlanmadi (ota kategoriyaga qaraladi).</summary>
+        private static TannarxFinanceClass ClassifyOwn(string analyticsGroup)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                return string.Empty;
-            return name.Trim().ToLowerInvariant()
-                .Replace('ʻ', '\'')   // ʻ
-                .Replace('ʼ', '\'')   // ʼ
-                .Replace('‘', '\'')   // ‘
-                .Replace('’', '\'')   // ’
-                .Replace('`', '\'');
-        }
-
-        /// <summary>O'z nomi bo'yicha sinf; null — aniqlanmadi (ota kategoriyaga qaraladi).</summary>
-        private static TannarxFinanceClass ClassifyOwn(string name)
-        {
-            var n = Normalize(name);
-            if (n.Length == 0)
+            if (string.IsNullOrEmpty(analyticsGroup))
                 return null;
-            // "Material" birinchi: "Material xaridi" — material (Finance PATH3 manbasi), lekin "Material tashuvi" — transport.
-            if (n.Contains("material") && !n.Contains("tash"))
-                return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Material, Reason = "Material" };
-            foreach (var rule in ExclusionRules)
+            if (ExclusionReasons.TryGetValue(analyticsGroup, out var reason))
+                return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Excluded, Reason = reason };
+            switch (analyticsGroup)
             {
-                if (rule.Keywords.Any(k => n.Contains(k)))
-                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Excluded, Reason = rule.Reason };
+                case SystemCodes.FinAnalyticsGroup.Material:
+                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Material, Reason = "Material" };
+                case SystemCodes.FinAnalyticsGroup.Tax:
+                case SystemCodes.FinAnalyticsGroup.Bank:
+                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.TaxBank, Reason = "Soliq va bank" };
+                case SystemCodes.FinAnalyticsGroup.Other:
+                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Other, Reason = "Boshqa" };
+                default:
+                    return null; // INTEREST, DEPRECIATION — tannarx uchun alohida guruh yo'q
             }
-            if (TaxBankKeywords.Any(k => n.Contains(k)))
-                return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.TaxBank, Reason = "Soliq va bank" };
-            if (n.Contains("boshqa"))
-                return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Other, Reason = "Boshqa" };
-            return null;
         }
 
         internal static string BucketTitle(TannarxFinanceBucket bucket)
@@ -106,8 +100,8 @@ namespace tahsinERP.Services.Tannarx
         }
 
         /// <summary>
-        /// Har xarajat kategoriyasi (Type = 2) → sinf. Qo'lda belgilangan guruh (TANNARX_FIN_CATEGORY_MAP) nom qoidasidan ustun;
-        /// kategoriyaning o'zida hech narsa bo'lmasa eng yaqin ota kategoriyaning belgisi yoki nom qoidasi olinadi.
+        /// Har xarajat kategoriyasi (Type = 2) → sinf. Qo'lda belgilangan guruh (TANNARX_FIN_CATEGORY_MAP) tahliliy guruhdan ustun;
+        /// kategoriyaning o'zida hech narsa bo'lmasa eng yaqin ota kategoriyaning belgisi yoki tahliliy guruhi olinadi.
         /// </summary>
         internal static Dictionary<int, TannarxFinanceClass> Classify(IList<CategoryRow> categories, IDictionary<int, TannarxFinanceBucket> manual = null)
         {
@@ -123,7 +117,7 @@ namespace tahsinERP.Services.Tannarx
                         IsManual = true
                     };
                 }
-                return ClassifyOwn(c.Name);
+                return ClassifyOwn(c.AnalyticsGroup);
             });
             var result = new Dictionary<int, TannarxFinanceClass>();
 

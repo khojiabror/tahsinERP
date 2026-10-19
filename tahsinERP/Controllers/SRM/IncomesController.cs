@@ -40,7 +40,7 @@ namespace tahsinERP.Controllers.SRM
                 ViewBag.FromDate = DataTablesPageRequest.DefaultFromDate(Request, fromDate);
                 ViewBag.ToDate = toDate;
                 ViewBag.AssignedWarehouseIds = assignedWarehouseIds;
-                ViewBag.ChangePermit = !IsMesOrSalesRestrictedUser() && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes");
+                ViewBag.ChangePermit = !IsIncomesReadOnlyUser() && tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "Incomes");
                 ViewBag.CanCreateManualIncome = assignedWarehouseIds.Any(wid => WarehouseFlowService.CanCreateManualIncome(db, wid));
                 return View();
             }
@@ -221,7 +221,7 @@ namespace tahsinERP.Controllers.SRM
                 // Bir foydalanuvchi bir nechta omborga MRP bo'lishi mumkin,
                 // shuning uchun bitta emas, barcha biriktirilgan omborlarni tekshiramiz.
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
-                bool isReadOnlyRole = WarehouseAccess.IsMesOrSalesReadOnly(User.Identity.Name);
+                bool isReadOnlyRole = WarehouseAccess.IsIncomesReadOnly(User.Identity.Name);
                 bool isMrpForWarehouse = assignedWarehouseIds.Contains(income.ReceivingWHID);
                 var isTransferIncome = WarehouseFlowService.IsAutoLinkedTransferIncome(income);
                 var receivePolicyError = WarehouseFlowService.ValidateIncomeReceive(db, income);
@@ -265,7 +265,7 @@ namespace tahsinERP.Controllers.SRM
         // Olish so'rovi: Incomes/yaratish
         public async Task<ActionResult> Create()
         {
-            if (IsMesOrSalesRestrictedUser())
+            if (IsIncomesReadOnlyUser())
             {
                 TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Yaratish va tahrirlash huquqi yo'q.";
                 return RedirectToAction("Index");
@@ -417,7 +417,7 @@ namespace tahsinERP.Controllers.SRM
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(ViewModels.IncomeCreateViewModel model, HttpPostedFileBase incomeFile)
         {
-            if (IsMesOrSalesRestrictedUser())
+            if (IsIncomesReadOnlyUser())
             {
                 TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Yaratish va tahrirlash huquqi yo'q.";
                 return RedirectToAction("Index");
@@ -620,8 +620,8 @@ namespace tahsinERP.Controllers.SRM
         // Olish so'rovi: Incomes/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
-            // MES va Sales xodimlari faqat ko'radi, Edit qila olmaydi
-            bool isReadOnlyRole = WarehouseAccess.IsMesOrSalesReadOnly(User.Identity.Name);
+            // Kirimni o'zgartirish huquqi yo'q xodimlar (MES/Sotuv) faqat ko'radi
+            bool isReadOnlyRole = WarehouseAccess.IsIncomesReadOnly(User.Identity.Name);
             
             if (isReadOnlyRole)
             {
@@ -715,7 +715,7 @@ namespace tahsinERP.Controllers.SRM
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ViewModels.IncomeEditViewModel model, HttpPostedFileBase incomeFile)
         {
-            if (IsMesOrSalesRestrictedUser())
+            if (IsIncomesReadOnlyUser())
             {
                 TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Tahrirlash huquqi yo'q.";
                 return RedirectToAction("Index");
@@ -1410,21 +1410,21 @@ namespace tahsinERP.Controllers.SRM
 
         /// <summary>
         /// SRM-S05: kirimni o'chirish — faqat Admin/Developer yoki qabul qiluvchi ombor biriktirilgan foydalanuvchi.
-        /// MES/Sales foydalanuvchilari (Admin bo'lmasa) va omborsiz foydalanuvchilar bloklanadi.
+        /// Kirimni o'zgartirish huquqi yo'q foydalanuvchilar (MES/Sotuv rollari) va omborsiz foydalanuvchilar bloklanadi.
         /// </summary>
         private async Task<bool> CanDeleteIncomeAsync(DBTHSNEntities db, int receivingWarehouseId)
         {
             if (tahsinERP.Models.RoleHelper.CanManageLicense(User.Identity.Name))
                 return true;
-            if (IsMesOrSalesRestrictedUser())
+            if (IsIncomesReadOnlyUser())
                 return false;
             var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
             return assignedWarehouseIds.Contains(receivingWarehouseId);
         }
 
-        private bool IsMesOrSalesRestrictedUser()
+        private bool IsIncomesReadOnlyUser()
         {
-            return WarehouseAccess.IsMesOrSalesReadOnly(User.Identity.Name);
+            return WarehouseAccess.IsIncomesReadOnly(User.Identity.Name);
         }
 
         private async Task PopulateInvoiceSelectListAsync(DBTHSNEntities db, bool requireInvoice, int? selectedInvoiceId = null)

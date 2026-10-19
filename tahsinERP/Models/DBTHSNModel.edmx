@@ -562,6 +562,7 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="SystemCode" Type="varchar" MaxLength="40" />
+          <Property Name="AnalyticsGroup" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="FIN_OPENING_CONTRACT_BALANCES">
           <Key>
@@ -1318,6 +1319,7 @@
           <Property Name="CalculateByWeight" Type="bit" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="SystemCode" Type="varchar" MaxLength="40" />
+          <Property Name="MaterialKind" Type="varchar" MaxLength="20" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -1463,6 +1465,7 @@
           <Property Name="RName" Type="varchar" MaxLength="25" Nullable="false" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="S_CONTRACT_PRODUCTS">
           <Key>
@@ -7060,6 +7063,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
+          <Property Name="AnalyticsGroup" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="FIN_CATEGORIES1" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES" ToRole="FIN_CATEGORIES1" />
           <NavigationProperty Name="FIN_CATEGORIES2" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES1" ToRole="FIN_CATEGORIES" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_CATEGORIES" ToRole="FIN_TRANSACTIONS" />
@@ -7941,6 +7945,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="CalculateByWeight" Type="Boolean" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
+          <Property Name="MaterialKind" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT_CATEGORIES" ToRole="PRODUCTS" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
@@ -8140,6 +8145,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="RName" Type="String" MaxLength="25" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="PERMISSIONS" Relationship="Self.FK_PERMISSIONS_ROLES" FromRole="ROLES" ToRole="PERMISSIONS" />
           <NavigationProperty Name="USERS" Relationship="Self.USERROLES" FromRole="ROLES" ToRole="USERS" />
         </EntityType>
@@ -13820,6 +13826,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
+                <ScalarProperty Name="AnalyticsGroup" ColumnName="AnalyticsGroup" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14574,6 +14581,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="CalculateByWeight" ColumnName="CalculateByWeight" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
+                <ScalarProperty Name="MaterialKind" ColumnName="MaterialKind" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14729,6 +14737,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="RName" ColumnName="RName" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
