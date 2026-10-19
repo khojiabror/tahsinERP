@@ -3,7 +3,7 @@
 Holat: 2026-10-18. Manba: «ТЗ Дистрибуция #1 от 15.10.2026» (qurilish/xo'jalik mollari ulgurji savdosi, agentlar + ekspeditorlar + do'konlar + SaaS).
 Bog'liq: `Docs/ControlPanel/00_PLAN.md` (tenant, tarif, to'lov), `Docs/Audit-2026-10/00_PLAN.md` (core optimizatsiya).
 
-Qarorlar (foydalanuvchi, 2026-10-18): TZ'dagi **alohida mobil ilova qilinmaydi** — o'rniga Telegram bot + Mini App (4-bo'lim); **yangi distributsiya modeli** (`D_ORDERS`, 3.1); bot AWS'dagi o'z serverimiz uchun quriladi (webhook → navbat → fon ishchilari, `01_PHASE1_MVP.md` 3-bo'lim); xavflardan faqat Telegram cheklovlari hisobga olinadi. Batafsil 1-bosqich: `01_PHASE1_MVP.md`.
+Qarorlar (foydalanuvchi, 2026-10-18): TZ'dagi **alohida mobil ilova qilinmaydi** — o'rniga Telegram bot + Mini App (4-bo'lim); **yangi distributsiya modeli** (`D_ORDERS`, 3.1); bot AWS'dagi o'z serverimiz uchun quriladi (webhook → navbat → fon ishchilari, `01_PHASE1_MVP.md` 3-bo'lim); xavflardan faqat Telegram cheklovlari hisobga olinadi. Batafsil 1-bosqich: `01_PHASE1_MVP.md`. S4 (2026-10-19): bot alohida servis `tahsinERP.Bot`, bildirishnomalar ERP'dan **tortib olinadi** (pull, Hangfire yo'q), ERP API — imzoli `DstApi`, har tenantga o'z boti — `01_PHASE1_MVP.md` 14-bo'lim.
 
 ---
 

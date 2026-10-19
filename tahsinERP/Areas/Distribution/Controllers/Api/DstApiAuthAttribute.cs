@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using tahsinERP.Areas.Distribution.Data;
 using tahsinERP.Configuration.Tenancy;
 using tahsinERP.Integration;
+using tahsinERP.Services;
 
 namespace tahsinERP.Areas.Distribution.Controllers.Api
 {
@@ -32,6 +33,8 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         public void OnAuthorization(AuthorizationContext filterContext)
         {
             var http = filterContext.HttpContext;
+            http.Response.SuppressFormsAuthenticationRedirect = true;   // 401 login sahifasiga 302 bo'lib ketmasin
+            http.Response.TrySkipIisCustomErrors = true;                // va IIS HTML xato sahifasiga almashmasin
             var master = MasterKey();
             if (string.IsNullOrWhiteSpace(master) || master.Length < 32)
             {
@@ -57,6 +60,17 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             if (!ok)
             {
                 filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Imzo noto'g'ri");
+                return;
+            }
+
+            // [AllowAnonymous] tufayli global LicenseCheck o'tkazib yuboradi — bot ham pullik mahsulot qismi, shu yerda tekshiriladi
+            var license = LicenseService.GetCachedStatus();
+            bool isRead = string.Equals(http.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase);
+            if (!license.FullAccess && !(license.ReadOnly && isRead))
+            {
+                http.Response.TrySkipIisCustomErrors = true;
+                http.Response.AddHeader("X-License-Message", Uri.EscapeDataString(license.Message ?? ""));
+                filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden, "License");
                 return;
             }
 

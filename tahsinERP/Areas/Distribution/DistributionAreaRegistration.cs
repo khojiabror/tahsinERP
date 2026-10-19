@@ -17,7 +17,7 @@ namespace tahsinERP.Areas.Distribution
                 "Distribution_default",
                 "Distribution/{controller}/{action}/{id}",
                 new { controller = "DstHome", action = "Index", id = UrlParameter.Optional },
-                new[] { "tahsinERP.Areas.Distribution.Controllers" });
+                new[] { "tahsinERP.Areas.Distribution.Controllers", "tahsinERP.Areas.Distribution.Controllers.Api" });
         }
     }
 }
