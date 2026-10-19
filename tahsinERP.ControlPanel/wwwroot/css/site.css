@@ -96,5 +96,6 @@ textarea.key { min-height: 120px; font-family: Consolas, "Cascadia Mono", monosp
     .login { margin: 20px auto; }
     button, .btn { padding: 9px 14px; }
     .stat .v { font-size: 20px; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 8px; }
 }
 .spaced { margin-top: 10px; }

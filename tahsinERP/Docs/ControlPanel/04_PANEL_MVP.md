@@ -21,7 +21,7 @@ Bog'liq: `00_PLAN.md` (3–6, 10–11), `01_LICENSE_API.md` (ERP bilan kontrakt)
 | AuditLog | Pul (hisob-faktura, to'lov, storno), kalit (chiqarish, bekor), status, tarif, server, xodim, kirish — kim/qachon/IP/oldin/keyin JSON, amal bilan bitta tranzaksiyada. |
 | Dashboard | Faol/sinov/grace/suspended, qarzdorlar (muddati o'tgan), muddati yaqinlashganlar (14 kun), oylik tushum (6 oy), bog'lanmaganlar. |
 
-**2-bosqichda qo'shildi:** provisioning (ProvisioningJobs, agent, `tenants.json`, demo reset, sinov ochish) — `05_PROVISIONING.md`. **Yo'q:** mijoz portali, Didox, email/SMS.
+**2-bosqichda qo'shildi:** provisioning (ProvisioningJobs, agent, `tenants.json`, demo reset, sinov ochish) — `05_PROVISIONING.md`. **3-bosqichda qo'shildi:** mijoz portali (`my.<domen>`, o'sha ilova) — `06_CUSTOMER_PORTAL.md`. **Yo'q:** Didox, email/SMS.
 
 ## 2. Lokal ishga tushirish
 
@@ -84,6 +84,9 @@ dotnet test tahsinERP.ControlPanel.Tests
 | `Security:MasterKey` | 32 bayt Base64 — tenant_secret va TOTP sirlarini shifrlaydi. **Faqat env/user-secrets.** Yo'qolsa: tenantlar qayta ro'yxatdan o'tadi, xodimlar 2FA'ni qayta ulaydi → baza zaxirasidan ALOHIDA saqlang. |
 | `Signing:Provider/KeyId/KeyFile/Passphrase` | `Local` + `k2` + shifrlangan fayl + parol (env). `Kms` — hozircha skelet, `NotSupportedException`. |
 | `Telegram:BotToken/StaffChatId` | Bo'sh — xabarlar faqat logga. Token faqat env (`ControlPanel__Telegram__BotToken`). |
+| `Telegram:BotUsername/WebhookSecret` | Mijoz portali: bot /start bog'lash havolasi va webhook siri (06_CUSTOMER_PORTAL.md). |
+| `Hosts:*` | `Domain`, `AdminHost`, `PortalHost`, `OtherHosts` (Admin/None), `PortalPublicUrl` — host zonalari (06_CUSTOMER_PORTAL.md). |
+| `Portal:*` | InviteHours 72, OtpMinutes 5, TelegramLinkHours 24, SessionHours 4, OtpLogFallback (faqat lokal). |
 | `Vendor:*` | Hisob-fakturadagi sotuvchi rekvizitlari (MChJ, STIR, QQS kodi, bank, h/r, MFO) — **to'ldirilishi kerak**. |
 | `Panel:*` | TimeZone (Asia/Tashkent), PollHours 6, RegTokenDays 7, SaasKeyExtraDays 3, GraceDays 3, InvoiceDueDays 5, DailyJobHour 9, MigrateOnStartup, rate limitlar. |
 | `Pdf:FontsDir` | Linux'da shrift papkasi (Windows'da Arial avtomatik). |

@@ -7,7 +7,7 @@
         <h1>Parol o'rnatildi</h1>
         @if (Model.LinkToken is not null)
         {
-            <p><strong>Telegram'ni bog'lang</strong> — kirish kodlari shu yerga keladi@(Model.CanLogin ? " (bog'lamasangiz — tashkilot chatiga)" : "").</p>
+            <p><strong>Telegram'ni bog'lang</strong> — kirish kodlari shu yerga keladi@(Model.Info?.Tenant.TelegramChatId is not null ? " (bog'lamasangiz — tashkilot chatiga)" : "").</p>
             @if (Model.LinkUrl.Length > 0)
             {
                 <p><a class="btn" href="@Model.LinkUrl" target="_blank" rel="noopener">Telegram botni ochish</a></p>
