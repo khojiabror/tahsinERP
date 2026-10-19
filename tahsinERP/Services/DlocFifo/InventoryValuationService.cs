@@ -25,7 +25,7 @@ namespace tahsinERP.Services.DlocFifo
             return db.PRODUCT_STOCKS
                 .Where(s => s.WHID == warehouseId)
                 .GroupBy(s => s.ProductID)
-                .Select(g => new StockQtyRow { ProductID = g.Key, Qty = g.Sum(x => x.Amount) })
+                .Select(g => new StockQtyRow { ProductID = g.Key, Qty = (double)(g.Sum(x => x.Amount)) })
                 .Where(r => r.Qty > 0)
                 .ToList();
         }

@@ -28,7 +28,7 @@ namespace tahsinERP.Models
         public System.DateTime IssuedDate { get; set; }
         public int CompanyID { get; set; }
         public int CustomerID { get; set; }
-        public Nullable<double> Amount { get; set; }
+        public Nullable<decimal> Amount { get; set; }
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
         public Nullable<int> PaymentDays { get; set; }

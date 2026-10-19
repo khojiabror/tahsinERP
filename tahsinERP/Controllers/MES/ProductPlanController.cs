@@ -55,7 +55,7 @@ namespace tahsinERP.Controllers.MES
                     {
                         ID = p.ID,
                         ProductID = p.ProductID,
-                        TotalQty = p.Amount,
+                        TotalQty = (double)p.Amount,
                         StartDate = p.StartDate,
                         EndDate = p.DueDate,
                         IsDeleted = p.IsDeleted,
@@ -109,7 +109,7 @@ namespace tahsinERP.Controllers.MES
                 {
                     ID = plan.ID,
                     ProductID = plan.ProductID,
-                    TotalQty = plan.Amount,
+                    TotalQty = (double)plan.Amount,
                     StartDate = plan.StartDate,
                     EndDate = plan.DueDate,
                     IsDeleted = plan.IsDeleted,
@@ -201,7 +201,7 @@ namespace tahsinERP.Controllers.MES
                         var plan = new PRODUCTPLAN
                         {
                             ProductID = row.ProductID.Value,
-                            Amount = row.TotalQty.Value,
+                            Amount = (decimal)row.TotalQty.Value,
                             StartDate = row.StartDate.Value,
                             DueDate = row.EndDate.Value,
                             IsDeleted = false,
@@ -245,7 +245,7 @@ namespace tahsinERP.Controllers.MES
                     {
                         PlanID = p.ID,
                         ProductID = p.ProductID,
-                        TotalQty = p.Amount,
+                        TotalQty = (double?)p.Amount,
                         StartDate = p.StartDate,
                         EndDate = p.DueDate,
                         SalesOrderID = p.SalesOrderID
@@ -325,10 +325,10 @@ namespace tahsinERP.Controllers.MES
                             var plan = existingPlans[row.PlanID.Value];
                             var scheduleChanged = plan.StartDate != row.StartDate.Value
                                 || plan.DueDate != row.EndDate.Value
-                                || Math.Abs(plan.Amount - row.TotalQty.Value) > 1e-9;
+                                || Math.Abs((double)plan.Amount - row.TotalQty.Value) > 1e-9;
 
                             plan.ProductID = row.ProductID.Value;
-                            plan.Amount = row.TotalQty.Value;
+                            plan.Amount = (decimal)row.TotalQty.Value;
                             plan.StartDate = row.StartDate.Value;
                             plan.DueDate = row.EndDate.Value;
                             plan.SalesOrderID = row.SalesOrderID;
@@ -345,7 +345,7 @@ namespace tahsinERP.Controllers.MES
                             var plan = new PRODUCTPLAN
                             {
                                 ProductID = row.ProductID.Value,
-                                Amount = row.TotalQty.Value,
+                                Amount = (decimal)row.TotalQty.Value,
                                 StartDate = row.StartDate.Value,
                                 DueDate = row.EndDate.Value,
                                 IsDeleted = false,
@@ -419,7 +419,7 @@ namespace tahsinERP.Controllers.MES
                             plan = new PRODUCTPLAN
                             {
                                 ProductID = viewModel.ProductID,
-                                Amount = viewModel.TotalQty,
+                                Amount = (decimal)viewModel.TotalQty,
                                 StartDate = viewModel.StartDate,
                                 DueDate = viewModel.EndDate,
                                 IsDeleted = false,
@@ -476,7 +476,7 @@ namespace tahsinERP.Controllers.MES
                 {
                     ID = plan.ID,
                     ProductID = plan.ProductID,
-                    TotalQty = plan.Amount,
+                    TotalQty = (double)plan.Amount,
                     StartDate = plan.StartDate,
                     EndDate = plan.DueDate,
                     IsDeleted = plan.IsDeleted,
@@ -546,11 +546,11 @@ namespace tahsinERP.Controllers.MES
 
                             var scheduleChanged = plan.StartDate != viewModel.StartDate
                                 || plan.DueDate != viewModel.EndDate
-                                || Math.Abs(plan.Amount - viewModel.TotalQty) > 1e-9;
+                                || Math.Abs((double)plan.Amount - viewModel.TotalQty) > 1e-9;
 
                             // Yangilash plan
                             plan.ProductID = viewModel.ProductID;
-                            plan.Amount = viewModel.TotalQty;
+                            plan.Amount = (decimal)viewModel.TotalQty;
                             plan.StartDate = viewModel.StartDate;
                             plan.DueDate = viewModel.EndDate;
                             plan.SalesOrderID = viewModel.SalesOrderID;
@@ -687,9 +687,9 @@ namespace tahsinERP.Controllers.MES
                     {
                         if (rows.TryGetValue(item.ID, out var dailyPlan))
                         {
-                            dailyPlan.DayShift = item.DayShift;
-                            dailyPlan.NightShift = item.NightShift;
-                            dailyPlan.Total = item.DayShift + item.NightShift; // Auto-calculate
+                            dailyPlan.DayShift = (decimal)item.DayShift;
+                            dailyPlan.NightShift = (decimal)item.NightShift;
+                            dailyPlan.Total = (decimal)(item.DayShift + item.NightShift); // Auto-calculate
                         }
                     }
 
@@ -755,7 +755,7 @@ namespace tahsinERP.Controllers.MES
                     .GroupBy(p => p.PlanDay.Date)
                     .ToDictionary(
                         g => g.Key,
-                        g => (g.Sum(p => p.DayShift), g.Sum(p => p.NightShift), g.Sum(p => p.Total)));
+                        g => ((double)g.Sum(p => p.DayShift), (double)g.Sum(p => p.NightShift), (double)g.Sum(p => p.Total)));
             }
 
             return dailyPlans.Select(d =>
@@ -766,9 +766,9 @@ namespace tahsinERP.Controllers.MES
                     ID = d.ID,
                     PlanID = d.PlanID,
                     Day = d.Day,
-                    DayShift = d.DayShift,
-                    NightShift = d.NightShift,
-                    Total = d.Total,
+                    DayShift = (double)d.DayShift,
+                    NightShift = (double)d.NightShift,
+                    Total = (double)d.Total,
                     ActualDayShift = hasActual ? actual.DayShift : (double?)null,
                     ActualNightShift = hasActual ? actual.NightShift : (double?)null,
                     ActualTotal = hasActual ? actual.Total : (double?)null
@@ -875,9 +875,9 @@ namespace tahsinERP.Controllers.MES
                 {
                     PRODUCTPLAN = plan,
                     Day = startDate.AddDays(i),
-                    DayShift = dailyQty,
+                    DayShift = (decimal)dailyQty,
                     NightShift = 0,
-                    Total = dailyQty
+                    Total = (decimal)(dailyQty)
                 });
             }
         }
@@ -961,7 +961,7 @@ namespace tahsinERP.Controllers.MES
             if (planQty.HasValue)
             {
                 var orderedQty = amounts.Sum();
-                if (planQty.Value > orderedQty)
+                if (planQty.Value > (double)orderedQty)
                 {
                     return $"Xatolik: reja miqdori ({planQty.Value:N2}) savdo buyurtmasi miqdoridan ({orderedQty:N2}) oshib ketdi.";
                 }

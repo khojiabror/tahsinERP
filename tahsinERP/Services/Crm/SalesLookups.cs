@@ -95,8 +95,8 @@ namespace tahsinERP.Services.Crm
                 .Select(p => new SContractVatHelper.ContractProductVatLine
                 {
                     ContractID = p.ContractID,
-                    LineBaseAmount = SContractVatHelper.GetLineBaseAmount(p.PiecePrice, p.Amount),
-                    VATAmount = p.vatamount
+                    LineBaseAmount = SContractVatHelper.GetLineBaseAmount((double)p.PiecePrice, (double)p.Amount),
+                    VATAmount = (double?)(p.vatamount)
                 });
 
             var vatByContract = SContractVatHelper.BuildContractVatRates(lines);

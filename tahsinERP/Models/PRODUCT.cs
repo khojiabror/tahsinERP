@@ -50,10 +50,10 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public string PNo { get; set; }
         public string Name { get; set; }
-        public Nullable<double> Weight { get; set; }
-        public Nullable<double> Length { get; set; }
-        public Nullable<double> Width { get; set; }
-        public Nullable<double> Height { get; set; }
+        public Nullable<decimal> Weight { get; set; }
+        public Nullable<decimal> Length { get; set; }
+        public Nullable<decimal> Width { get; set; }
+        public Nullable<decimal> Height { get; set; }
         public string Type { get; set; }
         public string Description { get; set; }
         public bool IsDeleted { get; set; }
@@ -68,7 +68,7 @@ namespace tahsinERP.Models
         public Nullable<int> CategoryID { get; set; }
         public string NX3DFilePath { get; set; }
         public int ShopID { get; set; }
-        public Nullable<double> StandardLengthMm { get; set; }
+        public Nullable<decimal> StandardLengthMm { get; set; }
         public Nullable<byte> OptimizationType { get; set; }
         public Nullable<bool> CalculateByWeight { get; set; }
     

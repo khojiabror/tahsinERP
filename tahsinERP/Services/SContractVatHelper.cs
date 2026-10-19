@@ -19,7 +19,7 @@ namespace tahsinERP.Services
                 return 0;
             }
 
-            return product.PiecePrice * product.Amount;
+            return (double)(product.PiecePrice * product.Amount);
         }
 
         public static double GetLineBaseAmount(double piecePrice, double quantity)
@@ -46,11 +46,11 @@ namespace tahsinERP.Services
 
             if (product.totalamount.HasValue && product.totalamount.Value > 0)
             {
-                return product.totalamount.Value;
+                return (double)product.totalamount.Value;
             }
 
             var baseAmount = GetLineBaseAmount(product);
-            return baseAmount + (product.vatamount ?? 0);
+            return baseAmount + (double)(product.vatamount ?? 0);
         }
 
         public static double CalculateContractTotalWithVat(IEnumerable<S_CONTRACT_PRODUCTS> products)
@@ -70,7 +70,7 @@ namespace tahsinERP.Services
                 return 0;
             }
 
-            return VatMath.RateFromLines(products.Select(p => new VatLine(p.ContractID, GetLineBaseAmount(p), p.vatamount)));
+            return VatMath.RateFromLines(products.Select(p => new VatLine(p.ContractID, GetLineBaseAmount(p), (double?)p.vatamount)));
         }
 
         public static double CalculateContractVatRate(DBTHSNEntities db, int? contractId)
@@ -106,8 +106,8 @@ namespace tahsinERP.Services
                 .ToDictionary(
                     g => g.Key,
                     g => GetVatPercentFromLine(
-                        g.Sum(p => GetLineBaseAmount(p.PiecePrice, p.Amount)),
-                        g.Sum(p => p.vatamount ?? 0)));
+                        g.Sum(p => GetLineBaseAmount((double)p.PiecePrice, (double)p.Amount)),
+                        (double)g.Sum(p => p.vatamount ?? 0)));
         }
 
         public static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)

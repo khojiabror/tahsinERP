@@ -17,9 +17,9 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int InvoiceID { get; set; }
         public int ProductID { get; set; }
-        public double Quantity { get; set; }
-        public double Price { get; set; }
-        public double TotalPrice { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal Price { get; set; }
+        public decimal TotalPrice { get; set; }
         public int UnitID { get; set; }
     
         public virtual PRODUCT PRODUCT { get; set; }

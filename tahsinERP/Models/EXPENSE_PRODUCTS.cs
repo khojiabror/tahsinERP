@@ -23,9 +23,9 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int ExpenseID { get; set; }
         public int ProductID { get; set; }
-        public double Amount { get; set; }
-        public double PiecePrice { get; set; }
-        public double TotalPrice { get; set; }
+        public decimal Amount { get; set; }
+        public decimal PiecePrice { get; set; }
+        public decimal TotalPrice { get; set; }
         public string Comment { get; set; }
         public int UnitID { get; set; }
         public Nullable<int> LotID { get; set; }

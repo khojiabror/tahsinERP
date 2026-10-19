@@ -95,7 +95,7 @@ namespace tahsinERP.Controllers.MES
                         ShopID = p.ShopID,
                         ShopName = p.SHOP.ShopName,
                         PlanDay = p.PlanDate ?? p.Date,
-                        Total = p.Total
+                        Total = (double)(p.Total)
                     })
                     .ToListAsync();
 
@@ -166,7 +166,7 @@ namespace tahsinERP.Controllers.MES
                 viewModel.DailyPlanVsActual = allDates.Select(date => new DailyPlanVsActualData
                 {
                     Date = date,
-                    Planned = dailyPlansGrouped.FirstOrDefault(d => d.Date == date)?.Planned ?? 0,
+                    Planned = (double)(dailyPlansGrouped.FirstOrDefault(d => d.Date == date)?.Planned ?? 0),
                     Actual = dailyActualsGrouped.FirstOrDefault(a => a.Date == date)?.Actual ?? 0
                 }).ToList();
 
@@ -260,7 +260,7 @@ namespace tahsinERP.Controllers.MES
                     {
                         double invoiced;
                         invoicedByOrderProduct.TryGetValue(Tuple.Create(l.OrderID, l.ProductID), out invoiced);
-                        return new { Line = l, InvoicedQty = invoiced, RemainingQty = l.Amount - invoiced };
+                        return new { Line = l, InvoicedQty = invoiced, RemainingQty = (double)l.Amount - invoiced };
                     })
                     .Where(x => x.RemainingQty > 0)
                     .ToList();
@@ -274,7 +274,7 @@ namespace tahsinERP.Controllers.MES
                             .GroupBy(p => p.ProductID)
                             .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Total) })
                             .ToListAsync())
-                        .ToDictionary(x => x.ProductID, x => x.Qty);
+                        .ToDictionary(x => x.ProductID, x => (double)x.Qty);
 
                 var inspectedByProduct = openProductIds.Count == 0
                     ? new Dictionary<int, double>()
@@ -318,7 +318,7 @@ namespace tahsinERP.Controllers.MES
                         OrderNo = line.OrderNo,
                         ProductID = line.ProductID,
                         ProductNo = line.PNo ?? "",
-                        OrderedQty = line.Amount,
+                        OrderedQty = (double)line.Amount,
                         ProducedQty = producedQty,
                         InspectedQty = inspectedQty,
                         InvoicedQty = item.InvoicedQty,

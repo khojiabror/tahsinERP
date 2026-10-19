@@ -204,7 +204,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
                 .Where(s => s.WHID == warehouseId && ids.Contains(s.ProductID))
                 .GroupBy(s => s.ProductID)
                 .Select(g => new { g.Key, Qty = g.Sum(x => x.Amount) })
-                .ToDictionary(x => x.Key, x => x.Qty);
+                .ToDictionary(x => x.Key, x => (double)x.Qty);
         }
 
         private class ProductQtyRow
@@ -350,7 +350,7 @@ WHERE il.IncomeID = @p0 AND il.IsDeleted = 0";
                 return;
 
             var lines = db.Database.SqlQuery<IncomeLineRow>(
-                "SELECT ProductID, Amount, UnitID FROM dbo.INCOME_PRODUCTS WHERE IncomeID = @p0", incomeId).ToList();
+                "SELECT ProductID, CAST(Amount AS FLOAT) AS Amount, UnitID FROM dbo.INCOME_PRODUCTS WHERE IncomeID = @p0", incomeId).ToList();
 
             // Har qator o'z birligidan qoldiq birligiga o'giriladi (SRM-B14), keyin mahsulot bo'yicha jamlanadi
             foreach (var g in lines.GroupBy(l => l.ProductID))

@@ -77,15 +77,15 @@ namespace tahsinERP.Services
             {
                 double transferred;
                 transferredByProduction.TryGetValue(pp.ID, out transferred);
-                var remaining = Math.Max(0, pp.Total - transferred);
+                var remaining = Math.Max(0, (double)pp.Total - transferred);
                 if (remaining <= 0) continue;
 
                 result.Add(new ProductionLotItem
                 {
                     ProductionID = pp.ID,
                     Date = pp.Date,
-                    Total = pp.Total,
-                    AcceptedQty = pp.Total,
+                    Total = (double)pp.Total,
+                    AcceptedQty = (double)pp.Total,
                     RemainingAmount = remaining,
                     DisplayText = $"Lot {pp.ID} ({pp.Date:dd.MM.yyyy}) — qoldiq: {remaining:N2}"
                 });

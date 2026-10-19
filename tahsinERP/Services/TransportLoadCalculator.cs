@@ -36,11 +36,11 @@ namespace tahsinERP.Services
             return Math.Max(along, across);
         }
 
-        public static double? InternalCbm(F_TRANSPORT_TYPES t) => t == null ? null : CbmFromMm(t.IntLgth, t.IntWdth, t.IntHght);
+        public static double? InternalCbm(F_TRANSPORT_TYPES t) => t == null ? null : CbmFromMm((double)t.IntLgth, (double)t.IntWdth, (double)t.IntHght);
 
-        public static double? ExternalCbm(F_TRANSPORT_TYPES t) => t == null ? null : CbmFromMm(t.ExtLgth, t.ExtWdth, t.ExtHght);
+        public static double? ExternalCbm(F_TRANSPORT_TYPES t) => t == null ? null : CbmFromMm((double)t.ExtLgth, (double)t.ExtWdth, (double)t.ExtHght);
 
-        public static int? Pallets(F_TRANSPORT_TYPES t) => t == null ? null : PalletsOnFloor(t.IntLgth, t.IntWdth);
+        public static int? Pallets(F_TRANSPORT_TYPES t) => t == null ? null : PalletsOnFloor((double)t.IntLgth, (double)t.IntWdth);
 
         /// <summary>
         /// Calculate maximum load for a product in a transport type

@@ -89,26 +89,26 @@
                                             <hr />
                                             <div class="row mb-2">
                                                 <div class="col-4"><b>Og'irligi:</b></div>
-                                                <div class="col-8">@(Model.Weight.HasValue ? Model.Weight.Value.ToString() + " kg" : "-")</div>
+                                                <div class="col-8">@(Model.Weight.HasValue ? Model.Weight.Value.ToString("0.######") + " kg" : "-")</div>
                                             </div>
                                             <div class="row mb-2">
                                                 <div class="col-4"><b>Uzunligi:</b></div>
-                                                <div class="col-8">@(Model.Length.HasValue ? Model.Length.Value.ToString() + " mm" : "-")</div>
+                                                <div class="col-8">@(Model.Length.HasValue ? Model.Length.Value.ToString("0.######") + " mm" : "-")</div>
                                             </div>
                                             <div class="row mb-2">
                                                 <div class="col-4"><b>Kengligi:</b></div>
-                                                <div class="col-8">@(Model.Width.HasValue ? Model.Width.Value.ToString() + " mm" : "-")</div>
+                                                <div class="col-8">@(Model.Width.HasValue ? Model.Width.Value.ToString("0.######") + " mm" : "-")</div>
                                             </div>
                                             <div class="row mb-2">
                                                 <div class="col-4"><b>Balandligi:</b></div>
-                                                <div class="col-8">@(Model.Height.HasValue ? Model.Height.Value.ToString() + " mm" : "-")</div>
+                                                <div class="col-8">@(Model.Height.HasValue ? Model.Height.Value.ToString("0.######") + " mm" : "-")</div>
                                             </div>
                                             <div class="row mb-2">
                                                 <div class="col-4"><b>Hajmi (CBM):</b></div>
                                                 <div class="col-8">
                                                     @if (Model.Length.HasValue && Model.Width.HasValue && Model.Height.HasValue)
                                                     {
-                                                        var cbm = (Model.Length.Value / 1000.0) * (Model.Width.Value / 1000.0) * (Model.Height.Value / 1000.0);
+                                                        var cbm = (Model.Length.Value / 1000m) * (Model.Width.Value / 1000m) * (Model.Height.Value / 1000m);
                                                         @(cbm.ToString("F6") + " m³")
                                                     }
                                                     else

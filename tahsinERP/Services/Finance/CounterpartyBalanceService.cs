@@ -303,14 +303,14 @@ namespace tahsinERP.Services.Finance
             var money = FinMoney.For(db);
             data.Invoices = invoiceQuery
                 .OrderBy(i => i.ID)
-                .Select(i => new SupplierInvoiceRow { ID = i.ID, SupplierID = i.SupplierID, ContractID = i.ContractID, InvoiceDate = i.InvoiceDate, Amount = i.Amount, CurrencyID = i.CurrencyID })
+                .Select(i => new SupplierInvoiceRow { ID = i.ID, SupplierID = i.SupplierID, ContractID = i.ContractID, InvoiceDate = i.InvoiceDate, Amount = (double?)i.Amount, CurrencyID = i.CurrencyID })
                 .ToList();
             foreach (var i in data.Invoices)
                 i.AmountUzs = i.Amount.HasValue ? money.Uzs(Convert.ToDecimal(i.Amount.Value), i.CurrencyID, i.InvoiceDate) : 0m;
 
             data.IncomesByInvoice = db.INCOMES.AsNoTracking()
                 .Where(inc => inc.InvoiceID.HasValue && inc.IssueDateTime <= maxAsOf && invoiceQuery.Any(i => i.ID == inc.InvoiceID.Value))
-                .Select(inc => new IncomeRow { InvoiceID = inc.InvoiceID.Value, IssueDateTime = inc.IssueDateTime, TotalPrice = inc.TotalPrice, IsDeleted = inc.IsDeleted, CurrencyID = inc.CurrencyID })
+                .Select(inc => new IncomeRow { InvoiceID = inc.InvoiceID.Value, IssueDateTime = inc.IssueDateTime, TotalPrice = (double?)inc.TotalPrice, IsDeleted = inc.IsDeleted, CurrencyID = inc.CurrencyID })
                 .ToList()
                 .GroupBy(x => x.InvoiceID)
                 .ToDictionary(g => g.Key, g => g.ToList());

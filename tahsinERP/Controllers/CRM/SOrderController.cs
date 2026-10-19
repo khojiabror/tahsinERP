@@ -263,7 +263,7 @@ namespace tahsinERP.Controllers
                     ProductID = p.ProductID,
                     ProductPNo = p.PRODUCT?.PNo ?? "",
                     ProductName = p.PRODUCT?.Name ?? "",
-                    OrderQuantity = p.Amount,
+                    OrderQuantity = (double)p.Amount,
                     UnitID = p.UnitID,
                     UnitName = p.UNIT?.ShortName ?? ""
                 }).ToList();
@@ -406,7 +406,7 @@ namespace tahsinERP.Controllers
                     ContractID = order.ContractID,
                     CurrencyID = order.CurrencyID,
                     Description = order.Description,
-                    Amount = order.Amount
+                    Amount = (double?)(order.Amount)
                 };
 
                 SetupFormLookups(db, model);
@@ -419,7 +419,7 @@ namespace tahsinERP.Controllers
                     var contractProduct = model.ProductQuantities.FirstOrDefault(pq => pq.ProductID == orderProduct.ProductID && pq.OrderQuantity == 0);
                     if (contractProduct != null)
                     {
-                        contractProduct.OrderQuantity = orderProduct.Amount;
+                        contractProduct.OrderQuantity = (double)orderProduct.Amount;
                     }
                 }
 

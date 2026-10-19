@@ -254,7 +254,7 @@ namespace tahsinERP.Controllers.MES
                                 {
                                     ProductID = production.ProductID,
                                     DefectTypeID = item.DefectTypeID.Value,
-                                    Quantity = (double)item.QtyRejected,
+                                    Quantity = (decimal)((double)item.QtyRejected),
                                     IssueDateTime = DateTime.Now,
                                     IsDeleted = false
                                 };
@@ -404,7 +404,7 @@ namespace tahsinERP.Controllers.MES
                         {
                             ProductID = inspection.ProductID,
                             DefectTypeID = defectTypeId,
-                            Quantity = (double)inspection.QtyRejected,
+                            Quantity = (decimal)((double)inspection.QtyRejected),
                             IssueDateTime = DateTime.Now,
                             IsDeleted = false
                         });

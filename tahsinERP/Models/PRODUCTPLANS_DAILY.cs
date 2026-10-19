@@ -23,9 +23,9 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int PlanID { get; set; }
         public System.DateTime Day { get; set; }
-        public double DayShift { get; set; }
-        public double NightShift { get; set; }
-        public double Total { get; set; }
+        public decimal DayShift { get; set; }
+        public decimal NightShift { get; set; }
+        public decimal Total { get; set; }
     
         public virtual PRODUCTPLAN PRODUCTPLAN { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

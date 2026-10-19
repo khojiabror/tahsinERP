@@ -24,9 +24,9 @@ namespace tahsinERP.Models
         public int ProductID { get; set; }
         public int ShopID { get; set; }
         public System.DateTime Date { get; set; }
-        public double DayShift { get; set; }
-        public double NightShift { get; set; }
-        public double Total { get; set; }
+        public decimal DayShift { get; set; }
+        public decimal NightShift { get; set; }
+        public decimal Total { get; set; }
         public string Comment { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public Nullable<System.DateTime> PlanDate { get; set; }

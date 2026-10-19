@@ -177,7 +177,7 @@ namespace tahsinERP.Controllers
                     }
 
                     // Summa saqlangan qatorlardan (avval formadagi indekslar bo'yicha qayta o'qilardi)
-                    newContract.Amount = SContractVatHelper.CalculateContractTotalWithVat(newContract.S_CONTRACT_PRODUCTS);
+                    newContract.Amount = (decimal?)(SContractVatHelper.CalculateContractTotalWithVat(newContract.S_CONTRACT_PRODUCTS));
 
                     db.S_CONTRACTS.Add(newContract);
                     db.SaveChanges();
@@ -239,16 +239,17 @@ namespace tahsinERP.Controllers
                 var contractedTotal = SContractVatHelper.CalculateContractTotalWithVat(productList);
                 if (contractedTotal <= 0 && contract.Amount.HasValue)
                 {
-                    contractedTotal = contract.Amount.Value;
+                    contractedTotal = (double)contract.Amount.Value;
                 }
                 var orderIds = linkedOrders.Select(o => o.ID).ToList();
 
                 ViewBag.ContractedTotal = contractedTotal;
                 ViewBag.ContractedBase = productList.Sum(p => SContractVatHelper.GetLineBaseAmount(p));
-                ViewBag.ContractedVat = productList.Sum(p => p.vatamount ?? 0);
+                // View `as double?` bilan o'qiydi — ustun decimal bo'lgach turini aniq saqlaymiz
+                ViewBag.ContractedVat = (double)productList.Sum(p => p.vatamount ?? 0);
                 ViewBag.ContractedVatRate = SContractVatHelper.CalculateContractVatRate(productList);
-                ViewBag.ContractedQty = productList.Sum(p => p.Amount);
-                ViewBag.OrderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
+                ViewBag.ContractedQty = (double)productList.Sum(p => p.Amount);
+                ViewBag.OrderedTotal = (double)linkedOrders.Sum(o => o.Amount ?? 0);
                 ViewBag.OrderedQty = orderIds.Count == 0
                     ? 0d
                     : db.S_ORDER_PRODUCTS
@@ -297,11 +298,11 @@ namespace tahsinERP.Controllers
                         SContractID = p.ContractID,
                         ProductID = p.ProductID,
                         ProductPNo = p.PRODUCT.PNo,
-                        PiecePrice = p.PiecePrice,
+                        PiecePrice = (double)p.PiecePrice,
                         UnitID = p.UnitID,
-                        Amount = p.Amount,
+                        Amount = (double)p.Amount,
                         VatPercent = SContractVatHelper.GetVatPercentFromLine(
-                            SContractVatHelper.GetLineBaseAmount(p), p.vatamount),
+                            SContractVatHelper.GetLineBaseAmount(p), (double?)p.vatamount),
                         PRODUCT = new ProductViewModel
                         {
                             ID = p.PRODUCT.ID,
@@ -393,7 +394,7 @@ namespace tahsinERP.Controllers
                             .Select(e => e.Entity))
                         .Distinct()
                         .ToList();
-                    contractToUpdate.Amount = SContractVatHelper.CalculateContractTotalWithVat(finalLines);
+                    contractToUpdate.Amount = (decimal?)(SContractVatHelper.CalculateContractTotalWithVat(finalLines));
                     db.SaveChanges();
 
                     LogHelper.LogToDatabase(CurrentUserName, "SContractController", $"{contractToUpdate.ContractNo} - SContractni tahrirladi");
@@ -489,7 +490,7 @@ namespace tahsinERP.Controllers
                 var contract = db.S_CONTRACTS.Find(contractID);
                 if (contract != null)
                 {
-                    contract.Amount = SContractVatHelper.CalculateContractTotalWithVat(remainingProducts);
+                    contract.Amount = (decimal?)(SContractVatHelper.CalculateContractTotalWithVat(remainingProducts));
                     db.SaveChanges();
                 }
 
@@ -626,12 +627,12 @@ namespace tahsinERP.Controllers
             var lineBase = SContractVatHelper.GetLineBaseAmount(product.PiecePrice, product.Amount);
             var vatAmount = SContractVatHelper.CalculateVatAmount(lineBase, product.VatPercent);
             line.ProductID = product.ProductID;
-            line.PiecePrice = product.PiecePrice;
-            line.Amount = product.Amount;
+            line.PiecePrice = (decimal)product.PiecePrice;
+            line.Amount = (decimal)product.Amount;
             line.UnitID = product.UnitID;
-            line.vatamount = vatAmount;
+            line.vatamount = (decimal?)vatAmount;
             // totalamount GetLineTotalWithVat'da ustun turadi — eskirib qolmasligi uchun yangilanadi
-            line.totalamount = lineBase + vatAmount;
+            line.totalamount = (decimal?)(lineBase + vatAmount);
         }
 
         /// <summary>Mahsulot shu shartnoma bo'yicha buyurtma yoki faol invoysda ishlatilgan bo'lsa — xabar, aks holda null.</summary>

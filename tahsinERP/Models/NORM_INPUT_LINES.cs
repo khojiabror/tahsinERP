@@ -24,8 +24,8 @@ namespace tahsinERP.Models
         public System.DateTime CreatedDT { get; set; }
         public decimal Price { get; set; }
         public Nullable<decimal> TotalAmount { get; set; }
-        public Nullable<double> Consumption { get; set; }
-        public Nullable<double> WasteAmount { get; set; }
+        public Nullable<decimal> Consumption { get; set; }
+        public Nullable<decimal> WasteAmount { get; set; }
         public Nullable<int> UnitID { get; set; }
         public string Comment { get; set; }
     
