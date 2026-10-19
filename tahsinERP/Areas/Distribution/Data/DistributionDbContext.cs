@@ -75,6 +75,34 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<UserScope> UserScopes { get; set; }
         public virtual DbSet<UserSetting> UserSettings { get; set; }
 
+        // ma'lumotnomalar (S1)
+        public virtual DbSet<Territory> Territories { get; set; }
+        public virtual DbSet<CustomerProfile> CustomerProfiles { get; set; }
+        public virtual DbSet<Brand> Brands { get; set; }
+        public virtual DbSet<Manufacturer> Manufacturers { get; set; }
+        public virtual DbSet<SubCategory> SubCategories { get; set; }
+        public virtual DbSet<ProductProfile> ProductProfiles { get; set; }
+        public virtual DbSet<ProductUnit> ProductUnits { get; set; }
+        public virtual DbSet<ProductBarcode> ProductBarcodes { get; set; }
+        public virtual DbSet<PriceType> PriceTypes { get; set; }
+        public virtual DbSet<PriceListItem> PriceListItems { get; set; }
+        public virtual DbSet<CustomerPrice> CustomerPrices { get; set; }
+        public virtual DbSet<SalesTeam> SalesTeams { get; set; }
+        public virtual DbSet<SalesAgent> SalesAgents { get; set; }
+        public virtual DbSet<DiscountLimit> DiscountLimits { get; set; }
+        public virtual DbSet<Reason> Reasons { get; set; }
+        public virtual DbSet<WarehouseSetting> WarehouseSettings { get; set; }
+        public virtual DbSet<ProductStockLimit> ProductStockLimits { get; set; }
+
+        // dbo jadvallari — faqat o'qish (join uchun)
+        public virtual DbSet<CustomerRef> Customers { get; set; }
+        public virtual DbSet<ProductRef> Products { get; set; }
+        public virtual DbSet<UnitRef> Units { get; set; }
+        public virtual DbSet<CategoryRef> Categories { get; set; }
+        public virtual DbSet<UserRef> Users { get; set; }
+        public virtual DbSet<WarehouseRef> Warehouses { get; set; }
+        public virtual DbSet<RoleRef> Roles { get; set; }
+
         private AuditActor _actor;
 
         /// <summary>Jurnal uchun foydalanuvchi; berilmasa joriy HTTP so'rovdan olinadi.</summary>
@@ -90,19 +118,62 @@ namespace tahsinERP.Areas.Distribution.Data
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema(Schema);
-            modelBuilder.Entity<AuditTrailEntry>().Property(e => e.Action).IsFixedLength().IsUnicode(false);
-            modelBuilder.Entity<AuditTrailEntry>().Property(e => e.EntityName).IsUnicode(false);
-            modelBuilder.Entity<AuditTrailEntry>().Property(e => e.EntityKey).IsUnicode(false);
-            modelBuilder.Entity<AuditTrailEntry>().Property(e => e.FieldName).IsUnicode(false);
-            modelBuilder.Entity<AuditTrailEntry>().Property(e => e.Source).IsUnicode(false);
+
+            // EF6 sukut bo'yicha DateTime -> datetime, decimal -> (18,2): ustunlar aniq turlari bilan
+            modelBuilder.Properties<DateTime>()
+                .Where(p => !p.IsDefined(typeof(System.ComponentModel.DataAnnotations.Schema.ColumnAttribute), true))
+                .Configure(c => c.HasColumnType("datetime2"));
+
+            // varchar ustunlar (nvarchar parametr indeksni buzmasin)
+            modelBuilder.Properties<string>()
+                .Where(p => typeof(IReadOnlyRef).IsAssignableFrom(p.DeclaringType) && p.DeclaringType != typeof(CategoryRef))
+                .Configure(c => c.IsUnicode(false));
+
+            var audit = modelBuilder.Entity<AuditTrailEntry>();
+            audit.Property(e => e.Action).IsFixedLength().IsUnicode(false);
+            audit.Property(e => e.EntityName).IsUnicode(false);
+            audit.Property(e => e.EntityKey).IsUnicode(false);
+            audit.Property(e => e.FieldName).IsUnicode(false);
+            audit.Property(e => e.Source).IsUnicode(false);
             modelBuilder.Entity<UserScope>().Property(e => e.ScopeType).IsUnicode(false);
             modelBuilder.Entity<UserSetting>().Property(e => e.Language).IsUnicode(false);
+
+            var cp = modelBuilder.Entity<CustomerProfile>();
+            cp.Property(e => e.INN).IsUnicode(false);
+            cp.Property(e => e.Phone2).IsUnicode(false);
+            cp.Property(e => e.PhotoKey).IsUnicode(false);
+            cp.Property(e => e.PointType).IsUnicode(false);
+            cp.Property(e => e.Category).IsUnicode(false).IsFixedLength();
+            cp.Property(e => e.CreatedVia).IsUnicode(false);
+            cp.Property(e => e.Lat).HasPrecision(9, 6);
+            cp.Property(e => e.Lng).HasPrecision(9, 6);
+            cp.Property(e => e.CreditLimit).HasPrecision(19, 2);
+
+            var pp = modelBuilder.Entity<ProductProfile>();
+            pp.Property(e => e.BaseWeightKg).HasPrecision(18, 4);
+            pp.Property(e => e.BaseVolumeM3).HasPrecision(18, 6);
+
+            var pu = modelBuilder.Entity<ProductUnit>();
+            pu.Property(e => e.Factor).HasPrecision(18, 6);
+            pu.Property(e => e.WeightKg).HasPrecision(18, 4);
+            pu.Property(e => e.VolumeM3).HasPrecision(18, 6);
+
+            modelBuilder.Entity<ProductBarcode>().Property(e => e.Barcode).IsUnicode(false);
+            modelBuilder.Entity<PriceListItem>().Property(e => e.Price).HasPrecision(19, 2);
+            modelBuilder.Entity<PriceListItem>().Property(e => e.MinPrice).HasPrecision(19, 2);
+            modelBuilder.Entity<CustomerPrice>().Property(e => e.Price).HasPrecision(19, 2);
+            modelBuilder.Entity<SalesAgent>().Property(e => e.Phone).IsUnicode(false);
+            modelBuilder.Entity<DiscountLimit>().Property(e => e.MaxPercent).HasPrecision(5, 2);
+            modelBuilder.Entity<Reason>().Property(e => e.Type).IsUnicode(false);
+            modelBuilder.Entity<ProductStockLimit>().Property(e => e.MinQty).HasPrecision(18, 4);
+
             base.OnModelCreating(modelBuilder);
         }
 
         public override int SaveChanges()
         {
             ChangeTracker.DetectChanges();
+            GuardReadOnlyRefs();
             GuardDocuments();
 
             var actor = Actor;
@@ -156,6 +227,15 @@ namespace tahsinERP.Areas.Distribution.Data
             {
                 own?.Dispose();
             }
+        }
+
+        private void GuardReadOnlyRefs()
+        {
+            var changed = ChangeTracker.Entries<IReadOnlyRef>()
+                .FirstOrDefault(e => e.State != EntityState.Unchanged && e.State != EntityState.Detached);
+            if (changed != null)
+                throw new InvalidOperationException(
+                    "dbo jadvali (" + changed.Entity.GetType().Name + ") distributsiya kontekstidan o'zgartirilmaydi — DBTHSNEntities orqali yozing.");
         }
 
         private void GuardDocuments()

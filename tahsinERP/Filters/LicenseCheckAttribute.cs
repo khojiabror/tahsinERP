@@ -85,6 +85,7 @@ namespace tahsinERP.Filters
             // Bloklangan sahifaga yo'naltiramiz
             filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
             {
+                area = "",   // Area (masalan /Distribution) ichidan ham ildizdagi sahifaga
                 controller = "License",
                 action = "Blocked"
             }));

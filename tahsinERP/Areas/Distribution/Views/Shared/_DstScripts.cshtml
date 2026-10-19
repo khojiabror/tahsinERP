@@ -1,0 +1,25 @@
+@* Distributsiya sahifalari uchun umumiy skriptlar va tarjimalar (window.dstI18n). *@
+<script>
+    window.dstI18n = {
+        saved: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Saved")))',
+        error: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Error_SaveFailed")))',
+        forbidden: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Forbidden")))',
+        loadError: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Error_Load")))',
+        confirm: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Confirm")))',
+        table: {
+            search: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Search")))',
+            lengthMenu: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Length")))',
+            info: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Info")))',
+            infoEmpty: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Empty")))',
+            infoFiltered: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Filtered")))',
+            processing: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Loading")))',
+            zeroRecords: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_NotFound")))',
+            paginate: {
+                first: '«', last: '»',
+                next: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Next")))',
+                previous: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Table_Prev")))'
+            }
+        }
+    };
+</script>
+<script src="~/Scripts/dst/dst.js"></script>

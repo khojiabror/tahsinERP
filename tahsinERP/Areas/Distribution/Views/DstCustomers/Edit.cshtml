@@ -1,0 +1,165 @@
+@model tahsinERP.Areas.Distribution.Services.CustomerInput
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.DstParent = DstLocalization.T("Customers");
+    ViewBag.Title = Model.ID.HasValue ? Model.Name : DstLocalization.T("Customer_Add");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool? approved = ViewBag.IsApproved;
+    string[] dayKeys = { "Day_Mon", "Day_Tue", "Day_Wed", "Day_Thu", "Day_Fri", "Day_Sat", "Day_Sun" };
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null)
+            {
+                <div class="alert alert-success">@DstLocalization.T("Saved")</div>
+            }
+            @if (approved == false)
+            {
+                <div class="alert alert-warning">@DstLocalization.T("Customer_PendingHint")</div>
+            }
+            @using (Html.BeginForm("Edit", "DstCustomers", new { area = "Distribution" }, FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.ID)
+                @Html.ValidationSummary(false, "", new { @class = "alert alert-danger" })
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Customer_Main")</h4></div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>@DstLocalization.T("Name") *</label>
+                                    @Html.TextBoxFor(m => m.Name, new { @class = "form-control", maxlength = 50, required = "required" })
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("INN")</label>
+                                        @Html.TextBoxFor(m => m.INN, new { @class = "form-control", maxlength = 14, placeholder = "9 / 14" })
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("PointType")</label>
+                                        @Html.DropDownListFor(m => m.PointType, (List<SelectListItem>)ViewBag.PointTypes, new { @class = "form-control" })
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("OwnerName")</label>
+                                        @Html.TextBoxFor(m => m.OwnerName, new { @class = "form-control", maxlength = 100 })
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("ContactPerson")</label>
+                                        @Html.TextBoxFor(m => m.ContactPersonName, new { @class = "form-control", maxlength = 30 })
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Phone")</label>
+                                        @Html.TextBoxFor(m => m.Telephone, new { @class = "form-control", placeholder = "+998 90 123 45 67" })
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Phone2")</label>
+                                        @Html.TextBoxFor(m => m.Phone2, new { @class = "form-control" })
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label>@DstLocalization.T("City")</label>
+                                        @Html.TextBoxFor(m => m.City, new { @class = "form-control", maxlength = 50 })
+                                    </div>
+                                    <div class="form-group col-md-8">
+                                        <label>@DstLocalization.T("Address")</label>
+                                        @Html.TextBoxFor(m => m.Address, new { @class = "form-control" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>@DstLocalization.T("Landmark")</label>
+                                    @Html.TextBoxFor(m => m.Landmark, new { @class = "form-control", maxlength = 200 })
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-5">
+                                        <label>@DstLocalization.T("Latitude")</label>
+                                        @Html.TextBoxFor(m => m.Lat, new { @class = "form-control", placeholder = "41.311081" })
+                                    </div>
+                                    <div class="form-group col-md-5">
+                                        <label>@DstLocalization.T("Longitude")</label>
+                                        @Html.TextBoxFor(m => m.Lng, new { @class = "form-control", placeholder = "69.240562" })
+                                    </div>
+                                    <div class="form-group col-md-2 d-flex align-items-end">
+                                        @if (Model.Lat.HasValue && Model.Lng.HasValue)
+                                        {
+                                            <a class="btn btn-outline-secondary btn-block" target="_blank" rel="noopener"
+                                               href="https://yandex.uz/maps/?pt=@(Model.Lng.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(Model.Lat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))&z=17&l=map"><i class="bx bx-map"></i></a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Customer_Sales")</h4></div>
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="form-group col-md-8">
+                                        <label>@DstLocalization.T("Territory")</label>
+                                        @Html.DropDownListFor(m => m.TerritoryID, (List<SelectListItem>)ViewBag.Territories, "—", new { @class = "form-control select" })
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label>@DstLocalization.T("Category")</label>
+                                        @Html.DropDownListFor(m => m.Category, new SelectList(new[] { "A", "B", "C" }), "—", new { @class = "form-control" })
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Agent")</label>
+                                        @Html.DropDownListFor(m => m.AgentUserID, (List<SelectListItem>)ViewBag.Agents, "—", new { @class = "form-control select" })
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("PriceType")</label>
+                                        @Html.DropDownListFor(m => m.PriceTypeID, (List<SelectListItem>)ViewBag.PriceTypes, DstLocalization.T("DefaultPriceType"), new { @class = "form-control" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="d-block">@DstLocalization.T("VisitDays")</label>
+                                    @for (int i = 0; i < 7; i++)
+                                    {
+                                        byte bit = (byte)(1 << i);
+                                        <div class="custom-control custom-checkbox custom-control-inline">
+                                            <input type="checkbox" class="custom-control-input" id="vd@(i)" name="visitDay" value="@bit" @((Model.VisitDays & bit) != 0 ? "checked" : "") />
+                                            <label class="custom-control-label" for="vd@(i)">@DstLocalization.T(dayKeys[i])</label>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("CreditLimit") (@DstLocalization.T("Currency_Sum"))</label>
+                                        @Html.TextBoxFor(m => m.CreditLimit, new { @class = "form-control", type = "number", min = "0", step = "1000" })
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("PaymentDays")</label>
+                                        @Html.TextBoxFor(m => m.PaymentDays, new { @class = "form-control", type = "number", min = "0", max = "365" })
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-0">@DstLocalization.T("CreditLimit_Hint")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    @if (canChange)
+                    {
+                        <button type="submit" class="btn btn-primary">@DstLocalization.T("Save")</button>
+                    }
+                    @if (Model.ID.HasValue)
+                    {
+                        <a class="btn btn-outline-primary" href="@Url.Action("Customer", "DstPrices", new { id = Model.ID })">@DstLocalization.T("Customer_SpecialPrices")</a>
+                    }
+                    <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

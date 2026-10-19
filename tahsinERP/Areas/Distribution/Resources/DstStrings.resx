@@ -12,19 +12,721 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Module_Title" xml:space="preserve">
-    <value>Distributsiya</value>
+  <data name="Active" xml:space="preserve">
+    <value>Faol</value>
   </data>
-  <data name="Module_Intro" xml:space="preserve">
-    <value>Ulgurji savdo: agentlar, buyurtmalar, ombor, mijozlar qarzi. Modul bosqichma-bosqich ishga tushirilmoqda.</value>
+  <data name="Add" xml:space="preserve">
+    <value>Qo'shish</value>
   </data>
-  <data name="Language" xml:space="preserve">
-    <value>Til</value>
+  <data name="Address" xml:space="preserve">
+    <value>Manzil</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="Agents" xml:space="preserve">
+    <value>Agentlar</value>
+  </data>
+  <data name="Agents_Hint" xml:space="preserve">
+    <value>Agent — ERP foydalanuvchisi; u faqat o'ziga biriktirilgan mijozlarni ko'radi. Ekspeditor — yetkazib beruvchi (2-bosqich).</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Hammasi</value>
+  </data>
+  <data name="All_Agents" xml:space="preserve">
+    <value>Barcha agentlar</value>
+  </data>
+  <data name="All_Brands" xml:space="preserve">
+    <value>Barcha brendlar</value>
+  </data>
+  <data name="All_Categories" xml:space="preserve">
+    <value>Barcha kategoriyalar</value>
+  </data>
+  <data name="All_Territories" xml:space="preserve">
+    <value>Barcha hududlar</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Qo'llash</value>
+  </data>
+  <data name="Approve" xml:space="preserve">
+    <value>Tasdiqlash</value>
+  </data>
+  <data name="Article" xml:space="preserve">
+    <value>Artikul</value>
+  </data>
+  <data name="Auto" xml:space="preserve">
+    <value>avtomatik</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Orqaga</value>
+  </data>
+  <data name="Barcodes" xml:space="preserve">
+    <value>Shtrix-kodlar</value>
+  </data>
+  <data name="BaseUnit" xml:space="preserve">
+    <value>Asosiy birlik</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Brend</value>
+  </data>
+  <data name="Brands" xml:space="preserve">
+    <value>Brendlar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Bekor</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Kategoriya</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Shahar</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Ishonchingiz komilmi?</value>
+  </data>
+  <data name="ContactPerson" xml:space="preserve">
+    <value>Aloqa shaxsi</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Davlat</value>
+  </data>
+  <data name="CreditLimit" xml:space="preserve">
+    <value>Kredit limiti</value>
+  </data>
+  <data name="CreditLimit_Hint" xml:space="preserve">
+    <value>Qarz + yangi buyurtma limitdan oshsa yoki muddati o'tgan qarz bo'lsa, buyurtma tasdiqlanmaydi (rahbar ruxsatisiz). 0 — faqat oldindan to'lov.</value>
+  </data>
+  <data name="Currency_Sum" xml:space="preserve">
+    <value>so'm</value>
+  </data>
+  <data name="Customer_Add" xml:space="preserve">
+    <value>Yangi mijoz</value>
+  </data>
+  <data name="Customer_Attach" xml:space="preserve">
+    <value>Mavjud mijozni qo'shish</value>
+  </data>
+  <data name="Customer_AttachHint" xml:space="preserve">
+    <value>Ishlab chiqarish (CRM) mijozlaridan birini distributsiyaga qo'shish.</value>
+  </data>
+  <data name="Customer_Main" xml:space="preserve">
+    <value>Asosiy ma'lumot</value>
+  </data>
+  <data name="Customer_Pending" xml:space="preserve">
+    <value>Tasdiq kutilmoqda</value>
+  </data>
+  <data name="Customer_PendingHint" xml:space="preserve">
+    <value>Bu nuqtani agent qo'shgan — ma'lumotni tekshirib, ro'yxatda tasdiqlang.</value>
+  </data>
+  <data name="Customer_Sales" xml:space="preserve">
+    <value>Savdo shartlari</value>
+  </data>
+  <data name="Customer_SpecialPrices" xml:space="preserve">
+    <value>Maxsus narxlar</value>
+  </data>
+  <data name="Customer_SpecialPricesHint" xml:space="preserve">
+    <value>Maxsus narx narx turidan ustun turadi va minimal narx tekshiruvidan ozod. To'xtatilgan narx tarixda qoladi.</value>
+  </data>
+  <data name="Customers" xml:space="preserve">
+    <value>Mijozlar</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Sana</value>
+  </data>
+  <data name="Day_Fri" xml:space="preserve">
+    <value>Ju</value>
+  </data>
+  <data name="Day_Mon" xml:space="preserve">
+    <value>Du</value>
+  </data>
+  <data name="Day_Sat" xml:space="preserve">
+    <value>Sh</value>
+  </data>
+  <data name="Day_Sun" xml:space="preserve">
+    <value>Ya</value>
+  </data>
+  <data name="Day_Thu" xml:space="preserve">
+    <value>Pa</value>
+  </data>
+  <data name="Day_Tue" xml:space="preserve">
+    <value>Se</value>
+  </data>
+  <data name="Day_Wed" xml:space="preserve">
+    <value>Ch</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>kun</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>standart</value>
+  </data>
+  <data name="DefaultPriceType" xml:space="preserve">
+    <value>Standart narx turi</value>
+  </data>
+  <data name="DefaultSaleUnit" xml:space="preserve">
+    <value>Sotishda odatiy birlik</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>O'chirish</value>
+  </data>
+  <data name="Dictionaries" xml:space="preserve">
+    <value>Ma'lumotnomalar</value>
+  </data>
+  <data name="DiscountLimits" xml:space="preserve">
+    <value>Chegirma limitlari</value>
+  </data>
+  <data name="DiscountLimits_Hint" xml:space="preserve">
+    <value>Rol bo'yicha maksimal chegirma %. Bo'sh — chegirma bera olmaydi ("Cheksiz chegirma" huquqi bundan ustun).</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Tahrirlash</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Xato</value>
+  </data>
+  <data name="Error_AgentRequired" xml:space="preserve">
+    <value>Agent topilmadi yoki faol emas.</value>
+  </data>
+  <data name="Error_BarcodeChecksum" xml:space="preserve">
+    <value>Shtrix-kod nazorat raqami noto'g'ri (EAN/UPC).</value>
+  </data>
+  <data name="Error_BarcodeEmpty" xml:space="preserve">
+    <value>Shtrix-kodni kiriting.</value>
+  </data>
+  <data name="Error_BarcodeFormat" xml:space="preserve">
+    <value>Shtrix-kod 4–50 ta harf/raqamdan iborat bo'lishi kerak.</value>
+  </data>
+  <data name="Error_BarcodeTaken" xml:space="preserve">
+    <value>Bu shtrix-kod boshqa tovarga biriktirilgan (ID {0}).</value>
   </data>
   <data name="Error_CancelReasonRequired" xml:space="preserve">
     <value>Bekor qilish sababini yozing.</value>
   </data>
+  <data name="Error_CategoryAbc" xml:space="preserve">
+    <value>Toifa faqat A, B yoki C.</value>
+  </data>
+  <data name="Error_CategoryRequired" xml:space="preserve">
+    <value>Kategoriyani tanlang.</value>
+  </data>
+  <data name="Error_CreditRange" xml:space="preserve">
+    <value>Kredit limiti 0 dan, to'lov muddati 0–365 kun.</value>
+  </data>
+  <data name="Error_DateRange" xml:space="preserve">
+    <value>Tugash sanasi boshlanishdan oldin bo'lmasin.</value>
+  </data>
+  <data name="Error_DefaultPriceTypeInactive" xml:space="preserve">
+    <value>Standart narx turi faol bo'lishi kerak.</value>
+  </data>
+  <data name="Error_Duplicate" xml:space="preserve">
+    <value>Bunday yozuv allaqachon bor.</value>
+  </data>
+  <data name="Error_FactorPositive" xml:space="preserve">
+    <value>Koeffitsient 0 dan katta bo'lishi kerak.</value>
+  </data>
+  <data name="Error_GeoPair" xml:space="preserve">
+    <value>Kenglik va uzunlik birga kiritiladi.</value>
+  </data>
+  <data name="Error_GeoRange" xml:space="preserve">
+    <value>Koordinatalar noto'g'ri.</value>
+  </data>
+  <data name="Error_InUse" xml:space="preserve">
+    <value>Yozuv ishlatilgan — o'chirib bo'lmaydi, nofaol qiling.</value>
+  </data>
+  <data name="Error_InnDuplicate" xml:space="preserve">
+    <value>Bu STIR boshqa mijozda bor.</value>
+  </data>
+  <data name="Error_InnFormat" xml:space="preserve">
+    <value>STIR 9 raqam (yuridik) yoki JShShIR 14 raqam bo'lishi kerak.</value>
+  </data>
+  <data name="Error_Load" xml:space="preserve">
+    <value>Ro'yxatni yuklashda xatolik.</value>
+  </data>
+  <data name="Error_MinPriceRange" xml:space="preserve">
+    <value>Minimal narx 0 va narx oralig'ida bo'lishi kerak.</value>
+  </data>
+  <data name="Error_NameRequired" xml:space="preserve">
+    <value>Nomini kiriting.</value>
+  </data>
+  <data name="Error_NameTooLong" xml:space="preserve">
+    <value>Nomi {0} belgidan oshmasin.</value>
+  </data>
+  <data name="Error_NotFound" xml:space="preserve">
+    <value>Yozuv topilmadi.</value>
+  </data>
+  <data name="Error_NumberFormat" xml:space="preserve">
+    <value>Son noto'g'ri kiritilgan</value>
+  </data>
+  <data name="Error_PercentRange" xml:space="preserve">
+    <value>Foiz noto'g'ri.</value>
+  </data>
+  <data name="Error_PhoneFormat" xml:space="preserve">
+    <value>Telefon raqami noto'g'ri.</value>
+  </data>
   <data name="Error_PostedCannotBeDeleted" xml:space="preserve">
     <value>O'tkazilgan hujjatni o'chirib bo'lmaydi — sababini ko'rsatib bekor qiling.</value>
+  </data>
+  <data name="Error_PriceNegative" xml:space="preserve">
+    <value>Narx manfiy bo'lmasin.</value>
+  </data>
+  <data name="Error_PriceTypeRequired" xml:space="preserve">
+    <value>Narx turi topilmadi yoki faol emas.</value>
+  </data>
+  <data name="Error_ReasonType" xml:space="preserve">
+    <value>Sabab turini tanlang.</value>
+  </data>
+  <data name="Error_SaveFailed" xml:space="preserve">
+    <value>Saqlashda xatolik yuz berdi.</value>
+  </data>
+  <data name="Error_TerritoryCycle" xml:space="preserve">
+    <value>Hududni o'z ichidagi hudud ostiga ko'chirib bo'lmaydi.</value>
+  </data>
+  <data name="Error_TerritoryDepth" xml:space="preserve">
+    <value>Hudud ostida yangi daraja ochib bo'lmaydi (maksimum 3).</value>
+  </data>
+  <data name="Error_TerritoryHasChildren" xml:space="preserve">
+    <value>Ichida hududlar bor — darajasini o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Error_TerritoryParent" xml:space="preserve">
+    <value>Hudud topilmadi yoki faol emas.</value>
+  </data>
+  <data name="Error_UnitDuplicate" xml:space="preserve">
+    <value>Bu birlik allaqachon qo'shilgan.</value>
+  </data>
+  <data name="Error_UnitIsBase" xml:space="preserve">
+    <value>Bu tovarning asosiy birligi — qo'shimcha birlik sifatida qo'shilmaydi.</value>
+  </data>
+  <data name="Expeditor" xml:space="preserve">
+    <value>Ekspeditor</value>
+  </data>
+  <data name="Factor" xml:space="preserve">
+    <value>Koeffitsient</value>
+  </data>
+  <data name="Factor_Label" xml:space="preserve">
+    <value>Nechta {0} (asosiy birlik)</value>
+  </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>Ruxsat yo'q</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Bosh sahifa</value>
+  </data>
+  <data name="INN" xml:space="preserve">
+    <value>STIR</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Excel import</value>
+  </data>
+  <data name="Import_AllOrNothing" xml:space="preserve">
+    <value>Avval barcha qatorlar tekshiriladi: bitta xato bo'lsa ham hech narsa yozilmaydi — xatolarni tuzatib qayta yuklang.</value>
+  </data>
+  <data name="Import_AmbiguousName" xml:space="preserve">
+    <value>Shu nomli bir nechta mijoz bor — STIR bilan aniqlashtiring.</value>
+  </data>
+  <data name="Import_AmbiguousTerritory" xml:space="preserve">
+    <value>Hudud aniq emas: {0} — "Viloyat / Tuman / Hudud" yo'lini yozing.</value>
+  </data>
+  <data name="Import_BaseUnitChange" xml:space="preserve">
+    <value>Mavjud tovarning asosiy birligini import orqali o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Import_Created" xml:space="preserve">
+    <value>yangi</value>
+  </data>
+  <data name="Import_CustomersHint" xml:space="preserve">
+    <value>Mijozlar STIR bo'yicha (bo'lmasa — nomi bo'yicha) topilib yangilanadi, topilmasa yaratiladi. Agent — login, hudud — nomi yoki yo'li, tashrif kunlari — 1,3,5 (Du=1).</value>
+  </data>
+  <data name="Import_Done" xml:space="preserve">
+    <value>Import yakunlandi</value>
+  </data>
+  <data name="Import_DryRun" xml:space="preserve">
+    <value>Faqat tekshirish (yozmaslik)</value>
+  </data>
+  <data name="Import_DryRunDone" xml:space="preserve">
+    <value>Tekshiruv o'tdi, hech narsa yozilmadi — belgini olib, qayta yuklang</value>
+  </data>
+  <data name="Import_DuplicateInFile" xml:space="preserve">
+    <value>Faylda takrorlangan: {0}</value>
+  </data>
+  <data name="Import_Failed" xml:space="preserve">
+    <value>{0} ta xato — hech narsa yozilmadi.</value>
+  </data>
+  <data name="Import_MissingColumn" xml:space="preserve">
+    <value>Majburiy ustun yo'q: {0}</value>
+  </data>
+  <data name="Import_NoPriceColumns" xml:space="preserve">
+    <value>Narx turi nomli ustun topilmadi (shablonni yuklab oling).</value>
+  </data>
+  <data name="Import_NoShop" xml:space="preserve">
+    <value>Bazada sex (SHOPS) yo'q — yangi tovar yaratib bo'lmaydi.</value>
+  </data>
+  <data name="Import_PnoNameRequired" xml:space="preserve">
+    <value>Artikul va nomi majburiy.</value>
+  </data>
+  <data name="Import_PnoTooLong" xml:space="preserve">
+    <value>Artikul {0} belgidan oshmasin.</value>
+  </data>
+  <data name="Import_PricesHint" xml:space="preserve">
+    <value>Artikul + har narx turi uchun ustun (va "&lt;nom&gt; min"). Narxlar asosiy birlik uchun. Bo'sh katak — o'zgarishsiz.</value>
+  </data>
+  <data name="Import_ProductsHint" xml:space="preserve">
+    <value>Tovarlar artikul bo'yicha topilib yangilanadi, topilmasa yaratiladi. Birlik 2/3 — koeffitsient bilan (masalan quti = 1,44 m²). Bir nechta shtrix-kod — ";" bilan.</value>
+  </data>
+  <data name="Import_ReadFailed" xml:space="preserve">
+    <value>Faylni o'qib bo'lmadi.</value>
+  </data>
+  <data name="Import_Skipped" xml:space="preserve">
+    <value>o'zgarishsiz</value>
+  </data>
+  <data name="Import_Template" xml:space="preserve">
+    <value>Shablonni yuklab olish</value>
+  </data>
+  <data name="Import_TooLarge" xml:space="preserve">
+    <value>Fayl 10 MB dan katta.</value>
+  </data>
+  <data name="Import_UnitFactorPair" xml:space="preserve">
+    <value>Birlik {0} va koeffitsient {0} birga kiritiladi.</value>
+  </data>
+  <data name="Import_UnitRequired" xml:space="preserve">
+    <value>Yangi tovar uchun asosiy birlik majburiy.</value>
+  </data>
+  <data name="Import_UnknownValue" xml:space="preserve">
+    <value>Topilmadi: {0}</value>
+  </data>
+  <data name="Import_Updated" xml:space="preserve">
+    <value>yangilandi</value>
+  </data>
+  <data name="Import_Upload" xml:space="preserve">
+    <value>Yuklash</value>
+  </data>
+  <data name="Import_XlsxOnly" xml:space="preserve">
+    <value>.xlsx fayl tanlang.</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Nofaol</value>
+  </data>
+  <data name="Landmark" xml:space="preserve">
+    <value>Mo'ljal</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Til</value>
+  </data>
+  <data name="Latitude" xml:space="preserve">
+    <value>Kenglik</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Daraja</value>
+  </data>
+  <data name="Longitude" xml:space="preserve">
+    <value>Uzunlik</value>
+  </data>
+  <data name="MakeDefault" xml:space="preserve">
+    <value>Standart qilish</value>
+  </data>
+  <data name="Manufacturer" xml:space="preserve">
+    <value>Ishlab chiqaruvchi</value>
+  </data>
+  <data name="Manufacturers" xml:space="preserve">
+    <value>Ishlab chiqaruvchilar</value>
+  </data>
+  <data name="MinPrice" xml:space="preserve">
+    <value>Minimal narx</value>
+  </data>
+  <data name="MinStock" xml:space="preserve">
+    <value>Minimal qoldiq</value>
+  </data>
+  <data name="Module_Intro" xml:space="preserve">
+    <value>Ulgurji savdo: agentlar, buyurtmalar, ombor, mijozlar qarzi. Modul bosqichma-bosqich ishga tushirilmoqda.</value>
+  </data>
+  <data name="Module_Title" xml:space="preserve">
+    <value>Distributsiya</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nomi</value>
+  </data>
+  <data name="NameRu" xml:space="preserve">
+    <value>Nomi (rus)</value>
+  </data>
+  <data name="OwnerName" xml:space="preserve">
+    <value>Egasi</value>
+  </data>
+  <data name="Parent" xml:space="preserve">
+    <value>Yuqori daraja</value>
+  </data>
+  <data name="PaymentDays" xml:space="preserve">
+    <value>To'lov muddati (kun)</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Telefon</value>
+  </data>
+  <data name="Phone2" xml:space="preserve">
+    <value>Telefon 2</value>
+  </data>
+  <data name="PointType" xml:space="preserve">
+    <value>Nuqta turi</value>
+  </data>
+  <data name="PointType_BRIGADE" xml:space="preserve">
+    <value>Qurilish brigadasi</value>
+  </data>
+  <data name="PointType_FOREMAN" xml:space="preserve">
+    <value>Prorab</value>
+  </data>
+  <data name="PointType_MARKET" xml:space="preserve">
+    <value>Qurilish bozori</value>
+  </data>
+  <data name="PointType_PRIVATE" xml:space="preserve">
+    <value>Xususiy mijoz</value>
+  </data>
+  <data name="PointType_SHOP" xml:space="preserve">
+    <value>Xo'jalik do'koni</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Narx</value>
+  </data>
+  <data name="PriceType" xml:space="preserve">
+    <value>Narx turi</value>
+  </data>
+  <data name="PriceTypes" xml:space="preserve">
+    <value>Narx turlari</value>
+  </data>
+  <data name="Price_Default" xml:space="preserve">
+    <value>Narx (standart)</value>
+  </data>
+  <data name="Price_GridHint" xml:space="preserve">
+    <value>Narxlar asosiy birlik uchun, so'mda. O'zgartirish uchun katakchani bosing — har o'zgarish tarixga yoziladi.</value>
+  </data>
+  <data name="Price_History" xml:space="preserve">
+    <value>Narx tarixi</value>
+  </data>
+  <data name="Price_MassChange" xml:space="preserve">
+    <value>Ommaviy o'zgartirish</value>
+  </data>
+  <data name="Price_MassDone" xml:space="preserve">
+    <value>O'zgartirildi</value>
+  </data>
+  <data name="Price_MassHint" xml:space="preserve">
+    <value>Tanlangan narx turida joriy narxi bor tovarlarga qo'llanadi; minimal narx ham shu foizda o'zgaradi.</value>
+  </data>
+  <data name="Price_Missing" xml:space="preserve">
+    <value>Standart narxi yo'q</value>
+  </data>
+  <data name="Price_PerBaseUnit" xml:space="preserve">
+    <value>Narxlar 1 {0} uchun.</value>
+  </data>
+  <data name="Price_RoundTo" xml:space="preserve">
+    <value>Yaxlitlash</value>
+  </data>
+  <data name="Prices" xml:space="preserve">
+    <value>Narxlar</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Tovar</value>
+  </data>
+  <data name="Product_Bulky" xml:space="preserve">
+    <value>Katta o'lchamli</value>
+  </data>
+  <data name="Product_Create" xml:space="preserve">
+    <value>Yangi tovar</value>
+  </data>
+  <data name="Product_NoProfile" xml:space="preserve">
+    <value>profil yo'q</value>
+  </data>
+  <data name="Product_NotOnSale" xml:space="preserve">
+    <value>Sotuvda emas</value>
+  </data>
+  <data name="Product_OnSale" xml:space="preserve">
+    <value>Sotuvda</value>
+  </data>
+  <data name="Product_Profile" xml:space="preserve">
+    <value>Distributsiya kartasi</value>
+  </data>
+  <data name="Product_Weighted" xml:space="preserve">
+    <value>Tortiladigan tovar</value>
+  </data>
+  <data name="Products" xml:space="preserve">
+    <value>Tovarlar</value>
+  </data>
+  <data name="ReasonType_CANCEL" xml:space="preserve">
+    <value>Bekor qilish</value>
+  </data>
+  <data name="ReasonType_NO_ORDER" xml:space="preserve">
+    <value>Buyurtmasiz tashrif</value>
+  </data>
+  <data name="ReasonType_RETURN" xml:space="preserve">
+    <value>Qaytarish</value>
+  </data>
+  <data name="ReasonType_WRITE_OFF" xml:space="preserve">
+    <value>Hisobdan chiqarish</value>
+  </data>
+  <data name="Reasons" xml:space="preserve">
+    <value>Sabablar</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="Row" xml:space="preserve">
+    <value>Qator</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Saqlash</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Saqlandi</value>
+  </data>
+  <data name="Scopes" xml:space="preserve">
+    <value>Ko'rinish doirasi</value>
+  </data>
+  <data name="Scopes_Hint" xml:space="preserve">
+    <value>Ro'yxat bo'sh bo'lsa — cheklov yo'q. To'ldirilsa — foydalanuvchi faqat tanlanganlarni ko'radi. Admin har doim hammasini ko'radi.</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Sozlamalar</value>
+  </data>
+  <data name="SortOrder" xml:space="preserve">
+    <value>Tartib</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Holat</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>To'xtatish</value>
+  </data>
+  <data name="SubCategories" xml:space="preserve">
+    <value>Subkategoriyalar</value>
+  </data>
+  <data name="SubCategory" xml:space="preserve">
+    <value>Subkategoriya</value>
+  </data>
+  <data name="Supervisor" xml:space="preserve">
+    <value>Supervayzer</value>
+  </data>
+  <data name="Table_Empty" xml:space="preserve">
+    <value>Yozuvlar yo'q</value>
+  </data>
+  <data name="Table_Filtered" xml:space="preserve">
+    <value>(jami _MAX_ tadan)</value>
+  </data>
+  <data name="Table_Info" xml:space="preserve">
+    <value>_TOTAL_ tadan _START_–_END_</value>
+  </data>
+  <data name="Table_Length" xml:space="preserve">
+    <value>_MENU_ ta ko'rsatish</value>
+  </data>
+  <data name="Table_Loading" xml:space="preserve">
+    <value>Yuklanmoqda...</value>
+  </data>
+  <data name="Table_Next" xml:space="preserve">
+    <value>Keyingi</value>
+  </data>
+  <data name="Table_NotFound" xml:space="preserve">
+    <value>Ma'lumot topilmadi</value>
+  </data>
+  <data name="Table_Prev" xml:space="preserve">
+    <value>Oldingi</value>
+  </data>
+  <data name="Table_Search" xml:space="preserve">
+    <value>Qidirish:</value>
+  </data>
+  <data name="Team" xml:space="preserve">
+    <value>Jamoa</value>
+  </data>
+  <data name="Teams" xml:space="preserve">
+    <value>Agentlar va jamoalar</value>
+  </data>
+  <data name="Teams_Hint" xml:space="preserve">
+    <value>Supervayzer o'z jamoasi agentlari va ularning mijozlarini ko'radi.</value>
+  </data>
+  <data name="Territories" xml:space="preserve">
+    <value>Hududlar</value>
+  </data>
+  <data name="Territory" xml:space="preserve">
+    <value>Hudud</value>
+  </data>
+  <data name="Territory_AddChild" xml:space="preserve">
+    <value>Ichiga qo'shish</value>
+  </data>
+  <data name="Territory_AddRegion" xml:space="preserve">
+    <value>Viloyat qo'shish</value>
+  </data>
+  <data name="Territory_Area" xml:space="preserve">
+    <value>Hudud</value>
+  </data>
+  <data name="Territory_District" xml:space="preserve">
+    <value>Tuman</value>
+  </data>
+  <data name="Territory_Region" xml:space="preserve">
+    <value>Viloyat</value>
+  </data>
+  <data name="Tile_Customers" xml:space="preserve">
+    <value>Savdo nuqtalari, limit, agent</value>
+  </data>
+  <data name="Tile_Dictionaries" xml:space="preserve">
+    <value>Brendlar, sabablar</value>
+  </data>
+  <data name="Tile_Import" xml:space="preserve">
+    <value>Excel'dan yuklash</value>
+  </data>
+  <data name="Tile_Prices" xml:space="preserve">
+    <value>Narx turlari va tarix</value>
+  </data>
+  <data name="Tile_Products" xml:space="preserve">
+    <value>Birliklar, shtrix-kodlar</value>
+  </data>
+  <data name="Tile_Settings" xml:space="preserve">
+    <value>Chegirma, omborlar</value>
+  </data>
+  <data name="Tile_Teams" xml:space="preserve">
+    <value>Agentlar, supervayzerlar</value>
+  </data>
+  <data name="Tile_Territories" xml:space="preserve">
+    <value>Viloyat → tuman → hudud</value>
+  </data>
+  <data name="ToggleActive" xml:space="preserve">
+    <value>Faol / nofaol</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Birlik</value>
+  </data>
+  <data name="Units" xml:space="preserve">
+    <value>O'lchov birliklari</value>
+  </data>
+  <data name="Units_Hint" xml:space="preserve">
+    <value>Agent qulay birlikda (quti, m², qop) sotadi; ombor va narx asosiy birlikda hisoblanadi.</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>Foydalanuvchi</value>
+  </data>
+  <data name="ValidFrom" xml:space="preserve">
+    <value>Boshlanish</value>
+  </data>
+  <data name="ValidTo" xml:space="preserve">
+    <value>Tugash</value>
+  </data>
+  <data name="VisitDays" xml:space="preserve">
+    <value>Tashrif kunlari</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>Hajm, m³</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Ombor</value>
+  </data>
+  <data name="Warehouse_AllowNegative" xml:space="preserve">
+    <value>Minusga ruxsat</value>
+  </data>
+  <data name="Warehouse_Hint" xml:space="preserve">
+    <value>"Savdoda" — buyurtmalar shu ombordan jo'natiladi. Minimal qoldiq — "tugayapti" ogohlantirishi uchun (asosiy birlikda).</value>
+  </data>
+  <data name="Warehouse_SalesPoint" xml:space="preserve">
+    <value>Savdoda</value>
+  </data>
+  <data name="Warehouse_Zone" xml:space="preserve">
+    <value>Yetkazish zonasi</value>
+  </data>
+  <data name="Warehouses" xml:space="preserve">
+    <value>Omborlar</value>
+  </data>
+  <data name="WeightKg" xml:space="preserve">
+    <value>Og'irlik, kg</value>
   </data>
 </root>

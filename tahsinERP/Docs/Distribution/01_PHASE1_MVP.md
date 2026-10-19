@@ -1,6 +1,6 @@
 # Distributsiya — 1-bosqich (MVP): batafsil reja
 
-Holat: 2026-10-19 — reja tasdiqlangan (8-bo'lim takliflari qabul qilindi), S0 bajarildi (10-bo'lim). Umumiy reja: `00_PLAN.md`.
+Holat: 2026-10-19 — reja tasdiqlangan (8-bo'lim takliflari qabul qilindi), S0 (10-bo'lim) va S1 (11-bo'lim) bajarildi. Umumiy reja: `00_PLAN.md`.
 Qabul qilingan qarorlar: **yangi distributsiya modeli** (alohida `D_ORDERS`, mavjud `S_ORDERS` ga tegilmaydi); mobil ilova o'rniga **Telegram bot + Mini App**; bot AWS'dagi o'z serverimiz uchun to'g'ri arxitekturada quriladi (cPanel vaqtinchalik yechimlari ko'chirilmaydi).
 
 ## 1. Maqsad va chegaralar
@@ -192,3 +192,29 @@ B rejasi (distributsiya jadvallarini EDMX'ga qo'shish) kerak bo'lmadi — spike 
 
 Ko'chirildi: **Hangfire** S4'ga (bildirishnoma outbox'i bilan birga keladi, undan oldin fon ishi yo'q). Menyu bandi S1'da (birinchi haqiqiy ekranlar bilan) qo'shiladi.
 Tekshirilmagan: `/Distribution` sahifasi brauzerda ochib ko'rilmagan (login kerak) — build va testlar o'tdi.
+
+## 11. S1 natijasi (2026-10-19, branch `feature/distribution`)
+
+Migratsiya `Database/Migrations/016_DST_Directories.sql` (014/015 raqamlari float→decimal ishiga band — lokal bazada `014_StockProduction_FloatToDecimal`, `015_ReferenceDims_FloatToDecimal` qo'llangan, hali master'da yo'q). Lokal bazada qo'llangan (zaxira `DBTHSN-IPACK_pre_014_DST_20261019.bak`), bo'sh baza uchun ruxsat modullari `Seed/105` da.
+
+| Sahifa (`/Distribution/...`) | Nima qiladi |
+|---|---|
+| `DstTerritories` | Viloyat → tuman → hudud daraxti; tsikl va chuqurlik (3) tekshiruvi; ishlatilgan hudud o'chirilmaydi |
+| `DstCustomers` | Mijozlar ro'yxati (server-side, hudud/agent/toifa/tasdiq filtri), karta: `dbo.CUSTOMERS` + `dst.CUSTOMER_PROFILES` bitta tranzaksiyada (STIR, GPS, nuqta turi, A/B/C, agent, narx turi, tashrif kunlari, limit, kechiktirish); agent qo'shgan nuqtani tasdiqlash; CRM mijozini distributsiyaga ulash. Ko'rinish: CUSTOMER/TERRITORY scope + agent ierarxiyasi (agent — o'zi, supervayzer — jamoasi) |
+| `DstProducts` | Tovar ro'yxati (shtrix-kod bo'yicha qidiruv), distributsiya kartasi: rus nomi, brend, ishlab chiqaruvchi, subkategoriya, og'irlik/hajm, sotuvda/katta/tortiladigan; qo'shimcha birliklar (Factor, odatiy sotish birligi); shtrix-kodlar (EAN/UPC nazorat raqami, takror taqiqlanadi). Tovarning o'zi — mavjud Product modulida |
+| `DstPrices` | Tovar × narx turi jadvali, katakchada tahrirlash (narx + min narx), tarix, kategoriya bo'yicha ommaviy % (yaxlitlash bilan, bitta tranzaksiya); mijozning maxsus narxlari (muddatli, to'xtatish tarixni saqlaydi) |
+| `DstTeams` | Jamoalar (supervayzer), agentlar/ekspeditorlar (ERP foydalanuvchisi, ombor, telefon), foydalanuvchi scope'lari (ombor/hudud/mijoz) |
+| `DstDictionaries` | Brendlar, ishlab chiqaruvchilar, subkategoriyalar, narx turlari (standart — bittagina), sabablar (qaytarish / buyurtmasiz / bekor / hisobdan chiqarish) |
+| `DstSettings` | Rol bo'yicha chegirma limiti, ombor sozlamalari (savdoda, minusga ruxsat, zona), minimal qoldiqlar |
+| `DstImport` | Excel: mijozlar (STIR/nom bo'yicha yangilash), tovarlar (birlik 2/3 + shtrix-kodlar, brend avtomatik), narxlar (narx turi ustunlari + "min"). Shablon yuklab olinadi; avval hamma qator tekshiriladi, xato bo'lsa hech narsa yozilmaydi; "faqat tekshirish" rejimi |
+
+Servislar: `PriceResolver`/`PricingService` (maxsus narx → mijoz narx turi → standart; o'zgarmagan narx tarixga yozilmaydi), `UnitMath`/`UnitService`, `DirectoryRules` (STIR 9/14, telefon +998, GPS, A/B/C, shtrix-kod GTIN, hudud), `CustomerService`, `ImportService`, `ScopeService.AgentsFor`.
+
+Umumiy tuzatishlar:
+- Area ichidan global filtrlar (litsenziya, paket, ruxsat, parol almashtirish), `BaseController.NotAuthorized` va `_Layout` havolalari `/Distribution/...` ga noto'g'ri yo'naltirardi — `area = ""` qo'shildi.
+- `uz-UZ` madaniyatida o'nlik ajratkich `,`, `<input type=number>` esa `.` yuboradi — distributsiya so'rovlarida `FormCulture` (uz-UZ, ajratkich `.`) va `DstModelBinder` (ikkala ko'rinish).
+- `ProductRef` da `Weight` yo'q, import `PRODUCTS.Weight` ga yozmaydi (float→decimal ishi bilan to'qnashmaslik uchun; og'irlik `PRODUCT_PROFILES.BaseWeightKg` da).
+
+Testlar: 120/120 (yangi: narx qoidalari, birliklar, STIR/telefon/GPS/shtrix-kod, hudud, tashrif kunlari, decimal parsing, resx kalitlari to'liqligi; integratsiya — har DbSet ↔ sxema, faqat-o'qish himoyasi, mijoz saqlash + audit, narx aniqlash, Excel import tekshirish rejimi va xato qatorlari).
+
+Tekshirilmagan: sahifalar brauzerda ochilmadi — test bazasida litsenziya yo'q (kalit RSA bilan imzolanadi, chetlab o'tilmadi). View'lar `aspnet_compiler` bilan kompilyatsiya qilib tekshirildi.

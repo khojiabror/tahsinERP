@@ -1,0 +1,183 @@
+@model List<tahsinERP.Areas.Distribution.Controllers.DstTeamsController.AgentRow>
+@using tahsinERP.Areas.Distribution.Controllers
+@{
+    ViewBag.Title = DstLocalization.T("Teams");
+    bool canChange = ViewBag.DstCanChange == true;
+    var teams = (List<DstTeamsController.TeamRow>)ViewBag.Teams;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">@DstLocalization.T("Teams")</h4>
+                            @if (canChange) { <button type="button" class="btn btn-sm btn-success" data-team-edit><i class="bx bx-plus"></i></button> }
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead><tr><th>@DstLocalization.T("Name")</th><th>@DstLocalization.T("Supervisor")</th><th class="text-right">@DstLocalization.T("Agents")</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach (var t in teams)
+                                    {
+                                        <tr class="@(t.IsActive ? "" : "text-muted")">
+                                            <td>@t.Name</td>
+                                            <td>@t.Supervisor</td>
+                                            <td class="text-right">@t.Members</td>
+                                            <td class="text-right">
+                                                @if (canChange)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" data-team-edit data-id="@t.ID" data-name="@t.Name"
+                                                            data-supervisor="@t.SupervisorUserID" data-active="@(t.IsActive ? "1" : "0")"><i class="bx bx-edit-alt"></i></button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            <p class="small text-muted mb-0">@DstLocalization.T("Teams_Hint")</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">@DstLocalization.T("Agents")</h4>
+                            @if (canChange) { <button type="button" class="btn btn-sm btn-success" data-agent-edit><i class="bx bx-plus"></i> @DstLocalization.T("Add")</button> }
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>@DstLocalization.T("Name")</th><th>@DstLocalization.T("Role")</th><th>@DstLocalization.T("Team")</th>
+                                            <th>@DstLocalization.T("Warehouse")</th><th>@DstLocalization.T("Phone")</th>
+                                            <th class="text-right">@DstLocalization.T("Customers")</th><th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var a in Model)
+                                        {
+                                            <tr class="@(a.IsActive ? "" : "text-muted")">
+                                                <td>@a.Name <div class="small text-muted">@a.Login</div></td>
+                                                <td>@(a.IsExpeditor ? DstLocalization.T("Expeditor") : DstLocalization.T("Agent"))</td>
+                                                <td>@a.Team</td>
+                                                <td>@a.Warehouse</td>
+                                                <td>@a.Phone</td>
+                                                <td class="text-right">@a.Customers</td>
+                                                <td class="text-right text-nowrap">
+                                                    @if (canChange)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-agent-edit data-user="@a.UserID" data-team="@a.TeamID"
+                                                                data-warehouse="@a.WarehouseID" data-phone="@a.Phone" data-expeditor="@(a.IsExpeditor ? "1" : "")"
+                                                                data-active="@(a.IsActive ? "1" : "0")"><i class="bx bx-edit-alt"></i></button>
+                                                        <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Scopes", new { id = a.UserID })" title="@DstLocalization.T("Scopes")"><i class="bx bx-lock-alt"></i></a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="small text-muted mb-0">@DstLocalization.T("Agents_Hint")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="teamModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Team")</h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="tmId" />
+                <div class="form-group"><label>@DstLocalization.T("Name")</label><input id="tmName" class="form-control" maxlength="100" /></div>
+                <div class="form-group">
+                    <label>@DstLocalization.T("Supervisor")</label>
+                    @Html.DropDownList("tmSupervisor", (List<SelectListItem>)ViewBag.Users, "—", new { @class = "form-control", id = "tmSupervisor" })
+                </div>
+                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="tmActive" checked /><label class="custom-control-label" for="tmActive">@DstLocalization.T("Active")</label></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="tmSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="agentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Agent")</h5></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>@DstLocalization.T("User")</label>
+                    @Html.DropDownList("agUser", (List<SelectListItem>)ViewBag.Users, new { @class = "form-control", id = "agUser" })
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label>@DstLocalization.T("Team")</label>
+                        @Html.DropDownList("agTeam", (List<SelectListItem>)ViewBag.TeamList, "—", new { @class = "form-control", id = "agTeam" })
+                    </div>
+                    <div class="form-group col-6">
+                        <label>@DstLocalization.T("Warehouse")</label>
+                        @Html.DropDownList("agWarehouse", (List<SelectListItem>)ViewBag.WarehouseList, "—", new { @class = "form-control", id = "agWarehouse" })
+                    </div>
+                </div>
+                <div class="form-group"><label>@DstLocalization.T("Phone")</label><input id="agPhone" class="form-control" placeholder="+998 90 123 45 67" /></div>
+                <div class="custom-control custom-checkbox mb-50"><input type="checkbox" class="custom-control-input" id="agExpeditor" /><label class="custom-control-label" for="agExpeditor">@DstLocalization.T("Expeditor")</label></div>
+                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="agActive" checked /><label class="custom-control-label" for="agActive">@DstLocalization.T("Active")</label></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="agSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('[data-team-edit]').on('click', function () {
+                var b = $(this);
+                $('#tmId').val(b.data('id') || '');
+                $('#tmName').val(b.data('name') || '');
+                $('#tmSupervisor').val(b.data('supervisor') ? String(b.data('supervisor')) : '');
+                $('#tmActive').prop('checked', b.data('active') !== 0);
+                $('#teamModal').modal('show');
+            });
+            $('#tmSave').on('click', function () {
+                dstPost('@Url.Action("SaveTeam")', {
+                    id: $('#tmId').val(), name: $('#tmName').val(), supervisorUserId: $('#tmSupervisor').val(), isActive: $('#tmActive').is(':checked')
+                }).done(function () { location.reload(); });
+            });
+            $('[data-agent-edit]').on('click', function () {
+                var b = $(this);
+                var editing = !!b.data('user');
+                $('#agUser').val(editing ? String(b.data('user')) : $('#agUser option:first').val()).prop('disabled', editing);
+                $('#agTeam').val(b.data('team') ? String(b.data('team')) : '');
+                $('#agWarehouse').val(b.data('warehouse') ? String(b.data('warehouse')) : '');
+                $('#agPhone').val(b.data('phone') || '');
+                $('#agExpeditor').prop('checked', !!b.data('expeditor'));
+                $('#agActive').prop('checked', b.data('active') !== 0);
+                $('#agentModal').modal('show');
+            });
+            $('#agSave').on('click', function () {
+                dstPost('@Url.Action("SaveAgent")', {
+                    userId: $('#agUser').val(), teamId: $('#agTeam').val(), warehouseId: $('#agWarehouse').val(), phone: $('#agPhone').val(),
+                    isExpeditor: $('#agExpeditor').is(':checked'), isActive: $('#agActive').is(':checked')
+                }).done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

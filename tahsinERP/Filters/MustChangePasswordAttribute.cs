@@ -34,7 +34,7 @@ namespace tahsinERP.Filters
                 filterContext.Result = new HttpStatusCodeResult(403, "MustChangePassword");
                 return;
             }
-            filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary { { "controller", "Account" }, { "action", "Settings" } });
+            filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary { { "area", "" }, { "controller", "Account" }, { "action", "Settings" } });
         }
     }
 }

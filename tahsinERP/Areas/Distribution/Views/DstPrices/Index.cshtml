@@ -1,0 +1,181 @@
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("Prices");
+    bool canChange = ViewBag.DstCanChange == true;
+    var types = (List<PriceType>)ViewBag.PriceTypes;
+    bool ru = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName == "ru";
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">@ViewBag.Title @if (ViewBag.ProductName != null) { <small class="text-muted">— @ViewBag.ProductName</small> }</h4>
+                    @if (canChange)
+                    {
+                        <div>
+                            <button type="button" class="btn btn-outline-warning btn-sm" data-toggle="modal" data-target="#massModal"><i class="bx bx-trending-up"></i> @DstLocalization.T("Price_MassChange")</button>
+                            <a class="btn btn-outline-success btn-sm" href="@Url.Action("Index", "DstImport", new { kind = "prices" })"><i class="bx bxs-file-excel"></i> @DstLocalization.T("Import")</a>
+                        </div>
+                    }
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Price_GridHint")</p>
+                    <form id="priceFilter" class="form-row mb-1">
+                        <input type="hidden" name="productId" value="@ViewBag.ProductId" />
+                        <div class="col-md-4 mb-50">
+                            @Html.DropDownList("categoryId", (List<SelectListItem>)ViewBag.Categories, DstLocalization.T("All_Categories"), new { @class = "form-control form-control-sm" })
+                        </div>
+                        <div class="col-md-3 mb-50">
+                            <select name="missing" class="form-control form-control-sm">
+                                <option value="">@DstLocalization.T("All")</option>
+                                <option value="yes">@DstLocalization.T("Price_Missing")</option>
+                            </select>
+                        </div>
+                    </form>
+                    <table id="pricesTable" class="table table-bordered table-sm" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Article")</th>
+                                <th>@DstLocalization.T("Name")</th>
+                                @foreach (var t in types)
+                                {
+                                    <th class="text-right">@(ru && !string.IsNullOrEmpty(t.NameRu) ? t.NameRu : t.Name)@(t.IsDefault ? " *" : "")</th>
+                                }
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="priceModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="pmTitle"></h5></div>
+            <div class="modal-body">
+                <div class="form-group"><label>@DstLocalization.T("Price") <span id="pmUnit" class="text-muted"></span></label><input id="pmPrice" type="number" min="0" step="1" class="form-control" /></div>
+                <div class="form-group mb-0"><label>@DstLocalization.T("MinPrice")</label><input id="pmMin" type="number" min="0" step="1" class="form-control" /></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="pmSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Price_History")</h5></div>
+            <div class="modal-body">
+                <table class="table table-sm"><thead><tr><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("PriceType")</th><th class="text-right">@DstLocalization.T("Price")</th><th class="text-right">@DstLocalization.T("MinPrice")</th><th>@DstLocalization.T("User")</th></tr></thead><tbody id="historyBody"></tbody></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="massModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Price_MassChange")</h5></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>@DstLocalization.T("PriceType")</label>
+                    <select id="mType" class="form-control">
+                        @foreach (var t in types)
+                        {
+                            <option value="@t.ID">@(ru && !string.IsNullOrEmpty(t.NameRu) ? t.NameRu : t.Name)</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>@DstLocalization.T("Category")</label>
+                    @Html.DropDownList("mCategory", (List<SelectListItem>)ViewBag.Categories, DstLocalization.T("All_Categories"), new { @class = "form-control", id = "mCategory" })
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6"><label>%</label><input id="mPercent" type="number" step="0.01" class="form-control" placeholder="+5 / -3" /></div>
+                    <div class="form-group col-6">
+                        <label>@DstLocalization.T("Price_RoundTo")</label>
+                        <select id="mRound" class="form-control"><option value="0">—</option><option value="100">100</option><option value="500">500</option><option value="1000" selected>1 000</option></select>
+                    </div>
+                </div>
+                <p class="small text-muted mb-0">@DstLocalization.T("Price_MassHint")</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-warning" id="mApply">@DstLocalization.T("Apply")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var canChange = @(canChange ? "true" : "false");
+            var types = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(types.Select(t => new { id = t.ID, name = ru && !string.IsNullOrEmpty(t.NameRu) ? t.NameRu : t.Name })));
+            var money = new Intl.NumberFormat('ru-RU');
+            var columns = [
+                { data: 'pno', render: dstEsc },
+                { data: 'name', render: function (v, t, r) { return dstEsc(v) + ' <span class="small text-muted">/ ' + dstEsc(r.unit) + '</span>'; } }
+            ];
+            types.forEach(function (pt) {
+                columns.push({ data: null, orderable: false, className: 'text-right', render: function (v, t, r) {
+                    var p = r.prices[pt.id];
+                    var text = p ? money.format(p.price) + (p.min !== null ? '<div class="small text-muted">min ' + money.format(p.min) + '</div>' : '') : '<span class="text-danger">—</span>';
+                    return canChange
+                        ? '<a href="#" data-cell data-product="' + r.id + '" data-type="' + pt.id + '" data-name="' + dstEsc(r.name) + '" data-unit="' + dstEsc(r.unit) +
+                          '" data-price="' + (p ? p.price : '') + '" data-min="' + (p && p.min !== null ? p.min : '') + '">' + text + '</a>'
+                        : text;
+                } });
+            });
+            columns.push({ data: null, orderable: false, render: function (v, t, r) {
+                return '<button type="button" class="btn btn-sm btn-outline-secondary" data-history="' + r.id + '"><i class="bx bx-history"></i></button>';
+            } });
+            var table = dstServerTable('#pricesTable', { dataUrl: '@Url.Action("IndexData")', filterForm: '#priceFilter', order: [[1, 'asc']], columns: columns });
+
+            var current = null;
+            $('#pricesTable').on('click', '[data-cell]', function (e) {
+                e.preventDefault();
+                var a = $(this);
+                current = { productId: a.data('product'), priceTypeId: a.data('type') };
+                $('#pmTitle').text(a.data('name'));
+                $('#pmUnit').text('(1 ' + a.data('unit') + ')');
+                $('#pmPrice').val(a.data('price'));
+                $('#pmMin').val(a.data('min'));
+                $('#priceModal').modal('show');
+                setTimeout(function () { $('#pmPrice').focus().select(); }, 300);
+            });
+            $('#pmSave').on('click', function () {
+                dstPost('@Url.Action("SetPrice")', $.extend({ price: $('#pmPrice').val(), minPrice: $('#pmMin').val() }, current))
+                    .done(function () { $('#priceModal').modal('hide'); dstNotify(); table.ajax.reload(null, false); });
+            });
+            $('#pmPrice,#pmMin').on('keydown', function (e) { if (e.key === 'Enter') $('#pmSave').click(); });
+            $('#pricesTable').on('click', '[data-history]', function () {
+                $.getJSON('@Url.Action("History")', { productId: $(this).data('history') }, function (rows) {
+                    $('#historyBody').html(rows.map(function (r) {
+                        return '<tr><td>' + r.date + '</td><td>' + dstEsc(r.type) + '</td><td class="text-right">' + money.format(r.price) +
+                            '</td><td class="text-right">' + (r.min === null ? '' : money.format(r.min)) + '</td><td>' + dstEsc(r.user) + '</td></tr>';
+                    }).join(''));
+                    $('#historyModal').modal('show');
+                });
+            });
+            $('#mApply').on('click', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("MassChange")', {
+                    priceTypeId: $('#mType').val(), categoryId: $('#mCategory').val(), percent: $('#mPercent').val(), roundTo: $('#mRound').val()
+                }).done(function (d) { $('#massModal').modal('hide'); dstNotify('@DstLocalization.T("Price_MassDone"): ' + d.changed); table.ajax.reload(); });
+            });
+        });
+    </script>
+}

@@ -26,6 +26,22 @@ namespace tahsinERP.Areas.Distribution.Services
 
         private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
 
+        /// <summary>
+        /// Distributsiya so'rovlari uchun CurrentCulture: ilovaning uz-UZ madaniyati, lekin o'nlik ajratkich "."
+        /// (brauzer &lt;input type=number&gt; va JSON shunday yuboradi; model binding shu madaniyatda ishlaydi).
+        /// </summary>
+        public static readonly CultureInfo FormCulture = CreateFormCulture();
+
+        private static CultureInfo CreateFormCulture()
+        {
+            var c = (CultureInfo)CultureInfo.GetCultureInfo("uz-UZ").Clone();
+            c.NumberFormat.NumberDecimalSeparator = ".";
+            c.NumberFormat.CurrencyDecimalSeparator = ".";
+            c.NumberFormat.PercentDecimalSeparator = ".";
+            c.NumberFormat.NumberGroupSeparator = " ";
+            return CultureInfo.ReadOnly(c);
+        }
+
         public static ResourceManager ResourceManager => Resources;
 
         /// <summary>Kalit bo'yicha matn (joriy UI tilida); topilmasa — kalitning o'zi (xato ko'rinib tursin).</summary>
