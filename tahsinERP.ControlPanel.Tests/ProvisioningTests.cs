@@ -357,7 +357,7 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
     public async Task DisposeAsync()
     {
         SqlConnection.ClearAllPools();
-        foreach (var db in _databases.Append("DB_DEMO_TEMPLATE_BUILD"))
+        foreach (var db in _databases) // shablon yig'ish bazasi noyob nomli, agent o'zi o'chiradi
         {
             await using var c = new SqlConnection($"Server={f.SqlServer};Database=master;Trusted_Connection=True;TrustServerCertificate=True");
             await c.OpenAsync();

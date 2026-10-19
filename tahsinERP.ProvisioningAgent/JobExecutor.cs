@@ -180,7 +180,8 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
 
     private async Task BuildDemoTemplateAsync(string template, JobLog log, CancellationToken ct)
     {
-        string buildDb = "DB_DEMO_TEMPLATE_BUILD";
+        // Noyob nom: parallel yig'ish (yoki boshqa jarayon tozalashi) bir-birining sessiyasini o'ldirmasin
+        string buildDb = "DB_DEMO_TEMPLATE_BUILD_" + Guid.NewGuid().ToString("N")[..8];
         log.Info($"demo shabloni yo'q — yaratilmoqda: {template}");
         Directory.CreateDirectory(Path.GetDirectoryName(template)!);
         await sql.DropAsync(buildDb, ct);
