@@ -198,6 +198,7 @@
 @section scripts {
     @if (Model.HasSelectedContract && Model.Rows != null && Model.Rows.Count > 0)
     {
+        <script src="~/Scripts/app/erp-datatable.js"></script>
         <script>
             $(document).ready(function () {
                 var partyName = @Html.Raw(Json.Encode(Model.Party2Name ?? "Akt_sverki"));
@@ -216,30 +217,11 @@
                     "pageLength": 50,
                     "order": [],
                     dom: 'lBfrtip',
-                    buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            text: '<i class="bx bxs-file-excel"></i> Excel',
-                            titleAttr: 'Excelga yuklash',
-                            className: 'btn btn-success btn-sm mr-1',
-                            filename: function () {
-                                var d = new Date();
-                                return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
-                            },
-                            exportOptions: { columns: ':visible' }
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            text: '<i class="bx bxs-file-pdf"></i> PDF',
-                            titleAttr: 'PDFga yuklash',
-                            className: 'btn btn-danger btn-sm',
-                            pageSize: 'A4',
-                            orientation: 'landscape',
-                            filename: function () {
-                                var d = new Date();
-                                return baseName + '_' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0');
-                            },
-                            exportOptions: { columns: ':visible' },
+                    buttons: erpDataTable.buttons({
+                        fileName: baseName,
+                        landscape: true,
+                        small: true,
+                        pdfOptions: {
                             title: null,
                             customize: function (doc) {
                                 var asOf = '@Model.AsOfDate.ToString("dd.MM.yyyy")';
@@ -337,7 +319,7 @@
                                 };
                             }
                         }
-                    ]
+                    })
                 });
                 $('#aktSverkiTable').DataTable().buttons().container().appendTo('#aktSverkiExportButtons');
             });

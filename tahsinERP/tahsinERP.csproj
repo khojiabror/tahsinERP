@@ -2773,6 +2773,7 @@
     <Content Include="Scripts\app\product-select.js" />
     <Content Include="Scripts\app\task-dashboard.js" />
     <Content Include="Scripts\app\docx-editor.js" />
+    <Content Include="Scripts\app\erp-datatable.js" />
     <Content Include="app-assets\.DS_Store" />
     <Content Include="app-assets\data\cities.json" />
     <Content Include="app-assets\data\citynames.json" />
@@ -3171,7 +3172,6 @@
     <Content Include="Views\Incomes\Edit.cshtml" />
     <Content Include="Views\Incomes\_DocDeleteConfirm.cshtml" />
     <Content Include="Views\Incomes\_IncomeLinesTable.cshtml" />
-    <Content Include="Scripts\srm\srm-datatable.js" />
     <Content Include="Scripts\srm\srm-doc-lines.js" />
     <Content Include="Scripts\srm\srm-doc-forms.js" />
     <Content Include="Views\Incomes\_DocFormActions.cshtml" />
