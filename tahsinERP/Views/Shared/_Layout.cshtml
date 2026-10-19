@@ -1069,9 +1069,12 @@
                                 <a href="#"><i class="bx bx-bar-chart-alt-2"></i><span class="menu-title">Hisobotlar</span></a>
                                 <ul class="menu-content">
                                     <li><a href="~/SRMDashboard"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">SRM Dashboard</span></a></li>
-                                    <li><a href="~/Reports/Coverage"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Coverage</span></a></li>
-                                    <li><a href="~/Reports/ABCSegmentation"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">ABC / XYZ </span></a></li>
-                                    <li><a href="~/Reports/SafetyStock"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xavfsiz zahira</span></a></li>
+                                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Reports"))
+                                    {
+                                        <li><a href="~/Reports/Coverage"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Coverage</span></a></li>
+                                        <li><a href="~/Reports/ABCSegmentation"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">ABC / XYZ </span></a></li>
+                                        <li><a href="~/Reports/SafetyStock"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">Xavfsiz zahira</span></a></li>
+                                    }
                                 </ul>
                             </li>
                         }

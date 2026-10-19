@@ -10,9 +10,11 @@ using System.Data.Entity;
 using tahsinERP.ViewModels.Reports;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission("Reports")]
     public class ReportsController : Controller
     {
         /// <summary>
