@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
+using tahsinERP.Services.Finance;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers
@@ -18,8 +19,10 @@ namespace tahsinERP.Controllers
     {
         /// <summary>
         /// Muddati o'tgan invoyslar va ularning qoldig'i (so'mda). Invoys summasi QQS bilan
-        /// (TotalWithVAT ?? TotalAmount), to'lovlar — FIN_TRANSACTIONS'dagi SalesInvoicePayment
-        /// yozuvlari; ikkalasi ham o'z sanasidagi kurs bilan so'mga o'giriladi.
+        /// (TotalWithVAT ?? TotalAmount). Qoldiq — debitorlik bilan bir xil taqsimot
+        /// (<see cref="CounterpartyBalanceService.SalesInvoiceRemaining"/>): invoysga bog'langan tushum, so'ng
+        /// mijoz + shartnoma bo'yicha FIFO — qo'lda kiritilgan (Manual) tushumlar ham invoysni yopadi.
+        /// AR opening'dan oldingi invoyslar uchun — faqat SalesInvoicePayment yozuvlari (avvalgidek).
         /// </summary>
         private static List<CRMInvoiceOverdueItem> OverdueInvoicesWithBalance(DBTHSNEntities db, IQueryable<SALES_INVOICES> activeInvoices, DateTime today, UzsConverter uzs)
         {
@@ -51,12 +54,17 @@ namespace tahsinERP.Controllers
                 .GroupBy(x => (long)x.SourceDocID.Value)
                 .ToDictionary(g => g.Key, g => g.Sum(x => uzs.ToUzsOrZero(Math.Abs(x.Amount), x.CurrencyID, x.Day ?? today)));
 
+            var remainingById = new CounterpartyBalanceService(db).SalesInvoiceRemaining(today);
+
             return candidates
                 .Select(i =>
                 {
-                    decimal paid;
-                    paidById.TryGetValue(i.ID, out paid);
                     var total = uzs.ToUzsOrZero(i.Amount, i.CurrencyID, i.InvoiceDate);
+                    decimal paid;
+                    if (remainingById.TryGetValue(i.ID, out var remaining))
+                        paid = Math.Max(0, total - remaining);
+                    else
+                        paidById.TryGetValue(i.ID, out paid);
                     return new CRMInvoiceOverdueItem
                     {
                         InvoiceId = i.ID,
@@ -165,8 +173,8 @@ namespace tahsinERP.Controllers
                     .ToList();
 
                 // ——— Invoyslar (faqat faol) ———
-                // Muddati o'tgan: PAID chiqariladi, qolganlarida invoysga bog'langan to'lovlar
-                // (SalesInvoicePayment) ayiriladi — to'liq yopilgani ro'yxatga tushmaydi (CRM-B18)
+                // Muddati o'tgan: PAID chiqariladi, qolganlarida debitorlik taqsimotidagi qoldiq olinadi
+                // (bog'langan va qo'lda kiritilgan tushumlar) — to'liq yopilgani ro'yxatga tushmaydi (CRM-B18)
                 var overdueInvoices = OverdueInvoicesWithBalance(db, activeInvoices, today, uzs);
                 model.TotalInvoices = activeInvoices.Count();
                 model.InvoicesOverdue = overdueInvoices.Count;
