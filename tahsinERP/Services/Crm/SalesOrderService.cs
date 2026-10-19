@@ -69,13 +69,13 @@ namespace tahsinERP.Services.Crm
                     ProductID = cp.ProductID,
                     ProductPNo = cp.PNo,
                     ProductName = cp.Name,
-                    PiecePrice = cp.PiecePrice,
-                    ContractAmount = cp.Amount,
+                    PiecePrice = (double)cp.PiecePrice,
+                    ContractAmount = (double)cp.Amount,
                     UnitID = cp.UnitID,
                     UnitName = cp.UnitName,
                     OrderQuantity = 0,
                     VatRate = SContractVatHelper.GetVatPercentFromLine(
-                        SContractVatHelper.GetLineBaseAmount(cp.PiecePrice, cp.Amount), cp.vatamount)
+                        SContractVatHelper.GetLineBaseAmount((double)cp.PiecePrice, (double)cp.Amount), (double?)cp.vatamount)
                 })
                 .ToList();
         }
@@ -107,7 +107,7 @@ namespace tahsinERP.Services.Crm
                 totalAmount += ApplyLine(line, q, vatByProduct);
                 order.S_ORDER_PRODUCTS.Add(line);
             }
-            order.Amount = totalAmount;
+            order.Amount = (decimal?)totalAmount;
 
             db.S_ORDERS.Add(order);
             db.SaveChanges();
@@ -140,7 +140,7 @@ namespace tahsinERP.Services.Crm
             var pairs = new List<Tuple<S_ORDER_PRODUCTS, ContractProductQuantity>>();
             foreach (var q in model.ProductQuantities)
             {
-                var match = unmatched.FirstOrDefault(l => l.ProductID == q.ProductID && Math.Abs(l.Price - q.PiecePrice) < 0.000001)
+                var match = unmatched.FirstOrDefault(l => l.ProductID == q.ProductID && Math.Abs((double)l.Price - q.PiecePrice) < 0.000001)
                             ?? unmatched.FirstOrDefault(l => l.ProductID == q.ProductID);
                 if (match != null) unmatched.Remove(match);
                 pairs.Add(Tuple.Create(match, q));
@@ -173,7 +173,7 @@ namespace tahsinERP.Services.Crm
             }
 
             db.S_ORDER_PRODUCTS.RemoveRange(unmatched);
-            order.Amount = totalAmount;
+            order.Amount = (decimal?)totalAmount;
             db.SaveChanges();
             RecalculateShipped(db, order.ID);
 
@@ -218,7 +218,7 @@ namespace tahsinERP.Services.Crm
             {
                 var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == g.Key);
                 var totalPlanned = (double)g.Sum(i => i.QtyPlanned);
-                if (orderProduct != null && totalPlanned > orderProduct.Amount + 0.0001)
+                if (orderProduct != null && totalPlanned > (double)orderProduct.Amount + 0.0001)
                     errors.Add($"{orderProduct.PRODUCT?.PNo} - Rejalashtirilgan miqdor ({totalPlanned:N2}) buyurtma miqdoridan ({orderProduct.Amount:N2}) oshib ketdi");
             }
 
@@ -408,7 +408,7 @@ namespace tahsinERP.Services.Crm
                     throw new SalesOrderException("Tanlangan mahsulot shu shartnomaga tegishli emas. Sahifani yangilab qayta urinib ko'ring.");
                 }
                 q.ProductID = cp.ProductID;
-                q.PiecePrice = cp.PiecePrice;
+                q.PiecePrice = (double)cp.PiecePrice;
                 q.UnitID = cp.UnitID;
             }
         }
@@ -421,10 +421,10 @@ namespace tahsinERP.Services.Crm
             vatByProduct.TryGetValue(q.ProductID, out vatRate);
 
             line.ProductID = q.ProductID;
-            line.Price = q.PiecePrice;
-            line.Amount = q.OrderQuantity;
+            line.Price = (decimal)q.PiecePrice;
+            line.Amount = (decimal)q.OrderQuantity;
             line.UnitID = q.UnitID;
-            line.TotalPrice = lineBase;
+            line.TotalPrice = (decimal)lineBase;
             return lineBase + SContractVatHelper.CalculateVatAmount(lineBase, vatRate);
         }
 
@@ -438,7 +438,7 @@ namespace tahsinERP.Services.Crm
                 .GroupBy(cp => cp.ProductID)
                 .Select(g => new { ProductID = g.Key, Amount = g.Sum(x => x.Amount) })
                 .ToList()
-                .ToDictionary(cp => cp.ProductID, cp => cp.Amount);
+                .ToDictionary(cp => cp.ProductID, cp => (double)cp.Amount);
 
             var orderedSumsQuery = db.S_ORDER_PRODUCTS
                 .Where(p => p.S_ORDERS.ContractID == model.ContractID &&
@@ -453,7 +453,7 @@ namespace tahsinERP.Services.Crm
                 .GroupBy(p => p.ProductID)
                 .Select(g => new { ProductID = g.Key, Total = g.Sum(x => x.Amount) })
                 .ToList()
-                .ToDictionary(x => x.ProductID, x => x.Total);
+                .ToDictionary(x => x.ProductID, x => (double)x.Total);
 
             var productNames = ProductLabels(db, productIds);
             var errors = new List<string>();

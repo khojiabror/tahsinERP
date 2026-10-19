@@ -46,10 +46,10 @@
                                         <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
                                         <br />
                                         <hr />
-                                        <span><b>Transport og`irligi (kg)</b>: @Html.DisplayFor(model => model.TransportWeight)</span>
+                                        <span><b>Transport og`irligi (kg)</b>: @(Model.TransportWeight?.ToString("0.######"))</span>
                                         <br />
                                         <hr />
-                                        <span><b>Maks. Ko`tarish qobilyati (kg)</b>: @Html.DisplayFor(model => model.CapableOfLifting)</span>
+                                        <span><b>Maks. Ko`tarish qobilyati (kg)</b>: @(Model.CapableOfLifting?.ToString("0.######"))</span>
                                         <br />
                                         <br />
                                         <div class="row">
@@ -58,13 +58,13 @@
                                                     <div class="card-body">
                                                         <h4 class="card-title text-primary">Tashqi</h4>
                                                         <hr />
-                                                        <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.ExtLgth) mm</span>
+                                                        <span><b>Uzunligi</b>: @Model.ExtLgth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Kengligi</b>: @Html.DisplayFor(model => model.ExtWdth) mm</span>
+                                                        <span><b>Kengligi</b>: @Model.ExtWdth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Balandligi</b>: @Html.DisplayFor(model => model.ExtHght) mm</span>
+                                                        <span><b>Balandligi</b>: @Model.ExtHght.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
                                                         <span><b>Tashqi hajm</b>: @(ViewBag.ExternalCBM != null ? ((double)ViewBag.ExternalCBM).ToString("N2") + " m³" : "-")</span>
@@ -78,13 +78,13 @@
                                                     <div class="card-body">
                                                         <h4 class="card-title text-primary">Ichki</h4>
                                                         <hr />
-                                                        <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.IntLgth) mm</span>
+                                                        <span><b>Uzunligi</b>: @Model.IntLgth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Kengligi</b>: @Html.DisplayFor(model => model.IntWdth) mm</span>
+                                                        <span><b>Kengligi</b>: @Model.IntWdth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Balandligi</b>: @Html.DisplayFor(model => model.IntHght) mm</span>
+                                                        <span><b>Balandligi</b>: @Model.IntHght.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
                                                         @* LOG-B10: hajm va palletlar mm o'lchamlardan (TransportLoadCalculator) *@

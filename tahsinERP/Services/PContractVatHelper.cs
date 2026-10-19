@@ -36,8 +36,8 @@ namespace tahsinERP.Services
                 .Select(p => new ContractProductVatLine
                 {
                     ContractID = p.ContractID,
-                    Amount = p.Amount,
-                    VATAmount = p.VATAmount
+                    Amount = (double)p.Amount,
+                    VATAmount = (double?)(p.VATAmount)
                 })
                 .ToListAsync();
 
@@ -53,7 +53,7 @@ namespace tahsinERP.Services
 
             return products.ToDictionary(
                 p => p.ProductID,
-                p => VatMath.PercentFromLine(p.Amount, p.VATAmount));
+                p => VatMath.PercentFromLine((double)p.Amount, (double?)p.VATAmount));
         }
 
         private static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
@@ -85,8 +85,8 @@ namespace tahsinERP.Services
                 .Select(p => new ContractProductVatLine
                 {
                     ContractID = p.ContractID,
-                    Amount = p.Amount,
-                    VATAmount = p.VATAmount
+                    Amount = (double)p.Amount,
+                    VATAmount = (double?)(p.VATAmount)
                 })
                 .ToListAsync();
 

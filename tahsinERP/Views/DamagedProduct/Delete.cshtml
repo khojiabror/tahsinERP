@@ -50,7 +50,7 @@
                                                     <br />
                                                     <span><b>Defect nomi</b>: @Html.DisplayFor(model => model.DEFECT_TYPES.DefectType, new { @class = "form-control" })</span>
                                                     <br />
-                                                    <span><b>Miqdori</b>: @Html.DisplayFor(model => model.Quantity, new { @class = "form-control" })</span>
+                                                    <span><b>Miqdori</b>: @Model.Quantity.ToString("0.######")</span>
                                                 </div>
 
                                                 <ul class="list-group list-group-flush">

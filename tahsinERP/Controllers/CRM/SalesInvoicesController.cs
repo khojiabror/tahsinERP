@@ -355,7 +355,7 @@ namespace tahsinERP.Controllers
                 {
                     PiecePrice = (decimal)cp.PiecePrice,
                     VatRate = SContractVatHelper.GetVatPercentFromLine(
-                        SContractVatHelper.GetLineBaseAmount(cp), cp.vatamount)
+                        SContractVatHelper.GetLineBaseAmount(cp), (double?)cp.vatamount)
                 }, JsonRequestBehavior.AllowGet);
             }
         }

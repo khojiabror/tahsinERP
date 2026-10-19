@@ -71,7 +71,7 @@ namespace tahsinERP.Controllers.SRM
                 RequesterName = db.HR_EMPLOYEES.Where(e => e.ID == r.RequesterID).Select(e => e.FullName).FirstOrDefault(),
                 Status = r.Status,
                 LineCount = r.P_REQUISITION_PRODUCTS.Count(),
-                Total = r.P_REQUISITION_PRODUCTS.Sum(p => p.Amount)
+                Total = (double?)(r.P_REQUISITION_PRODUCTS.Sum(p => p.Amount))
             });
         }
 
@@ -260,10 +260,10 @@ namespace tahsinERP.Controllers.SRM
                                     requisition.P_REQUISITION_PRODUCTS.Add(new P_REQUISITION_PRODUCTS
                                     {
                                         ProductID = product.ProductID,
-                                        Quantity = product.Quantity,
+                                        Quantity = (decimal)product.Quantity,
                                         UnitID = product.UnitID,
-                                        EstimatedPrice = product.EstimatedPrice,
-                                        Amount = product.EstimatedPrice.HasValue ? product.EstimatedPrice.Value * product.Quantity : (double?)null,
+                                        EstimatedPrice = (decimal?)product.EstimatedPrice,
+                                        Amount = (decimal?)(product.EstimatedPrice.HasValue ? product.EstimatedPrice.Value * product.Quantity : (double?)null),
                                         Priority = product.Priority ?? "Medium",
                                         RequiredDate = product.RequiredDate,
                                         Description = product.Description

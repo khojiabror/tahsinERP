@@ -92,18 +92,18 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Og'irlik (kg da)</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Weight, new { @class = "form-control round", @placeholder = "kg" })
+                                                        @Html.TextBoxFor(model => model.Weight, "{0:0.######}", new { @class = "form-control round", @placeholder = "kg" })
                                                         @Html.ValidationMessageFor(model => model.Weight, "", new { @class = "text-danger" })
                                                         <small class="text-muted">Maxsulot kategoriyasida "Hisob-kitoblar og'irlikka nisbatan qilinsin" belgilangan bo'lsa, bu maydon to'ldirilishi shart</small>
                                                     </fieldset>
                                                     <h6 class="invoice-to">O'lchamlari (UxExB)</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         <div class="input-group">
-                                                            @Html.TextBoxFor(model => model.Length, new { @class = "form-control", @placeholder = "Uzunligi" })
+                                                            @Html.TextBoxFor(model => model.Length, "{0:0.######}", new { @class = "form-control", @placeholder = "Uzunligi" })
                                                             <span class="input-group-text">x</span>
-                                                            @Html.TextBoxFor(model => model.Width, new { @class = "form-control", @placeholder = "Kengligi" })
+                                                            @Html.TextBoxFor(model => model.Width, "{0:0.######}", new { @class = "form-control", @placeholder = "Kengligi" })
                                                             <span class="input-group-text">x</span>
-                                                            @Html.TextBoxFor(model => model.Height, new { @class = "form-control", @placeholder = "Balandligi" })
+                                                            @Html.TextBoxFor(model => model.Height, "{0:0.######}", new { @class = "form-control", @placeholder = "Balandligi" })
                                                         </div>
                                                         @Html.ValidationMessageFor(model => model.Length, "", new { @class = "text-danger" })
                                                         @Html.ValidationMessageFor(model => model.Width, "", new { @class = "text-danger" })
@@ -111,7 +111,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Standart uzunlik (kesish uchun), mm</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.StandardLengthMm, new { @class = "form-control", @placeholder = "Masalan: 4000 (bo'sh bo'lsa — Uzunligi ishlatiladi)" })
+                                                        @Html.TextBoxFor(model => model.StandardLengthMm, "{0:0.######}", new { @class = "form-control", @placeholder = "Masalan: 4000 (bo'sh bo'lsa — Uzunligi ishlatiladi)" })
                                                         <small class="text-muted">Norma va BOM'dagi kesish/taxta soni hisobi shu qiymatdan foydalanadi.</small>
                                                         @Html.ValidationMessageFor(model => model.StandardLengthMm, "", new { @class = "text-danger" })
                                                     </fieldset>

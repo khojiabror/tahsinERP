@@ -58,7 +58,7 @@
                                                     </fieldset>
                                                     <h6 class="invoice-to">Miqdori </h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Quantity, new { @class = "form-control", @placeholder = "Miqdorini kiriting" })
+                                                        @Html.TextBoxFor(model => model.Quantity, "{0:0.######}", new { @class = "form-control", @placeholder = "Miqdorini kiriting" })
                                                         @Html.ValidationMessageFor(model => model.Quantity, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">

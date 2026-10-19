@@ -23,14 +23,14 @@ namespace tahsinERP.Models
     
         public int ID { get; set; }
         public string TransportType { get; set; }
-        public double ExtLgth { get; set; }
-        public double ExtWdth { get; set; }
-        public double ExtHght { get; set; }
-        public double IntLgth { get; set; }
-        public double IntWdth { get; set; }
-        public double IntHght { get; set; }
-        public Nullable<double> CapableOfLifting { get; set; }
-        public Nullable<double> TransportWeight { get; set; }
+        public decimal ExtLgth { get; set; }
+        public decimal ExtWdth { get; set; }
+        public decimal ExtHght { get; set; }
+        public decimal IntLgth { get; set; }
+        public decimal IntWdth { get; set; }
+        public decimal IntHght { get; set; }
+        public Nullable<decimal> CapableOfLifting { get; set; }
+        public Nullable<decimal> TransportWeight { get; set; }
         public int UnitID { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
     

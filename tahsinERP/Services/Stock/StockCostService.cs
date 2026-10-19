@@ -34,6 +34,16 @@ namespace tahsinERP.Services.Stock
         }
 
         /// <summary>
+        /// Saqlanadigan dona tannarxi: EXPENSE_PRODUCTS.PiecePrice — decimal(19,6). EF ortiqcha xonani kesadi, shuning uchun
+        /// shu yerda yaxlitlanadi — hujjat jami (C#) va qator TotalPrice (bazada Amount × PiecePrice) bir xil narxdan hisoblanadi.
+        /// </summary>
+        public static decimal StoredUnitCost(double unitCost)
+        {
+            if (double.IsNaN(unitCost) || double.IsInfinity(unitCost)) return 0m;
+            return Math.Round((decimal)unitCost, 6, MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>
         /// Chiqim qatorining FIFO tannarxi: qator birligidagi dona narxi (qator TotalPrice = Amount × PiecePrice
         /// bazada hisoblanadi). Narx topilmasa 0.
         /// </summary>
@@ -85,7 +95,7 @@ WHERE a.ExpenseProductID = @p0";
         {
             // Omborga haqiqatda qabul qilingan kirimlar (DLOC-ASN — mavjud qoldiqni joyga bog'lash, kirim emas)
             const string sql = @"
-SELECT ip.ProductID, ip.Amount, ip.UnitID,
+SELECT ip.ProductID, CAST(ip.Amount AS FLOAT) AS Amount, ip.UnitID,
        CAST(CASE WHEN ISNULL(ip.PiecePrice, 0) > 0 THEN ip.PiecePrice
                  WHEN ip.Amount > 0 THEN ISNULL(ip.TotalPrice, 0) / ip.Amount ELSE 0 END AS FLOAT) AS Price
 FROM dbo.INCOME_PRODUCTS ip

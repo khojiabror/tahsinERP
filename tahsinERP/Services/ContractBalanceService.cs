@@ -73,7 +73,7 @@ namespace tahsinERP.Services
 
             foreach (var productId in ids)
             {
-                double contractQuantity;
+                decimal contractQuantity;
                 if (!contractLines.TryGetValue(productId, out contractQuantity))
                 {
                     result[productId] = new ContractBalanceInfo();

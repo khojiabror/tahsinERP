@@ -155,7 +155,7 @@ ORDER BY w.WHName, p.PNo";
                 {
                     INCOME = income,
                     ProductID = line.ProductID,
-                    Amount = line.AssignQty,
+                    Amount = (decimal)line.AssignQty,
                     PiecePrice = 0,
                     UnitID = unitByProduct.ContainsKey(line.ProductID) ? unitByProduct[line.ProductID] : 1
                 }).ToList();

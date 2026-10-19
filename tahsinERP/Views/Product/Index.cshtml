@@ -94,16 +94,16 @@
                                                                      item.IsComponent == true ? "badge-warning" :
                                                                      item.IsRawMaterial == true ? "badge-info" : "badge-secondary";
                                                     var cbm = (item.Length.HasValue && item.Width.HasValue && item.Height.HasValue)
-                                                        ? ((item.Length.Value / 1000.0) * (item.Width.Value / 1000.0) * (item.Height.Value / 1000.0)).ToString("F6") + " m³"
+                                                        ? ((item.Length.Value / 1000m) * (item.Width.Value / 1000m) * (item.Height.Value / 1000m)).ToString("F6") + " m³"
                                                         : "-";
                                                     <tr data-type="@typeCode">
                                                         <td><a href="@Url.Action("Details", "Product", new { id = item.ID })">@item.PNo</a></td>
                                                         <td><span class="badge @badgeClass">@typeDisplay</span></td>
                                                         <td>@item.Name</td>
-                                                        <td>@item.Length x @item.Width x @item.Height</td>
+                                                        <td>@(item.Length?.ToString("0.######")) x @(item.Width?.ToString("0.######")) x @(item.Height?.ToString("0.######"))</td>
                                                         <td>@cbm</td>
                                                         <td>@(item.UNIT != null ? item.UNIT.ShortName : "")</td>
-                                                        <td>@item.Weight</td>
+                                                        <td>@(item.Weight?.ToString("0.######"))</td>
                                                         @if (changePermit)
                                                         {
                                                             <td>

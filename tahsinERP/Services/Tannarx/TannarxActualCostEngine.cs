@@ -117,7 +117,7 @@ namespace tahsinERP.Services.Tannarx
             var piHeaders = allPoIds.Any()
                 ? await _db.P_INVOICES
                     .Where(i => i.IsDeleted != true && i.OrderID.HasValue && allPoIds.Contains(i.OrderID.Value))
-                    .Select(i => new PiHeader { ID = i.ID, OrderID = i.OrderID.Value, InvoiceDate = i.InvoiceDate, Amount = i.Amount, InvoiceNo = i.InvoiceNo })
+                    .Select(i => new PiHeader { ID = i.ID, OrderID = i.OrderID.Value, InvoiceDate = i.InvoiceDate, Amount = (double?)i.Amount, InvoiceNo = i.InvoiceNo })
                     .ToListAsync()
                 : new List<PiHeader>();
             var piHeadersByPo = piHeaders.ToLookup(h => h.OrderID);
@@ -127,7 +127,7 @@ namespace tahsinERP.Services.Tannarx
             var piLines = piInMonthIds.Any()
                 ? await _db.P_INVOICE_PRODUCTS
                     .Where(l => piInMonthIds.Contains(l.InvoiceID))
-                    .Select(l => new DocLine { ID = l.ID, DocID = l.InvoiceID, ProductID = l.ProductID, Qty = l.Quantity, Amount = l.TotalPrice })
+                    .Select(l => new DocLine { ID = l.ID, DocID = l.InvoiceID, ProductID = l.ProductID, Qty = (double)l.Quantity, Amount = (double?)l.TotalPrice })
                     .ToListAsync()
                 : new List<DocLine>();
             var piLinesByInvoice = piLines.ToLookup(l => l.DocID);
@@ -140,7 +140,7 @@ namespace tahsinERP.Services.Tannarx
                         && allPiIds.Contains(i.InvoiceID.Value)
                         && i.IssueDateTime >= start
                         && i.IssueDateTime < end)
-                    .Select(i => new IncomeHeader { ID = i.ID, InvoiceID = i.InvoiceID.Value, TotalPrice = i.TotalPrice })
+                    .Select(i => new IncomeHeader { ID = i.ID, InvoiceID = i.InvoiceID.Value, TotalPrice = (double?)i.TotalPrice })
                     .ToListAsync()
                 : new List<IncomeHeader>();
             var incomesByInvoice = incomes.ToLookup(i => i.InvoiceID);
@@ -153,8 +153,8 @@ namespace tahsinERP.Services.Tannarx
                         ID = x.ID,
                         DocID = x.IncomeID,
                         ProductID = x.ProductID,
-                        Qty = x.Amount,
-                        Amount = x.TotalPrice ?? ((x.PiecePrice ?? 0) * x.Amount)
+                        Qty = (double)x.Amount,
+                        Amount = (double?)(x.TotalPrice ?? ((x.PiecePrice ?? 0) * x.Amount))
                     })
                     .ToListAsync()
                 : new List<DocLine>();

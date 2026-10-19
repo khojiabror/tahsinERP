@@ -46,10 +46,10 @@
                                         <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
                                         <br />
                                         <hr />
-                                        <span><b>Transport og`irligi</b>: @Html.DisplayFor(model => model.TransportWeight)</span>
+                                        <span><b>Transport og`irligi</b>: @(Model.TransportWeight?.ToString("0.######"))</span>
                                         <br />
                                         <hr />
-                                        <span><b>Ko`tarish imkoniyati</b>: @Html.DisplayFor(model => model.CapableOfLifting)</span>
+                                        <span><b>Ko`tarish imkoniyati</b>: @(Model.CapableOfLifting?.ToString("0.######"))</span>
                                         <br />
                                         <br />
                                         <div class="row">
@@ -58,13 +58,13 @@
                                                     <div class="card-body">
                                                         <h4 class="card-title text-primary">Tashqi</h4>
                                                         <hr />
-                                                        <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.ExtLgth)</span>
+                                                        <span><b>Uzunligi</b>: @Model.ExtLgth.ToString("0.######")</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Kengligi</b>: @Html.DisplayFor(model => model.ExtWdth)</span>
+                                                        <span><b>Kengligi</b>: @Model.ExtWdth.ToString("0.######")</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Balandligi</b>: @Html.DisplayFor(model => model.ExtHght)</span>
+                                                        <span><b>Balandligi</b>: @Model.ExtHght.ToString("0.######")</span>
                                                         <br />
                                                         <hr />
                                                     </div>
@@ -75,13 +75,13 @@
                                                     <div class="card-body">
                                                         <h4 class="card-title text-primary">Ichki</h4>
                                                         <hr />
-                                                        <span><b>Uzunligi</b>: @Html.DisplayFor(model => model.IntLgth)</span>
+                                                        <span><b>Uzunligi</b>: @Model.IntLgth.ToString("0.######")</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Kengligi</b>: @Html.DisplayFor(model => model.IntWdth)</span>
+                                                        <span><b>Kengligi</b>: @Model.IntWdth.ToString("0.######")</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Balandligi</b>: @Html.DisplayFor(model => model.IntHght)</span>
+                                                        <span><b>Balandligi</b>: @Model.IntHght.ToString("0.######")</span>
                                                         <br />
                                                         <hr />
                                                     </div>

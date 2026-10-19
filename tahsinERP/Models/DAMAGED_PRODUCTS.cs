@@ -17,7 +17,7 @@ namespace tahsinERP.Models
         public int ID { get; set; }
         public int ProductID { get; set; }
         public int DefectTypeID { get; set; }
-        public double Quantity { get; set; }
+        public decimal Quantity { get; set; }
         public System.DateTime IssueDateTime { get; set; }
         public bool IsDeleted { get; set; }
     

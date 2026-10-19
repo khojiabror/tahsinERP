@@ -73,7 +73,7 @@ namespace tahsinERP.Services.Procurement
                 OrderNo = o.OrderNo,
                 PurchaseType = o.PurchaseType,
                 IssuedDate = o.IssuedDate,
-                Amount = o.Amount,
+                Amount = (double?)o.Amount,
                 Currency = o.CURRENCy.Shortname
             });
         }
@@ -224,21 +224,21 @@ namespace tahsinERP.Services.Procurement
                     {
                         P_ORDERS = order,
                         ProductID = orderProduct.ProductID,
-                        Price = orderProduct.Price,
-                        Amount = orderProduct.Amount,
+                        Price = (decimal)orderProduct.Price,
+                        Amount = (decimal)orderProduct.Amount,
                         UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : PiecesUnitId()),
-                        TotalPrice = orderProduct.Price * orderProduct.Amount,
-                        MOQ = orderProduct.MOQ,
+                        TotalPrice = (decimal)(orderProduct.Price * orderProduct.Amount),
+                        MOQ = (decimal?)orderProduct.MOQ,
                         Priority = TruncateToPriority(priority),
                         RequiredDate = requiredDate
                     };
 
                     _db.P_ORDER_PRODUCTS.Add(pOrderProduct);
-                    totalAmount += pOrderProduct.TotalPrice;
+                    totalAmount += (double)pOrderProduct.TotalPrice;
                 }
 
                 // Buyurtmaning umumiy summasi QQS bilan: Amount = net summa + QQS.
-                order.Amount = VatMath.ApplyVat(totalAmount, model.VatRate);
+                order.Amount = (decimal?)(VatMath.ApplyVat(totalAmount, model.VatRate));
 
                 await _db.SaveChangesAsync();
 
@@ -320,11 +320,11 @@ namespace tahsinERP.Services.Procurement
                     {
                         OrderID = order.ID,
                         ProductID = orderProduct.ProductID,
-                        Price = orderProduct.Price,
-                        Amount = orderProduct.Amount,
+                        Price = (decimal)orderProduct.Price,
+                        Amount = (decimal)orderProduct.Amount,
                         UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : PiecesUnitId()),
-                        TotalPrice = orderProduct.Price * orderProduct.Amount,
-                        MOQ = orderProduct.MOQ,
+                        TotalPrice = (decimal)(orderProduct.Price * orderProduct.Amount),
+                        MOQ = (decimal?)orderProduct.MOQ,
                         Priority = TruncateToPriority(
                             !string.IsNullOrWhiteSpace(orderProduct.CalculationSummary)
                                 ? orderProduct.CalculationSummary.Trim()
@@ -334,11 +334,11 @@ namespace tahsinERP.Services.Procurement
                     };
 
                     _db.P_ORDER_PRODUCTS.Add(pOrderProduct);
-                    totalAmount += pOrderProduct.TotalPrice;
+                    totalAmount += (double)pOrderProduct.TotalPrice;
                 }
 
                 // Umumiy summa QQS bilan: Amount = net summa + QQS.
-                order.Amount = VatMath.ApplyVat(totalAmount, model.VatRate);
+                order.Amount = (decimal?)(VatMath.ApplyVat(totalAmount, model.VatRate));
                 await _db.SaveChangesAsync();
                 tx.Commit();
             }

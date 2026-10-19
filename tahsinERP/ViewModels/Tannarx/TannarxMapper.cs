@@ -46,7 +46,8 @@ namespace tahsinERP.ViewModels.Tannarx
                 ProductPNo = p?.PNo ?? "",
                 ProductName = p?.Name ?? "",
                 ProductType = p?.Type ?? "",
-                Dimensions = $"{p?.Length ?? 0}x{p?.Width ?? 0}x{p?.Height ?? 0}",
+                // decimal(18,4): "1470.0000" emas, float davridagidek "1470"
+                Dimensions = $"{p?.Length ?? 0:0.####}x{p?.Width ?? 0:0.####}x{p?.Height ?? 0:0.####}",
                 Year = t.Year,
                 Month = t.Month,
                 MonthString = t.MonthString,

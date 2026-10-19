@@ -107,7 +107,7 @@ namespace tahsinERP.Services
 
             var weight = product.Weight.HasValue && product.Weight.Value > 0 ? (decimal)product.Weight.Value : 0m;
             var lengthM = RequiresCutting(product) && product.Length.HasValue && product.Length.Value > 0
-                ? (decimal)(product.Length.Value / 1000.0)
+                ? (product.Length.Value / 1000m)
                 : 0m;
 
             if (IsKgUnit(fromUnit) && IsDonaUnit(toUnit))
@@ -164,7 +164,7 @@ namespace tahsinERP.Services
             }
 
             // Convert length from mm to meters
-            decimal lengthInMeters = (decimal)(product.Length.Value / 1000.0);
+            decimal lengthInMeters = (product.Length.Value / 1000m);
 
             if (lengthInMeters <= 0)
             {
@@ -406,7 +406,7 @@ namespace tahsinERP.Services
                 throw new InvalidOperationException(
                     $"Product {product.PNo} does not have a valid Length value. Cannot convert piece to meter.");
 
-            decimal lengthInMeters = (decimal)(product.Length.Value / 1000.0);
+            decimal lengthInMeters = (product.Length.Value / 1000m);
             return pieceQuantity * lengthInMeters;
         }
 

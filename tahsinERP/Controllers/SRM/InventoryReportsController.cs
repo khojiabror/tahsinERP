@@ -83,7 +83,9 @@ namespace tahsinERP.Controllers
                 else if (productTypeValue == "raw")
                     stockQuery = stockQuery.Where(s => s.PRODUCT.IsRawMaterial == true || s.PRODUCT.PRODUCT_CATEGORIES.IsRawMaterial);
 
+                // Tartib aniq: avval SQL'ning tasodifiy tartibiga (UX_PRODUCT_STOCKS_WH_Product skani) tayanardi
                 var stocks = await stockQuery
+                    .OrderBy(s => s.WHID).ThenBy(s => s.ProductID)
                     .Select(s => new
                     {
                         s.WHID,
@@ -116,12 +118,12 @@ namespace tahsinERP.Controllers
                     double plannedTotal;
                     plannedByProduct.TryGetValue(stock.ProductID, out plannedTotal);
                     var avgDailyPlanned = plannedTotal / totalDays;
-                    var plannedDoh = avgDailyPlanned > 0 ? stock.Amount / avgDailyPlanned : (double?)null;
+                    var plannedDoh = avgDailyPlanned > 0 ? (double)stock.Amount / avgDailyPlanned : (double?)null;
 
                     double actualTotal;
                     actualByProductWarehouse.TryGetValue(Tuple.Create(stock.ProductID, stock.WHID), out actualTotal);
                     var avgDailyActual = actualTotal / totalDays;
-                    var actualDoh = avgDailyActual > 0 ? stock.Amount / avgDailyActual : (double?)null;
+                    var actualDoh = avgDailyActual > 0 ? (double)stock.Amount / avgDailyActual : (double?)null;
 
                     var item = new InventoryDashboardItem
                     {
@@ -130,7 +132,7 @@ namespace tahsinERP.Controllers
                         ProductName = stock.Name ?? "N/A",
                         CategoryName = stock.CategoryName ?? "N/A",
                         WarehouseName = stock.WarehouseName ?? "N/A",
-                        CurrentStock = stock.Amount,
+                        CurrentStock = (double)stock.Amount,
                         UnitName = stock.UnitName ?? "N/A",
                         AverageDailyConsumption = avgDailyActual,
                         PlannedAverageDailyConsumption = avgDailyPlanned,
@@ -165,7 +167,7 @@ namespace tahsinERP.Controllers
                             ProductName = s.Name ?? "N/A",
                             CategoryName = s.CategoryName ?? "N/A",
                             WarehouseName = s.WarehouseName ?? "N/A",
-                            CurrentStock = s.Amount,
+                            CurrentStock = (double)s.Amount,
                             UnitName = s.UnitName ?? "N/A",
                             AverageDailyConsumption = total / runnerDaysDouble
                         };
@@ -226,7 +228,7 @@ namespace tahsinERP.Controllers
                     .Select(g => new CategoryStockSummary
                     {
                         CategoryName = g.Key,
-                        TotalStock = g.Sum(s => s.Amount)
+                        TotalStock = (double)(g.Sum(s => s.Amount))
                     })
                     .ToList();
 
@@ -262,8 +264,8 @@ namespace tahsinERP.Controllers
                     .Select(g => new { Date = g.Key, Amount = g.Sum(ep => ep.Amount) })
                     .ToListAsync();
 
-                model.InboundTrends = inboundData.OrderBy(d => d.Date).Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
-                model.OutboundTrends = outboundData.OrderBy(d => d.Date).Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = d.Amount }).ToList();
+                model.InboundTrends = inboundData.OrderBy(d => d.Date).Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = (double)d.Amount }).ToList();
+                model.OutboundTrends = outboundData.OrderBy(d => d.Date).Select(d => new TrendData { Date = d.Date ?? fromDateValue, Amount = (double)d.Amount }).ToList();
 
                 return View(model);
             }
@@ -279,7 +281,7 @@ namespace tahsinERP.Controllers
                 .GroupBy(ep => new { ep.ProductID, ep.EXPENS.SenderWHID })
                 .Select(g => new { g.Key.ProductID, g.Key.SenderWHID, Total = g.Sum(x => x.Amount) })
                 .ToListAsync();
-            return rows.ToDictionary(r => Tuple.Create(r.ProductID, r.SenderWHID), r => r.Total);
+            return rows.ToDictionary(r => Tuple.Create(r.ProductID, r.SenderWHID), r => (double)r.Total);
         }
 
         private class FifoHeuristicRow

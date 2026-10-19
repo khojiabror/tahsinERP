@@ -214,7 +214,7 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
           <Property Name="DefectTypeID" Type="int" Nullable="false" />
-          <Property Name="Quantity" Type="float" Nullable="false" />
+          <Property Name="Quantity" Type="decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="IssueDateTime" Type="datetime" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
         </EntityType>
@@ -324,9 +324,9 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ExpenseID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
-          <Property Name="PiecePrice" Type="float" Nullable="false" />
-          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="PiecePrice" Type="decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="Comment" Type="text" />
           <Property Name="UnitID" Type="int" Nullable="false" />
           <Property Name="LotID" Type="int" />
@@ -340,8 +340,8 @@
           </Key>
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="DocNo" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="Amount" Type="float" />
-          <Property Name="TotalPrice" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" />
+          <Property Name="TotalPrice" Type="decimal" Precision="19" Scale="4" />
           <Property Name="ReceiverWhID" Type="int" />
           <Property Name="SenderWHID" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
@@ -391,14 +391,14 @@
           </Key>
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="TransportType" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="ExtLgth" Type="float" Nullable="false" />
-          <Property Name="ExtWdth" Type="float" Nullable="false" />
-          <Property Name="ExtHght" Type="float" Nullable="false" />
-          <Property Name="IntLgth" Type="float" Nullable="false" />
-          <Property Name="IntWdth" Type="float" Nullable="false" />
-          <Property Name="IntHght" Type="float" Nullable="false" />
-          <Property Name="CapableOfLifting" Type="float" />
-          <Property Name="TransportWeight" Type="float" />
+          <Property Name="ExtLgth" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="ExtWdth" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="ExtHght" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="IntLgth" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="IntWdth" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="IntHght" Type="decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="CapableOfLifting" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="TransportWeight" Type="decimal" Precision="18" Scale="4" />
           <Property Name="UnitID" Type="int" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
         </EntityType>
@@ -1003,12 +1003,12 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="IncomeID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
-          <Property Name="PiecePrice" Type="float" />
-          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="PiecePrice" Type="decimal" Precision="19" Scale="6" />
+          <Property Name="TotalPrice" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" />
           <Property Name="Comment" Type="text" />
           <Property Name="UnitID" Type="int" Nullable="false" />
-          <Property Name="VATRate" Type="float" />
+          <Property Name="VATRate" Type="decimal" Precision="9" Scale="4" />
         </EntityType>
         <EntityType Name="INCOMES">
           <Key>
@@ -1017,8 +1017,8 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="DocNo" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="ReceivingWHID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" />
-          <Property Name="TotalPrice" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" />
+          <Property Name="TotalPrice" Type="decimal" Precision="19" Scale="4" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="Description" Type="text" />
           <Property Name="IssueDateTime" Type="datetime" Nullable="false" />
@@ -1074,8 +1074,8 @@
           <Property Name="CreatedDT" Type="datetime" Nullable="false" />
           <Property Name="Price" Type="decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="TotalAmount" Type="numeric" Precision="38" Scale="6" StoreGeneratedPattern="Computed" />
-          <Property Name="Consumption" Type="float" />
-          <Property Name="WasteAmount" Type="float" />
+          <Property Name="Consumption" Type="decimal" Precision="18" Scale="6" />
+          <Property Name="WasteAmount" Type="decimal" Precision="18" Scale="6" />
           <Property Name="UnitID" Type="int" />
           <Property Name="Comment" Type="text" />
         </EntityType>
@@ -1116,15 +1116,15 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ContractID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Price" Type="float" Nullable="false" />
-          <Property Name="Quantity" Type="float" Nullable="false" />
-          <Property Name="Amount" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
-          <Property Name="MOQ" Type="float" />
+          <Property Name="Price" Type="decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Quantity" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="MOQ" Type="decimal" Precision="18" Scale="6" />
           <Property Name="ActivePart" Type="bit" />
           <Property Name="UnitID" Type="int" />
           <Property Name="HSCodeID" Type="int" />
-          <Property Name="VATAmount" Type="float" />
-          <Property Name="TotalAmount" Type="float" StoreGeneratedPattern="Computed" />
+          <Property Name="VATAmount" Type="decimal" Precision="19" Scale="4" />
+          <Property Name="TotalAmount" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="P_CONTRACTS">
           <Key>
@@ -1135,7 +1135,7 @@
           <Property Name="IssuedDate" Type="datetime" Nullable="false" />
           <Property Name="CompanyID" Type="int" Nullable="false" />
           <Property Name="SupplierID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" />
           <Property Name="Incoterms" Type="varchar" MaxLength="15" />
           <Property Name="PaymentTerms" Type="varchar" MaxLength="50" />
           <Property Name="DueDate" Type="datetime" Nullable="false" />
@@ -1159,9 +1159,9 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="InvoiceID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Quantity" Type="float" Nullable="false" />
-          <Property Name="Price" Type="float" Nullable="false" />
-          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="Quantity" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Price" Type="decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="UnitID" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="P_INVOICES">
@@ -1172,7 +1172,7 @@
           <Property Name="InvoiceNo" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="OrderID" Type="int" />
           <Property Name="SupplierID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" />
           <Property Name="InvoiceDate" Type="date" Nullable="false" />
           <Property Name="CompanyID" Type="int" />
           <Property Name="IsDeleted" Type="bit" />
@@ -1187,10 +1187,10 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="OrderID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Price" Type="float" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
-          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
-          <Property Name="MOQ" Type="float" />
+          <Property Name="Price" Type="decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="MOQ" Type="decimal" Precision="18" Scale="6" />
           <Property Name="UnitID" Type="int" />
           <Property Name="Priority" Type="nvarchar" MaxLength="50" />
           <Property Name="RequiredDate" Type="datetime" />
@@ -1205,7 +1205,7 @@
           <Property Name="CompanyID" Type="int" />
           <Property Name="SupplierID" Type="int" />
           <Property Name="ContractID" Type="int" />
-          <Property Name="Amount" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="CurrencyID" Type="int" />
@@ -1242,10 +1242,10 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RequisitionID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Quantity" Type="float" Nullable="false" />
+          <Property Name="Quantity" Type="decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="int" Nullable="false" />
-          <Property Name="EstimatedPrice" Type="float" />
-          <Property Name="Amount" Type="float" />
+          <Property Name="EstimatedPrice" Type="decimal" Precision="19" Scale="6" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" />
           <Property Name="Priority" Type="nvarchar" MaxLength="50" />
           <Property Name="RequiredDate" Type="datetime" />
           <Property Name="Description" Type="nvarchar(max)" />
@@ -1329,9 +1329,9 @@
           <Property Name="ProductID" Type="int" Nullable="false" />
           <Property Name="ShopID" Type="int" Nullable="false" />
           <Property Name="Date" Type="date" Nullable="false" />
-          <Property Name="DayShift" Type="float" Nullable="false" />
-          <Property Name="NightShift" Type="float" Nullable="false" />
-          <Property Name="Total" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="DayShift" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="NightShift" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Total" Type="decimal" Precision="19" Scale="6" StoreGeneratedPattern="Computed" Nullable="false" />
           <Property Name="Comment" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="PlanDate" Type="date" />
@@ -1343,7 +1343,7 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="WHID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="PRODUCTIMAGES">
@@ -1370,7 +1370,7 @@
           </Key>
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="StartDate" Type="date" Nullable="false" />
           <Property Name="DueDate" Type="date" Nullable="false" />
@@ -1383,9 +1383,9 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="PlanID" Type="int" Nullable="false" />
           <Property Name="Day" Type="date" Nullable="false" />
-          <Property Name="DayShift" Type="float" Nullable="false" />
-          <Property Name="NightShift" Type="float" Nullable="false" />
-          <Property Name="Total" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="DayShift" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="NightShift" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Total" Type="decimal" Precision="19" Scale="6" StoreGeneratedPattern="Computed" Nullable="false" />
         </EntityType>
         <EntityType Name="PRODUCTS">
           <Key>
@@ -1394,10 +1394,10 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="PNo" Type="varchar" MaxLength="15" Nullable="false" />
           <Property Name="Name" Type="varchar" MaxLength="50" />
-          <Property Name="Weight" Type="float" />
-          <Property Name="Length" Type="float" />
-          <Property Name="Width" Type="float" />
-          <Property Name="Height" Type="float" />
+          <Property Name="Weight" Type="decimal" Precision="18" Scale="6" />
+          <Property Name="Length" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Width" Type="decimal" Precision="18" Scale="4" />
+          <Property Name="Height" Type="decimal" Precision="18" Scale="4" />
           <Property Name="Type" Type="varchar" MaxLength="50" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
@@ -1412,7 +1412,7 @@
           <Property Name="CategoryID" Type="int" />
           <Property Name="NX3DFilePath" Type="nvarchar(max)" />
           <Property Name="ShopID" Type="int" Nullable="false" />
-          <Property Name="StandardLengthMm" Type="float" />
+          <Property Name="StandardLengthMm" Type="decimal" Precision="18" Scale="4" />
           <Property Name="OptimizationType" Type="tinyint" />
           <Property Name="CalculateByWeight" Type="bit" />
         </EntityType>
@@ -1474,11 +1474,11 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ContractID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="PiecePrice" Type="float" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="PiecePrice" Type="decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="int" Nullable="false" />
-          <Property Name="vatamount" Type="float" />
-          <Property Name="totalamount" Type="float" StoreGeneratedPattern="Computed" />
+          <Property Name="vatamount" Type="decimal" Precision="19" Scale="4" />
+          <Property Name="totalamount" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="S_CONTRACTS">
           <Key>
@@ -1489,7 +1489,7 @@
           <Property Name="IssuedDate" Type="date" Nullable="false" />
           <Property Name="CompanyID" Type="int" Nullable="false" />
           <Property Name="CustomerID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" />
           <Property Name="Incoterms" Type="varchar" MaxLength="15" />
           <Property Name="PaymentTerms" Type="varchar" MaxLength="50" />
           <Property Name="PaymentDays" Type="int" />
@@ -1504,10 +1504,10 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="OrderID" Type="int" Nullable="false" />
           <Property Name="ProductID" Type="int" Nullable="false" />
-          <Property Name="Price" Type="float" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
-          <Property Name="TotalPrice" Type="float" StoreGeneratedPattern="Computed" Nullable="false" />
-          <Property Name="MOQ" Type="float" />
+          <Property Name="Price" Type="decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="decimal" Precision="38" Scale="12" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="MOQ" Type="decimal" Precision="18" Scale="6" />
           <Property Name="UnitID" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="S_ORDERS">
@@ -1520,7 +1520,7 @@
           <Property Name="CompanyID" Type="int" Nullable="false" />
           <Property Name="CustomerID" Type="int" Nullable="false" />
           <Property Name="ContractID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="CurrencyID" Type="int" Nullable="false" />
@@ -1985,7 +1985,7 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="WHID" Type="int" Nullable="false" />
           <Property Name="WasteID" Type="int" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="WASTES">
@@ -6685,7 +6685,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
           <Property Name="DefectTypeID" Type="Int32" Nullable="false" />
-          <Property Name="Quantity" Type="Double" Nullable="false" />
+          <Property Name="Quantity" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="IssueDateTime" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="DEFECT_TYPES" Relationship="Self.FK_DAMAGED_PRODUCTS_DEFECT_TYPES" FromRole="DAMAGED_PRODUCTS" ToRole="DEFECT_TYPES" />
@@ -6811,9 +6811,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ExpenseID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
-          <Property Name="PiecePrice" Type="Double" Nullable="false" />
-          <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="PiecePrice" Type="Decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="38" Scale="12" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="EXPENS" Relationship="Self.FK_PROD_WRHS_EXPENSE_PRODUCTS_PROD_WRHS_EXPENSES" FromRole="EXPENSE_PRODUCTS" ToRole="EXPENSES" />
@@ -6833,8 +6833,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           </Key>
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="DocNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="Amount" Type="Double" />
-          <Property Name="TotalPrice" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="ReceiverWhID" Type="Int32" />
           <Property Name="SenderWHID" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
@@ -6897,14 +6897,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           </Key>
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="TransportType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="ExtLgth" Type="Double" Nullable="false" />
-          <Property Name="ExtWdth" Type="Double" Nullable="false" />
-          <Property Name="ExtHght" Type="Double" Nullable="false" />
-          <Property Name="IntLgth" Type="Double" Nullable="false" />
-          <Property Name="IntWdth" Type="Double" Nullable="false" />
-          <Property Name="IntHght" Type="Double" Nullable="false" />
-          <Property Name="CapableOfLifting" Type="Double" />
-          <Property Name="TransportWeight" Type="Double" />
+          <Property Name="ExtLgth" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="ExtWdth" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="ExtHght" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="IntLgth" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="IntWdth" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="IntHght" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
+          <Property Name="CapableOfLifting" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="TransportWeight" Type="Decimal" Precision="18" Scale="4" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <NavigationProperty Name="F_CONTRACT_TARIFFS" Relationship="Self.FK_F_CONTRACT_TARIFFS_TRANSPORT_TYPES" FromRole="F_TRANSPORT_TYPES" ToRole="F_CONTRACT_TARIFFS" />
@@ -7580,12 +7580,12 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="IncomeID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
-          <Property Name="PiecePrice" Type="Double" />
-          <Property Name="TotalPrice" Type="Double" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="PiecePrice" Type="Decimal" Precision="19" Scale="6" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="38" Scale="12" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
-          <Property Name="VATRate" Type="Double" />
+          <Property Name="VATRate" Type="Decimal" Precision="9" Scale="4" />
           <NavigationProperty Name="INCOME" Relationship="Self.FK_PROD_WRHS_INCOME_PRODS_PROD_WRHS_INCOMES" FromRole="INCOME_PRODUCTS" ToRole="INCOMES" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_PROD_WRHS_INCOME_PRODUCTS_PRODUCTS" FromRole="INCOME_PRODUCTS" ToRole="PRODUCTS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_PROD_WRHS_INCOME_PRODUCTS_UNITS" FromRole="INCOME_PRODUCTS" ToRole="UNITS" />
@@ -7598,8 +7598,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="DocNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="ReceivingWHID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" />
-          <Property Name="TotalPrice" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IssueDateTime" Type="DateTime" Nullable="false" Precision="3" />
@@ -7645,8 +7645,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="Price" Type="Decimal" Precision="18" Scale="4" Nullable="false" />
           <Property Name="TotalAmount" Type="Decimal" Precision="38" Scale="6" annotation:StoreGeneratedPattern="Computed" />
-          <Property Name="Consumption" Type="Double" />
-          <Property Name="WasteAmount" Type="Double" />
+          <Property Name="Consumption" Type="Decimal" Precision="18" Scale="6" />
+          <Property Name="WasteAmount" Type="Decimal" Precision="18" Scale="6" />
           <Property Name="UnitID" Type="Int32" />
           <NavigationProperty Name="USER" Relationship="Self.FK_NORM_INPUT_LINES_CreatedByUserID_USERS" FromRole="NORM_INPUT_LINES" ToRole="USERS" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_NORM_INPUT_LINES_MaterialID_PRODUCTS" FromRole="NORM_INPUT_LINES" ToRole="PRODUCTS" />
@@ -7697,10 +7697,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ContractID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Price" Type="Double" Nullable="false" />
-          <Property Name="Quantity" Type="Double" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
-          <Property Name="MOQ" Type="Double" />
+          <Property Name="Price" Type="Decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Quantity" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="38" Scale="12" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="MOQ" Type="Decimal" Precision="18" Scale="6" />
           <Property Name="ActivePart" Type="Boolean" />
           <Property Name="UnitID" Type="Int32" />
           <Property Name="HSCodeID" Type="Int32" />
@@ -7708,8 +7708,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_P_CONTRACT_PRODUCTS_ID_PRODUCTS" FromRole="P_CONTRACT_PRODUCTS" ToRole="PRODUCTS" />
           <NavigationProperty Name="P_CONTRACTS" Relationship="Self.FK_P_CONTRACT_PRODUCTS_P_CONTRACTS" FromRole="P_CONTRACT_PRODUCTS" ToRole="P_CONTRACTS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_P_CONTRACT_PRODUCTS_UNITS" FromRole="P_CONTRACT_PRODUCTS" ToRole="UNITS" />
-          <Property Name="VATAmount" Type="Double" />
-          <Property Name="TotalAmount" Type="Double" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="VATAmount" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="TotalAmount" Type="Decimal" Precision="38" Scale="12" annotation:StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="P_CONTRACTS">
           <Key>
@@ -7720,7 +7720,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="IssuedDate" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CompanyID" Type="Int32" Nullable="false" />
           <Property Name="SupplierID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="Incoterms" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
           <Property Name="PaymentTerms" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="DueDate" Type="DateTime" Nullable="false" Precision="3" />
@@ -7752,9 +7752,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="InvoiceID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Quantity" Type="Double" Nullable="false" />
-          <Property Name="Price" Type="Double" Nullable="false" />
-          <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="Quantity" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Price" Type="Decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="38" Scale="12" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_P_INVOICE_PRODUCTS_ID_PRODUCTS" FromRole="P_INVOICE_PRODUCTS" ToRole="PRODUCTS" />
           <NavigationProperty Name="P_INVOICES" Relationship="Self.FK_P_INVOICE_PRODUCTS_P_INVOICES" FromRole="P_INVOICE_PRODUCTS" ToRole="P_INVOICES" />
@@ -7768,7 +7768,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="InvoiceNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="OrderID" Type="Int32" />
           <Property Name="SupplierID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="InvoiceDate" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="CompanyID" Type="Int32" />
           <Property Name="IsDeleted" Type="Boolean" />
@@ -7792,10 +7792,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="OrderID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Price" Type="Double" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
-          <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
-          <Property Name="MOQ" Type="Double" />
+          <Property Name="Price" Type="Decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="38" Scale="12" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="MOQ" Type="Decimal" Precision="18" Scale="6" />
           <Property Name="UnitID" Type="Int32" />
           <Property Name="Priority" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="RequiredDate" Type="DateTime" Precision="3" />
@@ -7813,7 +7813,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="CompanyID" Type="Int32" />
           <Property Name="SupplierID" Type="Int32" />
           <Property Name="ContractID" Type="Int32" />
-          <Property Name="Amount" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" />
@@ -7859,10 +7859,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="RequisitionID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Quantity" Type="Double" Nullable="false" />
+          <Property Name="Quantity" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
-          <Property Name="EstimatedPrice" Type="Double" />
-          <Property Name="Amount" Type="Double" />
+          <Property Name="EstimatedPrice" Type="Decimal" Precision="19" Scale="6" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="Priority" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="RequiredDate" Type="DateTime" Precision="3" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
@@ -7956,9 +7956,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ProductID" Type="Int32" Nullable="false" />
           <Property Name="ShopID" Type="Int32" Nullable="false" />
           <Property Name="Date" Type="DateTime" Nullable="false" Precision="0" />
-          <Property Name="DayShift" Type="Double" Nullable="false" />
-          <Property Name="NightShift" Type="Double" Nullable="false" />
-          <Property Name="Total" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="DayShift" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="NightShift" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Total" Type="Decimal" Precision="19" Scale="6" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="PlanDate" Type="DateTime" Precision="0" />
@@ -7973,7 +7973,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="WHID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK__PROD_STOC__UnitI__5F691F13" FromRole="PRODUCT_STOCKS" ToRole="UNITS" />
           <NavigationProperty Name="Warehouse" Relationship="Self.FK_PROD_STOCKS_PROD_WRHS" FromRole="PRODUCT_STOCKS" ToRole="WAREHOUSES" />
@@ -8005,7 +8005,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           </Key>
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="DueDate" Type="DateTime" Nullable="false" Precision="0" />
@@ -8021,9 +8021,9 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="PlanID" Type="Int32" Nullable="false" />
           <Property Name="Day" Type="DateTime" Nullable="false" Precision="0" />
-          <Property Name="DayShift" Type="Double" Nullable="false" />
-          <Property Name="NightShift" Type="Double" Nullable="false" />
-          <Property Name="Total" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="DayShift" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="NightShift" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="Total" Type="Decimal" Precision="19" Scale="6" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
           <NavigationProperty Name="PRODUCTPLAN" Relationship="Self.FK_PRODUCTPLANS_DAILY_PRODUCTPLANS" FromRole="PRODUCTPLANS_DAILY" ToRole="PRODUCTPLANS" />
           <NavigationProperty Name="QUALITY_INSPECTION" Relationship="Self.FK_QUALITY_INSPECTION_PRODUCTPLANS_DAILY" FromRole="PRODUCTPLANS_DAILY" ToRole="QUALITY_INSPECTION" />
         </EntityType>
@@ -8034,10 +8034,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="PNo" Type="String" MaxLength="15" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Weight" Type="Double" />
-          <Property Name="Length" Type="Double" />
-          <Property Name="Width" Type="Double" />
-          <Property Name="Height" Type="Double" />
+          <Property Name="Weight" Type="Decimal" Precision="18" Scale="6" />
+          <Property Name="Length" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Width" Type="Decimal" Precision="18" Scale="4" />
+          <Property Name="Height" Type="Decimal" Precision="18" Scale="4" />
           <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
@@ -8052,7 +8052,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="CategoryID" Type="Int32" />
           <Property Name="NX3DFilePath" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="ShopID" Type="Int32" Nullable="false" />
-          <Property Name="StandardLengthMm" Type="Double" />
+          <Property Name="StandardLengthMm" Type="Decimal" Precision="18" Scale="4" />
           <Property Name="OptimizationType" Type="Byte" />
           <Property Name="CalculateByWeight" Type="Boolean" />
           <NavigationProperty Name="BOM_HEADERS" Relationship="Self.FK_BOM_HEADER_PRODUCTS" FromRole="PRODUCTS" ToRole="BOM_HEADERS" />
@@ -8156,14 +8156,14 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ContractID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="PiecePrice" Type="Double" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="PiecePrice" Type="Decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_S_CONTRACT_PRODUCTS_PRODUCTS" FromRole="S_CONTRACT_PRODUCTS" ToRole="PRODUCTS" />
           <NavigationProperty Name="S_CONTRACTS" Relationship="Self.FK_S_CONTRACT_PRODUCTS_S_CONTRACTS" FromRole="S_CONTRACT_PRODUCTS" ToRole="S_CONTRACTS" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK_S_CONTRACT_PRODUCTS_UNITS" FromRole="S_CONTRACT_PRODUCTS" ToRole="UNITS" />
-          <Property Name="vatamount" Type="Double" />
-          <Property Name="totalamount" Type="Double" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="vatamount" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="totalamount" Type="Decimal" Precision="38" Scale="12" annotation:StoreGeneratedPattern="Computed" />
         </EntityType>
         <EntityType Name="S_CONTRACTS">
           <Key>
@@ -8174,7 +8174,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="IssuedDate" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="CompanyID" Type="Int32" Nullable="false" />
           <Property Name="CustomerID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="Incoterms" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
           <Property Name="PaymentTerms" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="PaymentDays" Type="Int32" />
@@ -8196,10 +8196,10 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="OrderID" Type="Int32" Nullable="false" />
           <Property Name="ProductID" Type="Int32" Nullable="false" />
-          <Property Name="Price" Type="Double" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
-          <Property Name="TotalPrice" Type="Double" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
-          <Property Name="MOQ" Type="Double" />
+          <Property Name="Price" Type="Decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="38" Scale="12" Nullable="false" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="MOQ" Type="Decimal" Precision="18" Scale="6" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="PRODUCT" Relationship="Self.FK_S_ORDER_PRODUCTS_PRODUCTS" FromRole="S_ORDER_PRODUCTS" ToRole="PRODUCTS" />
           <NavigationProperty Name="S_ORDERS" Relationship="Self.FK_S_ORDER_PRODUCTS_S_ORDERS" FromRole="S_ORDER_PRODUCTS" ToRole="S_ORDERS" />
@@ -8215,7 +8215,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="CompanyID" Type="Int32" Nullable="false" />
           <Property Name="CustomerID" Type="Int32" Nullable="false" />
           <Property Name="ContractID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="CurrencyID" Type="Int32" Nullable="false" />
@@ -8793,7 +8793,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="WHID" Type="Int32" Nullable="false" />
           <Property Name="WasteID" Type="Int32" Nullable="false" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="6" Nullable="false" />
           <Property Name="UnitID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="UNIT" Relationship="Self.FK__WASTE_STO__UnitI__5E74FADA" FromRole="WASTE_STOCKS" ToRole="UNITS" />
           <NavigationProperty Name="Warehouse" Relationship="Self.FK_WASTE_STOCKS_WHID_WAREHOUSES" FromRole="WASTE_STOCKS" ToRole="WAREHOUSES" />
