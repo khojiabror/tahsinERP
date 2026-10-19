@@ -1144,11 +1144,10 @@ namespace tahsinERP.Controllers.Engineering
                 {
                     p.ID,
                     HasCategory = p.PRODUCT_CATEGORIES != null,
-                    p.PRODUCT_CATEGORIES.RawMaterialGroup,
-                    CategoryName = p.PRODUCT_CATEGORIES.Name
+                    p.PRODUCT_CATEGORIES.MaterialKind
                 })
                 .ToListAsync();
-            return rows.ToDictionary(p => p.ID, p => p.HasCategory && NormLineMath.IsWoodCategory(p.RawMaterialGroup, p.CategoryName));
+            return rows.ToDictionary(p => p.ID, p => p.HasCategory && NormLineMath.IsWoodCategory(p.MaterialKind));
         }
 
         /// <summary>Umumiy norma/chiqindi — faqat yog'och materiallar; umumiy summa — barchasi.</summary>

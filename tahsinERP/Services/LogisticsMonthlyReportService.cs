@@ -87,24 +87,21 @@ namespace tahsinERP.Services
 
         private static async Task<double> GetLogisticsOpeningBalanceAdjustmentAsync(DBTHSNEntities db, DateTime periodStart)
         {
-            // OpeningBalance modulidan kiritilgan logistika bilan bog'liq balanslar
-            // (nomida "logistik", "tashuv", "transport", "forwarder" kalit so'zlari bor kategoriyalar).
-            var keywordFilteredCategoryIds = await db.FIN_BALANCE_CATEGORIES
-                .Where(c => c.IsActive && c.IsDeleted != true &&
-                            (((c.Name ?? "").ToLower().Contains("logistik")) ||
-                             ((c.Name ?? "").ToLower().Contains("tashuv")) ||
-                             ((c.Name ?? "").ToLower().Contains("transport")) ||
-                             ((c.Name ?? "").ToLower().Contains("forwarder"))))
+            // OpeningBalance modulidan kiritilgan logistika qarzi — balans kategoriyasi SystemCode = LOGISTICS_DEBT
+            // (avval nomida "logistik/tashuv/transport/forwarder" bor kategoriyalar; nom faqat ko'rsatish uchun).
+            const string logisticsDebt = SystemCodes.BalanceCategory.LogisticsDebt;
+            var logisticsCategoryIds = await db.FIN_BALANCE_CATEGORIES
+                .Where(c => c.IsActive && c.IsDeleted != true && c.SystemCode == logisticsDebt)
                 .Select(c => c.ID)
                 .ToListAsync();
 
-            if (!keywordFilteredCategoryIds.Any())
+            if (!logisticsCategoryIds.Any())
             {
                 return 0;
             }
 
             var adjustment = await db.FIN_BALANCE_SNAPSHOTS
-                .Where(s => keywordFilteredCategoryIds.Contains(s.CategoryID) &&
+                .Where(s => logisticsCategoryIds.Contains(s.CategoryID) &&
                             s.SourceType == "OpeningBalance" &&
                             s.SnapshotDate < periodStart)
                 .Select(s => (double?)s.Amount)

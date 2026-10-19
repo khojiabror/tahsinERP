@@ -174,26 +174,27 @@ namespace tahsinERP.Models
         }
 
         /// <summary>
-        /// Foydalanuvchi ma'lum bir rolga egami (nomi bo'yicha, katta-kichik harf farqsiz).
+        /// Foydalanuvchida shu tizim kodli rol bormi (ROLES.SystemCode — rol NOMI emas, nom faqat ko'rsatish uchun).
+        /// Kodlar: <see cref="tahsinERP.Services.Common.SystemCodes.Role"/>.
         /// </summary>
-        public static bool IsInRole(string username, string roleName)
+        public static bool HasRoleCode(string username, string roleCode)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(roleName))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(roleCode))
                 return false;
-            var roles = GetUserRoles(username);
-            return Array.Exists(roles, r => string.Equals(r, roleName, StringComparison.OrdinalIgnoreCase));
+            var snap = GetSnapshot(username);
+            return snap != null && snap.IsActive && Array.IndexOf(snap.RoleCodes, roleCode) >= 0;
         }
 
         /// <summary>Developer roli egasimi (yashirin ma'muriy imtiyozlar uchun).</summary>
         public static bool IsDeveloper(string username)
         {
-            return IsInRole(username, "Developer");
+            return HasRoleCode(username, tahsinERP.Services.Common.SystemCodes.Role.Developer);
         }
 
         /// <summary>Admin yoki Developer roli (modullarda 13+ joyda qo'lda yozilgan tekshiruv).</summary>
         public static bool IsAdminOrDeveloper(string username)
         {
-            return IsInRole(username, "Admin") || IsInRole(username, "Developer");
+            return HasRoleCode(username, tahsinERP.Services.Common.SystemCodes.Role.Admin) || IsDeveloper(username);
         }
 
         /// <summary>Litsenziyani boshqara oladigan rol (Admin yoki Developer).</summary>
@@ -341,7 +342,7 @@ namespace tahsinERP.Models
                         {
                             u.ID,
                             u.IsActive,
-                            Roles = u.ROLES.Select(r => new { r.ID, r.RName })
+                            Roles = u.ROLES.Select(r => new { r.ID, r.RName, r.SystemCode })
                         })
                         .FirstOrDefault();
 
@@ -354,6 +355,7 @@ namespace tahsinERP.Models
                         UserId = user.ID,
                         IsActive = user.IsActive,
                         Roles = user.Roles.Select(r => r.RName).ToArray(),
+                        RoleCodes = user.Roles.Where(r => r.SystemCode != null).Select(r => r.SystemCode).ToArray(),
                         Version = version,
                         Entries = new Dictionary<string, PermissionEntry>(StringComparer.OrdinalIgnoreCase)
                     };
@@ -463,6 +465,8 @@ namespace tahsinERP.Models
             public int UserId { get; set; }
             public bool IsActive { get; set; }
             public string[] Roles { get; set; }
+            /// <summary>ROLES.SystemCode (ADMIN, DEVELOPER) — huquq tekshiruvi faqat shu bo'yicha.</summary>
+            public string[] RoleCodes { get; set; }
             public long Version { get; set; }
             public Dictionary<string, PermissionEntry> Entries { get; set; }
         }
