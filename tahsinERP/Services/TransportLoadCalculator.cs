@@ -62,13 +62,13 @@ namespace tahsinERP.Services
             }
 
             // Get dimensions (assuming they are in mm as per requirement)
-            decimal productLengthMm = (decimal)(product.Length ?? 0);
-            decimal productWidthMm = (decimal)(product.Width ?? 0);
-            decimal productHeightMm = (decimal)(product.Height ?? 0);
+            decimal productLengthMm = (product.Length ?? 0);
+            decimal productWidthMm = (product.Width ?? 0);
+            decimal productHeightMm = (product.Height ?? 0);
 
-            decimal transportLengthMm = (decimal)transportType.IntLgth;
-            decimal transportWidthMm = (decimal)transportType.IntWdth;
-            decimal transportHeightMm = (decimal)transportType.IntHght;
+            decimal transportLengthMm = transportType.IntLgth;
+            decimal transportWidthMm = transportType.IntWdth;
+            decimal transportHeightMm = transportType.IntHght;
 
             // Validate dimensions
             if (productLengthMm <= 0 || productWidthMm <= 0 || productHeightMm <= 0)

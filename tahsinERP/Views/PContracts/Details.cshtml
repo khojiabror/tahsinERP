@@ -98,9 +98,9 @@
                                             </tr>
                                             @{
                                                 var contractProducts = Model.P_CONTRACT_PRODUCTS;
-                                                var baseAmount = contractProducts != null ? contractProducts.Sum(p => (double)p.Amount) : 0d;
-                                                var vatAmount = contractProducts != null ? contractProducts.Sum(p => (double)(p.VATAmount ?? 0)) : 0d;
-                                                var totalAmount = contractProducts != null ? contractProducts.Sum(p => (double?)p.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat((double)p.Amount, (double?)p.VATAmount)) : 0d;
+                                                var baseAmount = contractProducts != null ? contractProducts.Sum(p => p.Amount) : 0m;
+                                                var vatAmount = contractProducts != null ? contractProducts.Sum(p => (p.VATAmount ?? 0)) : 0m;
+                                                var totalAmount = contractProducts != null ? contractProducts.Sum(p => p.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat(p.Amount, p.VATAmount)) : 0m;
                                                 var vatPercent = PContractVatHelper.GetVatPercentFromLine(baseAmount, vatAmount);
                                             }
                                             <tr>
@@ -168,8 +168,8 @@
                                                                             <tr>
                                                                                 @{
                                                                                     var baseTotal = product.Amount;
-                                                                                    vatPercent = PContractVatHelper.GetVatPercentFromLine((double)product.Amount, (double?)product.VATAmount);
-                                                                                    var totalWithVat = (double?)product.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat((double)product.Amount, (double?)product.VATAmount);
+                                                                                    vatPercent = PContractVatHelper.GetVatPercentFromLine(product.Amount, product.VATAmount);
+                                                                                    var totalWithVat = product.TotalAmount ?? PContractVatHelper.CalculateLineTotalWithVat(product.Amount, product.VATAmount);
                                                                                 }
                                                                                 <td>
                                                                                     @if (product.PRODUCT != null && product.PRODUCT.ID > 0)
@@ -260,9 +260,9 @@
 
                                 <!-- Totals Comparison -->
                                 @{
-                                    var contractedTotal = ViewBag.ContractedTotal as double? ?? 0;
-                                    var orderedTotal = ViewBag.OrderedTotal as double? ?? 0;
-                                    var invoicedTotal = ViewBag.InvoicedTotal as double? ?? 0;
+                                    var contractedTotal = ViewBag.ContractedTotal as decimal? ?? 0;
+                                    var orderedTotal = ViewBag.OrderedTotal as decimal? ?? 0;
+                                    var invoicedTotal = ViewBag.InvoicedTotal as decimal? ?? 0;
                                 }
                                 <div class="row mt-3">
                                     <div class="col-12">

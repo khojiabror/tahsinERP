@@ -515,7 +515,7 @@ namespace tahsinERP.Services.Crm
                 .ToList()
                 .GroupBy(cp => cp.ProductID)
                 .Where(g => g.Select(x => x.PiecePrice).Distinct().Count() == 1)
-                .ToDictionary(g => g.Key, g => (decimal)g.First().PiecePrice);
+                .ToDictionary(g => g.Key, g => g.First().PiecePrice);
 
             // QQS foizi ham shartnomadan (CRM-S03): formadagi qiymatga faqat shartnomada yo'q mahsulot uchun ishoniladi
             var vatRates = SContractVatHelper.GetProductVatRates(db, contractId);
@@ -526,9 +526,9 @@ namespace tahsinERP.Services.Crm
                 if (prices.TryGetValue(line.ProductID, out price))
                     line.UnitPrice = price;
 
-                double vatRate;
+                decimal vatRate;
                 if (vatRates.TryGetValue(line.ProductID, out vatRate))
-                    line.VATRate = (decimal)vatRate;
+                    line.VATRate = vatRate;
             }
         }
 

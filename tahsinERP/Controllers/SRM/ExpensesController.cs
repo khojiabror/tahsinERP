@@ -55,7 +55,7 @@ namespace tahsinERP.Controllers.SRM
             public int SenderWHID { get; set; }
             public string SenderName { get; set; }
             public string ReceiverName { get; set; }
-            public double? TotalPrice { get; set; }
+            public decimal? TotalPrice { get; set; }
             public bool Sent { get; set; }
             public DateTime IssueDateTime { get; set; }
         }
@@ -94,7 +94,7 @@ namespace tahsinERP.Controllers.SRM
                 SenderWHID = e.SenderWHID,
                 SenderName = e.Warehouse.WHName,
                 ReceiverName = e.Warehouse1.WHName,
-                TotalPrice = (double?)e.TotalPrice,
+                TotalPrice = e.TotalPrice,
                 Sent = e.SendStatus == true,
                 IssueDateTime = e.IssueDateTime
             });
@@ -306,7 +306,7 @@ namespace tahsinERP.Controllers.SRM
                             p.ProductID,
                             p.ProductPNo,
                             p.ProductName,
-                            AvailableStock = Math.Max(0, Math.Min((decimal)(approvedRemaining.ContainsKey(p.ProductID) ? approvedRemaining[p.ProductID] : 0), p.AvailableStock)),
+                            AvailableStock = Math.Max(0, Math.Min((approvedRemaining.ContainsKey(p.ProductID) ? approvedRemaining[p.ProductID] : 0), p.AvailableStock)),
                             p.UnitID,
                             p.UnitName
                         })

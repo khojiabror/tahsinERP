@@ -170,22 +170,22 @@
                                                                     @Html.HiddenFor(m => m.ContractProducts[i].ID)
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].Quantity, new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].Quantity, "{0:0.######}", new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     @Html.DropDownListFor(m => m.ContractProducts[i].UnitID, new SelectList(unitsList ?? Enumerable.Empty<SelectListItem>(), "Value", "Text", product.UnitID), "---Tanlang---", new { @class = "form-control unit-select select2", @required = "required" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].Price, "{0:0.######}", new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     <input type="number" name="ContractProducts[@i].VatPercent" class="form-control vat-input" value="@Model.ContractProducts[i].VatPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" step="0.01" min="0" max="100" />
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].Amount, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].Amount, "{0:0.############}", new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].MOQ, new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
+                                                                    @Html.TextBoxFor(m => m.ContractProducts[i].MOQ, "{0:0.######}", new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
                                                                 </td>
                                                                 <td>
                                                                     @{

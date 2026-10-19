@@ -104,14 +104,14 @@
                                                                         </thead>
                                                                         <tbody>
                                                                             @{
-                                                                                var productVatRates = ViewBag.ProductVatRates as Dictionary<int, double>;
+                                                                                var productVatRates = ViewBag.ProductVatRates as Dictionary<int, decimal>;
                                                                             }
                                                                             @foreach (var item in Model.S_ORDER_PRODUCTS)
                                                                             {
                                                                                 // Shartnoma QQS foizi; 0 bo'lsa narxlar QQSsiz ko'rsatiladi
-                                                                                var vatRate = productVatRates != null && productVatRates.ContainsKey(item.ProductID) ? productVatRates[item.ProductID] : 0d;
-                                                                                var priceWithVat = (double)item.Price * (1 + vatRate / 100d);
-                                                                                var lineTotalWithVat = (double)item.TotalPrice * (1 + vatRate / 100d);
+                                                                                var vatRate = productVatRates != null && productVatRates.ContainsKey(item.ProductID) ? productVatRates[item.ProductID] : 0m;
+                                                                                var priceWithVat = item.Price * (1 + vatRate / 100m);
+                                                                                var lineTotalWithVat = item.TotalPrice * (1 + vatRate / 100m);
                                                                                 <tr>
                                                                                     <td>@(item.PRODUCT?.PNo ?? "-")</td>
                                                                                     <td>@(item.PRODUCT?.Name ?? "-")</td>

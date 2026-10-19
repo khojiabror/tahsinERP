@@ -262,10 +262,10 @@ namespace tahsinERP.Services.Finance
         private static decimal GetIncomeProductUnitPrice(INCOME_PRODUCTS ip)
         {
             if (ip.TotalPrice.HasValue && ip.TotalPrice.Value > 0 && ip.Amount > 0)
-                return (decimal)(ip.TotalPrice.Value / ip.Amount);
+                return (ip.TotalPrice.Value / ip.Amount);
 
             if (ip.PiecePrice.HasValue && ip.PiecePrice.Value > 0)
-                return (decimal)ip.PiecePrice.Value;
+                return ip.PiecePrice.Value;
 
             return 0m;
         }

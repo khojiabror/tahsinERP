@@ -105,7 +105,7 @@ namespace tahsinERP.Services
             if (fromUnit == null || toUnit == null || product == null)
                 return null;
 
-            var weight = product.Weight.HasValue && product.Weight.Value > 0 ? (decimal)product.Weight.Value : 0m;
+            var weight = product.Weight.HasValue && product.Weight.Value > 0 ? product.Weight.Value : 0m;
             var lengthM = RequiresCutting(product) && product.Length.HasValue && product.Length.Value > 0
                 ? (product.Length.Value / 1000m)
                 : 0m;
@@ -213,12 +213,12 @@ namespace tahsinERP.Services
             }
 
             // Width and Height are optional, default to Length if not provided
-            decimal lengthMm = (decimal)product.Length.Value;
+            decimal lengthMm = product.Length.Value;
             decimal widthMm = product.Width.HasValue && product.Width.Value > 0 
-                ? (decimal)product.Width.Value 
+                ? product.Width.Value 
                 : lengthMm;
             decimal heightMm = product.Height.HasValue && product.Height.Value > 0 
-                ? (decimal)product.Height.Value 
+                ? product.Height.Value 
                 : lengthMm;
 
             // Convert dimensions from mm to meters
@@ -274,7 +274,7 @@ namespace tahsinERP.Services
             }
 
             // Calculate kg: kg = pieces × Weight (kg per piece)
-            decimal kgQuantity = pieceQuantity * (decimal)product.Weight.Value;
+            decimal kgQuantity = pieceQuantity * product.Weight.Value;
 
             return kgQuantity;
         }
@@ -341,7 +341,7 @@ namespace tahsinERP.Services
                     $"Product {product.PNo} does not have a valid Weight value. Cannot convert kg to piece.");
             }
 
-            decimal pieceQuantity = kgQuantity / (decimal)product.Weight.Value;
+            decimal pieceQuantity = kgQuantity / product.Weight.Value;
             return pieceQuantity;
         }
 

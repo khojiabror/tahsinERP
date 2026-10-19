@@ -57,8 +57,8 @@ namespace tahsinERP.Controllers
                 .GroupBy(x => x.ProductID)
                 .ToDictionary(g => g.Key, g => new QtyAmt
                 {
-                    Qty = (decimal)g.Sum(x => x.Qty),
-                    Amt = g.Sum(x => uzs.ToUzsOrZero((decimal)x.Amt, x.CurrencyID, x.Day ?? DateTime.Today))
+                    Qty = g.Sum(x => x.Qty),
+                    Amt = g.Sum(x => uzs.ToUzsOrZero(x.Amt, x.CurrencyID, x.Day ?? DateTime.Today))
                 });
         }
 
@@ -192,7 +192,7 @@ namespace tahsinERP.Controllers
                     .ToDictionary(g => g.Key, g => new
                     {
                         Count = g.Sum(x => x.Count),
-                        Amount = g.Sum(x => uzs.ToUzsOrZero((decimal)x.Amount, x.CurrencyID, x.Day ?? from))
+                        Amount = g.Sum(x => uzs.ToUzsOrZero(x.Amount, x.CurrencyID, x.Day ?? from))
                     });
                 var invoiceAgg = db.SALES_INVOICES.AsNoTracking().Active()
                     .Where(i => i.InvoiceDate >= from && i.InvoiceDate < toExclusive)

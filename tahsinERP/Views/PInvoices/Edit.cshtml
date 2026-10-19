@@ -5,7 +5,7 @@
 @{
     ViewBag.Title = "Invoysni tahrirlash";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var initialVatRate = ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d;
+    var initialVatRate = ViewBag.ContractVatRate != null ? (decimal)ViewBag.ContractVatRate : 0m;
 
     var purchasableProductsData = new List<object>();
     var unitsData = new List<object>();
@@ -142,17 +142,17 @@
                                                                     @Html.HiddenFor(m => m.InvoiceProducts[i].ID)
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.InvoiceProducts[i].Quantity, new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    @Html.TextBoxFor(m => m.InvoiceProducts[i].Quantity, "{0:0.######}", new { @type = "number", @class = "form-control quantity-input", @step = "0.01", @min = "0", @required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     @Html.DropDownListFor(m => m.InvoiceProducts[i].UnitID, new SelectList(unitsList, "Value", "Text", product.UnitID), "---Tanlang---", new { @class = "form-control select2 unit-select", @required = "required" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.InvoiceProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    @Html.TextBoxFor(m => m.InvoiceProducts[i].Price, "{0:0.######}", new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     <small class="text-muted d-block mt-1">QQS bilan: <span class="price-with-vat">0.00</span></small>
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.InvoiceProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                    @Html.TextBoxFor(m => m.InvoiceProducts[i].TotalPrice, "{0:0.############}", new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
                                                                     <small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small>
                                                                 </td>
                                                                 <td>

@@ -84,7 +84,7 @@ namespace tahsinERP.Services
                         continue;
                     }
 
-                    decimal lineQty = (decimal)sOrderProduct.Amount;
+                    decimal lineQty = sOrderProduct.Amount;
                     if (lineQty <= 0)
                     {
                         continue;
@@ -705,11 +705,11 @@ namespace tahsinERP.Services
                     decimal sourcePrice = 0m;
                     if (income.TotalPrice.HasValue && income.TotalPrice.Value > 0)
                     {
-                        sourcePrice = (decimal)(income.TotalPrice.Value / income.Amount);
+                        sourcePrice = (income.TotalPrice.Value / income.Amount);
                     }
                     else if (income.PiecePrice.HasValue && income.PiecePrice.Value > 0)
                     {
-                        sourcePrice = (decimal)income.PiecePrice.Value;
+                        sourcePrice = income.PiecePrice.Value;
                     }
 
                     if (sourcePrice > 0)

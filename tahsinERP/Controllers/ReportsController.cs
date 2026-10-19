@@ -69,9 +69,9 @@ namespace tahsinERP.Controllers
                         g => g.Key,
                         g => new
                         {
-                            Total = g.Sum(x => (double)x.Amount),
+                            Total = g.Sum(x => x.Amount),
                             Daily = g.GroupBy(x => x.Date)
-                                     .ToDictionary(gg => gg.Key, gg => gg.Sum(x => (double)x.Amount))
+                                     .ToDictionary(gg => gg.Key, gg => gg.Sum(x => x.Amount))
                         });
 
                 var productIds = demandByProduct.Keys.ToList();
@@ -181,7 +181,7 @@ namespace tahsinERP.Controllers
                     .ToDictionary(
                         g => g.Key,
                         g => g.GroupBy(x => x.Date)
-                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => (double)x.Amount)));
+                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => x.Amount)));
 
                 var productIds = demandByProduct.Keys.ToList();
                 var products = await db.PRODUCTS
@@ -417,7 +417,7 @@ namespace tahsinERP.Controllers
                     .ToDictionary(
                         g => g.Key,
                         g => g.GroupBy(x => x.Date)
-                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => (double)x.Amount)));
+                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => x.Amount)));
 
                 // ABC/XYZ va Safety DOH faqat talab bo'lgan mahsulotlar uchun
                 double totalAllDemand = demandByProduct.Values.Sum(v => v.Values.Sum());

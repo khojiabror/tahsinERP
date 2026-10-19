@@ -200,9 +200,9 @@ namespace tahsinERP.Controllers.MES
 
                                 // Yangilash existing
                                 existing.Date = viewModel.ProductionDate;
-                                existing.DayShift = (decimal)item.DayShift;
-                                existing.NightShift = (decimal)item.NightShift;
-                                existing.Total = (decimal)item.Total;
+                                existing.DayShift = item.DayShift;
+                                existing.NightShift = item.NightShift;
+                                existing.Total = item.Total;
                                 existing.PlanDate = planDay;
                                 existing.Comment = ProductProductionPlanDateMeta.StripMeta(item.Comment);
                                 db.Entry(existing).State = EntityState.Modified;
@@ -216,9 +216,9 @@ namespace tahsinERP.Controllers.MES
                                     ProductID = item.ProductID,
                                     ShopID = viewModel.ShopID,
                                     Date = viewModel.ProductionDate,
-                                    DayShift = (decimal)item.DayShift,
-                                    NightShift = (decimal)item.NightShift,
-                                    Total = (decimal)item.Total,
+                                    DayShift = item.DayShift,
+                                    NightShift = item.NightShift,
+                                    Total = item.Total,
                                     PlanDate = planDay,
                                     Comment = ProductProductionPlanDateMeta.StripMeta(item.Comment)
                                 };
@@ -396,9 +396,9 @@ namespace tahsinERP.Controllers.MES
                                 production.PlanDate = viewModel.Date.Date;
                             }
                             production.Date = viewModel.Date;
-                            production.DayShift = (decimal)viewModel.DayShift;
-                            production.NightShift = (decimal)viewModel.NightShift;
-                            production.Total = (decimal)viewModel.Total;
+                            production.DayShift = viewModel.DayShift;
+                            production.NightShift = viewModel.NightShift;
+                            production.Total = viewModel.Total;
                             production.Comment = ProductProductionPlanDateMeta.StripMeta(viewModel.Comment);
 
                             WarehouseFlowService.IncreaseProductionStock(

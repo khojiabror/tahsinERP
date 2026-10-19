@@ -239,22 +239,22 @@ namespace tahsinERP.Controllers
                 var contractedTotal = SContractVatHelper.CalculateContractTotalWithVat(productList);
                 if (contractedTotal <= 0 && contract.Amount.HasValue)
                 {
-                    contractedTotal = (double)contract.Amount.Value;
+                    contractedTotal = contract.Amount.Value;
                 }
                 var orderIds = linkedOrders.Select(o => o.ID).ToList();
 
                 ViewBag.ContractedTotal = contractedTotal;
                 ViewBag.ContractedBase = productList.Sum(p => SContractVatHelper.GetLineBaseAmount(p));
                 // View `as double?` bilan o'qiydi — ustun decimal bo'lgach turini aniq saqlaymiz
-                ViewBag.ContractedVat = (double)productList.Sum(p => p.vatamount ?? 0);
+                ViewBag.ContractedVat = productList.Sum(p => p.vatamount ?? 0);
                 ViewBag.ContractedVatRate = SContractVatHelper.CalculateContractVatRate(productList);
-                ViewBag.ContractedQty = (double)productList.Sum(p => p.Amount);
-                ViewBag.OrderedTotal = (double)linkedOrders.Sum(o => o.Amount ?? 0);
+                ViewBag.ContractedQty = productList.Sum(p => p.Amount);
+                ViewBag.OrderedTotal = linkedOrders.Sum(o => o.Amount ?? 0);
                 ViewBag.OrderedQty = orderIds.Count == 0
-                    ? 0d
+                    ? 0m
                     : db.S_ORDER_PRODUCTS
                         .Where(op => orderIds.Contains(op.OrderID))
-                        .Sum(op => (double?)op.Amount) ?? 0d;
+                        .Sum(op => (decimal?)op.Amount) ?? 0m;
                 ViewBag.InvoicedTotal = activeInvoicesQuery
                     .Sum(i => (decimal?)(i.TotalWithVAT ?? i.TotalAmount)) ?? 0;
                 ViewBag.InvoicedQty = db.SALES_INVOICE_LINES.Active()
@@ -291,18 +291,18 @@ namespace tahsinERP.Controllers
                     PaymentTerms = contract.PaymentTerms,
                     PaymentDays = contract.PaymentDays,
                     CurrencyID = contract.CurrencyID,
-                    Amount = (decimal)SContractVatHelper.CalculateContractTotalWithVat(contract.S_CONTRACT_PRODUCTS),
+                    Amount = SContractVatHelper.CalculateContractTotalWithVat(contract.S_CONTRACT_PRODUCTS),
                     ProductList = contract.S_CONTRACT_PRODUCTS.Select(p => new SContractProductViewModel
                     {
                         ID = p.ID,
                         SContractID = p.ContractID,
                         ProductID = p.ProductID,
                         ProductPNo = p.PRODUCT.PNo,
-                        PiecePrice = (double)p.PiecePrice,
+                        PiecePrice = p.PiecePrice,
                         UnitID = p.UnitID,
-                        Amount = (double)p.Amount,
+                        Amount = p.Amount,
                         VatPercent = SContractVatHelper.GetVatPercentFromLine(
-                            SContractVatHelper.GetLineBaseAmount(p), (double?)p.vatamount),
+                            SContractVatHelper.GetLineBaseAmount(p), p.vatamount),
                         PRODUCT = new ProductViewModel
                         {
                             ID = p.PRODUCT.ID,
@@ -599,9 +599,9 @@ namespace tahsinERP.Controllers
                     continue;
                 var unitId = FormRows.Int(form, prefix, i, "UnitID");
                 var lineId = FormRows.Int(form, prefix, i, "ID");
-                var piecePrice = CrmNumber.Double(FormRows.Value(form, prefix, i, "PiecePrice"));
-                var amount = CrmNumber.Double(FormRows.Value(form, prefix, i, "Amount"));
-                var vatPercent = Math.Max(0, Math.Min(100, CrmNumber.Double(FormRows.Value(form, prefix, i, "VatPercent"))));
+                var piecePrice = CrmNumber.Decimal(FormRows.Value(form, prefix, i, "PiecePrice"));
+                var amount = CrmNumber.Decimal(FormRows.Value(form, prefix, i, "Amount"));
+                var vatPercent = Math.Max(0m, Math.Min(100m, CrmNumber.Decimal(FormRows.Value(form, prefix, i, "VatPercent"))));
 
                 if (amount <= 0 || piecePrice <= 0)
                 {
@@ -627,8 +627,8 @@ namespace tahsinERP.Controllers
             var lineBase = SContractVatHelper.GetLineBaseAmount(product.PiecePrice, product.Amount);
             var vatAmount = SContractVatHelper.CalculateVatAmount(lineBase, product.VatPercent);
             line.ProductID = product.ProductID;
-            line.PiecePrice = (decimal)product.PiecePrice;
-            line.Amount = (decimal)product.Amount;
+            line.PiecePrice = product.PiecePrice;
+            line.Amount = product.Amount;
             line.UnitID = product.UnitID;
             line.vatamount = (decimal?)vatAmount;
             // totalamount GetLineTotalWithVat'da ustun turadi — eskirib qolmasligi uchun yangilanadi

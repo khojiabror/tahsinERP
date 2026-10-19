@@ -30,10 +30,10 @@ namespace tahsinERP.Services.Crm
                 || decimal.TryParse(raw, Styles, CultureInfo.CurrentCulture, out value);
         }
 
-        public static double Double(string raw, double fallback = 0)
+        public static decimal Decimal(string raw, decimal fallback = 0)
         {
-            double v;
-            return TryDouble(raw, out v) ? v : fallback;
+            decimal v;
+            return TryDecimal(raw, out v) ? v : fallback;
         }
 
         /// <summary>HTML &lt;input type="number"&gt; value atributi uchun (nuqta bilan, guruhlashsiz).</summary>

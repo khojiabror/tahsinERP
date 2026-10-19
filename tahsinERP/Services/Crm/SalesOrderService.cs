@@ -69,13 +69,13 @@ namespace tahsinERP.Services.Crm
                     ProductID = cp.ProductID,
                     ProductPNo = cp.PNo,
                     ProductName = cp.Name,
-                    PiecePrice = (double)cp.PiecePrice,
-                    ContractAmount = (double)cp.Amount,
+                    PiecePrice = cp.PiecePrice,
+                    ContractAmount = cp.Amount,
                     UnitID = cp.UnitID,
                     UnitName = cp.UnitName,
                     OrderQuantity = 0,
                     VatRate = SContractVatHelper.GetVatPercentFromLine(
-                        SContractVatHelper.GetLineBaseAmount((double)cp.PiecePrice, (double)cp.Amount), (double?)cp.vatamount)
+                        SContractVatHelper.GetLineBaseAmount(cp.PiecePrice, cp.Amount), cp.vatamount)
                 })
                 .ToList();
         }
@@ -100,7 +100,7 @@ namespace tahsinERP.Services.Crm
                 IsDeleted = false
             };
 
-            double totalAmount = 0;
+            decimal totalAmount = 0;
             foreach (var q in model.ProductQuantities)
             {
                 var line = new S_ORDER_PRODUCTS { MOQ = 0 };
@@ -140,7 +140,7 @@ namespace tahsinERP.Services.Crm
             var pairs = new List<Tuple<S_ORDER_PRODUCTS, ContractProductQuantity>>();
             foreach (var q in model.ProductQuantities)
             {
-                var match = unmatched.FirstOrDefault(l => l.ProductID == q.ProductID && Math.Abs((double)l.Price - q.PiecePrice) < 0.000001)
+                var match = unmatched.FirstOrDefault(l => l.ProductID == q.ProductID && Math.Abs(l.Price - q.PiecePrice) < 0.000001m)
                             ?? unmatched.FirstOrDefault(l => l.ProductID == q.ProductID);
                 if (match != null) unmatched.Remove(match);
                 pairs.Add(Tuple.Create(match, q));
@@ -160,7 +160,7 @@ namespace tahsinERP.Services.Crm
             }
 
             var vatByProduct = SContractVatHelper.GetProductVatRates(db, model.ContractID);
-            double totalAmount = 0;
+            decimal totalAmount = 0;
             foreach (var pair in pairs)
             {
                 var line = pair.Item1;
@@ -217,8 +217,8 @@ namespace tahsinERP.Services.Crm
             foreach (var g in posted.GroupBy(i => i.SOrderProductID))
             {
                 var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == g.Key);
-                var totalPlanned = (double)g.Sum(i => i.QtyPlanned);
-                if (orderProduct != null && totalPlanned > (double)orderProduct.Amount + 0.0001)
+                var totalPlanned = g.Sum(i => i.QtyPlanned);
+                if (orderProduct != null && totalPlanned > orderProduct.Amount + 0.0001m)
                     errors.Add($"{orderProduct.PRODUCT?.PNo} - Rejalashtirilgan miqdor ({totalPlanned:N2}) buyurtma miqdoridan ({orderProduct.Amount:N2}) oshib ketdi");
             }
 
@@ -408,23 +408,23 @@ namespace tahsinERP.Services.Crm
                     throw new SalesOrderException("Tanlangan mahsulot shu shartnomaga tegishli emas. Sahifani yangilab qayta urinib ko'ring.");
                 }
                 q.ProductID = cp.ProductID;
-                q.PiecePrice = (double)cp.PiecePrice;
+                q.PiecePrice = cp.PiecePrice;
                 q.UnitID = cp.UnitID;
             }
         }
 
         /// <summary>Qator maydonlarini to'ldiradi va QQS bilan summani qaytaradi.</summary>
-        private static double ApplyLine(S_ORDER_PRODUCTS line, ContractProductQuantity q, IDictionary<int, double> vatByProduct)
+        private static decimal ApplyLine(S_ORDER_PRODUCTS line, ContractProductQuantity q, IDictionary<int, decimal> vatByProduct)
         {
             var lineBase = q.PiecePrice * q.OrderQuantity;
-            double vatRate;
+            decimal vatRate;
             vatByProduct.TryGetValue(q.ProductID, out vatRate);
 
             line.ProductID = q.ProductID;
-            line.Price = (decimal)q.PiecePrice;
-            line.Amount = (decimal)q.OrderQuantity;
+            line.Price = q.PiecePrice;
+            line.Amount = q.OrderQuantity;
             line.UnitID = q.UnitID;
-            line.TotalPrice = (decimal)lineBase;
+            line.TotalPrice = lineBase;
             return lineBase + SContractVatHelper.CalculateVatAmount(lineBase, vatRate);
         }
 
@@ -438,7 +438,7 @@ namespace tahsinERP.Services.Crm
                 .GroupBy(cp => cp.ProductID)
                 .Select(g => new { ProductID = g.Key, Amount = g.Sum(x => x.Amount) })
                 .ToList()
-                .ToDictionary(cp => cp.ProductID, cp => (double)cp.Amount);
+                .ToDictionary(cp => cp.ProductID, cp => cp.Amount);
 
             var orderedSumsQuery = db.S_ORDER_PRODUCTS
                 .Where(p => p.S_ORDERS.ContractID == model.ContractID &&
@@ -453,7 +453,7 @@ namespace tahsinERP.Services.Crm
                 .GroupBy(p => p.ProductID)
                 .Select(g => new { ProductID = g.Key, Total = g.Sum(x => x.Amount) })
                 .ToList()
-                .ToDictionary(x => x.ProductID, x => (double)x.Total);
+                .ToDictionary(x => x.ProductID, x => x.Total);
 
             var productNames = ProductLabels(db, productIds);
             var errors = new List<string>();
@@ -467,11 +467,11 @@ namespace tahsinERP.Services.Crm
                     continue;
                 }
 
-                var alreadyOrdered = orderedSums.ContainsKey(g.Key) ? orderedSums[g.Key] : 0d;
-                var remaining = Math.Max(0, contractAmount - alreadyOrdered);
+                var alreadyOrdered = orderedSums.ContainsKey(g.Key) ? orderedSums[g.Key] : 0m;
+                var remaining = Math.Max(0m, contractAmount - alreadyOrdered);
                 var requested = g.Sum(q => q.OrderQuantity);
 
-                if (requested > remaining + 0.0001)
+                if (requested > remaining + 0.0001m)
                 {
                     errors.Add(
                         $"{label} bo'yicha shartnoma miqdori {contractAmount:N2}, " +
@@ -495,7 +495,7 @@ namespace tahsinERP.Services.Crm
                 .GroupBy(l => l.ProductID)
                 .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Qty) })
                 .ToList()
-                .ToDictionary(x => x.ProductID, x => (double)x.Qty);
+                .ToDictionary(x => x.ProductID, x => x.Qty);
 
             var lineIds = order.S_ORDER_PRODUCTS.Select(l => l.ID).ToList();
             var planned = db.SORDER_DELIVERY_SCHEDULE
@@ -503,7 +503,7 @@ namespace tahsinERP.Services.Crm
                 .GroupBy(s => s.SOrderProductID)
                 .Select(g => new { LineID = g.Key, Qty = g.Sum(x => x.QtyPlanned) })
                 .ToList()
-                .ToDictionary(x => x.LineID, x => (double)x.Qty);
+                .ToDictionary(x => x.LineID, x => x.Qty);
 
             var names = ProductLabels(db, pairs.Select(p => p.Item2.ProductID).Concat(removed.Select(r => r.ProductID)));
             var newTotals = pairs.GroupBy(p => p.Item2.ProductID).ToDictionary(g => g.Key, g => g.Sum(p => p.Item2.OrderQuantity));
@@ -511,9 +511,9 @@ namespace tahsinERP.Services.Crm
 
             foreach (var kv in invoiced)
             {
-                double newQty;
+                decimal newQty;
                 newTotals.TryGetValue(kv.Key, out newQty);
-                if (newQty + 0.0001 < kv.Value)
+                if (newQty + 0.0001m < kv.Value)
                 {
                     errors.Add($"{names(kv.Key)}: {kv.Value:N2} invoys qilingan — buyurtma miqdori undan kam bo'lishi mumkin emas.");
                 }
@@ -521,8 +521,8 @@ namespace tahsinERP.Services.Crm
 
             foreach (var pair in pairs.Where(p => p.Item1 != null))
             {
-                double plannedQty;
-                if (planned.TryGetValue(pair.Item1.ID, out plannedQty) && pair.Item2.OrderQuantity + 0.0001 < plannedQty)
+                decimal plannedQty;
+                if (planned.TryGetValue(pair.Item1.ID, out plannedQty) && pair.Item2.OrderQuantity + 0.0001m < plannedQty)
                 {
                     errors.Add($"{names(pair.Item2.ProductID)}: yetkazib berish rejasida {plannedQty:N2} — miqdorni avval rejada kamaytiring.");
                 }

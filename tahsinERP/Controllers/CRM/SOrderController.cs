@@ -263,7 +263,7 @@ namespace tahsinERP.Controllers
                     ProductID = p.ProductID,
                     ProductPNo = p.PRODUCT?.PNo ?? "",
                     ProductName = p.PRODUCT?.Name ?? "",
-                    OrderQuantity = (double)p.Amount,
+                    OrderQuantity = p.Amount,
                     UnitID = p.UnitID,
                     UnitName = p.UNIT?.ShortName ?? ""
                 }).ToList();
@@ -277,8 +277,8 @@ namespace tahsinERP.Controllers
                 foreach (var orderProduct in model.OrderProducts)
                 {
                     var productSchedules = scheduleItems.Where(s => s.SOrderProductID == orderProduct.SOrderProductID).ToList();
-                    orderProduct.PlannedQuantity = (double)productSchedules.Sum(s => s.QtyPlanned);
-                    orderProduct.ShippedQuantity = (double)productSchedules.Sum(s => s.QtyShipped);
+                    orderProduct.PlannedQuantity = productSchedules.Sum(s => s.QtyPlanned);
+                    orderProduct.ShippedQuantity = productSchedules.Sum(s => s.QtyShipped);
                 }
 
                 model.ScheduleItems = scheduleItems.Select(s => new DeliveryScheduleItem
@@ -406,7 +406,7 @@ namespace tahsinERP.Controllers
                     ContractID = order.ContractID,
                     CurrencyID = order.CurrencyID,
                     Description = order.Description,
-                    Amount = (double?)(order.Amount)
+                    Amount = (order.Amount)
                 };
 
                 SetupFormLookups(db, model);
@@ -419,7 +419,7 @@ namespace tahsinERP.Controllers
                     var contractProduct = model.ProductQuantities.FirstOrDefault(pq => pq.ProductID == orderProduct.ProductID && pq.OrderQuantity == 0);
                     if (contractProduct != null)
                     {
-                        contractProduct.OrderQuantity = (double)orderProduct.Amount;
+                        contractProduct.OrderQuantity = orderProduct.Amount;
                     }
                 }
 
@@ -533,9 +533,9 @@ namespace tahsinERP.Controllers
             var result = new List<ContractProductQuantity>();
             foreach (var i in FormRows.Indexes(form, prefix, "OrderQuantity"))
             {
-                double quantity;
+                decimal quantity;
                 int contractProductId;
-                if (!CrmNumber.TryDouble(FormRows.Value(form, prefix, i, "OrderQuantity"), out quantity) || quantity <= 0) continue;
+                if (!CrmNumber.TryDecimal(FormRows.Value(form, prefix, i, "OrderQuantity"), out quantity) || quantity <= 0) continue;
                 if (!int.TryParse(FormRows.Value(form, prefix, i, "ContractProductID"), out contractProductId)) continue;
 
                 result.Add(new ContractProductQuantity
