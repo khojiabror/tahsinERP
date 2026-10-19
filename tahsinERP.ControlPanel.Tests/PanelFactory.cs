@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
@@ -26,6 +26,11 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
     private readonly string _database = "tahsin_control_test_" + Guid.NewGuid().ToString("N")[..12];
     private readonly string _server = Environment.GetEnvironmentVariable("CP_TEST_SQL") ?? ".";
 
+    public string SqlServer => _server;
+    /// <summary>Provisioning testlari uchun demo slug va bazaviy domen.</summary>
+    public const string DemoSlug = "demo-it";
+    public const string BaseDomain = "test.local";
+
     public string ConnectionString => $"Server={_server};Database={_database};Trusted_Connection=True;TrustServerCertificate=True";
 
     public PanelFactory()
@@ -44,6 +49,8 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
         builder.UseSetting("ControlPanel:Panel:MigrateOnStartup", "false");
         builder.UseSetting("ControlPanel:Panel:ApiRateLimitPerMinute", "100000");
         builder.UseSetting("ControlPanel:Panel:LoginRateLimitPerMinute", "100000");
+        builder.UseSetting("ControlPanel:Provisioning:DemoSlug", DemoSlug);
+        builder.UseSetting("ControlPanel:Provisioning:BaseDomain", BaseDomain);
         builder.ConfigureTestServices(s =>
         {
             s.RemoveAll<TimeProvider>();
