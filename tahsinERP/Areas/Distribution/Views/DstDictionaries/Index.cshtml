@@ -1,0 +1,170 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@model List<DstDictionariesController.Row>
+@{
+    string kind = ViewBag.Kind;
+    ViewBag.Title = DstLocalization.T("Dictionaries");
+    bool canChange = ViewBag.DstCanChange == true;
+    var categories = (List<SelectListItem>)ViewBag.Categories;
+    var tabs = new[]
+    {
+        new { Kind = DstDictionariesController.Brands, Title = DstLocalization.T("Brands") },
+        new { Kind = DstDictionariesController.Manufacturers, Title = DstLocalization.T("Manufacturers") },
+        new { Kind = DstDictionariesController.SubCategories, Title = DstLocalization.T("SubCategories") },
+        new { Kind = DstDictionariesController.PriceTypes, Title = DstLocalization.T("PriceTypes") },
+        new { Kind = DstDictionariesController.Reasons, Title = DstLocalization.T("Reasons") }
+    };
+    bool hasNameRu = kind != DstDictionariesController.Brands && kind != DstDictionariesController.Manufacturers;
+    bool hasSort = kind == DstDictionariesController.PriceTypes || kind == DstDictionariesController.Reasons;
+    string extraTitle = kind == DstDictionariesController.SubCategories ? DstLocalization.T("Category")
+        : kind == DstDictionariesController.Reasons ? DstLocalization.T("Type")
+        : kind == DstDictionariesController.Manufacturers ? DstLocalization.T("Country") : null;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <ul class="nav nav-tabs mb-1">
+                @foreach (var t in tabs)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(t.Kind == kind ? "active" : "")" href="@Url.Action("Index", new { kind = t.Kind })">@t.Title</a>
+                    </li>
+                }
+            </ul>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">@tabs.First(t => t.Kind == kind).Title</h4>
+                    @if (canChange)
+                    {
+                        <button type="button" class="btn btn-success btn-sm" data-dst-edit><i class="bx bx-plus"></i> @DstLocalization.T("Add")</button>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Name")</th>
+                                    @if (hasNameRu) { <th>@DstLocalization.T("NameRu")</th> }
+                                    @if (extraTitle != null) { <th>@extraTitle</th> }
+                                    @if (hasSort) { <th>@DstLocalization.T("SortOrder")</th> }
+                                    <th>@DstLocalization.T("Status")</th>
+                                    @if (canChange) { <th></th> }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in Model)
+                                {
+                                    <tr class="@(r.IsActive ? "" : "text-muted")">
+                                        <td>
+                                            @r.Name
+                                            @if (r.IsDefault) { <span class="badge badge-light-primary ml-50">@DstLocalization.T("Default")</span> }
+                                        </td>
+                                        @if (hasNameRu) { <td>@r.NameRu</td> }
+                                        @if (extraTitle != null)
+                                        {
+                                            <td>@(kind == DstDictionariesController.Reasons ? DstLocalization.T("ReasonType_" + r.Extra) : r.Extra)</td>
+                                        }
+                                        @if (hasSort) { <td>@r.SortOrder</td> }
+                                        <td>@(r.IsActive ? DstLocalization.T("Active") : DstLocalization.T("Inactive"))</td>
+                                        @if (canChange)
+                                        {
+                                            <td class="text-right text-nowrap">
+                                                @if (kind == DstDictionariesController.PriceTypes && !r.IsDefault && r.IsActive)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-info" data-dst-default="@r.ID" title="@DstLocalization.T("MakeDefault")"><i class="bx bx-star"></i></button>
+                                                }
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-dst-edit data-id="@r.ID" data-name="@r.Name"
+                                                        data-name-ru="@r.NameRu" data-extra="@r.ExtraValue" data-sort="@r.SortOrder"><i class="bx bx-edit-alt"></i></button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-dst-toggle="@r.ID" title="@DstLocalization.T("ToggleActive")"><i class="bx bx-power-off"></i></button>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="dictModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@tabs.First(t => t.Kind == kind).Title</h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="dId" />
+                <div class="form-group"><label>@DstLocalization.T("Name")</label><input id="dName" class="form-control" maxlength="100" /></div>
+                @if (hasNameRu)
+                {
+                    <div class="form-group"><label>@DstLocalization.T("NameRu")</label><input id="dNameRu" class="form-control" maxlength="100" /></div>
+                }
+                @if (kind == DstDictionariesController.SubCategories)
+                {
+                    <div class="form-group">
+                        <label>@extraTitle</label>
+                        @Html.DropDownList("dExtra", categories, "—", new { @class = "form-control", id = "dExtra" })
+                    </div>
+                }
+                else if (kind == DstDictionariesController.Reasons)
+                {
+                    <div class="form-group">
+                        <label>@extraTitle</label>
+                        <select id="dExtra" class="form-control">
+                            @foreach (var rt in tahsinERP.Areas.Distribution.Data.Entities.ReasonTypes.All)
+                            {
+                                <option value="@rt">@DstLocalization.T("ReasonType_" + rt)</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else if (kind == DstDictionariesController.Manufacturers)
+                {
+                    <div class="form-group"><label>@extraTitle</label><input id="dExtra" class="form-control" maxlength="50" /></div>
+                }
+                @if (hasSort)
+                {
+                    <div class="form-group"><label>@DstLocalization.T("SortOrder")</label><input id="dSort" type="number" class="form-control" /></div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="dSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var kind = '@kind';
+            $('[data-dst-edit]').on('click', function () {
+                var b = $(this);
+                $('#dId').val(b.data('id') || '');
+                $('#dName').val(b.data('name') || '');
+                $('#dNameRu').val(b.data('nameRu') || '');
+                $('#dExtra').val(b.data('extra') === undefined ? $('#dExtra option:first').val() : String(b.data('extra')));
+                $('#dSort').val(b.data('sort') || 0);
+                $('#dictModal').modal('show');
+            });
+            $('#dSave').on('click', function () {
+                dstPost('@Url.Action("Save")', {
+                    kind: kind, id: $('#dId').val(), name: $('#dName').val(), nameRu: $('#dNameRu').val(),
+                    extra: $('#dExtra').val(), sortOrder: $('#dSort').val()
+                }).done(function () { location.reload(); });
+            });
+            $('[data-dst-toggle]').on('click', function () {
+                dstPost('@Url.Action("Toggle")', { kind: kind, id: $(this).data('dstToggle') }).done(function () { location.reload(); });
+            });
+            $('[data-dst-default]').on('click', function () {
+                dstPost('@Url.Action("SetDefaultPriceType")', { id: $(this).data('dstDefault') }).done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

@@ -94,6 +94,7 @@ namespace tahsinERP.Filters
             {
                 filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary
                 {
+                    { "area", "" },   // Area ichidan ham ildizdagi sahifaga
                     { "controller", "ViewNotAuthorized" },
                     { "action", "Index" }
                 });

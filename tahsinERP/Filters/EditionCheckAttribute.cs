@@ -37,6 +37,7 @@ namespace tahsinERP.Filters
 
             filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
             {
+                area = "",   // Area (masalan /Distribution) ichidan ham ildizdagi sahifaga
                 controller = "License",
                 action = "NotInPlan",
                 module = module.ToString()

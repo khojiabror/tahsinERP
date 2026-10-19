@@ -1,0 +1,134 @@
+@{
+    ViewBag.Title = DstLocalization.T("Customers");
+    bool canChange = ViewBag.DstCanChange == true;
+    int pending = ViewBag.PendingCount;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">@ViewBag.Title</h4>
+                    @if (canChange)
+                    {
+                        <div>
+                            <a class="btn btn-success btn-sm" href="@Url.Action("Edit")"><i class="bx bx-plus"></i> @DstLocalization.T("Customer_Add")</a>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#attachModal">
+                                <i class="bx bx-link"></i> @DstLocalization.T("Customer_Attach")
+                            </button>
+                            <a class="btn btn-outline-success btn-sm" href="@Url.Action("Index", "DstImport", new { kind = "customers" })"><i class="bx bxs-file-excel"></i> @DstLocalization.T("Import")</a>
+                        </div>
+                    }
+                </div>
+                <div class="card-body">
+                    <form id="customerFilter" class="form-row mb-1">
+                        <div class="col-md-3 mb-50">
+                            @Html.DropDownList("territoryId", (List<SelectListItem>)ViewBag.Territories, DstLocalization.T("All_Territories"), new { @class = "form-control form-control-sm" })
+                        </div>
+                        <div class="col-md-3 mb-50">
+                            @Html.DropDownList("agentId", (List<SelectListItem>)ViewBag.Agents, DstLocalization.T("All_Agents"), new { @class = "form-control form-control-sm" })
+                        </div>
+                        <div class="col-md-2 mb-50">
+                            <select name="category" class="form-control form-control-sm">
+                                <option value="">A / B / C</option>
+                                <option>A</option><option>B</option><option>C</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-50">
+                            <select name="approval" class="form-control form-control-sm">
+                                <option value="">@DstLocalization.T("All")</option>
+                                <option value="pending">@DstLocalization.T("Customer_Pending") (@pending)</option>
+                            </select>
+                        </div>
+                    </form>
+                    <table id="customersTable" class="table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Name")</th>
+                                <th>@DstLocalization.T("INN")</th>
+                                <th>@DstLocalization.T("Territory")</th>
+                                <th>@DstLocalization.T("Agent")</th>
+                                <th>@DstLocalization.T("Category")</th>
+                                <th>@DstLocalization.T("CreditLimit")</th>
+                                <th>@DstLocalization.T("PriceType")</th>
+                                <th>@DstLocalization.T("Phone")</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="attachModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Customer_Attach")</h5></div>
+            <div class="modal-body">
+                <p class="text-muted small">@DstLocalization.T("Customer_AttachHint")</p>
+                <select id="attachCustomer" class="form-control" style="width:100%"></select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="attachSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var editUrl = '@Url.Action("Edit")/';
+            var canChange = @(canChange ? "true" : "false");
+            var money = new Intl.NumberFormat('ru-RU');
+            var table = dstServerTable('#customersTable', {
+                dataUrl: '@Url.Action("IndexData")',
+                filterForm: '#customerFilter',
+                order: [[0, 'asc']],
+                columns: [
+                    { data: 'name', render: function (v, t, r) {
+                        var s = dstEsc(v);
+                        if (!r.approved) s += ' <span class="badge badge-light-warning">@DstLocalization.T("Customer_Pending")</span>';
+                        if (r.hasGeo) s += ' <i class="bx bx-map text-success" title="GPS"></i>';
+                        return s + '<div class="small text-muted">' + dstEsc(r.address) + '</div>';
+                    } },
+                    { data: 'inn', orderable: false, render: dstEsc },
+                    { data: 'territory', render: dstEsc },
+                    { data: 'agent', render: dstEsc },
+                    { data: 'category', orderable: false, render: dstEsc },
+                    { data: 'creditLimit', className: 'text-right', render: function (v, t, r) {
+                        return money.format(v) + '<div class="small text-muted">' + r.paymentDays + ' @DstLocalization.T("Days")</div>';
+                    } },
+                    { data: 'priceType', orderable: false, render: dstEsc },
+                    { data: 'phone', orderable: false, render: dstEsc },
+                    { data: null, orderable: false, className: 'text-nowrap', render: function (v, t, r) {
+                        var s = '<a class="btn btn-sm btn-outline-primary" href="' + editUrl + r.id + '"><i class="bx bx-edit-alt"></i></a>';
+                        if (canChange && !r.approved)
+                            s += ' <button type="button" class="btn btn-sm btn-outline-success" data-approve="' + r.id + '" title="@DstLocalization.T("Approve")"><i class="bx bx-check"></i></button>';
+                        return s;
+                    } }
+                ]
+            });
+            $('#customersTable').on('click', '[data-approve]', function () {
+                dstPost('@Url.Action("Approve")', { id: $(this).data('approve') }).done(function () { dstNotify(); table.ajax.reload(null, false); });
+            });
+            $('#attachCustomer').select2({
+                dropdownParent: $('#attachModal'),
+                ajax: { url: '@Url.Action("SearchUnattached")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } }
+            });
+            $('#attachSave').on('click', function () {
+                var id = $('#attachCustomer').val();
+                if (!id) return;
+                dstPost('@Url.Action("Attach")', { customerId: id }).done(function (d) { location.href = editUrl + d.id; });
+            });
+        });
+    </script>
+}

@@ -236,6 +236,8 @@
     <Compile Include="Distribution\ScopeFilterTests.cs" />
     <Compile Include="Distribution\DstLocalizationTests.cs" />
     <Compile Include="Distribution\DistributionUnitOfWorkTests.cs" />
+    <Compile Include="Distribution\PricingAndRulesTests.cs" />
+    <Compile Include="Distribution\DirectoryIntegrationTests.cs" />
     <Compile Include="LicenseSync\LicensePanelClientTests.cs" />
   </ItemGroup>
   <ItemGroup>

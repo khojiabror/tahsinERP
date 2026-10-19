@@ -1,0 +1,145 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@{
+    ViewBag.Title = DstLocalization.T("Settings");
+    bool canChange = ViewBag.DstCanChange == true;
+    var roles = (List<DstSettingsController.RoleLimitRow>)ViewBag.Roles;
+    var warehouses = (List<DstSettingsController.WarehouseRow>)ViewBag.Warehouses;
+    var limits = (List<DstSettingsController.StockLimitRow>)ViewBag.Limits;
+    int? warehouseId = ViewBag.WarehouseId;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("DiscountLimits")</h4></div>
+                        <div class="card-body">
+                            <p class="small text-muted">@DstLocalization.T("DiscountLimits_Hint")</p>
+                            <table class="table table-sm">
+                                <thead><tr><th>@DstLocalization.T("Role")</th><th class="text-right">Max %</th></tr></thead>
+                                <tbody>
+                                    @foreach (var r in roles)
+                                    {
+                                        <tr>
+                                            <td>@r.Role</td>
+                                            <td class="text-right" style="width:110px">
+                                                <input type="number" min="0" max="100" step="0.5" class="form-control form-control-sm text-right"
+                                                       data-role="@r.RoleID" value="@(r.MaxPercent?.ToString("0.##", inv))" @(canChange ? "" : "disabled") />
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Warehouses")</h4></div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>@DstLocalization.T("Warehouse")</th>
+                                            <th>@DstLocalization.T("Warehouse_SalesPoint")</th>
+                                            <th>@DstLocalization.T("Warehouse_AllowNegative")</th>
+                                            <th>@DstLocalization.T("Warehouse_Zone")</th>
+                                            <th class="text-right">@DstLocalization.T("MinStock")</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var w in warehouses)
+                                        {
+                                            <tr data-wh="@w.WarehouseID" class="@(w.WarehouseID == warehouseId ? "table-active" : "")">
+                                                <td>@w.Name</td>
+                                                <td><input type="checkbox" data-f="sales" @(w.IsSalesPoint ? "checked" : "") @(canChange ? "" : "disabled") /></td>
+                                                <td><input type="checkbox" data-f="neg" @(w.AllowNegative ? "checked" : "") @(canChange ? "" : "disabled") /></td>
+                                                <td><input class="form-control form-control-sm" data-f="zone" value="@w.DeliveryZone" maxlength="200" @(canChange ? "" : "disabled") /></td>
+                                                <td class="text-right"><a href="@Url.Action("Index", new { warehouseId = w.WarehouseID })">@w.MinLimits</a></td>
+                                                <td class="text-right">
+                                                    @if (canChange) { <button type="button" class="btn btn-sm btn-outline-primary" data-wh-save><i class="bx bx-save"></i></button> }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="small text-muted mb-0">@DstLocalization.T("Warehouse_Hint")</p>
+                        </div>
+                    </div>
+                    @if (warehouseId.HasValue)
+                    {
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("MinStock") — @warehouses.Where(w => w.WarehouseID == warehouseId).Select(w => w.Name).FirstOrDefault()</h4></div>
+                            <div class="card-body">
+                                @if (canChange)
+                                {
+                                    <div class="form-row mb-1">
+                                        <div class="col-md-8"><select id="slProduct" class="form-control" style="width:100%"></select></div>
+                                        <div class="col-md-3"><input id="slQty" type="number" min="0" step="0.0001" class="form-control" placeholder="@DstLocalization.T("MinStock")" /></div>
+                                        <div class="col-md-1"><button type="button" id="slAdd" class="btn btn-success btn-block"><i class="bx bx-plus"></i></button></div>
+                                    </div>
+                                }
+                                <table class="table table-sm mb-0">
+                                    <tbody>
+                                        @foreach (var l in limits)
+                                        {
+                                            <tr>
+                                                <td>@l.Product</td>
+                                                <td class="text-right">@l.MinQty.ToString("0.####") @l.Unit</td>
+                                                <td class="text-right">
+                                                    @if (canChange) { <button type="button" class="btn btn-sm btn-outline-danger" data-sl-remove="@l.ProductID"><i class="bx bx-trash"></i></button> }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('input[data-role]').on('change', function () {
+                dstPost('@Url.Action("SaveDiscountLimit")', { roleId: $(this).data('role'), maxPercent: $(this).val() }).done(function () { dstNotify(); });
+            });
+            $('[data-wh-save]').on('click', function () {
+                var tr = $(this).closest('tr');
+                dstPost('@Url.Action("SaveWarehouse")', {
+                    warehouseId: tr.data('wh'), isSalesPoint: tr.find('[data-f=sales]').is(':checked'),
+                    allowNegative: tr.find('[data-f=neg]').is(':checked'), deliveryZone: tr.find('[data-f=zone]').val()
+                }).done(function () { dstNotify(); });
+            });
+            @if (warehouseId.HasValue)
+            {
+                <text>
+                $('#slProduct').select2({
+                    ajax: { url: '@Url.Action("SearchProducts", "DstPrices")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } }
+                });
+                $('#slAdd').on('click', function () {
+                    dstPost('@Url.Action("SaveStockLimit")', { warehouseId: @warehouseId, productId: $('#slProduct').val(), minQty: $('#slQty').val() })
+                        .done(function () { location.reload(); });
+                });
+                $('[data-sl-remove]').on('click', function () {
+                    dstPost('@Url.Action("SaveStockLimit")', { warehouseId: @warehouseId, productId: $(this).data('slRemove'), minQty: '' })
+                        .done(function () { location.reload(); });
+                });
+                </text>
+            }
+        });
+    </script>
+}

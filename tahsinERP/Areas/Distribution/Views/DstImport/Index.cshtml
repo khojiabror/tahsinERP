@@ -1,0 +1,78 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@{
+    string kind = ViewBag.Kind;
+    ViewBag.Title = DstLocalization.T("Import");
+    bool canChange = ViewBag.DstCanChange == true;
+    var result = ViewBag.Result as tahsinERP.Areas.Distribution.Services.ImportResult;
+    var tabs = new[]
+    {
+        new { Kind = DstImportController.Customers, Title = DstLocalization.T("Customers"), Hint = DstLocalization.T("Import_CustomersHint") },
+        new { Kind = DstImportController.Products, Title = DstLocalization.T("Products"), Hint = DstLocalization.T("Import_ProductsHint") },
+        new { Kind = DstImportController.Prices, Title = DstLocalization.T("Prices"), Hint = DstLocalization.T("Import_PricesHint") }
+    };
+    var current = tabs.First(t => t.Kind == kind);
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <ul class="nav nav-tabs mb-1">
+                @foreach (var t in tabs)
+                {
+                    <li class="nav-item"><a class="nav-link @(t.Kind == kind ? "active" : "")" href="@Url.Action("Index", new { kind = t.Kind })">@t.Title</a></li>
+                }
+            </ul>
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Import"): @current.Title</h4></div>
+                <div class="card-body">
+                    <p>@current.Hint</p>
+                    <p class="small text-muted">@DstLocalization.T("Import_AllOrNothing")</p>
+                    <a class="btn btn-outline-success mb-1" href="@Url.Action("Template", new { kind })"><i class="bx bx-download"></i> @DstLocalization.T("Import_Template")</a>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">@ViewBag.Error</div>
+                    }
+                    @if (result != null)
+                    {
+                        if (result.Ok)
+                        {
+                            <div class="alert @(result.DryRun ? "alert-info" : "alert-success")">
+                                @(result.DryRun ? DstLocalization.T("Import_DryRunDone") : DstLocalization.T("Import_Done")): @DstLocalization.T("Import_Created") — @result.Created,
+                                @DstLocalization.T("Import_Updated") — @result.Updated@(result.Skipped > 0 ? ", " + DstLocalization.T("Import_Skipped") + " — " + result.Skipped : "")
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger">@DstLocalization.T("Import_Failed", result.Errors.Count)</div>
+                            <table class="table table-sm table-bordered">
+                                <thead><tr><th style="width:90px">@DstLocalization.T("Row")</th><th>@DstLocalization.T("Error")</th></tr></thead>
+                                <tbody>
+                                    @foreach (var e in result.Errors.Take(300))
+                                    {
+                                        <tr><td>@(e.Row > 0 ? e.Row.ToString() : "—")</td><td>@e.Message</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    }
+
+                    @if (canChange)
+                    {
+                        using (Html.BeginForm("Upload", "DstImport", new { area = "Distribution", kind }, FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-inline" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="file" name="file" accept=".xlsx" class="form-control mr-1 mb-1" required />
+                            <div class="custom-control custom-checkbox mr-1 mb-1">
+                                <input type="checkbox" class="custom-control-input" id="dryRun" name="dryRun" value="true" checked />
+                                <label class="custom-control-label" for="dryRun">@DstLocalization.T("Import_DryRun")</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary mb-1"><i class="bx bx-upload"></i> @DstLocalization.T("Import_Upload")</button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -97,6 +97,34 @@ namespace tahsinERP.Areas.Distribution.Services
             return ScopeFilter.FromRows(ids, false);
         }
 
+        /// <summary>
+        /// Agent ierarxiyasi bo'yicha cheklov (mijoz/buyurtma ro'yxatlari uchun, kalit — AgentUserID):
+        /// supervayzer — o'z jamoalari agentlari va o'zi; agent — faqat o'zi; qolganlar (ofis) — cheklovsiz.
+        /// </summary>
+        public ScopeFilter AgentsFor(int userId, bool isAdmin)
+        {
+            if (isAdmin) return ScopeFilter.Unrestricted;
+
+            var teamIds = _db.SalesTeams.Where(t => t.SupervisorUserID == userId && t.IsActive).Select(t => t.ID).ToList();
+            if (teamIds.Count > 0)
+            {
+                var members = _db.SalesAgents.Where(a => a.TeamID != null && teamIds.Contains(a.TeamID.Value))
+                    .Select(a => a.UserID).ToList();
+                members.Add(userId);
+                return ScopeFilter.FromRows(members, false);
+            }
+
+            bool isAgent = _db.SalesAgents.Any(a => a.UserID == userId && a.IsActive);
+            return isAgent ? ScopeFilter.FromRows(new[] { userId }, false) : ScopeFilter.Unrestricted;
+        }
+
+        public ScopeFilter AgentsFor(string userName)
+        {
+            var userId = tahsinERP.Models.RoleHelper.GetUserId(userName);
+            if (!userId.HasValue) return ScopeFilter.Nothing;
+            return AgentsFor(userId.Value, tahsinERP.Models.RoleHelper.IsAdminOrDeveloper(userName));
+        }
+
         /// <summary>Joriy web foydalanuvchisi uchun (Admin/Developer — cheklovsiz).</summary>
         public ScopeFilter For(string userName, string scopeType)
         {

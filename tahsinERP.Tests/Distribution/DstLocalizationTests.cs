@@ -40,6 +40,30 @@ namespace tahsinERP.Tests.Distribution
         }
 
         [TestMethod]
+        public void EveryKeyUsedInCode_ExistsInResx()
+        {
+            var keys = new System.Collections.Generic.HashSet<string>(Keys("DstStrings.resx"));
+            var root = Path.GetFullPath(Path.Combine(ResourcesDir(), "..", "..", ".."));   // tahsinERP loyiha papkasi
+            var files = Directory.GetFiles(Path.Combine(root, "Areas", "Distribution"), "*.*", SearchOption.AllDirectories)
+                .Where(f => f.EndsWith(".cs") || f.EndsWith(".cshtml"))
+                .Concat(new[] { Path.Combine(root, "Views", "Shared", "_Layout.cshtml") });
+            var used = files.SelectMany(f => System.Text.RegularExpressions.Regex
+                    .Matches(File.ReadAllText(f), "(?:T|LocalizedKey)\\(\"([A-Za-z0-9_]+)\"")
+                    .Cast<System.Text.RegularExpressions.Match>()
+                    .Select(m => m.Groups[1].Value))
+                .Where(k => !k.EndsWith("_"))   // "PointType_" + kod — quyida alohida
+                .Distinct().ToList();
+            Assert.IsTrue(used.Count > 100);
+            var missing = used.Where(k => !keys.Contains(k)).ToList();
+            Assert.AreEqual(0, missing.Count, "resx'da yo'q: " + string.Join(", ", missing));
+
+            foreach (var p in tahsinERP.Areas.Distribution.Data.Entities.PointTypes.All)
+                Assert.IsTrue(keys.Contains("PointType_" + p), p);
+            foreach (var r in tahsinERP.Areas.Distribution.Data.Entities.ReasonTypes.All)
+                Assert.IsTrue(keys.Contains("ReasonType_" + r), r);
+        }
+
+        [TestMethod]
         public void T_UsesCurrentUiCulture()
         {
             var saved = Thread.CurrentThread.CurrentUICulture;

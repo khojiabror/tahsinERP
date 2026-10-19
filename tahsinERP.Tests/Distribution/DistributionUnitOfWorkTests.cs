@@ -72,16 +72,17 @@ namespace tahsinERP.Tests.Distribution
         [TestMethod]
         public void SharedTransaction_BothContextsSeeAndRollBackTogether()
         {
+            // ERP tomoni: dbo.CUSTOMERS (float -> decimal ishiga tegishli emas, EDMX va baza mos)
             var correlation = Guid.NewGuid();
-            int stockId;
-            double before;
+            int customerId;
+            string before;
 
             using (var uow = new DistributionUnitOfWork(new AuditActor(null, AuditActor.System)))
             {
-                var stock = uow.Erp.PRODUCT_STOCKS.OrderBy(s => s.ID).FirstOrDefault();
-                if (stock == null) Assert.Inconclusive("PRODUCT_STOCKS bo'sh.");
-                stockId = stock.ID;
-                before = stock.Amount;
+                var customer = uow.Erp.CUSTOMERS.OrderBy(c => c.ID).FirstOrDefault();
+                if (customer == null) Assert.Inconclusive("CUSTOMERS bo'sh.");
+                customerId = customer.ID;
+                before = customer.ContactPersonName;
 
                 uow.Dst.AuditTrail.Add(new AuditTrailEntry
                 {
@@ -90,20 +91,20 @@ namespace tahsinERP.Tests.Distribution
                 });
                 uow.Dst.SaveChanges();
 
-                stock.Amount = before + 1;
+                customer.ContactPersonName = "spike-" + correlation.ToString("N").Substring(0, 8);
                 uow.Erp.SaveChanges();
 
                 // Tranzaksiya ichida ikkala yozuv ham ko'rinadi
                 Assert.AreEqual(1, Scalar(uow, "SELECT COUNT(*) FROM dst.AUDIT_TRAIL WHERE CorrelationId = @c",
                     new SqlParameter("@c", correlation)));
-                Assert.AreEqual(before + 1, Convert.ToDouble(Scalar(uow, "SELECT Amount FROM dbo.PRODUCT_STOCKS WHERE ID = @id",
-                    new SqlParameter("@id", stockId))), 1e-9);
-                // Commit yo'q → Dispose'da rollback
+                Assert.AreEqual(customer.ContactPersonName, Scalar(uow, "SELECT ContactPersonName FROM dbo.CUSTOMERS WHERE ID = @id",
+                    new SqlParameter("@id", customerId)));
+                // Commit yo'q -> Dispose'da rollback
             }
 
             Assert.AreEqual(0, Scalar("SELECT COUNT(*) FROM dst.AUDIT_TRAIL WHERE CorrelationId = @c", new SqlParameter("@c", correlation)));
-            Assert.AreEqual(before, Convert.ToDouble(Scalar("SELECT Amount FROM dbo.PRODUCT_STOCKS WHERE ID = @id",
-                new SqlParameter("@id", stockId))), 1e-9);
+            var after = Scalar("SELECT ContactPersonName FROM dbo.CUSTOMERS WHERE ID = @id", new SqlParameter("@id", customerId));
+            Assert.AreEqual(before, after is DBNull ? null : (string)after);
         }
 
         [TestMethod]

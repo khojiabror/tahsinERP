@@ -1,0 +1,260 @@
+@model tahsinERP.Areas.Distribution.Controllers.DstProductsController.ProfileInput
+@using tahsinERP.Areas.Distribution.Services
+@using tahsinERP.Areas.Distribution.Controllers
+@{
+    var product = (tahsinERP.Areas.Distribution.Data.Entities.ProductRef)ViewBag.Product;
+    ViewBag.DstParent = DstLocalization.T("Products");
+    ViewBag.Title = product.PNo + " — " + product.Name;
+    bool canChange = ViewBag.DstCanChange == true;
+    var units = (List<SaleUnit>)ViewBag.Units;
+    var barcodes = (List<DstProductsController.BarcodeRow>)ViewBag.Barcodes;
+    var prices = (List<DstProductsController.PriceRow>)ViewBag.Prices;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@DstLocalization.T("Saved")</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Product_Profile")</h4></div>
+                        <div class="card-body">
+                            <dl class="row small mb-1">
+                                <dt class="col-5">@DstLocalization.T("Article")</dt><dd class="col-7">@product.PNo</dd>
+                                <dt class="col-5">@DstLocalization.T("Category")</dt><dd class="col-7">@ViewBag.Category</dd>
+                                <dt class="col-5">@DstLocalization.T("BaseUnit")</dt><dd class="col-7">@ViewBag.BaseUnit</dd>
+                            </dl>
+                            @using (Html.BeginForm("Edit", "DstProducts", new { area = "Distribution" }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.HiddenFor(m => m.ProductID)
+                                <div class="form-group">
+                                    <label>@DstLocalization.T("NameRu")</label>
+                                    @Html.TextBoxFor(m => m.NameRu, new { @class = "form-control", maxlength = 150 })
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Brand")</label>
+                                        @Html.DropDownListFor(m => m.BrandID, (List<SelectListItem>)ViewBag.Brands, "—", new { @class = "form-control" })
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Manufacturer")</label>
+                                        @Html.DropDownListFor(m => m.ManufacturerID, (List<SelectListItem>)ViewBag.Manufacturers, "—", new { @class = "form-control" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>@DstLocalization.T("SubCategory")</label>
+                                    @Html.DropDownListFor(m => m.SubCategoryID, (List<SelectListItem>)ViewBag.SubCategories, "—", new { @class = "form-control" })
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("WeightKg") (@ViewBag.BaseUnit)</label>
+                                        <input name="BaseWeightKg" class="form-control" type="number" step="0.0001" min="0" value="@(Model.BaseWeightKg?.ToString(inv))" />
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("VolumeM3") (@ViewBag.BaseUnit)</label>
+                                        <input name="BaseVolumeM3" class="form-control" type="number" step="0.000001" min="0" value="@(Model.BaseVolumeM3?.ToString(inv))" />
+                                    </div>
+                                </div>
+                                <div class="custom-control custom-switch mb-50">
+                                    @Html.CheckBoxFor(m => m.IsSaleActive, new { @class = "custom-control-input", id = "pSale" })
+                                    <label class="custom-control-label" for="pSale">@DstLocalization.T("Product_OnSale")</label>
+                                </div>
+                                <div class="custom-control custom-switch mb-50">
+                                    @Html.CheckBoxFor(m => m.IsBulky, new { @class = "custom-control-input", id = "pBulky" })
+                                    <label class="custom-control-label" for="pBulky">@DstLocalization.T("Product_Bulky")</label>
+                                </div>
+                                <div class="custom-control custom-switch mb-1">
+                                    @Html.CheckBoxFor(m => m.IsWeighted, new { @class = "custom-control-input", id = "pWeighted" })
+                                    <label class="custom-control-label" for="pWeighted">@DstLocalization.T("Product_Weighted")</label>
+                                </div>
+                                if (canChange)
+                                {
+                                    <button type="submit" class="btn btn-primary">@DstLocalization.T("Save")</button>
+                                }
+                                <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                            }
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">@DstLocalization.T("Prices")</h4>
+                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "DstPrices", new { productId = product.ID })">@DstLocalization.T("Edit")</a>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>@DstLocalization.T("PriceType")</th><th class="text-right">@DstLocalization.T("Price")</th><th class="text-right">@DstLocalization.T("MinPrice")</th></tr></thead>
+                                <tbody>
+                                    @foreach (var p in prices)
+                                    {
+                                        <tr>
+                                            <td>@p.PriceType</td>
+                                            <td class="text-right">@(p.Price.HasValue ? p.Price.Value.ToString("N0") : "—")</td>
+                                            <td class="text-right">@(p.MinPrice.HasValue ? p.MinPrice.Value.ToString("N0") : "")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            <p class="small text-muted mt-50 mb-0">@DstLocalization.T("Price_PerBaseUnit", (string)ViewBag.BaseUnit)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">@DstLocalization.T("Units")</h4>
+                            @if (canChange)
+                            {
+                                <button type="button" class="btn btn-sm btn-success" data-unit-edit><i class="bx bx-plus"></i> @DstLocalization.T("Add")</button>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <p class="small text-muted">@DstLocalization.T("Units_Hint")</p>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>@DstLocalization.T("Unit")</th>
+                                        <th class="text-right">@DstLocalization.T("Factor")</th>
+                                        <th class="text-right">@DstLocalization.T("WeightKg")</th>
+                                        <th class="text-right">@DstLocalization.T("VolumeM3")</th>
+                                        <th>@DstLocalization.T("DefaultSaleUnit")</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var u in units)
+                                    {
+                                        <tr>
+                                            <td>@u.UnitName @if (u.IsBase) { <span class="badge badge-light-primary">@DstLocalization.T("BaseUnit")</span> }</td>
+                                            <td class="text-right">@u.Factor.ToString("0.######")</td>
+                                            <td class="text-right">@(u.WeightKg?.ToString("0.####"))</td>
+                                            <td class="text-right">@(u.VolumeM3?.ToString("0.######"))</td>
+                                            <td>@(u.IsDefaultSale ? "✓" : "")</td>
+                                            <td class="text-right text-nowrap">
+                                                @if (!u.IsBase && canChange)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" data-unit-edit data-id="@u.ProductUnitID" data-unit="@u.UnitID"
+                                                            data-factor="@u.Factor.ToString(inv)" data-default="@(u.IsDefaultSale ? "1" : "")"><i class="bx bx-edit-alt"></i></button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" data-unit-off="@u.ProductUnitID"><i class="bx bx-trash"></i></button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title mb-0">@DstLocalization.T("Barcodes")</h4></div>
+                        <div class="card-body">
+                            @if (canChange)
+                            {
+                                <div class="form-row mb-1">
+                                    <div class="col-md-6"><input id="bcCode" class="form-control" maxlength="50" placeholder="4780000000000" /></div>
+                                    <div class="col-md-4">
+                                        <select id="bcUnit" class="form-control">
+                                            @foreach (var u in units)
+                                            {
+                                                <option value="@u.ProductUnitID">@u.UnitName</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2"><button type="button" class="btn btn-success btn-block" id="bcAdd"><i class="bx bx-plus"></i></button></div>
+                                </div>
+                            }
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    @foreach (var b in barcodes)
+                                    {
+                                        <tr>
+                                            <td><code>@b.Barcode</code></td>
+                                            <td>@(b.Unit ?? (string)ViewBag.BaseUnit)</td>
+                                            <td class="text-right">
+                                                @if (canChange)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bc-remove="@b.ID"><i class="bx bx-trash"></i></button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="unitModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Unit")</h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="uId" />
+                <div class="form-group">
+                    <label>@DstLocalization.T("Unit")</label>
+                    @Html.DropDownList("uUnit", (List<SelectListItem>)ViewBag.AllUnits, new { @class = "form-control", id = "uUnit" })
+                </div>
+                <div class="form-group">
+                    <label>@DstLocalization.T("Factor_Label", (string)ViewBag.BaseUnit)</label>
+                    <input id="uFactor" type="number" step="0.000001" min="0.000001" class="form-control" />
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6"><label>@DstLocalization.T("WeightKg")</label><input id="uWeight" type="number" step="0.0001" min="0" class="form-control" placeholder="@DstLocalization.T("Auto")" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("VolumeM3")</label><input id="uVolume" type="number" step="0.000001" min="0" class="form-control" placeholder="@DstLocalization.T("Auto")" /></div>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="uDefault" />
+                    <label class="custom-control-label" for="uDefault">@DstLocalization.T("DefaultSaleUnit")</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="uSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var productId = @product.ID;
+            $('[data-unit-edit]').on('click', function () {
+                var b = $(this);
+                $('#uId').val(b.data('id') || '');
+                if (b.data('unit')) $('#uUnit').val(String(b.data('unit')));
+                $('#uFactor').val(b.data('factor') || '');
+                $('#uWeight').val(''); $('#uVolume').val('');
+                $('#uDefault').prop('checked', !!b.data('default'));
+                $('#unitModal').modal('show');
+            });
+            $('#uSave').on('click', function () {
+                dstPost('@Url.Action("SaveUnit")', {
+                    productId: productId, id: $('#uId').val(), unitId: $('#uUnit').val(), factor: $('#uFactor').val(),
+                    weightKg: $('#uWeight').val(), volumeM3: $('#uVolume').val(), isDefaultSale: $('#uDefault').is(':checked')
+                }).done(function () { location.reload(); });
+            });
+            $('[data-unit-off]').on('click', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("DeactivateUnit")', { id: $(this).data('unitOff') }).done(function () { location.reload(); });
+            });
+            $('#bcAdd').on('click', function () {
+                dstPost('@Url.Action("AddBarcode")', { productId: productId, barcode: $('#bcCode').val(), productUnitId: $('#bcUnit').val() })
+                    .done(function () { location.reload(); });
+            });
+            $('#bcCode').on('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); $('#bcAdd').click(); } });
+            $('[data-bc-remove]').on('click', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("RemoveBarcode")', { id: $(this).data('bcRemove') }).done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

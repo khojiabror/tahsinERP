@@ -12,19 +12,721 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Module_Title" xml:space="preserve">
-    <value>Дистрибуция</value>
+  <data name="Active" xml:space="preserve">
+    <value>Активен</value>
   </data>
-  <data name="Module_Intro" xml:space="preserve">
-    <value>Оптовая торговля: агенты, заказы, склад, долги клиентов. Модуль запускается поэтапно.</value>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
   </data>
-  <data name="Language" xml:space="preserve">
-    <value>Язык</value>
+  <data name="Address" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>Агент</value>
+  </data>
+  <data name="Agents" xml:space="preserve">
+    <value>Агенты</value>
+  </data>
+  <data name="Agents_Hint" xml:space="preserve">
+    <value>Агент — пользователь ERP; видит только закреплённых за ним клиентов. Экспедитор — доставка (этап 2).</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="All_Agents" xml:space="preserve">
+    <value>Все агенты</value>
+  </data>
+  <data name="All_Brands" xml:space="preserve">
+    <value>Все бренды</value>
+  </data>
+  <data name="All_Categories" xml:space="preserve">
+    <value>Все категории</value>
+  </data>
+  <data name="All_Territories" xml:space="preserve">
+    <value>Все территории</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Применить</value>
+  </data>
+  <data name="Approve" xml:space="preserve">
+    <value>Подтвердить</value>
+  </data>
+  <data name="Article" xml:space="preserve">
+    <value>Артикул</value>
+  </data>
+  <data name="Auto" xml:space="preserve">
+    <value>авто</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="Barcodes" xml:space="preserve">
+    <value>Штрихкоды</value>
+  </data>
+  <data name="BaseUnit" xml:space="preserve">
+    <value>Базовая единица</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Бренд</value>
+  </data>
+  <data name="Brands" xml:space="preserve">
+    <value>Бренды</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Категория</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Город</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Вы уверены?</value>
+  </data>
+  <data name="ContactPerson" xml:space="preserve">
+    <value>Контактное лицо</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Страна</value>
+  </data>
+  <data name="CreditLimit" xml:space="preserve">
+    <value>Кредитный лимит</value>
+  </data>
+  <data name="CreditLimit_Hint" xml:space="preserve">
+    <value>Если долг + новый заказ превышает лимит или есть просрочка, заказ не подтверждается (без разрешения руководителя). 0 — только предоплата.</value>
+  </data>
+  <data name="Currency_Sum" xml:space="preserve">
+    <value>сум</value>
+  </data>
+  <data name="Customer_Add" xml:space="preserve">
+    <value>Новый клиент</value>
+  </data>
+  <data name="Customer_Attach" xml:space="preserve">
+    <value>Добавить существующего</value>
+  </data>
+  <data name="Customer_AttachHint" xml:space="preserve">
+    <value>Добавить в дистрибуцию одного из клиентов CRM.</value>
+  </data>
+  <data name="Customer_Main" xml:space="preserve">
+    <value>Основные данные</value>
+  </data>
+  <data name="Customer_Pending" xml:space="preserve">
+    <value>Ожидает подтверждения</value>
+  </data>
+  <data name="Customer_PendingHint" xml:space="preserve">
+    <value>Точку добавил агент — проверьте данные и подтвердите в списке.</value>
+  </data>
+  <data name="Customer_Sales" xml:space="preserve">
+    <value>Условия продаж</value>
+  </data>
+  <data name="Customer_SpecialPrices" xml:space="preserve">
+    <value>Спеццены</value>
+  </data>
+  <data name="Customer_SpecialPricesHint" xml:space="preserve">
+    <value>Спеццена важнее типа цены и не проверяется по мин. цене. Остановленная цена остаётся в истории.</value>
+  </data>
+  <data name="Customers" xml:space="preserve">
+    <value>Клиенты</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="Day_Fri" xml:space="preserve">
+    <value>Пт</value>
+  </data>
+  <data name="Day_Mon" xml:space="preserve">
+    <value>Пн</value>
+  </data>
+  <data name="Day_Sat" xml:space="preserve">
+    <value>Сб</value>
+  </data>
+  <data name="Day_Sun" xml:space="preserve">
+    <value>Вс</value>
+  </data>
+  <data name="Day_Thu" xml:space="preserve">
+    <value>Чт</value>
+  </data>
+  <data name="Day_Tue" xml:space="preserve">
+    <value>Вт</value>
+  </data>
+  <data name="Day_Wed" xml:space="preserve">
+    <value>Ср</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>дн.</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>по умолчанию</value>
+  </data>
+  <data name="DefaultPriceType" xml:space="preserve">
+    <value>Тип цены по умолчанию</value>
+  </data>
+  <data name="DefaultSaleUnit" xml:space="preserve">
+    <value>Единица продажи по умолчанию</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Dictionaries" xml:space="preserve">
+    <value>Справочники</value>
+  </data>
+  <data name="DiscountLimits" xml:space="preserve">
+    <value>Лимиты скидок</value>
+  </data>
+  <data name="DiscountLimits_Hint" xml:space="preserve">
+    <value>Максимальная скидка по роли, %. Пусто — скидку давать нельзя (право «Безлимитная скидка» важнее).</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Error_AgentRequired" xml:space="preserve">
+    <value>Агент не найден или неактивен.</value>
+  </data>
+  <data name="Error_BarcodeChecksum" xml:space="preserve">
+    <value>Неверная контрольная цифра штрихкода (EAN/UPC).</value>
+  </data>
+  <data name="Error_BarcodeEmpty" xml:space="preserve">
+    <value>Введите штрихкод.</value>
+  </data>
+  <data name="Error_BarcodeFormat" xml:space="preserve">
+    <value>Штрихкод должен содержать 4–50 букв/цифр.</value>
+  </data>
+  <data name="Error_BarcodeTaken" xml:space="preserve">
+    <value>Этот штрихкод уже привязан к другому товару (ID {0}).</value>
   </data>
   <data name="Error_CancelReasonRequired" xml:space="preserve">
     <value>Укажите причину отмены.</value>
   </data>
+  <data name="Error_CategoryAbc" xml:space="preserve">
+    <value>Категория только A, B или C.</value>
+  </data>
+  <data name="Error_CategoryRequired" xml:space="preserve">
+    <value>Выберите категорию.</value>
+  </data>
+  <data name="Error_CreditRange" xml:space="preserve">
+    <value>Кредитный лимит от 0, отсрочка 0–365 дней.</value>
+  </data>
+  <data name="Error_DateRange" xml:space="preserve">
+    <value>Дата окончания раньше даты начала.</value>
+  </data>
+  <data name="Error_DefaultPriceTypeInactive" xml:space="preserve">
+    <value>Тип цены по умолчанию должен быть активным.</value>
+  </data>
+  <data name="Error_Duplicate" xml:space="preserve">
+    <value>Такая запись уже существует.</value>
+  </data>
+  <data name="Error_FactorPositive" xml:space="preserve">
+    <value>Коэффициент должен быть больше 0.</value>
+  </data>
+  <data name="Error_GeoPair" xml:space="preserve">
+    <value>Широта и долгота вводятся вместе.</value>
+  </data>
+  <data name="Error_GeoRange" xml:space="preserve">
+    <value>Неверные координаты.</value>
+  </data>
+  <data name="Error_InUse" xml:space="preserve">
+    <value>Запись используется — удалить нельзя, сделайте неактивной.</value>
+  </data>
+  <data name="Error_InnDuplicate" xml:space="preserve">
+    <value>Этот ИНН уже есть у другого клиента.</value>
+  </data>
+  <data name="Error_InnFormat" xml:space="preserve">
+    <value>ИНН — 9 цифр (юрлицо) или ПИНФЛ — 14 цифр.</value>
+  </data>
+  <data name="Error_Load" xml:space="preserve">
+    <value>Ошибка загрузки списка.</value>
+  </data>
+  <data name="Error_MinPriceRange" xml:space="preserve">
+    <value>Мин. цена должна быть от 0 до цены.</value>
+  </data>
+  <data name="Error_NameRequired" xml:space="preserve">
+    <value>Укажите наименование.</value>
+  </data>
+  <data name="Error_NameTooLong" xml:space="preserve">
+    <value>Наименование не длиннее {0} символов.</value>
+  </data>
+  <data name="Error_NotFound" xml:space="preserve">
+    <value>Запись не найдена.</value>
+  </data>
+  <data name="Error_NumberFormat" xml:space="preserve">
+    <value>Неверный формат числа</value>
+  </data>
+  <data name="Error_PercentRange" xml:space="preserve">
+    <value>Неверный процент.</value>
+  </data>
+  <data name="Error_PhoneFormat" xml:space="preserve">
+    <value>Неверный номер телефона.</value>
+  </data>
   <data name="Error_PostedCannotBeDeleted" xml:space="preserve">
     <value>Проведённый документ нельзя удалить — отмените его с указанием причины.</value>
+  </data>
+  <data name="Error_PriceNegative" xml:space="preserve">
+    <value>Цена не может быть отрицательной.</value>
+  </data>
+  <data name="Error_PriceTypeRequired" xml:space="preserve">
+    <value>Тип цены не найден или неактивен.</value>
+  </data>
+  <data name="Error_ReasonType" xml:space="preserve">
+    <value>Выберите тип причины.</value>
+  </data>
+  <data name="Error_SaveFailed" xml:space="preserve">
+    <value>Ошибка при сохранении.</value>
+  </data>
+  <data name="Error_TerritoryCycle" xml:space="preserve">
+    <value>Нельзя переместить территорию внутрь самой себя.</value>
+  </data>
+  <data name="Error_TerritoryDepth" xml:space="preserve">
+    <value>Нельзя создать уровень ниже территории (максимум 3).</value>
+  </data>
+  <data name="Error_TerritoryHasChildren" xml:space="preserve">
+    <value>Есть дочерние территории — уровень менять нельзя.</value>
+  </data>
+  <data name="Error_TerritoryParent" xml:space="preserve">
+    <value>Территория не найдена или неактивна.</value>
+  </data>
+  <data name="Error_UnitDuplicate" xml:space="preserve">
+    <value>Эта единица уже добавлена.</value>
+  </data>
+  <data name="Error_UnitIsBase" xml:space="preserve">
+    <value>Это базовая единица товара — нельзя добавить как дополнительную.</value>
+  </data>
+  <data name="Expeditor" xml:space="preserve">
+    <value>Экспедитор</value>
+  </data>
+  <data name="Factor" xml:space="preserve">
+    <value>Коэффициент</value>
+  </data>
+  <data name="Factor_Label" xml:space="preserve">
+    <value>Сколько {0} (базовая единица)</value>
+  </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>Нет доступа</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Главная</value>
+  </data>
+  <data name="INN" xml:space="preserve">
+    <value>ИНН</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Импорт Excel</value>
+  </data>
+  <data name="Import_AllOrNothing" xml:space="preserve">
+    <value>Сначала проверяются все строки: при любой ошибке ничего не записывается — исправьте и загрузите снова.</value>
+  </data>
+  <data name="Import_AmbiguousName" xml:space="preserve">
+    <value>Несколько клиентов с таким названием — укажите ИНН.</value>
+  </data>
+  <data name="Import_AmbiguousTerritory" xml:space="preserve">
+    <value>Территория неоднозначна: {0} — укажите путь «Область / Район / Участок».</value>
+  </data>
+  <data name="Import_BaseUnitChange" xml:space="preserve">
+    <value>Базовую единицу существующего товара нельзя менять импортом.</value>
+  </data>
+  <data name="Import_Created" xml:space="preserve">
+    <value>создано</value>
+  </data>
+  <data name="Import_CustomersHint" xml:space="preserve">
+    <value>Клиенты ищутся по ИНН (иначе по названию) и обновляются, иначе создаются. Агент — логин, территория — название или путь, дни визита — 1,3,5 (Пн=1).</value>
+  </data>
+  <data name="Import_Done" xml:space="preserve">
+    <value>Импорт завершён</value>
+  </data>
+  <data name="Import_DryRun" xml:space="preserve">
+    <value>Только проверить (не записывать)</value>
+  </data>
+  <data name="Import_DryRunDone" xml:space="preserve">
+    <value>Проверка пройдена, ничего не записано — снимите галочку и загрузите снова</value>
+  </data>
+  <data name="Import_DuplicateInFile" xml:space="preserve">
+    <value>Повтор в файле: {0}</value>
+  </data>
+  <data name="Import_Failed" xml:space="preserve">
+    <value>Ошибок: {0} — ничего не записано.</value>
+  </data>
+  <data name="Import_MissingColumn" xml:space="preserve">
+    <value>Нет обязательного столбца: {0}</value>
+  </data>
+  <data name="Import_NoPriceColumns" xml:space="preserve">
+    <value>Не найдены столбцы с типами цен (скачайте шаблон).</value>
+  </data>
+  <data name="Import_NoShop" xml:space="preserve">
+    <value>В базе нет цеха (SHOPS) — нельзя создать товар.</value>
+  </data>
+  <data name="Import_PnoNameRequired" xml:space="preserve">
+    <value>Артикул и наименование обязательны.</value>
+  </data>
+  <data name="Import_PnoTooLong" xml:space="preserve">
+    <value>Артикул не длиннее {0} символов.</value>
+  </data>
+  <data name="Import_PricesHint" xml:space="preserve">
+    <value>Артикул + столбец на каждый тип цены (и «&lt;тип&gt; min»). Цены за базовую единицу. Пустая ячейка — без изменений.</value>
+  </data>
+  <data name="Import_ProductsHint" xml:space="preserve">
+    <value>Товары ищутся по артикулу и обновляются, иначе создаются. Единица 2/3 — с коэффициентом (например коробка = 1,44 м²). Несколько штрихкодов — через «;».</value>
+  </data>
+  <data name="Import_ReadFailed" xml:space="preserve">
+    <value>Не удалось прочитать файл.</value>
+  </data>
+  <data name="Import_Skipped" xml:space="preserve">
+    <value>без изменений</value>
+  </data>
+  <data name="Import_Template" xml:space="preserve">
+    <value>Скачать шаблон</value>
+  </data>
+  <data name="Import_TooLarge" xml:space="preserve">
+    <value>Файл больше 10 МБ.</value>
+  </data>
+  <data name="Import_UnitFactorPair" xml:space="preserve">
+    <value>Единица {0} и коэффициент {0} вводятся вместе.</value>
+  </data>
+  <data name="Import_UnitRequired" xml:space="preserve">
+    <value>Для нового товара базовая единица обязательна.</value>
+  </data>
+  <data name="Import_UnknownValue" xml:space="preserve">
+    <value>Не найдено: {0}</value>
+  </data>
+  <data name="Import_Updated" xml:space="preserve">
+    <value>обновлено</value>
+  </data>
+  <data name="Import_Upload" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="Import_XlsxOnly" xml:space="preserve">
+    <value>Выберите файл .xlsx.</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Неактивен</value>
+  </data>
+  <data name="Landmark" xml:space="preserve">
+    <value>Ориентир</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="Latitude" xml:space="preserve">
+    <value>Широта</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="Longitude" xml:space="preserve">
+    <value>Долгота</value>
+  </data>
+  <data name="MakeDefault" xml:space="preserve">
+    <value>Сделать основным</value>
+  </data>
+  <data name="Manufacturer" xml:space="preserve">
+    <value>Производитель</value>
+  </data>
+  <data name="Manufacturers" xml:space="preserve">
+    <value>Производители</value>
+  </data>
+  <data name="MinPrice" xml:space="preserve">
+    <value>Мин. цена</value>
+  </data>
+  <data name="MinStock" xml:space="preserve">
+    <value>Мин. остаток</value>
+  </data>
+  <data name="Module_Intro" xml:space="preserve">
+    <value>Оптовая торговля: агенты, заказы, склад, долги клиентов. Модуль запускается поэтапно.</value>
+  </data>
+  <data name="Module_Title" xml:space="preserve">
+    <value>Дистрибуция</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Наименование</value>
+  </data>
+  <data name="NameRu" xml:space="preserve">
+    <value>Наименование (рус)</value>
+  </data>
+  <data name="OwnerName" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="Parent" xml:space="preserve">
+    <value>Родитель</value>
+  </data>
+  <data name="PaymentDays" xml:space="preserve">
+    <value>Отсрочка (дней)</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Телефон</value>
+  </data>
+  <data name="Phone2" xml:space="preserve">
+    <value>Телефон 2</value>
+  </data>
+  <data name="PointType" xml:space="preserve">
+    <value>Тип точки</value>
+  </data>
+  <data name="PointType_BRIGADE" xml:space="preserve">
+    <value>Строительная бригада</value>
+  </data>
+  <data name="PointType_FOREMAN" xml:space="preserve">
+    <value>Прораб</value>
+  </data>
+  <data name="PointType_MARKET" xml:space="preserve">
+    <value>Стройрынок</value>
+  </data>
+  <data name="PointType_PRIVATE" xml:space="preserve">
+    <value>Частный клиент</value>
+  </data>
+  <data name="PointType_SHOP" xml:space="preserve">
+    <value>Магазин хозтоваров</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Цена</value>
+  </data>
+  <data name="PriceType" xml:space="preserve">
+    <value>Тип цены</value>
+  </data>
+  <data name="PriceTypes" xml:space="preserve">
+    <value>Типы цен</value>
+  </data>
+  <data name="Price_Default" xml:space="preserve">
+    <value>Цена (основная)</value>
+  </data>
+  <data name="Price_GridHint" xml:space="preserve">
+    <value>Цены за базовую единицу, в сумах. Нажмите на ячейку для изменения — каждое изменение сохраняется в истории.</value>
+  </data>
+  <data name="Price_History" xml:space="preserve">
+    <value>История цен</value>
+  </data>
+  <data name="Price_MassChange" xml:space="preserve">
+    <value>Массовое изменение</value>
+  </data>
+  <data name="Price_MassDone" xml:space="preserve">
+    <value>Изменено</value>
+  </data>
+  <data name="Price_MassHint" xml:space="preserve">
+    <value>Применяется к товарам с текущей ценой выбранного типа; мин. цена меняется на тот же процент.</value>
+  </data>
+  <data name="Price_Missing" xml:space="preserve">
+    <value>Без основной цены</value>
+  </data>
+  <data name="Price_PerBaseUnit" xml:space="preserve">
+    <value>Цены за 1 {0}.</value>
+  </data>
+  <data name="Price_RoundTo" xml:space="preserve">
+    <value>Округление</value>
+  </data>
+  <data name="Prices" xml:space="preserve">
+    <value>Цены</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Товар</value>
+  </data>
+  <data name="Product_Bulky" xml:space="preserve">
+    <value>Крупногабаритный</value>
+  </data>
+  <data name="Product_Create" xml:space="preserve">
+    <value>Новый товар</value>
+  </data>
+  <data name="Product_NoProfile" xml:space="preserve">
+    <value>нет профиля</value>
+  </data>
+  <data name="Product_NotOnSale" xml:space="preserve">
+    <value>Снят с продажи</value>
+  </data>
+  <data name="Product_OnSale" xml:space="preserve">
+    <value>В продаже</value>
+  </data>
+  <data name="Product_Profile" xml:space="preserve">
+    <value>Карточка дистрибуции</value>
+  </data>
+  <data name="Product_Weighted" xml:space="preserve">
+    <value>Весовой товар</value>
+  </data>
+  <data name="Products" xml:space="preserve">
+    <value>Товары</value>
+  </data>
+  <data name="ReasonType_CANCEL" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="ReasonType_NO_ORDER" xml:space="preserve">
+    <value>Визит без заказа</value>
+  </data>
+  <data name="ReasonType_RETURN" xml:space="preserve">
+    <value>Возврат</value>
+  </data>
+  <data name="ReasonType_WRITE_OFF" xml:space="preserve">
+    <value>Списание</value>
+  </data>
+  <data name="Reasons" xml:space="preserve">
+    <value>Причины</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Роль</value>
+  </data>
+  <data name="Row" xml:space="preserve">
+    <value>Строка</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Сохранено</value>
+  </data>
+  <data name="Scopes" xml:space="preserve">
+    <value>Область видимости</value>
+  </data>
+  <data name="Scopes_Hint" xml:space="preserve">
+    <value>Пустой список — без ограничений. Заполненный — пользователь видит только выбранное. Админ видит всё.</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="SortOrder" xml:space="preserve">
+    <value>Порядок</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Остановить</value>
+  </data>
+  <data name="SubCategories" xml:space="preserve">
+    <value>Подкатегории</value>
+  </data>
+  <data name="SubCategory" xml:space="preserve">
+    <value>Подкатегория</value>
+  </data>
+  <data name="Supervisor" xml:space="preserve">
+    <value>Супервайзер</value>
+  </data>
+  <data name="Table_Empty" xml:space="preserve">
+    <value>Нет записей</value>
+  </data>
+  <data name="Table_Filtered" xml:space="preserve">
+    <value>(из _MAX_)</value>
+  </data>
+  <data name="Table_Info" xml:space="preserve">
+    <value>_START_–_END_ из _TOTAL_</value>
+  </data>
+  <data name="Table_Length" xml:space="preserve">
+    <value>Показать _MENU_</value>
+  </data>
+  <data name="Table_Loading" xml:space="preserve">
+    <value>Загрузка...</value>
+  </data>
+  <data name="Table_Next" xml:space="preserve">
+    <value>Далее</value>
+  </data>
+  <data name="Table_NotFound" xml:space="preserve">
+    <value>Ничего не найдено</value>
+  </data>
+  <data name="Table_Prev" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="Table_Search" xml:space="preserve">
+    <value>Поиск:</value>
+  </data>
+  <data name="Team" xml:space="preserve">
+    <value>Команда</value>
+  </data>
+  <data name="Teams" xml:space="preserve">
+    <value>Агенты и команды</value>
+  </data>
+  <data name="Teams_Hint" xml:space="preserve">
+    <value>Супервайзер видит агентов своей команды и их клиентов.</value>
+  </data>
+  <data name="Territories" xml:space="preserve">
+    <value>Территории</value>
+  </data>
+  <data name="Territory" xml:space="preserve">
+    <value>Территория</value>
+  </data>
+  <data name="Territory_AddChild" xml:space="preserve">
+    <value>Добавить вложенную</value>
+  </data>
+  <data name="Territory_AddRegion" xml:space="preserve">
+    <value>Добавить область</value>
+  </data>
+  <data name="Territory_Area" xml:space="preserve">
+    <value>Участок</value>
+  </data>
+  <data name="Territory_District" xml:space="preserve">
+    <value>Район</value>
+  </data>
+  <data name="Territory_Region" xml:space="preserve">
+    <value>Область</value>
+  </data>
+  <data name="Tile_Customers" xml:space="preserve">
+    <value>Торговые точки, лимит, агент</value>
+  </data>
+  <data name="Tile_Dictionaries" xml:space="preserve">
+    <value>Бренды, причины</value>
+  </data>
+  <data name="Tile_Import" xml:space="preserve">
+    <value>Загрузка из Excel</value>
+  </data>
+  <data name="Tile_Prices" xml:space="preserve">
+    <value>Типы цен и история</value>
+  </data>
+  <data name="Tile_Products" xml:space="preserve">
+    <value>Единицы, штрихкоды</value>
+  </data>
+  <data name="Tile_Settings" xml:space="preserve">
+    <value>Скидки, склады</value>
+  </data>
+  <data name="Tile_Teams" xml:space="preserve">
+    <value>Агенты, супервайзеры</value>
+  </data>
+  <data name="Tile_Territories" xml:space="preserve">
+    <value>Область → район → участок</value>
+  </data>
+  <data name="ToggleActive" xml:space="preserve">
+    <value>Вкл / выкл</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Единица</value>
+  </data>
+  <data name="Units" xml:space="preserve">
+    <value>Единицы измерения</value>
+  </data>
+  <data name="Units_Hint" xml:space="preserve">
+    <value>Агент продаёт в удобной единице (коробка, м², мешок); склад и цены считаются в базовой единице.</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>Пользователь</value>
+  </data>
+  <data name="ValidFrom" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="ValidTo" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="VisitDays" xml:space="preserve">
+    <value>Дни визита</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>Объём, м³</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="Warehouse_AllowNegative" xml:space="preserve">
+    <value>Разрешить минус</value>
+  </data>
+  <data name="Warehouse_Hint" xml:space="preserve">
+    <value>«Для продаж» — заказы отгружаются с этого склада. Мин. остаток — для уведомления «заканчивается» (в базовой единице).</value>
+  </data>
+  <data name="Warehouse_SalesPoint" xml:space="preserve">
+    <value>Для продаж</value>
+  </data>
+  <data name="Warehouse_Zone" xml:space="preserve">
+    <value>Зона доставки</value>
+  </data>
+  <data name="Warehouses" xml:space="preserve">
+    <value>Склады</value>
+  </data>
+  <data name="WeightKg" xml:space="preserve">
+    <value>Вес, кг</value>
   </data>
 </root>

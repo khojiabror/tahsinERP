@@ -1,0 +1,67 @@
+@using tahsinERP.Areas.Distribution.Services
+@{
+    var user = (tahsinERP.Areas.Distribution.Data.Entities.UserRef)ViewBag.User;
+    ViewBag.DstParent = DstLocalization.T("Teams");
+    ViewBag.Title = DstLocalization.T("Scopes") + ": " + (user.FullName ?? user.Uname);
+    bool canChange = ViewBag.DstCanChange == true;
+    var blocks = new[]
+    {
+        new { Type = ScopeTypes.Warehouse, Title = DstLocalization.T("Warehouses"), Items = (List<SelectListItem>)ViewBag.Warehouses, Remote = false },
+        new { Type = ScopeTypes.Territory, Title = DstLocalization.T("Territories"), Items = (List<SelectListItem>)ViewBag.Territories, Remote = false },
+        new { Type = ScopeTypes.Customer, Title = DstLocalization.T("Customers"), Items = (List<SelectListItem>)ViewBag.Customers, Remote = true }
+    };
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="alert alert-info">@DstLocalization.T("Scopes_Hint")</div>
+            <div class="row">
+                @foreach (var b in blocks)
+                {
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@b.Title</h4></div>
+                            <div class="card-body">
+                                <select multiple class="form-control" data-scope="@b.Type" data-remote="@(b.Remote ? "1" : "")" style="width:100%">
+                                    @foreach (var i in b.Items)
+                                    {
+                                        <option value="@i.Value" @(i.Selected ? "selected" : "")>@i.Text</option>
+                                    }
+                                </select>
+                                @if (canChange)
+                                {
+                                    <button type="button" class="btn btn-primary btn-sm mt-1" data-scope-save="@b.Type">@DstLocalization.T("Save")</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('select[data-scope]').each(function () {
+                var s = $(this);
+                var opts = { width: '100%' };
+                if (s.data('remote')) {
+                    opts.ajax = { url: '@Url.Action("SearchCustomers")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } };
+                }
+                s.select2(opts);
+            });
+            $('[data-scope-save]').on('click', function () {
+                var type = $(this).data('scopeSave');
+                var ids = $('select[data-scope="' + type + '"]').val() || [];
+                dstPost('@Url.Action("SaveScopes")', { userId: @user.ID, scopeType: type, ids: ids }).done(function () { dstNotify(); });
+            });
+        });
+    </script>
+}

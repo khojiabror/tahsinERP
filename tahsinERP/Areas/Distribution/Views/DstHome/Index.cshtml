@@ -1,6 +1,18 @@
 @{
     ViewBag.Title = DstLocalization.T("Module_Title");
     string current = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
+    string user = User.Identity.Name;
+    var tiles = new[]
+    {
+        new { Controller = "DstCustomers", Icon = "bx-store", Title = DstLocalization.T("Customers"), Hint = DstLocalization.T("Tile_Customers") },
+        new { Controller = "DstProducts", Icon = "bx-package", Title = DstLocalization.T("Products"), Hint = DstLocalization.T("Tile_Products") },
+        new { Controller = "DstPrices", Icon = "bx-purchase-tag", Title = DstLocalization.T("Prices"), Hint = DstLocalization.T("Tile_Prices") },
+        new { Controller = "DstTerritories", Icon = "bx-map-alt", Title = DstLocalization.T("Territories"), Hint = DstLocalization.T("Tile_Territories") },
+        new { Controller = "DstTeams", Icon = "bx-group", Title = DstLocalization.T("Teams"), Hint = DstLocalization.T("Tile_Teams") },
+        new { Controller = "DstDictionaries", Icon = "bx-book", Title = DstLocalization.T("Dictionaries"), Hint = DstLocalization.T("Tile_Dictionaries") },
+        new { Controller = "DstSettings", Icon = "bx-cog", Title = DstLocalization.T("Settings"), Hint = DstLocalization.T("Tile_Settings") },
+        new { Controller = "DstImport", Icon = "bxs-file-excel", Title = DstLocalization.T("Import"), Hint = DstLocalization.T("Tile_Import") }
+    };
 }
 
 <div class="app-content content">
@@ -28,13 +40,20 @@
         </div>
 
         <div class="content-body">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">@DstLocalization.T("Module_Title")</h4>
-                </div>
-                <div class="card-body">
-                    <p class="mb-0">@DstLocalization.T("Module_Intro")</p>
-                </div>
+            <p class="text-muted">@DstLocalization.T("Module_Intro")</p>
+            <div class="row">
+                @foreach (var t in tiles.Where(t => tahsinERP.Models.RoleHelper.IsViewPermitted(user, t.Controller, "Index")))
+                {
+                    <div class="col-xl-3 col-md-4 col-sm-6">
+                        <a href="@Url.Action("Index", t.Controller, new { area = "Distribution" })" class="card text-center" style="display:block">
+                            <div class="card-body">
+                                <div class="avatar bg-rgba-primary p-50 m-0 mb-1"><div class="avatar-content"><i class="bx @t.Icon text-primary font-medium-5"></i></div></div>
+                                <h6 class="mb-25">@t.Title</h6>
+                                <p class="small text-muted mb-0">@t.Hint</p>
+                            </div>
+                        </a>
+                    </div>
+                }
             </div>
         </div>
     </div>

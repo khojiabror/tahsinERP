@@ -41,7 +41,7 @@ namespace tahsinERP.Controllers
         {
             if (Request.IsAjaxRequest())
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Ruxsat yo'q");
-            return RedirectToAction("Index", "ViewNotAuthorized");
+            return RedirectToAction("Index", "ViewNotAuthorized", new { area = "" });
         }
 
         /// <summary>

@@ -1,0 +1,76 @@
+@model List<tahsinERP.Areas.Distribution.Controllers.DstPricesController.CustomerPriceRow>
+@{
+    var customer = (tahsinERP.Areas.Distribution.Data.Entities.CustomerRef)ViewBag.Customer;
+    ViewBag.DstParent = DstLocalization.T("Customer_SpecialPrices");
+    ViewBag.Title = customer.Name;
+    bool canChange = ViewBag.DstCanChange == true;
+    var today = DateTime.Today;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Customer_SpecialPrices") — @customer.Name</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Customer_SpecialPricesHint")</p>
+                    @if (canChange)
+                    {
+                        <div class="form-row mb-1">
+                            <div class="col-md-5"><select id="cpProduct" class="form-control" style="width:100%"></select></div>
+                            <div class="col-md-2"><input id="cpPrice" type="number" min="0" step="1" class="form-control" placeholder="@DstLocalization.T("Price")" /></div>
+                            <div class="col-md-2"><input id="cpFrom" type="date" class="form-control" value="@today.ToString("yyyy-MM-dd")" /></div>
+                            <div class="col-md-2"><input id="cpTo" type="date" class="form-control" /></div>
+                            <div class="col-md-1"><button type="button" class="btn btn-success btn-block" id="cpAdd"><i class="bx bx-plus"></i></button></div>
+                        </div>
+                    }
+                    <table class="table table-sm">
+                        <thead><tr><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Price")</th><th>@DstLocalization.T("ValidFrom")</th><th>@DstLocalization.T("ValidTo")</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var r in Model)
+                            {
+                                bool active = r.ValidFrom <= today && (r.ValidTo == null || r.ValidTo >= today);
+                                <tr class="@(active ? "" : "text-muted")">
+                                    <td>@r.Product</td>
+                                    <td class="text-right">@r.Price.ToString("N0")</td>
+                                    <td>@r.ValidFrom.ToString("dd.MM.yyyy")</td>
+                                    <td>@(r.ValidTo?.ToString("dd.MM.yyyy"))</td>
+                                    <td class="text-right">
+                                        @if (canChange && (r.ValidTo == null || r.ValidTo >= today))
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-close="@r.ID" title="@DstLocalization.T("Stop")"><i class="bx bx-stop-circle"></i></button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <a class="btn btn-light" href="@Url.Action("Edit", "DstCustomers", new { id = customer.ID })">@DstLocalization.T("Back")</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('#cpProduct').select2({
+                ajax: { url: '@Url.Action("SearchProducts")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } }
+            });
+            $('#cpAdd').on('click', function () {
+                dstPost('@Url.Action("AddCustomerPrice")', {
+                    customerId: @customer.ID, productId: $('#cpProduct').val(), price: $('#cpPrice').val(),
+                    validFrom: $('#cpFrom').val(), validTo: $('#cpTo').val()
+                }).done(function () { location.reload(); });
+            });
+            $('[data-close]').on('click', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("CloseCustomerPrice")', { id: $(this).data('close') }).done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

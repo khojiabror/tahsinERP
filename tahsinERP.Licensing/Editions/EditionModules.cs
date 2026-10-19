@@ -109,7 +109,11 @@ namespace tahsinERP.Services.Editions
                     "WaybillPayment", "TransportLoadSimulation", "TransportLoadApi"
                 } },
             { ProductModule.Docs, new[] { "OfficialLetters", "CompanyOrders", "STDCompanyStandards", "JobDesc", "DocTemplates" } },
-            { ProductModule.Distribution, new[] { "DstHome" } },
+            { ProductModule.Distribution, new[]
+                {
+                    "DstHome", "DstTerritories", "DstCustomers", "DstProducts", "DstDictionaries", "DstPrices",
+                    "DstTeams", "DstSettings", "DstImport"
+                } },
         });
 
         private static Dictionary<string, ProductModule> Build(Dictionary<ProductModule, string[]> byModule)
