@@ -20,7 +20,7 @@ namespace tahsinERP.Controllers
 
         private static bool IsDeveloperRole(ROLE role)
         {
-            return role != null && string.Equals(role.RName, "Developer", StringComparison.OrdinalIgnoreCase);
+            return tahsinERP.Services.Common.SystemCodes.Role.IsDeveloper(role);
         }
 
         // Developer foydalanuvchini faqat Developer o'zgartira/ko'ra oladi
@@ -63,7 +63,7 @@ namespace tahsinERP.Controllers
             if (!viewerIsDev)
             {
                 users = users
-                    .Where(u => !u.ROLES.Any(r => string.Equals(r.RName, "Developer", StringComparison.OrdinalIgnoreCase)))
+                    .Where(u => !u.ROLES.Any(IsDeveloperRole))
                     .ToList();
             }
 
@@ -82,7 +82,7 @@ namespace tahsinERP.Controllers
             if (!viewerIsDev)
             {
                 roleListQuery = roleListQuery
-                    .Where(r => !string.Equals(r.RName, "Developer", StringComparison.OrdinalIgnoreCase))
+                    .Where(r => !IsDeveloperRole(r))
                     .ToList();
             }
             ViewBag.RoleList = new SelectList(roleListQuery, "ID", "RName", roleID);

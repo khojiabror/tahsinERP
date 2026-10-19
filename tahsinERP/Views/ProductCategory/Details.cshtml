@@ -56,6 +56,10 @@
                                                     <div class="col-8">@Model.SortOrder</div>
                                                 </div>
                                                 <div class="row mb-2">
+                                                    <div class="col-4"><b>Material turi:</b></div>
+                                                    <div class="col-8">@(tahsinERP.Services.Common.SystemCodes.MaterialKind.All.Where(k => k.Key == Model.MaterialKind).Select(k => k.Value).FirstOrDefault() ?? "-")</div>
+                                                </div>
+                                                <div class="row mb-2">
                                                     <div class="col-4"><b>Xomashyo guruhi:</b></div>
                                                     <div class="col-8">@(Model.RawMaterialGroup ?? "-")</div>
                                                 </div>

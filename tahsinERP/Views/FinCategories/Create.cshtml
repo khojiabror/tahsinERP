@@ -54,6 +54,14 @@
                                             @Html.LabelFor(m => m.ParentID, "Ota kategoriya", new { @class = "control-label" })
                                             @Html.DropDownListFor(m => m.ParentID, ViewBag.ParentID as SelectList, "Ota kategoriya yo'q", new { @class = "form-control" })
                                         </div>
+
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.AnalyticsGroup, "Tahliliy guruh", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.AnalyticsGroup,
+                                                new SelectList(tahsinERP.Services.Common.SystemCodes.FinAnalyticsGroup.All, "Key", "Value", Model.AnalyticsGroup),
+                                                "— belgilanmagan —", new { @class = "form-control" })
+                                            <small class="form-text text-muted">EBITDA (soliq, foiz, amortizatsiya, dividend) va fakt tannarx shu guruhga qaraydi — kategoriya nomiga emas.</small>
+                                        </div>
                                         
                                         <div class="form-group">
                                             @Html.LabelFor(m => m.SortOrder, "Tartib raqami", new { @class = "control-label" })

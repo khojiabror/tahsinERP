@@ -152,7 +152,7 @@ try {
             $h = New-PasswordHash $tempPwd
             $tran = $db.BeginTransaction()
             try {
-                $adminRole = Exec $db "SELECT ID FROM dbo.ROLES WHERE RName = N'Admin' AND ISNULL(IsDeleted, 0) = 0" @{} $tran
+                $adminRole = Exec $db "SELECT ID FROM dbo.ROLES WHERE SystemCode = 'ADMIN' AND ISNULL(IsDeleted, 0) = 0" @{} $tran
                 if ($null -eq $adminRole) { throw 'Seed''da Admin roli topilmadi' }
                 $uid = Exec $db @"
 INSERT INTO dbo.USERS (Uname, FullName, Password, Email, IsDeleted, IsActive, HashCode, CompanyID, MustChangePassword)

@@ -63,7 +63,7 @@ GO
 
 -- Yangi korxona admini — barcha modullarga to'liq huquq (etalon bazadagi Admin roli korxonaga moslab
 -- cheklangan bo'lishi mumkin). Yangi ruxsat modullari keyin qo'shilsa — Role -> Huquqlar sahifasida.
-DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE RName = N'Admin');
+DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE SystemCode = 'ADMIN');
 IF @admin IS NOT NULL
 BEGIN
     UPDATE dbo.PERMISSIONS SET ViewPermit = 1, ChangePermit = 1, DeletePermit = 1 WHERE RoleID = @admin;

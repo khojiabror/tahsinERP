@@ -154,104 +154,107 @@
 
     <link href="~/Content/fin-dashboard.css" rel="stylesheet" />
 
-    @Html.Partial("_ChartJs")
-    <script>
-        var idPrefix = @Html.Raw(Json.Encode(Model.IdPrefix));
-        var pieColors = @Html.Raw(Json.Encode(Model.PieColors));
+@* jQuery layout oxirida yuklanadi — skriptlar Scripts section'da bo'lishi kerak *@
+@section Scripts {
+        @Html.Partial("_ChartJs")
+        <script>
+            var idPrefix = @Html.Raw(Json.Encode(Model.IdPrefix));
+            var pieColors = @Html.Raw(Json.Encode(Model.PieColors));
 
-        // Kategoriyalar bo'yicha (Pie Chart)
-        var categoryData = @Html.Raw(Json.Encode(ViewBag.ByCategory));
-        var categoryLabels = categoryData.map(function(item) { return item.CategoryName; });
-        var categoryAmounts = categoryData.map(function(item) { return item.Amount; });
+            // Kategoriyalar bo'yicha (Pie Chart)
+            var categoryData = @Html.Raw(Json.Encode(ViewBag.ByCategory));
+            var categoryLabels = categoryData.map(function(item) { return item.CategoryName; });
+            var categoryAmounts = categoryData.map(function(item) { return item.Amount; });
 
-        var categoryPieCtx = document.getElementById(idPrefix + 'CategoryPieChart').getContext('2d');
-        new Chart(categoryPieCtx, {
-            type: 'pie',
-            data: {
-                labels: categoryLabels,
-                datasets: [{
-                    data: categoryAmounts,
-                    backgroundColor: pieColors
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    }
-                }
-            }
-        });
-
-        // Hisoblar bo'yicha (Pie Chart)
-        var accountData = @Html.Raw(Json.Encode(ViewBag.ByAccount));
-        var accountLabels = accountData.map(function(item) { return item.AccountName; });
-        var accountAmounts = accountData.map(function(item) { return item.Amount; });
-
-        var accountPieCtx = document.getElementById(idPrefix + 'AccountPieChart').getContext('2d');
-        new Chart(accountPieCtx, {
-            type: 'pie',
-            data: {
-                labels: accountLabels,
-                datasets: [{
-                    data: accountAmounts,
-                    backgroundColor: pieColors
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    }
-                }
-            }
-        });
-
-        // Oylik trend
-        var monthlyData = @Html.Raw(Json.Encode(ViewBag.Monthly));
-        var monthlyPeriods = monthlyData.map(function(item) { return item.Period; });
-        var monthlyAmounts = monthlyData.map(function(item) { return item.Amount; });
-
-        var monthlyCtx = document.getElementById(idPrefix + 'MonthlyChart').getContext('2d');
-        new Chart(monthlyCtx, {
-            type: 'line',
-            data: {
-                labels: monthlyPeriods,
-                datasets: [{
-                    label: @Html.Raw(Json.Encode(Model.Plural)),
-                    data: monthlyAmounts,
-                    borderColor: 'rgb(@Model.LineRgb)',
-                    backgroundColor: 'rgba(@Model.LineRgb, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Initialize DataTable
-        $(document).ready(function() {
-            $('#' + idPrefix + 'Table').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+            var categoryPieCtx = document.getElementById(idPrefix + 'CategoryPieChart').getContext('2d');
+            new Chart(categoryPieCtx, {
+                type: 'pie',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryAmounts,
+                        backgroundColor: pieColors
+                    }]
                 },
-                "order": [[2, "desc"]], // Sort by Amount column
-                "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
-                "columnDefs": [
-                    { "orderable": true, "targets": [0, 1, 2, 3] },
-                    { "type": "num", "targets": [0] },
-                    { "type": "num-fmt", "targets": [2, 3] }
-                ]
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
             });
-        });
-    </script>
+
+            // Hisoblar bo'yicha (Pie Chart)
+            var accountData = @Html.Raw(Json.Encode(ViewBag.ByAccount));
+            var accountLabels = accountData.map(function(item) { return item.AccountName; });
+            var accountAmounts = accountData.map(function(item) { return item.Amount; });
+
+            var accountPieCtx = document.getElementById(idPrefix + 'AccountPieChart').getContext('2d');
+            new Chart(accountPieCtx, {
+                type: 'pie',
+                data: {
+                    labels: accountLabels,
+                    datasets: [{
+                        data: accountAmounts,
+                        backgroundColor: pieColors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // Oylik trend
+            var monthlyData = @Html.Raw(Json.Encode(ViewBag.Monthly));
+            var monthlyPeriods = monthlyData.map(function(item) { return item.Period; });
+            var monthlyAmounts = monthlyData.map(function(item) { return item.Amount; });
+
+            var monthlyCtx = document.getElementById(idPrefix + 'MonthlyChart').getContext('2d');
+            new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyPeriods,
+                    datasets: [{
+                        label: @Html.Raw(Json.Encode(Model.Plural)),
+                        data: monthlyAmounts,
+                        borderColor: 'rgb(@Model.LineRgb)',
+                        backgroundColor: 'rgba(@Model.LineRgb, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Initialize DataTable
+            $(document).ready(function() {
+                $('#' + idPrefix + 'Table').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
+                    },
+                    "order": [[2, "desc"]], // Sort by Amount column
+                    "pageLength": 25,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "columnDefs": [
+                        { "orderable": true, "targets": [0, 1, 2, 3] },
+                        { "type": "num", "targets": [0] },
+                        { "type": "num-fmt", "targets": [2, 3] }
+                    ]
+                });
+            });
+        </script>
+}

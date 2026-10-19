@@ -116,7 +116,7 @@ namespace tahsinERP.Controllers.Finance
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name");
+                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.BalanceCategoryID = new SelectList(
                     db.FIN_BALANCE_CATEGORIES
                         .Where(c => c.IsActive && c.CalculationType == 1) // Faqat Account-Based
@@ -154,7 +154,7 @@ namespace tahsinERP.Controllers.Finance
                     return RedirectToAction("Index");
                 }
 
-                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Name", account.CurrencyID);
+                ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", account.CurrencyID);
                 ViewBag.BalanceCategoryID = new SelectList(
                     db.FIN_BALANCE_CATEGORIES
                         .Where(c => c.IsActive && c.CalculationType == 1) // Faqat Account-Based
