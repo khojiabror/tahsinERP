@@ -519,8 +519,7 @@ namespace tahsinERP.Services
                     StandardLengthMm = n.PRODUCT.StandardLengthMm,
                     Length = n.PRODUCT.Length,
                     RequiresCutting = n.PRODUCT.PRODUCT_CATEGORIES != null && n.PRODUCT.PRODUCT_CATEGORIES.RequiresCutting,
-                    RawMaterialGroup = n.PRODUCT.PRODUCT_CATEGORIES.RawMaterialGroup,
-                    CategoryName = n.PRODUCT.PRODUCT_CATEGORIES.Name,
+                    MaterialKind = n.PRODUCT.PRODUCT_CATEGORIES.MaterialKind,
                     HasCategory = n.PRODUCT.PRODUCT_CATEGORIES != null
                 })
                 .ToList();
@@ -547,7 +546,7 @@ namespace tahsinERP.Services
         private Dictionary<int, (decimal Quantity, decimal TotalAmount)> LoadNormWoodDataByMaterial(int rootProductId, string normVersion)
         {
             var lines = LoadNormLines(rootProductId, normVersion)
-                .Where(n => n.HasCategory && NormLineMath.IsWoodCategory(n.RawMaterialGroup, n.CategoryName))
+                .Where(n => n.HasCategory && NormLineMath.IsWoodCategory(n.MaterialKind))
                 .ToList();
 
             if (!lines.Any())
@@ -627,8 +626,7 @@ namespace tahsinERP.Services
             public double? StandardLengthMm { get; set; }
             public double? Length { get; set; }
             public bool RequiresCutting { get; set; }
-            public string RawMaterialGroup { get; set; }
-            public string CategoryName { get; set; }
+            public string MaterialKind { get; set; }
             public bool HasCategory { get; set; }
         }
     }

@@ -33,20 +33,18 @@ namespace tahsinERP.Services.Norm
             return material == null ? 0 : EffectiveStandardLengthMm(material.StandardLengthMm, material.Length);
         }
 
-        /// <summary>"Yog'och" kategoriyasi (RawMaterialGroup yoki nomida "yog'och"/"yo'goch").</summary>
-        public static bool IsWoodCategory(string rawMaterialGroup, string categoryName)
+        /// <summary>
+        /// "Yog'och" kategoriyasi — PRODUCT_CATEGORIES.MaterialKind = WOOD (kategoriya formasida tanlanadi).
+        /// Avval nomi/RawMaterialGroup'da "yog'och" bo'lsa deb aniqlanardi; nom faqat ko'rsatish uchun.
+        /// </summary>
+        public static bool IsWoodCategory(string materialKind)
         {
-            var rawGroup = rawMaterialGroup ?? string.Empty;
-            var catName = categoryName ?? string.Empty;
-            return rawGroup.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
-                || rawGroup.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0
-                || catName.IndexOf("yo'goch", StringComparison.OrdinalIgnoreCase) >= 0
-                || catName.IndexOf("yog'och", StringComparison.OrdinalIgnoreCase) >= 0;
+            return string.Equals(materialKind, tahsinERP.Services.Common.SystemCodes.MaterialKind.Wood, StringComparison.Ordinal);
         }
 
         public static bool IsWoodCategory(PRODUCT_CATEGORIES category)
         {
-            return category != null && IsWoodCategory(category.RawMaterialGroup, category.Name);
+            return category != null && IsWoodCategory(category.MaterialKind);
         }
 
         /// <summary>DB Consumption → ko'rsatish (kesish qatori: mm → m; qolganlari o'zicha).</summary>

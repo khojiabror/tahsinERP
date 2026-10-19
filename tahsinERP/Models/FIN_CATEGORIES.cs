@@ -31,6 +31,7 @@ namespace tahsinERP.Models
         public bool IsActive { get; set; }
         public Nullable<bool> IsDeleted { get; set; }
         public string SystemCode { get; set; }
+        public string AnalyticsGroup { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<FIN_CATEGORIES> FIN_CATEGORIES1 { get; set; }

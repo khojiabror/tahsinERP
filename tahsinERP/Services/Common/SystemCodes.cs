@@ -62,11 +62,91 @@ namespace tahsinERP.Services.Common
             public const string ShareholderContribution = "SHAREHOLDER_CONTRIBUTION";
         }
 
+        /// <summary>
+        /// FIN_CATEGORIES.AnalyticsGroup (migratsiya 007) — tahliliy guruh; UNIQUE EMAS, foydalanuvchi kategoriya
+        /// formasida tanlaydi. EBITDA (ValuationService) va fakt tannarx (TannarxFinanceCategoryClassifier) shu guruhga qaraydi.
+        /// </summary>
+        public static class FinAnalyticsGroup
+        {
+            /// <summary>Material (fakt tannarx PATH3 manbasi).</summary>
+            public const string Material = "MATERIAL";
+            /// <summary>Moliyaviy harakat (kredit, o'tkazma, naqd yechish, qarz) — xarajat emas.</summary>
+            public const string Financing = "FINANCING";
+            /// <summary>Foydani taqsimlash (dividend, aksiyador) — operatsion xarajat emas.</summary>
+            public const string Dividend = "DIVIDEND";
+            /// <summary>QQS — qaytariladigan soliq (EBITDA'da soliq sifatida qo'shib qo'yiladi).</summary>
+            public const string Vat = "VAT";
+            /// <summary>Kapital xarajat (asosiy vosita, uskuna, qurilish, investitsiya).</summary>
+            public const string Capex = "CAPEX";
+            /// <summary>Transport / logistika — yo'l varaqalari orqali hisoblanadi.</summary>
+            public const string Logistics = "LOGISTICS";
+            /// <summary>Ish haqi — HR ish haqi orqali hisoblanadi.</summary>
+            public const string Payroll = "PAYROLL";
+            /// <summary>Xarid — material ombor/PI orqali hisoblanadi.</summary>
+            public const string Purchase = "PURCHASE";
+            /// <summary>Soliq (QQS'dan boshqa).</summary>
+            public const string Tax = "TAX";
+            /// <summary>Bank xizmatlari.</summary>
+            public const string Bank = "BANK";
+            /// <summary>Boshqa xarajatlar.</summary>
+            public const string Other = "OTHER";
+            /// <summary>Kredit foizi.</summary>
+            public const string Interest = "INTEREST";
+            /// <summary>Amortizatsiya.</summary>
+            public const string Depreciation = "DEPRECIATION";
+
+            /// <summary>Kod → UI nomi (tanlov ro'yxati tartibida).</summary>
+            public static readonly IReadOnlyList<KeyValuePair<string, string>> All = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>(Material, "Material"),
+                new KeyValuePair<string, string>(Payroll, "Ish haqi"),
+                new KeyValuePair<string, string>(Purchase, "Xarid (ta'minotchi)"),
+                new KeyValuePair<string, string>(Logistics, "Transport / logistika"),
+                new KeyValuePair<string, string>(Tax, "Soliq"),
+                new KeyValuePair<string, string>(Vat, "QQS"),
+                new KeyValuePair<string, string>(Bank, "Bank xizmatlari"),
+                new KeyValuePair<string, string>(Interest, "Kredit foizi"),
+                new KeyValuePair<string, string>(Depreciation, "Amortizatsiya"),
+                new KeyValuePair<string, string>(Capex, "Kapital xarajat (asosiy vosita, qurilish)"),
+                new KeyValuePair<string, string>(Dividend, "Dividend / aksiyador"),
+                new KeyValuePair<string, string>(Financing, "Moliyaviy harakat (kredit, o'tkazma, naqd, qarz)"),
+                new KeyValuePair<string, string>(Other, "Boshqa"),
+            };
+
+            public static bool IsValid(string code) => code != null && All.Any(x => x.Key == code);
+        }
+
         /// <summary>PRODUCT_CATEGORIES.SystemCode</summary>
         public static class ProductCategory
         {
             /// <summary>Jihoz — xomashyo bahosiga kirmaydi.</summary>
             public const string Equipment = "EQUIPMENT";
+        }
+
+        /// <summary>PRODUCT_CATEGORIES.MaterialKind (migratsiya 007; UNIQUE emas, kategoriya formasida tanlanadi).</summary>
+        public static class MaterialKind
+        {
+            /// <summary>Yog'och: narx brus uzunligi bo'yicha metrga aylantiriladi, norma/chiqindi jami faqat shulardan.</summary>
+            public const string Wood = "WOOD";
+
+            public static readonly IReadOnlyList<KeyValuePair<string, string>> All = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>(Wood, "Yog'och"),
+            };
+
+            public static bool IsValid(string code) => code != null && All.Any(x => x.Key == code);
+        }
+
+        /// <summary>ROLES.SystemCode (migratsiya 007).</summary>
+        public static class Role
+        {
+            /// <summary>Korxona administratori.</summary>
+            public const string Admin = "ADMIN";
+            /// <summary>Yashirin ma'muriy rol (faqat Developer ko'radi/o'zgartiradi).</summary>
+            public const string Developer = "DEVELOPER";
+
+            public static bool IsDeveloper(ROLE r) => r != null && string.Equals(r.SystemCode, Developer, StringComparison.Ordinal);
+            public static bool IsAdminOrDeveloper(ROLE r) => r != null && (r.SystemCode == Admin || r.SystemCode == Developer);
         }
 
         /// <summary>UNITS.SystemCode</summary>
@@ -114,6 +194,11 @@ namespace tahsinERP.Services.Common
         {
             return db.UNITS.Where(u => u.SystemCode == code && (u.IsDeleted == null || u.IsDeleted == false))
                 .Select(u => (int?)u.ID).FirstOrDefault();
+        }
+
+        public static ROLE Role(DBTHSNEntities db, string code)
+        {
+            return db.ROLES.FirstOrDefault(r => r.SystemCode == code && r.IsDeleted != true);
         }
 
         public static int? ProductCategoryId(DBTHSNEntities db, string code)
