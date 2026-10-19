@@ -60,7 +60,7 @@ distributsiyada band).
 | Yozish yo'li (veb): ikkala saytda bir xil 10 tahrir formasi + MES "xomashyo chiqimini qayta hisoblash", F6A ↔ F6B | **9 569 qator, 0 farq** (P/S shartnoma, buyurtma, invoys, sotuv invoysi, ishlab chiqarish, ombor jadvallari) |
 | Unit testlar | 116/116 |
 | Integratsion testlar (F6C — IPACK'ning yangi nusxasi, migratsiya 018 bilan) | 12/12, jumladan distributsiya FIFO jo'natish + tannarx |
-| Smoke (yangi sayt) | 111 sahifa 200; 4 ta 404 (mavjud bo'lmagan ID/route — master'da ham); 1 ta 500 — master'da ham (pastga qarang) |
+| Smoke (yangi sayt) | 112 sahifa 200 (shu jumladan `SOrder/DeliverySchedule?orderID=97/90/60`, matni master bilan bir xil); 4 ta 404 (mavjud bo'lmagan ID/route — master'da ham) |
 
 FifoProbe bo'limlari: A) 2 164 chiqim qatorining FIFO tannarxi va qoldiq birligiga konversiyasi (faqat o'qish); C) 240 ishlab
 chiqarishning BOM/norma sarfi; E) P/S shartnoma QQS stavkalari, qator jamlari, P-buyurtma `ApplyVat`/`RateFromGrossNet`,
@@ -78,7 +78,6 @@ bu yo'l FifoProbe'ning B bo'limida servis darajasida sinalgan.
 - **Xavfli naqshlar** (build ko'rmaydi, RazorCheck qisman ko'radi): `ViewBag.X as double?`, `ViewBag` dinamik qiymatni `var` ga
   olish (natija `dynamic`), decimal `ToString()`/`TextBoxFor`/`Html.TextBox` dagi `.000000` dumi. Yangi kodda miqdor/narx
   uchun `decimal` ishlating; matnga `QtyText.Plain` yoki aniq format bilan chiqaring.
-- `SOrder/DeliverySchedule/97` — 500, **master'da ham** (bu ishga aloqasiz, alohida ko'rish kerak).
 
 ## Qamrovdan tashqarida qolgan double'lar
 
