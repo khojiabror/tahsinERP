@@ -16,10 +16,8 @@ namespace tahsinERP.ViewModels
         // Rollar statistikasi
         public int TotalRoles { get; set; }
         public int TotalPermissionModules { get; set; }
-        public int TotalPermissions { get; set; }
 
         // Log statistikasi
-        public int TotalLogs { get; set; }
         public int TodayLogs { get; set; }
         public int ThisWeekLogs { get; set; }
 

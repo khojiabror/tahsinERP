@@ -37,7 +37,7 @@ namespace tahsinERP.Controllers
                 ActiveUsers = await db.USERS.CountAsync(u => u.IsDeleted != true && u.IsActive),
                 InactiveUsers = await db.USERS.CountAsync(u => u.IsDeleted != true && !u.IsActive),
 
-                // Rollar statistikasi (TotalPermissions va TotalLogs sahifada ko'rsatilmaydi — katta jadvallarni sanamaymiz)
+                // Rollar statistikasi
                 TotalRoles = await db.ROLES.CountAsync(),
                 TotalPermissionModules = await db.PERMISSIONMODULES.CountAsync(),
 

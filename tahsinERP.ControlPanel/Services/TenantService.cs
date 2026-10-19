@@ -15,7 +15,8 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     [GeneratedRegex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")]
     private static partial Regex SlugRegex();
 
-    [GeneratedRegex(@"^[A-Za-z0-9_\-\.]{1,128}$")]
+    // New-TenantDb.ps1 chegarasi (03_DB_PROVISIONING.md): 1–100
+    [GeneratedRegex(@"^[A-Za-z0-9_\-\.]{1,100}$")]
     private static partial Regex DatabaseRegex();
 
     /// <summary>ERP TenantRegistry.ReservedSlugs — panel subdomenlari.</summary>
@@ -32,7 +33,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     }
 
     public static string? ValidateDbName(string? dbName) =>
-        string.IsNullOrEmpty(dbName) || DatabaseRegex().IsMatch(dbName) ? null : "Baza nomi: faqat A-Z a-z 0-9 _ - . (1–128).";
+        string.IsNullOrEmpty(dbName) || DatabaseRegex().IsMatch(dbName) ? null : "Baza nomi: faqat A-Z a-z 0-9 _ - . (1–100).";
 
     public static string? ValidateInn(string? inn) =>
         string.IsNullOrEmpty(inn) || ((inn.Length == 9 || inn.Length == 14) && inn.All(char.IsAsciiDigit))
@@ -91,6 +92,14 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
 
     public async Task UpdateAsync(Tenant t, object before, CancellationToken ct = default)
     {
+        if (t.ProvisionedAtUtc != null)
+        {
+            var e = db.Entry(t);
+            if (e.Property(x => x.DbName).IsModified && !Equals(e.Property(x => x.DbName).OriginalValue, t.DbName)
+                || e.Property(x => x.ServerId).IsModified && !Equals(e.Property(x => x.ServerId).OriginalValue, t.ServerId)
+                || e.Property(x => x.Deployment).IsModified && !Equals(e.Property(x => x.Deployment).OriginalValue, t.Deployment))
+                throw new DomainException("Bazasi yaratilgan tenantning baza nomi, serveri va joylashuvini o'zgartirib bo'lmaydi (baza va tenants.json eski qiymatda qoladi).");
+        }
         await ValidateAsync(t, ct);
         audit.Add("tenant.update", "Tenant", t.Id, before, Snapshot(t));
         await db.SaveChangesAsync(ct);
@@ -103,6 +112,10 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
         if (t.Status == status) return;
         if (status == TenantStatus.Archived && string.IsNullOrWhiteSpace(reason))
             throw new DomainException("Arxivlash sababi majburiy.");
+        if (status == TenantStatus.Archived && t.Deployment == DeploymentKind.SaaS && t.ProvisionedAtUtc != null)
+            throw new DomainException("Bazasi yaratilgan SaaS tenant faqat «Arxivlash» amali (provisioning) orqali arxivlanadi.");
+        if (t.Status == TenantStatus.Archived && t.Deployment == DeploymentKind.SaaS && t.ProvisionedAtUtc != null)
+            throw new DomainException("Arxivlangan tenant bazasi o'chirilgan — holatni qo'lda qaytarib bo'lmaydi.");
         var before = t.Status;
         t.Status = status;
         audit.Add("tenant.status", "Tenant", t.Id, new { Status = before }, new { Status = status, Reason = reason });

@@ -98,7 +98,7 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName");
+            ViewBag.RoleID = await RolesSelectListAsync(db);
             return View();
         }
 
@@ -143,8 +143,7 @@ namespace tahsinERP.Controllers
             {
                 if (photo.InputStream.Length < userPhotoMaxLength)
                 {
-                    avatar = new byte[photo.InputStream.Length];
-                    photo.InputStream.Read(avatar, 0, avatar.Length);
+                    avatar = UploadHelper.ReadAll(photo);
                 }
                 else
                 {
@@ -155,7 +154,7 @@ namespace tahsinERP.Controllers
 
             if (invalid)
             {
-                ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userVM.RoleID);
+                ViewBag.RoleID = await RolesSelectListAsync(db, userVM.RoleID);
                 return View(userVM);
             }
 
@@ -205,7 +204,7 @@ namespace tahsinERP.Controllers
                 }
             }
 
-            ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userVM.RoleID);
+            ViewBag.RoleID = await RolesSelectListAsync(db, userVM.RoleID);
             return View(userVM);
         }
 
@@ -246,7 +245,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Base64String = "data:image/png;base64," + Convert.ToBase64String(userimage.Image, 0, userimage.Image.Length);
             }
 
-            ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", userviewmodel.RoleID);
+            ViewBag.RoleID = await RolesSelectListAsync(db, userviewmodel.RoleID);
             return View(userviewmodel);
         }
 
@@ -276,7 +275,7 @@ namespace tahsinERP.Controllers
             if (existingUser != null)
             {
                 ModelState.AddModelError("UName", "Bu foydalanuvchi nomi allaqachon mavjud.");
-                ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", uvm.RoleID);
+                ViewBag.RoleID = await RolesSelectListAsync(db, uvm.RoleID);
                 USERIMAGE userimage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == ID);
                 if (userimage != null)
                 {
@@ -342,8 +341,7 @@ namespace tahsinERP.Controllers
                     var file = Request.Files["userPhotoUpload"];
                     if (file.InputStream.Length < userPhotoMaxLength)
                     {
-                        byte[] avatar = new byte[file.InputStream.Length];
-                        file.InputStream.Read(avatar, 0, avatar.Length);
+                        byte[] avatar = UploadHelper.ReadAll(file);
 
                         USERIMAGE uImage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == ID);
                         if (uImage == null)
@@ -366,7 +364,7 @@ namespace tahsinERP.Controllers
                     else
                     {
                         ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
-                        ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", uvm.RoleID);
+                        ViewBag.RoleID = await RolesSelectListAsync(db, uvm.RoleID);
                         USERIMAGE userimage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == ID);
                         if (userimage != null)
                         {
@@ -396,7 +394,7 @@ namespace tahsinERP.Controllers
                 ModelState.AddModelError("", "Xatolik yuz berdi: " + ex.Message);
             }
 
-            ViewBag.RoleID = new SelectList(await db.ROLES.Where(r => r.IsDeleted != true).OrderBy(r => r.RName).ToListAsync(), "ID", "RName", uvm.RoleID);
+            ViewBag.RoleID = await RolesSelectListAsync(db, uvm.RoleID);
             USERIMAGE userimage2 = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == ID);
             if (userimage2 != null)
             {
@@ -544,6 +542,17 @@ namespace tahsinERP.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+
+        // Rollar ro'yxati 7 joyda bir xil qurilardi (CORE dublikat: Roles SelectList)
+        private static async Task<SelectList> RolesSelectListAsync(DBTHSNEntities db, object selected = null)
+        {
+            var roles = await db.ROLES.AsNoTracking()
+                .Where(r => r.IsDeleted != true)
+                .OrderBy(r => r.RName)
+                .Select(r => new { r.ID, r.RName })
+                .ToListAsync();
+            return new SelectList(roles, "ID", "RName", selected);
         }
     }
 }

@@ -15,7 +15,6 @@
         }
     }
 
-    var productsData = ViewBag.ProductsData as IEnumerable<tahsinERP.ViewModels.ProductLookupItem> ?? new List<tahsinERP.ViewModels.ProductLookupItem>();
     var requireDloc = ViewBag.RequireDloc == true;
     var dlocEnabled = ViewBag.DlocEnabled == true;
     var dlocLocationsJson = ViewBag.DlocLocationsJson as string ?? "[]";
@@ -132,10 +131,9 @@
                                                                     <td>
                                                                         <select name="IncomeProducts[@i].ProductID" class="form-control product-select select2" required>
                                                                             <option value="">---Tanlang---</option>
-                                                                            @foreach (var item in productsData)
+                                                                            @if (product.ProductID > 0)
                                                                             {
-                                                                                var selected = item.Value == product.ProductID.ToString();
-                                                                                <option value="@item.Value" data-name="@item.Name" data-pno="@item.PNo" @(selected ? "selected" : "")>@(item.PNo + " - " + item.Name)</option>
+                                                                                <option value="@product.ProductID" data-name="@product.ProductName" data-pno="@product.ProductPNo" selected>@(product.ProductPNo + " - " + product.ProductName)</option>
                                                                             }
                                                                         </select>
                                                                         @Html.HiddenFor(m => m.IncomeProducts[i].ProductPNo, new { @class = "product-pno" })
@@ -208,13 +206,17 @@
     @section scripts {
         <script src="~/Scripts/srm/srm-doc-lines.js"></script>
         <script src="~/Scripts/srm/srm-doc-forms.js"></script>
+        <script src="~/Scripts/app/indexed-rows.js"></script>
+        <script src="~/Scripts/app/product-select.js"></script>
         <script>
             (function ($) {
                 $(document).ready(function () {
                     $('.select2').select2();
 
                     var productRowIndex = @(Model.IncomeProducts?.Count ?? 0);
-                    var products = @Html.Raw(Json.Encode(ViewBag.ProductsData ?? new List<object>()));
+                    var productSearchUrl = '@Url.Action("Search", "ProductLookup")';
+                    // Serverda chizilgan qatorlar ham server qidiruviga o'tadi (SRM-P05)
+                    ProductSelect.attach($('select.product-select'), productSearchUrl);
                     var units = @Html.Raw(Json.Encode(unitsData));
                     var requireDloc = @(requireDloc ? "true" : "false");
                     var dlocEnabled = @(dlocEnabled ? "true" : "false");
@@ -222,7 +224,7 @@
 
                     function escapeHtml(text) { return srmDocLines.escapeHtml(text); }
 
-                    function buildProductOptions(selectedId) { return srmIncomeForm.productOptions(products, selectedId); }
+                    function buildProductOptions(selectedId, pno, name) { return srmIncomeForm.productOptions(selectedId, pno, name); }
 
                     function buildUnitOptions(selectedId) { return srmDocLines.unitOptions(units, selectedId); }
 
@@ -278,7 +280,7 @@
                         var $row = $('#incomeProductsTable tbody tr').last();
 
                         if (typeof $.fn.select2 !== 'undefined') {
-                            $row.find('select.product-select').select2();
+                            ProductSelect.attach($row.find('select.product-select'), productSearchUrl);
                             $row.find('select.unit-select').select2();
                             if (dlocEnabled && requireDloc) {
                                 $row.find('select.dloc-select').select2();

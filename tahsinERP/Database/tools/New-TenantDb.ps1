@@ -41,6 +41,9 @@ param(
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
+# Maxfiy qiymatlar buyruq satrida ko'rinmasligi uchun env orqali ham beriladi (provisioning agenti shunday chaqiradi).
+if (-not $AdminPassword -and $env:TAHSINERP_ADMIN_PASSWORD) { $AdminPassword = $env:TAHSINERP_ADMIN_PASSWORD }
+if ($SqlUser -and -not $SqlPassword -and $env:TAHSINERP_SQL_PASSWORD) { $SqlPassword = $env:TAHSINERP_SQL_PASSWORD }
 $EXIT_OK = 0; $EXIT_BAD_ARGS = 2; $EXIT_CONNECT = 3; $EXIT_DB_EXISTS = 7; $EXIT_ADMIN = 8; $EXIT_BACKUP = 9
 
 $root = Split-Path -Parent $PSScriptRoot

@@ -107,6 +107,7 @@
     <input type="hidden" id="changePermit" value="@(changePermit ? "1" : "0")" />
 
     @section Scripts {
+    <script src="~/Scripts/app/erp-datatable.js"></script>
     <script>
         $(document).ready(function () {
             var selectedModule = '';
@@ -229,7 +230,7 @@
                     pageLength: 25,
                     order: [[0, "desc"]],
                     dom: 'Blfrtip',
-                    buttons: ['excelHtml5', 'pdfHtml5']
+                    buttons: erpDataTable.buttons({})
                 });
             }
         });

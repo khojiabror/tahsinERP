@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] — tahsinERP panel</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (ViewData["AutoRefresh"] is int refreshSeconds) { <meta http-equiv="refresh" content="@refreshSeconds" /> }
 </head>
 <body>
 <header class="topbar">
@@ -23,6 +24,7 @@
             <a class="@Nav("/Tenants")" href="/Tenants">Tashkilotlar</a>
             <a class="@Nav("/Invoices")" href="/Invoices">Hisob-fakturalar</a>
             <a class="@Nav("/Licenses")" href="/Licenses">Kalitlar</a>
+            <a class="@Nav("/Provisioning")" href="/Provisioning">Provisioning</a>
             <a class="@Nav("/Plans")" href="/Plans">Tariflar</a>
             <a class="@Nav("/Notifications")" href="/Notifications">Eslatmalar</a>
             @if (owner)

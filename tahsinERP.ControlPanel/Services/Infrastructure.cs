@@ -87,6 +87,9 @@ public sealed class AuditLogger(ControlDbContext db, ICurrentActor actor, Clock 
         ReferenceHandler = ReferenceHandler.IgnoreCycles,
     };
 
+    /// <summary>Joriy xodim (HTTP so'rovda), fon ishi/agentda null.</summary>
+    public int? CurrentStaffId => actor.StaffId;
+
     public static string? Serialize(object? value) => value is null ? null : JsonSerializer.Serialize(value, Json);
 
     public void Add(string action, string entity, object? entityId, object? before = null, object? after = null, int? staffIdOverride = null)

@@ -34,6 +34,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File Database\tools\New-TenantDb.
 | `-NoAdmin` | admin yaratilmaydi (shablon baza uchun). |
 | `-Demo` | `Database/Demo/*.sql` ham qo'llanadi (demo tenant, "Demo Plast" MChJ; kirish `demo` / `demo2026`). Sanalar skript ishlagan kunga nisbatan — `DB_DEMO_TEMPLATE.bak` ni muntazam (masalan haftada) qayta yarating, aks holda dashboard oynalari (so'nggi 30 kun, joriy oy) bo'shab qoladi. Demo skriptlari topilmasa — kod 2. |
 | `-BackupTo` | seed (+demo) dan keyin, **admin yaratilishidan oldin** `COPY_ONLY` backup — `DB_TEMPLATE.bak` / `DB_DEMO_TEMPLATE.bak`. Yo'l SQL Server xizmati yoza oladigan joy bo'lishi kerak. |
+| (env) `TAHSINERP_ADMIN_PASSWORD`, `TAHSINERP_SQL_PASSWORD` | `-AdminPassword` / `-SqlPassword` berilmasa shu env'dan olinadi — parol buyruq satrida (jarayonlar ro'yxatida) ko'rinmasin. Provisioning agenti shunday chaqiradi (05_PROVISIONING.md). |
 | `-KeepOnFailure` | xato bo'lsa yarim yaratilgan bazani o'chirmaslik (tahlil uchun). Standart: o'chiriladi. |
 
 Shablon oqimi (00_PLAN.md 7.2): bir marta `New-TenantDb.ps1 -DbName DB_TEMPLATE -NoAdmin -BackupTo ...\DB_TEMPLATE.bak`,
@@ -51,6 +52,7 @@ Database\tools\Invoke-DbMigrations.ps1 -AllTenants [-TenantsFile <yo'l>] [-Conne
 - `-AllTenants`: `-TenantsFile` → `TAHSINERP_TENANTS_FILE` env → `%ProgramData%\tahsinERP\tenants.json`
   (format: 02_MULTI_TENANT.md). Har tenant: `connectionString` bo'lsa u, aks holda asosiy ulanishda `Initial Catalog=database`.
   Bir xil bazaga bog'langan bir nechta slug — bir marta. Bitta tenant yiqilsa qolganlari davom etadi; chiqish kodi — birinchi xato.
+- `-DatabaseRoot` berilmasa skript papkasining ota papkasi (2026-10-19 tuzatildi: Windows PowerShell 5.1 da `powershell -File` bilan chaqirilganda param default'ida `$PSScriptRoot` bo'sh bo'lib, skript ishga tushmasdi).
 - `-DryRun`: hech narsa yozmaydi, rejani (`[PLAN] RUN|MARK ...`) chiqaradi; checksum tekshiruvi ishlaydi.
 - `-BaselineExisting`: jadvallari bor, lekin `SCHEMA_VERSIONS` siz eski baza — baseline "qo'llangan" deb belgilanadi.
   Panel bu bayroqni avtomatik ishlatmasin (faqat odam, moslik tekshirilgach).

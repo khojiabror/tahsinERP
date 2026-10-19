@@ -3,8 +3,9 @@
 @{
     var changePermit = ViewData["ChangePermit"] as bool? ?? false;
 }
+<script src="~/Scripts/app/erp-datatable.js"></script>
 <script>
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         var changePermit = @(changePermit ? "true" : "false");
         var tableId = @Html.Raw(Json.Encode(ViewData["TableId"]));
         var filePrefix = @Html.Raw(Json.Encode(ViewData["FilePrefix"]));
@@ -38,32 +39,7 @@
             "columnDefs": columnDefs,
             "dom": 'lBfrtip',
             "pagingType": "full_numbers",
-            "buttons": [
-                {
-                    extend: 'excelHtml5',
-                    text: '<i class="bx bxs-file-excel"></i> Excel',
-                    titleAttr: 'Excelga yuklash',
-                    className: 'btn btn-success mr-1',
-                    filename: function () {
-                        var now = new Date();
-                        var dateStr = now.getFullYear() + 
-                            String(now.getMonth() + 1).padStart(2, '0') + 
-                            String(now.getDate()).padStart(2, '0') + '_' +
-                            String(now.getHours()).padStart(2, '0') + 
-                            String(now.getMinutes()).padStart(2, '0') + 
-                            String(now.getSeconds()).padStart(2, '0');
-                        return filePrefix + dateStr;
-                    },
-                    exportOptions: {
-                        columns: changePermit ? ':not(:last-child)' : ':visible',
-                        format: {
-                            body: function (data, row, column, node) {
-                                return data.replace(/<[^>]*>/g, '').trim();
-                            }
-                        }
-                    }
-                }
-            ]
+            "buttons": erpDataTable.buttons({ fileName: filePrefix.replace(/_$/, ''), columns: changePermit ? ':not(:last-child)' : ':visible', pdf: false })
         });
     });
 </script>

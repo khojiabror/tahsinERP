@@ -112,19 +112,8 @@ namespace tahsinERP.Controllers
                     await db.SaveChangesAsync();
 
                     // Barcha modullar uchun standart permission yaratish (ViewPermit = true, ChangePermit = false, DeletePermit = false)
-                    var modules = await db.PERMISSIONMODULES.ToListAsync();
-                    foreach (var module in modules)
-                    {
-                        var permission = new PERMISSION
-                        {
-                            RoleID = newRole.ID,
-                            PermissionModuleID = module.ID,
-                            ViewPermit = true,
-                            ChangePermit = false,
-                            DeletePermit = false
-                        };
-                        db.PERMISSIONS.Add(permission);
-                    }
+                    var moduleIds = await db.PERMISSIONMODULES.Select(m => m.ID).ToListAsync();
+                    db.PERMISSIONS.AddRange(moduleIds.Select(moduleId => RoleHelper.NewPermission(moduleId, newRole.ID, view: true)));
 
                     await db.SaveChangesAsync();
 

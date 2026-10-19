@@ -1,0 +1,37 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Provisioning.IndexModel
+@{ ViewData["Title"] = "Provisioning"; }
+<h1>Provisioning navbati</h1>
+<form method="get" class="actions">
+    <select name="Status">
+        <option value="">— barchasi —</option>
+        @foreach (var s in Enum.GetValues<ProvisioningJobStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }
+    </select>
+    <button type="submit" class="secondary">Filtr</button>
+</form>
+<h2>Agentlar</h2>
+<table>
+    <tr><th>Server</th><th>Agent</th><th>Oxirgi aloqa (UTC)</th><th>Versiya</th></tr>
+    @foreach (var s in Model.Servers)
+    {
+        <tr><td>@s.Name</td><td>@(s.AgentSecretProtected is null ? "ulanmagan" : "kalit bor")</td><td>@s.AgentLastSeenUtc?.ToString("dd.MM.yyyy HH:mm:ss")</td><td>@s.AgentVersion</td></tr>
+    }
+</table>
+<h2>Joblar</h2>
+<table>
+    <tr><th>#</th><th>Tashkilot</th><th>Amal</th><th>Holat</th><th class="num">Urinish</th><th>Yaratilgan (UTC)</th><th>Tugagan</th><th>Xato</th></tr>
+    @foreach (var j in Model.Jobs)
+    {
+        <tr>
+            <td><a href="/Provisioning/Job/@j.Id">@j.Id</a></td>
+            <td><a href="/Tenants/Details/@j.TenantId">@j.Tenant?.Slug</a></td>
+            <td>@Labels.Of(j.Type)</td>
+            <td><span class="badge @Labels.Badge(j.Status)">@Labels.Of(j.Status)</span></td>
+            <td class="num">@j.Attempts/@j.MaxAttempts</td>
+            <td>@j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
+            <td>@j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm")</td>
+            <td class="mono">@j.Error</td>
+        </tr>
+    }
+</table>
+@if (Model.Jobs.Count == 0) { <div class="empty">Job yo'q.</div> }

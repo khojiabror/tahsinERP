@@ -210,9 +210,11 @@ Natija: akt-sverki va qarz hisoboti turli raqam berardi, balans esa teng emasdi.
 - Tranzaksiya ichida qo'shilgan USD to'lovlar (ROLLBACK) to'g'ri o'girildi: cashflow +100 USD = 1 180 876 so'm; ta'minotchi qarzi va akt-sverki −10 USD = −118 087,60 so'm.
 - Akt va qarz tengligi, opening AutoFill tengligi saqlangan.
 
-**Qolganlar:**
-- **Chart.js'ni lokal faylga o'tkazish:** fayl yuklab olishni talab qiladi, hozir versiyalangan CDN ishlatiladi.
-- **Balans popup'laridagi hujjat qatorlari** hujjat valyutasida ko'rsatiladi; jami so'mda.
+**Qolganlar (keyin bajarildi, 2026-10-19):**
+- **Chart.js lokal faylda:** `Scripts/chartjs/chart.umd.min.js` (4.4.1); `_ChartJs` partial CDN'ga bog'liq emas.
+- **Balans popup'lari so'mda:** har qator o'z sanasidagi kurs bilan (`BalanceMovementQueries.UzsMovementRows`, xarid invoyslari `PurchaseInvoiceAmountsUzs`).
+- **Kirim valyutasi data-fix:** INCOMES 699 (300-invoys) so'mda kiritilgan, lekin USD deb belgilangan edi — popup va AP'da kurs yo'qligi uchun 0 bo'lib chiqardi. `DataFix_Finance_IncomeCurrency_Check/Fix.sql`, zaxira `INCOMES_CURRENCY_BAK_20261019`.
+- **InvoiceMirrorAmounts_Fix bajarildi:** SRM invoys summasi tuzatishi lokal bazada allaqachon qo'llangan (farq 0). Zaxira `DBTHSN-IPACK_finance_before_mirror_20261019.bak`. Mirror farqi 39 → 0; faqat kreditor/debitor hisob qoldiqlari o'zgardi (AP hisobi −1 835,3 → −1 998,1 mln, AR hisobi 224,7 → 251,7 mln), hujjatdan hisoblanadigan balans/akt o'zgarmadi.
 - **Brauzerda tekshirish:** login kerak.
 
 ## Qolganlar (bajarilmadi)
@@ -224,7 +226,7 @@ Natija: akt-sverki va qarz hisoboti turli raqam berardi, balans esa teng emasdi.
 - **P14:** SRM sessiyasi allaqachon qilgan (SRM-P05). **P18:** Chart.js CDN layout'da (core), unga tegilmadi.
 - **D15 qoldig'i:** uchta daraxt Index view'i hali alohida, umumiy `_TreeIndex` partial yo'q.
 - **D20:** auditda Finance tashqarisidagi qism (bajarilmadi).
-- **InvoiceMirrorAmounts_Fix:** SRM Xarid sessiyasining data-fix'i lokal bazada bajarilishini kutmoqda.
+- **InvoiceMirrorAmounts_Fix (bajarildi):** lokal bazada, yuqoriga qarang.
 - **Nom bo'yicha qidiruv → SystemCode:** db-foundation sessiyasi bajaradi. Finance fayllari master'ga tushgach o'z branch'ida qiladi.
 - **Brauzerda tekshirilmadi:** foydalanuvchidan login kerak. Faqat build, aspnet_compiler (barcha Finance view'lari) va harness orqali tekshirildi.
 

@@ -245,6 +245,7 @@
         </div>
     </div>
 
+    <script src="~/Scripts/app/erp-datatable.js"></script>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof jQuery === 'undefined') {
@@ -274,33 +275,7 @@
                 ],
                 "scrollX": true,
                 "dom": 'Bfrtip',
-                "buttons": [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="bx bxs-file-excel"></i> Excel',
-                        titleAttr: 'Excelga yuklash',
-                        className: 'btn btn-success mr-1',
-                        filename: function () {
-                            var now = new Date();
-                            var dateStr = now.getFullYear() + 
-                                String(now.getMonth() + 1).padStart(2, '0') + 
-                                String(now.getDate()).padStart(2, '0') + '_' +
-                                String(now.getHours()).padStart(2, '0') + 
-                                String(now.getMinutes()).padStart(2, '0') + 
-                                String(now.getSeconds()).padStart(2, '0');
-                            return 'Tannarx_Analytics_Report_' + dateStr;
-                        },
-                        exportOptions: {
-                            columns: ':not(:last-child)',
-                            format: {
-                                body: function (data, row, column, node) {
-                                    return data.replace(/<[^>]*>/g, '').trim();
-                                }
-                            }
-                        },
-                        title: 'Tannarx tahlil hisoboti'
-                    }
-                ]
+                "buttons": erpDataTable.buttons({ fileName: 'Tannarx_Analytics_Report', title: 'Tannarx tahlil hisoboti', columns: ':not(:last-child)', pdf: false })
             });
         });
     </script>

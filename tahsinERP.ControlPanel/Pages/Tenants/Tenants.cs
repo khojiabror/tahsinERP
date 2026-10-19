@@ -135,8 +135,16 @@ public class EditModel(ControlDbContext db, TenantService tenants) : PanelPageMo
     }
 }
 
-public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer) : PanelPageModel
+public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning) : PanelPageModel
 {
+    public List<ProvisioningJob> Jobs { get; private set; } = [];
+    public ProvisioningJob? ActiveJob => Jobs.FirstOrDefault(j => j.IsActive);
+    public bool IsDemo { get; private set; }
+    public string? TenantUrl { get; private set; }
+    /// <summary>Create job uchun yaratilgan vaqtinchalik admin paroli — faqat shu javobda bir marta ko'rsatiladi.</summary>
+    public string? NewTempPassword { get; private set; }
+    [BindProperty] public string? ProvisionReason { get; set; }
+
     public Tenant Tenant { get; private set; } = null!;
     public List<Subscription> Subscriptions { get; private set; } = [];
     public List<Invoice> Invoices { get; private set; } = [];
@@ -165,6 +173,10 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
                                              || (a.Entity == "Invoice" && invIds.Contains(a.EntityId!)))
             .OrderByDescending(a => a.Id).Take(30).ToListAsync();
         StaffNames = await db.StaffUsers.ToDictionaryAsync(s => s.Id, s => s.FullName);
+        Jobs = await db.ProvisioningJobs.AsNoTracking().Where(j => j.TenantId == id).OrderByDescending(j => j.Id).Take(30).ToListAsync();
+        IsDemo = provisioning.IsDemo(t);
+        TenantUrl = provisioning.TenantUrl(t);
+        if (ActiveJob != null) ViewData["AutoRefresh"] = 10;
         NewStatus = t.Status;
         return true;
     }
@@ -191,6 +203,49 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
             FlashOk = $"Holat: {Labels.Of(NewStatus)}.";
             return RedirectToPage(new { id });
         }
+        return Page();
+    }
+
+    /// <summary>Baza yaratish (Create job). Vaqtinchalik parol shu javobda bir marta ko'rsatiladi.</summary>
+    public async Task<IActionResult> OnPostProvisionAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!CanSell) return Forbidden();
+        ProvisioningService.EnqueueResult? r = null;
+        if (await TryAsync(async () => r = await provisioning.EnqueueAsync(Tenant, ProvisioningJobType.Create)))
+        {
+            if (r!.TempPassword is null)
+            {
+                FlashOk = $"Yaratish jobi allaqachon navbatda (#{r.Job.Id}).";
+                return RedirectToPage(new { id });
+            }
+            NewTempPassword = r.TempPassword;
+        }
+        await LoadAsync(id);
+        return Page();
+    }
+
+    public Task<IActionResult> OnPostSuspendAsync(int id) => RunAsync(id, false, t => provisioning.SuspendAsync(t, ProvisionReason), "To'xtatildi.");
+
+    public Task<IActionResult> OnPostResumeAsync(int id) => RunAsync(id, false, t => provisioning.ResumeAsync(t, ProvisionReason), "Qayta yoqildi.");
+
+    public Task<IActionResult> OnPostResetAsync(int id) => RunAsync(id, false,
+        async t => (await provisioning.EnqueueAsync(t, ProvisioningJobType.Reset, ProvisionReason ?? "Qo'lda")).Job, "Qayta tiklash navbatga qo'yildi.");
+
+    public Task<IActionResult> OnPostArchiveAsync(int id) => RunAsync(id, true,
+        async t => (await provisioning.EnqueueAsync(t, ProvisioningJobType.Archive, ProvisionReason)).Job, "Arxivlash navbatga qo'yildi.");
+
+    private async Task<IActionResult> RunAsync(int id, bool ownerOnly, Func<Tenant, Task<ProvisioningJob?>> action, string ok)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (ownerOnly ? !IsOwner : !CanSell) return Forbidden();
+        ProvisioningJob? job = null;
+        if (await TryAsync(async () => job = await action(Tenant)))
+        {
+            FlashOk = ok + (job != null ? $" Job #{job.Id}." : "");
+            return RedirectToPage(new { id });
+        }
+        await LoadAsync(id);
         return Page();
     }
 
@@ -222,5 +277,118 @@ internal static class ServerList
             .Select(s => new SelectListItem(s.Name + " (" + s.Host + ")", s.Id.ToString())).ToListAsync();
         list.Insert(0, new SelectListItem("— tanlanmagan —", ""));
         return list;
+    }
+}
+
+/// <summary>
+/// Arxivlangan tenantni butunlay o'chirish (Delete job): faqat Owner, ikki bosqichli tasdiq — 1) slug'ni qo'lda yozish + sabab,
+/// 2) yakuniy tasdiq sahifasi. Baza (agar qolgan bo'lsa), arxiv zaxirasi va tenants.json yozuvi o'chiriladi; moliyaviy tarix qoladi.
+/// </summary>
+[Authorize(Policy = Policies.Owner)]
+public class DeleteModel(ControlDbContext db, ProvisioningService provisioning) : PanelPageModel
+{
+    public Tenant Tenant { get; private set; } = null!;
+    [BindProperty] public string? ConfirmSlug { get; set; }
+    [BindProperty] public string? Reason { get; set; }
+    [BindProperty] public bool Understand { get; set; }
+    /// <summary>1 — birinchi forma, 2 — yakuniy tasdiq.</summary>
+    [BindProperty] public int Step { get; set; } = 1;
+
+    private async Task<bool> LoadAsync(int id)
+    {
+        var t = await db.Tenants.FirstOrDefaultAsync(x => x.Id == id);
+        if (t is null) return false;
+        Tenant = t;
+        return true;
+    }
+
+    public async Task<IActionResult> OnGetAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        Step = 1;
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (Tenant.Status != TenantStatus.Archived)
+            ModelState.AddModelError(string.Empty, "O'chirish faqat arxivlangan tenant uchun.");
+        if (!string.Equals(ConfirmSlug?.Trim(), Tenant.Slug, StringComparison.Ordinal))
+            ModelState.AddModelError(nameof(ConfirmSlug), "Slug mos kelmadi.");
+        if (string.IsNullOrWhiteSpace(Reason))
+            ModelState.AddModelError(nameof(Reason), "Sabab majburiy.");
+        if (!Understand)
+            ModelState.AddModelError(nameof(Understand), "Tasdiqlang.");
+        if (!ModelState.IsValid) { Step = 1; return Page(); }
+        if (Step < 2)
+        {
+            Step = 2; // birinchi tasdiq qabul qilindi — yakuniy sahifa
+            return Page();
+        }
+        ProvisioningJob? job = null;
+        if (!await TryAsync(async () => job = (await provisioning.EnqueueAsync(Tenant, ProvisioningJobType.Delete, Reason)).Job)) { Step = 1; return Page(); }
+        FlashOk = $"O'chirish navbatga qo'yildi (job #{job!.Id}).";
+        return RedirectToPage("Details", new { id });
+    }
+}
+
+/// <summary>
+/// «Sinov ochish»: SaaS tenant + TRIAL obunasi (14 kun, 5 foydalanuvchi) + Create job. Server tanlanmasa — bo'sh joyi eng ko'p server.
+/// Vaqtinchalik admin paroli shu javobda bir marta ko'rsatiladi (va baza tayyor bo'lgach tenant Telegram chatiga yuboriladi).
+/// </summary>
+[Authorize(Policy = Policies.Sales)]
+public class TrialModel(ControlDbContext db, TenantService tenants, ProvisioningService provisioning) : PanelPageModel
+{
+    public class TrialInput
+    {
+        [Required(ErrorMessage = "Slug majburiy"), StringLength(63)] public string Slug { get; set; } = "";
+        [Required(ErrorMessage = "Yuridik nom majburiy"), StringLength(300)] public string LegalName { get; set; } = "";
+        [StringLength(14)] public string? Inn { get; set; }
+        [StringLength(200)] public string? ContactName { get; set; }
+        [StringLength(50)] public string? Phone { get; set; }
+        [StringLength(200), EmailAddress(ErrorMessage = "Email noto'g'ri")] public string? Email { get; set; }
+        [StringLength(50)] public string? TelegramChatId { get; set; }
+        public int? ServerId { get; set; }
+    }
+
+    [BindProperty] public TrialInput Input { get; set; } = new();
+    public List<SelectListItem> Servers { get; private set; } = [];
+    public Tenant? Created { get; private set; }
+    public ProvisioningJob? Job { get; private set; }
+    public string? TempPassword { get; private set; }
+    public string? TenantUrl { get; private set; }
+
+    public async Task OnGetAsync() => Servers = await ServerList.LoadAsync(db);
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        Servers = await ServerList.LoadAsync(db);
+        if (!ModelState.IsValid) return Page();
+        var t = new Tenant
+        {
+            Slug = Input.Slug, LegalName = Input.LegalName, Inn = Input.Inn, ContactName = Input.ContactName?.Trim(), Phone = Input.Phone?.Trim(),
+            Email = Input.Email?.Trim(), TelegramChatId = Input.TelegramChatId?.Trim(), Deployment = DeploymentKind.SaaS, CompanyId = 1,
+            ServerId = Input.ServerId,
+        };
+        if (!await TryAsync(async () =>
+            {
+                if (t.ServerId is null)
+                    t.ServerId = (await provisioning.PickServerAsync())?.Id ?? throw new DomainException("Bo'sh joyi bor faol server yo'q (Serverlar bo'limi).");
+                await tenants.CreateAsync(t, startTrial: true);
+            }))
+            return Page();
+        ProvisioningService.EnqueueResult? r = null;
+        if (!await TryAsync(async () => r = await provisioning.EnqueueAsync(t, ProvisioningJobType.Create)))
+        {
+            FlashError = "Tashkilot va sinov obunasi yaratildi, lekin baza jobi qo'shilmadi: " +
+                         string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return RedirectToPage("Details", new { id = t.Id });
+        }
+        Created = t;
+        Job = r!.Job;
+        TempPassword = r.TempPassword;
+        TenantUrl = provisioning.TenantUrl(t);
+        return Page();
     }
 }
