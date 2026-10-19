@@ -583,7 +583,7 @@ public class ProvisioningIntegrationTests(PanelFactory f) : IClassFixture<PanelF
 
         Assert.True(File.Exists(opts.ResolveDemoTemplate()));
         Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.CUSTOMERS WHERE Name = 'Mehmon yozuvi'"));
-        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCTS WHERE PNo = 'DEMO-FG-001'"));
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCTS WHERE PNo = 'TM-011'")); // Demo/200_Demo_Master.sql
         Assert.Equal("0", await ScalarAsync(dbName, "SELECT CAST(MustChangePassword AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
         Assert.NotNull(await ScalarAsync(dbName, "SELECT Value FROM dbo.LICENSE_STATE WHERE Name = 'RegToken'"));
         Assert.Null(await ScalarAsync(dbName, "SELECT Value FROM dbo.LICENSE_STATE WHERE Name = 'InstallationId'"));
