@@ -17,7 +17,8 @@ namespace tahsinERP.Services.Editions
         Finance,        // Moliya
         Hr,             // Kadrlar: oylik, tabel
         Logistics,      // Logistika
-        Docs            // Rasmiy hujjatlar
+        Docs,           // Rasmiy hujjatlar
+        Distribution    // Distributsiya: agent, buyurtma, rezerv, mijoz qarzi (Areas/Distribution)
     }
 
     /// <summary>
@@ -27,7 +28,7 @@ namespace tahsinERP.Services.Editions
     /// Paketlar (00_PLAN.md, 11-bo'lim):
     ///   START  = SRM, CRM, Topshiriqlar                          (5 foydalanuvchi)
     ///   BIZNES = START + MES, Muhandislik, Moliya                (20)
-    ///   KORP   = BIZNES + HR, Logistika, Rasmiy hujjatlar        (50)
+    ///   KORP   = BIZNES + HR, Logistika, Rasmiy hujjatlar, Distributsiya (50)
     ///   TRIAL  = KORP                                            (5, 14 kun)
     ///
     /// Orqaga moslik: Edition bo'sh, eski v1 kalit yoki noma'lum nom (masalan "Standard", "Pro") — HAMMA modul ochiq.
@@ -45,7 +46,7 @@ namespace tahsinERP.Services.Editions
         private static readonly ProductModule[] BiznesModules = StartModules
             .Concat(new[] { ProductModule.Mes, ProductModule.Engineering, ProductModule.Finance }).ToArray();
         private static readonly ProductModule[] KorpModules = BiznesModules
-            .Concat(new[] { ProductModule.Hr, ProductModule.Logistics, ProductModule.Docs }).ToArray();
+            .Concat(new[] { ProductModule.Hr, ProductModule.Logistics, ProductModule.Docs, ProductModule.Distribution }).ToArray();
 
         private static readonly Dictionary<string, HashSet<ProductModule>> EditionMap =
             new Dictionary<string, HashSet<ProductModule>>(StringComparer.OrdinalIgnoreCase)
@@ -106,6 +107,7 @@ namespace tahsinERP.Services.Editions
                     "WaybillPayment", "TransportLoadSimulation", "TransportLoadApi"
                 } },
             { ProductModule.Docs, new[] { "OfficialLetters", "CompanyOrders", "STDCompanyStandards", "JobDesc", "DocTemplates" } },
+            { ProductModule.Distribution, new[] { "DstHome" } },
         });
 
         private static Dictionary<string, ProductModule> Build(Dictionary<ProductModule, string[]> byModule)
@@ -165,6 +167,7 @@ namespace tahsinERP.Services.Editions
                 case ProductModule.Hr: return "Kadrlar (HR)";
                 case ProductModule.Logistics: return "Logistika";
                 case ProductModule.Docs: return "Rasmiy hujjatlar";
+                case ProductModule.Distribution: return "Distributsiya";
                 default: return "Asosiy";
             }
         }

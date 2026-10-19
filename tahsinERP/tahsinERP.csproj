@@ -928,6 +928,18 @@
     <Compile Include="Services\UnitConversionService.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Models\DBTHSNModel.Context.Cache.cs" />
+    <Compile Include="Models\DBTHSNModel.Context.SharedConnection.cs" />
+    <Compile Include="Areas\Distribution\DistributionAreaRegistration.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstControllerBase.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstHomeController.cs" />
+    <Compile Include="Areas\Distribution\Data\DistributionDbContext.cs" />
+    <Compile Include="Areas\Distribution\Data\DistributionUnitOfWork.cs" />
+    <Compile Include="Areas\Distribution\Data\Entities\DstDocument.cs" />
+    <Compile Include="Areas\Distribution\Data\Entities\FoundationEntities.cs" />
+    <Compile Include="Areas\Distribution\Services\DocumentLifecycle.cs" />
+    <Compile Include="Areas\Distribution\Services\DstLocalization.cs" />
+    <Compile Include="Areas\Distribution\Services\DstPermissions.cs" />
+    <Compile Include="Areas\Distribution\Services\ScopeService.cs" />
     <Compile Include="Services\AuditLogQueue.cs" />
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
@@ -2878,6 +2890,9 @@
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Distribution\Views\web.config" />
+    <Content Include="Areas\Distribution\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstHome\Index.cshtml" />
     <Content Include="Views\License\Index.cshtml" />
     <Content Include="Views\License\Blocked.cshtml" />
     <Content Include="Views\License\NotInPlan.cshtml" />
@@ -3404,6 +3419,10 @@
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
   </Target>
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <ItemGroup>
+    <EmbeddedResource Include="Areas\Distribution\Resources\DstStrings.resx" />
+    <EmbeddedResource Include="Areas\Distribution\Resources\DstStrings.ru.resx" />
+  </ItemGroup>
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
