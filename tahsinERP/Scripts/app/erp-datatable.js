@@ -1,8 +1,8 @@
 /*
- * DataTables Excel/PDF tugmalari uchun yupqa adapter (audit dublikat #16). Asosiy implementatsiya — Core'ning
- * ~/assets/js/dt-defaults.js (ikkala layout'da yuklanadi): tahsinDt.exportButtons, o'zbekcha til, PDF standarti.
- * Bu fayl faqat 35 ta sahifa ishlatadigan qo'shimcha parametrlarni tahsinDt tugmalari ustiga qo'yadi —
- * tugma/til konfiguratsiyasi bu yerda qayta yozilmaydi.
+ * DataTables Excel/PDF eksport tugmalari — butun tizim uchun bitta joy (audit dublikat #16).
+ * Avval ~30 ta sahifada har biri ~60 qatorlik nusxa edi (vaqt belgili fayl nomi, HTML'ni tozalash, PDF sozlamalari).
+ * Ikkala layout'da dt-defaults.js'dan oldin yuklanadi (sahifaga alohida ulash shart emas); dt-defaults
+ * bu yerdagi o'zbekcha matnlarni va umumiy PDF standartini DataTables'ga o'rnatadi (Core).
  *
  *   $('#t').DataTable({
  *       dom: 'lBfrtip',
@@ -10,17 +10,31 @@
  *   });
  *
  * buttons(options):
- *   fileName  — fayl nomi prefiksi (_yyyyMMdd_HHmmss qo'shiladi); berilmasa DataTables standarti (sahifa sarlavhasi);
- *   title     — Excel va PDF ichidagi sarlavha;
- *   pdfTitle  — faqat PDF sarlavhasi; berilsa PDF albom (landscape) va shrift 9/10;
- *   landscape — PDF har doim albom (dt-defaults ustunlar soniga qarab tanlaydi);
- *   columns   — eksport ustunlari (standart ':visible'; amallar ustunisiz: ':not(:last-child)');
- *   pdf       — false bo'lsa faqat Excel;
+ *   fileName  — fayl nomi prefiksi (oxiriga _yyyyMMdd_HHmmss qo'shiladi); berilmasa DataTables standarti (sahifa sarlavhasi);
+ *   title     — Excel va PDF ichidagi sarlavha (berilmasa standart);
+ *   pdfTitle  — faqat PDF sarlavhasi; berilsa PDF albom (landscape) va kichik shrift (9/10) bilan;
+ *   landscape — PDF albom (pdfTitle'siz, shrift o'zgarmaydi);
+ *   columns   — eksport qilinadigan ustunlar (standart ':visible'; amallar ustunisiz: ':not(:last-child)');
+ *   pdf       — false bo'lsa faqat Excel tugmasi;
  *   small     — tugmalar btn-sm;
- *   excel / pdfOptions — tugmaga qo'shimcha xossalar (aniq holatlar uchun).
+ *   excel / pdfOptions — tugma sozlamalariga qo'shimcha (aniq holatlar uchun, masalan customize).
  */
 (function (window) {
     'use strict';
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    /** yyyyMMdd_HHmmss — fayl nomlari uchun. */
+    function stamp() {
+        var now = new Date();
+        return now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + '_' +
+            pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+    }
+
+    /** Katak HTML'ini (badge, havola) eksport uchun oddiy matnga. */
+    function stripHtml(data) {
+        return (data == null ? '' : String(data)).replace(/<[^>]*>/g, '').trim();
+    }
 
     function extend(target, source) {
         if (source) {
@@ -29,57 +43,62 @@
         return target;
     }
 
-    /** dt-defaults'dagi umumiy PDF customize'ni chaqirib, keyin sahifaga xos sozlamani qo'llaydi. */
-    function withDefaultPdf(after) {
-        return function (doc, config, api) {
-            var base = window.jQuery.fn.dataTable.ext.buttons.pdfHtml5.customize;
-            if (typeof base === 'function') {
-                base.call(this, doc, config, api);
-            }
-            after(doc);
-        };
-    }
-
     function buttons(options) {
         options = options || {};
-        var list = window.tahsinDt.exportButtons(options.fileName, {
-            title: options.title,
-            small: !!options.small,
-            columns: options.columns,
-            pdf: options.pdf
-        });
-        var excel = list[0];
-        var pdf = list[1];
+        var size = options.small ? ' btn-sm' : '';
+        var exportOptions = { columns: options.columns || ':visible', format: { body: stripHtml } };
 
-        if (!options.fileName) {
-            // Avvalgidek: fayl nomi sahifa/tugma sarlavhasidan
-            delete excel.filename;
-            if (pdf) delete pdf.filename;
+        var excel = {
+            extend: 'excelHtml5',
+            text: '<i class="bx bxs-file-excel"></i> Excel',
+            titleAttr: 'Excelga yuklash',
+            className: 'btn btn-success' + size + ' mr-1',
+            exportOptions: exportOptions
+        };
+        var pdf = {
+            extend: 'pdfHtml5',
+            text: '<i class="bx bxs-file-pdf"></i> PDF',
+            titleAttr: 'PDFga yuklash',
+            className: 'btn btn-danger' + size,
+            pageSize: 'A4',
+            exportOptions: exportOptions
+        };
+
+        if (options.fileName) {
+            excel.filename = pdf.filename = function () { return options.fileName + '_' + stamp(); };
         }
-        if (!options.title) {
-            delete excel.title;
-            if (pdf) delete pdf.title;
+        if (options.title) {
+            excel.title = pdf.title = options.title;
+        }
+        if (options.pdfTitle || options.landscape) {
+            pdf.orientation = 'landscape';
+        }
+        if (options.pdfTitle) {
+            pdf.title = options.pdfTitle;
+            pdf.customize = function (doc) {
+                doc.defaultStyle.fontSize = 9;
+                doc.styles.tableHeader.fontSize = 10;
+            };
         }
 
-        if (pdf) {
-            if (options.pdfTitle) {
-                pdf.title = options.pdfTitle;
-                pdf.orientation = 'landscape';
-                pdf.customize = withDefaultPdf(function (doc) {
-                    doc.pageOrientation = 'landscape';
-                    doc.defaultStyle.fontSize = 9;
-                    doc.styles.tableHeader.fontSize = 10;
-                });
-            } else if (options.landscape) {
-                pdf.orientation = 'landscape';
-                pdf.customize = withDefaultPdf(function (doc) { doc.pageOrientation = 'landscape'; });
-            }
-            extend(pdf, options.pdfOptions);
-        }
         extend(excel, options.excel);
-        return list;
+        extend(pdf, options.pdfOptions);
+        return options.pdf === false ? [excel] : [excel, pdf];
     }
 
-    // Til matnlari dt-defaults'da DataTables standarti sifatida o'rnatilgan — sahifalarga alohida berish shart emas
-    window.erpDataTable = { buttons: buttons };
+    window.erpDataTable = {
+        // dt-defaults.js shu matnlarni DataTables standarti qiladi (sahifalarga berish shart emas)
+        language: {
+            search: 'Qidirish:',
+            lengthMenu: "_MENU_ ta ko'rsatish",
+            info: '_TOTAL_ ta yozuvdan _START_ dan _END_ gacha',
+            infoEmpty: "Yozuvlar yo'q",
+            infoFiltered: '(jami _MAX_ ta yozuvdan filtrlangan)',
+            paginate: { first: 'Birinchi', last: 'Oxirgi', next: 'Keyingi', previous: 'Oldingi' },
+            zeroRecords: "Ma'lumot topilmadi"
+        },
+        stamp: stamp,
+        stripHtml: stripHtml,
+        buttons: buttons
+    };
 })(window);
