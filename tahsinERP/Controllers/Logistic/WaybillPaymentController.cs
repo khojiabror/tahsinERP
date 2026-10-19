@@ -60,8 +60,8 @@ namespace tahsinERP.Controllers.Logistic
                 var paidLookup = WaybillLedgerService.GetPaidLookup(db, allWaybillIds);
 
                 var linkedWaybillMap = new Dictionary<int, string>();
-                var paymentWaybillAmountMap = new Dictionary<int, double>();
-                var paymentOutstandingMap = new Dictionary<int, double>();
+                var paymentWaybillAmountMap = new Dictionary<int, decimal>();
+                var paymentOutstandingMap = new Dictionary<int, decimal>();
                 foreach (var kv in paymentWaybillIdsMap)
                 {
                     var known = kv.Value.Where(waybillInfo.ContainsKey).ToList();
@@ -184,7 +184,7 @@ namespace tahsinERP.Controllers.Logistic
 
                 var linkedRows = linkedWaybills.Select(w =>
                 {
-                    var splitAmount = linkSplits.Where(s => s.WaybillID == w.ID).Sum(s => (double?)s.Amount) ?? 0;
+                    var splitAmount = linkSplits.Where(s => s.WaybillID == w.ID).Sum(s => (decimal?)s.Amount) ?? 0;
                     var allocated = splitAmount > 0
                         ? splitAmount
                         : (w.ID == waybillPayment.WaybillID ? waybillPayment.Payment_Amount : 0);
@@ -365,7 +365,7 @@ namespace tahsinERP.Controllers.Logistic
                         var finTransaction = FindFinTransaction(db, waybillPaymentToUpdate.ID);
                         if (finTransaction != null)
                         {
-                            finTransaction.Amount = (decimal)waybillPaymentToUpdate.Payment_Amount;
+                            finTransaction.Amount = waybillPaymentToUpdate.Payment_Amount;
                             finTransaction.TxnDate = waybillPaymentToUpdate.PaymentDate.Value;
                             if (AccountID.HasValue)
                                 finTransaction.AccountID = AccountID.Value;
@@ -476,7 +476,7 @@ namespace tahsinERP.Controllers.Logistic
                 .ToList();
             var paid = WaybillLedgerService.GetPaidLookup(db, waybillIds);
             var overpaid = amounts
-                .Where(w => WaybillLedgerService.PaidOf(paid, w.ID) - (w.Amount ?? 0) > 0.005)
+                .Where(w => WaybillLedgerService.PaidOf(paid, w.ID) - (w.Amount ?? 0) > 0.005m)
                 .Select(w => w.WaybillNo)
                 .ToList();
             if (overpaid.Any())

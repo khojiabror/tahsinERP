@@ -27,7 +27,7 @@ namespace tahsinERP.Models
         public int ForwarderID { get; set; }
         public System.DateTime IssueDate { get; set; }
         public System.DateTime DueDate { get; set; }
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         public string Description { get; set; }
         public bool IsDeleted { get; set; }
         public Nullable<int> CurrencyID { get; set; }

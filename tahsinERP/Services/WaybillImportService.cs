@@ -49,8 +49,8 @@ namespace tahsinERP.Services
             public int? TransportTypeID;
             public string FromRegion, FromCity, ToRegion, ToCity;
             public byte FreightBasis;
-            public double Rate;
-            public double? MinimumCharge;
+            public decimal Rate;
+            public decimal? MinimumCharge;
             public int? CurrencyID;
             public DateTime CreatedDT;
         }
@@ -227,14 +227,14 @@ namespace tahsinERP.Services
                         TransportTypeID = transportType.ID,
                         FromLocation = cells.String(row, "FromLocation"),
                         ToLocation = cells.String(row, "ToLocation"),
-                        DistanceKm = cells.Double(row, "DistanceKm"),
-                        GrWeight = cells.Double(row, "GrWeight"),
-                        NetWeight = cells.Double(row, "NetWeight"),
-                        CBM = cells.Double(row, "CBM"),
+                        DistanceKm = cells.Decimal(row, "DistanceKm"),
+                        GrWeight = cells.Decimal(row, "GrWeight"),
+                        NetWeight = cells.Decimal(row, "NetWeight"),
+                        CBM = cells.Decimal(row, "CBM"),
                         PalletsCount = cells.Int(row, "PalletsCount"),
                         FreightBasis = cells.Byte(row, "FreightBasis", LogisticsEnums.ParseFreightBasis),
-                        Rate = cells.Double(row, "Rate"),
-                        Amount = cells.Double(row, "Amount"),
+                        Rate = cells.Decimal(row, "Rate"),
+                        Amount = cells.Decimal(row, "Amount"),
                         CurrencyID = currency?.ID,
                         PayerType = cells.Byte(row, "PayerType", LogisticsEnums.ParsePayerType),
                         PayerID = cells.Int(row, "PayerID"),
@@ -304,7 +304,7 @@ namespace tahsinERP.Services
                 var mismatches = new List<string>();
                 if (waybill.FreightBasis.HasValue && waybill.FreightBasis.Value != tariff.FreightBasis)
                     mismatches.Add($"asos ({LogisticsEnums.FreightBasisText(waybill.FreightBasis)} ≠ {LogisticsEnums.FreightBasisText(tariff.FreightBasis)})");
-                if (waybill.Rate.HasValue && Math.Abs(waybill.Rate.Value - tariff.Rate) > 0.005)
+                if (waybill.Rate.HasValue && Math.Abs(waybill.Rate.Value - tariff.Rate) > 0.005m)
                     mismatches.Add($"stavka ({waybill.Rate.Value:0.##} ≠ {tariff.Rate:0.##})");
                 if (waybill.CurrencyID.HasValue && tariff.CurrencyID.HasValue && waybill.CurrencyID != tariff.CurrencyID)
                     mismatches.Add("valyuta");

@@ -15,6 +15,7 @@ Database/
   tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> admin
   tools/Export-ReferenceSeed.ps1 seed'ni etalon bazadan qayta generatsiya
   tools/Export-Baseline.ps1      baseline'ni qayta generatsiya ("squash", kamdan-kam)
+  tools/RegressionProbe/         hisobotlar oldin/keyin solishtiruvi (Balans, Tannarx, ombor, CRM/SRM, logistika)
 ```
 
 ## Asosiy qoida: endi har sxema o'zgarishi = yangi `NNN` fayl
@@ -48,15 +49,31 @@ uni erkin o'zgartiradi. `SystemCode` bor qatorni UI'da o'chirib bo'lmaydi.
 | Jadval | Ustun | Kodlar (Services/Common/SystemCodes.cs) |
 |---|---|---|
 | FIN_BALANCE_CATEGORIES | SystemCode | CASH, BANK, PAYABLES, RECEIVABLES, CHARTER_CAPITAL, PAYROLL_DEBT, LOGISTICS_DEBT, RAW_MATERIALS, FINISHED_GOODS, EQUIPMENT, BUILDINGS, RECURRING_OBLIGATIONS |
-| FIN_CATEGORIES | SystemCode | SALES, PURCHASE, PAYROLL, SHAREHOLDER_CONTRIBUTION |
+| FIN_CATEGORIES | SystemCode | SALES, PURCHASE, PAYROLL, SHAREHOLDER_CONTRIBUTION, MATERIAL_TRANSPORT, FG_TRANSPORT |
 | PRODUCT_CATEGORIES | SystemCode | EQUIPMENT |
 | UNITS | SystemCode | PCS, KG, TONNE, GRAM, METER, M2, M3, LITER, MM, CM, PAIR |
+| ROLES | SystemCode (007) | ADMIN, DEVELOPER — `RoleHelper.IsDeveloper/IsAdminOrDeveloper/HasRoleCode` |
 | FIN_ACCOUNTS | Code (mavjud) | PAYABLES_{CurrencyID}, RECEIVABLES_{CurrencyID} |
 | APP_TASK_STATUS_REF | Code + IsFinal (mavjud) | TODO, IN_PROGRESS, DONE, CANCELLED |
-| WAREHOUSES | WarehouseType (mavjud) | SUPPLY, PRODUCTION, SALES |
+| WAREHOUSES | WarehouseType (mavjud) | SUPPLY, PRODUCTION, SALES (yangi bazada 3/6/7 — Seed/110) |
+| FIN_BALANCE_CATEGORY_CATEGORIES | bog'lanish | CHARTER_CAPITAL ← SHAREHOLDER_CONTRIBUTION (migratsiya 009, Seed/110) |
 
 Lookup: `SystemRefs.BalanceCategory(db, SystemCodes.BalanceCategory.Cash)`, `SystemRefs.UnitId(db, SystemCodes.Unit.Pieces)`.
 Har ustunda `UNIQUE ... WHERE SystemCode IS NOT NULL` indeks bor.
+
+### Guruh belgilari (UNIQUE emas, foydalanuvchi formada tanlaydi)
+
+Bir nechta qatorga tegishli tushuncha (masalan "transport xarajatlari") — bitta tizim qatori emas, guruh. Kod uni nom
+kalit so'zlari bilan emas, shu ustunlar bilan taniydi:
+
+| Jadval.ustun | Qiymatlar | Kim ishlatadi |
+|---|---|---|
+| FIN_CATEGORIES.AnalyticsGroup (007) | MATERIAL, PAYROLL, PURCHASE, LOGISTICS, TAX, VAT, BANK, INTEREST, DEPRECIATION, CAPEX, DIVIDEND, FINANCING, OTHER | `ValuationService` (EBITDA: soliq/foiz/amortizatsiya, dividend chiqariladi), `TannarxFinanceCategoryClassifier` (fakt tannarx guruhi; `TANNARX_FIN_CATEGORY_MAP` undan ustun) |
+| PRODUCT_CATEGORIES.MaterialKind (007) | WOOD | `NormLineMath.IsWoodCategory` (norma/BOM: metr narxi, umumiy norma/chiqindi) |
+| PRODUCT_CATEGORIES.CalculateByWeight (mavjud) | 0/1 | `UnitConversionService.ShouldCalculateByWeightAsync` (metiz ham shu belgi bilan) |
+
+Ro'yxatlar va UI nomlari: `SystemCodes.FinAnalyticsGroup.All`, `SystemCodes.MaterialKind.All`. Yangi guruh qo'shilsa —
+shu ro'yxatga + uni ishlatadigan servisga; mavjud bazalarni to'ldirish kerak bo'lsa — NNN migratsiya.
 
 ## Ishga tushirish
 
@@ -84,6 +101,20 @@ farq faqat BAK/DataFix jadvallari bo'lishi kerak. Lokal `DBTHSN-IPACK` 2026-10-1
 Runner o'zi yaratadi. `ScriptName` (PK, masalan `Migrations/001_SystemCodes.sql`), `Kind`
 (baseline / migration / seed / extra), `Version`, `Checksum`, `AppliedAt` (UTC), `AppliedBy`, `DurationMs`, `Note`.
 Bir bazada bir vaqtda faqat bitta runner (`sp_getapplock`).
+
+## Demo ma'lumot (`Demo/`)
+
+Uydirma "Demo Plast" MChJ (plastik idishlar): 24 mahsulot (12 xomashyo + 12 tayyor, BOM/norma), 5 mijoz,
+5 ta'minotchi, ~3 oylik xarid -> ombor -> ishlab chiqarish (DLOC/FIFO lotlar) -> sotuv (QQS 12%) -> to'lovlar,
+ustav kapitali, 9 xodim va o'tgan oyning tasdiqlangan oyligi. Kirish: `demo` / `demo2026` (Admin roli).
+
+- `200_Demo_Master.sql` — foydalanuvchi, ombor turlari/joylari, mahsulot, BOM/norma, kontragentlar, kurslar, hisoblar.
+- `210_Demo_Operations.sql` — SRM, ombor, MES, CRM hujjatlari; `PRODUCT_STOCKS` harakatlardan, manfiy qoldiq bo'lsa THROW.
+- `220_Demo_Finance_HR.sql` — FIN_TRANSACTIONS (FinancePostingService ko'zgu yozuvlari + to'lovlar), HR.
+
+Hujjatlar ilova servislari yozadigan shaklda (raqam formatlari, statuslar, tavsiflar) — servis o'zgarsa demo ham
+yangilanadi. Sanalar `GETDATE()` ga nisbatan; har fayl bitta batch (GO yo'q) va ma'lumot bor bo'lsa o'zini
+o'tkazib yuboradi. Faqat yangi (bo'sh) bazaga mo'ljallangan.
 
 ## Baseline va seed'ni qayta generatsiya qilish
 

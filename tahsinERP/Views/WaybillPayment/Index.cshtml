@@ -4,8 +4,8 @@
     ViewBag.Title = "Yo'l varaqasi to'lovlari";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var linkedWaybillMap = ViewBag.LinkedWaybillMap as IDictionary<int, string>;
-    var paymentWaybillAmountMap = ViewBag.PaymentWaybillAmountMap as IDictionary<int, double>;
-    var paymentOutstandingMap = ViewBag.PaymentOutstandingMap as IDictionary<int, double>;
+    var paymentWaybillAmountMap = ViewBag.PaymentWaybillAmountMap as IDictionary<int, decimal>;
+    var paymentOutstandingMap = ViewBag.PaymentOutstandingMap as IDictionary<int, decimal>;
 }
 @{ bool changePermit = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()); }
 <div class="app-content content">

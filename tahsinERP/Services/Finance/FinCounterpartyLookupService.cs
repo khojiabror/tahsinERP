@@ -181,13 +181,13 @@ namespace tahsinERP.Services.Finance
 
         private ContractTotals ForwarderTotals(int contractId, DateTime date)
         {
-            // double ustunlar xotirada decimal'ga yig'iladi (EF ichida cast SQL'ga tarjima qilinmasdi)
+            // so'mda — har hujjat o'z sanasidagi kurs bilan
             var total = _db.F_WAYBILLS.AsNoTracking()
                 .Where(w => w.ContractID == contractId && w.IsDeleted != true &&
                             w.Amount.HasValue && w.IssueDate.HasValue && w.IssueDate.Value <= date)
                 .Select(w => new { w.Amount, w.CurrencyID, w.IssueDate })
                 .ToList()
-                .Sum(w => FinMoney.For(_db).Uzs((decimal)(w.Amount ?? 0d), w.CurrencyID, w.IssueDate.Value));
+                .Sum(w => FinMoney.For(_db).Uzs(w.Amount ?? 0m, w.CurrencyID, w.IssueDate.Value));
 
             var paid = _db.F_WAYBILL_PAYMENTS.AsNoTracking()
                 .Where(p => !p.IsDeleted &&
@@ -195,7 +195,7 @@ namespace tahsinERP.Services.Finance
                             (!p.PaymentDate.HasValue || p.PaymentDate.Value <= date))
                 .Select(p => new { p.Payment_Amount, p.CurrencyID, p.PaymentDate })
                 .ToList()
-                .Sum(p => FinMoney.For(_db).Uzs((decimal)p.Payment_Amount, p.CurrencyID, p.PaymentDate ?? date));
+                .Sum(p => FinMoney.For(_db).Uzs(p.Payment_Amount, p.CurrencyID, p.PaymentDate ?? date));
 
             return new ContractTotals { Total = total, Paid = paid };
         }

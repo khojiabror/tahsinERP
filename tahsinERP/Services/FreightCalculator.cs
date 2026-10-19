@@ -1,3 +1,5 @@
+using System;
+
 namespace tahsinERP.Services
 {
     /// <summary>
@@ -7,12 +9,12 @@ namespace tahsinERP.Services
     /// </summary>
     public static class FreightCalculator
     {
-        public static double? Calculate(byte? basis, double? rate, double? grWeight, double? distanceKm, double? minimumCharge = null)
+        public static decimal? Calculate(byte? basis, decimal? rate, decimal? grWeight, decimal? distanceKm, decimal? minimumCharge = null)
         {
             if (!rate.HasValue || !basis.HasValue)
                 return null;
 
-            double? amount;
+            decimal? amount;
             switch (basis.Value)
             {
                 case 0: // PerTruck
@@ -20,10 +22,10 @@ namespace tahsinERP.Services
                     amount = rate.Value;
                     break;
                 case 1: // PerTon
-                    amount = grWeight.HasValue ? rate.Value * grWeight.Value : (double?)null;
+                    amount = grWeight.HasValue ? rate.Value * grWeight.Value : (decimal?)null;
                     break;
                 case 2: // PerKm
-                    amount = distanceKm.HasValue ? rate.Value * distanceKm.Value : (double?)null;
+                    amount = distanceKm.HasValue ? rate.Value * distanceKm.Value : (decimal?)null;
                     break;
                 default:
                     return null;
@@ -32,7 +34,8 @@ namespace tahsinERP.Services
             if (amount.HasValue && minimumCharge.HasValue && amount.Value < minimumCharge.Value)
                 amount = minimumCharge.Value;
 
-            return amount;
+            // F_WAYBILLS.Amount — decimal(19,4): EF ortiqcha xonalarni kesadi, shuning uchun bu yerda yaxlitlanadi
+            return amount.HasValue ? Math.Round(amount.Value, 4, MidpointRounding.AwayFromZero) : (decimal?)null;
         }
     }
 }

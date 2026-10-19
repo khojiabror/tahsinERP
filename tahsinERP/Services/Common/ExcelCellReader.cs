@@ -90,6 +90,20 @@ namespace tahsinERP.Services.Common
             return null;
         }
 
+        /// <summary>
+        /// Pul/miqdor uchun: Excel soni (double) 15 qiymatli raqamgacha decimal'ga o'giriladi —
+        /// ikkilik kasr "dumi" (0.30000000000000004) tushib qoladi. decimal chegarasidan tashqari — null.
+        /// </summary>
+        public decimal? Decimal(int row, string key)
+        {
+            var value = Value(row, key);
+            if (value is decimal m) return m;
+            var d = Double(row, key);
+            if (!d.HasValue || double.IsNaN(d.Value) || double.IsInfinity(d.Value)) return null;
+            if (Math.Abs(d.Value) >= (double)decimal.MaxValue) return null;
+            return Convert.ToDecimal(d.Value);
+        }
+
         public int? Int(int row, string key)
         {
             var d = Double(row, key);

@@ -50,17 +50,17 @@ namespace tahsinERP.ViewModels
         public string ToLocation { get; set; }
 
         [Display(Name = "Masofa (km)")]
-        public double? DistanceKm { get; set; }
+        public decimal? DistanceKm { get; set; }
 
         // Cargo information
         [Display(Name = "Brut vazn (ton)")]
-        public double? GrWeight { get; set; }
+        public decimal? GrWeight { get; set; }
 
         [Display(Name = "Net vazn (ton)")]
-        public double? NetWeight { get; set; }
+        public decimal? NetWeight { get; set; }
 
         [Display(Name = "Hajm (CBM)")]
-        public double? CBM { get; set; }
+        public decimal? CBM { get; set; }
 
         [Display(Name = "Palletlar soni")]
         public int? PalletsCount { get; set; }
@@ -70,10 +70,10 @@ namespace tahsinERP.ViewModels
         public byte? FreightBasis { get; set; } // 0=PerTruck, 1=PerTon, 2=PerKm, 3=Flat
 
         [Display(Name = "Narx")]
-        public double? Rate { get; set; }
+        public decimal? Rate { get; set; }
 
         [Display(Name = "Jami summa")]
-        public double? Amount { get; set; }
+        public decimal? Amount { get; set; }
 
         [Display(Name = "Valyuta")]
         public int? CurrencyID { get; set; }

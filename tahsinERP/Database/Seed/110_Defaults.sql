@@ -13,8 +13,8 @@ WHERE NOT EXISTS (SELECT 1 FROM dbo.COMPANIES WHERE ID = 1);
 SET IDENTITY_INSERT dbo.COMPANIES OFF;
 GO
 
--- Ishlab chiqarish sexi va uchta asosiy ombor (balans ombor bahosi ularni topadi: nomida
--- "Xomashyo" / "Ishlab chiqarish"; SRM WarehouseType merge'dan keyin — tur bo'yicha).
+-- Ishlab chiqarish sexi va uchta asosiy ombor. Kod omborni WarehouseType bo'yicha topadi (WarehouseRoles):
+-- SUPPLY — xarid kirimi, PRODUCTION — ishlab chiqarish, SALES — sotuv invoysi chiqimi, balans ombor bahosi.
 SET IDENTITY_INSERT dbo.SHOPS ON;
 INSERT INTO dbo.SHOPS (ID, CompanyID, ShopName, Description, IsDeleted)
 SELECT 1, 1, N'Ishlab chiqarish', N'Asosiy ishlab chiqarish sexi', 0
@@ -31,6 +31,12 @@ FROM (VALUES
 ) v (ID, WHName, Description, ShopID)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.WAREHOUSES w WHERE w.ID = v.ID);
 SET IDENTITY_INSERT dbo.WAREHOUSES OFF;
+GO
+UPDATE w SET WarehouseType = v.WarehouseType
+FROM dbo.WAREHOUSES w
+JOIN (VALUES (3, 'SUPPLY'), (6, 'PRODUCTION'), (7, 'SALES')) v (ID, WarehouseType) ON v.ID = w.ID
+WHERE w.WarehouseType IS NULL
+  AND NOT EXISTS (SELECT 1 FROM dbo.WAREHOUSES x WHERE x.WarehouseType = v.WarehouseType AND ISNULL(x.IsDeleted, 0) = 0);
 GO
 
 -- Doimiy harajatlar qarzi (FIN_RECURRING_OBLIGATIONS, migratsiya 003) balans kategoriyasi
@@ -61,9 +67,25 @@ JOIN (VALUES
 ) v (ID, OldName, NewName) ON v.ID = c.ID AND c.Name = v.OldName;
 GO
 
+-- Tashuv kategoriyalari tizim kodi (FinancePostingService yo'l varaqasi to'lovi; migratsiya 009 bilan bir xil)
+UPDATE c SET SystemCode = v.Code
+FROM dbo.FIN_CATEGORIES c
+JOIN (VALUES (23, 'MATERIAL_TRANSPORT'), (29, 'FG_TRANSPORT')) v (ID, Code) ON v.ID = c.ID
+WHERE c.SystemCode IS NULL AND c.Type = 2
+  AND NOT EXISTS (SELECT 1 FROM dbo.FIN_CATEGORIES x WHERE x.SystemCode = v.Code);
+GO
+
+-- Ustav kapitali <- aksiyador hissalari (balans CHARTER_CAPITAL qatori; migratsiya 009 bilan bir xil)
+INSERT INTO dbo.FIN_BALANCE_CATEGORY_CATEGORIES (BalanceCategoryID, CategoryID)
+SELECT b.ID, c.ID
+FROM dbo.FIN_BALANCE_CATEGORIES b CROSS JOIN dbo.FIN_CATEGORIES c
+WHERE b.SystemCode = 'CHARTER_CAPITAL' AND c.SystemCode = 'SHAREHOLDER_CONTRIBUTION'
+  AND NOT EXISTS (SELECT 1 FROM dbo.FIN_BALANCE_CATEGORY_CATEGORIES x WHERE x.BalanceCategoryID = b.ID AND x.CategoryID = c.ID);
+GO
+
 -- Yangi korxona admini — barcha modullarga to'liq huquq (etalon bazadagi Admin roli korxonaga moslab
 -- cheklangan bo'lishi mumkin). Yangi ruxsat modullari keyin qo'shilsa — Role -> Huquqlar sahifasida.
-DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE RName = N'Admin');
+DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE SystemCode = 'ADMIN');
 IF @admin IS NOT NULL
 BEGIN
     UPDATE dbo.PERMISSIONS SET ViewPermit = 1, ChangePermit = 1, DeletePermit = 1 WHERE RoleID = @admin;

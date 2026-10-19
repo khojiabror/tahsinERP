@@ -363,8 +363,8 @@
           <Property Name="ToCity" Type="nvarchar" MaxLength="100" />
           <Property Name="TransportTypeID" Type="int" />
           <Property Name="FreightBasis" Type="tinyint" Nullable="false" />
-          <Property Name="Rate" Type="float" Nullable="false" />
-          <Property Name="MinimumCharge" Type="float" />
+          <Property Name="Rate" Type="decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="MinimumCharge" Type="decimal" Precision="19" Scale="4" />
           <Property Name="CurrencyID" Type="int" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="Description" Type="nvarchar" MaxLength="500" />
@@ -380,7 +380,7 @@
           <Property Name="ForwarderID" Type="int" Nullable="false" />
           <Property Name="IssueDate" Type="date" Nullable="false" />
           <Property Name="DueDate" Type="date" Nullable="false" />
-          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" Nullable="false" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="CurrencyID" Type="int" />
@@ -410,7 +410,7 @@
           <Property Name="WaybillID" Type="int" Nullable="false" />
           <Property Name="PayerType" Type="tinyint" Nullable="false" />
           <Property Name="PayerID" Type="int" />
-          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" Nullable="false" />
           <Property Name="CurrencyID" Type="int" />
           <Property Name="Comment" Type="nvarchar" MaxLength="500" />
         </EntityType>
@@ -421,7 +421,7 @@
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ForwarderID" Type="int" Nullable="false" />
           <Property Name="WaybillID" Type="int" Nullable="false" />
-          <Property Name="Payment_Amount" Type="float" Nullable="false" />
+          <Property Name="Payment_Amount" Type="decimal" Precision="19" Scale="4" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="Comment" Type="text" Nullable="false" />
           <Property Name="CurrencyID" Type="int" />
@@ -436,18 +436,18 @@
           <Property Name="ContractID" Type="int" />
           <Property Name="TransportTypeID" Type="int" />
           <Property Name="InvoiceID" Type="int" />
-          <Property Name="CBM" Type="float" />
-          <Property Name="GrWeight" Type="float" />
+          <Property Name="CBM" Type="decimal" Precision="18" Scale="6" />
+          <Property Name="GrWeight" Type="decimal" Precision="18" Scale="4" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
-          <Property Name="Amount" Type="float" />
+          <Property Name="Amount" Type="decimal" Precision="19" Scale="4" />
           <Property Name="IssueDate" Type="datetime" />
           <Property Name="Direction" Type="tinyint" />
           <Property Name="FromLocation" Type="nvarchar" MaxLength="200" />
           <Property Name="ToLocation" Type="nvarchar" MaxLength="200" />
-          <Property Name="DistanceKm" Type="float" />
+          <Property Name="DistanceKm" Type="decimal" Precision="18" Scale="4" />
           <Property Name="FreightBasis" Type="tinyint" />
-          <Property Name="Rate" Type="float" />
+          <Property Name="Rate" Type="decimal" Precision="19" Scale="6" />
           <Property Name="CurrencyID" Type="int" />
           <Property Name="PayerType" Type="tinyint" />
           <Property Name="PayerID" Type="int" />
@@ -459,7 +459,7 @@
           <Property Name="TrailerModel" Type="nvarchar" MaxLength="100" />
           <Property Name="DriverName" Type="nvarchar" MaxLength="200" />
           <Property Name="DriverPINFL" Type="nvarchar" MaxLength="50" />
-          <Property Name="NetWeight" Type="float" />
+          <Property Name="NetWeight" Type="decimal" Precision="18" Scale="4" />
           <Property Name="PalletsCount" Type="int" />
           <Property Name="ManualCorrectionReason" Type="nvarchar" MaxLength="500" />
           <Property Name="PlannedDeliveryDate" Type="datetime" />
@@ -562,6 +562,7 @@
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="SystemCode" Type="varchar" MaxLength="40" />
+          <Property Name="AnalyticsGroup" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="FIN_OPENING_CONTRACT_BALANCES">
           <Key>
@@ -1318,6 +1319,7 @@
           <Property Name="CalculateByWeight" Type="bit" />
           <Property Name="IsDeleted" Type="bit" />
           <Property Name="SystemCode" Type="varchar" MaxLength="40" />
+          <Property Name="MaterialKind" Type="varchar" MaxLength="20" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
           <Key>
@@ -1463,6 +1465,7 @@
           <Property Name="RName" Type="varchar" MaxLength="25" Nullable="false" />
           <Property Name="Description" Type="text" />
           <Property Name="IsDeleted" Type="bit" />
+          <Property Name="SystemCode" Type="varchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="S_CONTRACT_PRODUCTS">
           <Key>
@@ -6858,8 +6861,8 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ToCity" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="TransportTypeID" Type="Int32" />
           <Property Name="FreightBasis" Type="Byte" Nullable="false" />
-          <Property Name="Rate" Type="Double" Nullable="false" />
-          <Property Name="MinimumCharge" Type="Double" />
+          <Property Name="Rate" Type="Decimal" Precision="19" Scale="6" Nullable="false" />
+          <Property Name="MinimumCharge" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="CurrencyID" Type="Int32" />
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
@@ -6878,7 +6881,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ForwarderID" Type="Int32" Nullable="false" />
           <Property Name="IssueDate" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="DueDate" Type="DateTime" Nullable="false" Precision="0" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CurrencyID" Type="Int32" />
@@ -6916,7 +6919,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="WaybillID" Type="Int32" Nullable="false" />
           <Property Name="PayerType" Type="Byte" Nullable="false" />
           <Property Name="PayerID" Type="Int32" />
-          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" Nullable="false" />
           <Property Name="CurrencyID" Type="Int32" />
           <Property Name="Comment" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK_F_WAYBILL_PAYMENT_SPLITS_CURRENCIES" FromRole="F_WAYBILL_PAYMENT_SPLITS" ToRole="CURRENCIES" />
@@ -6929,7 +6932,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ForwarderID" Type="Int32" Nullable="false" />
           <Property Name="WaybillID" Type="Int32" Nullable="false" />
-          <Property Name="Payment_Amount" Type="Double" Nullable="false" />
+          <Property Name="Payment_Amount" Type="Decimal" Precision="19" Scale="4" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="CurrencyID" Type="Int32" />
@@ -6947,18 +6950,18 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ContractID" Type="Int32" />
           <Property Name="TransportTypeID" Type="Int32" />
           <Property Name="InvoiceID" Type="Int32" />
-          <Property Name="CBM" Type="Double" />
-          <Property Name="GrWeight" Type="Double" />
+          <Property Name="CBM" Type="Decimal" Precision="18" Scale="6" />
+          <Property Name="GrWeight" Type="Decimal" Precision="18" Scale="4" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
-          <Property Name="Amount" Type="Double" />
+          <Property Name="Amount" Type="Decimal" Precision="19" Scale="4" />
           <Property Name="IssueDate" Type="DateTime" Precision="3" />
           <Property Name="Direction" Type="Byte" />
           <Property Name="FromLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="ToLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
-          <Property Name="DistanceKm" Type="Double" />
+          <Property Name="DistanceKm" Type="Decimal" Precision="18" Scale="4" />
           <Property Name="FreightBasis" Type="Byte" />
-          <Property Name="Rate" Type="Double" />
+          <Property Name="Rate" Type="Decimal" Precision="19" Scale="6" />
           <Property Name="CurrencyID" Type="Int32" />
           <Property Name="PayerType" Type="Byte" />
           <Property Name="PayerID" Type="Int32" />
@@ -6970,7 +6973,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="TrailerModel" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="DriverName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="DriverPINFL" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="NetWeight" Type="Double" />
+          <Property Name="NetWeight" Type="Decimal" Precision="18" Scale="4" />
           <Property Name="PalletsCount" Type="Int32" />
           <Property Name="ManualCorrectionReason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="PlannedDeliveryDate" Type="DateTime" Precision="3" />
@@ -7060,6 +7063,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
+          <Property Name="AnalyticsGroup" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="FIN_CATEGORIES1" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES" ToRole="FIN_CATEGORIES1" />
           <NavigationProperty Name="FIN_CATEGORIES2" Relationship="Self.FK_FIN_CATEGORIES_PARENT" FromRole="FIN_CATEGORIES1" ToRole="FIN_CATEGORIES" />
           <NavigationProperty Name="FIN_TRANSACTIONS" Relationship="Self.FK_FIN_TRANSACTIONS_CATEGORY" FromRole="FIN_CATEGORIES" ToRole="FIN_TRANSACTIONS" />
@@ -7941,6 +7945,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="CalculateByWeight" Type="Boolean" />
           <Property Name="IsDeleted" Type="Boolean" />
           <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
+          <Property Name="MaterialKind" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="PRODUCTS" Relationship="Self.FK_PRODUCTS_CATEGORY" FromRole="PRODUCT_CATEGORIES" ToRole="PRODUCTS" />
         </EntityType>
         <EntityType Name="PRODUCT_PRODUCTION">
@@ -8140,6 +8145,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="RName" Type="String" MaxLength="25" FixedLength="false" Unicode="false" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="IsDeleted" Type="Boolean" />
+          <Property Name="SystemCode" Type="String" MaxLength="40" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="PERMISSIONS" Relationship="Self.FK_PERMISSIONS_ROLES" FromRole="ROLES" ToRole="PERMISSIONS" />
           <NavigationProperty Name="USERS" Relationship="Self.USERROLES" FromRole="ROLES" ToRole="USERS" />
         </EntityType>
@@ -13820,6 +13826,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
+                <ScalarProperty Name="AnalyticsGroup" ColumnName="AnalyticsGroup" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14574,6 +14581,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="CalculateByWeight" ColumnName="CalculateByWeight" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
                 <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
+                <ScalarProperty Name="MaterialKind" ColumnName="MaterialKind" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -14729,6 +14737,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="RName" ColumnName="RName" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="SystemCode" ColumnName="SystemCode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

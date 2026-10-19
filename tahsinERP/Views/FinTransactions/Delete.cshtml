@@ -54,13 +54,13 @@
                                         <dd class="col-sm-8">@Model.TxnDate.ToString("dd.MM.yyyy")</dd>
                                         
                                         <dt class="col-sm-4">Hisob:</dt>
-                                        <dd class="col-sm-8">@Model.FIN_ACCOUNTS?.Name</dd>
+                                        <dd class="col-sm-8">@(Model.FIN_ACCOUNTS?.Name)</dd>
                                         
                                         <dt class="col-sm-4">Kategoriya:</dt>
-                                        <dd class="col-sm-8">@Model.FIN_CATEGORIES?.Name</dd>
+                                        <dd class="col-sm-8">@(Model.FIN_CATEGORIES?.Name)</dd>
                                         
                                         <dt class="col-sm-4">Summa:</dt>
-                                        <dd class="col-sm-8"><strong>@Model.Amount.ToString("N2") @Model.CURRENCy?.Shortname</strong></dd>
+                                        <dd class="col-sm-8"><strong>@Model.Amount.ToString("N2") @(Model.CURRENCy?.Shortname)</strong></dd>
                                         
                                         <dt class="col-sm-4">Manba:</dt>
                                         <dd class="col-sm-8">@(Model.SourceDocType ?? "Qo'lda")</dd>

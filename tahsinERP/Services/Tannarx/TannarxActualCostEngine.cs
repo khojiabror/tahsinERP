@@ -174,7 +174,7 @@ namespace tahsinERP.Services.Tannarx
                     && w.IssueDate.Value < end)
                 .Select(w => new { w.WaybillNo, w.Amount })
                 .ToListAsync();
-            result.MaterialTransportPool = materialWaybills.Sum(w => Convert.ToDecimal(w.Amount ?? 0d));
+            result.MaterialTransportPool = materialWaybills.Sum(w => w.Amount ?? 0m);
             result.MaterialWaybillNos = materialWaybills.Select(w => w.WaybillNo).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
 
             // 8) Tayyor mahsulot tashuvi: sotuv invoyslari → yo'l varaqalari.
@@ -230,7 +230,7 @@ namespace tahsinERP.Services.Tannarx
                         && w.IssueDate.Value < end)
                     .Select(w => new { InvoiceID = w.SalesInvoiceID.Value, w.WaybillNo, w.Amount })
                     .ToListAsync()
-                : new[] { new { InvoiceID = 0L, WaybillNo = "", Amount = (double?)null } }.Take(0).ToList();
+                : new[] { new { InvoiceID = 0L, WaybillNo = "", Amount = (decimal?)null } }.Take(0).ToList();
             var finishedWaybillsByInvoice = finishedWaybills.ToLookup(w => w.InvoiceID);
 
             var waybillSalesInvoiceIds = finishedWaybills.Select(w => w.InvoiceID).Distinct().ToList();
@@ -356,7 +356,7 @@ namespace tahsinERP.Services.Tannarx
                     decimal allocated = 0m;
                     foreach (var invoiceId in invoiceIds)
                     {
-                        var wbSum = finishedWaybillsByInvoice[invoiceId].Sum(w => Convert.ToDecimal(w.Amount ?? 0d));
+                        var wbSum = finishedWaybillsByInvoice[invoiceId].Sum(w => w.Amount ?? 0m);
                         if (wbSum <= 0)
                             continue;
                         r.FinishedWaybillAmount += wbSum;
@@ -561,7 +561,7 @@ namespace tahsinERP.Services.Tannarx
 
             var categories = await _db.FIN_CATEGORIES
                 .Where(c => c.IsDeleted != true)
-                .Select(c => new TannarxFinanceCategoryClassifier.CategoryRow { ID = c.ID, Name = c.Name, Type = c.Type, ParentID = c.ParentID })
+                .Select(c => new TannarxFinanceCategoryClassifier.CategoryRow { ID = c.ID, Name = c.Name, Type = c.Type, ParentID = c.ParentID, AnalyticsGroup = c.AnalyticsGroup })
                 .ToListAsync();
             var manualMap = await new TannarxFinanceCategoryMapStore(_db).LoadAsync();
             _financeClasses = TannarxFinanceCategoryClassifier.Classify(categories, manualMap);

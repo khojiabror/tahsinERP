@@ -269,194 +269,191 @@
 
     <link href="~/Content/fin-dashboard.css" rel="stylesheet" />
 
-    @Html.Partial("_ChartJs")
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Payables by Supplier Pie Chart
-            var payablesBySupplierData = @Html.Raw(Json.Encode(ViewBag.PayablesBySupplier));
-            if (payablesBySupplierData && payablesBySupplierData.length > 0) {
-                var supplierLabels = payablesBySupplierData.map(function(item) { return item.SupplierName; });
-                var supplierAmounts = payablesBySupplierData.map(function(item) { return item.Amount; });
+@* jQuery layout oxirida yuklanadi — skriptlar Scripts section'da bo'lishi kerak *@
+@section Scripts {
+        @Html.Partial("_ChartJs")
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Payables by Supplier Pie Chart
+                var payablesBySupplierData = @Html.Raw(Json.Encode(ViewBag.PayablesBySupplier));
+                if (payablesBySupplierData && payablesBySupplierData.length > 0) {
+                    var supplierLabels = payablesBySupplierData.map(function(item) { return item.SupplierName; });
+                    var supplierAmounts = payablesBySupplierData.map(function(item) { return item.Amount; });
 
-                var payablesPieCtx = document.getElementById('payablesBySupplierChart').getContext('2d');
-                new Chart(payablesPieCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: supplierLabels,
-                        datasets: [{
-                            data: supplierAmounts,
-                            backgroundColor: [
-                                'rgba(255, 152, 0, 0.8)',
-                                'rgba(255, 193, 7, 0.8)',
-                                'rgba(255, 235, 59, 0.8)',
-                                'rgba(255, 87, 34, 0.8)',
-                                'rgba(244, 67, 54, 0.8)',
-                                'rgba(156, 39, 176, 0.8)',
-                                'rgba(103, 58, 183, 0.8)',
-                                'rgba(63, 81, 181, 0.8)'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'right'
+                    var payablesPieCtx = document.getElementById('payablesBySupplierChart').getContext('2d');
+                    new Chart(payablesPieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: supplierLabels,
+                            datasets: [{
+                                data: supplierAmounts,
+                                backgroundColor: [
+                                    'rgba(255, 152, 0, 0.8)',
+                                    'rgba(255, 193, 7, 0.8)',
+                                    'rgba(255, 235, 59, 0.8)',
+                                    'rgba(255, 87, 34, 0.8)',
+                                    'rgba(244, 67, 54, 0.8)',
+                                    'rgba(156, 39, 176, 0.8)',
+                                    'rgba(103, 58, 183, 0.8)',
+                                    'rgba(63, 81, 181, 0.8)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'right'
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            // Receivables by Customer Pie Chart
-            var receivablesByCustomerData = @Html.Raw(Json.Encode(ViewBag.ReceivablesByCustomer));
-            if (receivablesByCustomerData && receivablesByCustomerData.length > 0) {
-                var customerLabels = receivablesByCustomerData.map(function(item) { return item.CustomerName; });
-                var customerAmounts = receivablesByCustomerData.map(function(item) { return item.Amount; });
+                // Receivables by Customer Pie Chart
+                var receivablesByCustomerData = @Html.Raw(Json.Encode(ViewBag.ReceivablesByCustomer));
+                if (receivablesByCustomerData && receivablesByCustomerData.length > 0) {
+                    var customerLabels = receivablesByCustomerData.map(function(item) { return item.CustomerName; });
+                    var customerAmounts = receivablesByCustomerData.map(function(item) { return item.Amount; });
 
-                var receivablesPieCtx = document.getElementById('receivablesByCustomerChart').getContext('2d');
-                new Chart(receivablesPieCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: customerLabels,
-                        datasets: [{
-                            data: customerAmounts,
-                            backgroundColor: [
-                                'rgba(33, 150, 243, 0.8)',
-                                'rgba(3, 169, 244, 0.8)',
-                                'rgba(0, 188, 212, 0.8)',
-                                'rgba(0, 150, 136, 0.8)',
-                                'rgba(76, 175, 80, 0.8)',
-                                'rgba(139, 195, 74, 0.8)',
-                                'rgba(205, 220, 57, 0.8)',
-                                'rgba(255, 235, 59, 0.8)'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'right'
+                    var receivablesPieCtx = document.getElementById('receivablesByCustomerChart').getContext('2d');
+                    new Chart(receivablesPieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: customerLabels,
+                            datasets: [{
+                                data: customerAmounts,
+                                backgroundColor: [
+                                    'rgba(33, 150, 243, 0.8)',
+                                    'rgba(3, 169, 244, 0.8)',
+                                    'rgba(0, 188, 212, 0.8)',
+                                    'rgba(0, 150, 136, 0.8)',
+                                    'rgba(76, 175, 80, 0.8)',
+                                    'rgba(139, 195, 74, 0.8)',
+                                    'rgba(205, 220, 57, 0.8)',
+                                    'rgba(255, 235, 59, 0.8)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'right'
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            // Monthly Payables Trend
-            var monthlyPayablesData = @Html.Raw(Json.Encode(ViewBag.MonthlyPayables));
-            if (monthlyPayablesData && monthlyPayablesData.length > 0) {
-                var payablesPeriods = monthlyPayablesData.map(function(item) { return item.Period; });
-                var payablesAmounts = monthlyPayablesData.map(function(item) { return item.Amount; });
+                // Monthly Payables Trend
+                var monthlyPayablesData = @Html.Raw(Json.Encode(ViewBag.MonthlyPayables));
+                if (monthlyPayablesData && monthlyPayablesData.length > 0) {
+                    var payablesPeriods = monthlyPayablesData.map(function(item) { return item.Period; });
+                    var payablesAmounts = monthlyPayablesData.map(function(item) { return item.Amount; });
 
-                var monthlyPayablesCtx = document.getElementById('monthlyPayablesChart').getContext('2d');
-                new Chart(monthlyPayablesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: payablesPeriods,
-                        datasets: [{
-                            label: 'Ta\'minotchilardan qarzlar',
-                            data: payablesAmounts,
-                            borderColor: 'rgb(255, 152, 0)',
-                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
+                    var monthlyPayablesCtx = document.getElementById('monthlyPayablesChart').getContext('2d');
+                    new Chart(monthlyPayablesCtx, {
+                        type: 'line',
+                        data: {
+                            labels: payablesPeriods,
+                            datasets: [{
+                                label: 'Ta\'minotchilardan qarzlar',
+                                data: payablesAmounts,
+                                borderColor: 'rgb(255, 152, 0)',
+                                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            // Monthly Receivables Trend
-            var monthlyReceivablesData = @Html.Raw(Json.Encode(ViewBag.MonthlyReceivables));
-            if (monthlyReceivablesData && monthlyReceivablesData.length > 0) {
-                var receivablesPeriods = monthlyReceivablesData.map(function(item) { return item.Period; });
-                var receivablesAmounts = monthlyReceivablesData.map(function(item) { return item.Amount; });
+                // Monthly Receivables Trend
+                var monthlyReceivablesData = @Html.Raw(Json.Encode(ViewBag.MonthlyReceivables));
+                if (monthlyReceivablesData && monthlyReceivablesData.length > 0) {
+                    var receivablesPeriods = monthlyReceivablesData.map(function(item) { return item.Period; });
+                    var receivablesAmounts = monthlyReceivablesData.map(function(item) { return item.Amount; });
 
-                var monthlyReceivablesCtx = document.getElementById('monthlyReceivablesChart').getContext('2d');
-                new Chart(monthlyReceivablesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: receivablesPeriods,
-                        datasets: [{
-                            label: 'Xaridorlardan haqlarimiz',
-                            data: receivablesAmounts,
-                            borderColor: 'rgb(33, 150, 243)',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
+                    var monthlyReceivablesCtx = document.getElementById('monthlyReceivablesChart').getContext('2d');
+                    new Chart(monthlyReceivablesCtx, {
+                        type: 'line',
+                        data: {
+                            labels: receivablesPeriods,
+                            datasets: [{
+                                label: 'Xaridorlardan haqlarimiz',
+                                data: receivablesAmounts,
+                                borderColor: 'rgb(33, 150, 243)',
+                                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            // Monthly Payroll Liability Trend
-            var monthlyPayrollLiabilityData = @Html.Raw(Json.Encode(ViewBag.MonthlyPayrollLiability));
-            if (monthlyPayrollLiabilityData && monthlyPayrollLiabilityData.length > 0) {
-                var payrollPeriods = monthlyPayrollLiabilityData.map(function(item) { return item.Period; });
-                var payrollAmounts = monthlyPayrollLiabilityData.map(function(item) { return item.Amount; });
+                // Monthly Payroll Liability Trend
+                var monthlyPayrollLiabilityData = @Html.Raw(Json.Encode(ViewBag.MonthlyPayrollLiability));
+                if (monthlyPayrollLiabilityData && monthlyPayrollLiabilityData.length > 0) {
+                    var payrollPeriods = monthlyPayrollLiabilityData.map(function(item) { return item.Period; });
+                    var payrollAmounts = monthlyPayrollLiabilityData.map(function(item) { return item.Amount; });
 
-                var monthlyPayrollLiabilityCtx = document.getElementById('monthlyPayrollLiabilityChart').getContext('2d');
-                new Chart(monthlyPayrollLiabilityCtx, {
-                    type: 'line',
-                    data: {
-                        labels: payrollPeriods,
-                        datasets: [{
-                            label: 'Oyliklardan qarzimiz',
-                            data: payrollAmounts,
-                            borderColor: 'rgb(142, 36, 170)',
-                            backgroundColor: 'rgba(142, 36, 170, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
+                    var monthlyPayrollLiabilityCtx = document.getElementById('monthlyPayrollLiabilityChart').getContext('2d');
+                    new Chart(monthlyPayrollLiabilityCtx, {
+                        type: 'line',
+                        data: {
+                            labels: payrollPeriods,
+                            datasets: [{
+                                label: 'Oyliklardan qarzimiz',
+                                data: payrollAmounts,
+                                borderColor: 'rgb(142, 36, 170)',
+                                backgroundColor: 'rgba(142, 36, 170, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
                             }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            // Initialize DataTables (only if jQuery + DataTables are available)
-            if (window.jQuery && $.fn && $.fn.DataTable) {
-                $('#payablesAccountsTable').DataTable({
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                    },
-                    "order": [[5, "desc"]],
-                    "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
-                });
+                // Initialize DataTables (only if jQuery + DataTables are available)
+                if (window.jQuery && $.fn && $.fn.DataTable) {
+                    $('#payablesAccountsTable').DataTable({
+                        "order": [[5, "desc"]],
+                        "pageLength": 25,
+                        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
+                    });
 
-                $('#receivablesAccountsTable').DataTable({
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Uzbek.json"
-                    },
-                    "order": [[5, "desc"]],
-                    "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
-                });
-            }
-        });
-    </script>
+                    $('#receivablesAccountsTable').DataTable({
+                        "order": [[5, "desc"]],
+                        "pageLength": 25,
+                        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
+                    });
+                }
+            });
+        </script>
+}
 

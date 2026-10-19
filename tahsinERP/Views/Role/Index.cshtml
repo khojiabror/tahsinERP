@@ -110,10 +110,13 @@
                                                                    class="btn btn-sm btn-outline-primary" title="Tahrirlash">
                                                                     <i class="bx bx-edit"></i>
                                                                 </a>
+                                                                @if (!tahsinERP.Services.Common.SystemCodes.IsSystem(item.SystemCode))
+                                                                {
                                                                 <a href="@Url.Action("Delete", "Role", new { id = item.ID })" 
                                                                    class="btn btn-sm btn-outline-danger" title="O'chirish">
                                                                     <i class="bx bx-trash"></i>
                                                                 </a>
+                                                                }
                                                             </td>
                                                         }
                                                     </tr>
@@ -130,7 +133,6 @@
         </div>
     </div>
 
-    <script src="~/Scripts/app/erp-datatable.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var changePermit = @(changePermit ? "true" : "false");
