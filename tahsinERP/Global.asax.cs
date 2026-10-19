@@ -29,6 +29,40 @@ namespace tahsinERP
             System.Threading.Thread.CurrentThread.CurrentUICulture = AppCulture;
             tahsinERP.Configuration.Tenancy.TenantHttp.BeginRequest(Context); // host → tenant bazasi (reestr bo'sh bo'lsa hech narsa qilmaydi)
         }
+        // MVC action'dan tashqaridagi xatolar (controller/action topilmadi, 400, route xatosi) uchun xato sahifasi.
+        // Action ichidagi xatolarni global HandleErrorAttribute ushlaydi.
+        protected void Application_Error()
+        {
+            var ex = Server.GetLastError();
+            int code = (ex as System.Web.HttpException)?.GetHttpCode() ?? 500;
+            if (code != 404 && code != 400)
+            {
+                code = 500;
+                System.Diagnostics.Trace.TraceError("Unhandled: " + ex);
+            }
+
+            Server.ClearError();
+            Response.Clear();
+            Response.StatusCode = code;
+            Response.TrySkipIisCustomErrors = true;
+
+            var routeData = new RouteData();
+            routeData.Values["controller"] = "Error";
+            routeData.Values["action"] = code == 404 ? "NotFound" : "Error";
+            try
+            {
+                IController controller = new ErrorController();
+                controller.Execute(new RequestContext(new System.Web.HttpContextWrapper(Context), routeData));
+            }
+            catch
+            {
+                // Xato sahifasining o'zi ishlamasa — oddiy matn (cheksiz aylanishsiz)
+                Response.Clear();
+                Response.ContentType = "text/plain";
+                Response.Write(code == 404 ? "Sahifa topilmadi." : "Xatolik yuz berdi.");
+            }
+        }
+
         protected void Application_PostAuthenticateRequest()
         {
             tahsinERP.Configuration.Tenancy.TenantHttp.PostAuthenticateRequest(Context); // cookie boshqa tenant'niki bo'lsa — anonim
