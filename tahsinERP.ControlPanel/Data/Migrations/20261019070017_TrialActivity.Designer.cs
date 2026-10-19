@@ -12,7 +12,7 @@ using tahsinERP.ControlPanel.Data;
 namespace tahsinERP.ControlPanel.Data.Migrations
 {
     [DbContext(typeof(ControlDbContext))]
-    [Migration("20261019063939_TrialActivity")]
+    [Migration("20261019070017_TrialActivity")]
     partial class TrialActivity
     {
         /// <inheritdoc />
@@ -940,6 +940,92 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("Tenants");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyDoc", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DocType")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Date", "DocType");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("UsageDailyDocs");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyModule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<byte>("ActionType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Controller")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date", "Module");
+
+                    b.HasIndex("TenantId", "Date", "Module", "Controller", "ActionType")
+                        .IsUnique();
+
+                    b.ToTable("UsageDailyModules");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyUser", b =>
+                {
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Actions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Logins")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "Date", "UserId");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("UsageDailyUsers");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageEvent", b =>
                 {
                     b.Property<long>("Id")
@@ -952,8 +1038,15 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
+                    b.Property<byte>("ActionType")
+                        .HasColumnType("tinyint");
+
                     b.Property<DateTime>("AtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Controller")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("Kind")
                         .HasColumnType("int");
@@ -1138,6 +1231,33 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Server");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyDoc", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyModule", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageDailyUser", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.UsageEvent", b =>

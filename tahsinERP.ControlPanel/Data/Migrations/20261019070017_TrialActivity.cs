@@ -25,6 +25,71 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                 nullable: true);
 
             migrationBuilder.CreateTable(
+                name: "UsageDailyDocs",
+                columns: table => new
+                {
+                    TenantId = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    DocType = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Count = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UsageDailyDocs", x => new { x.TenantId, x.Date, x.DocType });
+                    table.ForeignKey(
+                        name: "FK_UsageDailyDocs_Tenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "Tenants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UsageDailyModules",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TenantId = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    Module = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Controller = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ActionType = table.Column<byte>(type: "tinyint", nullable: false),
+                    Count = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UsageDailyModules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UsageDailyModules_Tenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "Tenants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UsageDailyUsers",
+                columns: table => new
+                {
+                    TenantId = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Logins = table.Column<int>(type: "int", nullable: false),
+                    Actions = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UsageDailyUsers", x => new { x.TenantId, x.Date, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_UsageDailyUsers_Tenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "Tenants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UsageEvents",
                 columns: table => new
                 {
@@ -36,6 +101,8 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     UserId = table.Column<int>(type: "int", nullable: false),
                     AtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Module = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Controller = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ActionType = table.Column<byte>(type: "tinyint", nullable: false),
                     Action = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true)
                 },
                 constraints: table =>
@@ -98,6 +165,27 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_UsageDailyDocs_Date",
+                table: "UsageDailyDocs",
+                column: "Date");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UsageDailyModules_Date_Module",
+                table: "UsageDailyModules",
+                columns: new[] { "Date", "Module" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UsageDailyModules_TenantId_Date_Module_Controller_ActionType",
+                table: "UsageDailyModules",
+                columns: new[] { "TenantId", "Date", "Module", "Controller", "ActionType" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UsageDailyUsers_Date",
+                table: "UsageDailyUsers",
+                column: "Date");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UsageEvents_AtUtc",
                 table: "UsageEvents",
                 column: "AtUtc");
@@ -123,6 +211,15 @@ namespace tahsinERP.ControlPanel.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "UsageDailyDocs");
+
+            migrationBuilder.DropTable(
+                name: "UsageDailyModules");
+
+            migrationBuilder.DropTable(
+                name: "UsageDailyUsers");
+
             migrationBuilder.DropTable(
                 name: "UsageEvents");
 

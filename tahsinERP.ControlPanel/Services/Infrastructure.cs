@@ -48,6 +48,8 @@ public sealed class Clock(TimeProvider time, IOptions<PanelOptions> options)
     public DateTimeOffset Now => time.GetUtcNow();
     public DateTime LocalNow => TimeZoneInfo.ConvertTimeFromUtc(UtcNow, _zone);
     public DateOnly Today => DateOnly.FromDateTime(LocalNow);
+    /// <summary>Toshkent kunining boshlanishi (UTC).</summary>
+    public DateTime LocalDayStartUtc(DateOnly day) => TimeZoneInfo.ConvertTimeToUtc(day.ToDateTime(TimeOnly.MinValue), _zone);
     public DateTime ToLocal(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), _zone);
 }
 

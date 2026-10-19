@@ -9,6 +9,9 @@ namespace tahsinERP.ControlPanel.Tests;
 /// <summary>Provisioning UI: agent kaliti, «Sinov ochish», job sahifalari, o'chirish tasdig'i, rollar.</summary>
 public partial class WebUiTests
 {
+    /// <summary>Boshqa test klasslari uchun to'liq (2FA bilan) kirgan klient.</summary>
+    internal static Task<HttpClient> LoginStaticAsync(PanelFactory factory, string email, StaffRole role) => new WebUiTests(factory).LoginAsync(email, role);
+
     [Fact]
     public async Task Provisioning_Ui_TrialShowsPasswordOnce_JobPages_AgentKey_DeleteGuard()
     {

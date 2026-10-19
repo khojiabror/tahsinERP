@@ -15,6 +15,8 @@ public class UsageOptions
     public int RetentionDays { get; set; } = 90;
     /// <summary>Dashboard: shuncha kun kirmagan sinov tenanti «faol emas».</summary>
     public int InactiveTrialDays { get; set; } = 3;
+    /// <summary>Kunlik agregatlar (Traction) shuncha kun saqlanadi (≥ 2 yil).</summary>
+    public int AggregateRetentionDays { get; set; } = 760;
 }
 
 /// <summary>
@@ -84,6 +86,7 @@ public sealed class UsageService(ControlDbContext db, Clock clock, ProvisioningS
         DateTime cutoff = now.AddDays(-O.RetentionDays);
         var events = r.Events.Where(e => e.AtUtc >= cutoff && e.AtUtc <= now.AddDays(1))
             .GroupBy(e => (e.Kind, e.SourceId, e.AtUtc)).Select(g => g.First()).ToList();
+        var affectedDays = new HashSet<DateOnly>();
         if (events.Count > 0)
         {
             var minAt = events.Min(e => e.AtUtc);
@@ -98,8 +101,11 @@ public sealed class UsageService(ControlDbContext db, Clock clock, ProvisioningS
                 db.UsageEvents.Add(new UsageEvent
                 {
                     TenantId = t.Id, Kind = kind, SourceId = e.SourceId, UserId = e.UserId, AtUtc = e.AtUtc,
-                    Module = Trim(e.Module, 50), Action = Trim(e.Action, 300),
+                    Module = Trim(e.Module, 50), Controller = Trim(e.Controller, 50),
+                    ActionType = Enum.IsDefined((Data.UsageActionType)(byte)e.ActionType) ? (Data.UsageActionType)(byte)e.ActionType : Data.UsageActionType.Other,
+                    Action = Trim(e.Action, 300),
                 });
+                affectedDays.Add(DateOnly.FromDateTime(clock.ToLocal(e.AtUtc)));
                 if (users.TryGetValue(e.UserId, out var u))
                 {
                     if (kind == Data.UsageEventKind.Login) u.LastLoginUtc = Max(u.LastLoginUtc, e.AtUtc);
@@ -110,13 +116,58 @@ public sealed class UsageService(ControlDbContext db, Clock clock, ProvisioningS
             }
         }
         await db.SaveChangesAsync(ct);
+        foreach (var day in affectedDays)
+            await RebuildDayAsync(t.Id, day, ct);
+        await UpsertDocsAsync(t.Id, r, ct);
     }
 
-    /// <summary>Kunlik ish: saqlash muddatidan eski hodisalarni o'chiradi.</summary>
-    public Task<int> PurgeAsync(CancellationToken ct = default)
+    /// <summary>
+    /// Bir kunning agregatlarini (UsageDailyModules, UsageDailyUsers) xom yozuvlardan qayta quradi — idempotent
+    /// (takroriy/kechikkan yozuv ham to'g'ri). Faqat xom yozuvlar saqlanadigan 90 kun ichidagi kunlar uchun chaqiriladi.
+    /// </summary>
+    public async Task RebuildDayAsync(int tenantId, DateOnly day, CancellationToken ct = default)
+    {
+        DateTime from = clock.LocalDayStartUtc(day), to = clock.LocalDayStartUtc(day.AddDays(1));
+        var evs = await db.UsageEvents.AsNoTracking().Where(e => e.TenantId == tenantId && e.AtUtc >= from && e.AtUtc < to)
+            .Select(e => new { e.Kind, e.UserId, e.Module, e.Controller, e.ActionType }).ToListAsync(ct);
+        await db.UsageDailyModules.Where(x => x.TenantId == tenantId && x.Date == day).ExecuteDeleteAsync(ct);
+        await db.UsageDailyUsers.Where(x => x.TenantId == tenantId && x.Date == day).ExecuteDeleteAsync(ct);
+        foreach (var g in evs.Where(e => e.Kind == Data.UsageEventKind.Action).GroupBy(e => (Module: e.Module ?? "Core", Controller: e.Controller ?? "", e.ActionType)))
+            db.UsageDailyModules.Add(new UsageDailyModule
+            {
+                TenantId = tenantId, Date = day, Module = g.Key.Module.Length > 20 ? g.Key.Module[..20] : g.Key.Module,
+                Controller = g.Key.Controller, ActionType = g.Key.ActionType, Count = g.Count(),
+            });
+        foreach (var g in evs.GroupBy(e => e.UserId))
+            db.UsageDailyUsers.Add(new UsageDailyUser
+            {
+                TenantId = tenantId, Date = day, UserId = g.Key,
+                Logins = g.Count(e => e.Kind == Data.UsageEventKind.Login), Actions = g.Count(e => e.Kind == Data.UsageEventKind.Action),
+            });
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>Biznes hajmi: agent DocsFromDate..bugun oralig'ini to'liq qayta yuboradi — shu oraliq almashtiriladi.</summary>
+    private async Task UpsertDocsAsync(int tenantId, UsageReport r, CancellationToken ct)
+    {
+        if (r.DocsFromDate is not DateOnly from) return;
+        await db.UsageDailyDocs.Where(x => x.TenantId == tenantId && x.Date >= from).ExecuteDeleteAsync(ct);
+        foreach (var d in r.Docs.Where(d => d.Date >= from && d.Count > 0 && UsageDocTypes.All.Contains(d.DocType))
+                     .GroupBy(d => (d.DocType, d.Date)))
+            db.UsageDailyDocs.Add(new UsageDailyDoc { TenantId = tenantId, Date = d.Key.Date, DocType = d.Key.DocType, Count = d.Sum(x => x.Count) });
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>Kunlik ish: saqlash muddatidan eski xom hodisalar (90 kun) va agregatlarni (≥ 2 yil) o'chiradi.</summary>
+    public async Task<int> PurgeAsync(CancellationToken ct = default)
     {
         DateTime cutoff = clock.UtcNow.AddDays(-O.RetentionDays);
-        return db.UsageEvents.Where(e => e.AtUtc < cutoff).ExecuteDeleteAsync(ct);
+        int n = await db.UsageEvents.Where(e => e.AtUtc < cutoff).ExecuteDeleteAsync(ct);
+        var aggCutoff = clock.Today.AddDays(-Math.Max(O.AggregateRetentionDays, 730));
+        n += await db.UsageDailyModules.Where(x => x.Date < aggCutoff).ExecuteDeleteAsync(ct);
+        n += await db.UsageDailyUsers.Where(x => x.Date < aggCutoff).ExecuteDeleteAsync(ct);
+        n += await db.UsageDailyDocs.Where(x => x.Date < aggCutoff).ExecuteDeleteAsync(ct);
+        return n;
     }
 
     public sealed record DayRow(DateOnly Date, int Logins, int Actions, int ActiveUsers);

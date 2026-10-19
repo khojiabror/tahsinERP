@@ -175,8 +175,34 @@ public sealed class UsageReport
     public bool More { get; set; }
     public List<UsageUserDto> Users { get; set; } = [];
     public List<UsageEventDto> Events { get; set; } = [];
+    /// <summary>Biznes hajmi: hujjat sanasi bo'yicha kunlik soni, DocsFromDate dan bugungacha (har safar qayta hisoblanadi).</summary>
+    public List<UsageDocDay> Docs { get; set; } = [];
+    public DateOnly? DocsFromDate { get; set; }
     public string? Error { get; set; }
 }
+
+/// <summary>Asosiy hujjat turlari (07_TRACTION.md): jadval va sana ustuni agentda.</summary>
+public static class UsageDocTypes
+{
+    public const string SalesOrder = "SALES_ORDER";
+    public const string PurchaseOrder = "PURCHASE_ORDER";
+    public const string Income = "INCOME";
+    public const string SalesInvoice = "SALES_INVOICE";
+    public const string Production = "PRODUCTION";
+    public const string Waybill = "WAYBILL";
+    public const string Payroll = "PAYROLL";
+    public static readonly string[] All = [SalesOrder, PurchaseOrder, Income, SalesInvoice, Production, Waybill, Payroll];
+}
+
+public sealed class UsageDocDay
+{
+    public string DocType { get; set; } = "";
+    public DateOnly Date { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>USERLOGS amal turi (matndagi fe'l bo'yicha). ERP ko'rishni (GET) loglamaydi — View kam uchraydi.</summary>
+public enum UsageActionType { Other = 0, View = 1, Create = 2, Edit = 3, Delete = 4, Export = 5 }
 
 public sealed class UsageUserDto
 {
@@ -194,8 +220,11 @@ public sealed class UsageEventDto
     public long SourceId { get; set; }
     public int UserId { get; set; }
     public DateTime AtUtc { get; set; }
-    /// <summary>USERLOGS.ControllerName (modul).</summary>
+    /// <summary>Modul (EditionModules.ProductModule nomi: Srm, Crm, ... yoki Core).</summary>
     public string? Module { get; set; }
+    /// <summary>Normallashtirilgan controller (EditionModules.NormalizeLogController) — «sahifa».</summary>
+    public string? Controller { get; set; }
+    public UsageActionType ActionType { get; set; }
     /// <summary>USERLOGS.ActionName — qisqartirilgan va maskalangan.</summary>
     public string? Action { get; set; }
 }

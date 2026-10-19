@@ -830,7 +830,6 @@
     <Compile Include="Filters\MustChangePasswordAttribute.cs" />
     <Compile Include="Filters\EditionCheckAttribute.cs" />
     <Compile Include="Services\Editions\EditionGate.cs" />
-    <Compile Include="Services\Editions\EditionModules.cs" />
     <Compile Include="Filters\PermissionAttribute.cs" />
     <Compile Include="Filters\ValidateAntiForgeryHeaderAttribute.cs" />
     <Compile Include="Services\SContractVatHelper.cs" />

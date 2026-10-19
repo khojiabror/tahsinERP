@@ -25,6 +25,8 @@ public sealed class AgentOptions
         public int LookbackDays { get; set; } = 90;
         /// <summary>USERLOGS.ActionName matni (maskalangan) yuborilsinmi. false — faqat modul va vaqt.</summary>
         public bool IncludeActionText { get; set; } = true;
+        /// <summary>Biznes hajmi (hujjatlar soni) shuncha kun orqaga har safar qayta hisoblanadi (orqa sana bilan kiritilganlar uchun).</summary>
+        public int DocsWindowDays { get; set; } = 35;
     }
 
     public sealed class PanelSection

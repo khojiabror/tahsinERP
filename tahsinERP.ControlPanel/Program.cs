@@ -55,6 +55,7 @@ services.AddScoped<DashboardService>();
 services.AddScoped<ExpiryReminderService>();
 services.AddScoped<ProvisioningService>();
 services.AddScoped<UsageService>();
+services.AddScoped<TractionService>();
 services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))

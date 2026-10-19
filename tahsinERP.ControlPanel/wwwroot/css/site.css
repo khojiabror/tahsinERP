@@ -75,3 +75,12 @@ td code { white-space: nowrap; word-break: normal; }
 table.lines td:first-child { width: 55%; }
 pre.log { background: #1e1e1e; color: #ddd; padding: 10px; border-radius: 4px; max-height: 600px; overflow: auto; font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
 .chart { width: 100%; max-width: 900px; height: auto; background: #fff; border: 1px solid var(--line); border-radius: 4px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.tile { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 10px; }
+.tile-v { font-size: 20px; font-weight: 600; }
+.tile-v small { font-size: 12px; font-weight: 400; color: var(--muted); }
+.tile-l { font-size: 12px; color: var(--muted); }
+table.cohort td.heat-0 { background: #fdecea; }
+table.cohort td.heat-1 { background: #fff4e0; }
+table.cohort td.heat-2 { background: #eef6e8; }
+table.cohort td.heat-3, table.cohort td.heat-4 { background: #d4ecd9; }

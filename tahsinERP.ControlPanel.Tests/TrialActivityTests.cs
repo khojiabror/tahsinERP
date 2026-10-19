@@ -212,7 +212,8 @@ public partial class ProvisioningIntegrationTests
         });
         Assert.Null(state.Error);
         Assert.Contains(events, e => e.Kind == DataKind.Login);
-        var action = Assert.Single(events, e => e.Kind == DataKind.Action && e.Module == "SOrder");
+        var action = Assert.Single(events, e => e.Kind == DataKind.Action && e.Controller == "SOrder");
+        Assert.Equal("Crm", action.Module); // EditionModules xaritasi (umumiy kutubxona)
         Assert.DoesNotContain("info@client.uz", action.Action);
         Assert.DoesNotContain("901234567", action.Action);
         Assert.Contains(users, u => u.Login == "admin" && u.LastLoginUtc != null);
@@ -222,7 +223,18 @@ public partial class ProvisioningIntegrationTests
 
         // Faollik sahifasi uchun xulosa
         var summary = await f.WithScopeAsync(sp => sp.GetRequiredService<UsageService>().SummaryAsync(tenant.Id, 7));
-        Assert.Contains(summary.Modules, m => m.Module == "SOrder");
+        Assert.Contains(summary.Modules, m => m.Module == "Crm");
+        // Traction agregatlari: kunlik modul va faol foydalanuvchi, namuna hujjatlar soni
+        var (dailyModules, dailyUsers, dailyDocs) = await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            return (await db.UsageDailyModules.Where(x => x.TenantId == tenant.Id).ToListAsync(),
+                await db.UsageDailyUsers.Where(x => x.TenantId == tenant.Id).ToListAsync(),
+                await db.UsageDailyDocs.Where(x => x.TenantId == tenant.Id).ToListAsync());
+        });
+        Assert.Contains(dailyModules, x => x.Module == "Crm" && x.Controller == "SOrder" && x.Count == 1);
+        Assert.Contains(dailyUsers, x => x.Logins == 1 && x.Actions == 1);
+        Assert.Contains(dailyDocs, x => x.DocType == UsageDocTypes.SalesOrder && x.Count > 0); // Database/Demo sotuv buyurtmalari
 
         // Sinovni erta yakunlash: arxiv bilan → baza o'chdi, tenants.json'da yo'q, .bak bor
         var job = await f.WithScopeAsync(async sp => await sp.GetRequiredService<ProvisioningService>().EndTrialAsync(

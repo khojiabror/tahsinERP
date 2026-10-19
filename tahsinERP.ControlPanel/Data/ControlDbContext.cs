@@ -21,6 +21,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<UsageState> UsageStates => Set<UsageState>();
     public DbSet<UsageUser> UsageUsers => Set<UsageUser>();
     public DbSet<UsageEvent> UsageEvents => Set<UsageEvent>();
+    public DbSet<UsageDailyModule> UsageDailyModules => Set<UsageDailyModule>();
+    public DbSet<UsageDailyUser> UsageDailyUsers => Set<UsageDailyUser>();
+    public DbSet<UsageDailyDoc> UsageDailyDocs => Set<UsageDailyDoc>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -204,7 +207,32 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasIndex(x => new { x.TenantId, x.AtUtc });
             e.HasIndex(x => x.AtUtc);
             e.Property(x => x.Module).HasMaxLength(50);
+            e.Property(x => x.Controller).HasMaxLength(50);
             e.Property(x => x.Action).HasMaxLength(300);
+            e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<UsageDailyModule>(e =>
+        {
+            e.HasIndex(x => new { x.TenantId, x.Date, x.Module, x.Controller, x.ActionType }).IsUnique();
+            e.HasIndex(x => new { x.Date, x.Module });
+            e.Property(x => x.Module).HasMaxLength(20);
+            e.Property(x => x.Controller).HasMaxLength(50);
+            e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<UsageDailyUser>(e =>
+        {
+            e.HasKey(x => new { x.TenantId, x.Date, x.UserId });
+            e.HasIndex(x => x.Date);
+            e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<UsageDailyDoc>(e =>
+        {
+            e.HasKey(x => new { x.TenantId, x.Date, x.DocType });
+            e.HasIndex(x => x.Date);
+            e.Property(x => x.DocType).HasMaxLength(30);
             e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
 

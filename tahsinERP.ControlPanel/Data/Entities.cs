@@ -399,8 +399,48 @@ public class UsageEvent
     public long SourceId { get; set; }
     public int UserId { get; set; }
     public DateTime AtUtc { get; set; }
+    /// <summary>Modul (ProductModule nomi: Srm, Crm, ..., Core).</summary>
     public string? Module { get; set; }
+    /// <summary>Normallashtirilgan controller — «sahifa».</summary>
+    public string? Controller { get; set; }
+    public UsageActionType ActionType { get; set; }
     public string? Action { get; set; }
+}
+
+/// <summary>USERLOGS amal turi (contracts bilan bir xil qiymatlar).</summary>
+public enum UsageActionType : byte { Other = 0, View = 1, Create = 2, Edit = 3, Delete = 4, Export = 5 }
+
+// ---------------- Traction agregatlari (07_TRACTION.md) — Toshkent sanasi bo'yicha, 2+ yil saqlanadi ----------------
+
+/// <summary>Kunlik: tenant × modul × controller × amal turi → amallar soni. UsageEvents'dan qayta hisoblanadi.</summary>
+public class UsageDailyModule
+{
+    public long Id { get; set; }
+    public int TenantId { get; set; }
+    public DateOnly Date { get; set; }
+    public string Module { get; set; } = "";
+    public string Controller { get; set; } = "";
+    public UsageActionType ActionType { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>Kunlik: tenantning faol foydalanuvchisi (DAU/WAU/MAU, kohortalar, faol kunlar shu jadvaldan).</summary>
+public class UsageDailyUser
+{
+    public int TenantId { get; set; }
+    public DateOnly Date { get; set; }
+    public int UserId { get; set; }
+    public int Logins { get; set; }
+    public int Actions { get; set; }
+}
+
+/// <summary>Kunlik biznes hajmi: hujjat turi bo'yicha soni (hujjat sanasi bo'yicha, agent jadvallardan hisoblaydi).</summary>
+public class UsageDailyDoc
+{
+    public int TenantId { get; set; }
+    public DateOnly Date { get; set; }
+    public string DocType { get; set; } = "";
+    public int Count { get; set; }
 }
 
 /// <summary>Hisob-faktura raqamlari hisoblagichi (yil bo'yicha).</summary>
