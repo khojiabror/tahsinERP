@@ -39,10 +39,14 @@ param(
     # Checksum farqini xato emas, ogohlantirish deb hisoblash (faqat tushunib ishlating).
     [switch]$AllowChecksumMismatch,
 
-    [string]$DatabaseRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$DatabaseRoot,
     [string]$LogFile,
     [int]$CommandTimeout = 0
 )
+# Windows PowerShell 5.1: `powershell -File` bilan chaqirilganda param default'ida $PSScriptRoot bo'sh — shu yerda hisoblanadi.
+if (-not $DatabaseRoot) { $DatabaseRoot = Split-Path -Parent $PSScriptRoot }
+# Parol buyruq satrida ko'rinmasligi uchun env orqali ham beriladi (provisioning agenti shunday chaqiradi).
+if ($SqlUser -and -not $SqlPassword -and $env:TAHSINERP_SQL_PASSWORD) { $SqlPassword = $env:TAHSINERP_SQL_PASSWORD }
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'

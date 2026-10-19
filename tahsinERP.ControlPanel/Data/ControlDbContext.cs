@@ -17,6 +17,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<AuditEntry> AuditLog => Set<AuditEntry>();
     public DbSet<InvoiceSequence> InvoiceSequences => Set<InvoiceSequence>();
     public DbSet<ApiNonce> ApiNonces => Set<ApiNonce>();
+    public DbSet<ProvisioningJob> ProvisioningJobs => Set<ProvisioningJob>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -52,6 +53,8 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Region).HasMaxLength(50);
             e.Property(x => x.SqlInstance).HasMaxLength(200);
             e.Property(x => x.Notes).HasMaxLength(1000);
+            e.Property(x => x.AgentSecretProtected).HasMaxLength(500);
+            e.Property(x => x.AgentVersion).HasMaxLength(50);
         });
 
         b.Entity<Tenant>(e =>
@@ -75,6 +78,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.LastVersion).HasMaxLength(50);
             e.Property(x => x.LastHost).HasMaxLength(253);
             e.Property(x => x.Notes).HasMaxLength(2000);
+            e.Property(x => x.ArchiveLocation).HasMaxLength(500);
             e.Property(x => x.RowVersion).IsRowVersion();
             e.HasOne(x => x.Server).WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -157,6 +161,22 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasIndex(x => x.ExpiresUtc);
             e.Property(x => x.InstallationId).HasMaxLength(36);
             e.Property(x => x.Nonce).HasMaxLength(32);
+        });
+
+        b.Entity<ProvisioningJob>(e =>
+        {
+            e.HasIndex(x => new { x.TenantId, x.Id });
+            e.HasIndex(x => new { x.Status, x.NotBeforeUtc });
+            e.HasIndex(x => x.IdempotencyKey).IsUnique().HasFilter("[IdempotencyKey] IS NOT NULL");
+            e.Property(x => x.Payload).HasMaxLength(4000);
+            e.Property(x => x.SecretsProtected).HasMaxLength(2000);
+            e.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            e.Property(x => x.LeaseToken).HasMaxLength(64);
+            e.Property(x => x.Result).HasMaxLength(4000);
+            e.Property(x => x.Error).HasMaxLength(2000);
+            e.Property(x => x.RowVersion).IsRowVersion();
+            e.Ignore(x => x.IsActive);
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<InvoiceSequence>(e =>
