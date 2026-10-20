@@ -2404,4 +2404,141 @@ Yetkazish: {6}</value>
   <data name="IssueSeverity_3" xml:space="preserve">
     <value>K3 — noqulaylik</value>
   </data>
+  <data name="TripStatus_Planned" xml:space="preserve">
+    <value>Rejalandi</value>
+  </data>
+  <data name="TripStatus_InTransit" xml:space="preserve">
+    <value>Yo'lda</value>
+  </data>
+  <data name="TripStatus_Closed" xml:space="preserve">
+    <value>Yopildi</value>
+  </data>
+  <data name="TripStatus_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="StopStatus_Pending" xml:space="preserve">
+    <value>Kutmoqda</value>
+  </data>
+  <data name="StopStatus_Delivered" xml:space="preserve">
+    <value>Yetkazildi</value>
+  </data>
+  <data name="StopStatus_Partial" xml:space="preserve">
+    <value>Qisman</value>
+  </data>
+  <data name="StopStatus_Refused" xml:space="preserve">
+    <value>Rad etildi</value>
+  </data>
+  <data name="TripExpense_FUEL" xml:space="preserve">
+    <value>Yoqilg'i</value>
+  </data>
+  <data name="TripExpense_PARKING" xml:space="preserve">
+    <value>To'xtash joyi</value>
+  </data>
+  <data name="TripExpense_REPAIR" xml:space="preserve">
+    <value>Ta'mir</value>
+  </data>
+  <data name="TripExpense_MEAL" xml:space="preserve">
+    <value>Ovqat</value>
+  </data>
+  <data name="TripExpense_OTHER" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Trip_VehicleRequired" xml:space="preserve">
+    <value>Faol mashinani tanlang.</value>
+  </data>
+  <data name="Trip_ExpeditorRequired" xml:space="preserve">
+    <value>Ekspeditorni tanlang (Jamoalar sahifasida ekspeditor sifatida qo'shilgan xodim).</value>
+  </data>
+  <data name="Trip_OverWeight" xml:space="preserve">
+    <value>Og'irlik {0} kg mashina sig'imidan ({1} kg) oshdi.</value>
+  </data>
+  <data name="Trip_OverVolume" xml:space="preserve">
+    <value>Hajm {0} m³ mashina sig'imidan ({1} m³) oshdi.</value>
+  </data>
+  <data name="Trip_ShipmentNotDeliverable" xml:space="preserve">
+    <value>{0}: jo'natish yetkazishga yaroqsiz (o'zi olib ketish, bekor qilingan yoki allaqachon yetkazilgan).</value>
+  </data>
+  <data name="Trip_ShipmentOtherWarehouse" xml:space="preserve">
+    <value>{0}: jo'natish boshqa ombordan.</value>
+  </data>
+  <data name="Trip_ShipmentBusy" xml:space="preserve">
+    <value>{0}: jo'natish boshqa reysda.</value>
+  </data>
+  <data name="Trip_NotEditable" xml:space="preserve">
+    <value>Reysni bu holatda o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Trip_NoStops" xml:space="preserve">
+    <value>Reysda jo'natish yo'q.</value>
+  </data>
+  <data name="Trip_NotInTransit" xml:space="preserve">
+    <value>Reys yo'lda emas.</value>
+  </data>
+  <data name="Trip_StopAlreadyDone" xml:space="preserve">
+    <value>Bu manzil bo'yicha natija allaqachon kiritilgan.</value>
+  </data>
+  <data name="Trip_DeliveredOverShipped" xml:space="preserve">
+    <value>Yetkazilgan miqdor jo'natilgandan ({0}) ko'p bo'lmasin.</value>
+  </data>
+  <data name="Trip_ProofRequired" xml:space="preserve">
+    <value>Yetkazishni tasdiqlang: rasm yuboring yoki mijoz imzosini oling.</value>
+  </data>
+  <data name="Trip_ReasonRequired" xml:space="preserve">
+    <value>Qisman yetkazish yoki rad uchun sababni tanlang.</value>
+  </data>
+  <data name="Trip_PendingStops" xml:space="preserve">
+    <value>{0} ta manzil bo'yicha natija yo'q — avval yetkazildi/rad belgilang.</value>
+  </data>
+  <data name="Trip_ReturnedOverUndelivered" xml:space="preserve">
+    <value>Qaytgan miqdor yetkazilmagandan ({0}) ko'p bo'lmasin.</value>
+  </data>
+  <data name="Trip_Shortage" xml:space="preserve">
+    <value>reys kamomadi</value>
+  </data>
+  <data name="Trip_ExpenseCategoryRequired" xml:space="preserve">
+    <value>Chiqim moddasini tanlang.</value>
+  </data>
+  <data name="Trip_ExpenseNotPending" xml:space="preserve">
+    <value>Xarajat allaqachon o'tkazilgan yoki bekor qilingan.</value>
+  </data>
+  <data name="Plan_TooMany" xml:space="preserve">
+    <value>Bir kunlik rejada ko'pi bilan {0} ta mijoz.</value>
+  </data>
+  <data name="Kpi_AlreadyApplied" xml:space="preserve">
+    <value>KPI ish haqiga o'tkazilgan.</value>
+  </data>
+  <data name="Kpi_NoEmployee" xml:space="preserve">
+    <value>Agent HR xodimiga bog'lanmagan (KPI sxemasida xodimni tanlang).</value>
+  </data>
+  <data name="Kpi_NoPayroll" xml:space="preserve">
+    <value>{0} uchun xodim qatori bor qoralama ish haqi hisobi topilmadi — avval HR'da hisobni yarating.</value>
+  </data>
+  <data name="Kpi_PayrollLocked" xml:space="preserve">
+    <value>Ish haqi hisobi tasdiqlangan — qaytarib bo'lmaydi.</value>
+  </data>
+  <data name="Voice_Disabled" xml:space="preserve">
+    <value>Ovozli buyurtma o'chirilgan (Mashinalar → Sozlamalar).</value>
+  </data>
+  <data name="Notify_TripAssigned" xml:space="preserve">
+    <value>🚚 Sizga reys {0} ({1}) biriktirildi: mashina {2}, {3} ta manzil, {4} kg. Botda: 🚚 Reys.</value>
+  </data>
+  <data name="Notify_TripStarted" xml:space="preserve">
+    <value>🚚 Buyurtmangiz yo'lga chiqdi: {0} ({1} so'm).
+Ekspeditor: {2}, {3}
+Mashina: {4}</value>
+  </data>
+  <data name="Notify_StopDelivered" xml:space="preserve">
+    <value>✅ Buyurtma {0} yetkazildi ({1}): {2} so'm. Nakladnoy ilova qilingan.</value>
+  </data>
+  <data name="Notify_StopPartial" xml:space="preserve">
+    <value>✅ Buyurtma {0} qisman yetkazildi ({1}): {2} so'm ({3} so'mdan). Sabab: {4}. Nakladnoy ilova qilingan.</value>
+  </data>
+  <data name="Notify_StopRefused" xml:space="preserve">
+    <value>🚫 Buyurtma {0} qabul qilinmadi. Sabab: {1}.</value>
+  </data>
+  <data name="Notify_StopProblem" xml:space="preserve">
+    <value>⚠️ Reys {0}: {1}, buyurtma {2} — {3}. Sabab: {4}. Ekspeditor: {5}.</value>
+  </data>
+  <data name="Notify_TripClosed" xml:space="preserve">
+    <value>🏁 Reys {0} yopildi: yetkazildi {1}/{2}, {3} so'm; omborga qaytdi {4} so'm, kamomad {5} so'm; xarajat {6} so'm.</value>
+  </data>
 </root>

@@ -1,0 +1,54 @@
+@model tahsinERP.Areas.Distribution.Services.Delivery.TripView
+@{
+    Layout = null;
+    var t = Model.Trip;
+    string Q(decimal v) => v.ToString("0.####");
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@DstLocalization.T("Trip_RouteSheet") @t.DocNo</title>
+    @Html.Partial("~/Areas/Distribution/Views/DstOrders/_PrintStyles.cshtml")
+</head>
+<body>
+    <div class="sheet">
+        <div class="noprint"><button onclick="window.print()">@DstLocalization.T("Print")</button></div>
+        <h1>@DstLocalization.T("Trip_RouteSheet") № @t.DocNo</h1>
+        <div class="muted">@ViewBag.Company · @t.DocDate.ToString("dd.MM.yyyy")</div>
+        <div class="meta">
+            <div>
+                <b>@DstLocalization.T("Vehicle"):</b> @Model.Vehicle?.PlateNo @Model.Vehicle?.Model<br />
+                <b>@DstLocalization.T("Vehicle_Driver"):</b> @Model.Vehicle?.DriverName @Model.Vehicle?.DriverPhone
+            </div>
+            <div>
+                <b>@DstLocalization.T("Expeditor"):</b> @Model.Expeditor @Model.ExpeditorPhone<br />
+                <b>@DstLocalization.T("Warehouse"):</b> @Model.Warehouse · @t.WeightKg.ToString("N0") kg · @t.Total.ToString("N0") @DstLocalization.T("Currency_Sum")
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="c">#</th><th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Order_No")</th><th>@DstLocalization.T("Product")</th>
+                    <th class="r">@DstLocalization.T("Amount")</th><th class="r">@DstLocalization.T("Debt")</th><th style="width:110px">@DstLocalization.T("Print_Received")</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Stops.OrderBy(x => x.Seq))
+                {
+                    <tr>
+                        <td class="c">@s.Seq</td>
+                        <td><b>@s.Customer</b><br /><span class="muted">@s.Address @s.Landmark @s.Phone</span></td>
+                        <td>@s.OrderNo<br /><span class="muted">@s.ShipmentNo</span></td>
+                        <td>@foreach (var l in s.Lines) { <div>@l.Product — @Q(l.QtyBase) @l.Unit</div> }</td>
+                        <td class="r">@s.Amount.ToString("N0")</td>
+                        <td class="r">@s.Debt.ToString("N0")</td>
+                        <td></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="sign"><div>@DstLocalization.T("Print_Released")</div><div>@DstLocalization.T("Expeditor")</div></div>
+    </div>
+</body>
+</html>

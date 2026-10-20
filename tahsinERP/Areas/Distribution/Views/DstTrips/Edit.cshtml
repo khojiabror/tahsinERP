@@ -1,0 +1,251 @@
+@model tahsinERP.Areas.Distribution.Services.Delivery.TripView
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.DstParent = DstLocalization.T("Trips");
+    ViewBag.Title = Model == null ? DstLocalization.T("Trip_New") : DstLocalization.T("Trip") + " " + Model.Trip.DocNo;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var vehicles = (List<Vehicle>)ViewBag.Vehicles;
+    var warehouses = (List<SelectListItem>)ViewBag.Warehouses;
+    string mapsKey = ViewBag.MapsKey;
+    var depots = (Dictionary<int, tahsinERP.Areas.Distribution.Services.Delivery.GeoPoint>)ViewBag.Depots;
+    var t = Model?.Trip;
+    var selected = Model == null ? "[]" : Newtonsoft.Json.JsonConvert.SerializeObject(Model.Stops.OrderBy(s => s.Seq).Select(s => s.ShipmentID));
+    var depotJson = Newtonsoft.Json.JsonConvert.SerializeObject(depots.Where(d => d.Value != null).ToDictionary(d => d.Key.ToString(), d => new[] { d.Value.Lat, d.Value.Lng }));
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-2">
+                            <label>@DstLocalization.T("Date")</label>
+                            <input type="date" id="tDate" class="form-control" value="@((t?.DocDate ?? DateTime.Today).ToString("yyyy-MM-dd"))" />
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>@DstLocalization.T("Vehicle") *</label>
+                            <select id="tVehicle" class="form-control">
+                                <option value="">—</option>
+                                @foreach (var v in vehicles)
+                                {
+                                    <option value="@v.ID" data-kg="@v.CapacityKg.ToString(inv)" data-m3="@(v.CapacityM3?.ToString(inv))" data-expeditor="@v.ExpeditorUserID"
+                                            data-warehouse="@v.WarehouseID" @(t?.VehicleID == v.ID ? "selected" : "")>
+                                        @v.PlateNo @(v.Model) — @v.CapacityKg.ToString("N0") kg@(v.CapacityM3.HasValue ? ", " + v.CapacityM3.Value.ToString("0.#") + " m³" : "")
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>@DstLocalization.T("Expeditor") *</label>
+                            @Html.DropDownList("tExpeditor", ((List<SelectListItem>)ViewBag.Expeditors).Select(x => new SelectListItem { Value = x.Value, Text = x.Text, Selected = t != null && x.Value == t.ExpeditorUserID.ToString() }), "—", new { @class = "form-control", id = "tExpeditor" })
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>@DstLocalization.T("Warehouse") *</label>
+                            @Html.DropDownList("tWarehouse", warehouses.Select(x => new SelectListItem { Value = x.Value, Text = x.Text, Selected = t != null && x.Value == t.WarehouseID.ToString() }), new { @class = "form-control", id = "tWarehouse" })
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>@DstLocalization.T("Comment")</label>
+                            <input id="tNote" class="form-control" maxlength="500" value="@t?.Note" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="small mb-25">@DstLocalization.T("Trip_LoadKg"): <b id="kgText">0</b></div>
+                            <div class="progress progress-bar-primary mb-50" style="height:8px"><div id="kgBar" class="progress-bar" style="width:0"></div></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="small mb-25">@DstLocalization.T("Trip_LoadM3"): <b id="m3Text">0</b></div>
+                            <div class="progress progress-bar-info mb-50" style="height:8px"><div id="m3Bar" class="progress-bar" style="width:0"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title">@DstLocalization.T("Trip_Available")</h4>
+                            <input id="avFilter" class="form-control form-control-sm" style="max-width:220px" placeholder="@DstLocalization.T("Table_Search")" />
+                        </div>
+                        <div class="card-body" style="max-height:560px;overflow:auto">
+                            <p class="small text-muted">@DstLocalization.T("Trip_AvailableHint")</p>
+                            <table class="table table-sm small">
+                                <thead><tr><th></th><th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Order_No")</th><th class="text-right">kg</th><th class="text-right">@DstLocalization.T("Amount")</th></tr></thead>
+                                <tbody id="avBody"><tr><td colspan="5" class="text-muted">…</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title">@DstLocalization.T("Trip_Route") (<span id="selCount">0</span>)</h4>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnOptimize" title="@DstLocalization.T("Trip_OptimizeHint")"><i class="bx bx-git-branch"></i> @DstLocalization.T("Trip_Optimize")</button>
+                                <button type="button" class="btn btn-sm btn-primary" id="btnSave"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="planMap" style="height:300px;border-radius:6px;overflow:hidden" class="mb-1 @(string.IsNullOrEmpty(mapsKey) ? "d-none" : "")"></div>
+                            @if (string.IsNullOrEmpty(mapsKey))
+                            {
+                                <div class="alert alert-light small">@DstLocalization.T("Map_NoKey")</div>
+                            }
+                            <div class="small text-muted mb-50" id="kmText"></div>
+                            <table class="table table-sm small mb-0">
+                                <thead><tr><th>#</th><th>@DstLocalization.T("Customer")</th><th class="text-right">kg</th><th class="text-right">@DstLocalization.T("Amount")</th><th></th></tr></thead>
+                                <tbody id="selBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var tripId = @(t?.ID.ToString() ?? "null");
+            var depots = @Html.Raw(depotJson);
+            var order = @Html.Raw(selected);        // tanlangan jo'natishlar tartibi
+            var rows = {};                           // id -> jo'natish
+            var money = new Intl.NumberFormat('ru-RU');
+            var mapsKey = '@Html.Raw(HttpUtility.JavaScriptStringEncode(mapsKey ?? ""))';
+            var noGeo = '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Trip_NoGeo")))';
+            var map = null, layer = null;
+
+            function vehicle() { return $('#tVehicle option:selected'); }
+            function depot() { return depots[$('#tWarehouse').val()] || null; }
+
+            function load() {
+                $.getJSON('@Url.Action("Available")', { warehouseId: $('#tWarehouse').val(), tripId: tripId }, function (r) {
+                    rows = {};
+                    (r.rows || []).forEach(function (x) { rows[x.id] = x; });
+                    order = order.filter(function (id) { return rows[id]; });
+                    render();
+                });
+            }
+
+            function render() {
+                var f = ($('#avFilter').val() || '').toLowerCase();
+                var html = Object.keys(rows).map(function (k) { return rows[k]; })
+                    .filter(function (x) { return order.indexOf(x.id) < 0; })
+                    .filter(function (x) { return !f || (x.customer + ' ' + x.order + ' ' + (x.address || '') + ' ' + (x.territory || '')).toLowerCase().indexOf(f) >= 0; })
+                    .map(function (x) {
+                        return '<tr><td><button type="button" class="btn btn-sm btn-outline-success py-0" data-add="' + x.id + '">+</button></td>' +
+                            '<td>' + dstEsc(x.customer) + (x.lat ? '' : ' <span class="text-warning" title="' + dstEsc(noGeo) + '">⚠</span>') +
+                            '<div class="text-muted">' + dstEsc(x.address || '') + (x.territory ? ' · ' + dstEsc(x.territory) : '') + '</div></td>' +
+                            '<td>' + dstEsc(x.order) + '<div class="text-muted">' + dstEsc(x.docNo) + (x.delivery ? ' · ' + x.delivery : '') + '</div></td>' +
+                            '<td class="text-right">' + money.format(x.kg) + '</td><td class="text-right">' + money.format(x.total) + '</td></tr>';
+                    }).join('');
+                $('#avBody').html(html || '<tr><td colspan="5" class="text-muted">—</td></tr>');
+
+                var kg = 0, m3 = 0;
+                $('#selBody').html(order.map(function (id, i) {
+                    var x = rows[id]; kg += x.kg; m3 += x.m3;
+                    return '<tr><td>' + (i + 1) + '</td><td>' + dstEsc(x.customer) + (x.lat ? '' : ' <span class="text-warning">⚠</span>') +
+                        '<div class="text-muted">' + dstEsc(x.order) + '</div></td><td class="text-right">' + money.format(x.kg) + '</td>' +
+                        '<td class="text-right">' + money.format(x.total) + '</td><td class="text-right text-nowrap">' +
+                        '<button type="button" class="btn btn-sm btn-light py-0" data-up="' + i + '">↑</button> ' +
+                        '<button type="button" class="btn btn-sm btn-light py-0" data-down="' + i + '">↓</button> ' +
+                        '<button type="button" class="btn btn-sm btn-outline-danger py-0" data-del="' + id + '">×</button></td></tr>';
+                }).join(''));
+                $('#selCount').text(order.length);
+                var capKg = parseFloat(vehicle().data('kg')) || 0, capM3 = parseFloat(vehicle().data('m3')) || 0;
+                setBar('#kg', kg, capKg, ' kg'); setBar('#m3', m3, capM3, ' m³');
+                $('#kmText').text(order.length > 1 ? '≈ ' + pathKm().toFixed(1) + ' km' : '');
+                drawMap();
+            }
+
+            function setBar(prefix, v, cap, unit) {
+                var pct = cap > 0 ? Math.round(v * 100 / cap) : 0;
+                $(prefix + 'Text').text(money.format(Math.round(v * 1000) / 1000) + (cap > 0 ? ' / ' + money.format(cap) + unit + ' (' + pct + '%)' : unit));
+                $(prefix + 'Bar').css('width', Math.min(pct, 100) + '%').toggleClass('bg-danger', pct > 100);
+            }
+
+            function dist(a, b) {
+                var R = 6371, dLat = (b[0] - a[0]) * Math.PI / 180, dLng = (b[1] - a[1]) * Math.PI / 180;
+                var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+            }
+            function pathKm() {
+                var prev = depot(), km = 0;
+                order.forEach(function (id) { var x = rows[id]; if (!x.lat) return; var p = [x.lat, x.lng]; if (prev) km += dist(prev, p); prev = p; });
+                return km;
+            }
+            // eng yaqin qo'shni (serverdagi DeliveryMath.NearestNeighbor bilan bir xil qoida)
+            function optimize() {
+                var geo = order.filter(function (id) { return rows[id].lat; }), rest = order.filter(function (id) { return !rows[id].lat; });
+                var result = [], cur = depot();
+                if (!cur && geo.length) { var f = geo.shift(); result.push(f); cur = [rows[f].lat, rows[f].lng]; }
+                while (geo.length) {
+                    var best = 0, bd = Infinity;
+                    geo.forEach(function (id, i) { var d = dist(cur, [rows[id].lat, rows[id].lng]); if (d < bd - 1e-6) { bd = d; best = i; } });
+                    var next = geo.splice(best, 1)[0]; result.push(next); cur = [rows[next].lat, rows[next].lng];
+                }
+                order = result.concat(rest);
+                render();
+            }
+
+            function drawMap() {
+                if (!mapsKey || !window.ymaps) return;
+                ymaps.ready(function () {
+                    if (!map) map = new ymaps.Map('planMap', { center: [41.3111, 69.2797], zoom: 11, controls: ['zoomControl', 'fullscreenControl'] });
+                    if (layer) map.geoObjects.remove(layer);
+                    layer = new ymaps.GeoObjectCollection();
+                    var d = depot();
+                    if (d) layer.add(new ymaps.Placemark(d, { iconContent: '⌂' }, { preset: 'islands#blackStretchyIcon' }));
+                    Object.keys(rows).forEach(function (k) {
+                        var x = rows[k]; if (!x.lat) return;
+                        var n = order.indexOf(x.id);
+                        layer.add(new ymaps.Placemark([x.lat, x.lng], { iconContent: n >= 0 ? String(n + 1) : '', hintContent: x.customer + ' · ' + money.format(x.kg) + ' kg' },
+                            { preset: n >= 0 ? 'islands#blueStretchyIcon' : 'islands#grayCircleDotIcon' }));
+                    });
+                    var line = (d ? [d] : []).concat(order.filter(function (id) { return rows[id].lat; }).map(function (id) { return [rows[id].lat, rows[id].lng]; }));
+                    if (line.length > 1) layer.add(new ymaps.Polyline(line, {}, { strokeColor: '#39DA8A', strokeWidth: 3 }));
+                    map.geoObjects.add(layer);
+                    var b = layer.getBounds();
+                    if (b) map.setBounds(b, { checkZoomRange: true, zoomMargin: 30 });
+                });
+            }
+            if (mapsKey) {
+                var s = document.createElement('script');
+                s.src = 'https://api-maps.yandex.ru/2.1/?apikey=' + encodeURIComponent(mapsKey) + '&lang=@(IsRussianView() ? "ru_RU" : "uz_UZ")';
+                s.onload = drawMap;
+                document.head.appendChild(s);
+            }
+
+            $(document).on('click', '[data-add]', function () { order.push(+$(this).data('add')); render(); });
+            $(document).on('click', '[data-del]', function () { var id = +$(this).data('del'); order = order.filter(function (x) { return x !== id; }); render(); });
+            $(document).on('click', '[data-up]', function () { var i = +$(this).data('up'); if (i > 0) { order.splice(i - 1, 0, order.splice(i, 1)[0]); render(); } });
+            $(document).on('click', '[data-down]', function () { var i = +$(this).data('down'); if (i < order.length - 1) { order.splice(i + 1, 0, order.splice(i, 1)[0]); render(); } });
+            $('#avFilter').on('input', render);
+            $('#btnOptimize').on('click', optimize);
+            $('#tWarehouse').on('change', function () { order = []; load(); });
+            $('#tVehicle').on('change', function () {
+                var o = vehicle();
+                if (o.data('expeditor') && !$('#tExpeditor').val()) $('#tExpeditor').val(String(o.data('expeditor')));
+                if (o.data('warehouse') && String(o.data('warehouse')) !== $('#tWarehouse').val() && $('#tWarehouse option[value="' + o.data('warehouse') + '"]').length && order.length === 0) {
+                    $('#tWarehouse').val(String(o.data('warehouse'))); load();
+                } else render();
+            });
+            $('#btnSave').on('click', function () {
+                dstPost('@Url.Action("Save")', {
+                    ID: tripId, DocDate: $('#tDate').val(), VehicleID: $('#tVehicle').val(), ExpeditorUserID: $('#tExpeditor').val(),
+                    WarehouseID: $('#tWarehouse').val(), Note: $('#tNote').val(), ShipmentIDs: order
+                }).done(function (d) { location.href = '@Url.Action("Details")/' + d.id; });
+            });
+            load();
+        });
+    </script>
+}
+@functions {
+    private bool IsRussianView() => System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName == "ru";
+}

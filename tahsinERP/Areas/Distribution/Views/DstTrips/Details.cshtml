@@ -1,0 +1,394 @@
+@model tahsinERP.Areas.Distribution.Services.Delivery.TripView
+@using tahsinERP.Areas.Distribution.Data.Entities
+@using tahsinERP.Areas.Distribution.Services.Delivery
+@{
+    ViewBag.DstParent = DstLocalization.T("Trips");
+    ViewBag.Title = DstLocalization.T("Trip") + " " + Model.Trip.DocNo;
+    bool canChange = ViewBag.DstCanChange == true;
+    var t = Model.Trip;
+    var state = (TripStatus)t.TripStatus;
+    var links = (tahsinERP.Areas.Distribution.Services.Bot.FileLinks)ViewBag.Links;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    bool allResolved = Model.Stops.All(s => s.Status != (byte)StopStatus.Pending);
+    string Q(decimal v) => v.ToString("0.####");
+    Func<byte, string> stopBadge = s => s == (byte)StopStatus.Delivered ? "badge-light-success" : s == (byte)StopStatus.Partial ? "badge-light-warning"
+        : s == (byte)StopStatus.Refused ? "badge-light-danger" : "badge-light-secondary";
+    var map = new MapModel
+    {
+        Id = "tripMap", ApiKey = (string)ViewBag.MapsKey, Language = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName == "ru" ? "ru_RU" : "uz_UZ",
+        Route = true, FallbackUrl = Model.RouteUrl,
+        Start = Model.Depot == null ? null : new MapPoint { Lat = Model.Depot.Lat.Value, Lng = Model.Depot.Lng.Value, Title = Model.Warehouse },
+        Points = Model.Stops.Where(s => s.Lat.HasValue && s.Lng.HasValue).OrderBy(s => s.Seq).Select(s => new MapPoint
+        {
+            Lat = s.Lat.Value, Lng = s.Lng.Value, Label = s.Seq.ToString(), Title = s.Customer,
+            Text = s.OrderNo + " · " + s.Amount.ToString("N0") + " · " + s.StatusName,
+            Color = s.Status == (byte)StopStatus.Delivered ? "green" : s.Status == (byte)StopStatus.Partial ? "orange" : s.Status == (byte)StopStatus.Refused ? "red" : "blue"
+        }).ToList()
+    };
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-start flex-wrap">
+                    <div>
+                        <h4 class="card-title mb-25">@t.DocNo <span class="badge badge-light-primary">@Model.StatusName</span></h4>
+                        <div class="small text-muted">
+                            @t.DocDate.ToString("dd.MM.yyyy") · @DstLocalization.T("Vehicle"): <b>@Model.Vehicle?.PlateNo</b> @Model.Vehicle?.Model ·
+                            @DstLocalization.T("Expeditor"): <b>@Model.Expeditor</b> @Model.ExpeditorPhone · @DstLocalization.T("Warehouse"): @Model.Warehouse
+                            @if (Model.Vehicle?.DriverName != null) { <span>· @DstLocalization.T("Vehicle_Driver"): @Model.Vehicle.DriverName @Model.Vehicle.DriverPhone</span> }
+                        </div>
+                        @if (t.StartedAt.HasValue) { <div class="small text-muted">@DstLocalization.T("Trip_StartedAt"): @t.StartedAt.Value.ToString("dd.MM HH:mm") @if (t.PostedAt.HasValue) { <span>· @DstLocalization.T("Trip_ClosedAt"): @t.PostedAt.Value.ToString("dd.MM HH:mm")</span> }</div> }
+                        @if (t.Status == DocumentStatus.Cancelled) { <div class="text-danger small">@DstLocalization.T("Order_Cancelled"): @t.CancelReason</div> }
+                        @if (!string.IsNullOrEmpty(t.Note)) { <div class="small">@t.Note</div> }
+                    </div>
+                    <div class="text-right">
+                        <a href="@Url.Action("Print", new { id = t.ID, kind = "route" })" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bx bx-printer"></i> @DstLocalization.T("Trip_RouteSheet")</a>
+                        @if (state == TripStatus.Closed)
+                        {
+                            <a href="@Url.Action("Print", new { id = t.ID, kind = "act" })" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bx bx-file"></i> @DstLocalization.T("Trip_Act")</a>
+                        }
+                        @if (canChange && state == TripStatus.Planned)
+                        {
+                            <a href="@Url.Action("Edit", new { id = t.ID })" class="btn btn-sm btn-outline-primary"><i class="bx bx-edit"></i> @DstLocalization.T("Edit")</a>
+                            <button type="button" class="btn btn-sm btn-success" id="btnStart"><i class="bx bx-send"></i> @DstLocalization.T("Trip_Start")</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="btnCancel">@DstLocalization.T("Cancel")</button>
+                        }
+                        @if (canChange && (state == TripStatus.Planned || state == TripStatus.InTransit))
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnOptimize"><i class="bx bx-git-branch"></i> @DstLocalization.T("Trip_Optimize")</button>
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-1">
+                        <div class="col"><div class="small text-muted">@DstLocalization.T("Trip_Stops")</div><b>@Model.Stops.Count(s => s.Status != (byte)StopStatus.Pending)/@Model.Stops.Count</b></div>
+                        <div class="col"><div class="small text-muted">@DstLocalization.T("Trip_LoadKg")</div><b>@t.WeightKg.ToString("N0")</b> @if (Model.LoadPctKg.HasValue) { <span class="small">(@Model.LoadPctKg%)</span> }</div>
+                        <div class="col"><div class="small text-muted">@DstLocalization.T("Trip_LoadM3")</div><b>@t.VolumeM3.ToString("0.##")</b> @if (Model.LoadPctM3.HasValue) { <span class="small">(@Model.LoadPctM3%)</span> }</div>
+                        <div class="col"><div class="small text-muted">@DstLocalization.T("Amount")</div><b>@t.Total.ToString("N0")</b></div>
+                        <div class="col"><div class="small text-muted">@DstLocalization.T("Trip_Delivered")</div><b>@Model.Stops.Sum(s => s.DeliveredAmount ?? 0).ToString("N0")</b></div>
+                        <div class="col"><div class="small text-muted">@DstLocalization.T("Trip_Expenses")</div><b>@Model.ExpensesTotal.ToString("N0")</b></div>
+                        @if (state == TripStatus.Closed)
+                        {
+                            <div class="col"><div class="small text-muted">@DstLocalization.T("Trip_ShortageCost")</div><b class="@(t.ShortageCost > 0 ? "text-danger" : "")">@t.ShortageCost.ToString("N0")</b></div>
+                        }
+                    </div>
+                    @Html.Partial("_YandexMap", map)
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Trip_Route")</h4></div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>#</th><th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Order_No")</th><th class="text-right">kg</th>
+                                <th class="text-right">@DstLocalization.T("Amount")</th><th>@DstLocalization.T("Status")</th><th class="text-right">@DstLocalization.T("Trip_Delivered")</th>
+                                <th>@DstLocalization.T("Trip_Proof")</th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.Stops)
+                            {
+                                <tr>
+                                    <td>
+                                        @s.Seq
+                                        @if (canChange && state != TripStatus.Closed && state != TripStatus.Cancelled)
+                                        {
+                                            <span class="text-nowrap"><a href="#" data-move="@s.ID" data-dir="-1">↑</a><a href="#" data-move="@s.ID" data-dir="1">↓</a></span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <b>@s.Customer</b>
+                                        <div class="small text-muted">@s.Address @s.Landmark @if (s.Phone != null) { <a href="tel:@s.Phone">@s.Phone</a> }</div>
+                                        @if (!s.Lat.HasValue) { <div class="small text-warning">⚠ @DstLocalization.T("Trip_NoGeo")</div> }
+                                    </td>
+                                    <td><a href="@Url.Action("Details", "DstOrders", new { id = s.OrderID })">@s.OrderNo</a><div class="small text-muted">@s.ShipmentNo</div></td>
+                                    <td class="text-right">@s.WeightKg.ToString("N0")</td>
+                                    <td class="text-right">@s.Amount.ToString("N0")</td>
+                                    <td>
+                                        <span class="badge @stopBadge(s.Status)">@s.StatusName</span>
+                                        @if (s.Reason != null) { <div class="small">@s.Reason</div> }
+                                        @if (s.Note != null) { <div class="small text-muted">@s.Note</div> }
+                                        @if (s.DeliveredAt.HasValue) { <div class="small text-muted">@s.DeliveredAt.Value.ToString("dd.MM HH:mm")</div> }
+                                    </td>
+                                    <td class="text-right">
+                                        @(s.DeliveredAmount?.ToString("N0"))
+                                        @if (s.ReturnNo != null) { <div class="small"><a href="@Url.Action("Index", "DstReturns")">@s.ReturnNo</a></div> }
+                                        @if (s.ShortageAmount > 0) { <div class="small text-danger">@DstLocalization.T("Trip_Shortage"): @s.ShortageAmount.ToString("N0")</div> }
+                                    </td>
+                                    <td>
+                                        @if (s.PhotoKey != null)
+                                        {
+                                            var url = links.Url(s.PhotoKey);
+                                            if (url != null) { <a href="@url" target="_blank"><img src="@url" style="height:40px;border-radius:4px" alt="" /></a> } else { <span title="@s.PhotoKey">📷</span> }
+                                        }
+                                        @if (s.SignatureKey != null)
+                                        {
+                                            var url = links.Url(s.SignatureKey);
+                                            if (url != null) { <a href="@url" target="_blank"><img src="@url" style="height:40px;background:#fff;border:1px solid #eee" alt="" /></a> } else { <span title="@s.SignatureKey">✍️</span> }
+                                        }
+                                    </td>
+                                    <td class="text-right text-nowrap">
+                                        <a href="#" class="small" data-toggle="collapse" data-target="#lines@(s.ID)">@DstLocalization.T("Trip_Lines")</a>
+                                        @if (canChange && state == TripStatus.InTransit)
+                                        {
+                                            if (s.Status == (byte)StopStatus.Pending)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success py-0" data-deliver="@s.ID">@DstLocalization.T("Trip_Result")</button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-light py-0" data-reset="@s.ID" title="@DstLocalization.T("Trip_ResetHint")">↺</button>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr class="collapse" id="lines@(s.ID)">
+                                    <td></td>
+                                    <td colspan="8">
+                                        <table class="table table-sm small mb-0" data-stop-lines="@s.ID">
+                                            <thead><tr><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Trip_Shipped")</th><th class="text-right">@DstLocalization.T("Trip_Delivered")</th><th class="text-right">@DstLocalization.T("Trip_Returned")</th><th class="text-right">@DstLocalization.T("Amount")</th></tr></thead>
+                                            <tbody>
+                                                @foreach (var l in s.Lines)
+                                                {
+                                                    <tr data-line="@l.ID" data-qty="@l.QtyBase.ToString(inv)" data-name="@l.PNo — @l.Product">
+                                                        <td>@l.PNo — @l.Product</td>
+                                                        <td class="text-right">@Q(l.QtyBase) @l.Unit</td>
+                                                        <td class="text-right">@(l.QtyDelivered.HasValue ? Q(l.QtyDelivered.Value) : "")</td>
+                                                        <td class="text-right">@(l.QtyReturned.HasValue ? Q(l.QtyReturned.Value) : "")</td>
+                                                        <td class="text-right">@l.Amount.ToString("N0")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @if (canChange && state == TripStatus.InTransit)
+            {
+                var undelivered = Model.Stops.SelectMany(s => s.Lines.Select(l => new { s, l })).Where(x => x.l.QtyDelivered.HasValue && x.l.Undelivered > 0).ToList();
+                <div class="card">
+                    <div class="card-header"><h4 class="card-title">@DstLocalization.T("Trip_CloseTitle")</h4></div>
+                    <div class="card-body">
+                        @if (!allResolved)
+                        {
+                            <p class="text-warning">@DstLocalization.T("Trip_CloseNeedResults")</p>
+                        }
+                        else
+                        {
+                            <p class="small text-muted">@DstLocalization.T("Trip_CloseHint")</p>
+                            if (undelivered.Any())
+                            {
+                                <table class="table table-sm small">
+                                    <thead><tr><th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Trip_Undelivered")</th><th style="width:140px">@DstLocalization.T("Trip_Returned")</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var x in undelivered)
+                                        {
+                                            <tr><td>@x.s.Customer</td><td>@x.l.PNo — @x.l.Product</td><td class="text-right">@Q(x.l.Undelivered) @x.l.Unit</td>
+                                                <td><input type="number" class="form-control form-control-sm" min="0" max="@x.l.Undelivered.ToString(inv)" step="any" data-return="@x.l.ID" value="@x.l.Undelivered.ToString(inv)" /></td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                <div class="form-group d-none" id="locBox">
+                                    <label>@DstLocalization.T("Return_Location")</label>
+                                    <select id="closeLocation" class="form-control form-control-sm" style="max-width:320px"></select>
+                                </div>
+                            }
+                            <div class="form-group"><label>@DstLocalization.T("Comment")</label><input id="closeNote" class="form-control form-control-sm" maxlength="300" /></div>
+                            <button type="button" class="btn btn-primary" id="btnClose"><i class="bx bx-check-double"></i> @DstLocalization.T("Trip_Close")</button>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title">@DstLocalization.T("Trip_Expenses")</h4>
+                    @if (canChange && state != TripStatus.Cancelled)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnExpense"><i class="bx bx-plus"></i> @DstLocalization.T("Add")</button>
+                    }
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Trip_ExpenseKind")</th><th>@DstLocalization.T("Fin_Category")</th><th>@DstLocalization.T("Comment")</th><th class="text-right">@DstLocalization.T("Amount")</th><th>@DstLocalization.T("Payment_Account")</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var x in Model.Expenses)
+                            {
+                                <tr class="@(x.Status == TripExpense.Cancelled ? "text-muted" : "")">
+                                    <td>@x.CreatedAt.ToString("dd.MM HH:mm") @if (x.Source == "bot") { <span class="badge badge-light-info">bot</span> }</td>
+                                    <td>@x.KindName</td><td>@x.Category</td>
+                                    <td>@x.Note @if (x.PhotoKey != null && links.Url(x.PhotoKey) != null) { <a href="@links.Url(x.PhotoKey)" target="_blank">📷</a> }</td>
+                                    <td class="text-right">@x.Amount.ToString("N0")</td>
+                                    <td>@(x.Status == TripExpense.Posted ? x.Account : x.Status == TripExpense.Cancelled ? DstLocalization.T("Order_Cancelled") : DstLocalization.T("TripExpense_Pending"))</td>
+                                    <td class="text-right text-nowrap">
+                                        @if (canChange && x.Status == TripExpense.Pending)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success py-0" data-post="@x.ID" data-category="@x.CategoryID">@DstLocalization.T("TripExpense_Post")</button>
+                                        }
+                                        @if (canChange && x.Status != TripExpense.Cancelled)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger py-0" data-cancel-expense="@x.ID">×</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Expenses.Any()) { <tr><td colspan="7" class="text-muted">@DstLocalization.T("Table_Empty")</td></tr> }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deliverModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Trip_Result")</h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="dStop" />
+                <div class="btn-group btn-group-sm mb-1" role="group">
+                    <button type="button" class="btn btn-outline-success active" data-mode="all">@DstLocalization.T("StopStatus_Delivered")</button>
+                    <button type="button" class="btn btn-outline-warning" data-mode="partial">@DstLocalization.T("StopStatus_Partial")</button>
+                    <button type="button" class="btn btn-outline-danger" data-mode="refuse">@DstLocalization.T("StopStatus_Refused")</button>
+                </div>
+                <table class="table table-sm small d-none" id="dLines"><thead><tr><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Trip_Shipped")</th><th style="width:140px">@DstLocalization.T("Trip_Delivered")</th></tr></thead><tbody></tbody></table>
+                <div class="form-group d-none" id="dReasonBox">
+                    <label>@DstLocalization.T("Reason")</label>
+                    @Html.DropDownList("dReason", (List<SelectListItem>)ViewBag.Reasons, "—", new { @class = "form-control", id = "dReason" })
+                </div>
+                <div class="form-group mb-0"><label>@DstLocalization.T("Comment")</label><input id="dNote" class="form-control" maxlength="300" /></div>
+                <p class="small text-muted mt-50 mb-0">@DstLocalization.T("Trip_OfficeResultHint")</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="dSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="expenseModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Trip_Expenses")</h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="xId" />
+                <div class="form-group" id="xKindBox">
+                    <label>@DstLocalization.T("Trip_ExpenseKind")</label>
+                    <select id="xKind" class="form-control">
+                        @foreach (var k in TripExpenseKinds.All) { <option value="@k">@DstLocalization.T("TripExpense_" + k)</option> }
+                    </select>
+                </div>
+                <div class="form-group" id="xAmountBox"><label>@DstLocalization.T("Amount")</label><input id="xAmount" type="number" min="1" step="1" class="form-control" /></div>
+                <div class="form-group">
+                    <label>@DstLocalization.T("Fin_Category")</label>
+                    @Html.DropDownList("xCategory", (List<SelectListItem>)ViewBag.Categories, "—", new { @class = "form-control", id = "xCategory" })
+                </div>
+                <div class="form-group">
+                    <label>@DstLocalization.T("Payment_Account")</label>
+                    @Html.DropDownList("xAccount", (List<SelectListItem>)ViewBag.Accounts, "—", new { @class = "form-control", id = "xAccount" })
+                    <small class="text-muted" id="xAccountHint">@DstLocalization.T("TripExpense_AccountHint")</small>
+                </div>
+                <div class="form-group mb-0" id="xNoteBox"><label>@DstLocalization.T("Comment")</label><input id="xNote" class="form-control" maxlength="300" /></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="xSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var id = @t.ID;
+            var reload = function () { location.reload(); };
+            var ask = '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Confirm")))';
+            $('#btnStart').on('click', function () { if (confirm(ask)) dstPost('@Url.Action("Start")', { id: id }).done(reload); });
+            $('#btnCancel').on('click', function () { var r = prompt('@DstLocalization.T("Reason")'); if (r) dstPost('@Url.Action("Cancel")', { id: id, reason: r }).done(reload); });
+            $('#btnOptimize').on('click', function () { dstPost('@Url.Action("Optimize")', { id: id }).done(reload); });
+            $('[data-move]').on('click', function (e) {
+                e.preventDefault();
+                var ids = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Stops.OrderBy(s => s.Seq).Select(s => s.ID)));
+                var sid = +$(this).data('move'), dir = +$(this).data('dir'), i = ids.indexOf(sid), j = i + dir;
+                if (j < 0 || j >= ids.length) return;
+                ids.splice(j, 0, ids.splice(i, 1)[0]);
+                dstPost('@Url.Action("Reorder")', { id: id, stopIds: ids }).done(reload);
+            });
+
+            // natija (ofis)
+            var mode = 'all';
+            function setMode(m) {
+                mode = m;
+                $('[data-mode]').removeClass('active').filter('[data-mode="' + m + '"]').addClass('active');
+                $('#dLines').toggleClass('d-none', m !== 'partial');
+                $('#dReasonBox').toggleClass('d-none', m === 'all');
+            }
+            $('[data-mode]').on('click', function () { setMode($(this).data('mode')); });
+            $('[data-deliver]').on('click', function () {
+                var sid = $(this).data('deliver');
+                $('#dStop').val(sid); $('#dNote').val(''); $('#dReason').val('');
+                $('#dLines tbody').html($('[data-stop-lines="' + sid + '"] tr[data-line]').map(function () {
+                    var r = $(this);
+                    return '<tr><td>' + dstEsc(r.data('name')) + '</td><td class="text-right">' + r.data('qty') + '</td><td><input type="number" class="form-control form-control-sm" min="0" step="any" data-dline="' +
+                        r.data('line') + '" value="' + r.data('qty') + '" /></td></tr>';
+                }).get().join(''));
+                setMode('all');
+                $('#deliverModal').modal('show');
+            });
+            $('#dSave').on('click', function () {
+                var lineIds = [], qtys = [];
+                $('[data-dline]').each(function () { lineIds.push($(this).data('dline')); qtys.push($(this).val() || 0); });
+                dstPost('@Url.Action("Deliver")', { stopId: $('#dStop').val(), mode: mode, lineIds: lineIds, qtys: qtys, reasonId: $('#dReason').val(), note: $('#dNote').val() }).done(reload);
+            });
+            $('[data-reset]').on('click', function () { if (confirm(ask)) dstPost('@Url.Action("ResetStop")', { stopId: $(this).data('reset') }).done(reload); });
+
+            // yopish
+            $.getJSON('@Url.Action("Locations")', { warehouseId: @t.WarehouseID }, function (r) {
+                if (!r.dloc) return;
+                $('#closeLocation').html(r.locations.map(function (l) { return '<option value="' + l.id + '">' + dstEsc(l.text) + '</option>'; }).join(''));
+                $('#locBox').removeClass('d-none');
+            });
+            $('#btnClose').on('click', function () {
+                if (!confirm(ask)) return;
+                var lineIds = [], returned = [];
+                $('[data-return]').each(function () { lineIds.push($(this).data('return')); returned.push($(this).val() || 0); });
+                dstPost('@Url.Action("Close")', { id: id, lineIds: lineIds, returned: returned, locationId: $('#locBox').hasClass('d-none') ? '' : $('#closeLocation').val(), note: $('#closeNote').val() }).done(reload);
+            });
+
+            // xarajatlar
+            $('#btnExpense').on('click', function () {
+                $('#xId').val(''); $('#xAmount').val(''); $('#xNote').val(''); $('#xCategory').val(''); $('#xAccount').val('');
+                $('#xKindBox,#xAmountBox,#xNoteBox,#xAccountHint').removeClass('d-none');
+                $('#expenseModal').modal('show');
+            });
+            $('[data-post]').on('click', function () {
+                $('#xId').val($(this).data('post')); $('#xCategory').val(String($(this).data('category') || '')); $('#xAccount').val('');
+                $('#xKindBox,#xAmountBox,#xNoteBox,#xAccountHint').addClass('d-none');
+                $('#expenseModal').modal('show');
+            });
+            $('#xSave').on('click', function () {
+                if ($('#xId').val()) {
+                    dstPost('@Url.Action("PostExpense")', { expenseId: $('#xId').val(), categoryId: $('#xCategory').val(), accountId: $('#xAccount').val() }).done(reload);
+                } else {
+                    dstPost('@Url.Action("SaveExpense")', { tripId: id, kind: $('#xKind').val(), categoryId: $('#xCategory').val(), amount: $('#xAmount').val(), note: $('#xNote').val(), accountId: $('#xAccount').val() }).done(reload);
+                }
+            });
+            $('[data-cancel-expense]').on('click', function () { if (confirm(ask)) dstPost('@Url.Action("CancelExpense")', { expenseId: $(this).data('cancel-expense') }).done(reload); });
+        });
+    </script>
+}

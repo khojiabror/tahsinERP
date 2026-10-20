@@ -50,7 +50,7 @@ namespace tahsinERP.Areas.Distribution.Data
     ///  - <see cref="DstDocument"/>: Draft bo'lmagan hujjatni o'chirish va bekor qilingan hujjatni tahrirlash taqiqlanadi.
     /// Ombor/moliya bilan bitta tranzaksiya kerak bo'lsa — <see cref="DistributionUnitOfWork"/>.
     /// </summary>
-    public class DistributionDbContext : DbContext
+    public partial class DistributionDbContext : DbContext
     {
         public const string Schema = "dst";
 
@@ -146,6 +146,9 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<WarehouseRef> Warehouses { get; set; }
         public virtual DbSet<RoleRef> Roles { get; set; }
 
+        /// <summary>2-bosqich jadvallari sozlamasi (DistributionDbContext.Delivery.cs).</summary>
+        partial void OnModelCreatingDelivery(DbModelBuilder modelBuilder);
+
         private AuditActor _actor;
 
         /// <summary>Jurnal uchun foydalanuvchi; berilmasa joriy HTTP so'rovdan olinadi.</summary>
@@ -161,6 +164,7 @@ namespace tahsinERP.Areas.Distribution.Data
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema(Schema);
+            OnModelCreatingDelivery(modelBuilder);
 
             // EF6 sukut bo'yicha DateTime -> datetime, decimal -> (18,2): ustunlar aniq turlari bilan
             modelBuilder.Properties<DateTime>()

@@ -570,19 +570,29 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
 
         public static void MarkDelivered(DistributionUnitOfWork uow, int orderId, int userId, DateTime now)
         {
+            var order = MarkDeliveredSilently(uow, orderId, userId, now, null);
+            NotificationService.ToCustomer(uow.Dst, order.CustomerID, NotificationService.OrderDelivered,
+                l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);
+            uow.Dst.SaveChanges();
+        }
+
+        /// <summary>
+        /// "Yetkazildi" holati mijozga xabarsiz (reys: mijozga yetkazish xabari nakladnoy PDF bilan alohida ketadi, 2-bosqich).
+        /// </summary>
+        public static DstOrder MarkDeliveredSilently(DistributionUnitOfWork uow, int orderId, int userId, DateTime now, string note)
+        {
             var db = uow.Dst;
             var order = Load(db, orderId);
             if ((OrderStatus)order.OrderStatus == OrderStatus.Closed && order.DeliveredAt == null && order.ShippedTotal > 0)
             {
                 // oldindan to'langan: jo'natishda qarz yopilib buyurtma "Yopildi" bo'lgan — yetkazish baribir qayd qilinadi
-                Log(db, order, OrderStatus.Closed, OrderStatus.Closed, userId, now, DstLocalization.T("OrderStatus_Delivered"));
+                Log(db, order, OrderStatus.Closed, OrderStatus.Closed, userId, now, note ?? DstLocalization.T("OrderStatus_Delivered"));
             }
             else
-                Move(db, order, OrderStatus.Delivered, userId, now, null);
+                Move(db, order, OrderStatus.Delivered, userId, now, note);
             order.DeliveredAt = now;
-            NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderDelivered,
-                l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);
             db.SaveChanges();
+            return order;
         }
 
         /// <summary>Bekor qilish — faqat jo'natilmagan buyurtma (jo'natilgani qaytarish hujjati bilan, S3).</summary>

@@ -233,6 +233,7 @@
     <Compile Include="Licensing\LicenseCompatTests.cs" />
     <Compile Include="Tenancy\TenantTests.cs" />
     <Compile Include="Editions\EditionModulesTests.cs" />
+    <Compile Include="Distribution\DeliveryTests.cs" />
     <Compile Include="Distribution\DocumentLifecycleTests.cs" />
     <Compile Include="Distribution\ScopeFilterTests.cs" />
     <Compile Include="Distribution\DstLocalizationTests.cs" />

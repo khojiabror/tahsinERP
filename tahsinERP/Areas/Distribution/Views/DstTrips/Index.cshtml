@@ -1,0 +1,80 @@
+@model List<tahsinERP.Areas.Distribution.Controllers.DstTripsController.TripRow>
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("Trips");
+    bool canChange = ViewBag.DstCanChange == true;
+    byte? status = ViewBag.Status;
+    var statuses = new[] { TripStatus.Planned, TripStatus.InTransit, TripStatus.Closed, TripStatus.Cancelled };
+    Func<byte, string> badge = s => s == (byte)TripStatus.Planned ? "badge-light-primary" : s == (byte)TripStatus.InTransit ? "badge-light-warning"
+        : s == (byte)TripStatus.Closed ? "badge-light-success" : "badge-light-secondary";
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title">@DstLocalization.T("Trips")</h4>
+                    <div>
+                        <a href="@Url.Action("Index", "DstVehicles")" class="btn btn-sm btn-outline-primary"><i class="bx bxs-truck"></i> @DstLocalization.T("Vehicles")</a>
+                        @if (canChange)
+                        {
+                            <a href="@Url.Action("Edit")" class="btn btn-sm btn-primary"><i class="bx bx-plus"></i> @DstLocalization.T("Trip_New")</a>
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="form-row mb-1">
+                        <div class="col-md-2"><label class="small">@DstLocalization.T("From")</label><input type="date" name="from" class="form-control form-control-sm" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" /></div>
+                        <div class="col-md-2"><label class="small">@DstLocalization.T("To")</label><input type="date" name="to" class="form-control form-control-sm" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" /></div>
+                        <div class="col-md-2">
+                            <label class="small">@DstLocalization.T("Status")</label>
+                            <select name="status" class="form-control form-control-sm">
+                                <option value="">—</option>
+                                @foreach (var s in statuses)
+                                {
+                                    <option value="@((byte)s)" @(status == (byte)s ? "selected" : "")>@DstLocalization.T("TripStatus_" + s)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small">@DstLocalization.T("Expeditor")</label>
+                            @Html.DropDownList("expeditorId", ((List<SelectListItem>)ViewBag.Expeditors).Select(x => new SelectListItem { Value = x.Value, Text = x.Text, Selected = x.Value == Convert.ToString(ViewBag.ExpeditorId) }), "—", new { @class = "form-control form-control-sm" })
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end"><button class="btn btn-sm btn-outline-primary">@DstLocalization.T("Filter")</button></div>
+                    </form>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Order_No")</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Status")</th>
+                                <th>@DstLocalization.T("Vehicle")</th><th>@DstLocalization.T("Expeditor")</th><th>@DstLocalization.T("Warehouse")</th>
+                                <th class="text-right">@DstLocalization.T("Trip_Stops")</th><th class="text-right">kg</th>
+                                <th class="text-right">@DstLocalization.T("Amount")</th><th class="text-right">@DstLocalization.T("Trip_Delivered")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in Model)
+                            {
+                                <tr>
+                                    <td><a href="@Url.Action(t.Status == (byte)TripStatus.Planned && canChange ? "Edit" : "Details", new { id = t.ID })">@t.DocNo</a></td>
+                                    <td>@t.Date.ToString("dd.MM.yyyy")</td>
+                                    <td><span class="badge @badge(t.Status)">@DstLocalization.T("TripStatus_" + (TripStatus)t.Status)</span></td>
+                                    <td>@t.Vehicle</td><td>@t.Expeditor</td><td>@t.Warehouse</td>
+                                    <td class="text-right">@t.Done/@t.Stops</td>
+                                    <td class="text-right">@t.WeightKg.ToString("N0")</td>
+                                    <td class="text-right">@t.Total.ToString("N0")</td>
+                                    <td class="text-right">@(t.Delivered?.ToString("N0"))</td>
+                                </tr>
+                            }
+                            @if (!Model.Any())
+                            {
+                                <tr><td colspan="10" class="text-muted">@DstLocalization.T("Table_Empty")</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

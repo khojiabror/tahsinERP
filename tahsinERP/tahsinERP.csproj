@@ -929,6 +929,16 @@
     <Compile Include="Models\DBTHSNModel.Context.Cache.cs" />
     <Compile Include="Models\DBTHSNModel.Context.SharedConnection.cs" />
     <Compile Include="Areas\Distribution\DistributionAreaRegistration.cs" />
+    <Compile Include="Areas\Distribution\Controllers\Api\DstApiController.Delivery.cs" />
+    <Compile Include="Areas\Distribution\Data\DistributionDbContext.Delivery.cs" />
+    <Compile Include="Areas\Distribution\Data\Entities\DeliveryEntities.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\DeliveryMath.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\DeliverySettings.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\KpiService.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\TripQueries.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\TripService.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\VisitPlanService.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\VoiceOrderService.cs" />
     <Compile Include="Areas\Site\Controllers\Api\SiteApiController.cs" />
     <Compile Include="Areas\Site\Controllers\SiteCatalogController.cs" />
     <Compile Include="Areas\Site\Controllers\SiteControllerBase.cs" />

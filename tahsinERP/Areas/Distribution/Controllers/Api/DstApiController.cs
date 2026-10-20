@@ -23,7 +23,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
     /// </summary>
     [AllowAnonymous]
     [DstApiAuth]
-    public class DstApiController : Controller
+    public partial class DstApiController : Controller
     {
         private static readonly JsonSerializerSettings Json = new JsonSerializerSettings
         {

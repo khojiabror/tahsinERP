@@ -1,0 +1,156 @@
+@model tahsinERP.Areas.Distribution.Controllers.DstRoutesController.PageModel
+@{
+    ViewBag.Title = DstLocalization.T("Routes");
+    bool canChange = ViewBag.DstCanChange == true;
+    var planned = Model.Rows.Where(r => r.Planned).ToList();
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="form-row align-items-end">
+                        <div class="col-md-4">
+                            <label class="small">@DstLocalization.T("Agent")</label>
+                            @Html.DropDownList("agentId", Model.Agents.Select(a => new SelectListItem { Value = a.Value, Text = a.Text, Selected = a.Value == Model.AgentId?.ToString() }), new { @class = "form-control form-control-sm", onchange = "this.form.submit()" })
+                        </div>
+                        <div class="col-md-2">
+                            <label class="small">@DstLocalization.T("Date")</label>
+                            <input type="date" name="date" class="form-control form-control-sm" value="@Model.Date.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+                        </div>
+                        <div class="col-md-6 text-md-right small">
+                            <a href="?agentId=@Model.AgentId&date=@Model.Date.AddDays(-1).ToString("yyyy-MM-dd")">« @DstLocalization.T("Prev_Day")</a> ·
+                            <a href="?agentId=@Model.AgentId&date=@DateTime.Today.ToString("yyyy-MM-dd")">@DstLocalization.T("Today")</a> ·
+                            <a href="?agentId=@Model.AgentId&date=@Model.Date.AddDays(1).ToString("yyyy-MM-dd")">@DstLocalization.T("Next_Day") »</a> ·
+                            <a href="@Url.Action("Visits", "DstReports")">@DstLocalization.T("Plan_Report")</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @if (!Model.AgentId.HasValue)
+            {
+                <div class="alert alert-light">@DstLocalization.T("Plan_NoAgents")</div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">
+                                    @DstLocalization.T("Plan_Day")
+                                    <span class="badge @(Model.HasPlan ? "badge-light-primary" : "badge-light-secondary")">@(Model.HasPlan ? DstLocalization.T("Plan_Saved") : DstLocalization.T("Plan_Template"))</span>
+                                </h4>
+                                @if (canChange)
+                                {
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnOptimize" title="@DstLocalization.T("Plan_OptimizeHint")"><i class="bx bx-git-branch"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary" id="btnSave"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button>
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted">@DstLocalization.T("Plan_Hint")</p>
+                                @if (canChange)
+                                {
+                                    <select id="addCustomer" class="form-control form-control-sm mb-1" style="width:100%"></select>
+                                }
+                                <table class="table table-sm small mb-0">
+                                    <tbody id="planBody">
+                                        @{ int i = 0; }
+                                        @foreach (var r in planned)
+                                        {
+                                            <tr data-id="@r.Stop.CustomerID">
+                                                <td class="seq">@(++i)</td>
+                                                <td>@r.Stop.Name<div class="text-muted">@r.Stop.Address</div></td>
+                                                <td>@if (!r.Stop.Lat.HasValue) { <span class="text-warning" title="@DstLocalization.T("Trip_NoGeo")">⚠</span> }</td>
+                                                <td class="text-right text-nowrap">
+                                                    @if (canChange)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-light py-0" data-up>↑</button>
+                                                        <button type="button" class="btn btn-sm btn-light py-0" data-down>↓</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger py-0" data-del>×</button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                @if (canChange && Model.HasPlan)
+                                {
+                                    <button type="button" class="btn btn-sm btn-link px-0 mt-50" id="btnReset">@DstLocalization.T("Plan_Reset")</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Plan_Fact")</h4></div>
+                            <div class="card-body">
+                                <div class="row text-center mb-1">
+                                    <div class="col"><div class="small text-muted">@DstLocalization.T("Plan_Planned")</div><b>@Model.Planned</b></div>
+                                    <div class="col"><div class="small text-muted">@DstLocalization.T("Plan_Visited")</div><b>@Model.PlannedVisited</b></div>
+                                    <div class="col"><div class="small text-muted">@DstLocalization.T("Plan_Unplanned")</div><b>@Model.Unplanned</b></div>
+                                    <div class="col"><div class="small text-muted">%</div><b>@(Model.CoveragePct?.ToString("0.#") ?? "—")</b></div>
+                                </div>
+                                @Html.Partial("_YandexMap", Model.Map)
+                                <table class="table table-sm small mb-0">
+                                    <thead><tr><th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Plan_CheckIn")</th><th>@DstLocalization.T("Status")</th><th class="text-right">m</th><th class="text-right">@DstLocalization.T("Orders")</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var r in Model.Rows)
+                                        {
+                                            <tr class="@(r.Planned ? "" : "table-active")">
+                                                <td>@r.Stop.Name @if (!r.Planned) { <span class="badge badge-light-info">@DstLocalization.T("Plan_Unplanned")</span> }</td>
+                                                <td>@(r.CheckInAt?.ToString("HH:mm"))</td>
+                                                <td>@(r.VisitId.HasValue ? DstLocalization.T("VisitResult_" + (r.Result ?? "NONE")) : DstLocalization.T("Plan_NotVisited"))</td>
+                                                <td class="text-right">@r.DistanceM</td>
+                                                <td class="text-right">@(r.OrderTotal?.ToString("N0"))</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var agentId = @(Model.AgentId?.ToString() ?? "null"), date = '@Model.Date.ToString("yyyy-MM-dd")';
+            function renumber() { $('#planBody tr').each(function (i) { $(this).find('.seq').text(i + 1); }); }
+            $('#planBody').on('click', '[data-up]', function () { var tr = $(this).closest('tr'); tr.prev().before(tr); renumber(); })
+                .on('click', '[data-down]', function () { var tr = $(this).closest('tr'); tr.next().after(tr); renumber(); })
+                .on('click', '[data-del]', function () { $(this).closest('tr').remove(); renumber(); });
+            $('#addCustomer').select2({
+                placeholder: '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Plan_AddCustomer")))',
+                ajax: { url: '@Url.Action("Customers")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } }
+            }).on('select2:select', function (e) {
+                var d = e.params.data;
+                if (!$('#planBody tr[data-id="' + d.id + '"]').length) {
+                    $('#planBody').append('<tr data-id="' + d.id + '"><td class="seq"></td><td>' + dstEsc(d.text) + '</td><td></td><td class="text-right text-nowrap">' +
+                        '<button type="button" class="btn btn-sm btn-light py-0" data-up>↑</button> <button type="button" class="btn btn-sm btn-light py-0" data-down>↓</button> ' +
+                        '<button type="button" class="btn btn-sm btn-outline-danger py-0" data-del>×</button></td></tr>');
+                    renumber();
+                }
+                $(this).val(null).trigger('change.select2');
+            });
+            function ids() { return $('#planBody tr').map(function () { return $(this).data('id'); }).get(); }
+            $('#btnSave').on('click', function () { dstPost('@Url.Action("SavePlan")', { agentId: agentId, date: date, customerIds: ids() }).done(function () { location.reload(); }); });
+            $('#btnReset').on('click', function () { dstPost('@Url.Action("SavePlan")', { agentId: agentId, date: date, customerIds: [] }).done(function () { location.reload(); }); });
+            $('#btnOptimize').on('click', function () {
+                dstPost('@Url.Action("SavePlan")', { agentId: agentId, date: date, customerIds: ids() })
+                    .then(function () { return dstPost('@Url.Action("SaveOptimized")', { agentId: agentId, date: date }); })
+                    .done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

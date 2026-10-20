@@ -1,0 +1,73 @@
+@model tahsinERP.Areas.Distribution.Services.Delivery.MapModel
+@{
+    var points = Model.Points ?? new List<tahsinERP.Areas.Distribution.Services.Delivery.MapPoint>();
+    var data = Newtonsoft.Json.JsonConvert.SerializeObject(new
+    {
+        start = Model.Start == null ? null : new { lat = Model.Start.Lat, lng = Model.Start.Lng, title = Model.Start.Title },
+        points = points.Select(p => new { lat = p.Lat, lng = p.Lng, label = p.Label, title = p.Title, text = p.Text, color = p.Color }),
+        track = Model.Track ?? new List<decimal[]>(),
+        route = Model.Route
+    });
+}
+@if (string.IsNullOrEmpty(Model.ApiKey))
+{
+    <div class="alert alert-light mb-1">
+        <i class="bx bx-map"></i> @DstLocalization.T("Map_NoKey")
+        @if (!string.IsNullOrEmpty(Model.FallbackUrl))
+        {
+            <a href="@Model.FallbackUrl" target="_blank" rel="noopener" class="ml-50">@DstLocalization.T("Map_OpenYandex") <i class="bx bx-link-external"></i></a>
+        }
+    </div>
+}
+else if (points.Count == 0 && Model.Start == null && (Model.Track == null || Model.Track.Count == 0))
+{
+    <div class="text-muted small mb-1">@DstLocalization.T("Map_NoPoints")</div>
+}
+else
+{
+    <div id="@Model.Id" style="height:@(Model.Height)px;border-radius:6px;overflow:hidden" class="mb-1"></div>
+    if (!string.IsNullOrEmpty(Model.FallbackUrl))
+    {
+        <div class="small mb-1"><a href="@Model.FallbackUrl" target="_blank" rel="noopener">@DstLocalization.T("Map_OpenYandex") <i class="bx bx-link-external"></i></a></div>
+    }
+    <script>
+        (function () {
+            var cfg = @Html.Raw(data);
+            function init() {
+                var el = document.getElementById('@Model.Id');
+                if (!el || !window.ymaps) return;
+                ymaps.ready(function () {
+                    var first = cfg.start || cfg.points[0] || (cfg.track.length ? { lat: cfg.track[0][0], lng: cfg.track[0][1] } : { lat: 41.3111, lng: 69.2797 });
+                    var map = new ymaps.Map(el, { center: [first.lat, first.lng], zoom: 12, controls: ['zoomControl', 'typeSelector', 'fullscreenControl'] });
+                    if (cfg.start) {
+                        map.geoObjects.add(new ymaps.Placemark([cfg.start.lat, cfg.start.lng], { hintContent: cfg.start.title, iconContent: '⌂' }, { preset: 'islands#blackStretchyIcon' }));
+                    }
+                    cfg.points.forEach(function (p) {
+                        map.geoObjects.add(new ymaps.Placemark([p.lat, p.lng], {
+                            iconContent: p.label || '', hintContent: p.title || '', balloonContentHeader: p.title || '', balloonContentBody: p.text || ''
+                        }, { preset: 'islands#' + (p.color || 'blue') + 'StretchyIcon' }));
+                    });
+                    if (cfg.track.length > 1) {
+                        map.geoObjects.add(new ymaps.Polyline(cfg.track, {}, { strokeColor: '#5A8DEE', strokeWidth: 3, strokeOpacity: 0.7 }));
+                    }
+                    var refs = (cfg.start ? [[cfg.start.lat, cfg.start.lng]] : []).concat(cfg.points.map(function (p) { return [p.lat, p.lng]; })).slice(0, 50);
+                    if (cfg.route && refs.length > 1 && ymaps.multiRouter) {
+                        var mr = new ymaps.multiRouter.MultiRoute({ referencePoints: refs, params: { routingMode: 'auto' } },
+                            { boundsAutoApply: false, wayPointVisible: false, routeActiveStrokeWidth: 4, routeActiveStrokeColor: '#39DA8A' });
+                        map.geoObjects.add(mr);
+                    }
+                    var bounds = map.geoObjects.getBounds();
+                    if (bounds) map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 30 });
+                });
+            }
+            if (window.ymaps) { init(); return; }
+            var existing = document.getElementById('ymapsApi');
+            if (existing) { existing.addEventListener('load', init); return; }
+            var s = document.createElement('script');
+            s.id = 'ymapsApi';
+            s.src = 'https://api-maps.yandex.ru/2.1/?apikey=@Url.Encode(Model.ApiKey)&lang=@Model.Language';
+            s.onload = init;
+            document.head.appendChild(s);
+        })();
+    </script>
+}
