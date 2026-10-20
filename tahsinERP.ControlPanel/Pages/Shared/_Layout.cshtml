@@ -25,6 +25,10 @@
             <a class="@Nav("/")" href="/">Bosh sahifa</a>
             <a class="@Nav("/Tenants")" href="/Tenants">Tashkilotlar</a>
             <a class="@Nav("/Invoices")" href="/Invoices">Hisob-fakturalar</a>
+            @if (owner || User.IsInRole(nameof(StaffRole.Sales)))
+            {
+                <a class="@Nav("/Bank")" href="/Bank">Bank</a>
+            }
             <a class="@Nav("/Requests")" href="/Requests">So'rovlar@(openRequests > 0 ? $" ({openRequests})" : "")</a>
             <a class="@Nav("/Licenses")" href="/Licenses">Kalitlar</a>
             <a class="@Nav("/Provisioning")" href="/Provisioning">Provisioning</a>

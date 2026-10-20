@@ -106,6 +106,146 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("AuditLog", (string)null);
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BankImport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Account")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateOnly?>("DateFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("DateTo")
+                        .HasColumnType("date");
+
+                    b.Property<string>("FileHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<int>("Format")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UploadedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UploadedByStaffId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UploadedAtUtc");
+
+                    b.ToTable("BankImports");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BankImportLine", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AmountTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("AppliedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AppliedByStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AppliedKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("DedupKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateOnly>("DocDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DocNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("ImportId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LineNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MatchMethod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MatchNote")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("MatchStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PayerAccount")
+                        .HasMaxLength(34)
+                        .HasColumnType("nvarchar(34)");
+
+                    b.Property<string>("PayerInn")
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
+
+                    b.Property<string>("PayerName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("PaymentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppliedKey")
+                        .IsUnique()
+                        .HasFilter("[AppliedKey] IS NOT NULL");
+
+                    b.HasIndex("DedupKey");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("ImportId", "LineNo")
+                        .IsUnique();
+
+                    b.ToTable("BankImportLines");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>
                 {
                     b.Property<int>("Id")
@@ -120,7 +260,21 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<int?>("CreatedByStaffId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DidoxCheckedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DidoxError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("DidoxId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("DidoxSentAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DidoxStatus")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -172,6 +326,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DidoxId")
+                        .HasFilter("[DidoxId] IS NOT NULL");
 
                     b.HasIndex("Number")
                         .IsUnique()
@@ -519,7 +676,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             IsActive = true,
                             IsAddOn = false,
                             MaxUsers = 50,
-                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs",
+                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution",
                             Name = "Korporativ",
                             SortOrder = 3,
                             VatRatePercent = 12m
@@ -531,7 +688,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             IsActive = true,
                             IsAddOn = false,
                             MaxUsers = 5,
-                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs",
+                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution",
                             Name = "Sinov (14 kun)",
                             PriceMonthTiyin = 0L,
                             PriceYearTiyin = 0L,
@@ -549,6 +706,18 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Modules = "Website",
                             Name = "Sayt-katalog",
                             SortOrder = 10,
+                            VatRatePercent = 12m
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "DIST",
+                            IsActive = true,
+                            IsAddOn = false,
+                            MaxUsers = 20,
+                            Modules = "Srm,Crm,Tasks,Finance,Distribution",
+                            Name = "Distributsiya",
+                            SortOrder = 5,
                             VatRatePercent = 12m
                         });
                 });
@@ -760,6 +929,10 @@ namespace tahsinERP.ControlPanel.Data.Migrations
 
                     b.Property<DateTime?>("LockedUntilUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("OtpChannel")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(200)
@@ -1153,6 +1326,14 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<int?>("OfflineGraceDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OnlineCheck")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Phone")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1429,6 +1610,25 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("UsageUsers");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BankImportLine", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.BankImport", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("ImportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>
                 {
                     b.HasOne("tahsinERP.ControlPanel.Data.Subscription", "Subscription")
@@ -1643,6 +1843,11 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BankImport", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>

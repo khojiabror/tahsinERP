@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.Hosting;
 using tahsinERP.ControlPanel.Portal;
 using tahsinERP.ControlPanel.Services;
 
@@ -106,6 +107,28 @@ public class OtpModel(ControlDbContext db, PortalAuthService auth) : PortalPageM
         else
             return Page();
         return RedirectToPage(new { returnUrl = ReturnUrl });
+    }
+}
+
+/// <summary>
+/// «Parolni unutdingizmi?» (4-bosqich): login → bir martalik havola foydalanuvchining shaxsiy kanaliga. Javob hisob bor-yo'qligidan
+/// qat'i nazar bir xil (foydalanuvchilarni sanab bo'lmaydi); IP bo'yicha «login» rate limiti, foydalanuvchiga — 2 daq / soatiga 3.
+/// </summary>
+[AllowAnonymous]
+[EnableRateLimiting("login")]
+public class ForgotModel(PortalAuthService auth, IOptions<PanelHostOptions> hosts) : PortalPageModel
+{
+    [BindProperty, Required(ErrorMessage = "Email yoki telefon raqamini kiriting")] public string Login { get; set; } = "";
+    public bool Sent { get; private set; }
+
+    public IActionResult OnGet() => SignedIn ? LocalRedirect("/") : Page();
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!ModelState.IsValid) return Page();
+        await auth.RequestPasswordResetAsync(Login, HttpContext.Connection.RemoteIpAddress?.ToString(), HostZones.PortalBaseUrl(HttpContext, hosts.Value));
+        Sent = true; // natija ataylab ko'rsatilmaydi
+        return Page();
     }
 }
 

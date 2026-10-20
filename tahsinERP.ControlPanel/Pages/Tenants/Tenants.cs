@@ -28,12 +28,14 @@ public class TenantInput
     [StringLength(128)] public string? DbName { get; set; }
     public int? ServerId { get; set; }
     [StringLength(2000)] public string? Notes { get; set; }
+    public OnlineCheckMode OnlineCheck { get; set; } = OnlineCheckMode.Optional;
+    public int? OfflineGraceDays { get; set; }
 
     public static TenantInput From(Tenant t) => new()
     {
         Slug = t.Slug, LegalName = t.LegalName, Inn = t.Inn, ContactName = t.ContactName, Phone = t.Phone, Email = t.Email,
         TelegramChatId = t.TelegramChatId, Address = t.Address, Deployment = t.Deployment, CompanyId = t.CompanyId,
-        DbName = t.DbName, ServerId = t.ServerId, Notes = t.Notes,
+        DbName = t.DbName, ServerId = t.ServerId, Notes = t.Notes, OnlineCheck = t.OnlineCheck, OfflineGraceDays = t.OfflineGraceDays,
     };
 
     public void ApplyTo(Tenant t, bool includeSlug)
@@ -42,6 +44,8 @@ public class TenantInput
         t.LegalName = LegalName; t.Inn = Inn; t.ContactName = ContactName?.Trim(); t.Phone = Phone?.Trim(); t.Email = Email?.Trim();
         t.TelegramChatId = TelegramChatId?.Trim(); t.Address = Address?.Trim(); t.Deployment = Deployment; t.CompanyId = CompanyId;
         t.DbName = DbName; t.ServerId = ServerId; t.Notes = Notes;
+        t.OnlineCheck = Deployment == DeploymentKind.OnPrem ? OnlineCheck : OnlineCheckMode.Optional;
+        t.OfflineGraceDays = OfflineGraceDays;
     }
 }
 
@@ -101,7 +105,7 @@ public class CreateModel(ControlDbContext db, TenantService tenants) : PanelPage
 }
 
 [Authorize(Policy = Policies.Sales)]
-public class EditModel(ControlDbContext db, TenantService tenants) : PanelPageModel
+public class EditModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ILogger<EditModel> log) : PanelPageModel
 {
     [BindProperty] public TenantInput Input { get; set; } = new();
     public Tenant Tenant { get; private set; } = null!;
@@ -131,9 +135,24 @@ public class EditModel(ControlDbContext db, TenantService tenants) : PanelPageMo
             return Page();
         }
         var before = tenants.TakeSnapshot(t);
+        var policyBefore = (t.OnlineCheck, t.OfflineGraceDays);
         Input.ApplyTo(t, includeSlug: false);
         if (!await TryAsync(() => tenants.UpdateAsync(t, before))) return Page();
         FlashOk = "Saqlandi.";
+        // Onlayn tekshiruv siyosati o'zgardi — kalit yangi qoidaga moslanadi (Required: qisqa aylanma kalit; ERP keyingi pull'da oladi).
+        if (t.Deployment == DeploymentKind.OnPrem && t.InstallationId != null && policyBefore != (t.OnlineCheck, t.OfflineGraceDays))
+        {
+            try
+            {
+                if (await issuer.EnsureForTenantAsync(t) is { } lic)
+                    FlashOk += $" Kalit siyosatga moslandi: #{lic.Id}, {lic.ExpiryDate:dd.MM.yyyy} gacha.";
+            }
+            catch (Exception ex) when (ex is DomainException or System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)
+            {
+                log.LogError(ex, "Siyosat o'zgargach kalit chiqmadi (tenant {Tenant})", t.Slug);
+                FlashError = "Saqlandi, lekin kalit chiqmadi: " + ex.Message;
+            }
+        }
         return RedirectToPage("Details", new { id });
     }
 }

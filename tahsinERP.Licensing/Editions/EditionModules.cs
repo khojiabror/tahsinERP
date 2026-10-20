@@ -33,6 +33,9 @@ namespace tahsinERP.Services.Editions
     ///   BIZNES = START + MES, Muhandislik, Moliya                (20)
     ///   KORP   = BIZNES + HR, Logistika, Rasmiy hujjatlar, Distributsiya (50)
     ///   TRIAL  = KORP                                            (5, 14 kun)
+    ///   DIST   = SRM, CRM, Topshiriqlar, Moliya, Distributsiya   (20) — distribyutorlar uchun yon tarmoq: MES/BOM/HR/Logistika/
+    ///            Rasmiy hujjatlar yo'q (Distribution/00_PLAN.md 1, 4-faza). START→BIZNES→KORP zanjirida emas: DIST'dan
+    ///            BIZNES'ga o'tish Distributsiyani yo'qotadi — tavsiyalar <see cref="SuggestEditionsFor"/> bilan.
     ///
     /// Qo'shimcha xizmatlar (paketdan tashqari, alohida sotiladi) Edition'ga "+" bilan yoziladi: "KORP+SITE", "START+SITE".
     /// Kalit formati o'zgarmaydi (v2 payload'dagi Edition qatori). Hozircha: SITE → Website.
@@ -47,12 +50,15 @@ namespace tahsinERP.Services.Editions
         public const string Biznes = "BIZNES";
         public const string Korp = "KORP";
         public const string Trial = "TRIAL";
+        public const string Dist = "DIST";
 
         private static readonly ProductModule[] StartModules = { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks };
         private static readonly ProductModule[] BiznesModules = StartModules
             .Concat(new[] { ProductModule.Mes, ProductModule.Engineering, ProductModule.Finance }).ToArray();
         private static readonly ProductModule[] KorpModules = BiznesModules
             .Concat(new[] { ProductModule.Hr, ProductModule.Logistics, ProductModule.Docs, ProductModule.Distribution }).ToArray();
+        private static readonly ProductModule[] DistModules =
+            { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Finance, ProductModule.Distribution };
 
         private static readonly Dictionary<string, HashSet<ProductModule>> EditionMap =
             new Dictionary<string, HashSet<ProductModule>>(StringComparer.OrdinalIgnoreCase)
@@ -61,10 +67,14 @@ namespace tahsinERP.Services.Editions
                 { Biznes, new HashSet<ProductModule>(BiznesModules) },
                 { Korp, new HashSet<ProductModule>(KorpModules) },
                 { Trial, new HashSet<ProductModule>(KorpModules) },
+                { Dist, new HashSet<ProductModule>(DistModules) },
             };
 
-        /// <summary>Paketlar tartibi (tarifni oshirish sahifasida eng arzon mos paketni ko'rsatish uchun).</summary>
+        /// <summary>Asosiy zanjir tartibi START → BIZNES → KORP (har biri oldingisini to'liq o'z ichiga oladi). DIST bu zanjirda emas.</summary>
         public static readonly IReadOnlyList<string> UpgradeOrder = new[] { Start, Biznes, Korp };
+
+        /// <summary>Sotiladigan barcha paketlar, taxminiy narx tartibida (DIST — START va BIZNES orasida) — tavsiyalar uchun.</summary>
+        public static readonly IReadOnlyList<string> SellableEditions = new[] { Start, Dist, Biznes, Korp };
 
         private static readonly Dictionary<string, ProductModule> ControllerMap = Build(new Dictionary<ProductModule, string[]>
         {
@@ -240,10 +250,43 @@ namespace tahsinERP.Services.Editions
             return IsModuleAllowed(edition, ModuleOf(controller));
         }
 
-        /// <summary>Modulni o'z ichiga olgan eng arzon paket (START → BIZNES → KORP).</summary>
+        /// <summary>Modulni o'z ichiga olgan eng arzon paket asosiy zanjirda (START → BIZNES → KORP). Joriy paketni hisobga olish — <see cref="SuggestEditionsFor"/>.</summary>
         public static string CheapestEditionWith(ProductModule module)
         {
             return UpgradeOrder.FirstOrDefault(e => EditionMap[e].Contains(module)) ?? Korp;
+        }
+
+        /// <summary>
+        /// Paketning boshqasini to'liq qamrab olishi: <paramref name="target"/> da <paramref name="current"/> ning barcha modullari bor.
+        /// Cheklovsiz/noma'lum <paramref name="current"/> — faqat KORP/TRIAL qamraydi (hamma modul).
+        /// </summary>
+        public static bool Covers(string target, string current)
+        {
+            if (!IsRestrictedEdition(target)) return true;
+            var t = EditionMap[BaseEdition(target)];
+            var cur = IsRestrictedEdition(current) ? (IEnumerable<ProductModule>)EditionMap[BaseEdition(current)] : KorpModules;
+            return cur.All(t.Contains);
+        }
+
+        /// <summary>
+        /// "Paketingizda yo'q" sahifasi uchun tavsiya: modulni o'z ichiga olgan paketlar, avval joriy paketning hamma modullarini
+        /// saqlaydiganlari (narx tartibida), keyin qolganlari. Masalan: START + Distributsiya → DIST, KORP; DIST + MES → KORP, BIZNES
+        /// (BIZNES'da Distributsiya yo'q); BIZNES + Distributsiya → KORP, DIST. Qo'shimcha xizmat (Website) — bo'sh ro'yxat.
+        /// </summary>
+        public static IReadOnlyList<string> SuggestEditionsFor(string currentEdition, ProductModule module)
+        {
+            if (module == ProductModule.Core || IsAddOn(module)) return new string[0];
+            var with = SellableEditions.Where(e => EditionMap[e].Contains(module)).ToList();
+            string current = BaseEdition(currentEdition);
+            var keeping = with.Where(e => Covers(e, current)).ToList();
+            return keeping.Concat(with.Where(e => !keeping.Contains(e))).ToList();
+        }
+
+        /// <summary>Tavsiya matni: "Distributsiya yoki Korporativ" (birinchi ikkitasi), bo'sh bo'lsa — eng arzon zanjir paketi.</summary>
+        public static string SuggestionText(string currentEdition, ProductModule module)
+        {
+            var list = SuggestEditionsFor(currentEdition, module).Take(2).Select(EditionDisplayName).ToList();
+            return list.Count == 0 ? EditionDisplayName(CheapestEditionWith(module)) : string.Join(" yoki ", list);
         }
 
         /// <summary>Modulning foydalanuvchiga ko'rinadigan nomi.</summary>
@@ -278,6 +321,7 @@ namespace tahsinERP.Services.Editions
                 case Biznes: return "Biznes";
                 case Korp: return "Korporativ";
                 case Trial: return "Sinov (Korporativ)";
+                case Dist: return "Distributsiya";
                 default: return edition;
             }
         }

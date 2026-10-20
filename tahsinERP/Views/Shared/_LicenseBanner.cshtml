@@ -27,3 +27,16 @@
         <a href="@Url.Action("Index", "License")" class="alert-link">Kalitni yangilash</a>
     </div>
 }
+@if (licStatus != null && !licStatus.ShowWarning && !string.IsNullOrEmpty(licStatus.OnlineWarning))
+{
+    <div id="licenseOnlineBanner" class="alert alert-warning alert-dismissible mb-0"
+         role="alert" style="position:fixed;right:16px;bottom:16px;z-index:1060;max-width:420px;box-shadow:0 4px 16px rgba(0,0,0,.2);">
+        <button type="button" class="close" onclick="document.getElementById('licenseOnlineBanner').style.display='none';" aria-label="Yopish">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <i class="bx bx-wifi-off"></i>
+        <b>Litsenziya paneli bilan aloqa yo'q</b><br />
+        <span>@licStatus.OnlineWarning</span><br />
+        <a href="@Url.Action("Index", "License")" class="alert-link">Litsenziya sahifasi</a>
+    </div>
+}

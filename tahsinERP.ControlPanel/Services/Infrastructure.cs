@@ -22,6 +22,11 @@ public class PanelOptions
     public int InvoiceDueDays { get; set; } = 5;
     /// <summary>Kunlik fon ishi soati (TimeZone bo'yicha).</summary>
     public int DailyJobHour { get; set; } = 9;
+    /// <summary>
+    /// On-prem internetsiz ishlash muddati, kun (tenant'da OfflineGraceDays berilmasa). Required: kalit shuncha kunlik va yarmi
+    /// o'tganda yangilanadi; Optional: ERP shuncha kun aloqa bo'lmasa ogohlantiradi, panelda «aloqa yo'q» ro'yxati (00_PLAN.md 3.3).
+    /// </summary>
+    public int OnPremOfflineGraceDays { get; set; } = 30;
 }
 
 /// <summary>Sotuvchi (vendor MChJ) rekvizitlari — hisob-faktura PDF'ida.</summary>

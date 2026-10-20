@@ -81,7 +81,8 @@ namespace tahsinERP.Controllers
             string edition = EditionGate.CurrentEdition;
             ViewBag.ModuleName = EditionModules.DisplayName(m);
             ViewBag.EditionName = EditionModules.EditionDisplayName(edition) ?? "-";
-            ViewBag.RequiredEdition = EditionModules.EditionDisplayName(EditionModules.CheapestEditionWith(m));
+            // DIST (Distributsiya) START→BIZNES→KORP zanjirida emas — joriy paket modullarini saqlaydigan paketlar birinchi.
+            ViewBag.RequiredEdition = EditionModules.SuggestionText(edition, m);
             ViewBag.IsAddOn = EditionModules.IsAddOn(m);
             ViewBag.CanManage = CanManage();
             return View();
@@ -217,6 +218,13 @@ namespace tahsinERP.Controllers
             if (DateTime.TryParse(LicenseService.ReadSyncState(db, LicenseService.STATE_LAST_SYNC), CultureInfo.InvariantCulture,
                     DateTimeStyles.RoundtripKind, out lastSync))
                 vm.LastSyncUtc = lastSync;
+            vm.OnlineCheckRequired = LicenseSyncService.IsEnabled
+                && OnlineCheckPolicy.IsRequired(LicenseService.ReadSyncState(db, LicenseService.STATE_ONLINE_CHECK));
+            int graceDays;
+            if (int.TryParse(LicenseService.ReadSyncState(db, LicenseService.STATE_OFFLINE_GRACE_DAYS), NumberStyles.None,
+                    CultureInfo.InvariantCulture, out graceDays))
+                vm.OfflineGraceDays = graceDays;
+            vm.OnlineWarning = LicenseService.OnlineWarningFor(db);
 
             if (lic == null)
             {

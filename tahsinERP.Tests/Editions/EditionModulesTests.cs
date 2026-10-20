@@ -91,5 +91,53 @@ namespace tahsinERP.Tests.Editions
             Assert.AreEqual("KORP", EditionModules.CheapestEditionWith(ProductModule.Hr));
             Assert.AreEqual(ProductModule.Engineering, EditionModules.ModuleOf("BOM"));
         }
+
+        [TestMethod]
+        public void Dist_DistributionWithoutMesAndBom()
+        {
+            Assert.IsTrue(EditionModules.IsRestrictedEdition("DIST"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("DIST", "POrders"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("DIST", "SOrder"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("DIST", "TaskKanban"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("dist", "FinTransactions"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("DIST", "DstOrders"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("DIST", "DstApi"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("DIST", "ProductPlan"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("DIST", "Bom"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("DIST", "Tannarx"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("DIST", "HrPayroll"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("DIST", "Waybill"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("DIST", "OfficialLetters"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("DIST", "SiteHome"), "sayt — alohida xizmat");
+            Assert.IsTrue(EditionModules.IsControllerAllowed("DIST+SITE", "SiteHome"));
+            Assert.AreEqual("Distributsiya", EditionModules.EditionDisplayName("DIST"));
+            CollectionAssert.AreEqual(
+                new[] { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Finance, ProductModule.Distribution },
+                EditionModules.ModulesOf("DIST").ToArray());
+            // Distributsiya KORP va TRIAL'da ham qoladi; asosiy zanjir o'zgarmaydi
+            Assert.IsTrue(EditionModules.IsControllerAllowed("KORP", "DstOrders"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("TRIAL", "DstOrders"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("BIZNES", "DstOrders"));
+            CollectionAssert.AreEqual(new[] { "START", "BIZNES", "KORP" }, EditionModules.UpgradeOrder.ToArray());
+        }
+
+        [TestMethod]
+        public void Suggestions_DistIsSideBranch()
+        {
+            CollectionAssert.AreEqual(new[] { "DIST", "KORP" }, EditionModules.SuggestEditionsFor("START", ProductModule.Distribution).ToArray());
+            CollectionAssert.AreEqual(new[] { "KORP", "DIST" }, EditionModules.SuggestEditionsFor("BIZNES", ProductModule.Distribution).ToArray());
+            CollectionAssert.AreEqual(new[] { "KORP", "BIZNES" }, EditionModules.SuggestEditionsFor("DIST", ProductModule.Mes).ToArray());
+            CollectionAssert.AreEqual(new[] { "KORP", "BIZNES" }, EditionModules.SuggestEditionsFor("DIST+SITE", ProductModule.Engineering).ToArray());
+            CollectionAssert.AreEqual(new[] { "KORP" }, EditionModules.SuggestEditionsFor("DIST", ProductModule.Hr).ToArray());
+            CollectionAssert.AreEqual(new[] { "BIZNES", "KORP" }, EditionModules.SuggestEditionsFor("START", ProductModule.Mes).ToArray());
+            Assert.AreEqual(0, EditionModules.SuggestEditionsFor("START", ProductModule.Website).Count);
+            Assert.AreEqual("Distributsiya yoki Korporativ", EditionModules.SuggestionText("START", ProductModule.Distribution));
+            Assert.AreEqual("Korporativ yoki Biznes", EditionModules.SuggestionText("DIST", ProductModule.Mes));
+            Assert.IsTrue(EditionModules.Covers("KORP", "DIST"));
+            Assert.IsTrue(EditionModules.Covers("DIST", "START"));
+            Assert.IsFalse(EditionModules.Covers("BIZNES", "DIST"));
+            Assert.IsFalse(EditionModules.Covers("DIST", "BIZNES"));
+            Assert.AreEqual("KORP", EditionModules.CheapestEditionWith(ProductModule.Distribution), "zanjir bo'yicha — o'zgarmagan");
+        }
     }
 }

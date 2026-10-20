@@ -38,6 +38,10 @@ namespace tahsinERP.ViewModels
         public bool HasRegToken { get; set; }
         public DateTime? LastSyncUtc { get; set; }
         public string LastSyncResult { get; set; }
+        /// <summary>Panel siyosati: onlayn tekshiruv majburiymi (on-prem, 08_STAGE4.md 4).</summary>
+        public bool OnlineCheckRequired { get; set; }
+        public int? OfflineGraceDays { get; set; }
+        public string OnlineWarning { get; set; }
 
         public List<SeatRow> Users { get; set; } = new List<SeatRow>();
         public List<LicenseHistoryRow> History { get; set; } = new List<LicenseHistoryRow>();

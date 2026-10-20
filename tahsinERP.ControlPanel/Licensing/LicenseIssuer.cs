@@ -20,6 +20,17 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
     IOptions<PanelOptions> options, ILogger<LicenseIssuer> log)
 {
     public const int OnPremMaxDays = 366;
+    /// <summary>Onlayn tekshiruv majburiy bo'lganda internetsiz muddat chegarasi: pull oralig'i (≤ 24 soat) va uzilishlarga joy qolsin.</summary>
+    public const int MinOfflineGraceDays = 7;
+    public const int MaxOfflineGraceDays = 90;
+
+    /// <summary>Tenant uchun internetsiz ishlash muddati (kun), chegaralangan.</summary>
+    public static int OfflineGraceDays(Tenant tenant, PanelOptions o) =>
+        Math.Clamp(tenant.OfflineGraceDays ?? o.OnPremOfflineGraceDays, MinOfflineGraceDays, MaxOfflineGraceDays);
+
+    /// <summary>Required on-prem: kalit qisqa (grace kun) va panel uni yangilab turadi — "aylanma kalit".</summary>
+    public static bool IsRollingKey(Tenant tenant) =>
+        tenant.Deployment == DeploymentKind.OnPrem && tenant.OnlineCheck == OnlineCheckMode.Required;
 
     /// <summary>Tenant'ning joriy (faol) kaliti: yopilmagan, bekor qilinmagan, joriy o'rnatmaga tegishli.</summary>
     public static IQueryable<License> CurrentQuery(ControlDbContext db, Tenant tenant) =>
@@ -142,6 +153,9 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
             // Offline kalitni qaytarib olib bo'lmaydi — bugundan ko'pi bilan 1 yil; qolgan davr keyingi kalitda.
             start = today;
             DateOnly cap = today.AddYears(1).AddDays(-1);
+            // Onlayn tekshiruv majburiy: kalit faqat grace kunga — ERP pull qilmasa (internet yo'q yoki uzib qo'yilgan) tugaydi.
+            if (IsRollingKey(tenant))
+                cap = today.AddDays(OfflineGraceDays(tenant, options.Value) - 1);
             if (expiry > cap)
                 expiry = cap;
         }
@@ -175,8 +189,16 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
             return null;
         var current = await GetCurrentAsync(tenant, ct);
         if (current is not null && current.Edition == desired.Edition && current.MaxUsers == desired.MaxUsers
-            && current.ExpiryDate >= desired.ExpiryDate && current.CompanyId == tenant.CompanyId)
-            return null;
+            && current.CompanyId == tenant.CompanyId)
+        {
+            if (!IsRollingKey(tenant) && current.ExpiryDate >= desired.ExpiryDate)
+                return null;
+            // Aylanma kalit: grace'ning yarmi o'tguncha yangilanmaydi (har kuni yangi kalit chiqmasin); ruxsatdan uzun kalit
+            // (masalan Optional → Required o'tilganda) darhol qisqasiga almashtiriladi — ERP keyingi pull'da oladi.
+            int renewWindow = OfflineGraceDays(tenant, options.Value) / 2;
+            if (IsRollingKey(tenant) && current.ExpiryDate <= desired.ExpiryDate && current.ExpiryDate >= desired.ExpiryDate.AddDays(-renewWindow))
+                return null;
+        }
         return await IssueAsync(tenant, desired, LicenseSource.Auto, staffId: null, ct);
     }
 

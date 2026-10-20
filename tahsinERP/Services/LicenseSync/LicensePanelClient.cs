@@ -56,6 +56,10 @@ namespace tahsinERP.Services.LicenseSync
             public string TenantSecret { get; set; }
             public string LicenseKey { get; set; }
             public int? PollHours { get; set; }
+            /// <summary>On-prem onlayn tekshiruv siyosati: "required" / "optional" (eski panel — null).</summary>
+            public string OnlineCheck { get; set; }
+            /// <summary>Internetsiz ishlash muddati, kun (eski panel — null).</summary>
+            public int? OfflineGraceDays { get; set; }
             /// <summary>Panel xato kodi (token_not_found, token_used, ...) yoki tarmoq xatosi matni.</summary>
             public string Error { get; set; }
             public int HttpStatus { get; set; }
@@ -67,6 +71,9 @@ namespace tahsinERP.Services.LicenseSync
             public string LicenseKey { get; set; }
             public string ETag { get; set; }
             public int? PollHours { get; set; }
+            /// <summary>On-prem onlayn tekshiruv siyosati: "required" / "optional" (304 yoki eski panel — null).</summary>
+            public string OnlineCheck { get; set; }
+            public int? OfflineGraceDays { get; set; }
             public string Error { get; set; }
             public int HttpStatus { get; set; }
         }
@@ -100,6 +107,8 @@ namespace tahsinERP.Services.LicenseSync
                         result.TenantSecret = (string)json?["tenant_secret"];
                         result.LicenseKey = (string)json?["license_key"];
                         result.PollHours = (int?)json?["poll_hours"];
+                        result.OnlineCheck = (string)json?["online_check"];
+                        result.OfflineGraceDays = (int?)json?["offline_grace_days"];
                         result.Ok = IsValidSecret(result.TenantSecret);
                         if (!result.Ok)
                             result.Error = "Panel javobida tenant_secret yo'q yoki yaroqsiz.";
@@ -151,6 +160,8 @@ namespace tahsinERP.Services.LicenseSync
                             result.LicenseKey = (string)json?["license_key"];
                             result.ETag = (string)json?["etag"];
                             result.PollHours = (int?)json?["poll_hours"];
+                            result.OnlineCheck = (string)json?["online_check"];
+                            result.OfflineGraceDays = (int?)json?["offline_grace_days"];
                             if (string.IsNullOrWhiteSpace(result.LicenseKey))
                             {
                                 result.Status = PullStatus.Failed;
@@ -243,5 +254,48 @@ namespace tahsinERP.Services.LicenseSync
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// On-prem onlayn tekshiruv siyosati (Docs/ControlPanel/08_STAGE4.md 4). Panel pull/register javobida
+    /// <c>online_check</c> ("required"/"optional") va <c>offline_grace_days</c> beradi; ERP ularni LICENSE_STATE'da saqlaydi.
+    /// Required'da kalitning o'zi qisqa (panel uni pull orqali yangilab turadi) — bu yerda faqat oldindan ogohlantirish.
+    /// DB'siz, sof funksiya (panel testlari ham shu faylni ishlatadi).
+    /// </summary>
+    public static class OnlineCheckPolicy
+    {
+        public const string Required = "required";
+        public const string Optional = "optional";
+        public const int DefaultGraceDays = 30;
+        /// <summary>Required rejimida aloqa shuncha kundan ko'p yo'q bo'lsa ogohlantiriladi.</summary>
+        public const int RequiredWarnAfterDays = 3;
+
+        public static bool IsRequired(string onlineCheck)
+        {
+            return string.Equals((onlineCheck ?? "").Trim(), Required, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Ogohlantirish matni yoki null. <paramref name="lastOkUtc"/> — oxirgi muvaffaqiyatli sinxronlash (null — hali yo'q:
+        /// ogohlantirilmaydi). Optional: grace (standart 30) kundan ko'p aloqa bo'lmasa; Required: 3 kundan ko'p bo'lsa.
+        /// </summary>
+        public static string Warning(string onlineCheck, int? graceDays, DateTime? lastOkUtc, DateTime nowUtc)
+        {
+            if (!lastOkUtc.HasValue)
+                return null;
+            int grace = graceDays.HasValue && graceDays.Value > 0 ? Math.Min(graceDays.Value, 366) : DefaultGraceDays;
+            int days = (int)Math.Floor((nowUtc - lastOkUtc.Value).TotalDays);
+            if (IsRequired(onlineCheck))
+            {
+                if (days < RequiredWarnAfterDays)
+                    return null;
+                return "Litsenziya paneli bilan " + days + " kundan beri aloqa yo'q. Onlayn tekshiruv majburiy: kalit internetsiz ko'pi bilan "
+                       + grace + " kun amal qiladi va panel uni avtomatik yangilaydi — server internetini tekshiring.";
+            }
+            if (days < grace)
+                return null;
+            return "Litsenziya paneli bilan " + days + " kundan beri aloqa yo'q. Kalit o'z muddatigacha ishlaydi, lekin yangilanishlar "
+                   + "(to'lov, tarif o'zgarishi) yetib kelmaydi — internetni tekshiring yoki kalitni qo'lda kiriting.";
+        }
     }
 }
