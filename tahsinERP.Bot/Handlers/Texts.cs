@@ -16,6 +16,7 @@ public static class Texts
         ["Unlinked"] = ("Bot hisobingizdan uzildi. Qayta ulash uchun yangi kod oling.", "Бот отвязан. Для повторной привязки получите новый код."),
         ["Error_Generic"] = ("⚠️ Xatolik yuz berdi, birozdan keyin qayta urinib ko'ring.", "⚠️ Произошла ошибка, попробуйте чуть позже."),
         ["Error_Erp"] = ("⚠️ ERP bilan aloqa yo'q, birozdan keyin qayta urinib ko'ring.", "⚠️ Нет связи с ERP, попробуйте чуть позже."),
+        ["Error_License"] = ("⛔ Tizim litsenziyasi faol emas. Kompaniya administratoriga murojaat qiling.", "⛔ Лицензия системы неактивна. Обратитесь к администратору компании."),
         ["NotAllowed"] = ("Bu amal sizning rolingiz uchun emas.", "Это действие недоступно для вашей роли."),
         ["Cancelled"] = ("Bekor qilindi.", "Отменено."),
         ["Menu"] = ("Asosiy menyu.", "Главное меню."),

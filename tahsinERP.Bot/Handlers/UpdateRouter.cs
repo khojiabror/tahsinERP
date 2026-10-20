@@ -65,6 +65,11 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
             var text = "⚠️ " + ex.Message + (ex.Problems.Count > 0 ? "\n" + string.Join("\n", ex.Problems) : "");
             outbox.Send(tenant.Id, ctx.ChatId, text);
         }
+        catch (ErpException ex) when (ex.IsLicense)
+        {
+            log.LogWarning("ERP litsenziyasi faol emas, tenant {Slug}", tenant.Slug);
+            outbox.Send(tenant.Id, ctx.ChatId, ctx.T("Error_License"));
+        }
         catch (ErpException ex) when (ex.Status == 403 && ctx.Link != null)
         {
             log.LogWarning("ERP 403 ({Message}) tenant {Slug}, tg {User}", ex.Message, tenant.Slug, from.Id);

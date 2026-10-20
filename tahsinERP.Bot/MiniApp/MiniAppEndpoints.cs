@@ -74,7 +74,7 @@ public static class MiniAppEndpoints
         catch (ErpException ex)
         {
             d.Log.LogWarning("ERP {Status}: {Message} (tenant {Slug})", ex.Status, ex.Message, slug);
-            return Results.Json(new { error = Texts.Get(link.Language, ex.Status == 403 ? "NotAllowed" : "Error_Erp") }, statusCode: 502);
+            return Results.Json(new { error = Texts.Get(link.Language, ex.IsLicense ? "Error_License" : ex.Status == 403 ? "NotAllowed" : "Error_Erp") }, statusCode: 502);
         }
         catch (HttpRequestException ex)
         {

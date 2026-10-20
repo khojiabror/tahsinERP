@@ -490,6 +490,17 @@ public class HandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task LicenseBlocked_ExplainedNotAsConnectionOrRoleError()
+    {
+        LinkAs("AGENT");
+        _routes["Route"] = _ => (HttpStatusCode.Forbidden, "{\"error\":\"License\"}");
+        await Handle(Text(2, "🗺 Marshrut"));
+        var text = TextOf(Out().Last());
+        Assert.Contains("litsenziyasi", text);
+        Assert.DoesNotContain("rolingiz", text);
+    }
+
+    [Fact]
     public async Task Manager_ConfirmsOverride_FieldActionsDenied()
     {
         LinkAs("MANAGER");

@@ -1,27 +1,36 @@
 @using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Services
 @{
     string kind = ViewBag.Kind;
     ViewBag.Title = DstLocalization.T("Import");
     bool canChange = ViewBag.DstCanChange == true;
-    var result = ViewBag.Result as tahsinERP.Areas.Distribution.Services.ImportResult;
+    var result = ViewBag.Result as ImportResult;
+    string stagedToken = ViewBag.StagedToken;
     var tabs = new[]
     {
+        new { Kind = DstImportController.Territories, Title = DstLocalization.T("Territories"), Hint = DstLocalization.T("Import_TerritoriesHint") },
+        new { Kind = DstImportController.PriceTypes, Title = DstLocalization.T("PriceTypes"), Hint = DstLocalization.T("Import_PriceTypesHint") },
         new { Kind = DstImportController.Customers, Title = DstLocalization.T("Customers"), Hint = DstLocalization.T("Import_CustomersHint") },
+        new { Kind = DstImportController.Routes, Title = DstLocalization.T("Import_Routes"), Hint = DstLocalization.T("Import_RoutesHint") },
         new { Kind = DstImportController.Products, Title = DstLocalization.T("Products"), Hint = DstLocalization.T("Import_ProductsHint") },
+        new { Kind = DstImportController.Units, Title = DstLocalization.T("Import_Units"), Hint = DstLocalization.T("Import_UnitsHint") },
         new { Kind = DstImportController.Prices, Title = DstLocalization.T("Prices"), Hint = DstLocalization.T("Import_PricesHint") },
         new { Kind = DstImportController.Opening, Title = DstLocalization.T("Import_Opening"), Hint = DstLocalization.T("Import_OpeningHint") }
     };
     var current = tabs.First(t => t.Kind == kind);
+    const int previewMax = 500;
 }
 <div class="app-content content">
     <div class="content-overlay"></div>
     <div class="content-wrapper">
         @Html.Partial("_DstHeader", (string)ViewBag.Title)
         <div class="content-body">
+            <p class="small text-muted">@DstLocalization.T("Import_Order")</p>
             <ul class="nav nav-tabs mb-1">
-                @foreach (var t in tabs)
+                @for (int i = 0; i < tabs.Length; i++)
                 {
-                    <li class="nav-item"><a class="nav-link @(t.Kind == kind ? "active" : "")" href="@Url.Action("Index", new { kind = t.Kind })">@t.Title</a></li>
+                    var t = tabs[i];
+                    <li class="nav-item"><a class="nav-link @(t.Kind == kind ? "active" : "")" href="@Url.Action("Index", new { kind = t.Kind })">@(i + 1). @t.Title</a></li>
                 }
             </ul>
             <div class="card">
@@ -40,9 +49,45 @@
                         if (result.Ok)
                         {
                             <div class="alert @(result.DryRun ? "alert-info" : "alert-success")">
-                                @(result.DryRun ? DstLocalization.T("Import_DryRunDone") : DstLocalization.T("Import_Done")): @DstLocalization.T("Import_Created") — @result.Created,
+                                @(result.DryRun ? DstLocalization.T("Import_PreviewReady") : DstLocalization.T("Import_Done") + ":")
+                                @DstLocalization.T("Import_Created") — @result.Created,
                                 @DstLocalization.T("Import_Updated") — @result.Updated@(result.Skipped > 0 ? ", " + DstLocalization.T("Import_Skipped") + " — " + result.Skipped : "")
                             </div>
+                            if (stagedToken != null && canChange)
+                            {
+                                using (Html.BeginForm("Commit", "DstImport", new { area = "Distribution", kind }, FormMethod.Post, new { @class = "mb-1" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="token" value="@stagedToken" />
+                                    <button type="submit" class="btn btn-success"><i class="bx bx-check"></i> @DstLocalization.T("Import_Commit")</button>
+                                    <span class="text-muted ml-1">@ViewBag.StagedFileName</span>
+                                }
+                            }
+                            if (result.Preview.Count > 0)
+                            {
+                                <h6 class="mt-1">@DstLocalization.T("Import_PreviewTitle")</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead><tr><th style="width:80px">@DstLocalization.T("Row")</th><th>@DstLocalization.T("Import_Record")</th><th style="width:140px">@DstLocalization.T("Import_Action")</th><th>@DstLocalization.T("Import_Details")</th></tr></thead>
+                                        <tbody>
+                                            @foreach (var p in result.Preview.Take(previewMax))
+                                            {
+                                                var badge = p.Action == ImportAction.New ? "badge-light-success" : p.Action == ImportAction.Update ? "badge-light-warning" : "badge-light-secondary";
+                                                <tr>
+                                                    <td>@p.Row</td>
+                                                    <td>@p.Key</td>
+                                                    <td><span class="badge @badge">@DstLocalization.T("Import_Action" + p.Action)</span></td>
+                                                    <td>@p.Details</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                if (result.Preview.Count > previewMax)
+                                {
+                                    <p class="small text-muted">@DstLocalization.T("Import_PreviewMore", result.Preview.Count - previewMax)</p>
+                                }
+                            }
                         }
                         else
                         {
@@ -67,7 +112,7 @@
                             <input type="file" name="file" accept=".xlsx" class="form-control mr-1 mb-1" required />
                             <div class="custom-control custom-checkbox mr-1 mb-1">
                                 <input type="checkbox" class="custom-control-input" id="dryRun" name="dryRun" value="true" checked />
-                                <label class="custom-control-label" for="dryRun">@DstLocalization.T("Import_DryRun")</label>
+                                <label class="custom-control-label" for="dryRun">@DstLocalization.T("Import_PreviewFirst")</label>
                             </div>
                             <button type="submit" class="btn btn-primary mb-1"><i class="bx bx-upload"></i> @DstLocalization.T("Import_Upload")</button>
                         }
