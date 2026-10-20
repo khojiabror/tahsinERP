@@ -80,7 +80,7 @@ public class IndexModel(TractionService traction, Clock clock) : PanelPageModel
             default:
                 Line("Slug", "Nomi", "Holat", "Paket", "MRR (so'm)", "Oxirgi kirish (UTC)", "Faol foydalanuvchi", "Limit", "Modullar", "Ruxsat", "Amallar", "Oldingi", "Hujjatlar", "Ball", "Xavf", "Ishlatilmagan modullar");
                 foreach (var t in SortRows(r.Tenants))
-                    Line(t.Tenant.Slug, t.Tenant.LegalName, t.Tenant.Status, t.PlanCode, t.MrrTiyin / 100, t.LastLoginUtc?.ToString("yyyy-MM-dd HH:mm"), t.ActiveUsers, t.SeatLimit,
+                    Line(t.Tenant.Slug, t.Tenant.LegalName, t.Tenant.Status, t.Edition ?? t.PlanCode, t.MrrTiyin / 100, t.LastLoginUtc?.ToString("yyyy-MM-dd HH:mm"), t.ActiveUsers, t.SeatLimit,
                         t.ModulesUsed, t.ModulesAllowed, t.Actions, t.PrevActions, t.Docs, t.Score, t.Risk, string.Join(",", t.UnusedModules));
                 break;
         }

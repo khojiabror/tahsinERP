@@ -32,6 +32,8 @@ public static class PlanCodes
     public const string Biznes = "BIZNES";
     public const string Korp = "KORP";
     public const string Trial = "TRIAL";
+    /// <summary>Qo'shimcha xizmat «Sayt-katalog» — paketga kirmaydi, alohida obuna; kalitda Edition'ga "+SITE" bo'lib qo'shiladi.</summary>
+    public const string Site = "SITE";
 }
 
 public class Plan
@@ -50,6 +52,12 @@ public class Plan
     public decimal VatRatePercent { get; set; } = 12m;
     /// <summary>Faqat TRIAL: sinov muddati, kun.</summary>
     public int? TrialDays { get; set; }
+    /// <summary>
+    /// Qo'shimcha xizmat (paketdan tashqari, masalan SITE): o'z obunasi, narxi va hisob-fakturasi bor, lekin tenant holatini
+    /// belgilamaydi va kalitda alohida Edition emas — asosiy paket kodiga "+KOD" bo'lib qo'shiladi (EditionModules.AddOnsOf).
+    /// Code = EditionModules'dagi xizmat kodi. MaxUsers = 0 (foydalanuvchiga bog'liq emas).
+    /// </summary>
+    public bool IsAddOn { get; set; }
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }
 }

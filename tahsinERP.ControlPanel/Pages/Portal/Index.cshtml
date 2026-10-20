@@ -50,6 +50,30 @@ else if (ov.DaysLeft is int d && d <= 14)
         <dt>Foydalanuvchilar</dt><dd>Paket bo'yicha ko'pi bilan @(cur?.Users.ToString() ?? "—") ta. Ko'proq kerak bo'lsa — yuqoriroq paket.</dd>
     </dl>
 </div>
+@if (ov.AddOns.Count > 0)
+{
+    <h2>Qo'shimcha xizmatlar</h2>
+    <p class="hint">Paketga kirmaydi, alohida obuna va to'lov. Faol xizmat litsenziya kalitiga qo'shiladi va ERP'da o'z bo'limi ochiladi.</p>
+    <div class="scroll"><table>
+        <tr><th>Xizmat</th><th>Holat</th><th>Davr</th><th class="num">Qolgan kunlar</th></tr>
+        @foreach (var a in ov.AddOns)
+        {
+            var s = a.Subscription;
+            <tr>
+                <td>@a.Plan.Name</td>
+                <td><span class="badge @a.Badge">@a.StateText</span></td>
+                <td>@if (s is not null && a.State is AddOnState.Active or AddOnState.Upcoming or AddOnState.Expired) { @(s.StartDate.ToString("dd.MM.yyyy") + " – " + s.EndDate.ToString("dd.MM.yyyy") + " (" + Labels.Of(s.Period) + ")") }
+                    else if (a.State == AddOnState.PendingPayment) { <text>@Labels.Of(s!.Period) — hisob-faktura to'langach faollashadi</text> }
+                    else { <text>Ulash uchun menejeringiz bilan bog'laning</text> }</td>
+                <td class="num">@(a.DaysLeft is int ad ? Math.Max(0, ad).ToString() : "—")</td>
+            </tr>
+        }
+    </table></div>
+    @foreach (var a in ov.AddOns.Where(a => a.State == AddOnState.Active && a.DaysLeft <= 14))
+    {
+        <div class="warnbox">«@a.Plan.Name» xizmati tugashiga <strong>@a.DaysLeft kun</strong> qoldi (@a.Subscription!.EndDate.ToString("dd.MM.yyyy")). Uzaytirish uchun menejeringiz bilan bog'laning.</div>
+    }
+}
 @if (Model.OpenRequest is { } r)
 {
     <div class="card">Ko'rib chiqilayotgan so'rov #@r.Id: «@r.Plan?.Name», @r.PeriodCount @PortalRequestService.PeriodUnit(r.Period) — <a href="/Requests">batafsil</a></div>

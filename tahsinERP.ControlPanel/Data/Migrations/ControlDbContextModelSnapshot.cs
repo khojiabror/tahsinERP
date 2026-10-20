@@ -448,6 +448,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsAddOn")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MaxUsers")
                         .HasColumnType("int");
 
@@ -490,6 +493,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Id = 1,
                             Code = "START",
                             IsActive = true,
+                            IsAddOn = false,
                             MaxUsers = 5,
                             Modules = "Srm,Crm,Tasks",
                             Name = "Start",
@@ -501,6 +505,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Id = 2,
                             Code = "BIZNES",
                             IsActive = true,
+                            IsAddOn = false,
                             MaxUsers = 20,
                             Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance",
                             Name = "Biznes",
@@ -512,6 +517,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Id = 3,
                             Code = "KORP",
                             IsActive = true,
+                            IsAddOn = false,
                             MaxUsers = 50,
                             Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs",
                             Name = "Korporativ",
@@ -523,6 +529,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Id = 4,
                             Code = "TRIAL",
                             IsActive = true,
+                            IsAddOn = false,
                             MaxUsers = 5,
                             Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs",
                             Name = "Sinov (14 kun)",
@@ -530,6 +537,18 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             PriceYearTiyin = 0L,
                             SortOrder = 4,
                             TrialDays = 14,
+                            VatRatePercent = 12m
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "SITE",
+                            IsActive = true,
+                            IsAddOn = true,
+                            MaxUsers = 0,
+                            Modules = "Website",
+                            Name = "Sayt-katalog",
+                            SortOrder = 10,
                             VatRatePercent = 12m
                         });
                 });

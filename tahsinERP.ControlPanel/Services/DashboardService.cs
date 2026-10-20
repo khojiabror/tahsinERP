@@ -37,9 +37,9 @@ public sealed class DashboardService(ControlDbContext db, Clock clock)
         long unpaid = await db.Invoices.Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid)
             .SumAsync(i => (long?)(i.TotalTiyin - i.PaidTiyin), ct) ?? 0;
 
-        // Muddati yaqinlashganlar: tenantning eng uzoq faol obunasi bo'yicha.
+        // Muddati yaqinlashganlar: tenantning eng uzoq faol paket obunasi bo'yicha (qo'shimcha xizmatlar paket muddatini yashirmasin).
         DateOnly horizon = today.AddDays(expiringDays);
-        var subs = await db.Subscriptions.Where(s => s.Status == SubscriptionStatus.Active && s.Tenant!.Status != TenantStatus.Archived)
+        var subs = await SubscriptionService.PackageOnly(db.Subscriptions).Where(s => s.Status == SubscriptionStatus.Active && s.Tenant!.Status != TenantStatus.Archived)
             .Select(s => new { s.TenantId, s.Tenant!.Slug, s.Tenant.LegalName, Plan = s.Plan!.Name, s.EndDate, s.Tenant.Status })
             .ToListAsync(ct);
         var expiring = subs.GroupBy(s => s.TenantId).Select(g => g.OrderByDescending(s => s.EndDate).First())

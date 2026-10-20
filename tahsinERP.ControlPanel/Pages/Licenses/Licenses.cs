@@ -29,6 +29,8 @@ public class IssueModel(ControlDbContext db, LicenseIssuer issuer, Clock clock) 
 {
     [BindProperty(SupportsGet = true)] public int TenantId { get; set; }
     [BindProperty] public string Edition { get; set; } = PlanCodes.Start;
+    /// <summary>Belgilangan qo'shimcha xizmat kodlari (SITE...) — Edition'ga "+KOD" bo'lib qo'shiladi.</summary>
+    [BindProperty] public List<string> AddOnCodes { get; set; } = [];
     [BindProperty] public int MaxUsers { get; set; } = 5;
     [BindProperty] public DateOnly StartDate { get; set; }
     [BindProperty] public DateOnly ExpiryDate { get; set; }
@@ -45,13 +47,22 @@ public class IssueModel(ControlDbContext db, LicenseIssuer issuer, Clock clock) 
         return true;
     }
 
+    public IEnumerable<Plan> Packages => Plans.Where(p => !p.IsAddOn);
+    public IEnumerable<Plan> AddOnPlans => Plans.Where(p => p.IsAddOn);
+
     public async Task<IActionResult> OnGetAsync()
     {
         if (!await LoadAsync()) return NotFound();
         var current = await issuer.GetCurrentAsync(Tenant);
         StartDate = clock.Today;
         ExpiryDate = current?.ExpiryDate ?? clock.Today.AddYears(1).AddDays(-1);
-        if (current != null) { Edition = current.Edition; MaxUsers = current.MaxUsers; }
+        if (current != null)
+        {
+            Edition = tahsinERP.Services.Editions.EditionModules.BaseEdition(current.Edition);
+            AddOnCodes = AddOnPlans.Where(p => tahsinERP.Services.Editions.EditionModules.AddOnsOf(current.Edition)
+                .Intersect(tahsinERP.Services.Editions.EditionModules.AddOnsOf("X+" + p.Code)).Any()).Select(p => p.Code).ToList();
+            MaxUsers = current.MaxUsers;
+        }
         return Page();
     }
 
@@ -59,13 +70,17 @@ public class IssueModel(ControlDbContext db, LicenseIssuer issuer, Clock clock) 
     {
         if (!await LoadAsync()) return NotFound();
         if (string.IsNullOrWhiteSpace(Reason)) ModelState.AddModelError(nameof(Reason), "Sabab majburiy (audit uchun).");
-        if (!Plans.Any(p => p.Code == Edition)) ModelState.AddModelError(nameof(Edition), "Noma'lum paket.");
+        if (!Packages.Any(p => p.Code == Edition)) ModelState.AddModelError(nameof(Edition), "Noma'lum paket.");
+        if (AddOnCodes.Any(c => !AddOnPlans.Any(p => p.Code == c))) ModelState.AddModelError(nameof(AddOnCodes), "Noma'lum qo'shimcha xizmat.");
         if (!ModelState.IsValid) return Page();
+        string edition;
+        try { edition = LicenseIssuer.ComposeEdition(Edition, AddOnCodes); }
+        catch (DomainException ex) { ModelState.AddModelError("", ex.Message); return Page(); }
         License? issued = null;
         try
         {
             if (!await TryAsync(async () => issued = await issuer.IssueAsync(Tenant,
-                    new LicenseRequest(Edition, MaxUsers, StartDate, ExpiryDate, null, Reason!.Trim()), LicenseSource.Manual, StaffId)))
+                    new LicenseRequest(edition, MaxUsers, StartDate, ExpiryDate, null, Reason!.Trim()), LicenseSource.Manual, StaffId)))
                 return Page();
         }
         catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)

@@ -46,6 +46,12 @@ public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
         Plan = plan;
         long? month = ParsePrice(PriceMonth, nameof(PriceMonth));
         long? year = ParsePrice(PriceYear, nameof(PriceYear));
+        if (plan.IsAddOn)
+        {
+            // Qo'shimcha xizmat foydalanuvchiga bog'liq emas — chegara 0 bo'lib qoladi.
+            ModelState.Remove(nameof(MaxUsers));
+            MaxUsers = 0;
+        }
         if (!ModelState.IsValid) return Page();
         var before = new { plan.Name, plan.PriceMonthTiyin, plan.PriceYearTiyin, plan.MaxUsers, plan.Modules, plan.VatRatePercent, plan.TrialDays, plan.IsActive };
         plan.Name = Name.Trim(); plan.PriceMonthTiyin = month; plan.PriceYearTiyin = year; plan.MaxUsers = MaxUsers;
