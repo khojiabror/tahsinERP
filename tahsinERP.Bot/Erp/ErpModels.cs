@@ -58,4 +58,7 @@ public sealed class ErpException(int status, string message, IReadOnlyList<strin
     public int Status { get; } = status;
     public IReadOnlyList<string> Problems { get; } = problems ?? [];
     public bool IsBusiness => Status is 400 or 409;
+    /// <summary>ERP kompaniya litsenziyasi faol emas (DstApiAuth: 403 "License") — aloqa xatosi ham, rol xatosi ham emas.</summary>
+    public bool IsLicense => Status == 403 && Message == LicenseMessage;
+    public const string LicenseMessage = "License";
 }

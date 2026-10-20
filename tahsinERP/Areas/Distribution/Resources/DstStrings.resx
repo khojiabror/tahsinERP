@@ -1799,4 +1799,70 @@ Faol agentlar: {7}/{8}</value>
   <data name="Site_LeadOrderComment" xml:space="preserve">
     <value>Sayt arizasi №{0}</value>
   </data>
+  <data name="Import_Routes" xml:space="preserve">
+    <value>Marshrutlar</value>
+  </data>
+  <data name="Import_Units" xml:space="preserve">
+    <value>Tovar birliklari</value>
+  </data>
+  <data name="Import_TerritoriesHint" xml:space="preserve">
+    <value>Viloyat → tuman → hudud. Bor nom (uz yoki ru) topiladi, yo'g'i yaratiladi — takror yuklash xavfsiz. Tuman va hudud ixtiyoriy, lekin hudud tumansiz bo'lmaydi.</value>
+  </data>
+  <data name="Import_PriceTypesHint" xml:space="preserve">
+    <value>Narx turlari nomi bo'yicha yangilanadi yoki yaratiladi. "Standart" ustunida "ha" faqat bitta qatorda; standart narx turi hali yo'q bo'lsa, birinchi qator standart bo'ladi.</value>
+  </data>
+  <data name="Import_RoutesHint" xml:space="preserve">
+    <value>Marshrut = mijozning agenti va tashrif kunlari (Du=1 … Ya=7, masalan 1,4). Mijoz STIR yoki nomi bo'yicha, faqat mavjudlari. Bo'sh katak — o'zgarishsiz, "-" — tozalash.</value>
+  </data>
+  <data name="Import_UnitsHint" xml:space="preserve">
+    <value>Mavjud tovarlarga qo'shimcha birliklar: bitta qator = tovar × birlik. Koeffitsient asosiy birlikda (1 poddon = 40 qop). Bor birlik yangilanadi, shtrix-kod qo'shiladi.</value>
+  </data>
+  <data name="Import_TerritoryPath" xml:space="preserve">
+    <value>Viloyat majburiy; hudud tumansiz bo'lmaydi</value>
+  </data>
+  <data name="Import_DefaultTwice" xml:space="preserve">
+    <value>"Standart" faqat bitta qatorda bo'lishi mumkin</value>
+  </data>
+  <data name="Import_IsDefault" xml:space="preserve">
+    <value>standart</value>
+  </data>
+  <data name="Import_StagedExpired" xml:space="preserve">
+    <value>Ko'rib chiqilgan fayl topilmadi yoki eskirgan — faylni qayta yuklang</value>
+  </data>
+  <data name="Import_Commit" xml:space="preserve">
+    <value>Import qilish</value>
+  </data>
+  <data name="Import_PreviewReady" xml:space="preserve">
+    <value>Xato yo'q, hali hech narsa yozilmadi. Quyidagi ro'yxatni tekshiring va "Import qilish" ni bosing.</value>
+  </data>
+  <data name="Import_PreviewTitle" xml:space="preserve">
+    <value>Ko'rib chiqish</value>
+  </data>
+  <data name="Import_ActionNew" xml:space="preserve">
+    <value>Yangi</value>
+  </data>
+  <data name="Import_ActionUpdate" xml:space="preserve">
+    <value>Yangilanadi</value>
+  </data>
+  <data name="Import_ActionUnchanged" xml:space="preserve">
+    <value>O'zgarishsiz</value>
+  </data>
+  <data name="Import_Record" xml:space="preserve">
+    <value>Yozuv</value>
+  </data>
+  <data name="Import_Action" xml:space="preserve">
+    <value>Amal</value>
+  </data>
+  <data name="Import_Details" xml:space="preserve">
+    <value>Tafsilot</value>
+  </data>
+  <data name="Import_PreviewMore" xml:space="preserve">
+    <value>… va yana {0} qator</value>
+  </data>
+  <data name="Import_PreviewFirst" xml:space="preserve">
+    <value>Avval ko'rib chiqish (tavsiya)</value>
+  </data>
+  <data name="Import_Order" xml:space="preserve">
+    <value>Yuklash tartibi: hududlar → narx turlari → (agentlar — Jamoalar sahifasida) → mijozlar → marshrutlar → tovarlar → birliklar → narxlar → kirish qarzlari. Shablonning "Namuna" varag'ida misol bor.</value>
+  </data>
 </root>

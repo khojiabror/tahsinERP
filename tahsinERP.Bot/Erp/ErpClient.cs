@@ -64,6 +64,8 @@ public sealed class ErpClient(HttpClient http, Uri baseUrl, byte[] tenantKey, Ti
         if (res.IsSuccessStatusCode || (int)res.StatusCode is >= 300 and < 400)   // HTML (login/litsenziya sahifasi) — API emas
             throw new ErpException(502, "ERP JSON qaytarmadi: " + (int)res.StatusCode + " " + res.Content.Headers.ContentType?.MediaType);
 
+        if (res.StatusCode == System.Net.HttpStatusCode.Forbidden && (res.Headers.Contains("X-License-Message") || res.ReasonPhrase == ErpException.LicenseMessage))
+            throw new ErpException(403, ErpException.LicenseMessage);
         string message = res.ReasonPhrase ?? res.StatusCode.ToString();
         List<string>? problems = null;
         if (res.Content.Headers.ContentType?.MediaType == "application/json" && !string.IsNullOrWhiteSpace(text))

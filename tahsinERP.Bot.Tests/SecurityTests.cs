@@ -132,6 +132,21 @@ public class SecurityTests
             new Uri("https://erp/"), DstApiSignature.TenantKey(Master, "x"), TimeProvider.System);
         var ex = await Assert.ThrowsAsync<ErpException>(() => down.GetAsync<object>("Me", 1, CancellationToken.None));
         Assert.False(ex.IsBusiness);
+        Assert.False(ex.IsLicense);
+
+        // DstApiAuth litsenziyasiz: 403 "License" + X-License-Message, JSON emas
+        var blocked = new ErpClient(new HttpClient(new FakeHandler(_ =>
+            {
+                var r = new HttpResponseMessage(HttpStatusCode.Forbidden) { ReasonPhrase = "License", Content = new StringContent("", System.Text.Encoding.UTF8, "text/html") };
+                r.Headers.Add("X-License-Message", "Litsenziya%20tugagan");
+                return r;
+            })), new Uri("https://erp/"), DstApiSignature.TenantKey(Master, "x"), TimeProvider.System);
+        var lic = await Assert.ThrowsAsync<ErpException>(() => blocked.GetAsync<object>("Me", 1, CancellationToken.None));
+        Assert.True(lic.IsLicense);
+        Assert.False(lic.IsBusiness);
+        var forbidden = new ErpClient(new HttpClient(new FakeHandler(_ => FakeHandler.Json(HttpStatusCode.Forbidden, "{\"error\":\"Ruxsat yo'q\"}"))),
+            new Uri("https://erp/"), DstApiSignature.TenantKey(Master, "x"), TimeProvider.System);
+        Assert.False((await Assert.ThrowsAsync<ErpException>(() => forbidden.GetAsync<object>("Me", 1, CancellationToken.None))).IsLicense);
     }
 
     [Fact]

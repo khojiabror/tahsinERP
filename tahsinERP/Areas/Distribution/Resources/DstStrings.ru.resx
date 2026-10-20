@@ -1799,4 +1799,70 @@
   <data name="Site_LeadOrderComment" xml:space="preserve">
     <value>Заявка с сайта №{0}</value>
   </data>
+  <data name="Import_Routes" xml:space="preserve">
+    <value>Маршруты</value>
+  </data>
+  <data name="Import_Units" xml:space="preserve">
+    <value>Единицы товаров</value>
+  </data>
+  <data name="Import_TerritoriesHint" xml:space="preserve">
+    <value>Область → район → территория. Существующие названия (uz или ru) находятся, недостающие создаются — повторная загрузка безопасна. Район и территория необязательны, но территория без района не допускается.</value>
+  </data>
+  <data name="Import_PriceTypesHint" xml:space="preserve">
+    <value>Типы цен обновляются или создаются по названию. «да» в колонке «По умолчанию» — только в одной строке; если типа по умолчанию ещё нет, им станет первая строка.</value>
+  </data>
+  <data name="Import_RoutesHint" xml:space="preserve">
+    <value>Маршрут = агент клиента и дни визита (Пн=1 … Вс=7, например 1,4). Клиент по ИНН или названию, только существующие. Пустая ячейка — без изменений, «-» — очистить.</value>
+  </data>
+  <data name="Import_UnitsHint" xml:space="preserve">
+    <value>Дополнительные единицы для существующих товаров: одна строка = товар × единица. Коэффициент в базовой единице (1 поддон = 40 мешков). Существующая единица обновляется, штрихкод добавляется.</value>
+  </data>
+  <data name="Import_TerritoryPath" xml:space="preserve">
+    <value>Область обязательна; территория без района не допускается</value>
+  </data>
+  <data name="Import_DefaultTwice" xml:space="preserve">
+    <value>«По умолчанию» может быть только в одной строке</value>
+  </data>
+  <data name="Import_IsDefault" xml:space="preserve">
+    <value>по умолчанию</value>
+  </data>
+  <data name="Import_StagedExpired" xml:space="preserve">
+    <value>Проверенный файл не найден или устарел — загрузите файл заново</value>
+  </data>
+  <data name="Import_Commit" xml:space="preserve">
+    <value>Импортировать</value>
+  </data>
+  <data name="Import_PreviewReady" xml:space="preserve">
+    <value>Ошибок нет, ничего ещё не записано. Проверьте список ниже и нажмите «Импортировать».</value>
+  </data>
+  <data name="Import_PreviewTitle" xml:space="preserve">
+    <value>Предпросмотр</value>
+  </data>
+  <data name="Import_ActionNew" xml:space="preserve">
+    <value>Новый</value>
+  </data>
+  <data name="Import_ActionUpdate" xml:space="preserve">
+    <value>Обновится</value>
+  </data>
+  <data name="Import_ActionUnchanged" xml:space="preserve">
+    <value>Без изменений</value>
+  </data>
+  <data name="Import_Record" xml:space="preserve">
+    <value>Запись</value>
+  </data>
+  <data name="Import_Action" xml:space="preserve">
+    <value>Действие</value>
+  </data>
+  <data name="Import_Details" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="Import_PreviewMore" xml:space="preserve">
+    <value>… и ещё {0} строк</value>
+  </data>
+  <data name="Import_PreviewFirst" xml:space="preserve">
+    <value>Сначала предпросмотр (рекомендуется)</value>
+  </data>
+  <data name="Import_Order" xml:space="preserve">
+    <value>Порядок загрузки: территории → типы цен → (агенты — на странице «Команды») → клиенты → маршруты → товары → единицы → цены → начальные долги. На листе «Пример» шаблона есть образец.</value>
+  </data>
 </root>

@@ -297,3 +297,16 @@ IIS Express orqali haqiqiy ERP bilan: to'g'ri imzo (GET so'rov parametrlari bila
 **Tekshirilmagan:** litsenziyali ERP va haqiqiy bot tokeni bilan uchidan-uchiga (lokal litsenziya kaliti yo'q), Telegram ichida Mini App (BotFather `/setdomain` va HTTPS kerak).
 
 **Qilinmagan (keyingi bosqichga):** kun boshida selfi; botdan yangi savdo nuqtasi qo'shish (API `NewCustomer` bor, bot oqimi yo'q); omborchiga "yangi tasdiqlangan buyurtma" xabari; Mini App'da kamera orqali shtrix-kod; jonli joylashuv kuzatuvi; mijoz uchun botda "qarzim / akt sverki".
+
+## 15. S6 tayyorgarligi (2026-10-20, branch `claude/dst-s6-pilot-a446b3`)
+
+Pilotni foydalanuvchi o'tkazadi; kod va hujjat tomoni tayyor. Reja va qabul ro'yxati — `03_PILOT.md`, qo'llanma — `Qollanma_Distributsiya_uz.md` / `_ru.md`. Migratsiya kerak bo'lmadi.
+
+| Ish | Joyi |
+|---|---|
+| Import: yangi turlar — hududlar (daraxt, takror yuklash xavfsiz), narx turlari (bitta standart), marshrutlar (agent + tashrif kunlari, "-" — tozalash), tovar birliklari (mavjud tovarga, shtrix-kod, odatiy sotish); sahifada yuklash tartibi | `Services/ImportServicePilot.cs`, `DstImportController` |
+| Import oqimi: ko'rib chiqish (har qator: yangi / yangilanadi / o'zgarishsiz) → "Import qilish" (fayl sessiyada, qayta tekshirib yoziladi); shablonlarda "Namuna" varag'i | `ImportService.cs`, `Views/DstImport/Index.cshtml` |
+| Bot: ERP litsenziyasi bloklanganda "aloqa yo'q" / "rolingiz uchun emas" o'rniga "litsenziya faol emas" (bot va Mini App) | `tahsinERP.Bot/Erp`, `Handlers/UpdateRouter.cs`, `MiniApp/MiniAppEndpoints.cs` |
+| Pilot kuni E2E: import → agent → tasdiq/limit/ruxsat → yig'ish/jo'natish/qisman → to'lov → kassaga topshirish → qaytarish → kun yakuni; qoldiq, balans = aging = akt sverki, kassa tekshiruvi | `tahsinERP.Tests/Distribution/PilotDayScenarioTests.cs` (faqat `DST_PILOT_E2E` = sinov bazasi) |
+
+Tekshiruv: ERP testlari 154/157 (3 shartli skip), pilot import testlari DB_DST_S6'da 7/7, E2E ssenariy DB_DST_S6'da (DB_DST_UI nusxasi) 2 marta o'tdi, bot testlari 38/38, RazorCheck 505/0. Bot offline: webhook → inbox → handler → ERP → 403 litsenziya → to'g'ri xabar. Tekshirilmagan: brauzerda sahifalar va haqiqiy bot bilan uchidan-uchiga (litsenziya yo'q), Telegram ichida Mini App.

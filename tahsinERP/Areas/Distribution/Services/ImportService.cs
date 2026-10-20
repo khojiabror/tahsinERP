@@ -19,6 +19,24 @@ namespace tahsinERP.Areas.Distribution.Services
         public int Skipped { get; set; }
         public bool Ok => Errors.Count == 0;
         public bool DryRun { get; set; }
+
+        /// <summary>Ko'rib chiqish: har qator bilan nima bo'ladi (yangi / yangilanadi / o'zgarishsiz).</summary>
+        public List<ImportPreviewRow> Preview { get; } = new List<ImportPreviewRow>();
+
+        public void Plan(int row, string key, ImportAction action, string details = null)
+        {
+            Preview.Add(new ImportPreviewRow { Row = row, Key = key, Action = action, Details = details });
+        }
+    }
+
+    public enum ImportAction { New, Update, Unchanged }
+
+    public sealed class ImportPreviewRow
+    {
+        public int Row { get; set; }
+        public string Key { get; set; }
+        public ImportAction Action { get; set; }
+        public string Details { get; set; }
     }
 
     /// <summary>
@@ -27,58 +45,60 @@ namespace tahsinERP.Areas.Distribution.Services
     /// yozilmaydi va qator raqami bilan xatolar ro'yxati qaytadi; xato bo'lmasa — bitta tranzaksiyada yoziladi.
     /// Spravochniklar foydalanuvchi ma'lumoti bo'yicha (nomi) moslanadi — bu tizim kodlari emas.
     /// </summary>
-    public static class ImportService
+    public static partial class ImportService
     {
         public sealed class Column
         {
-            public Column(string key, string uz, string ru, bool required = false)
+            public Column(string key, string uz, string ru, bool required = false, string example = null)
             {
-                Key = key; Uz = uz; Ru = ru; Required = required;
+                Key = key; Uz = uz; Ru = ru; Required = required; Example = example;
             }
 
             public string Key { get; }
             public string Uz { get; }
             public string Ru { get; }
             public bool Required { get; }
+            /// <summary>Shablonning "Namuna" varag'idagi misol qiymat.</summary>
+            public string Example { get; }
         }
 
         public static readonly Column[] CustomerColumns =
         {
-            new Column("name", "Nomi", "Наименование", true),
-            new Column("inn", "STIR", "ИНН"),
-            new Column("phone", "Telefon", "Телефон"),
+            new Column("name", "Nomi", "Наименование", true, "Baraka qurilish"),
+            new Column("inn", "STIR", "ИНН", false, "301234567"),
+            new Column("phone", "Telefon", "Телефон", false, "+998901234567"),
             new Column("phone2", "Telefon 2", "Телефон 2"),
-            new Column("city", "Shahar", "Город"),
-            new Column("address", "Manzil", "Адрес"),
-            new Column("landmark", "Mo'ljal", "Ориентир"),
+            new Column("city", "Shahar", "Город", false, "Toshkent"),
+            new Column("address", "Manzil", "Адрес", false, "Chilonzor 9-kvartal, 12"),
+            new Column("landmark", "Mo'ljal", "Ориентир", false, "Bozor yonida"),
             new Column("owner", "Egasi", "Владелец"),
             new Column("contact", "Aloqa shaxsi", "Контактное лицо"),
-            new Column("pointType", "Nuqta turi", "Тип точки"),
-            new Column("category", "Toifa (A/B/C)", "Категория (A/B/C)"),
-            new Column("territory", "Hudud", "Территория"),
-            new Column("agent", "Agent (login)", "Агент (логин)"),
-            new Column("priceType", "Narx turi", "Тип цены"),
-            new Column("visitDays", "Tashrif kunlari (1-7)", "Дни визита (1-7)"),
-            new Column("creditLimit", "Kredit limiti", "Кредитный лимит"),
-            new Column("paymentDays", "Kechiktirish (kun)", "Отсрочка (дней)"),
-            new Column("lat", "Kenglik", "Широта"),
-            new Column("lng", "Uzunlik", "Долгота"),
+            new Column("pointType", "Nuqta turi", "Тип точки", false, "SHOP"),
+            new Column("category", "Toifa (A/B/C)", "Категория (A/B/C)", false, "B"),
+            new Column("territory", "Hudud", "Территория", false, "Toshkent sh. / Chilonzor"),
+            new Column("agent", "Agent (login)", "Агент (логин)", false, "agent1"),
+            new Column("priceType", "Narx turi", "Тип цены", false, "Ulgurji"),
+            new Column("visitDays", "Tashrif kunlari (1-7)", "Дни визита (1-7)", false, "1,4"),
+            new Column("creditLimit", "Kredit limiti", "Кредитный лимит", false, "5000000"),
+            new Column("paymentDays", "Kechiktirish (kun)", "Отсрочка (дней)", false, "14"),
+            new Column("lat", "Kenglik", "Широта", false, "41.2856"),
+            new Column("lng", "Uzunlik", "Долгота", false, "69.2034"),
         };
 
         public static readonly Column[] ProductColumns =
         {
-            new Column("pno", "Artikul", "Артикул", true),
-            new Column("name", "Nomi", "Наименование", true),
-            new Column("nameRu", "Nomi (rus)", "Наименование (рус)"),
-            new Column("category", "Kategoriya", "Категория"),
-            new Column("unit", "Asosiy birlik", "Базовая единица"),
-            new Column("brand", "Brend", "Бренд"),
+            new Column("pno", "Artikul", "Артикул", true, "SEM-M400"),
+            new Column("name", "Nomi", "Наименование", true, "Sement M400 50 kg"),
+            new Column("nameRu", "Nomi (rus)", "Наименование (рус)", false, "Цемент М400 50 кг"),
+            new Column("category", "Kategoriya", "Категория", false, "Qurilish aralashmalari"),
+            new Column("unit", "Asosiy birlik", "Базовая единица", false, "qop"),
+            new Column("brand", "Brend", "Бренд", false, "Qizilqumsement"),
             new Column("manufacturer", "Ishlab chiqaruvchi", "Производитель"),
-            new Column("weight", "Og'irlik (kg)", "Вес (кг)"),
+            new Column("weight", "Og'irlik (kg)", "Вес (кг)", false, "50"),
             new Column("volume", "Hajm (m3)", "Объём (м3)"),
-            new Column("barcode", "Shtrix-kod", "Штрихкод"),
-            new Column("unit2", "Birlik 2", "Единица 2"),
-            new Column("factor2", "Koeffitsient 2", "Коэффициент 2"),
+            new Column("barcode", "Shtrix-kod", "Штрихкод", false, "4780000000017"),
+            new Column("unit2", "Birlik 2", "Единица 2", false, "poddon"),
+            new Column("factor2", "Koeffitsient 2", "Коэффициент 2", false, "40"),
             new Column("barcode2", "Shtrix-kod 2", "Штрихкод 2"),
             new Column("unit3", "Birlik 3", "Единица 3"),
             new Column("factor3", "Koeffitsient 3", "Коэффициент 3"),
@@ -111,6 +131,18 @@ namespace tahsinERP.Areas.Distribution.Services
                 }
                 ws.SheetView.FreezeRows(1);
                 ws.Columns().AdjustToContents();
+                if (columns.Any(c => c.Example != null))
+                {
+                    // import faqat birinchi varaqni o'qiydi — namuna alohida varaqda, ma'lumotga aralashmaydi
+                    var sample = wb.AddWorksheet(russian ? "Пример" : "Namuna");
+                    for (int i = 0; i < columns.Length; i++)
+                    {
+                        sample.Cell(1, i + 1).Value = russian ? columns[i].Ru : columns[i].Uz;
+                        sample.Cell(1, i + 1).Style.Font.Bold = true;
+                        if (columns[i].Example != null) sample.Cell(2, i + 1).SetValue(columns[i].Example);
+                    }
+                    sample.Columns().AdjustToContents();
+                }
                 using (var ms = new MemoryStream())
                 {
                     wb.SaveAs(ms);
@@ -162,7 +194,7 @@ namespace tahsinERP.Areas.Distribution.Services
 
         private static string Normalize(string header)
         {
-            return (header ?? "").Trim().Replace('’', '\'').Replace('ʻ', '\'').Replace('`', '\'');
+            return (header ?? "").Trim().Replace('’', '\'').Replace('‘', '\'').Replace('ʻ', '\'').Replace('ʼ', '\'').Replace('`', '\'');
         }
 
         /// <summary>Ustun → varaqdagi raqam (uz yoki ru sarlavha bo'yicha); majburiy ustun yo'q bo'lsa — xato.</summary>
@@ -290,6 +322,7 @@ namespace tahsinERP.Areas.Distribution.Services
                         return result;   // tranzaksiya commit qilinmaydi
                     }
                     if (isNew) result.Created++; else result.Updated++;
+                    result.Plan(row, input.Name.Trim() + (input.INN != null ? " (" + input.INN + ")" : ""), isNew ? ImportAction.New : ImportAction.Update);
                 }
                 if (!dryRun) uow.Commit();   // tekshirish rejimi: hammasi yoziladi va rollback
             }
@@ -494,6 +527,8 @@ namespace tahsinERP.Areas.Distribution.Services
                         barcodeOwners[code] = productId;
                     }
                     db.SaveChanges();
+                    result.Plan(r.Row, r.PNo + " — " + r.Name, r.ExistingId.HasValue ? ImportAction.Update : ImportAction.New,
+                        string.Join(", ", r.ExtraUnits.Select(u => units.First(x => x.ID == u.UnitId).ShortName + " = " + u.Factor.ToString("0.####", CultureInfo.InvariantCulture))));
                 }
                 if (!dryRun) uow.Commit();   // tekshirish rejimi: hammasi yoziladi va rollback
             }
@@ -597,7 +632,7 @@ namespace tahsinERP.Areas.Distribution.Services
                 var products = db.Products.Where(p => !p.IsDeleted).Select(p => new { p.ID, p.PNo }).ToList()
                     .GroupBy(p => p.PNo, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().ID, StringComparer.OrdinalIgnoreCase);
 
-                var changes = new List<(int ProductId, int TypeId, decimal Price, decimal? Min)>();
+                var changes = new List<(int Row, string PNo, int ProductId, PriceType Type, decimal Price, decimal? Min)>();
                 foreach (var (row, cells) in sheet.Rows)
                 {
                     Collect(result, row, () =>
@@ -615,7 +650,7 @@ namespace tahsinERP.Areas.Distribution.Services
                             var min = Dec(minText);
                             if (price < 0) throw new DstValidationException(DstLocalization.T("Error_PriceNegative"));
                             if (min.HasValue && (min < 0 || min > price)) throw new DstValidationException(DstLocalization.T("Error_MinPriceRange"));
-                            changes.Add((productId, type.ID, price.Value, min));
+                            changes.Add((row, pno.Trim(), productId, type, price.Value, min));
                         }
                     });
                 }
@@ -625,8 +660,11 @@ namespace tahsinERP.Areas.Distribution.Services
                 var now = DateTime.Now;
                 foreach (var c in changes)
                 {
-                    if (pricing.SetPrice(c.TypeId, c.ProductId, c.Price, c.Min, userId, now) != null) result.Updated++;
+                    bool changed = pricing.SetPrice(c.Type.ID, c.ProductId, c.Price, c.Min, userId, now) != null;
+                    if (changed) result.Updated++;
                     else result.Skipped++;
+                    result.Plan(c.Row, c.PNo, changed ? ImportAction.Update : ImportAction.Unchanged,
+                        c.Type.Name + ": " + Money(c.Price) + (c.Min.HasValue ? " (min " + Money(c.Min.Value) + ")" : ""));
                 }
                 db.SaveChanges();
                 if (!dryRun) uow.Commit();   // tekshirish rejimi: hammasi yoziladi va rollback
@@ -639,9 +677,9 @@ namespace tahsinERP.Areas.Distribution.Services
 
         public static readonly Column[] OpeningColumns =
         {
-            new Column("customer", "Mijoz (STIR yoki nomi)", "Клиент (ИНН или название)", true),
-            new Column("amount", "Qarz (+) / avans (-)", "Долг (+) / аванс (-)", true),
-            new Column("due", "To'lov muddati", "Срок оплаты"),
+            new Column("customer", "Mijoz (STIR yoki nomi)", "Клиент (ИНН или название)", true, "301234567"),
+            new Column("amount", "Qarz (+) / avans (-)", "Долг (+) / аванс (-)", true, "2500000"),
+            new Column("due", "To'lov muddati", "Срок оплаты", false, "15.11.2026"),
         };
 
         /// <summary>
@@ -672,11 +710,7 @@ namespace tahsinERP.Areas.Distribution.Services
                     Collect(result, row, () =>
                     {
                         var key = Get(cells, map, "customer")?.Trim();
-                        var matches = customers.Where(c => c.INN == key).ToList();
-                        if (matches.Count == 0) matches = customers.Where(c => string.Equals(c.Name, key, StringComparison.OrdinalIgnoreCase)).ToList();
-                        if (matches.Count != 1)
-                            throw new DstValidationException(DstLocalization.T(matches.Count == 0 ? "Import_UnknownValue" : "Import_AmbiguousName", key));
-                        var c0 = matches[0];
+                        var c0 = FindCustomer(customers, c => c.INN, c => c.Name, key);
                         if (already.Contains(c0.ID)) throw new DstValidationException(DstLocalization.T("Import_OpeningExists"));
                         if (!seen.Add(c0.ID)) throw new DstValidationException(DstLocalization.T("Import_DuplicateInFile", key));
                         var amount = Dec(Get(cells, map, "amount")) ?? 0;
@@ -696,6 +730,7 @@ namespace tahsinERP.Areas.Distribution.Services
                             DueDate = amount > 0 ? (due ?? now.Date.AddDays(c0.PaymentDays)) : (DateTime?)null,
                             AgentUserID = c0.AgentUserID, CreatedBy = userId, Note = DstLocalization.T("Ledger_OPENING")
                         });
+                        result.Plan(row, c0.Name, ImportAction.New, (amount > 0 ? "+" : "") + Money(amount));
                     });
                 }
                 if (!result.Ok) return result;
@@ -708,5 +743,17 @@ namespace tahsinERP.Areas.Distribution.Services
             }
             return result;
         }
+
+        /// <summary>Mijoz: avval STIR, keyin nomi bo'yicha (bittadan ortiq — xato).</summary>
+        private static T FindCustomer<T>(List<T> customers, Func<T, string> inn, Func<T, string> name, string key)
+        {
+            var matches = customers.Where(c => inn(c) == key).ToList();
+            if (matches.Count == 0) matches = customers.Where(c => string.Equals(name(c), key, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (matches.Count != 1)
+                throw new DstValidationException(DstLocalization.T(matches.Count == 0 ? "Import_UnknownValue" : "Import_AmbiguousName", key));
+            return matches[0];
+        }
+
+        private static string Money(decimal value) => value.ToString("#,0.##", CultureInfo.InvariantCulture);
     }
 }

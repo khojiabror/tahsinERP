@@ -988,6 +988,7 @@
     <Compile Include="Areas\Distribution\Services\DirectoryRules.cs" />
     <Compile Include="Areas\Distribution\Services\DstModelBinder.cs" />
     <Compile Include="Areas\Distribution\Services\ImportService.cs" />
+    <Compile Include="Areas\Distribution\Services\ImportServicePilot.cs" />
     <Compile Include="Areas\Distribution\Services\PricingService.cs" />
     <Compile Include="Areas\Distribution\Services\TerritoryTree.cs" />
     <Compile Include="Areas\Distribution\Services\UnitService.cs" />
