@@ -245,6 +245,7 @@
     <Compile Include="Distribution\BotTests.cs" />
     <Compile Include="Distribution\SiteTests.cs" />
     <Compile Include="Distribution\SiteDemoExport.cs" />
+    <Compile Include="Distribution\ReportTests.cs" />
     <Compile Include="LicenseSync\LicensePanelClientTests.cs" />
   </ItemGroup>
   <ItemGroup>

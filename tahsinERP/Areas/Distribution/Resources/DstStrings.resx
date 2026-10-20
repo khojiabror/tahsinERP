@@ -1920,4 +1920,141 @@ Yetkazish: {6}</value>
   <data name="Customer_Photo" xml:space="preserve">
     <value>Nuqta fotosi</value>
   </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Rahbar paneli</value>
+  <data name="Reports" xml:space="preserve">
+    <value>Hisobotlar</value>
+  <data name="Tile_Dashboard" xml:space="preserve">
+    <value>Kunlik holat: tushum, foyda, qarz, pul, qoldiq</value>
+  <data name="Tile_Reports" xml:space="preserve">
+    <value>Savdo kesimlari, tashriflar, agentlar puli</value>
+  <data name="Dash_Today" xml:space="preserve">
+    <value>Bugun</value>
+  <data name="Dash_Month" xml:space="preserve">
+    <value>Oy boshidan</value>
+  <data name="Dash_AsOf" xml:space="preserve">
+    <value>{0} holatiga, yangilangan {1}</value>
+  <data name="Dash_Collected" xml:space="preserve">
+    <value>Yig'ilgan pul</value>
+  <data name="Dash_Money" xml:space="preserve">
+    <value>Pul</value>
+  <data name="Dash_AgentsOnHand" xml:space="preserve">
+    <value>Agentlar qo'lida</value>
+  <data name="Dash_PendingHandovers" xml:space="preserve">
+    <value>Topshirilgan, tasdiq kutmoqda</value>
+  <data name="Dash_StockValue" xml:space="preserve">
+    <value>Qoldiq qiymati</value>
+  <data name="Dash_FifoCost" xml:space="preserve">
+    <value>FIFO tannarxda, savdo omborlari</value>
+  <data name="Dash_Trend" xml:space="preserve">
+    <value>Oxirgi 14 kun</value>
+  <data name="Dash_Operations" xml:space="preserve">
+    <value>Buyurtmalar va agentlar</value>
+  <data name="Dash_NewOrders" xml:space="preserve">
+    <value>Bugungi buyurtmalar</value>
+  <data name="Dash_AwaitingConfirm" xml:space="preserve">
+    <value>Tasdiq kutmoqda</value>
+  <data name="Dash_AwaitingShipment" xml:space="preserve">
+    <value>Jo'natish kutmoqda</value>
+  <data name="Dash_AgentsActive" xml:space="preserve">
+    <value>Ishga chiqqan agentlar</value>
+  <data name="Dash_VisitsToday" xml:space="preserve">
+  <data name="Dash_Debts" xml:space="preserve">
+    <value>Mijozlar qarzi</value>
+  <data name="Dash_All" xml:space="preserve">
+    <value>Hammasi</value>
+  <data name="Dash_Debtors" xml:space="preserve">
+    <value>Qarzdor mijozlar: {0}, muddati o'tgani: {1}</value>
+  <data name="Dash_TopOverdue" xml:space="preserve">
+    <value>Eng katta muddati o'tgan qarz</value>
+  <data name="Dash_Days" xml:space="preserve">
+    <value>Kun</value>
+  <data name="Dash_NoOverdue" xml:space="preserve">
+    <value>Muddati o'tgan qarz yo'q</value>
+  <data name="Dash_NoAccounts" xml:space="preserve">
+    <value>Faol kassa yoki bank hisobi yo'q</value>
+  <data name="Dash_TopAgents" xml:space="preserve">
+    <value>Agentlar reytingi (oy boshidan)</value>
+  <data name="Dash_NoSales" xml:space="preserve">
+    <value>Bu davrda sotuv yo'q</value>
+  <data name="Dash_Value" xml:space="preserve">
+    <value>Qiymati</value>
+  <data name="Dash_NoStock" xml:space="preserve">
+    <value>Qoldiq yo'q</value>
+  <data name="Dash_NoPriceHint" xml:space="preserve">
+    <value>Kirim narxi topilmagan tovarlar soni (qiymati 0 deb olingan)</value>
+  <data name="Dash_Section" xml:space="preserve">
+    <value>Bo'lim</value>
+  <data name="Dash_Indicator" xml:space="preserve">
+    <value>Ko'rsatkich</value>
+  <data name="Report_Sales" xml:space="preserve">
+    <value>Savdo</value>
+  <data name="Report_Visits" xml:space="preserve">
+  <data name="Report_Cash" xml:space="preserve">
+    <value>Agentlar topshirgan pul</value>
+  <data name="Report_Dim_Agent" xml:space="preserve">
+    <value>Agent</value>
+  <data name="Report_Dim_Customer" xml:space="preserve">
+    <value>Mijoz</value>
+  <data name="Report_Dim_Product" xml:space="preserve">
+    <value>Tovar</value>
+  <data name="Report_Dim_Territory" xml:space="preserve">
+    <value>Hudud</value>
+  <data name="Report_Dim_Category" xml:space="preserve">
+    <value>Kategoriya</value>
+  <data name="Report_NotSet" xml:space="preserve">
+    <value>(ko'rsatilmagan)</value>
+  <data name="Report_Shipped" xml:space="preserve">
+    <value>Jo'natilgan</value>
+  <data name="Report_Revenue" xml:space="preserve">
+    <value>Tushum</value>
+  <data name="Report_Cost" xml:space="preserve">
+    <value>Tannarx (FIFO)</value>
+  <data name="Report_GrossProfit" xml:space="preserve">
+    <value>Yalpi foyda</value>
+  <data name="Report_Margin" xml:space="preserve">
+    <value>Marja, %</value>
+  <data name="Report_RemoveFilter" xml:space="preserve">
+    <value>Filtrni olib tashlash</value>
+  <data name="Report_SalesHint" xml:space="preserve">
+    <value>Tushum — o'tkazilgan jo'natishlar minus qaytarishlar (hujjat sanasi bo'yicha). Tannarx — jo'natishdagi FIFO partiya tannarxi. Qatorni bosing — keyingi kesimga o'tadi.</value>
+  <data name="Report_WorkDays" xml:space="preserve">
+    <value>Ish kunlari</value>
+  <data name="Report_Plan" xml:space="preserve">
+    <value>Reja</value>
+  <data name="Report_Fact" xml:space="preserve">
+    <value>Fakt</value>
+  <data name="Report_PlannedVisited" xml:space="preserve">
+    <value>Rejadagilar</value>
+  <data name="Report_Unplanned" xml:space="preserve">
+    <value>Rejadan tashqari</value>
+  <data name="Report_Coverage" xml:space="preserve">
+    <value>Reja bajarilishi</value>
+  <data name="Report_WithOrder" xml:space="preserve">
+    <value>Buyurtma bilan</value>
+  <data name="Report_Strike" xml:space="preserve">
+    <value>Samaradorlik</value>
+  <data name="Report_WithPayment" xml:space="preserve">
+    <value>To'lov bilan</value>
+  <data name="Report_NoOrder" xml:space="preserve">
+  <data name="Report_OrderTotal" xml:space="preserve">
+    <value>Tashrif buyurtmalari</value>
+  <data name="Report_AvgOrder" xml:space="preserve">
+    <value>O'rtacha buyurtma</value>
+  <data name="Report_VisitsHint" xml:space="preserve">
+    <value>Reja — mijoz kartasidagi tashrif kunlari (joriy agent) bo'yicha davrdagi har kun. Samaradorlik — buyurtma bilan yakunlangan tashriflar ulushi.</value>
+  <data name="Report_ByAgent" xml:space="preserve">
+    <value>Agentlar bo'yicha</value>
+  <data name="Report_Handovers" xml:space="preserve">
+    <value>Topshirishlar</value>
+  <data name="Report_OldestOnHand" xml:space="preserve">
+    <value>Eng eski to'lov</value>
+  <data name="Report_DocNo" xml:space="preserve">
+    <value>Hujjat №</value>
+  <data name="Report_Handover_Draft" xml:space="preserve">
+    <value>Kutmoqda</value>
+  <data name="Report_Handover_Posted" xml:space="preserve">
+    <value>Qabul qilindi</value>
+  <data name="Report_Handover_Cancelled" xml:space="preserve">
+    <value>Rad etildi</value>
 </root>

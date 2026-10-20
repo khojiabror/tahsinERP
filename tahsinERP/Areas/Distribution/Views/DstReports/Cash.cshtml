@@ -1,0 +1,121 @@
+@model List<tahsinERP.Areas.Distribution.Services.Reports.CashReportService.AgentSummary>
+@{
+    ViewBag.Title = DstLocalization.T("Report_Cash");
+    ViewBag.DstParent = DstLocalization.T("Reports");
+    var f = (tahsinERP.Areas.Distribution.Services.Reports.ReportFilter)ViewBag.Filter;
+    string N(decimal v) => v == 0 ? "" : v.ToString("N0");
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @Html.Partial("_ReportNav", "Cash")
+            <div class="row">
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Cash_Declared")</div><h4 class="mb-0">@Model.Sum(r => r.Declared).ToString("N0")</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Cash_Received")</div><h4 class="mb-0 text-success">@Model.Sum(r => r.Received).ToString("N0")</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Cash_Difference")</div><h4 class="mb-0 @(Model.Sum(r => r.Difference) < 0 ? "text-danger" : "")">@Model.Sum(r => r.Difference).ToString("N0")</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Dash_AgentsOnHand")</div><h4 class="mb-0 text-warning">@Model.Sum(r => r.OnHand).ToString("N0")</h4></div></div></div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <form id="cashFilter" method="get" class="form-row mb-1">
+                        <div class="col-md-2 col-6 mb-50"><input type="date" name="from" value="@f.From.ToString("yyyy-MM-dd")" class="form-control form-control-sm" onchange="this.form.submit()" /></div>
+                        <div class="col-md-2 col-6 mb-50"><input type="date" name="to" value="@f.To.ToString("yyyy-MM-dd")" class="form-control form-control-sm" onchange="this.form.submit()" /></div>
+                        <div class="col-md-3 mb-50">@Html.DropDownList("agentId", (List<SelectListItem>)ViewBag.Agents, DstLocalization.T("All_Agents"), new { @class = "form-control form-control-sm", onchange = "this.form.submit()" })</div>
+                        <div class="col-md-2 mb-50">
+                            <select name="status" class="form-control form-control-sm" id="cashStatus">
+                                <option value="">@DstLocalization.T("All_Statuses")</option>
+                                <option value="0">@DstLocalization.T("Report_Handover_Draft")</option>
+                                <option value="1">@DstLocalization.T("Report_Handover_Posted")</option>
+                                <option value="2">@DstLocalization.T("Report_Handover_Cancelled")</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-50 text-right">
+                            <a id="cashExport" class="btn btn-sm btn-outline-success" href="#"><i class="bx bxs-file-export"></i> Excel</a>
+                        </div>
+                    </form>
+
+                    <h6>@DstLocalization.T("Report_ByAgent")</h6>
+                    <div class="table-responsive mb-2">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Agent")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_Handovers")</th>
+                                    <th class="text-right">@DstLocalization.T("Cash_Declared")</th>
+                                    <th class="text-right">@DstLocalization.T("Cash_Received")</th>
+                                    <th class="text-right">@DstLocalization.T("Cash_Difference")</th>
+                                    <th class="text-right">@DstLocalization.T("Dash_PendingHandovers")</th>
+                                    <th class="text-right">@DstLocalization.T("Dash_AgentsOnHand")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_OldestOnHand")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in Model)
+                                {
+                                    <tr>
+                                        <td>@r.Agent</td>
+                                        <td class="text-right">@r.Handovers</td>
+                                        <td class="text-right">@N(r.Declared)</td>
+                                        <td class="text-right">@N(r.Received)</td>
+                                        <td class="text-right @(r.Difference < 0 ? "text-danger" : r.Difference > 0 ? "text-success" : "")">@N(r.Difference)</td>
+                                        <td class="text-right">@N(r.Pending)</td>
+                                        <td class="text-right text-warning"><b>@N(r.OnHand)</b>@if (r.OnHandCount > 0) { <span class="small text-muted"> (@r.OnHandCount)</span> }</td>
+                                        <td class="text-right @(r.OldestOnHand.HasValue && (DateTime.Today - r.OldestOnHand.Value).TotalDays > 1 ? "text-danger" : "")">@(r.OldestOnHand?.ToString("dd.MM.yyyy"))</td>
+                                    </tr>
+                                }
+                                @if (Model.Count == 0) { <tr><td colspan="8" class="text-muted">@DstLocalization.T("Table_Empty")</td></tr> }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h6>@DstLocalization.T("Report_Handovers")</h6>
+                    <table id="cashTable" class="table table-sm table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Report_DocNo")</th>
+                                <th>@DstLocalization.T("Date")</th>
+                                <th>@DstLocalization.T("Agent")</th>
+                                <th>@DstLocalization.T("Payment_Account")</th>
+                                <th class="text-right">@DstLocalization.T("Cash_Declared")</th>
+                                <th class="text-right">@DstLocalization.T("Cash_Received")</th>
+                                <th class="text-right">@DstLocalization.T("Cash_Difference")</th>
+                                <th>@DstLocalization.T("Status")</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+            var badge = { 0: 'warning', 1: 'success', 2: 'secondary' };
+            function num(v) { return v === null || v === undefined ? '' : money.format(v); }
+            dstServerTable('#cashTable', {
+                dataUrl: '@Url.Action("CashData")', filterForm: '#cashFilter', order: [[1, 'desc']],
+                columns: [
+                    { data: 'docNo', render: dstEsc },
+                    { data: 'date' },
+                    { data: 'agent', render: dstEsc },
+                    { data: 'account', orderable: false, render: dstEsc },
+                    { data: 'declared', className: 'text-right', render: num },
+                    { data: 'received', className: 'text-right', render: num },
+                    { data: 'difference', className: 'text-right', render: function (v) { return v ? '<span class="' + (v < 0 ? 'text-danger' : 'text-success') + '">' + num(v) + '</span>' : ''; } },
+                    { data: 'statusText', orderable: false, render: function (v, t, r) { return '<span class="badge badge-light-' + (badge[r.status] || 'secondary') + '">' + dstEsc(v) + '</span>' + (r.note ? '<div class="small text-muted">' + dstEsc(r.note) + '</div>' : ''); } }
+                ]
+            });
+            $('#cashExport').on('click', function (e) {
+                e.preventDefault();
+                window.location = '@Url.Action("ExportCash")?' + $('#cashFilter').serialize();
+            });
+        });
+    </script>
+}
