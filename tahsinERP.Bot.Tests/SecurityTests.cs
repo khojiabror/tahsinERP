@@ -153,6 +153,29 @@ public class SecurityTests
     }
 
     [Fact]
+    public void FileLink_SignedByErpTenantKey_ExpiresAndBoundToKey()
+    {
+        var now = DateTimeOffset.FromUnixTimeSeconds(1792400000);
+        var tenant = new Data.BotTenant { Slug = "firma1", ErpTenant = "acme" };
+        var erpKey = DstApiSignature.TenantKey(Master, "acme");   // ERP shu kalit bilan imzolaydi
+        const string file = "firma1/2026/10/abc.jpg";
+        long exp = now.ToUnixTimeSeconds() + 3600;
+        var sig = DstApiSignature.SignFile(erpKey, file, exp);
+        Assert.DoesNotContain('+', sig);
+        Assert.DoesNotContain('=', sig);
+
+        var botKey = ErpClientFactory.TenantKey(Master, tenant);
+        var e = exp.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        Assert.True(DstApiSignature.VerifyFile(botKey, file, e, sig, now));
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, e, sig, now.AddHours(2)), "muddati o'tgan");
+        Assert.False(DstApiSignature.VerifyFile(botKey, "firma1/2026/10/other.jpg", e, sig, now), "boshqa fayl");
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, (exp + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), sig, now), "muddat o'zgartirilgan");
+        Assert.False(DstApiSignature.VerifyFile(ErpClientFactory.TenantKey(Master, new Data.BotTenant { Slug = "firma1" }), file, e, sig, now), "boshqa tenant");
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, "abc", sig, now));
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, e, null, now));
+    }
+
+    [Fact]
     public void SignaturePng_OnlyRealPng()
     {
         var png = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3 };

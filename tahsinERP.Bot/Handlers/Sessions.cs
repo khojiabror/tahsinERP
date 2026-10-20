@@ -14,6 +14,13 @@ public static class States
     public const string PayAmount = "pay_amount";
     public const string PayMethod = "pay_method";
     public const string Photo = "photo";
+    public const string DaySelfie = "day_selfie";
+    public const string NewName = "new_name";
+    public const string NewPhone = "new_phone";
+    public const string NewLocation = "new_location";
+    public const string NewLandmark = "new_landmark";
+    public const string NewPhoto = "new_photo";
+    public const string NewConfirm = "new_confirm";
 }
 
 /// <summary>Holat ma'lumoti (barcha holatlar uchun bitta shakl — kerakli maydonlar to'ldiriladi).</summary>
@@ -23,6 +30,13 @@ public sealed class SessionData
     public int? VisitId { get; set; }
     public decimal? Amount { get; set; }
     public Guid? RequestId { get; set; }
+    public decimal? Lat { get; set; }
+    public decimal? Lng { get; set; }
+    public bool SelfieRequired { get; set; }
+    public string? Name { get; set; }
+    public string? Phone { get; set; }
+    public string? Landmark { get; set; }
+    public string? PhotoKey { get; set; }
 }
 
 public sealed class SessionStore(BotDbContext db, TimeProvider clock)

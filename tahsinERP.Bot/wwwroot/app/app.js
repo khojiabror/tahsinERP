@@ -15,14 +15,18 @@
             available: 'Qoldiq', noPrice: "narx yo'q", empty: 'Hech narsa topilmadi', cartEmpty: "Savat bo'sh",
             date: 'Yetkazish sanasi', comment: 'Izoh', sign: 'Mijoz imzosi (ixtiyoriy)', clear: 'Tozalash', total: 'Jami',
             remove: "O'chirish", submit: 'Buyurtma berish', debt: 'Qarz', overdue: "muddati o'tgan", recommended: 'Tavsiya',
-            sent: 'Buyurtma {0} qabul qilindi', error: 'Xatolik', sum: "so'm", notTelegram: "Bu sahifa Telegram ichida ochiladi."
+            sent: 'Buyurtma {0} qabul qilindi', error: 'Xatolik', sum: "so'm", notTelegram: "Bu sahifa Telegram ichida ochiladi.",
+            scan: 'Shtrix-kodni kameraga tuting', scanDone: 'Tayyor', scanAdded: "Qo'shildi: {0}", scanNotFound: 'Topilmadi: {0}',
+            scanNoCamera: "Kameraga ruxsat berilmadi yoki kamera yo'q.", scanUnsupported: "Bu qurilmada skaner ishlamaydi — kodni qidiruvga yozing."
         },
         ru: {
             catalog: 'Каталог', cart: 'Корзина', search: 'Название, артикул или штрих-код', all: 'Все', add: 'Добавить',
             available: 'Остаток', noPrice: 'нет цены', empty: 'Ничего не найдено', cartEmpty: 'Корзина пуста',
             date: 'Дата доставки', comment: 'Комментарий', sign: 'Подпись клиента (необязательно)', clear: 'Очистить', total: 'Итого',
             remove: 'Удалить', submit: 'Оформить заказ', debt: 'Долг', overdue: 'просрочено', recommended: 'Рекомендация',
-            sent: 'Заказ {0} принят', error: 'Ошибка', sum: 'сум', notTelegram: 'Эта страница открывается внутри Telegram.'
+            sent: 'Заказ {0} принят', error: 'Ошибка', sum: 'сум', notTelegram: 'Эта страница открывается внутри Telegram.',
+            scan: 'Наведите камеру на штрих-код', scanDone: 'Готово', scanAdded: 'Добавлено: {0}', scanNotFound: 'Не найдено: {0}',
+            scanNoCamera: 'Нет доступа к камере или камеры нет.', scanUnsupported: 'Сканер не работает на этом устройстве — введите код в поиск.'
         }
     };
     var lang = 'uz';
@@ -300,6 +304,54 @@
         tg.MainButton.show();
     }
 
+    // ---------- shtrix-kod skaneri ----------
+
+    // Skaner ochiq turadi: har yangi kod savatga +1 (shtrix-kod birligi bilan). Kod kadrda turgan paytda (oxirgi ko'rinishdan
+    // 1,5 soniya o'tmagan) qayta sanalmaydi — xuddi shu tovarni yana qo'shish uchun kamerani boshqa tomonga burib qaytarish kerak.
+    var lastScan = { code: null, at: 0 };
+    function openScanner() {
+        if (!window.DstScanner) { toast(t('scanUnsupported'), true); return; }
+        $('scanner').classList.remove('hidden');
+        $('scanStatus').textContent = t('scan');
+        window.DstScanner.start($('scanVideo'), onScanned).catch(function (e) {
+            closeScanner();
+            toast(t(e && e.message === 'camera' ? 'scanNoCamera' : 'scanUnsupported'), true);
+        });
+    }
+    function closeScanner() {
+        if (window.DstScanner) window.DstScanner.stop();
+        $('scanner').classList.add('hidden');
+    }
+    function onScanned(code) {
+        var now = Date.now();
+        if (!code) return;
+        var stillInView = code === lastScan.code && now - lastScan.at < 1500;
+        lastScan = { code: code, at: now };
+        if (stillInView) return;
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        request('GET', '/catalog?customerId=' + customerId + '&q=' + encodeURIComponent(code)).then(function (list) {
+            list = list || [];
+            if (list.length !== 1) {
+                $('scanStatus').textContent = t('scanNotFound').replace('{0}', code);
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+            var it = list[0];
+            state.items[it.id] = it;
+            var unit = defaultUnit(it);   // shtrix-kod bo'yicha qidiruvda — o'sha kodning birligi
+            var line = cartLine(it.id);
+            if (line && (line.productUnitId || null) === (unit.productUnitId || null)) line.qty = Math.round((line.qty + 1) * 1000) / 1000;
+            else if (line) { line.productUnitId = unit.productUnitId || null; line.qty = 1; }
+            else state.cart.push({ productId: it.id, productUnitId: unit.productUnitId || null, qty: 1 });
+            saveCart();
+            updateMainButton();
+            var l = cartLine(it.id);
+            $('scanStatus').textContent = t('scanAdded').replace('{0}', it.name + ' — ' + qty(l.qty) + ' ' + unit.name);
+            $('search').value = code; state.query = code;
+            renderProducts(list);
+        }).catch(function (e) { $('scanStatus').textContent = e.message; });
+    }
+
     // ---------- imzo ----------
 
     function setupSignature() {
@@ -360,6 +412,7 @@
         $('lblSign').textContent = t('sign');
         $('signClear').textContent = t('clear');
         $('lblTotal').textContent = t('total');
+        $('scanClose').textContent = t('scanDone');
         updateMainButton();
     }
 
@@ -389,6 +442,9 @@
             else submit();
         });
         tg.BackButton.onClick(function () { show('catalog'); updateMainButton(); });
+        $('scanBtn').addEventListener('click', openScanner);
+        $('scanClose').addEventListener('click', closeScanner);
+        document.addEventListener('visibilitychange', function () { if (document.hidden) closeScanner(); });
 
         request('GET', '/me').then(function (me) {
             if (me && (me.language === 'ru' || me.language === 'uz')) { lang = me.language; applyTexts(); }

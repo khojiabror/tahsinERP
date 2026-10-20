@@ -16,8 +16,10 @@ public sealed record TgPhotoSize(string FileId, string? FileUniqueId, int Width,
 
 public sealed record TgWebAppData(string Data, string? ButtonText);
 
+public sealed record TgContact(string PhoneNumber, string? FirstName, long? UserId);
+
 public sealed record TgMessage(long MessageId, TgUser? From, TgChat Chat, long Date, string? Text, string? Caption, TgLocation? Location,
-    List<TgPhotoSize>? Photo, TgWebAppData? WebAppData);
+    List<TgPhotoSize>? Photo, TgWebAppData? WebAppData, TgContact? Contact = null);
 
 public sealed record TgCallbackQuery(string Id, TgUser From, TgMessage? Message, string? Data);
 

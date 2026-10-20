@@ -28,6 +28,7 @@ services.AddSingleton<OutboxSignal>();
 services.AddSingleton<InboxSignal>();
 services.AddSingleton<IFileStore, LocalFileStore>();
 services.AddSingleton<ErpClientFactory>();
+services.AddSingleton<LiveThrottle>();
 services.AddScoped<Outbox>();
 services.AddScoped<SessionStore>();
 services.AddScoped<UpdateRouter>();
@@ -81,6 +82,7 @@ app.UseRateLimiter();
 app.MapGet("/health", async (BotDbContext db, CancellationToken ct) =>
     await db.Database.CanConnectAsync(ct) ? Results.Ok(new { ok = true }) : Results.StatusCode(503));
 WebhookEndpoint.Map(app);
+FileEndpoint.Map(app);
 MiniAppEndpoints.Map(app.MapGroup("").RequireRateLimiting("miniapp"));
 
 app.Run();
