@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.Licensing;
 
 namespace tahsinERP.ControlPanel.Services;
 
 public record DebtorRow(int TenantId, string Slug, string LegalName, int InvoiceCount, long DebtTiyin, DateOnly OldestDue);
 public record ExpiringRow(int TenantId, string Slug, string LegalName, string Plan, DateOnly EndDate, int DaysLeft, TenantStatus Status);
 public record MonthRevenue(int Year, int Month, long AmountTiyin, int Count);
+/// <summary>Panelga ulangan, lekin uzoq vaqt pull qilmagan on-prem o'rnatma (onlayn tekshiruv siyosati, 08_STAGE4.md 4).</summary>
+public record OfflineRow(int TenantId, string Slug, string LegalName, DateTime? LastSeenUtc, int DaysSilent, bool Required, int GraceDays);
 
 public record DashboardData(
     Dictionary<TenantStatus, int> TenantsByStatus,
@@ -13,9 +17,12 @@ public record DashboardData(
     IReadOnlyList<DebtorRow> Debtors,
     IReadOnlyList<ExpiringRow> Expiring,
     IReadOnlyList<MonthRevenue> Revenue,
-    long UnpaidTotalTiyin);
+    long UnpaidTotalTiyin)
+{
+    public IReadOnlyList<OfflineRow> OfflineOnPrem { get; init; } = [];
+}
 
-public sealed class DashboardService(ControlDbContext db, Clock clock)
+public sealed class DashboardService(ControlDbContext db, Clock clock, IOptions<PanelOptions> options)
 {
     public async Task<DashboardData> GetAsync(int expiringDays = 14, int months = 6, CancellationToken ct = default)
     {
@@ -57,6 +64,27 @@ public sealed class DashboardService(ControlDbContext db, Clock clock)
             return new MonthRevenue(m.Year, m.Month, inMonth.Sum(p => p.AmountTiyin), inMonth.Count);
         }).ToList();
 
-        return new DashboardData(byStatus, saas, onprem, debtors, expiring, revenue, unpaid);
+        return new DashboardData(byStatus, saas, onprem, debtors, expiring, revenue, unpaid) { OfflineOnPrem = await OfflineOnPremAsync(ct) };
+    }
+
+    /// <summary>
+    /// Ro'yxatdan o'tgan on-prem o'rnatmalar, oxirgi pull'dan beri: Required — 3+ kun (kalit tez orada tugaydi), Optional — grace
+    /// (standart 30) kundan ko'p. Panelga umuman ulanmaganlar (offline kalit) bu ro'yxatga kirmaydi.
+    /// </summary>
+    public async Task<IReadOnlyList<OfflineRow>> OfflineOnPremAsync(CancellationToken ct = default)
+    {
+        DateTime now = clock.UtcNow;
+        var rows = await db.Tenants.AsNoTracking()
+            .Where(t => t.Deployment == DeploymentKind.OnPrem && t.RegisteredAtUtc != null && t.Status != TenantStatus.Archived && t.DeletedAtUtc == null)
+            .ToListAsync(ct);
+        return rows.Select(t =>
+            {
+                int grace = LicenseIssuer.OfflineGraceDays(t, options.Value);
+                bool required = LicenseIssuer.IsRollingKey(t);
+                int silent = (int)Math.Floor((now - (t.LastSeenUtc ?? t.RegisteredAtUtc!.Value)).TotalDays);
+                return new OfflineRow(t.Id, t.Slug, t.LegalName, t.LastSeenUtc, silent, required, grace);
+            })
+            .Where(r => r.Required ? r.DaysSilent >= 3 : r.DaysSilent >= r.GraceDays)
+            .OrderByDescending(r => r.Required).ThenByDescending(r => r.DaysSilent).ToList();
     }
 }

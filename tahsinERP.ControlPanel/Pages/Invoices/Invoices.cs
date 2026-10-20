@@ -174,8 +174,11 @@ public class EditModel(ControlDbContext db, BillingService billing) : PanelPageM
     }
 }
 
-public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePdfRenderer pdf, Clock clock) : PanelPageModel
+public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePdfRenderer pdf, Clock clock, DidoxService didox) : PanelPageModel
 {
+    public bool DidoxEnabled => didox.Enabled;
+    public IReadOnlyList<string> DidoxMissing => didox.Missing;
+
     public Invoice Invoice { get; private set; } = null!;
     public Dictionary<int, string> StaffNames { get; private set; } = [];
     [BindProperty] public string? Amount { get; set; }
@@ -249,6 +252,25 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
         FlashOk = $"To'lov belgilandi: {Money.FormatSom(tiyin)}. Holat: {Labels.Of(r.Invoice.Status)}."
                   + (r.IssuedLicense is not null ? $" Obuna uzaytirildi, yangi kalit chiqdi (#{r.IssuedLicense.Id}, {r.IssuedLicense.ExpiryDate:dd.MM.yyyy} gacha)." : "");
         if (r.LicenseWarning is not null) FlashError = r.LicenseWarning;
+        return RedirectToPage(new { id });
+    }
+
+    /// <summary>Didox'ga e-hisob-faktura qoralamasi sifatida yuborish (Owner/Sales). Imzo — Didox kabinetida E-IMZO bilan.</summary>
+    public async Task<IActionResult> OnPostDidoxSendAsync(int id)
+    {
+        if (!CanSell) return Forbidden();
+        if (!await LoadAsync(id)) return NotFound();
+        if (!await TryAsync(() => didox.SendAsync(id, StaffId))) { await LoadAsync(id); return Page(); }
+        FlashOk = "Didox'ga yuborildi (qoralama). Didox kabinetida E-IMZO bilan imzolang — holat avtomatik yangilanadi.";
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostDidoxRefreshAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        var state = await didox.RefreshAsync(Invoice);
+        if (state is null) FlashError = "Didox holati olinmadi: " + (Invoice.DidoxError ?? "Didox o'chiq.");
+        else FlashOk = "Didox holati: " + state;
         return RedirectToPage(new { id });
     }
 

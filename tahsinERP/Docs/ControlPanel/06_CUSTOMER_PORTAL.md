@@ -43,12 +43,12 @@ Qanday ishlaydi:
 5. **Cheklovlar**: 5 xato (parol yoki kod) → 15 daqiqa blok; kod qayta yuborish ≥60 s oralig'ida va 15 daqiqada ≤5 ta;
    IP bo'yicha `login` rate limit (daqiqasiga 20, `Panel:LoginRateLimitPerMinute`); noma'lum login — umumiy xato
    (login borligi oshkor bo'lmaydi, xesh baribir hisoblanadi).
-6. **Parolni tiklash**: o'z-o'ziga xizmat YO'Q — xodim yangi taklif (parolni tiklash) havolasini chiqaradi; shaxsiy
-   Telegram bog'langan bo'lsa havola o'sha chatga ham yuboriladi (tenant guruh chatiga — yo'q).
+6. **Parolni tiklash**: xodim yangi taklif (parolni tiklash) havolasini chiqaradi; shaxsiy Telegram bog'langan bo'lsa havola o'sha
+   chatga ham yuboriladi (tenant guruh chatiga — yo'q). 4-bosqichdan: mijoz o'zi ham — `/Forgot` (08_STAGE4.md 5).
 7. **Xodim boshqaruvi**: rol almashtirish, o'chirish/yoqish, Telegram'ni uzish — har biri foydalanuvchi sessiyalarini yopadi.
    Arxivlangan/o'chirilgan tenant mijozi kira olmaydi; to'xtatilgan (Suspended) — kira oladi (to'lash uchun).
 
-**SMS/email — 4-bosqich.** Kod kanali `IOtpSender` interfeysi orqali: yangi kanal (masalan Eskiz SMS) shu interfeysni
+**SMS/email — 4-bosqichda qo'shildi (08_STAGE4.md 5).** Kod kanali `IOtpSender` interfeysi orqali: yangi kanal (masalan Eskiz SMS) shu interfeysni
 amalga oshirib `services.AddScoped<IOtpSender, ...>()` bilan ro'yxatdan o'tadi; `PortalAuthService` ro'yxatdagi
 birinchi mos kanalni tanlaydi (`Resolve` null qaytarsa — keyingisi). `PortalOtp.Channel` qaysi kanal ishlatilganini saqlaydi.
 
@@ -158,5 +158,5 @@ https binding, `Hosts:*` env va webhook sirini so'raydi. DNS: `my.<domen>` → p
 - ERP'dagi haqiqiy foydalanuvchilar soni panelga kelmaydi (License API'da yo'q) — portal faqat limitni ko'rsatadi.
   Kerak bo'lsa: pull so'roviga `active_users` maydoni (01_LICENSE_API.md o'zgarishi, ERP commit).
 - Pasaytirishda joriy davr qoldig'i / oshirishda proratsiya avtomatik emas — xodim qoralamani tahrirlaydi.
-- Mijoz o'zi parolni tiklay olmaydi (email/SMS kanali 4-bosqichda) — xodim yangi havola beradi.
+- ~~Mijoz o'zi parolni tiklay olmaydi~~ — 4-bosqichda qo'shildi (`/Forgot`, 08_STAGE4.md 5).
 - Portal foydalanuvchilarini o'chirish (DELETE) yo'q — faqat faolsizlantirish (audit izi saqlanadi).

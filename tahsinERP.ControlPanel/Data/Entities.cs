@@ -32,6 +32,8 @@ public static class PlanCodes
     public const string Biznes = "BIZNES";
     public const string Korp = "KORP";
     public const string Trial = "TRIAL";
+    /// <summary>Distributsiya paketi (distribyutorlar uchun, MES/BOM'siz) — EditionModules.Dist.</summary>
+    public const string Dist = "DIST";
     /// <summary>Qo'shimcha xizmat «Sayt-katalog» — paketga kirmaydi, alohida obuna; kalitda Edition'ga "+SITE" bo'lib qo'shiladi.</summary>
     public const string Site = "SITE";
 }
@@ -65,6 +67,13 @@ public class Plan
 public enum DeploymentKind { SaaS = 1, OnPrem = 2 }
 
 public enum TenantStatus { Trial = 1, Active = 2, Grace = 3, Suspended = 4, Archived = 5 }
+
+/// <summary>
+/// On-prem onlayn tekshiruv siyosati (00_PLAN.md 11 #5, 08_STAGE4.md 4). Optional — kalit shartnoma davri (≤ 1 yil), internet
+/// bo'lsa pull, bo'lmasa offline. Required — kalit qisqa (OfflineGraceDays) va panel uni o'zi yangilab turadi: ERP pull qilmasa
+/// kalit muddati tugaydi. SaaS'ga ta'sir qilmaydi.
+/// </summary>
+public enum OnlineCheckMode { Optional = 1, Required = 2 }
 
 public class Server
 {
@@ -137,6 +146,11 @@ public class Tenant
     /// <summary>Sinov muddatidan oldin yakunlangan vaqt (EndTrial job tugagan).</summary>
     public DateTime? TrialEndedAtUtc { get; set; }
 
+    /// <summary>On-prem: onlayn tekshiruv majburiymi (faqat On-prem uchun ma'noli).</summary>
+    public OnlineCheckMode OnlineCheck { get; set; } = OnlineCheckMode.Optional;
+    /// <summary>On-prem: internetsiz ishlash muddati, kun (Required — kalit uzunligi; Optional — ogohlantirish chegarasi). Null — Panel:OnPremOfflineGraceDays.</summary>
+    public int? OfflineGraceDays { get; set; }
+
     public string? Notes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
@@ -193,8 +207,14 @@ public class Invoice
     /// <summary>Obuna shu hisob-faktura bo'yicha uzaytirilgan vaqt — storno + qayta to'lovda ikki marta uzaytirilmaydi.</summary>
     public DateTime? SubscriptionAppliedUtc { get; set; }
     public string? Note { get; set; }
-    /// <summary>Didox e-hisob-faktura ID (4-bosqich).</summary>
+    /// <summary>Didox e-hisob-faktura ID (4-bosqich, 08_STAGE4.md 3).</summary>
     public string? DidoxId { get; set; }
+    /// <summary>Didox hujjat holati (kod va nomi, masalan "3 Imzolangan"), oxirgi tekshiruvdagi.</summary>
+    public string? DidoxStatus { get; set; }
+    public DateTime? DidoxSentAtUtc { get; set; }
+    public DateTime? DidoxCheckedAtUtc { get; set; }
+    /// <summary>Oxirgi yuborish/tekshiruv xatosi (bo'sh — xato yo'q).</summary>
+    public string? DidoxError { get; set; }
     public int? CreatedByStaffId { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
@@ -484,6 +504,8 @@ public class PortalUser
     public bool IsActive { get; set; } = true;
     /// <summary>Bot /start orqali bog'langan shaxsiy chat. Null bo'lsa kod tenant chatiga (Tenant.TelegramChatId) yuboriladi.</summary>
     public string? TelegramChatId { get; set; }
+    /// <summary>Kod kanali: null/"telegram" (standart), "sms" (Phone), "email" (Email). Kanal ishlamasa — Telegram'ga qaytadi.</summary>
+    public string? OtpChannel { get; set; }
     /// <summary>Telegram bog'lash kodi xeshi (SHA-256 hex) — t.me/&lt;bot&gt;?start=&lt;kod&gt;.</summary>
     public string? TelegramLinkHash { get; set; }
     public DateTime? TelegramLinkExpiresUtc { get; set; }
@@ -569,4 +591,75 @@ public class PortalRequest
     public int? SubscriptionId { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
+}
+
+// ── Bank ko'chirmasi importi (4-bosqich, Docs/ControlPanel/08_STAGE4.md 2) ───────────────────────────────────────
+
+public enum BankImportFormat { OneC = 1, Csv = 2, Xlsx = 3 }
+
+/// <summary>Yuklangan bank ko'chirmasi fayli (sarlavha).</summary>
+public class BankImport
+{
+    public int Id { get; set; }
+    public string FileName { get; set; } = "";
+    public BankImportFormat Format { get; set; }
+    /// <summary>Fayl SHA-256 hex — bir xil fayl qayta yuklansa ogohlantirish uchun (qatorlar baribir DedupKey bilan himoyalangan).</summary>
+    public string FileHash { get; set; } = "";
+    /// <summary>1C fayldagi hisob raqami(lar)i (RasschSchet) yoki bo'sh.</summary>
+    public string? Account { get; set; }
+    public DateOnly? DateFrom { get; set; }
+    public DateOnly? DateTo { get; set; }
+    public int UploadedByStaffId { get; set; }
+    public DateTime UploadedAtUtc { get; set; }
+    public List<BankImportLine> Lines { get; set; } = [];
+}
+
+public enum BankMatchStatus
+{
+    /// <summary>Hisob-faktura topildi, qo'llash mumkin.</summary>
+    Matched = 1,
+    /// <summary>Bir nechta mos hisob-faktura — xodim tanlaydi.</summary>
+    Ambiguous = 2,
+    /// <summary>Mos hisob-faktura topilmadi.</summary>
+    Unmatched = 3,
+    /// <summary>Bu bank tranzaksiyasi (sana+summa+hujjat №+to'lovchi hisobi) allaqachon qo'llangan.</summary>
+    Duplicate = 4,
+    /// <summary>Kiruvchi to'lov emas (bizdan chiqqan) — e'tiborsiz.</summary>
+    NotIncoming = 5,
+    /// <summary>Hisob-faktura topildi, lekin to'lab bo'lmaydi (to'langan/bekor/summa qoldiqdan katta).</summary>
+    Blocked = 6,
+}
+
+public enum BankMatchMethod { None = 0, InvoiceNumber = 1, InnAmount = 2, Manual = 3 }
+
+/// <summary>Applying — band qilingan, to'lov yozilmoqda (jarayon uzilsa shu holatda qoladi: to'lovlar ro'yxatini tekshiring).</summary>
+public enum BankLineState { Pending = 1, Applied = 2, Skipped = 3, Failed = 4, Applying = 5 }
+
+/// <summary>Ko'chirma qatori: tahlil, moslash natijasi va qo'llash holati.</summary>
+public class BankImportLine
+{
+    public long Id { get; set; }
+    public int ImportId { get; set; }
+    public int LineNo { get; set; }
+    public string? DocNumber { get; set; }
+    public DateOnly DocDate { get; set; }
+    public long AmountTiyin { get; set; }
+    public string? PayerName { get; set; }
+    public string? PayerInn { get; set; }
+    public string? PayerAccount { get; set; }
+    public string? Purpose { get; set; }
+    /// <summary>SHA-256(sana|summa|hujjat №|to'lovchi hisobi) — bitta bank tranzaksiyasining kaliti.</summary>
+    public string DedupKey { get; set; } = "";
+    /// <summary>Qo'llanganda = DedupKey. Noyob indeks (NULL emaslar orasida) — bir tranzaksiya ikki marta qo'llanmaydi.</summary>
+    public string? AppliedKey { get; set; }
+    public BankMatchStatus MatchStatus { get; set; }
+    public BankMatchMethod MatchMethod { get; set; }
+    public int? InvoiceId { get; set; }
+    /// <summary>Moslash izohi (masalan "TE-2026-000012 raqami bo'yicha", "2 ta mos hisob-faktura").</summary>
+    public string? MatchNote { get; set; }
+    public BankLineState State { get; set; } = BankLineState.Pending;
+    public int? PaymentId { get; set; }
+    public int? AppliedByStaffId { get; set; }
+    public DateTime? AppliedAtUtc { get; set; }
+    public string? Error { get; set; }
 }
