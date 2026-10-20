@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Ochiq sayt-katalog (Docs/Distribution/02_WEBSITE_CATALOG.md): bitta servis — ko'p kompaniya sayti (domen bo'yicha).
+    Ma'lumot ERP'dan imzoli SiteApi orqali (pull, ETag); rasmlar WebP'ga o'giriladi va keshlanadi; arizalar outbox orqali ERP'ga.
+    Dizayn: vercel/shop (MIT) dizayn tizimi asosida, Razor Pages (SSR) + qo'lda yozilgan CSS va kichik JS.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>tahsinERP.Site</RootNamespace>
+    <UserSecretsId>tahsinERP-Site-8b3e2a51</UserSecretsId>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\tahsinERP.Licensing\tahsinERP.Licensing.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="tahsinERP.Site.Tests" />
+    <EmbeddedResource Include="Data\Schema.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.1" />
+  </ItemGroup>
+
+</Project>

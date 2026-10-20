@@ -1,0 +1,28 @@
+# /etc/systemd/system/tahsin-site.service — Linux (AWS), Caddy ortida.
+# /etc/tahsin-site.env (chmod 600):
+#   Site__MasterKey=...        (ERP TAHSINERP_BOT_KEY bilan bir xil, >= 32 belgi)
+#   Site__BaseDomain=tahsin.uz
+#   ConnectionStrings__Site=Server=...;Database=tahsin_site;User Id=...;Password=...;TrustServerCertificate=True
+[Unit]
+Description=tahsinERP sayt-katalog (ochiq saytlar)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tahsinsite
+WorkingDirectory=/opt/tahsin-site
+ExecStart=/usr/bin/dotnet /opt/tahsin-site/tahsinERP.Site.dll --urls http://127.0.0.1:5200
+EnvironmentFile=/etc/tahsin-site.env
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=Site__DataRoot=/var/lib/tahsin-site
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/tahsin-site
+
+[Install]
+WantedBy=multi-user.target

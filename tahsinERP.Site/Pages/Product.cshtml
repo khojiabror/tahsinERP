@@ -1,0 +1,138 @@
+@page "/{lang:regex(^(uz|ru)$)}/p/{slug}"
+@model ProductModel
+@{
+    ViewData["Page"] = Model;
+    var p = Model.Product;
+    var lang = Model.Lang;
+    var name = CatalogIndex.Name(p, lang);
+    var media = p.Media ?? [];
+    var units = p.Units ?? [];
+    var def = Ui.DefaultUnit(p);
+    var attrs = p.Attributes ?? [];
+    var desc = CatalogIndex.Description(p, lang);
+    var origin = Seo.Origin(Request);
+    var crumbs = new List<(string Name, string Url)> { (Model.T("Home"), Site.Url("/")), (Model.T("Catalog"), Site.Url("/catalog")) };
+    if (Model.Category != null) crumbs.Add((CatalogIndex.Name(Model.Category, lang), Site.Url("/c/" + Model.Category.Slug)));
+    crumbs.Add((name, Site.Url("/p/" + p.Slug)));
+    string? brand = p.BrandId is int b && Model.Catalog.Brands.TryGetValue(b, out var br) ? br.Name : null;
+    var s = Model.Catalog.Settings;
+}
+@section Head {
+    @Seo.Script(Seo.Product(Site, p, origin))
+    @Seo.Script(Seo.Breadcrumbs(crumbs, origin))
+}
+<div class="container page">
+    <nav class="crumbs" aria-label="breadcrumb">
+        @foreach (var (cn, cu) in crumbs.Take(crumbs.Count - 1)) { <a href="@cu">@cn</a><span>/</span> }
+        <span aria-current="page">@name</span>
+    </nav>
+
+    <div class="pdp" data-product='@Ui.ProductData(Site, p)'>
+        <div class="pdp-media">
+            <div class="gallery" data-gallery>
+                @if (media.Count == 0)
+                {
+                    @Ui.Image(Site, null, name, "100vw", [600], true, "gallery-img")
+                }
+                @for (int i = 0; i < media.Count; i++)
+                {
+                    var alt = (lang == "ru" ? media[i].AltRu ?? media[i].AltUz : media[i].AltUz) ?? name;
+                    <figure class="gallery-item" id="m@(i)">@Ui.Image(Site, media[i].Id, alt, "(min-width:1024px) 55vw, 100vw", [600, 900, 1200, 1600], i == 0, "gallery-img")</figure>
+                }
+            </div>
+            @if (media.Count > 1)
+            {
+                <div class="thumbs" data-thumbs>
+                    @for (int i = 0; i < media.Count; i++)
+                    {
+                        <a href="#m@(i)" class="thumb @(i == 0 ? "on" : "")" aria-label="@(i + 1)">@Ui.Image(Site, media[i].Id, "", "80px", [200])</a>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="pdp-info">
+            @Ui.Badges(Site, p)
+            <h1>@name</h1>
+            <div class="pdp-meta">
+                <span class="muted">@Model.T("Sku"): @p.Sku</span>
+                @if (brand != null) { <span class="muted">@Model.T("Brand"): @brand</span> }
+                @Ui.Stock(Site, p)
+            </div>
+
+            @if (s.PriceMode != "HIDDEN")
+            {
+                <div class="pdp-price">
+                    @if (Site.ShowPrices && def?.Price != null)
+                    {
+                        <span class="price-lg" data-unit-price>@SafeText.Money(def.Price.Value, lang)</span>
+                        <span class="muted" data-unit-name>/ @def.Name</span>
+                    }
+                    else
+                    {
+                        <span class="price-ask">@Model.T("PriceAsk")</span>
+                    }
+                </div>
+            }
+
+            <div class="buy">
+                @if (units.Count > 1)
+                {
+                    <div class="field">
+                        <span class="label">@Model.T("Unit")</span>
+                        <div class="seg seg-wide" role="radiogroup" data-units>
+                            @foreach (var u in units)
+                            {
+                                <button type="button" role="radio" class="@(u == def ? "on" : "")" aria-checked="@(u == def ? "true" : "false")" data-unit-id="@u.Id">
+                                    @u.Name@if (u.Factor != 1) { <span class="muted"> ×@SafeText.Qty(u.Factor)</span> }
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+                <div class="buy-row">
+                    <div class="qty" data-qty>
+                        <button type="button" data-step="-1" aria-label="−"><svg viewBox="0 0 24 24" class="icon"><path d="M5 12h14" /></svg></button>
+                        <input type="number" inputmode="decimal" min="0" step="any" value="1" aria-label="@Model.T("Qty")">
+                        <button type="button" data-step="1" aria-label="+"><svg viewBox="0 0 24 24" class="icon"><path d="M12 5v14M5 12h14" /></svg></button>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-lg grow" data-add data-from-pdp data-unit="@def?.Id">@Model.T("AddToCart")</button>
+                </div>
+                @if (s.Phone != null)
+                {
+                    <a class="btn btn-outline btn-lg" href="tel:@s.Phone">@(Site.ShowPrices ? Model.T("AskQuestion") : Model.T("RequestPrice")) · @s.Phone</a>
+                }
+                <p class="muted small">@Model.T("PriceNote")</p>
+            </div>
+
+            @if (attrs.Count > 0)
+            {
+                <section class="pdp-section">
+                    <h2>@Model.T("Specs")</h2>
+                    <dl class="specs">
+                        @foreach (var a in attrs)
+                        {
+                            <dt>@CatalogIndex.AttrName(a, lang)</dt>
+                            <dd>@CatalogIndex.AttrValue(a, lang)</dd>
+                        }
+                    </dl>
+                </section>
+            }
+            @if (!string.IsNullOrWhiteSpace(desc))
+            {
+                <section class="pdp-section">
+                    <h2>@Model.T("Description")</h2>
+                    <div class="prose">@SafeText.Render(desc)</div>
+                </section>
+            }
+        </div>
+    </div>
+
+    @if (Model.Related.Count > 0)
+    {
+        <section class="section">
+            <div class="section-head"><h2>@Model.T("Related")</h2></div>
+            <div class="grid">@foreach (var r in Model.Related) { <partial name="_ProductCard" model="r" /> }</div>
+        </section>
+    }
+</div>

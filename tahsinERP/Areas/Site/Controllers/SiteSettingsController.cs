@@ -14,7 +14,7 @@ namespace tahsinERP.Areas.Site.Controllers
     /// <summary>Sayt sozlamalari (brend, kontaktlar, narx va qoldiq ko'rinishi, SEO) va domenlar.</summary>
     public class SiteSettingsController : SiteControllerBase
     {
-        public static readonly string[] Fonts = { "Inter", "Manrope", "Roboto", "Montserrat", "Nunito Sans" };
+        public static readonly string[] Fonts = { "Inter", "Geist", "Manrope", "Roboto", "Montserrat", "Nunito Sans" };
 
         public ActionResult Index()
         {

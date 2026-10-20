@@ -1,0 +1,36 @@
+@model CartModel
+@if (Model.Lines.Count > 0)
+{
+    <ul class="cart-lines">
+        @foreach (var l in Model.Lines)
+        {
+            var name = CatalogIndex.Name(l.Product, Model.Lang);
+            <li class="cart-line" data-line="@l.Product.Id" data-unit="@l.Unit.Id">
+                <a class="cart-thumb" href="@Site.Url("/p/" + l.Product.Slug)">@Ui.Image(Site, l.Product.Media?.FirstOrDefault()?.Id, name, "80px", [200])</a>
+                <div class="cart-info">
+                    <a class="cart-name" href="@Site.Url("/p/" + l.Product.Slug)">@name</a>
+                    <span class="muted small">@l.Product.Sku</span>
+                    @if (l.Unit.Price.HasValue && Site.ShowPrices) { <span class="small">@SafeText.Money(l.Unit.Price.Value, Model.Lang) / @l.Unit.Name</span> }
+                </div>
+                <div class="cart-qty">
+                    <div class="qty qty-sm" data-qty>
+                        <button type="button" data-step="-1" aria-label="−"><svg viewBox="0 0 24 24" class="icon"><path d="M5 12h14" /></svg></button>
+                        <input type="number" inputmode="decimal" min="0" step="any" value="@SafeText.Qty(l.Qty)" aria-label="@Model.T("Qty")" data-line-qty>
+                        <button type="button" data-step="1" aria-label="+"><svg viewBox="0 0 24 24" class="icon"><path d="M12 5v14M5 12h14" /></svg></button>
+                    </div>
+                    <span class="muted small">@l.Unit.Name</span>
+                </div>
+                <div class="cart-sum">
+                    @if (l.Sum.HasValue) { <b>@SafeText.Money(l.Sum.Value, Model.Lang)</b> }
+                    <button type="button" class="link-muted small" data-remove>@Model.T("Remove")</button>
+                </div>
+            </li>
+        }
+    </ul>
+    <div class="cart-total">
+        @if (Model.Total.HasValue)
+        {
+            <span>@Model.T("TotalApprox")</span><b>@SafeText.Money(Model.Total.Value, Model.Lang)</b>
+        }
+    </div>
+}

@@ -1,0 +1,107 @@
+@page "/{lang:regex(^(uz|ru)$)}"
+@model IndexModel
+@{
+    ViewData["Page"] = Model;
+    var banners = Model.Catalog.Snapshot.Banners ?? [];
+    var origin = Seo.Origin(Request);
+    var s = Model.Catalog.Settings;
+}
+@section Head {
+    @Seo.Script(Seo.Organization(Site, origin))
+    @Seo.Script(Seo.WebSite(Site, origin))
+}
+@if (banners.Count > 0)
+{
+    <section class="hero-slider" aria-roledescription="carousel">
+        <div class="slides" data-slides>
+            @for (int i = 0; i < banners.Count; i++)
+            {
+                var b = banners[i];
+                var title = Model.Lang == "ru" ? b.TitleRu ?? b.TitleUz : b.TitleUz;
+                var sub = Model.Lang == "ru" ? b.SubtitleRu ?? b.SubtitleUz : b.SubtitleUz;
+                var link = b.Link == null ? null : b.Link.StartsWith("/") && !b.Link.StartsWith("/uz/") && !b.Link.StartsWith("/ru/") ? Site.Url(b.Link) : b.Link;
+                <div class="slide">
+                    @Ui.Image(Site, b.MediaId, title ?? Site.SiteName, "100vw", [600, 900, 1200, 1600], i == 0, "slide-img")
+                    @if (title != null || sub != null)
+                    {
+                        <div class="slide-text">
+                            @if (title != null) { <h2>@title</h2> }
+                            @if (sub != null) { <p>@sub</p> }
+                            @if (link != null) { <a class="btn btn-primary" href="@link">@Model.T("ViewAll") →</a> }
+                        </div>
+                    }
+                    else if (link != null)
+                    {
+                        <a class="slide-link" href="@link" aria-label="@Site.SiteName"></a>
+                    }
+                </div>
+            }
+        </div>
+        @if (banners.Count > 1)
+        {
+            <div class="dots" data-dots>@for (int i = 0; i < banners.Count; i++) { <button type="button" aria-label="@(i + 1)"></button> }</div>
+        }
+    </section>
+}
+else
+{
+    <section class="hero">
+        <div class="container hero-inner">
+            <h1>@Site.SiteName</h1>
+            @if (s.Tagline != null) { <p class="lead">@s.Tagline</p> }
+            <form class="search search-lg" action="@Site.Url("/search")" method="get" role="search">
+                <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                <input type="search" name="q" placeholder="@Model.T("SearchPlaceholder")" aria-label="@Model.T("Search")">
+            </form>
+        </div>
+    </section>
+}
+
+<div class="container page">
+    @if (Model.Catalog.Categories.Count > 0)
+    {
+        <section class="section">
+            <div class="section-head">
+                <h2>@Model.T("PopularCategories")</h2>
+                <a class="link-muted" href="@Site.Url("/catalog")">@Model.T("ViewAll") →</a>
+            </div>
+            <div class="cat-grid">
+                @foreach (var cat in Model.Catalog.Categories.Take(12))
+                {
+                    var name = CatalogIndex.Name(cat, Model.Lang);
+                    var cover = cat.MediaId ?? Model.Catalog.Products.FirstOrDefault(p => p.CategoryId == cat.Id && p.Media is { Count: > 0 })?.Media![0].Id;
+                    <a class="cat-card" href="@Site.Url("/c/" + cat.Slug)">
+                        @Ui.Image(Site, cover, name, "(min-width:1024px) 16vw, 45vw", [200, 400])
+                        <span class="cat-name">@name</span>
+                        <span class="muted cat-count">@Model.T("Products", Model.Catalog.CountIn(cat.Id))</span>
+                    </a>
+                }
+            </div>
+        </section>
+    }
+
+    @foreach (var (key, items) in Model.Sections.Where(x => x.Items.Count > 0))
+    {
+        <section class="section">
+            <div class="section-head">
+                <h2>@Model.T(key)</h2>
+                <a class="link-muted" href="@Site.Url("/catalog")">@Model.T("ViewAll") →</a>
+            </div>
+            <div class="grid">
+                @foreach (var p in items) { <partial name="_ProductCard" model="p" /> }
+            </div>
+        </section>
+    }
+
+    @if (s.Phone != null || s.Address != null)
+    {
+        <section class="section contact-band">
+            <div>
+                <h2>@Model.T("Contacts")</h2>
+                @if (s.Address != null) { <p class="muted">@s.Address</p> }
+                @if (s.WorkingHours != null) { <p class="muted">@Model.T("WorkingHours"): @s.WorkingHours</p> }
+            </div>
+            @if (s.Phone != null) { <a class="btn btn-primary btn-lg" href="tel:@s.Phone">@s.Phone</a> }
+        </section>
+    }
+</div>

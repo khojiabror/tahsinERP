@@ -236,3 +236,43 @@ Reddit va Hacker News bu vosita bilan o'qilmadi (Reddit botlarni bloklaydi). Top
 - [vercel/commerce (arxiv)](https://github.com/vercel/commerce)
 - [vercel/shop](https://github.com/vercel/shop)
 - [medusajs/dtc-starter](https://github.com/medusajs/dtc-starter)
+
+---
+
+## 11. Natija (2026-10-20, branch `feature/website`)
+
+Foydalanuvchi buyrug'i bilan S5/S6 dan oldin bajarildi (W0–W4).
+
+### 11.1 ERP (tahsinERP)
+- **Migratsiya `021_SITE.sql`**: `site` sxemasi (4-bo'limdagi jadvallar), standart sozlamalar, ruxsat modullari `SiteHome`, `SiteSettings`, `SiteCatalog`, `SitePages`, `SiteLeads` (+ Seed/105). Lokal bazada va `DB_DST_UI` da qo'llangan (zaxira `DBTHSN-IPACK_pre_021_SITE_20261020.bak`), qayta ishga tushirish xatosiz.
+- **Litsenziya — alohida xizmat:** Edition qatorida `+SITE` (`KORP+SITE`, `START+SITE`); kalit formati o'zgarmaydi. `ProductModule.Website` hech qaysi paketga kirmaydi; "Paketda yo'q" sahifasi qo'shimcha xizmat uchun alohida matn ko'rsatadi. Eski/cheklovsiz kalitlarda — ochiq.
+- **Admin paneli (`Areas/Site`, menyuda "Sayt"):** boshqaruv (holat, ko'rsatkichlar, fotosiz/tavsifsiz/narxsiz tovarlar, oxirgi arizalar); sozlamalar (brend, shrift, rang, radius, tillar, narx va qoldiq rejimi, kontaktlar, xarita, ijtimoiy tarmoqlar, SEO, GA/Metrika); domenlar (qo'shish, DNS tekshiruvi — IP'lar `SiteCnameTarget` bilan solishtiriladi, asosiy domen); katalog (server tomonda sahifalanadigan jadval, ommaviy nashr, kategoriya bo'yicha nashr, kategoriya nomi/tavsifi/rasmi/SEO; tovar kartasi — nomlar va tavsif uz/ru, xususiyatlar, belgilar, slug, SEO, galereya: yuklash, tartib, alt, eski `PRODUCTIMAGES` dan import); sahifalar va bannerlar (muddat bilan); arizalar (ro'yxat, telefon bo'yicha mijoz topish, bir tugmada mijoz + `D_ORDERS` qoralama, rad etish). Yangi ariza — rahbarlarga Telegram xabari.
+- **`SiteApi`** (`/Site/SiteApi/*`, imzoli, bot bilan bir xil kalit): `Snapshot` (to'liq nusxa, ETag/304, 60 s kesh, admin saqlaganda darhol yangilanadi), `Media`, `Lead` (`ClientRequestId` — takror yuborish xavfsiz). Litsenziya va `SITE` xizmati tekshiriladi; `web.config` da `Site/SiteApi` uchun location.
+- Rasm: ERP'da tekshiriladi, EXIF burilishi to'g'rilanadi, ≤ 2000 px (JPEG 85% yoki shaffof PNG), SHA-256 bilan takrorlanmaydi.
+
+### 11.2 Ochiq sayt (`tahsinERP.Site`, .NET 10)
+- Bitta servis — ko'p sayt: `{slug}.{BaseDomain}` yoki ERP'da tasdiqlangan domen; `tahsin_site` bazasi (tenantlar, oxirgi nusxa, ariza navbati) — ERP o'chiq bo'lsa ham sayt ishlaydi.
+- Razor Pages (SSR): bosh sahifa (bannerlar yoki sarlavha + qidiruv, kategoriyalar, aksiya/yangi/tavsiya), katalog/kategoriya/qidiruv (filtrlar — brend, xususiyatlar, "faqat mavjudlari", har birida son; saralash; setka ↔ jadval; sahifalash; filtr bosilganda faqat natijalar bloki almashadi, URL saqlanadi), tovar sahifasi (galereya, birlik tanlash, miqdor, savatga, qo'ng'iroq, xususiyatlar, tavsif, o'xshash tovarlar), savat va ariza, matnli sahifalar, 404, "tez orada" (sayt o'chiq — 503).
+- SEO: kanonik URL, hreflang (uz/ru/x-default), `sitemap.xml`, `robots.txt`, `llms.txt`, JSON-LD (Product/Offer, BreadcrumbList, Organization, WebSite+SearchAction), OpenGraph; filtrlangan/qidiruv sahifalari `noindex`.
+- Rasmlar: WebP (SkiaSharp, 200–1600 px), URL'da hash — 1 yil kesh. Sahifa keshi 60 s, yangi nusxada tozalanadi.
+- Xavfsizlik: qat'iy CSP (inline skript yo'q, analitika faqat yoqilganda), tavsif — xavfsiz formatlangan matn, ariza: yashirin maydon, 3 soniyalik vaqt tuzog'i, IP (5/10 daq) va telefon (3/10 daq) chegarasi, outbox orqali ERP'ga qayta urinish bilan.
+- Deploy: `deploy/tahsin-site.service`, `deploy/Caddyfile` — on-demand TLS (sertifikat faqat sayt servisi tasdiqlagan domenlarga, `/_tls/allowed`).
+
+### 11.3 Rejadan farqlar
+| Rejada | Qilindi | Nega |
+|---|---|---|
+| Tailwind CSS 4 CLI + htmx | `vercel/shop` token'lari va komponentlari asosida qo'lda yozilgan CSS + kichik vanilla JS | Tashqi binar/paket yuklamasdan; natija bir xil (SSR, progressive enhancement) |
+| Versiya + delta sinxron | To'liq nusxa + ETag (304) | Sodda va ishonchli; 20 ming tovargacha yetarli, kattasida — delta |
+| `tahsinERP.Integration` umumiy kutubxona | Saytda o'z kichik ERP mijozi (imzo — umumiy `DstApiSignature`) | Botni qayta yozmaslik; birlashtirish — keyingi ish |
+| Tavsif — tozalangan HTML | Xavfsiz belgilash (paragraf, ro'yxat, **qalin**, sarlavha) | HTML sanitizer'siz XSS imkoniyati yo'q |
+| Media — fayl ombori | ERP bazasida (`site.MEDIA`), saytda WebP kesh | Tenant bazasi bilan birga zaxiralanadi; DB-per-tenant |
+
+### 11.4 Tekshiruv
+- ERP testlari 148/148 (yangi 7: slug/domen/belgi, `+SITE` xizmati, rasm tayyorlash, nusxa — nashr qilinmagan chiqmaydi, narx/qoldiq rejimlari, ETag barqarorligi, minimal narx chiqmasligi; ariza — takroriy yuborish, nashr qilinmagan tovar rad, buyurtmaga bir marta aylanadi, mijoz telefon bilan yaratiladi). RazorCheck: 505 view, 0 xato.
+- Sayt testlari 27/27 (ERP nusxa shakli, qidiruv lotin/kirill/artikul/shtrix-kod, filtr sonlari, saralash/sahifalash, XSS, JSON-LD'dan chiqib ketmaslik, ariza tekshiruvi/takror/bot tuzog'i/chegara, domen → tenant, WebP o'lchamlari, ERP imzosi).
+- Brauzer (lokal, `SiteDemoExport` — lokal bazadagi 391 tovar va rasmlar, rollback bilan): bosh sahifa, katalog va filtrlar (sahifa yuklanmasdan), tovar sahifasi, savat (3 × 76 000 = 228 000), ariza yuborildi → navbatda; telefon (375 px) — gorizontal scroll yo'q; rus tili; sitemap/robots/llms; 404; CSP.
+- IIS orqali haqiqiy ERP: imzoli `Snapshot` so'rovi URL avtorizatsiyasi, marshrut va imzodan o'tib litsenziyagacha yetdi (lokal baza litsenziyasiz — 403); imzosiz — 401.
+
+**Tekshirilmagan:** litsenziyali ERP bilan uchidan-uchiga (nusxa → sayt, ariza → ERP), Lighthouse o'lchovi (bu muhitda yo'q), haqiqiy domen va Caddy sertifikati.
+
+**Keyingi ishlar:** Control Panel'da `+SITE` qo'shimcha xizmatini sotish va kalitga yozish; tavsif/xususiyatlar uchun Excel import-eksport; `tahsinERP.Integration` umumiy kutubxonasi (bot + sayt); 8-bo'limdagi B2B kabinet va onlayn to'lov.

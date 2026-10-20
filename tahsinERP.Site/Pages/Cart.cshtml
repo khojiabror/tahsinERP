@@ -1,0 +1,58 @@
+@page "/{lang:regex(^(uz|ru)$)}/cart"
+@model CartModel
+@{
+    ViewData["Page"] = Model;
+    var s = Model.Catalog.Settings;
+    var f = Model.Form;
+}
+<div class="container page narrow">
+    @if (Model.Sent)
+    {
+        <div class="thanks" data-sent>
+            <svg viewBox="0 0 24 24" class="icon icon-xl"><circle cx="12" cy="12" r="10" /><path d="m8 12 3 3 5-6" /></svg>
+            <h1>@Model.T("ThanksTitle")</h1>
+            @if (Model.SentPhone != null) { <p class="lead">@Model.T("ThanksText", Model.SentPhone)</p> }
+            <a class="btn btn-primary" href="@Site.Url("/catalog")">@Model.T("ToCatalog")</a>
+        </div>
+    }
+    else
+    {
+        <h1>@Model.T("Cart")</h1>
+        <div class="cart-layout">
+            <section>
+                <div id="cart-lines" data-cart-lines data-url="@Site.Url("/cart")?handler=Lines">
+                    <p class="muted">…</p>
+                </div>
+                <div class="empty" data-cart-empty hidden>
+                    <p>@Model.T("CartEmpty")</p>
+                    <a class="btn btn-outline" href="@Site.Url("/catalog")">@Model.T("ToCatalog")</a>
+                </div>
+            </section>
+            <aside class="checkout card-panel">
+                <h2>@Model.T("CheckoutTitle")</h2>
+                @if (!s.LeadsEnabled)
+                {
+                    <p class="muted">@Model.T("LeadsDisabled")</p>
+                    @if (s.Phone != null) { <a class="btn btn-primary btn-lg" href="tel:@s.Phone">@s.Phone</a> }
+                }
+                else
+                {
+                    <p class="muted small">@Model.T("CheckoutHint")</p>
+                    @if (Model.Error != null) { <div class="alert" role="alert">@Model.Error</div> }
+                    <form method="post" data-lead-form novalidate>
+                        <input type="hidden" name="Form.Items" data-items value="@f?.Items">
+                        <input type="hidden" name="Form.Ts" data-ts value="@f?.Ts">
+                        <input type="hidden" name="Form.RequestId" data-request-id value="@f?.RequestId">
+                        <label class="hp" aria-hidden="true">Website<input name="Form.Website" tabindex="-1" autocomplete="off"></label>
+                        <label class="field"><span class="label">@Model.T("YourName")</span><input name="Form.Name" required maxlength="100" autocomplete="name" value="@f?.Name"></label>
+                        <label class="field"><span class="label">@Model.T("Phone")</span><input name="Form.Phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="+998 90 123 45 67" value="@f?.Phone"></label>
+                        <label class="field"><span class="label">@Model.T("Company")</span><input name="Form.Company" maxlength="200" autocomplete="organization" value="@f?.Company"></label>
+                        <label class="field"><span class="label">@Model.T("Inn")</span><input name="Form.Inn" maxlength="20" inputmode="numeric" value="@f?.Inn"></label>
+                        <label class="field"><span class="label">@Model.T("Comment")</span><textarea name="Form.Message" rows="3" maxlength="1000">@f?.Message</textarea></label>
+                        <button class="btn btn-primary btn-lg w-full" type="submit">@Model.T("Send")</button>
+                    </form>
+                }
+            </aside>
+        </div>
+    }
+</div>
