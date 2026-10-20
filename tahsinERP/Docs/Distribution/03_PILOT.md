@@ -92,7 +92,7 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | M3 | Bir nechta o'lchov birligi koeffitsient bilan | Import 5–6; Mini App'da birlik tanlash, buyurtmada asosiy birlikka o'tadi | ⬜ |
 | M4 | Bir nechta shtrix-kod | Import 5–6; web formada skaner bilan qidiruv | ⬜ |
 | M5 | Narx turlari, minimal narx, narx tarixi, ommaviy % | Import 7; Narxlar sahifasi | ⬜ |
-| M6 | Agent yangi nuqta qo'shadi → rahbar tasdiqlaydi | Botda "Yangi nuqta" → web'da Mijozlar → tasdiqlash | ⬜ |
+| M6 | Agent yangi nuqta qo'shadi → rahbar tasdiqlaydi | Bot: ➕ Yangi nuqta → nom, telefon, joylashuv, mo'ljal, foto; web'da Mijozlar → tasdiqlash | ⬜ |
 | M7 | Rus/o'zbek interfeys | Profil tili ru → distributsiya sahifalari va bot | ⬜ |
 
 ### 4.2 Buyurtma va ombor
@@ -107,8 +107,8 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | B7 | Qisman jo'natish, qolganini yopish | 1 ta buyurtma | ⬜ |
 | B8 | O'zi olib ketish | 1 ta buyurtma | ⬜ |
 | B9 | Yig'ish varaqasi, nakladnoy (chop/PDF) | Chop etish | ⬜ |
-| B10 | Omborchiga yangi tasdiqlangan buyurtma xabari | Omborchi boti | ⬜ |
-| B11 | Mini App'da kamera bilan shtrix-kod | 3 ta tovarni kamera bilan topish | ⬜ |
+| B10 | Omborchiga yangi tasdiqlangan buyurtma xabari | Omborchi STOREKEEPER roli bilan ulangan, ombor scope'i shu ombor | ⬜ |
+| B11 | Mini App'da kamera bilan shtrix-kod | 📷 tugma → kod savatga +1 (Android va iOS'da sinash) | ⬜ |
 
 ### 4.3 Pul va qarz
 | # | Talab | Qanday tekshiriladi | Holat |
@@ -125,7 +125,7 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | # | Talab | Qanday tekshiriladi | Holat |
 |---|---|---|---|
 | A1 | Kun boshi joylashuv bilan | `AGENT_DAYS` / kunlik yakun | ⬜ |
-| A2 | Kun boshi selfi (Sozlamalarda majburiy qilish mumkin) | Dala nazorati sahifasi | ⬜ |
+| A2 | Kun boshi selfi | Joylashuvdan keyin selfi; Dala nazorati sahifasida ko'rinadi (Sozlamalar → bot ochiq manzili) | ⬜ |
 | A3 | "Keldim" radius ichida, forward qilingan joylashuv belgilanadi | 300 m uzoqdan — rad | ⬜ |
 | A4 | Bugungi marshrut (tashrif kuni bo'yicha), qarz belgisi | Har agent | ⬜ |
 | A5 | Buyurtmasiz tashrif — sabab majburiy | 1 ta | ⬜ |
@@ -141,7 +141,7 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | N2 | O'tkazilgan hujjat o'chirilmaydi, sabab bilan bekor | Jo'natilgan buyurtmani bekor qilish — rad | ⬜ |
 | N3 | Agent faqat o'z mijozlarini ko'radi | Agent A botida agent B mijozi yo'q | ⬜ |
 | N4 | Xarid narxi/foyda faqat `DstSeeCost` bilan | Operator kartasida tannarx yo'q | ⬜ |
-| N5 | Rahbar paneli, savdo kesimlari, tashrif reja/fakt, Excel | Rahbar paneli va Hisobotlar sahifalari, har kech | ⬜ |
+| N5 | Rahbar paneli, savdo kesimlari, tashrif reja/fakt, Excel | Distributsiya → Rahbar paneli / Hisobotlar | ⬜ |
 
 ### 4.6 Yakuniy mezon (pilot oxiri, T+7)
 | # | Mezon | Qanday | Holat |
@@ -229,6 +229,10 @@ Daraja va holatni rahbar (DstIssues o'zgartirish huquqi) qo'yadi; ochiq K1 soni 
 | Agentlar | 5 kishi | bot + Mini App, qog'ozsiz |
 | Dasturchi | vendor | o'rnatish, o'qitish, K1/K2 tuzatish, kunlik zaxira |
 
-## 9. Qolgan ishlar
+## 9. Parallel sessiyalardan qo'shilganlar
+
+S4 qoldiqlari (migratsiya 022: selfi, botdan yangi nuqta, omborchi xabari, kamera bilan shtrix-kod, jonli joylashuv, mijoz qarzi/akti, Dala nazorati) va S5 hisobotlar (migratsiya 023: rahbar paneli, savdo kesimlari, tashrif reja/fakt, Excel) birlashtirildi — ro'yxatdagi bandlari ⬜ holatida. Pilot bazasiga 022 va 023 qo'llanishi kerak.
+
+## 10. Qolgan ishlar
 
 Server va domen (P3–P4), litsenziya (P2) tayyor bo'lgach: brauzerda web sahifalar, Telegram ichida bot va Mini App bilan mashq kuni (P12). Pilot kompaniyasi va sanalar — ishlab chiqish tugagach.
