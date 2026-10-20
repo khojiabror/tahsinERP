@@ -19,7 +19,7 @@ namespace tahsinERP.ViewModels
     {
         public int ProductID { get; set; }
         public int LocationID { get; set; }
-        public double AssignQty { get; set; }
+        public decimal AssignQty { get; set; }
         public bool Selected { get; set; }
     }
 }

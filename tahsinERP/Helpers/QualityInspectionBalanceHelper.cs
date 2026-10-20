@@ -68,7 +68,7 @@ namespace tahsinERP.Helpers
                 return 0m;
             }
 
-            var producedQty = (decimal)production.Total;
+            var producedQty = production.Total;
             var acceptedQty = GetAcceptedQtyForProduction(production, db);
             return producedQty - acceptedQty;
         }
@@ -122,7 +122,7 @@ namespace tahsinERP.Helpers
                 return true;
             }
 
-            var remaining = (decimal)production.Total - acceptedSoFar;
+            var remaining = production.Total - acceptedSoFar;
             if (inspectedQty > remaining)
             {
                 errorMessage =

@@ -80,13 +80,13 @@ namespace tahsinERP.Controllers
                     recordsFiltered = result.Filtered,
                     data = result.Rows.Select(r =>
                     {
-                        double rate;
+                        decimal rate;
                         if (!r.VatContractID.HasValue || !vatRates.TryGetValue(r.VatContractID.Value, out rate))
                         {
-                            rate = 0d;
+                            rate = 0m;
                         }
 
-                        var gross = r.Amount ?? 0d;
+                        var gross = r.Amount ?? 0m;
                         return new
                         {
                             id = r.ID,
@@ -209,7 +209,7 @@ namespace tahsinERP.Controllers
                         {
                             productCBMInfo[invoiceProduct.ProductID] = await conversionService.ConvertPieceToCBMAsync(
                                 invoiceProduct.ProductID,
-                                (decimal)invoiceProduct.Quantity);
+                                invoiceProduct.Quantity);
                         }
                         catch
                         {
@@ -374,16 +374,16 @@ namespace tahsinERP.Controllers
                     ContractID = invoice.ContractID,
                     CurrencyID = invoice.CurrencyID ?? 0,
                     // Formada "Jami" QQSsiz ko'rsatiladi (Amount bazada QQS bilan)
-                    Amount = (double)(invoice.P_INVOICE_PRODUCTS.Sum(ip => ip.TotalPrice)),
+                    Amount = (invoice.P_INVOICE_PRODUCTS.Sum(ip => ip.TotalPrice)),
                     InvoiceProducts = invoice.P_INVOICE_PRODUCTS.Select(ip => new PInvoiceProductViewModel
                     {
                         ID = ip.ID,
                         ProductID = ip.ProductID,
                         ProductPNo = ip.PRODUCT.PNo,
                         ProductName = ip.PRODUCT.Name,
-                        Quantity = (double)ip.Quantity,
-                        Price = (double)ip.Price,
-                        TotalPrice = (double)ip.TotalPrice,
+                        Quantity = ip.Quantity,
+                        Price = ip.Price,
+                        TotalPrice = ip.TotalPrice,
                         UnitID = ip.UnitID
                     }).ToList()
                 };

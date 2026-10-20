@@ -17,7 +17,7 @@ namespace tahsinERP.Services.Stock
     public static class IncomeDocumentService
     {
         /// <summary>Qatorning QQS bilan summasi.</summary>
-        public static double GrossTotal(double amount, double? piecePrice, double vatRate)
+        public static decimal GrossTotal(decimal amount, decimal? piecePrice, decimal vatRate)
         {
             return VatMath.ApplyVat(amount * (piecePrice ?? 0), VatMath.ClampPercent(vatRate));
         }
@@ -42,8 +42,8 @@ namespace tahsinERP.Services.Stock
             {
                 IncomeID = incomeId,
                 ProductID = line.ProductID,
-                Amount = (decimal)line.Amount,
-                PiecePrice = (decimal?)line.PiecePrice,
+                Amount = line.Amount,
+                PiecePrice = line.PiecePrice,
                 UnitID = unitId,
                 VATRate = (decimal?)(VatMath.ClampPercent(line.VATRate)),
                 Comment = string.IsNullOrWhiteSpace(line.Comment) ? null : line.Comment.Trim()
@@ -68,7 +68,7 @@ namespace tahsinERP.Services.Stock
 
                 try
                 {
-                    DlocCapacityGuard.ValidatePutaway(db, line.LocationID.Value, line.ProductID, (decimal)line.Amount);
+                    DlocCapacityGuard.ValidatePutaway(db, line.LocationID.Value, line.ProductID, line.Amount);
                 }
                 catch (WarehouseDlocException wex)
                 {
@@ -79,7 +79,7 @@ namespace tahsinERP.Services.Stock
                 var locId = line.LocationID.Value;
                 decimal pending;
                 pendingQtyByLocation.TryGetValue(locId, out pending);
-                pending += (decimal)line.Amount;
+                pending += line.Amount;
                 pendingQtyByLocation[locId] = pending;
 
                 var loc = DlocFifoDataAccess.GetLocation(db, locId);

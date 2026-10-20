@@ -54,8 +54,8 @@ namespace tahsinERP.Services.Procurement
             public int ContractID { get; set; }
             public string ContractNo { get; set; }
             public int? VatContractID { get; set; }
-            public double? Amount { get; set; }
-            public double? Net { get; set; }
+            public decimal? Amount { get; set; }
+            public decimal? Net { get; set; }
             public DateTime InvoiceDate { get; set; }
         }
 
@@ -104,9 +104,9 @@ namespace tahsinERP.Services.Procurement
                 ContractNo = i.P_CONTRACTS.ContractNo,
                 // QQS stavkasi shartnomadan: invoysning o'zi yoki buyurtmasi orqali (SRM-B18)
                 VatContractID = i.ContractID > 0 ? (int?)i.ContractID : i.P_ORDERS.ContractID,
-                Amount = (double?)i.Amount,
+                Amount = i.Amount,
                 // Amount QQS bilan saqlanadi (SRM-B25); QQSsiz summa — qatorlar yig'indisi
-                Net = i.P_INVOICE_PRODUCTS.Sum(x => (double?)x.TotalPrice),
+                Net = i.P_INVOICE_PRODUCTS.Sum(x => x.TotalPrice),
                 InvoiceDate = i.InvoiceDate
             });
         }
@@ -306,7 +306,7 @@ namespace tahsinERP.Services.Procurement
         /// Invoys QQS stavkasi: shartnoma (to'g'ridan-to'g'ri yoki buyurtma orqali) qatorlaridagi stavka;
         /// shartnoma bo'lmasa 0. QQS faqat P_CONTRACT_PRODUCTS'da saqlanadi.
         /// </summary>
-        private Task<double> ResolveVatRateAsync(int? contractId, P_ORDERS order)
+        private Task<decimal> ResolveVatRateAsync(int? contractId, P_ORDERS order)
         {
             int? cid = contractId > 0 ? contractId : order?.ContractID;
             return PContractVatHelper.CalculateContractVatRateAsync(_db, cid);
@@ -391,7 +391,7 @@ namespace tahsinERP.Services.Procurement
         /// Invoys qatorlarini navigatsiya orqali qo'shadi va QQSsiz jami summani qaytaradi.
         /// Mahsulot birliklari bitta so'rovda olinadi (avval har qatorga FindAsync, SRM-P06).
         /// </summary>
-        private async Task<double> AddLinesAsync(P_INVOICES invoice, IEnumerable<PInvoiceProductViewModel> lines)
+        private async Task<decimal> AddLinesAsync(P_INVOICES invoice, IEnumerable<PInvoiceProductViewModel> lines)
         {
             var list = (lines ?? Enumerable.Empty<PInvoiceProductViewModel>()).ToList();
             if (list.Count == 0)
@@ -405,7 +405,7 @@ namespace tahsinERP.Services.Procurement
                 .Select(p => new { p.ID, p.UnitID })
                 .ToDictionaryAsync(p => p.ID, p => p.UnitID);
 
-            double total = 0;
+            decimal total = 0;
             foreach (var line in list)
             {
                 // Foydalanuvchi tanlagan birlik saqlanadi (masalan, m3/CBM). Avval kesiladigan mahsulotlar
@@ -418,16 +418,16 @@ namespace tahsinERP.Services.Procurement
                 var invoiceProduct = new P_INVOICE_PRODUCTS
                 {
                     ProductID = line.ProductID,
-                    Quantity = (decimal)line.Quantity,
-                    Price = (decimal)line.Price,
-                    TotalPrice = (decimal)(line.Price * line.Quantity),
+                    Quantity = line.Quantity,
+                    Price = line.Price,
+                    TotalPrice = (line.Price * line.Quantity),
                     UnitID = unitId
                 };
 
                 // FK navigatsiya orqali: yangi invoysda ID SaveChanges'da beriladi
                 invoiceProduct.P_INVOICES = invoice;
                 _db.P_INVOICE_PRODUCTS.Add(invoiceProduct);
-                total += (double)invoiceProduct.TotalPrice;
+                total += invoiceProduct.TotalPrice;
             }
 
             return total;

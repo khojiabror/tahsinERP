@@ -22,14 +22,14 @@ namespace tahsinERP.Services
         {
             if (allocations == null || !allocations.Any()) return null;
             return string.Join("|", allocations.Select(a =>
-                "ProdID:" + a.ProductionID + ":" + a.Quantity.ToString(CultureInfo.InvariantCulture)));
+                "ProdID:" + a.ProductionID + ":" + a.Quantity.ToString("0.############################", CultureInfo.InvariantCulture)));
         }
 
         /// <summary>
         /// Mahsulot bo'yicha barcha transfer izohlarini BIR so'rovda o'qib, ProductionID → o'tkazilgan miqdor
         /// lug'atini quradi (avval har lot uchun bir xil so'rov qayta yuborilardi, MES-P17).
         /// </summary>
-        public static Dictionary<int, double> GetTransferredByProduction(int productID, DBTHSNEntities db)
+        public static Dictionary<int, decimal> GetTransferredByProduction(int productID, DBTHSNEntities db)
         {
             var comments = TransferLines(db)
                 .Where(ep => ep.ProductID == productID)
@@ -51,7 +51,7 @@ namespace tahsinERP.Services
                 .Take(50)
                 .ToList();
             // LIKE '%ProdID:12:%' "xProdID:12:" kabi qatorlarga ham mos kelishi mumkin — regex bilan aniqlaymiz
-            double qty;
+            decimal qty;
             return SumTokens(comments).TryGetValue(productionID, out qty) && qty > 0;
         }
 
@@ -75,17 +75,17 @@ namespace tahsinERP.Services
             var result = new List<ProductionLotItem>();
             foreach (var pp in productions)
             {
-                double transferred;
+                decimal transferred;
                 transferredByProduction.TryGetValue(pp.ID, out transferred);
-                var remaining = Math.Max(0, (double)pp.Total - transferred);
+                var remaining = Math.Max(0m, pp.Total - transferred);
                 if (remaining <= 0) continue;
 
                 result.Add(new ProductionLotItem
                 {
                     ProductionID = pp.ID,
                     Date = pp.Date,
-                    Total = (double)pp.Total,
-                    AcceptedQty = (double)pp.Total,
+                    Total = pp.Total,
+                    AcceptedQty = pp.Total,
                     RemainingAmount = remaining,
                     DisplayText = $"Lot {pp.ID} ({pp.Date:dd.MM.yyyy}) — qoldiq: {remaining:N2}"
                 });
@@ -111,18 +111,18 @@ namespace tahsinERP.Services
                 .GroupBy(q => q.ProductionID.Value)
                 .Select(g => new { ProductionID = g.Key, Qty = g.Sum(q => q.QtyAccepted) })
                 .ToList()
-                .ToDictionary(x => x.ProductionID, x => (double)x.Qty);
+                .ToDictionary(x => x.ProductionID, x => x.Qty);
             var transferredByProduction = GetTransferredByProduction(productID, db);
 
             foreach (var a in allocations)
             {
-                double totalAcceptedForLot;
+                decimal totalAcceptedForLot;
                 acceptedByLot.TryGetValue(a.ProductionID, out totalAcceptedForLot);
-                double alreadyTransferredFromLot;
+                decimal alreadyTransferredFromLot;
                 transferredByProduction.TryGetValue(a.ProductionID, out alreadyTransferredFromLot);
                 var wouldBeTransferred = alreadyTransferredFromLot + a.Quantity;
 
-                if (totalAcceptedForLot <= 0 || wouldBeTransferred > (totalAcceptedForLot + 0.0001))
+                if (totalAcceptedForLot <= 0 || wouldBeTransferred > (totalAcceptedForLot + 0.0001m))
                 {
                     var prodDate = db.PRODUCT_PRODUCTION.Where(p => p.ID == a.ProductionID).Select(p => (DateTime?)p.Date).FirstOrDefault();
                     errorMessage = $"Lot (Ishlab chiqarish #{a.ProductionID}, {(prodDate?.ToString("dd.MM.yyyy") ?? "")}) uchun qabul qilingan miqdor yetarli emas. " +
@@ -145,7 +145,7 @@ namespace tahsinERP.Services
                 var m = LotTokenRegex.Match(part.Trim());
                 if (m.Success
                     && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var pid)
-                    && double.TryParse(m.Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var qty)
+                    && decimal.TryParse(m.Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var qty)
                     && qty > 0)
                     list.Add(new LotAllocation { ProductionID = pid, Quantity = qty });
             }
@@ -160,18 +160,18 @@ namespace tahsinERP.Services
                     && ep.EXPENS.IsDeleted == false);
         }
 
-        private static Dictionary<int, double> SumTokens(IEnumerable<string> comments)
+        private static Dictionary<int, decimal> SumTokens(IEnumerable<string> comments)
         {
-            var result = new Dictionary<int, double>();
+            var result = new Dictionary<int, decimal>();
             foreach (var c in comments)
             {
                 foreach (Match m in LotTokenRegex.Matches(c ?? ""))
                 {
                     if (!int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var pid))
                         continue;
-                    if (!double.TryParse(m.Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var q))
+                    if (!decimal.TryParse(m.Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var q))
                         continue;
-                    double current;
+                    decimal current;
                     result.TryGetValue(pid, out current);
                     result[pid] = current + q;
                 }
@@ -199,15 +199,15 @@ namespace tahsinERP.Services
     {
         public int ProductionID { get; set; }
         public DateTime Date { get; set; }
-        public double Total { get; set; }
-        public double AcceptedQty { get; set; }
-        public double RemainingAmount { get; set; }
+        public decimal Total { get; set; }
+        public decimal AcceptedQty { get; set; }
+        public decimal RemainingAmount { get; set; }
         public string DisplayText { get; set; }
     }
 
     public class LotAllocation
     {
         public int ProductionID { get; set; }
-        public double Quantity { get; set; }
+        public decimal Quantity { get; set; }
     }
 }

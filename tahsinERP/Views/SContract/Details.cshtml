@@ -77,10 +77,10 @@
                                             </span>
                                             <hr />
                                             @{
-                                                var totalAmount = ViewBag.ContractedTotal as double? ?? 0d;
-                                                var baseAmount = ViewBag.ContractedBase as double? ?? 0d;
-                                                var vatAmount = ViewBag.ContractedVat as double? ?? 0d;
-                                                var vatRate = ViewBag.ContractedVatRate as double? ?? 0d;
+                                                var totalAmount = ViewBag.ContractedTotal as decimal? ?? 0m;
+                                                var baseAmount = ViewBag.ContractedBase as decimal? ?? 0m;
+                                                var vatAmount = ViewBag.ContractedVat as decimal? ?? 0m;
+                                                var vatRate = ViewBag.ContractedVatRate as decimal? ?? 0m;
                                             }
                                             <span>
                                                 <b>Umumiy summasi</b>:
@@ -143,12 +143,12 @@
                                                                         {
                                                                             <tr>
                                                                                 @{
-                                                                                    var baseTotal = (double)(item.PiecePrice * item.Amount);
-                                                                                    var lineVat = (double)(item.vatamount ?? 0m);
+                                                                                    var baseTotal = (item.PiecePrice * item.Amount);
+                                                                                    var lineVat = (item.vatamount ?? 0m);
                                                                                     var vatPercent = baseTotal > 0 && lineVat > 0
-                                                                                        ? Math.Round(lineVat / baseTotal * 100d, 2)
-                                                                                        : 0d;
-                                                                                    var totalWithVat = (double?)item.totalamount ?? (baseTotal + lineVat);
+                                                                                        ? Math.Round(lineVat / baseTotal * 100m, 2)
+                                                                                        : 0m;
+                                                                                    var totalWithVat = item.totalamount ?? (baseTotal + lineVat);
                                                                                 }
                                                                                 <td>
                                                                                     <a href="~/Product/Details/@item.PRODUCT.ID">@item.PRODUCT.PNo</a>
@@ -241,10 +241,10 @@
 
                                     <!-- Totals Comparison -->
                                     @{
-                                        var contractedTotal = ViewBag.ContractedTotal as double? ?? 0;
-                                        var contractedQty = ViewBag.ContractedQty as double? ?? 0;
-                                        var orderedTotal = ViewBag.OrderedTotal as double? ?? 0;
-                                        var orderedQty = ViewBag.OrderedQty as double? ?? 0;
+                                        var contractedTotal = ViewBag.ContractedTotal as decimal? ?? 0;
+                                        var contractedQty = ViewBag.ContractedQty as decimal? ?? 0;
+                                        var orderedTotal = ViewBag.OrderedTotal as decimal? ?? 0;
+                                        var orderedQty = ViewBag.OrderedQty as decimal? ?? 0;
                                         var invoicedTotal = ViewBag.InvoicedTotal as decimal? ?? 0;
                                         var invoicedQty = ViewBag.InvoicedQty as decimal? ?? 0;
                                     }

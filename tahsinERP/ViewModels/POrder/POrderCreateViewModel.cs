@@ -31,7 +31,7 @@ namespace tahsinERP.ViewModels.POrder
 
         /// <summary> QQS stavkasi (%). Saqlashda Amount = net summa + QQS qilib yoziladi. </summary>
         [Display(Name = "QQS %")]
-        public double VatRate { get; set; }
+        public decimal VatRate { get; set; }
 
         [Display(Name = "Sotuv buyurtmalari")]
         public int[] SelectedSalesOrderIds { get; set; }
@@ -64,20 +64,20 @@ namespace tahsinERP.ViewModels.POrder
         
         [Required(ErrorMessage = "Narx kiritilishi shart")]
         [Display(Name = "Narx")]
-        public double Price { get; set; }
+        public decimal Price { get; set; }
         
         [Required(ErrorMessage = "Miqdor kiritilishi shart")]
         [Display(Name = "Miqdor")]
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         
         [Display(Name = "Birlik")]
         public int? UnitID { get; set; }
         
         [Display(Name = "Jami")]
-        public double TotalPrice { get; set; }
+        public decimal TotalPrice { get; set; }
         
         [Display(Name = "MOQ")]
-        public double? MOQ { get; set; }
+        public decimal? MOQ { get; set; }
         
         // Conversion information
         [Display(Name = "Hisob tushuntirishi")]
@@ -119,7 +119,7 @@ namespace tahsinERP.ViewModels.POrder
 
         /// <summary> QQS stavkasi (%). Saqlashda Amount = net summa + QQS qilib yoziladi. </summary>
         [Display(Name = "QQS %")]
-        public double VatRate { get; set; }
+        public decimal VatRate { get; set; }
 
         public List<POrderProductViewModel> OrderProducts { get; set; }
 

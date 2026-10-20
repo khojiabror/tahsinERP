@@ -12,32 +12,32 @@ namespace tahsinERP.Services
     /// </summary>
     public static class SContractVatHelper
     {
-        public static double GetLineBaseAmount(S_CONTRACT_PRODUCTS product)
+        public static decimal GetLineBaseAmount(S_CONTRACT_PRODUCTS product)
         {
             if (product == null)
             {
                 return 0;
             }
 
-            return (double)(product.PiecePrice * product.Amount);
+            return product.PiecePrice * product.Amount;
         }
 
-        public static double GetLineBaseAmount(double piecePrice, double quantity)
+        public static decimal GetLineBaseAmount(decimal piecePrice, decimal quantity)
         {
             return piecePrice * quantity;
         }
 
-        public static double GetVatPercentFromLine(double lineBaseAmount, double? vatAmount)
+        public static decimal GetVatPercentFromLine(decimal lineBaseAmount, decimal? vatAmount)
         {
             return VatMath.PercentFromLine(lineBaseAmount, vatAmount);
         }
 
-        public static double CalculateVatAmount(double lineBaseAmount, double vatPercent)
+        public static decimal CalculateVatAmount(decimal lineBaseAmount, decimal vatPercent)
         {
             return VatMath.AmountFromPercent(lineBaseAmount, vatPercent);
         }
 
-        public static double GetLineTotalWithVat(S_CONTRACT_PRODUCTS product)
+        public static decimal GetLineTotalWithVat(S_CONTRACT_PRODUCTS product)
         {
             if (product == null)
             {
@@ -46,14 +46,14 @@ namespace tahsinERP.Services
 
             if (product.totalamount.HasValue && product.totalamount.Value > 0)
             {
-                return (double)product.totalamount.Value;
+                return product.totalamount.Value;
             }
 
             var baseAmount = GetLineBaseAmount(product);
-            return baseAmount + (double)(product.vatamount ?? 0);
+            return baseAmount + (product.vatamount ?? 0);
         }
 
-        public static double CalculateContractTotalWithVat(IEnumerable<S_CONTRACT_PRODUCTS> products)
+        public static decimal CalculateContractTotalWithVat(IEnumerable<S_CONTRACT_PRODUCTS> products)
         {
             if (products == null)
             {
@@ -63,17 +63,17 @@ namespace tahsinERP.Services
             return Math.Round(products.Sum(GetLineTotalWithVat), MidpointRounding.AwayFromZero);
         }
 
-        public static double CalculateContractVatRate(IEnumerable<S_CONTRACT_PRODUCTS> products)
+        public static decimal CalculateContractVatRate(IEnumerable<S_CONTRACT_PRODUCTS> products)
         {
             if (products == null)
             {
                 return 0;
             }
 
-            return VatMath.RateFromLines(products.Select(p => new VatLine(p.ContractID, GetLineBaseAmount(p), (double?)p.vatamount)));
+            return VatMath.RateFromLines(products.Select(p => new VatLine(p.ContractID, GetLineBaseAmount(p), p.vatamount)));
         }
 
-        public static double CalculateContractVatRate(DBTHSNEntities db, int? contractId)
+        public static decimal CalculateContractVatRate(DBTHSNEntities db, int? contractId)
         {
             if (!contractId.HasValue || contractId.Value <= 0)
             {
@@ -91,11 +91,11 @@ namespace tahsinERP.Services
         /// Shartnoma bo'yicha ProductID → QQS %. Bir mahsulot shartnomada takrorlansa, qatorlar
         /// yig'iladi (avval 5 joydagi ToDictionary ArgumentException tashlardi — CRM-B13, D4).
         /// </summary>
-        public static Dictionary<int, double> GetProductVatRates(DBTHSNEntities db, int? contractId)
+        public static Dictionary<int, decimal> GetProductVatRates(DBTHSNEntities db, int? contractId)
         {
             if (!contractId.HasValue || contractId.Value <= 0)
             {
-                return new Dictionary<int, double>();
+                return new Dictionary<int, decimal>();
             }
 
             return db.S_CONTRACT_PRODUCTS.AsNoTracking()
@@ -106,11 +106,11 @@ namespace tahsinERP.Services
                 .ToDictionary(
                     g => g.Key,
                     g => GetVatPercentFromLine(
-                        g.Sum(p => GetLineBaseAmount((double)p.PiecePrice, (double)p.Amount)),
-                        (double)g.Sum(p => p.vatamount ?? 0)));
+                        g.Sum(p => GetLineBaseAmount(p.PiecePrice, p.Amount)),
+                        g.Sum(p => p.vatamount ?? 0)));
         }
 
-        public static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
+        public static decimal CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
         {
             if (products == null)
             {
@@ -120,7 +120,7 @@ namespace tahsinERP.Services
             return VatMath.RateFromLines(products.Select(ToVatLine));
         }
 
-        public static Dictionary<int, double> BuildContractVatRates(IEnumerable<ContractProductVatLine> contractProducts)
+        public static Dictionary<int, decimal> BuildContractVatRates(IEnumerable<ContractProductVatLine> contractProducts)
         {
             return VatMath.RatesByContract((contractProducts ?? Enumerable.Empty<ContractProductVatLine>()).Select(ToVatLine));
         }
@@ -133,8 +133,8 @@ namespace tahsinERP.Services
         public class ContractProductVatLine
         {
             public int ContractID { get; set; }
-            public double LineBaseAmount { get; set; }
-            public double? VATAmount { get; set; }
+            public decimal LineBaseAmount { get; set; }
+            public decimal? VATAmount { get; set; }
         }
     }
 }

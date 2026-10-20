@@ -115,14 +115,14 @@
                                                                             <td>@(item.PlannedNightShift?.ToString("N3") ?? "-")</td>
                                                                             <td>@(item.PlannedTotal?.ToString("N3") ?? "-")</td>
                                                                             <td>
-                                                                                @Html.TextBox($"ProductionItems[{i}].DayShift", item.DayShift, new { @class = "form-control day-shift", @type = "number", @step = "0.001", @min = "0" })
+                                                                                @Html.TextBox($"ProductionItems[{i}].DayShift", item.DayShift, "{0:0.######}", new { @class = "form-control day-shift", @type = "number", @step = "0.001", @min = "0" })
                                                                             </td>
                                                                             <td>
-                                                                                @Html.TextBox($"ProductionItems[{i}].NightShift", item.NightShift, new { @class = "form-control night-shift", @type = "number", @step = "0.001", @min = "0" })
+                                                                                @Html.TextBox($"ProductionItems[{i}].NightShift", item.NightShift, "{0:0.######}", new { @class = "form-control night-shift", @type = "number", @step = "0.001", @min = "0" })
                                                                             </td>
                                                                             <td>
                                                                                 <span class="total-display">@item.Total.ToString("N3")</span>
-                                                                                @Html.Hidden($"ProductionItems[{i}].Total", item.Total, new { @class = "total-input" })
+                                                                                @Html.Hidden($"ProductionItems[{i}].Total", item.Total.ToString("0.######"), new { @class = "total-input" })
                                                                             </td>
                                                                             <td>
                                                                                 @Html.TextBox($"ProductionItems[{i}].Comment", item.Comment, new { @class = "form-control" })

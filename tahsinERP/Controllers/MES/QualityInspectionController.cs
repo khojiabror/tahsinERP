@@ -254,7 +254,7 @@ namespace tahsinERP.Controllers.MES
                                 {
                                     ProductID = production.ProductID,
                                     DefectTypeID = item.DefectTypeID.Value,
-                                    Quantity = (decimal)((double)item.QtyRejected),
+                                    Quantity = item.QtyRejected,
                                     IssueDateTime = DateTime.Now,
                                     IsDeleted = false
                                 };
@@ -324,7 +324,7 @@ namespace tahsinERP.Controllers.MES
             var items = new List<QualityInspectionDailyItemViewModel>();
             foreach (var production in productions)
             {
-                var producedQty = (decimal)production.Total;
+                var producedQty = production.Total;
                 acceptedByProduction.TryGetValue(production.ID, out var alreadyAccepted);
                 var remaining = producedQty - alreadyAccepted;
 
@@ -404,7 +404,7 @@ namespace tahsinERP.Controllers.MES
                         {
                             ProductID = inspection.ProductID,
                             DefectTypeID = defectTypeId,
-                            Quantity = (decimal)((double)inspection.QtyRejected),
+                            Quantity = inspection.QtyRejected,
                             IssueDateTime = DateTime.Now,
                             IsDeleted = false
                         });

@@ -76,21 +76,21 @@
                                                 <div class="col-md-4">
                                                     <h6 class="invoice-to">Kunduzgi smena</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.DayShift, new { @class = "form-control day-shift-input", @type = "number", @step = "0.001", @min = "0" })
+                                                        @Html.TextBoxFor(model => model.DayShift, "{0:0.######}", new { @class = "form-control day-shift-input", @type = "number", @step = "0.001", @min = "0" })
                                                         @Html.ValidationMessageFor(model => model.DayShift, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <h6 class="invoice-to">Tungi smena</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.NightShift, new { @class = "form-control night-shift-input", @type = "number", @step = "0.001", @min = "0" })
+                                                        @Html.TextBoxFor(model => model.NightShift, "{0:0.######}", new { @class = "form-control night-shift-input", @type = "number", @step = "0.001", @min = "0" })
                                                         @Html.ValidationMessageFor(model => model.NightShift, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <h6 class="invoice-to">Jami</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Total, new { @class = "form-control", @readonly = "readonly", @id = "totalDisplay" })
+                                                        @Html.TextBoxFor(model => model.Total, "{0:0.######}", new { @class = "form-control", @readonly = "readonly", @id = "totalDisplay" })
                                                     </fieldset>
                                                 </div>
                                             </div>

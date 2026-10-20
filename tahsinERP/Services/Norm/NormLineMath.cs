@@ -107,7 +107,7 @@ namespace tahsinERP.Services.Norm
             decimal totalLengthMm = 0;
             foreach (var x in list)
             {
-                var cutPartMm = (decimal)x.CutLengthMm * x.Pieces;
+                var cutPartMm = x.CutLengthMm * x.Pieces;
                 decimal wasteMm;
                 if (x.WasteMm.HasValue)
                     wasteMm = x.WasteMm.Value;
@@ -121,7 +121,7 @@ namespace tahsinERP.Services.Norm
             if (standardLengthMm > 0 && totalLengthMm > 0)
                 return Math.Ceiling(totalLengthMm / (decimal)standardLengthMm);
 
-            return list.Sum(x => (decimal)x.Pieces);
+            return list.Sum(x => x.Pieces);
         }
     }
 

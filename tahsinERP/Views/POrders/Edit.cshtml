@@ -7,8 +7,8 @@
     var isDirectOrder = ViewBag.IsDirectOrder as bool? ?? false;
     // Buyurtmaga haqiqatda qo'llangan QQS stavkasini ko'rsatamiz (shartnoma stavkasi emas).
     var initialVatRate = ViewBag.AppliedVatRate != null
-        ? (double)ViewBag.AppliedVatRate
-        : (ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d);
+        ? (decimal)ViewBag.AppliedVatRate
+        : (ViewBag.ContractVatRate != null ? (decimal)ViewBag.ContractVatRate : 0m);
 
     var purchasableProductsData = new List<object>();
     var unitsData = new List<object>();
@@ -168,21 +168,21 @@
                                                                     @Html.TextBoxFor(m => m.OrderProducts[i].ProductName, new { @class = "form-control product-name", @readonly = "readonly" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].Amount, "{0:0.######}", new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, new SelectList(ViewBag.UnitsList, "ID", "Text", product.UnitID), "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].Price, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].Price, "{0:0.######}", new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     <small class="text-muted d-block mt-1">QQS bilan: <span class="price-with-vat">0.00</span></small>
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].TotalPrice, "{0:0.############}", new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
                                                                     <small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small>
                                                                 </td>
                                                                 <td>
-                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].MOQ, new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
+                                                                    @Html.TextBoxFor(m => m.OrderProducts[i].MOQ, "{0:0.######}", new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
                                                                 </td>
                                                                 <td class="align-top small">
                                                                     @(string.IsNullOrWhiteSpace(product.CalculationExplanation) ? "—" : product.CalculationExplanation)

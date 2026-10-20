@@ -110,7 +110,7 @@
                                                                         <td>@product.ProductName</td>
                                                                         <td>@product.UnitName</td>
                                                                         <td class="text-right">@product.ContractAmount.ToString("N2")</td>
-                                                                        <td class="text-right">@((product.PiecePrice * (1 + product.VatRate / 100d)).ToString("N2"))</td>
+                                                                        <td class="text-right">@((product.PiecePrice * (1 + product.VatRate / 100m)).ToString("N2"))</td>
                                                                         <td>
                                                                             <input type="hidden" name="ProductQuantities[@index].ContractProductID" value="@product.ContractProductID" />
                                                                             <input type="hidden" name="ProductQuantities[@index].ProductID" value="@product.ProductID" />
@@ -129,7 +129,7 @@
                                                                         </td>
                                                                         @{
                                                                             var lineBase = product.OrderQuantity * product.PiecePrice;
-                                                                            var lineTotal = lineBase + (lineBase * product.VatRate / 100d);
+                                                                            var lineTotal = lineBase + (lineBase * product.VatRate / 100m);
                                                                         }
                                                                         <td class="text-right total-price">@lineTotal.ToString("N2")</td>
                                                                         <td class="text-center">

@@ -35,7 +35,7 @@ namespace tahsinERP.ViewModels
         public string Description { get; set; }
 
         [Display(Name = "Jami summa")]
-        public double? Amount { get; set; }
+        public decimal? Amount { get; set; }
 
         // Contract products with quantities
         public List<ContractProductQuantity> ProductQuantities { get; set; }
@@ -53,12 +53,12 @@ namespace tahsinERP.ViewModels
         public int ProductID { get; set; }
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
-        public double PiecePrice { get; set; }
-        public double ContractAmount { get; set; }
+        public decimal PiecePrice { get; set; }
+        public decimal ContractAmount { get; set; }
         public int UnitID { get; set; }
         public string UnitName { get; set; }
-        public double OrderQuantity { get; set; } // User enters this
-        public double VatRate { get; set; }
+        public decimal OrderQuantity { get; set; } // User enters this
+        public decimal VatRate { get; set; }
     }
 
     public class DeliveryScheduleViewModel
@@ -83,9 +83,9 @@ namespace tahsinERP.ViewModels
         public int ProductID { get; set; }
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
-        public double OrderQuantity { get; set; }
-        public double PlannedQuantity { get; set; }
-        public double ShippedQuantity { get; set; }
+        public decimal OrderQuantity { get; set; }
+        public decimal PlannedQuantity { get; set; }
+        public decimal ShippedQuantity { get; set; }
         public int UnitID { get; set; }
         public string UnitName { get; set; }
     }

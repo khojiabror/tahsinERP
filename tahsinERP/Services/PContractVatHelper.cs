@@ -12,17 +12,17 @@ namespace tahsinERP.Services
     /// </summary>
     public static class PContractVatHelper
     {
-        public static double GetVatPercentFromLine(double amount, double? vatAmount)
+        public static decimal GetVatPercentFromLine(decimal amount, decimal? vatAmount)
         {
             return VatMath.PercentFromLine(amount, vatAmount);
         }
 
-        public static double CalculateLineTotalWithVat(double lineAmount, double? vatAmount)
+        public static decimal CalculateLineTotalWithVat(decimal lineAmount, decimal? vatAmount)
         {
             return lineAmount + (vatAmount ?? 0);
         }
 
-        public static async Task<double> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
+        public static async Task<decimal> CalculateContractVatRateAsync(DBTHSNEntities db, int? contractId)
         {
             if (!contractId.HasValue || contractId.Value <= 0)
             {
@@ -36,15 +36,15 @@ namespace tahsinERP.Services
                 .Select(p => new ContractProductVatLine
                 {
                     ContractID = p.ContractID,
-                    Amount = (double)p.Amount,
-                    VATAmount = (double?)(p.VATAmount)
+                    Amount = p.Amount,
+                    VATAmount = p.VATAmount
                 })
                 .ToListAsync();
 
             return CalculateContractVatRateFromLines(lines);
         }
 
-        public static async Task<Dictionary<int, double>> GetProductVatRatesByContractAsync(DBTHSNEntities db, int contractId)
+        public static async Task<Dictionary<int, decimal>> GetProductVatRatesByContractAsync(DBTHSNEntities db, int contractId)
         {
             var products = await db.P_CONTRACT_PRODUCTS
                 .Where(p => p.ContractID == contractId)
@@ -53,10 +53,10 @@ namespace tahsinERP.Services
 
             return products.ToDictionary(
                 p => p.ProductID,
-                p => VatMath.PercentFromLine((double)p.Amount, (double?)p.VATAmount));
+                p => VatMath.PercentFromLine(p.Amount, p.VATAmount));
         }
 
-        private static double CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
+        private static decimal CalculateContractVatRateFromLines(IEnumerable<ContractProductVatLine> products)
         {
             if (products == null)
             {
@@ -66,17 +66,17 @@ namespace tahsinERP.Services
             return VatMath.RateFromLines(products.Select(ToVatLine));
         }
 
-        private static Dictionary<int, double> BuildContractVatRates(IEnumerable<ContractProductVatLine> contractProducts)
+        private static Dictionary<int, decimal> BuildContractVatRates(IEnumerable<ContractProductVatLine> contractProducts)
         {
             return VatMath.RatesByContract(contractProducts.Select(ToVatLine));
         }
 
         /// <summary>Bir nechta shartnomaning QQS stavkalari (bitta so'rov).</summary>
-        public static async Task<Dictionary<int, double>> GetContractVatRatesAsync(DBTHSNEntities db, ICollection<int> contractIds)
+        public static async Task<Dictionary<int, decimal>> GetContractVatRatesAsync(DBTHSNEntities db, ICollection<int> contractIds)
         {
             if (contractIds == null || contractIds.Count == 0)
             {
-                return new Dictionary<int, double>();
+                return new Dictionary<int, decimal>();
             }
 
             var lines = await db.P_CONTRACT_PRODUCTS
@@ -85,8 +85,8 @@ namespace tahsinERP.Services
                 .Select(p => new ContractProductVatLine
                 {
                     ContractID = p.ContractID,
-                    Amount = (double)p.Amount,
-                    VATAmount = (double?)(p.VATAmount)
+                    Amount = p.Amount,
+                    VATAmount = p.VATAmount
                 })
                 .ToListAsync();
 
@@ -101,8 +101,8 @@ namespace tahsinERP.Services
         public sealed class ContractProductVatLine
         {
             public int ContractID { get; set; }
-            public double Amount { get; set; }
-            public double? VATAmount { get; set; }
+            public decimal Amount { get; set; }
+            public decimal? VATAmount { get; set; }
         }
     }
 }
