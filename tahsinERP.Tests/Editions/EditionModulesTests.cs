@@ -58,8 +58,9 @@ namespace tahsinERP.Tests.Editions
         [TestMethod]
         public void KorpAndTrial_Everything()
         {
+            // Qo'shimcha xizmatlar (Sayt) paketga kirmaydi — ular "+SITE" bilan alohida ochiladi (SiteAddOnEditionTests)
             foreach (var e in new[] { "KORP", "TRIAL" })
-                foreach (var c in EditionModules.MappedControllers)
+                foreach (var c in EditionModules.MappedControllers.Where(c => !EditionModules.IsAddOn(EditionModules.ModuleOf(c))))
                     Assert.IsTrue(EditionModules.IsControllerAllowed(e, c), e + "/" + c);
         }
 

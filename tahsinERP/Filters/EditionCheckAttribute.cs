@@ -24,8 +24,10 @@ namespace tahsinERP.Filters
                 return;
 
             var module = EditionModules.ModuleOf(controller);
-            string message = "\"" + EditionModules.DisplayName(module) + "\" moduli paketingizda yo'q — tarifni " +
-                             EditionModules.EditionDisplayName(EditionModules.CheapestEditionWith(module)) + " paketiga oshiring.";
+            string message = EditionModules.IsAddOn(module)
+                ? "\"" + EditionModules.DisplayName(module) + "\" alohida xizmat — ulash uchun yetkazib beruvchiga murojaat qiling."
+                : "\"" + EditionModules.DisplayName(module) + "\" moduli paketingizda yo'q — tarifni " +
+                  EditionModules.EditionDisplayName(EditionModules.CheapestEditionWith(module)) + " paketiga oshiring.";
 
             if (filterContext.HttpContext.Request.IsAjaxRequest())
             {

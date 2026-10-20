@@ -1,0 +1,115 @@
+@model tahsinERP.Areas.Site.Controllers.SiteHomeController.Dashboard
+@{
+    ViewBag.Title = DstLocalization.T("Site_Dashboard");
+    var leads = (List<SiteLead>)ViewBag.Leads;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-25">
+                            @if (Model.Enabled)
+                            {
+                                <span class="badge badge-light-success">@DstLocalization.T("Site_Online")</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-light-secondary">@DstLocalization.T("Site_Offline")</span>
+                            }
+                        </h4>
+                        <div class="text-muted small">@DstLocalization.T("Site_DashboardHint")</div>
+                    </div>
+                    <div>
+                        @if (Model.SiteUrl != null)
+                        {
+                            <a class="btn btn-primary" href="@Model.SiteUrl" target="_blank" rel="noopener"><i class="bx bx-link-external"></i> @DstLocalization.T("Site_Open")</a>
+                        }
+                        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "SiteSettings")"><i class="bx bx-cog"></i> @DstLocalization.T("Settings")</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                @foreach (var tile in new[]
+                {
+                    new { V = Model.Published + " / " + Model.Products, K = "Site_PublishedProducts", I = "bx-package", U = Url.Action("Index", "SiteCatalog") },
+                    new { V = Model.Categories.ToString(), K = "Site_PublishedCategories", I = "bx-category", U = Url.Action("Index", "SiteCatalog") + "#categories" },
+                    new { V = Model.Pages + " / " + Model.Banners, K = "Site_PagesBanners", I = "bx-file", U = Url.Action("Index", "SitePages") },
+                    new { V = Model.NewLeads.ToString(), K = "Site_NewLeads", I = "bx-envelope", U = Url.Action("Index", "SiteLeads") }
+                })
+                {
+                    <div class="col-xl-3 col-sm-6">
+                        <a class="card text-center" href="@tile.U">
+                            <div class="card-body py-1">
+                                <i class="bx @tile.I font-large-1 text-primary"></i>
+                                <h3 class="mb-0 mt-50 text-body">@tile.V</h3>
+                                <div class="text-muted small">@DstLocalization.T(tile.K)</div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_Quality")</h4></div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-50 d-flex justify-content-between">
+                                    <span>@DstLocalization.T("Site_NoPhoto")</span>
+                                    <a class="badge @(Model.NoPhoto > 0 ? "badge-light-warning" : "badge-light-success")" href="@Url.Action("Index", "SiteCatalog", new { state = "nophoto" })">@Model.NoPhoto</a>
+                                </li>
+                                <li class="mb-50 d-flex justify-content-between">
+                                    <span>@DstLocalization.T("Site_NoDescription")</span>
+                                    <a class="badge @(Model.NoDescription > 0 ? "badge-light-warning" : "badge-light-success")" href="@Url.Action("Index", "SiteCatalog", new { state = "nodesc" })">@Model.NoDescription</a>
+                                </li>
+                                @if (Model.PriceMode == PriceModes.Show)
+                                {
+                                    <li class="mb-50 d-flex justify-content-between">
+                                        <span>@DstLocalization.T("Site_NoPrice")</span>
+                                        <span class="badge @(Model.NoPrice > 0 ? "badge-light-danger" : "badge-light-success")">@Model.NoPrice</span>
+                                    </li>
+                                }
+                            </ul>
+                            <p class="small text-muted mb-0 mt-1">@DstLocalization.T("Site_QualityHint")</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">@DstLocalization.T("Site_LatestLeads")</h4>
+                            <a href="@Url.Action("Index", "SiteLeads")" class="small">@DstLocalization.T("All")</a>
+                        </div>
+                        <div class="card-body">
+                            @if (leads.Count == 0)
+                            {
+                                <p class="text-muted mb-0">@DstLocalization.T("Site_NoLeads")</p>
+                            }
+                            else
+                            {
+                                <table class="table table-sm mb-0">
+                                    <tbody>
+                                        @foreach (var l in leads)
+                                        {
+                                            <tr>
+                                                <td class="text-nowrap">@l.CreatedAt.ToString("dd.MM HH:mm")</td>
+                                                <td><a href="@Url.Action("Details", "SiteLeads", new { id = l.ID })">@(l.CompanyName ?? l.Name)</a><div class="small text-muted">@l.Phone</div></td>
+                                                <td class="text-right">@Html.Partial("_LeadStatus", l.Status)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

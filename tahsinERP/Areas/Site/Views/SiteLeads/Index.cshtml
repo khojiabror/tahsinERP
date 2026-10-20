@@ -1,0 +1,53 @@
+@model List<SiteLead>
+@{
+    ViewBag.Title = DstLocalization.T("Site_Leads");
+    var counts = (Dictionary<byte, int>)ViewBag.Counts;
+    byte? status = ViewBag.Status;
+    Func<byte, int> N = b => counts.ContainsKey(b) ? counts[b] : 0;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body">
+                    <div class="btn-group btn-group-sm mb-1" role="group">
+                        <a class="btn @(status == null ? "btn-primary" : "btn-outline-primary")" href="@Url.Action("Index")">@DstLocalization.T("Site_LeadsOpen") (@(N(0) + N(1)))</a>
+                        <a class="btn @(status == 2 ? "btn-primary" : "btn-outline-primary")" href="@Url.Action("Index", new { status = 2 })">@DstLocalization.T("Site_LeadOrdered") (@N(2))</a>
+                        <a class="btn @(status == 3 ? "btn-primary" : "btn-outline-primary")" href="@Url.Action("Index", new { status = 3 })">@DstLocalization.T("Site_LeadRejectedStatus") (@N(3))</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>№</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Phone")</th>
+                                    <th class="text-right">@DstLocalization.T("Site_Items")</th><th>@DstLocalization.T("Status")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var l in Model)
+                                {
+                                    var items = SiteLeadService.ItemsOf(l);
+                                    <tr style="cursor:pointer" onclick="location.href='@Url.Action("Details", new { id = l.ID })'">
+                                        <td>@l.ID</td>
+                                        <td class="text-nowrap">@l.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>
+                                            <b>@(l.CompanyName ?? l.Name)</b>
+                                            @if (l.CompanyName != null) { <div class="small text-muted">@l.Name</div> }
+                                            @if (l.Message != null) { <div class="small text-muted text-truncate" style="max-width:320px">@l.Message</div> }
+                                        </td>
+                                        <td class="text-nowrap">@l.Phone</td>
+                                        <td class="text-right">@items.Count</td>
+                                        <td>@Html.Partial("_LeadStatus", l.Status)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (Model.Count == 0) { <p class="text-muted mb-0">@DstLocalization.T("Site_NoLeads")</p> }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

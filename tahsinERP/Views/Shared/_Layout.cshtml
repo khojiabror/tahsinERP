@@ -1167,6 +1167,31 @@
                     }
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- Sayt-katalog (Areas/Site, alohida xizmat) -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "SiteHome", "Index"))
+                    {
+                        var siteMenu = new[]
+                        {
+                            new { C = "SiteCatalog", K = "Site_Catalog" }, new { C = "SitePages", K = "Site_PagesBanners" },
+                            new { C = "SiteLeads", K = "Site_Leads" }, new { C = "SiteSettings", K = "Settings" }
+                        };
+                        <li class="nav-item">
+                            <a href="#"><i class="bx bx-globe"></i><span class="menu-title">@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Site_Title")</span></a>
+                            <ul class="menu-content">
+                                <li><a href="~/Site/SiteHome"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Site_Dashboard")</span></a></li>
+                                @foreach (var m in siteMenu)
+                                {
+                                    if (RoleHelper.IsViewPermitted(User.Identity.Name, m.C, "Index"))
+                                    {
+                                        <li><a href="~/Site/@m.C"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@tahsinERP.Areas.Distribution.Services.DstLocalization.T(m.K)</span></a></li>
+                                    }
+                                }
+                            </ul>
+                        </li>
+                    }
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- Logistika -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Forwarder") ||

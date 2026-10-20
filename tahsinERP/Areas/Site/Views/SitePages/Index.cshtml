@@ -1,0 +1,141 @@
+@{
+    ViewBag.Title = DstLocalization.T("Site_PagesBanners");
+    bool canChange = ViewBag.DstCanChange == true;
+    var pages = (List<SitePage>)ViewBag.Pages;
+    var banners = (List<SiteBanner>)ViewBag.Banners;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">@DstLocalization.T("Site_Pages")</h4>
+                    @if (canChange) { <a class="btn btn-sm btn-success" href="@Url.Action("Edit")"><i class="bx bx-plus"></i> @DstLocalization.T("Add")</a> }
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead><tr><th>@DstLocalization.T("Name")</th><th>@DstLocalization.T("Site_Slug")</th><th>@DstLocalization.T("Site_OnSite")</th><th>@DstLocalization.T("Site_InMenu")</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var p in pages)
+                            {
+                                <tr>
+                                    <td><a href="@Url.Action("Edit", new { id = p.ID })">@p.TitleUz</a>@if (p.TitleRu != null) { <div class="small text-muted">@p.TitleRu</div> }</td>
+                                    <td class="small text-muted">/page/@p.Slug</td>
+                                    <td>@(p.IsPublished ? DstLocalization.T("Yes") : DstLocalization.T("No"))</td>
+                                    <td>@(p.ShowInMenu ? DstLocalization.T("Yes") : DstLocalization.T("No"))</td>
+                                    <td class="text-right">@if (canChange) { <button type="button" class="btn btn-sm btn-outline-danger" data-del-page="@p.ID"><i class="bx bx-trash"></i></button> }</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @if (pages.Count == 0) { <p class="text-muted mb-0">@DstLocalization.T("Site_PagesHint")</p> }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">@DstLocalization.T("Site_Banners")</h4>
+                    @if (canChange) { <button type="button" class="btn btn-sm btn-success" data-banner=""><i class="bx bx-plus"></i> @DstLocalization.T("Add")</button> }
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var b in banners)
+                        {
+                            <div class="col-md-6 col-xl-4 mb-1">
+                                <div class="border rounded overflow-hidden">
+                                    <img src="@Url.Action("Image", "SiteCatalog", new { id = b.MediaID })" alt="" style="width:100%;height:140px;object-fit:cover" />
+                                    <div class="p-50">
+                                        <b>@(b.TitleUz ?? "—")</b>
+                                        <div class="small text-muted">@b.SubtitleUz</div>
+                                        <div class="small">
+                                            @(b.IsActive ? DstLocalization.T("Active") : DstLocalization.T("Inactive"))
+                                            @if (b.ActiveFrom.HasValue || b.ActiveTo.HasValue) { <span>· @(b.ActiveFrom?.ToString("dd.MM.yyyy")) – @(b.ActiveTo?.ToString("dd.MM.yyyy"))</span> }
+                                        </div>
+                                        @if (canChange)
+                                        {
+                                            <div class="mt-50">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-banner="@b.ID"
+                                                        data-json="@Newtonsoft.Json.JsonConvert.SerializeObject(new { b.TitleUz, b.TitleRu, b.SubtitleUz, b.SubtitleRu, b.Link, From = b.ActiveFrom?.ToString("yyyy-MM-dd"), To = b.ActiveTo?.ToString("yyyy-MM-dd"), b.IsActive, b.SortOrder })"><i class="bx bx-edit-alt"></i></button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-del-banner="@b.ID"><i class="bx bx-trash"></i></button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <p class="small text-muted mb-0">@DstLocalization.T("Site_BannersHint")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bannerModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Site_Banner")</h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="bId" />
+                <div class="form-group"><label>@DstLocalization.T("Site_Image")</label><input type="file" class="form-control-file" id="bFile" accept="image/png,image/jpeg" /><small class="text-muted">@DstLocalization.T("Site_BannerSize")</small></div>
+                <div class="form-row">
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_TitleUz")</label><input class="form-control" id="bTitleUz" maxlength="150" /></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_TitleRu")</label><input class="form-control" id="bTitleRu" maxlength="150" /></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_SubtitleUz")</label><input class="form-control" id="bSubUz" maxlength="300" /></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_SubtitleRu")</label><input class="form-control" id="bSubRu" maxlength="300" /></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_Link")</label><input class="form-control" id="bLink" placeholder="/uz/c/sement" /></div>
+                    <div class="form-group col-md-2"><label>@DstLocalization.T("Site_SortOrder")</label><input type="number" class="form-control" id="bSort" value="0" /></div>
+                    <div class="form-group col-md-2"><label>@DstLocalization.T("Site_From")</label><input type="date" class="form-control" id="bFrom" /></div>
+                    <div class="form-group col-md-2"><label>@DstLocalization.T("Site_To")</label><input type="date" class="form-control" id="bTo" /></div>
+                </div>
+                <div class="custom-control custom-switch"><input type="checkbox" class="custom-control-input" id="bActive" checked /><label class="custom-control-label" for="bActive">@DstLocalization.T("Active")</label></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="bSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('[data-del-page]').on('click', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("DeletePage")', { id: $(this).data('del-page') }).done(function () { location.reload(); });
+            });
+            $('[data-del-banner]').on('click', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("DeleteBanner")', { id: $(this).data('del-banner') }).done(function () { location.reload(); });
+            });
+            $('[data-banner]').on('click', function () {
+                var b = $(this), j = b.data('json') || {};
+                $('#bId').val(b.data('banner') || ''); $('#bFile').val('');
+                $('#bTitleUz').val(j.TitleUz || ''); $('#bTitleRu').val(j.TitleRu || '');
+                $('#bSubUz').val(j.SubtitleUz || ''); $('#bSubRu').val(j.SubtitleRu || '');
+                $('#bLink').val(j.Link || ''); $('#bSort').val(j.SortOrder || 0);
+                $('#bFrom').val(j.From || ''); $('#bTo').val(j.To || '');
+                $('#bActive').prop('checked', j.IsActive !== false);
+                $('#bannerModal').modal('show');
+            });
+            $('#bSave').on('click', function () {
+                var fd = new FormData();
+                if ($('#bId').val()) fd.append('id', $('#bId').val());
+                var f = $('#bFile')[0].files[0]; if (f) fd.append('file', f);
+                fd.append('titleUz', $('#bTitleUz').val()); fd.append('titleRu', $('#bTitleRu').val());
+                fd.append('subtitleUz', $('#bSubUz').val()); fd.append('subtitleRu', $('#bSubRu').val());
+                fd.append('link', $('#bLink').val()); fd.append('sortOrder', $('#bSort').val() || 0);
+                if ($('#bFrom').val()) fd.append('activeFrom', $('#bFrom').val());
+                if ($('#bTo').val()) fd.append('activeTo', $('#bTo').val());
+                fd.append('isActive', $('#bActive').is(':checked'));
+                $.ajax({ url: '@Url.Action("SaveBanner")', type: 'POST', data: fd, processData: false, contentType: false })
+                    .done(function (r) { if (r && r.success) location.reload(); else dstNotify(r && r.message, true); });
+            });
+        });
+    </script>
+}

@@ -18,7 +18,8 @@ namespace tahsinERP.Services.Editions
         Hr,             // Kadrlar: oylik, tabel
         Logistics,      // Logistika
         Docs,           // Rasmiy hujjatlar
-        Distribution    // Distributsiya: agent, buyurtma, rezerv, mijoz qarzi (Areas/Distribution)
+        Distribution,   // Distributsiya: agent, buyurtma, rezerv, mijoz qarzi (Areas/Distribution)
+        Website         // Sayt-katalog (Areas/Site) — paketga kirmaydi, alohida xizmat: Edition'da "+SITE"
     }
 
     /// <summary>
@@ -32,6 +33,9 @@ namespace tahsinERP.Services.Editions
     ///   BIZNES = START + MES, Muhandislik, Moliya                (20)
     ///   KORP   = BIZNES + HR, Logistika, Rasmiy hujjatlar, Distributsiya (50)
     ///   TRIAL  = KORP                                            (5, 14 kun)
+    ///
+    /// Qo'shimcha xizmatlar (paketdan tashqari, alohida sotiladi) Edition'ga "+" bilan yoziladi: "KORP+SITE", "START+SITE".
+    /// Kalit formati o'zgarmaydi (v2 payload'dagi Edition qatori). Hozircha: SITE → Website.
     ///
     /// Orqaga moslik: Edition bo'sh, eski v1 kalit yoki noma'lum nom (masalan "Standard", "Pro") — HAMMA modul ochiq.
     /// Xaritada yo'q controller ham ochiq (Core) — yangi controller qo'shilsa testi
@@ -114,6 +118,7 @@ namespace tahsinERP.Services.Editions
                     "DstHome", "DstTerritories", "DstCustomers", "DstProducts", "DstDictionaries", "DstPrices",
                     "DstTeams", "DstSettings", "DstImport", "DstOrders", "DstStock", "DstPayments", "DstReturns", "DstDebts", "DstApi"
                 } },
+            { ProductModule.Website, new[] { "SiteHome", "SiteSettings", "SiteCatalog", "SitePages", "SiteLeads", "SiteApi" } },
         });
 
         private static Dictionary<string, ProductModule> Build(Dictionary<ProductModule, string[]> byModule)
@@ -138,10 +143,47 @@ namespace tahsinERP.Services.Editions
         /// <summary>Barcha modullar (Core'dan tashqari) — paket tartibida.</summary>
         public static IReadOnlyList<ProductModule> PaidModules { get { return KorpModules; } }
 
-        /// <summary>Paketga kirgan modullar (Core'siz). Cheklovsiz/noma'lum paket — hammasi.</summary>
+        /// <summary>Qo'shimcha xizmat kodi → modul.</summary>
+        private static readonly Dictionary<string, ProductModule> AddOnMap = new Dictionary<string, ProductModule>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "SITE", ProductModule.Website },
+        };
+
+        /// <summary>Paketdan tashqari sotiladigan modullar.</summary>
+        public static readonly IReadOnlyList<ProductModule> AddOnModules = new[] { ProductModule.Website };
+
+        public static bool IsAddOn(ProductModule module)
+        {
+            return AddOnModules.Contains(module);
+        }
+
+        /// <summary>"KORP+SITE" → "KORP" (bo'sh/null — o'zi).</summary>
+        public static string BaseEdition(string edition)
+        {
+            if (string.IsNullOrWhiteSpace(edition)) return edition;
+            int plus = edition.IndexOf('+');
+            return (plus < 0 ? edition : edition.Substring(0, plus)).Trim();
+        }
+
+        /// <summary>Edition'dagi qo'shimcha xizmat modullari ("KORP+SITE" → Website).</summary>
+        public static IReadOnlyList<ProductModule> AddOnsOf(string edition)
+        {
+            if (string.IsNullOrWhiteSpace(edition) || edition.IndexOf('+') < 0) return new ProductModule[0];
+            var result = new List<ProductModule>();
+            foreach (var code in edition.Substring(edition.IndexOf('+') + 1).Split(new[] { '+', ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                ProductModule m;
+                if (AddOnMap.TryGetValue(code.Trim(), out m) && !result.Contains(m)) result.Add(m);
+            }
+            return result;
+        }
+
+        /// <summary>Paketga kirgan modullar (Core'siz) + qo'shimcha xizmatlar. Cheklovsiz/noma'lum paket — paket modullari hammasi.</summary>
         public static IReadOnlyList<ProductModule> ModulesOf(string edition)
         {
-            return IsRestrictedEdition(edition) ? KorpModules.Where(m => EditionMap[edition.Trim()].Contains(m)).ToArray() : KorpModules;
+            var modules = IsRestrictedEdition(edition) ? KorpModules.Where(m => EditionMap[BaseEdition(edition)].Contains(m)).ToList() : KorpModules.ToList();
+            modules.AddRange(AddOnsOf(edition).Where(m => !modules.Contains(m)));
+            return modules;
         }
 
         // USERLOGS.ControllerName ba'zan controller nomi emas (LogHelper chaqiruvlarida o'zbekcha bo'lim nomi) — shu nomlar uchun.
@@ -179,14 +221,16 @@ namespace tahsinERP.Services.Editions
         /// <summary>Edition modul cheklovi qo'yadimi (START/BIZNES/KORP/TRIAL). Bo'sh/v1/noma'lum — yo'q.</summary>
         public static bool IsRestrictedEdition(string edition)
         {
-            return !string.IsNullOrWhiteSpace(edition) && EditionMap.ContainsKey(edition.Trim());
+            return !string.IsNullOrWhiteSpace(edition) && EditionMap.ContainsKey(BaseEdition(edition));
         }
 
         public static bool IsModuleAllowed(string edition, ProductModule module)
         {
             if (module == ProductModule.Core || !IsRestrictedEdition(edition))
-                return true;
-            return EditionMap[edition.Trim()].Contains(module);
+                return true;   // eski/cheklovsiz kalit — hammasi, qo'shimcha xizmatlar ham
+            if (IsAddOn(module))
+                return AddOnsOf(edition).Contains(module);
+            return EditionMap[BaseEdition(edition)].Contains(module);
         }
 
         public static bool IsControllerAllowed(string edition, string controller)
@@ -215,6 +259,7 @@ namespace tahsinERP.Services.Editions
                 case ProductModule.Logistics: return "Logistika";
                 case ProductModule.Docs: return "Rasmiy hujjatlar";
                 case ProductModule.Distribution: return "Distributsiya";
+                case ProductModule.Website: return "Sayt-katalog";
                 default: return "Asosiy";
             }
         }
@@ -222,6 +267,9 @@ namespace tahsinERP.Services.Editions
         /// <summary>Paketning foydalanuvchiga ko'rinadigan nomi.</summary>
         public static string EditionDisplayName(string edition)
         {
+            var addOns = AddOnsOf(edition);
+            if (addOns.Count > 0)
+                return EditionDisplayName(BaseEdition(edition)) + " + " + string.Join(", ", addOns.Select(DisplayName));
             switch ((edition ?? "").Trim().ToUpperInvariant())
             {
                 case Start: return "Start";

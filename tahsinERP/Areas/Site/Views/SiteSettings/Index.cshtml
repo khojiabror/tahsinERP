@@ -1,0 +1,242 @@
+@{
+    ViewBag.Title = DstLocalization.T("Settings");
+    bool canChange = ViewBag.DstCanChange == true;
+    var s = (Dictionary<string, string>)ViewBag.Settings;
+    Func<string, string, string> G = (k, d) => s.ContainsKey(k) && !string.IsNullOrEmpty(s[k]) ? s[k] : d;
+    var domains = (List<SiteDomain>)ViewBag.Domains;
+    var langs = G(SiteSettingKeys.Languages, "uz,ru").Split(',');
+    string dis = canChange ? "" : "disabled";
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <form id="siteSettings" autocomplete="off">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_Brand")</h4></div>
+                            <div class="card-body">
+                                <div class="custom-control custom-switch mb-1">
+                                    <input type="checkbox" class="custom-control-input" id="sEnabled" name="@SiteSettingKeys.Enabled" value="true" @(G(SiteSettingKeys.Enabled, "0") == "1" ? "checked" : "") @dis />
+                                    <label class="custom-control-label" for="sEnabled">@DstLocalization.T("Site_EnabledLabel")</label>
+                                </div>
+                                <div class="form-group"><label>@DstLocalization.T("Site_Name")</label><input class="form-control" name="@SiteSettingKeys.Name" maxlength="100" value="@G(SiteSettingKeys.Name, "")" @dis /></div>
+                                <div class="form-group"><label>@DstLocalization.T("Site_Tagline")</label><input class="form-control" name="@SiteSettingKeys.Tagline" maxlength="200" value="@G(SiteSettingKeys.Tagline, "")" @dis /></div>
+                                <div class="form-group">
+                                    <label>@DstLocalization.T("Site_Logo")</label>
+                                    <div class="d-flex align-items-center">
+                                        <div id="logoBox" class="border rounded mr-1 d-flex align-items-center justify-content-center bg-light" style="width:160px;height:64px">
+                                            @if (s.ContainsKey(SiteSettingKeys.LogoMediaId) && !string.IsNullOrEmpty(s[SiteSettingKeys.LogoMediaId]))
+                                            {
+                                                <img src="@Url.Action("Image", "SiteCatalog", new { id = s[SiteSettingKeys.LogoMediaId] })" alt="" style="max-width:150px;max-height:56px" />
+                                            }
+                                        </div>
+                                        @if (canChange)
+                                        {
+                                            <label class="btn btn-sm btn-outline-primary mb-0 mr-50"><i class="bx bx-upload"></i> @DstLocalization.T("Site_Upload")<input type="file" id="logoFile" accept="image/png,image/jpeg" hidden /></label>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" id="logoRemove"><i class="bx bx-trash"></i></button>
+                                        }
+                                    </div>
+                                    <small class="text-muted">@DstLocalization.T("Site_LogoHint")</small>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label>@DstLocalization.T("Site_Color")</label>
+                                        <input type="color" class="form-control p-25" name="@SiteSettingKeys.PrimaryColor" value="@G(SiteSettingKeys.PrimaryColor, "#111827")" @dis />
+                                    </div>
+                                    <div class="form-group col-md-5">
+                                        <label>@DstLocalization.T("Site_Font")</label>
+                                        <select class="form-control" name="@SiteSettingKeys.Font" @dis>
+                                            @foreach (var f in tahsinERP.Areas.Site.Controllers.SiteSettingsController.Fonts)
+                                            {
+                                                <option @(G(SiteSettingKeys.Font, "Inter") == f ? "selected" : "")>@f</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-3">
+                                        <label>@DstLocalization.T("Site_Radius")</label>
+                                        <input type="number" min="0" max="24" class="form-control" name="@SiteSettingKeys.Radius" value="@G(SiteSettingKeys.Radius, "10")" @dis />
+                                    </div>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>@DstLocalization.T("Language")</label>
+                                    <div>
+                                        @foreach (var l in new[] { "uz", "ru" })
+                                        {
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input lang" id="lang_@l" value="@l" @(langs.Contains(l) ? "checked" : "") @dis />
+                                                <label class="custom-control-label" for="lang_@l">@(l == "uz" ? "O'zbekcha" : "Русский")</label>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_PricesStock")</h4></div>
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Site_PriceMode")</label>
+                                        <select class="form-control" name="@SiteSettingKeys.PriceMode" id="priceMode" @dis>
+                                            @foreach (var m in PriceModes.All)
+                                            {
+                                                <option value="@m" @(G(SiteSettingKeys.PriceMode, PriceModes.Ask) == m ? "selected" : "")>@DstLocalization.T("Site_PriceMode_" + m)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-6" id="priceTypeBox">
+                                        <label>@DstLocalization.T("Site_PriceType")</label>
+                                        @Html.DropDownList(SiteSettingKeys.PriceTypeId, ((List<SelectListItem>)ViewBag.PriceTypes).Select(x => { x.Selected = x.Value == G(SiteSettingKeys.PriceTypeId, ""); return x; }).ToList(),
+                                            DstLocalization.T("Site_PriceTypeDefault"), canChange ? (object)new { @class = "form-control" } : new { @class = "form-control", disabled = "disabled" })
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Site_StockMode")</label>
+                                        <select class="form-control" name="@SiteSettingKeys.StockMode" @dis>
+                                            @foreach (var m in StockModes.All)
+                                            {
+                                                <option value="@m" @(G(SiteSettingKeys.StockMode, StockModes.Status) == m ? "selected" : "")>@DstLocalization.T("Site_StockMode_" + m)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>@DstLocalization.T("Site_LowStock")</label>
+                                        <input type="number" min="0" step="any" class="form-control" name="@SiteSettingKeys.LowStockQty" value="@G(SiteSettingKeys.LowStockQty, "10")" @dis />
+                                    </div>
+                                </div>
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="sLeads" name="@SiteSettingKeys.LeadsEnabled" value="true" @(G(SiteSettingKeys.LeadsEnabled, "1") == "1" ? "checked" : "") @dis />
+                                    <label class="custom-control-label" for="sLeads">@DstLocalization.T("Site_LeadsEnabled")</label>
+                                </div>
+                                <small class="text-muted">@DstLocalization.T("Site_PricesHint")</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_Contacts")</h4></div>
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6"><label>@DstLocalization.T("Phone")</label><input class="form-control" name="@SiteSettingKeys.Phone" value="@G(SiteSettingKeys.Phone, "")" placeholder="+998 71 123 45 67" @dis /></div>
+                                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_Phone2")</label><input class="form-control" name="@SiteSettingKeys.Phone2" value="@G(SiteSettingKeys.Phone2, "")" @dis /></div>
+                                    <div class="form-group col-md-6"><label>E-mail</label><input type="email" class="form-control" name="@SiteSettingKeys.Email" value="@G(SiteSettingKeys.Email, "")" @dis /></div>
+                                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_WorkingHours")</label><input class="form-control" name="@SiteSettingKeys.WorkingHours" value="@G(SiteSettingKeys.WorkingHours, "")" placeholder="Du–Sh 9:00–18:00" @dis /></div>
+                                </div>
+                                <div class="form-group"><label>@DstLocalization.T("Address")</label><input class="form-control" name="@SiteSettingKeys.Address" value="@G(SiteSettingKeys.Address, "")" @dis /></div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_MapLat")</label><input class="form-control" name="@SiteSettingKeys.MapLat" value="@G(SiteSettingKeys.MapLat, "")" placeholder="41.311151" @dis /></div>
+                                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_MapLng")</label><input class="form-control" name="@SiteSettingKeys.MapLng" value="@G(SiteSettingKeys.MapLng, "")" placeholder="69.279737" @dis /></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-4"><label>Telegram</label><input class="form-control" name="@SiteSettingKeys.Telegram" value="@G(SiteSettingKeys.Telegram, "")" placeholder="kompaniya" @dis /></div>
+                                    <div class="form-group col-md-4"><label>Instagram</label><input class="form-control" name="@SiteSettingKeys.Instagram" value="@G(SiteSettingKeys.Instagram, "")" @dis /></div>
+                                    <div class="form-group col-md-4"><label>Facebook</label><input class="form-control" name="@SiteSettingKeys.Facebook" value="@G(SiteSettingKeys.Facebook, "")" @dis /></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">SEO</h4></div>
+                            <div class="card-body">
+                                <div class="form-group"><label>@DstLocalization.T("Site_SeoTitle")</label><input class="form-control" name="@SiteSettingKeys.SeoTitle" maxlength="150" value="@G(SiteSettingKeys.SeoTitle, "")" @dis /></div>
+                                <div class="form-group"><label>@DstLocalization.T("Site_SeoDescription")</label><textarea class="form-control" name="@SiteSettingKeys.SeoDescription" maxlength="300" rows="2" @dis>@G(SiteSettingKeys.SeoDescription, "")</textarea></div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6 mb-0"><label>Google Analytics (G-...)</label><input class="form-control" name="@SiteSettingKeys.AnalyticsId" value="@G(SiteSettingKeys.AnalyticsId, "")" @dis /></div>
+                                    <div class="form-group col-md-6 mb-0"><label>Yandex Metrika ID</label><input class="form-control" name="@SiteSettingKeys.MetrikaId" value="@G(SiteSettingKeys.MetrikaId, "")" @dis /></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (canChange)
+                {
+                    <div class="mb-2"><button type="button" class="btn btn-primary" id="saveSettings"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button></div>
+                }
+            </form>
+
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_Domains")</h4></div>
+                <div class="card-body">
+                    @if (ViewBag.Subdomain != null)
+                    {
+                        <p class="mb-50">@DstLocalization.T("Site_DefaultAddress"): <a href="https://@ViewBag.Subdomain/" target="_blank" rel="noopener"><b>@ViewBag.Subdomain</b></a></p>
+                    }
+                    <table class="table table-sm">
+                        <thead><tr><th>@DstLocalization.T("Site_Domain")</th><th>@DstLocalization.T("Status")</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var d in domains)
+                            {
+                                <tr>
+                                    <td>@d.Host @if (d.IsPrimary) { <span class="badge badge-light-primary">@DstLocalization.T("Site_Primary")</span> }</td>
+                                    <td>
+                                        @if (d.Status == (byte)DomainStatus.Active) { <span class="badge badge-light-success">@DstLocalization.T("Site_DomainActive")</span> }
+                                        else { <span class="badge badge-light-warning">@DstLocalization.T("Site_DomainPending")</span> }
+                                    </td>
+                                    <td class="text-right text-nowrap">
+                                        @if (canChange)
+                                        {
+                                            if (d.Status != (byte)DomainStatus.Active) { <button type="button" class="btn btn-sm btn-outline-success" data-domain-verify="@d.ID">@DstLocalization.T("Site_Verify")</button> }
+                                            if (!d.IsPrimary) { <button type="button" class="btn btn-sm btn-outline-primary" data-domain-primary="@d.ID">@DstLocalization.T("Site_MakePrimary")</button> }
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-domain-remove="@d.ID"><i class="bx bx-trash"></i></button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @if (canChange)
+                    {
+                        <div class="input-group" style="max-width:480px">
+                            <input class="form-control" id="newDomain" placeholder="shop.example.uz" />
+                            <div class="input-group-append"><button class="btn btn-outline-primary" type="button" id="addDomain">@DstLocalization.T("Add")</button></div>
+                        </div>
+                    }
+                    <p class="small text-muted mt-1 mb-0">@DstLocalization.T("Site_DomainHint", (string)ViewBag.CnameTarget ?? "—")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            function togglePriceType() { $('#priceTypeBox').toggle($('#priceMode').val() === 'SHOW'); }
+            $('#priceMode').on('change', togglePriceType); togglePriceType();
+
+            $('#saveSettings').on('click', function () {
+                var data = {};
+                $.each($('#siteSettings').serializeArray(), function (_, f) { data[f.name] = f.value; });
+                data['@SiteSettingKeys.Enabled'] = $('#sEnabled').is(':checked');
+                data['@SiteSettingKeys.LeadsEnabled'] = $('#sLeads').is(':checked');
+                data['@SiteSettingKeys.Languages'] = $('.lang:checked').map(function () { return this.value; }).get().join(',');
+                dstPost('@Url.Action("Save")', data).done(function () { dstNotify(); });
+            });
+
+            function upload(url, file) {
+                var fd = new FormData(); fd.append('file', file);
+                return $.ajax({ url: url, type: 'POST', data: fd, processData: false, contentType: false })
+                    .then(function (r) { if (r && r.success) return r.data; dstNotify(r && r.message, true); return $.Deferred().reject(); });
+            }
+            $('#logoFile').on('change', function () {
+                if (!this.files.length) return;
+                upload('@Url.Action("UploadLogo")', this.files[0]).done(function () { location.reload(); });
+            });
+            $('#logoRemove').on('click', function () { dstPost('@Url.Action("RemoveLogo")').done(function () { location.reload(); }); });
+
+            $('#addDomain').on('click', function () { dstPost('@Url.Action("AddDomain")', { host: $('#newDomain').val() }).done(function () { location.reload(); }); });
+            $('[data-domain-verify]').on('click', function () { dstPost('@Url.Action("VerifyDomain")', { id: $(this).data('domain-verify') }).done(function () { location.reload(); }); });
+            $('[data-domain-primary]').on('click', function () { dstPost('@Url.Action("SetPrimaryDomain")', { id: $(this).data('domain-primary') }).done(function () { location.reload(); }); });
+            $('[data-domain-remove]').on('click', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("RemoveDomain")', { id: $(this).data('domain-remove') }).done(function () { location.reload(); });
+            });
+        });
+    </script>
+}
