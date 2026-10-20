@@ -73,6 +73,26 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public decimal? EndLng { get; set; }
     }
 
+    public static class TrackSources
+    {
+        public const string Live = "LIVE";
+        public const string Day = "DAY";
+        public const string Visit = "VISIT";
+    }
+
+    /// <summary>Agent joylashuvi nuqtasi (jonli joylashuv, kun boshi/oxiri, "keldim").</summary>
+    [Table("AGENT_TRACK")]
+    public class AgentTrackPoint
+    {
+        [Key] public long ID { get; set; }
+        public int UserID { get; set; }
+        public DateTime At { get; set; }
+        public decimal Lat { get; set; }
+        public decimal Lng { get; set; }
+        public int? AccuracyM { get; set; }
+        [Required, StringLength(10)] public string Source { get; set; }
+    }
+
     public static class VisitResults
     {
         public const string Order = "ORDER";

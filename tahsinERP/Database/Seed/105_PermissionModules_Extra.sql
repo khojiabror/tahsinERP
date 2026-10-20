@@ -52,9 +52,23 @@ FROM (VALUES ('DstPayments'), ('DstReturns'), ('DstDebts')) v (Controller)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
 GO
 
+-- Distributsiya dala nazorati (022_DST_FieldTracking)
+INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+SELECT v.Controller, v.Controller, 'Index', NULL
+FROM (VALUES ('DstField')) v (Controller)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
+GO
+
 -- Sayt-katalog admin paneli (021_SITE)
 INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
 SELECT v.Controller, v.Controller, 'Index', NULL
 FROM (VALUES ('SiteHome'), ('SiteSettings'), ('SiteCatalog'), ('SitePages'), ('SiteLeads')) v (Controller)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
+GO
+
+-- Distributsiya rahbar paneli va hisobotlari (023_DST_Reports)
+INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+SELECT v.Controller, v.Controller, 'Index', NULL
+FROM (VALUES ('DstDashboard'), ('DstReports')) v (Controller)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
 GO

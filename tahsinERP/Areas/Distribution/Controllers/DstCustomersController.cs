@@ -110,6 +110,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                         VisitDays = p.VisitDays, CreditLimit = p.CreditLimit, PaymentDays = p.PaymentDays
                     };
                     ViewBag.IsApproved = p.IsApproved;
+                    ViewBag.PhotoUrl = Services.Bot.FileLinks.For(db, System.DateTimeOffset.UtcNow).Url(p.PhotoKey);
                 }
                 FillLookups(db);
                 return View(input);

@@ -53,6 +53,27 @@ namespace tahsinERP.Integration
             return FixedTimeEquals(expected, signatureHeader);
         }
 
+        /// <summary>
+        /// Bot fayl omboridagi rasm (selfi, tashrif fotosi, imzo) uchun vaqtinchalik havola: ERP sahifasi brauzerga
+        /// {bot}/files/{kalit}?e={muddat}&amp;s={imzo} beradi, bot o'sha tenant kaliti bilan tekshiradi. ERP botga murojaat qilmaydi.
+        /// </summary>
+        public static string SignFile(byte[] tenantKey, string fileKey, long expires)
+        {
+            using (var h = new HMACSHA256(tenantKey))
+            {
+                var mac = h.ComputeHash(Encoding.UTF8.GetBytes("file\n" + (fileKey ?? "") + "\n" + expires.ToString(CultureInfo.InvariantCulture)));
+                return Convert.ToBase64String(mac).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            }
+        }
+
+        public static bool VerifyFile(byte[] tenantKey, string fileKey, string expires, string signature, DateTimeOffset now)
+        {
+            if (string.IsNullOrEmpty(signature) || !long.TryParse(expires, NumberStyles.Integer, CultureInfo.InvariantCulture, out var exp))
+                return false;
+            if (exp < now.ToUnixTimeSeconds()) return false;
+            return FixedTimeEquals(SignFile(tenantKey, fileKey, exp), signature);
+        }
+
         private static bool FixedTimeEquals(string a, string b)
         {
             if (a == null || b == null || a.Length != b.Length) return false;

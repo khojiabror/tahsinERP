@@ -263,7 +263,21 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             if (order.AgentUserID.HasValue && order.AgentUserID != actor.UserId)
                 NotificationService.ToUser(db, order.AgentUserID, NotificationService.OrderConfirmed,
                     l => DstLocalization.TFor(l, "Notify_OrderConfirmed", order.DocNo, CustomerName(db, order.CustomerID), order.Total.ToString("N0")), null, now);
+            NotifyStorekeepers(db, order, lines.Count, actor.UserId, now);
             db.SaveChanges();
+        }
+
+        /// <summary>Omborchiga: tasdiqlangan buyurtmani yig'ish kerak (ombor scope'i bo'yicha).</summary>
+        private static void NotifyStorekeepers(DistributionDbContext db, DstOrder order, int lineCount, int userId, DateTime now)
+        {
+            int warehouseId = order.WarehouseID.Value;
+            var warehouse = db.Warehouses.Where(w => w.ID == warehouseId).Select(w => w.WHName).FirstOrDefault();
+            var customer = CustomerName(db, order.CustomerID);
+            NotificationService.ToStorekeepers(db, warehouseId, NotificationService.StoreOrderConfirmed,
+                l => DstLocalization.TFor(l, "Notify_StoreOrder", order.DocNo, customer, warehouse, lineCount, order.WeightKg.ToString("0.#"),
+                    order.Total.ToString("N0"),
+                    order.IsPickup ? DstLocalization.TFor(l, "Notify_Pickup") : order.DeliveryDate?.ToString("dd.MM.yyyy") ?? "—"),
+                null, now, userId);
         }
 
         /// <summary>

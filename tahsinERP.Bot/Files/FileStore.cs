@@ -20,13 +20,13 @@ public sealed class LocalFileStore : IFileStore
     public LocalFileStore(IOptions<BotOptions> options, IHostEnvironment env, TimeProvider clock)
     {
         var root = options.Value.FilesRoot;
-        _root = Path.GetFullPath(Path.IsPathRooted(root) ? root : Path.Combine(env.ContentRootPath, root));
+        _root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(Path.IsPathRooted(root) ? root : Path.Combine(env.ContentRootPath, root)));
         _clock = clock;
     }
 
     internal LocalFileStore(string root, TimeProvider clock)
     {
-        _root = Path.GetFullPath(root);
+        _root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));   // oxiridagi "\" olib tashlanadi (PathOf solishtiruvi uchun)
         _clock = clock;
     }
 

@@ -20,6 +20,14 @@
             {
                 <div class="alert alert-warning">@DstLocalization.T("Customer_PendingHint")</div>
             }
+            @if (ViewBag.PhotoUrl != null)
+            {
+                <div class="mb-1">
+                    <a href="@ViewBag.PhotoUrl" target="_blank" rel="noopener" title="@DstLocalization.T("Customer_Photo")">
+                        <img src="@ViewBag.PhotoUrl" alt="@DstLocalization.T("Customer_Photo")" style="height:120px;border-radius:6px;object-fit:cover" loading="lazy" />
+                    </a>
+                </div>
+            }
             @using (Html.BeginForm("Edit", "DstCustomers", new { area = "Distribution" }, FormMethod.Post))
             {
                 @Html.AntiForgeryToken()

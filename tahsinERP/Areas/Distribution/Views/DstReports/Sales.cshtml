@@ -1,0 +1,149 @@
+@using tahsinERP.Areas.Distribution.Services.Reports
+@{
+    ViewBag.Title = DstLocalization.T("Report_Sales");
+    ViewBag.DstParent = DstLocalization.T("Reports");
+    bool cost = ViewBag.DstCanSeeCost == true;
+    var f = (ReportFilter)ViewBag.Filter;
+    var dim = (SalesDimension)ViewBag.Dimension;
+    var dims = new[] { SalesDimension.Agent, SalesDimension.Customer, SalesDimension.Product, SalesDimension.Territory, SalesDimension.Category };
+    // kesimni almashtirganda filtrlar saqlanadi
+    Func<SalesDimension, string> dimUrl = d => Url.Action("Sales", new
+    {
+        dim = d.ToString().ToLowerInvariant(), from = f.From.ToString("yyyy-MM-dd"), to = f.To.ToString("yyyy-MM-dd"),
+        agentId = f.AgentId, customerId = f.CustomerId, territoryId = f.TerritoryId, categoryId = f.CategoryId, productId = f.ProductId, warehouseId = f.WarehouseId
+    });
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @Html.Partial("_ReportNav", "Sales")
+            <div class="card">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                    <ul class="nav nav-tabs card-header-tabs mb-0">
+                        @foreach (var d in dims)
+                        {
+                            <li class="nav-item"><a class="nav-link dim-tab @(d == dim ? "active" : "")" data-dim="@d.ToString().ToLowerInvariant()" href="@dimUrl(d)">@DstLocalization.T("Report_Dim_" + d)</a></li>
+                        }
+                    </ul>
+                    <a id="salesExport" class="btn btn-sm btn-outline-success" href="#"><i class="bx bxs-file-export"></i> Excel</a>
+                </div>
+                <div class="card-body">
+                    <form id="salesFilter" class="form-row mb-50">
+                        <input type="hidden" name="dim" value="@dim.ToString().ToLowerInvariant()" />
+                        <div class="col-md-2 col-6 mb-50"><input type="date" name="from" value="@f.From.ToString("yyyy-MM-dd")" class="form-control form-control-sm" title="@DstLocalization.T("ValidFrom")" /></div>
+                        <div class="col-md-2 col-6 mb-50"><input type="date" name="to" value="@f.To.ToString("yyyy-MM-dd")" class="form-control form-control-sm" title="@DstLocalization.T("ValidTo")" /></div>
+                        <div class="col-md-2 mb-50">@Html.DropDownList("agentId", (List<SelectListItem>)ViewBag.Agents, DstLocalization.T("All_Agents"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-2 mb-50">@Html.DropDownList("territoryId", (List<SelectListItem>)ViewBag.Territories, DstLocalization.T("All_Territories"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-2 mb-50">@Html.DropDownList("categoryId", (List<SelectListItem>)ViewBag.Categories, DstLocalization.T("All_Categories"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-2 mb-50">@Html.DropDownList("warehouseId", (List<SelectListItem>)ViewBag.Warehouses, DstLocalization.T("All_Warehouses"), new { @class = "form-control form-control-sm" })</div>
+                        @if (f.CustomerId.HasValue)
+                        {
+                            <input type="hidden" name="customerId" value="@f.CustomerId" />
+                        }
+                        @if (f.ProductId.HasValue)
+                        {
+                            <input type="hidden" name="productId" value="@f.ProductId" />
+                        }
+                    </form>
+                    @if (f.CustomerId.HasValue || f.ProductId.HasValue)
+                    {
+                        <div class="mb-1">
+                            @if (f.CustomerId.HasValue)
+                            {
+                                <a class="badge badge-light-primary mr-50" href="@Url.Action("Sales", new { dim = dim.ToString().ToLowerInvariant(), from = f.From.ToString("yyyy-MM-dd"), to = f.To.ToString("yyyy-MM-dd"), agentId = f.AgentId, territoryId = f.TerritoryId, categoryId = f.CategoryId, productId = f.ProductId, warehouseId = f.WarehouseId })"
+                                   title="@DstLocalization.T("Report_RemoveFilter")">@DstLocalization.T("Customer"): @ViewBag.CustomerName ✕</a>
+                            }
+                            @if (f.ProductId.HasValue)
+                            {
+                                <a class="badge badge-light-primary" href="@Url.Action("Sales", new { dim = dim.ToString().ToLowerInvariant(), from = f.From.ToString("yyyy-MM-dd"), to = f.To.ToString("yyyy-MM-dd"), agentId = f.AgentId, customerId = f.CustomerId, territoryId = f.TerritoryId, categoryId = f.CategoryId, warehouseId = f.WarehouseId })"
+                                   title="@DstLocalization.T("Report_RemoveFilter")">@DstLocalization.T("Product"): @ViewBag.ProductName ✕</a>
+                            }
+                        </div>
+                    }
+                    <table id="salesTable" class="table table-sm table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Report_Dim_" + dim)</th>
+                                <th class="text-right">@DstLocalization.T("Qty")</th>
+                                <th class="text-right">@DstLocalization.T("Report_Shipped")</th>
+                                <th class="text-right">@DstLocalization.T("Returns")</th>
+                                <th class="text-right">@DstLocalization.T("Report_Revenue")</th>
+                                <th class="text-right">@DstLocalization.T("Report_GrossProfit")</th>
+                                <th class="text-right">@DstLocalization.T("Report_Margin")</th>
+                                <th class="text-right">@DstLocalization.T("Orders")</th>
+                                <th class="text-right">@DstLocalization.T("Customers")</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr class="font-weight-bold">
+                                <th>@DstLocalization.T("Total")</th><th></th>
+                                <th class="text-right" data-total="amount"></th><th class="text-right" data-total="returns"></th>
+                                <th class="text-right" data-total="net"></th><th class="text-right" data-total="profit"></th>
+                                <th class="text-right" data-total="margin"></th><th class="text-right" data-total="orders"></th>
+                                <th class="text-right" data-total="customers"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <p class="small text-muted mt-1 mb-0">@DstLocalization.T("Report_SalesHint")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+            var qtyFmt = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 3 });
+            var dim = '@dim.ToString().ToLowerInvariant()';
+            // qatorni bosganda keyingi kesim: agent/hudud → mijozlar, mijoz/kategoriya → tovarlar, tovar → mijozlar
+            var drill = { agent: ['customer', 'agentId'], territory: ['customer', 'territoryId'], customer: ['product', 'customerId'],
+                          category: ['product', 'categoryId'], product: ['customer', 'productId'] }[dim];
+            function params(extra) {
+                var p = {};
+                $.each($('#salesFilter').serializeArray(), function (_, x) { if (x.value !== '') p[x.name] = x.value; });
+                return $.extend(p, extra || {});
+            }
+            function num(v) { return v === null || v === undefined ? '' : money.format(v); }
+            var table = dstServerTable('#salesTable', {
+                dataUrl: '@Url.Action("SalesData")', filterForm: '#salesFilter', order: [[4, 'desc']],
+                columns: [
+                    { data: 'name', render: function (v, t, r) {
+                        if (r.key === null || !drill) return dstEsc(v);
+                        var extra = { dim: drill[0] }; extra[drill[1]] = r.key;
+                        return '<a href="?' + $.param(params(extra)) + '">' + dstEsc(v) + '</a>';
+                    } },
+                    { data: 'qty', className: 'text-right', visible: dim === 'product', render: function (v) { return v === null ? '' : qtyFmt.format(v); } },
+                    { data: 'amount', className: 'text-right', render: num },
+                    { data: 'returns', className: 'text-right', render: function (v) { return v ? '<span class="text-danger">' + num(v) + '</span>' : ''; } },
+                    { data: 'net', className: 'text-right', render: function (v) { return '<b>' + num(v) + '</b>'; } },
+                    { data: 'profit', className: 'text-right', visible: @(cost ? "true" : "false"), render: function (v) { return '<span class="' + (v < 0 ? 'text-danger' : 'text-success') + '">' + num(v) + '</span>'; } },
+                    { data: 'margin', className: 'text-right', visible: @(cost ? "true" : "false"), render: function (v) { return v === null ? '' : v + '%'; } },
+                    { data: 'orders', className: 'text-right' },
+                    { data: 'customers', className: 'text-right' }
+                ]
+            });
+            table.on('xhr', function (e, settings, json) {
+                var t = json && json.totals;
+                if (!t) return;
+                $('#salesTable_wrapper [data-total], #salesTable [data-total]').each(function () {
+                    var k = $(this).data('total'), v = t[k];
+                    $(this).text(v === null || v === undefined ? '' : (k === 'margin' ? v + '%' : (k === 'orders' || k === 'customers' ? v : money.format(v))));
+                });
+            });
+            $('.dim-tab').on('click', function (e) {
+                e.preventDefault();
+                window.location = '?' + $.param(params({ dim: $(this).data('dim') }));
+            });
+            $('#salesExport').on('click', function (e) {
+                e.preventDefault();
+                window.location = '@Url.Action("ExportSales")?' + $.param(params());
+            });
+        });
+    </script>
+}

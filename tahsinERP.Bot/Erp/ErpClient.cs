@@ -64,6 +64,8 @@ public sealed class ErpClient(HttpClient http, Uri baseUrl, byte[] tenantKey, Ti
         if (res.IsSuccessStatusCode || (int)res.StatusCode is >= 300 and < 400)   // HTML (login/litsenziya sahifasi) — API emas
             throw new ErpException(502, "ERP JSON qaytarmadi: " + (int)res.StatusCode + " " + res.Content.Headers.ContentType?.MediaType);
 
+        if (res.StatusCode == System.Net.HttpStatusCode.Forbidden && (res.Headers.Contains("X-License-Message") || res.ReasonPhrase == ErpException.LicenseMessage))
+            throw new ErpException(403, ErpException.LicenseMessage);
         string message = res.ReasonPhrase ?? res.StatusCode.ToString();
         List<string>? problems = null;
         if (res.Content.Headers.ContentType?.MediaType == "application/json" && !string.IsNullOrWhiteSpace(text))
@@ -95,6 +97,9 @@ public sealed class ErpClientFactory(IHttpClientFactory httpFactory, Microsoft.E
     public const string HttpClientName = "erp";
 
     public ErpClient For(Data.BotTenant tenant) =>
-        new(httpFactory.CreateClient(HttpClientName), new Uri(tenant.ErpBaseUrl),
-            DstApiSignature.TenantKey(options.Value.MasterKey, string.IsNullOrWhiteSpace(tenant.ErpTenant) ? DstApiSignature.DefaultTenant : tenant.ErpTenant), clock);
+        new(httpFactory.CreateClient(HttpClientName), new Uri(tenant.ErpBaseUrl), TenantKey(options.Value.MasterKey, tenant), clock);
+
+    /// <summary>Tenant ERP kaliti (API imzosi va rasm havolalari uchun).</summary>
+    public static byte[] TenantKey(string masterKey, Data.BotTenant tenant) =>
+        DstApiSignature.TenantKey(masterKey, string.IsNullOrWhiteSpace(tenant.ErpTenant) ? DstApiSignature.DefaultTenant : tenant.ErpTenant);
 }

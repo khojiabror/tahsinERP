@@ -239,12 +239,15 @@
     <Compile Include="Distribution\DistributionUnitOfWorkTests.cs" />
     <Compile Include="Distribution\PricingAndRulesTests.cs" />
     <Compile Include="Distribution\DirectoryIntegrationTests.cs" />
+    <Compile Include="Distribution\PilotImportTests.cs" />
+    <Compile Include="Distribution\PilotDayScenarioTests.cs" />
     <Compile Include="Distribution\OrderRulesTests.cs" />
     <Compile Include="Distribution\OrderFlowIntegrationTests.cs" />
     <Compile Include="Distribution\MoneyTests.cs" />
     <Compile Include="Distribution\BotTests.cs" />
     <Compile Include="Distribution\SiteTests.cs" />
     <Compile Include="Distribution\SiteDemoExport.cs" />
+    <Compile Include="Distribution\ReportTests.cs" />
     <Compile Include="LicenseSync\LicensePanelClientTests.cs" />
   </ItemGroup>
   <ItemGroup>

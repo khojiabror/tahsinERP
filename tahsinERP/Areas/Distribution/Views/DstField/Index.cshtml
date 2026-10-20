@@ -1,0 +1,177 @@
+@model tahsinERP.Areas.Distribution.Controllers.DstFieldController.FieldModel
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("Field");
+    bool isToday = Model.Date == DateTime.Today;
+    var selected = Model.Agents.FirstOrDefault(a => a.UserID == Model.UserID);
+    Func<decimal?, decimal?, string> point = (lat, lng) => lat.HasValue && lng.HasValue
+        ? DstFieldController.MapUrl(new[] { (lat.Value, lng.Value) }) : null;
+}
+<style>
+    .dst-selfie { width: 44px; height: 44px; object-fit: cover; border-radius: 50%; cursor: zoom-in; }
+    .dst-photo { width: 56px; height: 42px; object-fit: cover; border-radius: 4px; cursor: zoom-in; }
+    .dst-live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #39da8a; margin-right: 4px; }
+</style>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@ViewBag.Title</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Field_Hint")</p>
+                    @if (!Model.LinksEnabled)
+                    {
+                        <div class="alert alert-light small py-50">@DstLocalization.T("Field_LinksOff")</div>
+                    }
+                    <form method="get" class="form-row mb-1">
+                        <div class="col-md-3 mb-50"><input type="date" name="date" class="form-control form-control-sm" value="@Model.Date.ToString("yyyy-MM-dd")" onchange="this.form.submit()" /></div>
+                        @if (Model.UserID.HasValue) { <input type="hidden" name="userId" value="@Model.UserID" /> }
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Agent")</th>
+                                    <th>@DstLocalization.T("Field_Selfie")</th>
+                                    <th>@DstLocalization.T("Field_DayStart")</th>
+                                    <th>@DstLocalization.T("Field_DayEnd")</th>
+                                    <th class="text-right">@DstLocalization.T("Field_Visits")</th>
+                                    <th class="text-right">@DstLocalization.T("Orders")</th>
+                                    <th>@DstLocalization.T("Field_LastPosition")</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in Model.Agents)
+                                {
+                                    <tr class="@(a.UserID == Model.UserID ? "table-active" : "")">
+                                        <td>@a.Name @if (a.IsExpeditor) { <span class="badge badge-light-secondary">@DstLocalization.T("Expeditor")</span> }</td>
+                                        <td>
+                                            @if (a.SelfieUrl != null) { <img class="dst-selfie" src="@a.SelfieUrl" alt="" data-full="@a.SelfieUrl" loading="lazy" /> }
+                                            else if (a.HasSelfie) { <i class="bx bx-camera" title="@DstLocalization.T("Field_LinksOff")"></i> }
+                                            else if (a.StartAt.HasValue) { <span class="text-muted">—</span> }
+                                        </td>
+                                        <td>
+                                            @if (a.StartAt.HasValue)
+                                            {
+                                                @a.StartAt.Value.ToString("HH:mm")
+                                                var url = point(a.StartLat, a.StartLng);
+                                                if (url != null) { <a href="@url" target="_blank" rel="noopener" class="ml-25"><i class="bx bx-map"></i></a> }
+                                            }
+                                            else { <span class="text-muted">@DstLocalization.T("Field_NoDay")</span> }
+                                        </td>
+                                        <td>@(a.EndAt?.ToString("HH:mm"))</td>
+                                        <td class="text-right">@a.Visits@(a.NoOrder > 0 ? " (" + a.NoOrder + " 🚫)" : "")</td>
+                                        <td class="text-right">@a.Orders@(a.Orders > 0 ? " · " + a.OrdersTotal.ToString("N0") : "")</td>
+                                        <td>
+                                            @if (a.Last != null)
+                                            {
+                                                if (a.IsLive) { <span class="dst-live" title="@DstLocalization.T("Field_Live")"></span> }
+                                                <a href="@point(a.Last.Lat, a.Last.Lng)" target="_blank" rel="noopener">@a.Last.At.ToString("HH:mm")</a>
+                                                <span class="small text-muted">@DstLocalization.T("Field_Source_" + a.Last.Source)</span>
+                                            }
+                                        </td>
+                                        <td class="text-right"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", new { date = Model.Date.ToString("yyyy-MM-dd"), userId = a.UserID })">@DstLocalization.T("Field_Details")</a></td>
+                                    </tr>
+                                }
+                                @if (Model.Agents.Count == 0)
+                                {
+                                    <tr><td colspan="8" class="text-muted">@DstLocalization.T("Field_NoAgents")</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @if (selected != null && Model.Visits != null)
+            {
+                var trackUrl = DstFieldController.MapUrl(Model.Track.Select(t => (t.Lat, t.Lng)));
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title">@selected.Name — @Model.Date.ToString("dd.MM.yyyy")</h4>
+                        @if (trackUrl != null) { <a class="btn btn-sm btn-outline-primary" href="@trackUrl" target="_blank" rel="noopener"><i class="bx bx-map-alt"></i> @DstLocalization.T("Field_TrackMap") (@Model.Track.Count)</a> }
+                    </div>
+                    <div class="card-body">
+                        <h6>@DstLocalization.T("Field_Visits")</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Field_CheckIn")</th><th class="text-right">@DstLocalization.T("Field_Distance")</th>
+                                        <th>@DstLocalization.T("Field_Result")</th><th>@DstLocalization.T("Field_Photo")</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var v in Model.Visits)
+                                    {
+                                        <tr>
+                                            <td>@v.Customer @if (!v.IsPlanned) { <span class="badge badge-light-warning">@DstLocalization.T("Field_Unplanned")</span> }</td>
+                                            <td>
+                                                @v.CheckInAt.ToString("HH:mm")@(v.CheckOutAt.HasValue ? "–" + v.CheckOutAt.Value.ToString("HH:mm") : "")
+                                                @{ var vurl = point(v.Lat, v.Lng); }
+                                                @if (vurl != null) { <a href="@vurl" target="_blank" rel="noopener" class="ml-25"><i class="bx bx-map"></i></a> }
+                                                @if (!v.IsLive) { <span class="small text-muted" title="@DstLocalization.T("Field_StaticHint")">@DstLocalization.T("Field_Static")</span> }
+                                            </td>
+                                            <td class="text-right">@(v.DistanceM.HasValue ? v.DistanceM + " m" : "—")</td>
+                                            <td>@(v.Result != null ? DstLocalization.T("Field_Result_" + v.Result) : "")@(v.Reason != null ? ": " + v.Reason : "")</td>
+                                            <td>
+                                                @if (v.PhotoUrl != null) { <img class="dst-photo" src="@v.PhotoUrl" alt="" data-full="@v.PhotoUrl" loading="lazy" /> }
+                                                else if (v.HasPhoto) { <i class="bx bx-image" title="@DstLocalization.T("Field_LinksOff")"></i> }
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (Model.Visits.Count == 0) { <tr><td colspan="5" class="text-muted">—</td></tr> }
+                                </tbody>
+                            </table>
+                        </div>
+                        <h6 class="mt-1">@DstLocalization.T("Field_Track")</h6>
+                        <p class="small text-muted">@DstLocalization.T("Field_TrackHint")</p>
+                        <div class="table-responsive" style="max-height:320px;overflow:auto">
+                            <table class="table table-sm">
+                                <thead><tr><th>@DstLocalization.T("Field_Time")</th><th>@DstLocalization.T("Field_Source")</th><th>GPS</th><th class="text-right">±m</th></tr></thead>
+                                <tbody>
+                                    @foreach (var t in Model.Track)
+                                    {
+                                        <tr>
+                                            <td>@t.At.ToString("HH:mm:ss")</td>
+                                            <td>@DstLocalization.T("Field_Source_" + t.Source)</td>
+                                            <td><a href="@point(t.Lat, t.Lng)" target="_blank" rel="noopener">@t.Lat.ToString("0.00000", System.Globalization.CultureInfo.InvariantCulture), @t.Lng.ToString("0.00000", System.Globalization.CultureInfo.InvariantCulture)</a></td>
+                                            <td class="text-right">@t.AccuracyM</td>
+                                        </tr>
+                                    }
+                                    @if (Model.Track.Count == 0) { <tr><td colspan="4" class="text-muted">—</td></tr> }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="dstImgModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content"><div class="modal-body p-50 text-center"><img id="dstImgFull" src="" alt="" style="max-width:100%;max-height:80vh" /></div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $(document).on('click', 'img[data-full]', function () {
+                $('#dstImgFull').attr('src', $(this).data('full'));
+                $('#dstImgModal').modal('show');
+            });
+            @if (isToday)
+            {
+                // bugungi kun — jonli joylashuv yangilanib turadi (modal ochiq bo'lsa kutiladi)
+                <text>setInterval(function () { if (!$('#dstImgModal').hasClass('show')) location.reload(); }, 60000);</text>
+            }
+        });
+    </script>
+}

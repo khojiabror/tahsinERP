@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -6,19 +7,33 @@ using tahsinERP.Areas.Distribution.Services;
 
 namespace tahsinERP.Areas.Distribution.Controllers
 {
-    /// <summary>Excel import: mijozlar, tovarlar (birlik va shtrix-kodlar bilan), narxlar. Shablonlar shu yerdan.</summary>
+    /// <summary>
+    /// Excel import: boshlang'ich ma'lumot pilot tartibida (hududlar → narx turlari → mijozlar → marshrutlar → tovarlar →
+    /// birliklar → narxlar → kirish qarzlari). Oqim: fayl → ko'rib chiqish (hammasi yoziladi va rollback) → "Import qilish"
+    /// (o'sha fayl qayta tekshirilib yoziladi). Shablonlar shu yerdan.
+    /// </summary>
     public class DstImportController : DstControllerBase
     {
+        public const string Territories = "territories";
+        public const string PriceTypes = "pricetypes";
         public const string Customers = "customers";
+        public const string Routes = "routes";
         public const string Products = "products";
+        public const string Units = "units";
         public const string Prices = "prices";
         public const string Opening = "opening";
 
+        /// <summary>Yuklash tartibi — sahifadagi tablar ham shu tartibda.</summary>
+        public static readonly string[] Kinds = { Territories, PriceTypes, Customers, Routes, Products, Units, Prices, Opening };
+
         public const int MaxFileBytes = 10 * 1024 * 1024;
+
+        private const string StagedKey = "DstImport.Staged";
+        private static readonly TimeSpan StagedLifetime = TimeSpan.FromHours(2);
 
         public ActionResult Index(string kind)
         {
-            ViewBag.Kind = new[] { Customers, Products, Prices, Opening }.Contains(kind) ? kind : Customers;
+            ViewBag.Kind = Kinds.Contains(kind) ? kind : Territories;
             return View();
         }
 
@@ -28,12 +43,12 @@ namespace tahsinERP.Areas.Distribution.Controllers
             byte[] bytes;
             switch (kind)
             {
-                case Products:
-                    bytes = ImportService.Template(ImportService.ProductColumns, IsRussian);
-                    break;
-                case Opening:
-                    bytes = ImportService.Template(ImportService.OpeningColumns, IsRussian);
-                    break;
+                case Territories: bytes = ImportService.Template(ImportService.TerritoryColumns, IsRussian); break;
+                case PriceTypes: bytes = ImportService.Template(ImportService.PriceTypeColumns, IsRussian); break;
+                case Routes: bytes = ImportService.Template(ImportService.RouteColumns, IsRussian); break;
+                case Products: bytes = ImportService.Template(ImportService.ProductColumns, IsRussian); break;
+                case Units: bytes = ImportService.Template(ImportService.UnitColumns, IsRussian); break;
+                case Opening: bytes = ImportService.Template(ImportService.OpeningColumns, IsRussian); break;
                 case Prices:
                     using (var db = NewDb())
                     {
@@ -50,11 +65,12 @@ namespace tahsinERP.Areas.Distribution.Controllers
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "dst_" + kind + "_template.xlsx");
         }
 
+        /// <summary>Fayl yuklash. dryRun (odatiy) — ko'rib chiqish; xatosiz bo'lsa fayl vaqtincha saqlanadi va tasdiqlash tugmasi chiqadi.</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Upload(string kind, HttpPostedFileBase file, bool dryRun = false)
         {
-            kind = new[] { Customers, Products, Prices, Opening }.Contains(kind) ? kind : Customers;
+            kind = Kinds.Contains(kind) ? kind : Territories;
             ViewBag.Kind = kind;
             if (file == null || file.ContentLength == 0 || !file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
@@ -67,33 +83,85 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 return View("Index");
             }
 
+            byte[] bytes;
+            using (var ms = new MemoryStream())
+            {
+                file.InputStream.CopyTo(ms);
+                bytes = ms.ToArray();
+            }
+            var result = Run(kind, bytes, dryRun);
+            if (result != null && result.Ok && dryRun)
+                ViewBag.StagedToken = Stage(kind, file.FileName, bytes);
+            return View("Index");
+        }
+
+        /// <summary>Ko'rib chiqilgan faylni yozish. Fayl qayta tekshiriladi — oradagi o'zgarishlar ham hisobga olinadi.</summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Commit(string kind, string token)
+        {
+            kind = Kinds.Contains(kind) ? kind : Territories;
+            ViewBag.Kind = kind;
+            var staged = Session?[StagedKey] as StagedFile;
+            if (staged == null || staged.Token != token || staged.Kind != kind || DateTime.UtcNow - staged.At > StagedLifetime)
+            {
+                ViewBag.Error = DstLocalization.T("Import_StagedExpired");
+                return View("Index");
+            }
+            var result = Run(kind, staged.Bytes, dryRun: false);
+            if (result != null && result.Ok) Session.Remove(StagedKey);
+            return View("Index");
+        }
+
+        private ImportResult Run(string kind, byte[] bytes, bool dryRun)
+        {
             try
             {
                 ImportResult result;
-                switch (kind)
+                using (var stream = new MemoryStream(bytes))
                 {
-                    case Products:
-                        result = ImportService.ImportProducts(file.InputStream, NewUnitOfWork, dryRun);
-                        break;
-                    case Prices:
-                        result = ImportService.ImportPrices(file.InputStream, CurrentUserId, NewUnitOfWork, dryRun);
-                        break;
-                    case Opening:
-                        result = ImportService.ImportOpening(file.InputStream, CurrentUserId, NewUnitOfWork, dryRun);
-                        break;
-                    default:
-                        result = ImportService.ImportCustomers(file.InputStream, CurrentUserId, NewUnitOfWork, dryRun);
-                        break;
+                    switch (kind)
+                    {
+                        case Territories: result = ImportService.ImportTerritories(stream, NewUnitOfWork, dryRun); break;
+                        case PriceTypes: result = ImportService.ImportPriceTypes(stream, NewUnitOfWork, dryRun); break;
+                        case Routes: result = ImportService.ImportRoutes(stream, NewUnitOfWork, dryRun); break;
+                        case Products: result = ImportService.ImportProducts(stream, NewUnitOfWork, dryRun); break;
+                        case Units: result = ImportService.ImportUnits(stream, NewUnitOfWork, dryRun); break;
+                        case Prices: result = ImportService.ImportPrices(stream, CurrentUserId, NewUnitOfWork, dryRun); break;
+                        case Opening: result = ImportService.ImportOpening(stream, CurrentUserId, NewUnitOfWork, dryRun); break;
+                        default: result = ImportService.ImportCustomers(stream, CurrentUserId, NewUnitOfWork, dryRun); break;
+                    }
                 }
                 result.DryRun = dryRun;
                 ViewBag.Result = result;
+                return result;
             }
             catch (Exception ex) when (!(ex is DstValidationException))
             {
                 System.Diagnostics.Trace.TraceError("DstImport {0}: {1}", kind, ex);
                 ViewBag.Error = DstLocalization.T("Import_ReadFailed");
+                return null;
             }
-            return View("Index");
+        }
+
+        /// <summary>Ko'rib chiqilgan fayl sessiyada (bittasi, 10 MB gacha) — vaqtinchalik papka va tozalash kerak emas.</summary>
+        private string Stage(string kind, string fileName, byte[] bytes)
+        {
+            if (Session == null) return null;
+            var staged = new StagedFile { Token = Guid.NewGuid().ToString("N"), Kind = kind, FileName = Path.GetFileName(fileName), Bytes = bytes, At = DateTime.UtcNow };
+            Session[StagedKey] = staged;
+            ViewBag.StagedFileName = staged.FileName;
+            return staged.Token;
+        }
+
+        [Serializable]
+        private sealed class StagedFile
+        {
+            public string Token { get; set; }
+            public string Kind { get; set; }
+            public string FileName { get; set; }
+            public byte[] Bytes { get; set; }
+            public DateTime At { get; set; }
         }
     }
 }

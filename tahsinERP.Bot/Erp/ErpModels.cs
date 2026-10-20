@@ -9,7 +9,22 @@ public sealed record ErpAccount(int? UserId, int? CustomerId, string Role, strin
 public sealed record ErpDay(DateTime? StartAt, DateTime? EndAt, int Planned, int Visited, int Orders, decimal OrdersTotal,
     decimal Collected, decimal CashOnHand, int NoOrder);
 
-public sealed record ErpMe(int UserId, string? Name, bool IsAgent, bool IsExpeditor, bool CanOverrideCredit, int VisitRadiusM, ErpDay? Day);
+public sealed record ErpMe(int UserId, string? Name, bool IsAgent, bool IsExpeditor, bool CanOverrideCredit, int VisitRadiusM, ErpDay? Day,
+    bool RequireSelfie = false);
+
+public sealed record ErpTrack(bool Stored, bool DayOpen);
+
+public sealed record ErpNewCustomer(int Id, bool Duplicate);
+
+public sealed record ErpBalancePayment(string Date, decimal Amount);
+
+public sealed record ErpBalance(string? Name, decimal Debt, decimal NotDue, decimal Overdue, decimal Advance, int MaxOverdueDays,
+    decimal CreditLimit, int PaymentDays, List<ErpBalancePayment>? LastPayments);
+
+public sealed record ErpStatementRow(string Date, string Type, string? Doc, decimal Debit, decimal Credit, decimal Balance);
+
+public sealed record ErpStatement(string? Name, string From, string To, decimal Opening, decimal TotalDebit, decimal TotalCredit, decimal Closing,
+    List<ErpStatementRow>? Rows);
 
 public sealed record ErpDayStarted(int Id, DateTime StartAt);
 
@@ -58,4 +73,7 @@ public sealed class ErpException(int status, string message, IReadOnlyList<strin
     public int Status { get; } = status;
     public IReadOnlyList<string> Problems { get; } = problems ?? [];
     public bool IsBusiness => Status is 400 or 409;
+    /// <summary>ERP kompaniya litsenziyasi faol emas (DstApiAuth: 403 "License") — aloqa xatosi ham, rol xatosi ham emas.</summary>
+    public bool IsLicense => Status == 403 && Message == LicenseMessage;
+    public const string LicenseMessage = "License";
 }

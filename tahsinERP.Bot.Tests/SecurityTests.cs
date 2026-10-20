@@ -132,6 +132,21 @@ public class SecurityTests
             new Uri("https://erp/"), DstApiSignature.TenantKey(Master, "x"), TimeProvider.System);
         var ex = await Assert.ThrowsAsync<ErpException>(() => down.GetAsync<object>("Me", 1, CancellationToken.None));
         Assert.False(ex.IsBusiness);
+        Assert.False(ex.IsLicense);
+
+        // DstApiAuth litsenziyasiz: 403 "License" + X-License-Message, JSON emas
+        var blocked = new ErpClient(new HttpClient(new FakeHandler(_ =>
+            {
+                var r = new HttpResponseMessage(HttpStatusCode.Forbidden) { ReasonPhrase = "License", Content = new StringContent("", System.Text.Encoding.UTF8, "text/html") };
+                r.Headers.Add("X-License-Message", "Litsenziya%20tugagan");
+                return r;
+            })), new Uri("https://erp/"), DstApiSignature.TenantKey(Master, "x"), TimeProvider.System);
+        var lic = await Assert.ThrowsAsync<ErpException>(() => blocked.GetAsync<object>("Me", 1, CancellationToken.None));
+        Assert.True(lic.IsLicense);
+        Assert.False(lic.IsBusiness);
+        var forbidden = new ErpClient(new HttpClient(new FakeHandler(_ => FakeHandler.Json(HttpStatusCode.Forbidden, "{\"error\":\"Ruxsat yo'q\"}"))),
+            new Uri("https://erp/"), DstApiSignature.TenantKey(Master, "x"), TimeProvider.System);
+        Assert.False((await Assert.ThrowsAsync<ErpException>(() => forbidden.GetAsync<object>("Me", 1, CancellationToken.None))).IsLicense);
     }
 
     [Fact]
@@ -150,6 +165,29 @@ public class SecurityTests
         Assert.True(Ok(handler.Requests[0], "default"));
         Assert.False(Ok(handler.Requests[0], "firma1"));
         Assert.True(Ok(handler.Requests[1], "acme"));
+    }
+
+    [Fact]
+    public void FileLink_SignedByErpTenantKey_ExpiresAndBoundToKey()
+    {
+        var now = DateTimeOffset.FromUnixTimeSeconds(1792400000);
+        var tenant = new Data.BotTenant { Slug = "firma1", ErpTenant = "acme" };
+        var erpKey = DstApiSignature.TenantKey(Master, "acme");   // ERP shu kalit bilan imzolaydi
+        const string file = "firma1/2026/10/abc.jpg";
+        long exp = now.ToUnixTimeSeconds() + 3600;
+        var sig = DstApiSignature.SignFile(erpKey, file, exp);
+        Assert.DoesNotContain('+', sig);
+        Assert.DoesNotContain('=', sig);
+
+        var botKey = ErpClientFactory.TenantKey(Master, tenant);
+        var e = exp.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        Assert.True(DstApiSignature.VerifyFile(botKey, file, e, sig, now));
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, e, sig, now.AddHours(2)), "muddati o'tgan");
+        Assert.False(DstApiSignature.VerifyFile(botKey, "firma1/2026/10/other.jpg", e, sig, now), "boshqa fayl");
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, (exp + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), sig, now), "muddat o'zgartirilgan");
+        Assert.False(DstApiSignature.VerifyFile(ErpClientFactory.TenantKey(Master, new Data.BotTenant { Slug = "firma1" }), file, e, sig, now), "boshqa tenant");
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, "abc", sig, now));
+        Assert.False(DstApiSignature.VerifyFile(botKey, file, e, null, now));
     }
 
     [Fact]

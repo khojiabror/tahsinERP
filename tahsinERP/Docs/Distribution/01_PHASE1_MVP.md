@@ -296,4 +296,67 @@ IIS Express orqali haqiqiy ERP bilan: to'g'ri imzo (GET so'rov parametrlari bila
 
 **Tekshirilmagan:** litsenziyali ERP va haqiqiy bot tokeni bilan uchidan-uchiga (lokal litsenziya kaliti yo'q), Telegram ichida Mini App (BotFather `/setdomain` va HTTPS kerak).
 
-**Qilinmagan (keyingi bosqichga):** kun boshida selfi; botdan yangi savdo nuqtasi qo'shish (API `NewCustomer` bor, bot oqimi yo'q); omborchiga "yangi tasdiqlangan buyurtma" xabari; Mini App'da kamera orqali shtrix-kod; jonli joylashuv kuzatuvi; mijoz uchun botda "qarzim / akt sverki".
+**Qilinmagan (keyingi bosqichga):** ~~kun boshida selfi; botdan yangi savdo nuqtasi qo'shish; omborchiga "yangi tasdiqlangan buyurtma" xabari; Mini App'da kamera orqali shtrix-kod; jonli joylashuv kuzatuvi; mijoz uchun botda "qarzim / akt sverki"~~ — hammasi 14.5 da bajarildi.
+
+### 14.5 S4 qoldiqlari (2026-10-20, branch `claude/dst-s4-rest-9ce503`)
+
+Migratsiya `Database/Migrations/022_DST_FieldTracking.sql`: `dst.AGENT_TRACK` (joylashuv nuqtalari: LIVE / DAY / VISIT), sozlamalar `RequireSelfie` (0) va `BotPublicUrl`, ruxsat moduli `DstField` (+ Seed/105, Edition — Distribution). Lokal bazada va `DB_DST_UI` da qo'llangan (zaxira `DBTHSN-IPACK_pre_022_DST_20261020.bak`, `DB_DST_UI_pre_022_20261020.bak`), qayta ishga tushirish xatosiz. 023 (S5) lokal bazada 022 dan oldin qo'llangan — runner tartibsiz holatni o'zi to'ldirdi.
+
+| Ish | Qanday |
+|---|---|
+| Kun boshidagi selfi | ▶️ Kunni boshlash → joylashuv → selfi (foto) → `DayStart(selfieKey)`. Sozlama "Kun boshida selfi majburiy": o'chiq — ⏭ bilan o'tkazish mumkin; yoqiq — selfisiz kun boshlanmaydi, "Keldim" ham kunni o'zi boshlamaydi. Kun allaqachon boshlangan bo'lsa selfi so'ralmaydi; selfisiz boshlangan kunga selfi keyin qo'shiladi. Gallereyadan yuborilgan rasmni ajratib bo'lmaydi (Telegram cheklovi) |
+| Rasmlarni ERP'da ko'rish | `FileLinks`: `{BotPublicUrl}/files/{kalit}?e=..&s=..` — tenant kaliti bilan imzolangan (`DstApiSignature.SignFile`), muddat soat boshi + 2 soat; bot `/files` imzo va muddatni tekshiradi (boshqa fayl/tenant/muddat — 403). ERP botga murojaat qilmaydi. Sozlamalar → "Bot ochiq manzili". Selfi, tashrif fotosi (Dala nazorati), yangi nuqta fotosi (mijoz kartasi) |
+| Dala nazorati (`/Distribution/DstField`) | Sana bo'yicha agentlar: selfi (bosilsa kattalashadi), kun boshi/yakuni (xaritada), tashriflar (buyurtmasiz soni), buyurtmalar, so'nggi joylashuv (🟢 — jonli, oxirgi 10 daqiqada); agent tanlansa — tashriflar (masofa, natija, sabab, foto, rejadan tashqari, statik joylashuv) va joylashuv izi (jadval + Yandex xaritada 100 tagacha nuqta). Ko'rinish — agent ierarxiyasi (supervayzer — jamoasi). Bugungi sahifa har daqiqada yangilanadi |
+| Botdan yangi savdo nuqtasi | ➕ Yangi nuqta → nom (2–50) → telefon (matn yoki kontakt, `+998…`) → joylashuv → mo'ljal (⏭) → foto (⏭) → tekshirish → ✅ Saqlash. ERP: tasdiqlanmagan nuqta, agent — o'zi (ekspeditor — agentsiz), foto `PhotoKey`; rahbarlarga "yangi nuqta" xabari. Javob yo'qolib qayta yuborilsa — agentning so'nggi 1 soatdagi bir xil nomli nuqtasi qaytadi (dublikat yo'q) |
+| Omborchiga xabar | `OrderService.Confirm` → `NotificationService.ToStorekeepers`: STOREKEEPER roli bilan ulanganlar, ombor scope'i shu omborni qamrasa (scope yo'q / Admin — hammasi), tasdiqlagan o'zi bundan mustasno. Matn: hujjat, mijoz, ombor, qatorlar, kg, summa, yetkazish sanasi yoki "o'zi olib ketadi" |
+| Mini App shtrix-kod | Qidiruv yonida 📷 tugma → kamera (orqa). Avval brauzerning `BarcodeDetector` (Android Chrome/WebView), bo'lmasa `vendor/zxing.min.js` (@zxing/library 0.23.0, Apache-2.0, faqat kerak bo'lganda yuklanadi — iOS). EAN-13/8, UPC-A/E, Code128/39, ITF. Skaner ochiq turadi: har kod — savatga +1 shtrix-kod birligida; kod kadrda turgan paytda qayta sanalmaydi; topilmasa — "Topilmadi: kod". Kamera rad etilsa — xabar, skaner yopiladi |
+| Jonli joylashuv | 📡 tugma — Telegram'da yoqish yo'riqnomasi. Jonli joylashuv xabari → `Track` ("qabul qilindi" yoki "avval kunni boshlang"); keyingi yangilanishlar (`edited_message`) — jim: bot 30 s da bir marta yuboradi (`LiveThrottle`), ERP ham 30 s tekshiradi va faqat ochiq ish kunida yozadi (shaxsiy vaqt kuzatilmaydi), xato — faqat logda. Kun boshi/yakuni va "Keldim" ham izga yoziladi |
+| Mijoz: qarzim / akt sverki | Mijoz menyusi: 💳 Qarzim (qarz, muddati kelmagan/o'tgan, eng uzoq kechikish, limit, avans, so'nggi 5 to'lov), 📄 Akt sverki (shu oy / o'tgan oy / oxirgi 3 oy; boshlang'ich qoldiq, yozuvlar +/−, yakuniy qoldiq; 4096 belgiga sig'masa — "yana N ta yozuv"). ERP `MyBalance` / `MyStatement` — tizim chaqiruvi, mijoz faol Telegram bog'lanishidan aniqlanadi; hujjat turlari mijoz tilida |
+
+Yo'l-yo'lakay tuzatildi: `LocalFileStore` ildizi `\` bilan tugasa (`Path.GetTempPath()` kabi) har saqlash `NullReferenceException` berardi; Telegram faylini yuklab bo'lmasa endi "ERP bilan aloqa yo'q" emas, "Rasmni olib bo'lmadi" deyiladi.
+
+Tekshiruv: ERP testlari 154/154 (+1 o'tkazilgan demo eksport; yangi — fayl imzosi, xarita havolasi; integratsiya — selfi majburiy rejimi va keyin qo'shish, jonli nuqta faqat ochiq kunda va 30 s, omborchi xabari faqat o'sha ombor scope'iga, `FileLinks` URL va imzo). RazorCheck: 506 view, 0 xato. Bot testlari 54/54 (yangi — selfi ixtiyoriy/majburiy, kun boshlangan, yangi nuqta to'liq oqim va qayta bosish, jonli joylashuv siyraklash va jim xato, faqat dala xodimlari, mijoz qarzi/akti, telefon normalizatsiyasi, akt davrlari va 4096 chegarasi, fayl havolasi imzosi). Lokal servis (`tahsin_bot` alohida baza, soxta token, `--offline`) + imzoni haqiqiy `DstApiSignature.Verify` bilan tekshiradigan soxta ERP: webhook orqali bog'lash, kun boshi (majburiy selfi rad, ixtiyoriy ⏭), jonli joylashuv (birinchisi javobli, 30 s ichidagi tahrir yuborilmadi, keyingisi yuborildi, mijozniki e'tiborsiz), yangi nuqta (kontakt bilan), mijoz qarzi va akt — barcha so'rovlar imzosi to'g'ri. Bot `/files`: to'g'ri imzo — 200 `image/jpeg`, muddat yoki fayl o'zgartirilsa — 403. Mini App brauzerda (soxta `Telegram.WebApp`, canvas-kamera): `BarcodeDetector` yo'li — kod ikki marta ko'rinsa 2 qop, noma'lum kod "Topilmadi"; ZXing yo'li (detektor yo'q) — chizilgan EAN-13 video oqimidan o'qildi; kamera rad etilsa xabar; telefon kengligida.
+
+**Tekshirilmagan:** haqiqiy ERP API va Dala nazorati/Sozlamalar sahifalari brauzerda (demo bazada litsenziya yo'q — API 403 `License`, sahifalar License/Blocked; chetlab o'tilmadi — ERP qismi integratsiya testlari va RazorCheck bilan); Telegram ichida haqiqiy kamera (Telegram Web iframe'i kameraga ruxsat bermasligi mumkin — mobil ilovalarda sinash kerak), haqiqiy jonli joylashuv yangilanishlari chastotasi.
+
+
+## 15. S5 natijasi (2026-10-20, branch `claude/dst-s5-reports-5c3644`)
+
+Migratsiya `Database/Migrations/023_DST_Reports.sql` (022 — S4 qoldiqlari sessiyasiga band): yangi jadval yo'q; davr bo'yicha so'rovlar uchun indekslar (`D_SHIPMENTS`/`D_RETURNS` sanasi, `D_SHIPMENT_LINES`/`D_RETURN_LINES` hujjat bo'yicha — avval umuman yo'q edi, `VISITS` va `CASH_HANDOVERS` sanasi); ruxsat modullari `DstDashboard`, `DstReports` (Admin'ga; bo'sh baza — `Seed/105`). Lokal bazada va `DB_DST_UI` da qo'llangan (zaxira `DBTHSN-IPACK_pre_023_DST_20261020.bak`, `DB_DST_UI_pre_023_DST_20261020.bak`), qayta ishga tushirish xatosiz. Edition: ikkala controller `ProductModule.Distribution` ichida.
+
+| Sahifa (`/Distribution/...`) | Nima ko'rsatadi |
+|---|---|
+| `DstDashboard` (rahbar paneli) | Bir ekranda, tanlangan kun (standart — bugun): **tushum** va **yalpi foyda** (kun / oy boshidan, marja), yig'ilgan pul, mijozlar **qarzi** va muddatlar bo'yicha taqsimot (muddati kelmagan, 1–7, 8–30, 31–60, 60+, avans), eng katta muddati o'tgan 5 mijoz, **kassa/bank hisoblari** qoldig'i (valyuta bilan), **agentlar qo'lidagi** naqd va tasdiq kutayotgan topshirishlar, **qoldiq qiymati** (savdo omborlari, FIFO), 14 kunlik tushum/foyda grafigi, buyurtmalar oqimi (bugungi, tasdiq va jo'natish kutayotgan), ishga chiqqan agentlar va tashriflar, agentlar reytingi (oy boshidan). Excel — ko'rsatkichlar ro'yxati |
+| `DstReports/Sales` | Savdo kesimlari: **agent, mijoz, tovar, hudud, kategoriya** (yorliqlar). Ustunlar: jo'natilgan, qaytarish, tushum, yalpi foyda, marja, buyurtmalar, mijozlar (tovar kesimida — sof miqdor), jami qatori. Filtrlar: davr, agent, hudud (quyi hududlari bilan), kategoriya, ombor; qatorni bosish — keyingi kesimga (agent/hudud → mijozlar, mijoz/kategoriya → tovarlar, tovar → mijozlar) filtr bilan. Server-side: GROUP BY, saralash, qidiruv va sahifalash SQL'da (DataTables) |
+| `DstReports/Visits` | Tashrif reja/fakt agent bo'yicha: ish kunlari, reja, fakt, rejadagilar/rejadan tashqari, **reja bajarilishi %**, buyurtma bilan (**samaradorlik %**), to'lov bilan, buyurtmasiz, tashrif buyurtmalari summasi va o'rtacha buyurtma |
+| `DstReports/Cash` | **Agentlar topshirgan pul**: agent bo'yicha (topshirgan, qabul qilingan, farq, kutilayotgan, hozir qo'lidagi va eng eski to'lov sanasi) va topshirishlar ro'yxati (holat filtri, server-side sahifalash) |
+
+Har hisobotda **Excel** (`ExcelExport`, ClosedXML), joriy filtrlar bilan, 100 000 qatorgacha.
+
+Hisob manbalari (qayta hisoblanmaydi):
+- Tushum = o'tkazilgan jo'natishlar (`D_SHIPMENT_LINES.Amount`) − o'tkazilgan qaytarishlar (`D_RETURN_LINES.Amount`), hujjat sanasi bo'yicha; bekor qilingan hujjatlar kirmaydi. Tannarx — jo'natishda saqlangan FIFO (`CostAmount`), qaytarishda `UnitCost`. Agent — buyurtmadagi agent (buyurtmasiz qaytarishda — mijoz kartasidagi), hudud — mijozning joriy hududi.
+- Qarz — `CUSTOMER_LEDGER` → `DebtService.Net` → `DebtMath.Aging` (qarzlar sahifasi bilan bir xil).
+- Kassa/bank — `FinQueries.AccountBalances` (moliya moduli bilan bir xil); agent qo'lidagi pul — `D_PAYMENTS` (o'tkazilgan, hisobga tushmagan).
+- Qoldiq qiymati — `PRODUCT_STOCKS` × kirim qatlamlari: qolgan miqdor eng yangi qatlamlar (FIFO), narx qoidasi `StockCostService` bilan bir xil (qabul qilingan kirim, DLOC-ASN emas, `PiecePrice` yoki `TotalPrice/Amount`); tarix qoplamasa — eng eski ma'lum narx, umuman kirim yo'q — 0 (soni ko'rsatiladi). Bitta SQL (oyna funksiyalari).
+- Tashrif rejasi — mijoz kartasidagi tashrif kunlari × davrdagi hafta kunlari (joriy agent; tarix saqlanmaydi), fakt — `VISITS`.
+
+Huquqlar: ko'rinish ro'yxatlar bilan bir xil (mijoz/hudud/ombor scope'lari, agent — o'zi, supervayzer — jamoasi). Tannarx, foyda, marja va qoldiq qiymati — faqat `DstSeeCost` bilan (JSON va Excel'da ham yo'q). Kassa/bank qoldiqlari — faqat cheklovsiz (scope'siz) foydalanuvchiga.
+
+Kod: `Services/Reports/` (`ReportFilter`/`ReportScope`, `SalesReportService`, `StockValuationService`, `VisitReportService`, `CashReportService`, `DashboardService`), `DstDashboardController`, `DstReportsController`, menyu va bosh sahifa plitalari, resx (`tools/strings_reports.py`, 70 kalit uz/ru).
+
+Testlar 157/158 (1 — oldindan skip; yangi 9): hafta kunlari va reja, marja, filtr; integratsiya (rollback) — 10 dona jo'natish va 2 qaytarish: tushum 440 000, FIFO tannarx 320 000, foyda 120 000, 5 kesim, scope va davr filtri, jo'natishni bekor qilish tushumni olib tashlaydi; qoldiq qiymati 100×40 000 → yangi kirim 50×46 000 (6 300 000) → 120 jo'natilgandan keyin 30×46 000; tashrif reja +1, fakt +2, buyurtma bilan, buyurtmasiz, agent scope; agent naqdi → topshirish → 10 000 kamomad bilan qabul (farq, kutilayotgan, qo'ldagi, kassa qoldig'i 290 000); rahbar paneli — tushum/foyda, yig'ilgan, qarz 350 000, 15 kundan keyin 1–7 kun muddati o'tgan, tannarx huquqisiz qoldiq va kassasiz. RazorCheck: 510 view, 0 xato.
+
+**Tekshirilmagan:** sahifalar brauzerda — S5 worktree IIS Express (`DB_DST_UI`, demo/demo2026) bilan ishga tushirildi, kirish ishlaydi, lekin bazada kompaniya litsenziyasi yo'q va global filtr `License` sahifasiga yo'naltiradi (litsenziya chetlab o'tilmadi). View'lar RazorCheck bilan kompilyatsiya qilindi, hisob-kitob integratsion testlarda.
+
+## 16. S6 tayyorgarligi (2026-10-20, branch `claude/dst-s6-pilot-a446b3`)
+
+Pilotni foydalanuvchi o'tkazadi; kod va hujjat tomoni tayyor. Reja va qabul ro'yxati — `03_PILOT.md`, qo'llanma — `Qollanma_Distributsiya_uz.md` / `_ru.md`. Migratsiya kerak bo'lmadi.
+
+| Ish | Joyi |
+|---|---|
+| Import: yangi turlar — hududlar (daraxt, takror yuklash xavfsiz), narx turlari (bitta standart), marshrutlar (agent + tashrif kunlari, "-" — tozalash), tovar birliklari (mavjud tovarga, shtrix-kod, odatiy sotish); sahifada yuklash tartibi | `Services/ImportServicePilot.cs`, `DstImportController` |
+| Import oqimi: ko'rib chiqish (har qator: yangi / yangilanadi / o'zgarishsiz) → "Import qilish" (fayl sessiyada, qayta tekshirib yoziladi); shablonlarda "Namuna" varag'i | `ImportService.cs`, `Views/DstImport/Index.cshtml` |
+| Bot: ERP litsenziyasi bloklanganda "aloqa yo'q" / "rolingiz uchun emas" o'rniga "litsenziya faol emas" (bot va Mini App) | `tahsinERP.Bot/Erp`, `Handlers/UpdateRouter.cs`, `MiniApp/MiniAppEndpoints.cs` |
+| Pilot kuni E2E: import → agent → tasdiq/limit/ruxsat → yig'ish/jo'natish/qisman → to'lov → kassaga topshirish → qaytarish → kun yakuni; qoldiq, balans = aging = akt sverki, kassa tekshiruvi | `tahsinERP.Tests/Distribution/PilotDayScenarioTests.cs` (faqat `DST_PILOT_E2E` = sinov bazasi) |
+
+Tekshiruv: ERP testlari 154/157 (3 shartli skip), pilot import testlari DB_DST_S6'da 7/7, E2E ssenariy DB_DST_S6'da (DB_DST_UI nusxasi) 2 marta o'tdi, bot testlari 38/38, RazorCheck 505/0. Bot offline: webhook → inbox → handler → ERP → 403 litsenziya → to'g'ri xabar. Tekshirilmagan: brauzerda sahifalar va haqiqiy bot bilan uchidan-uchiga (litsenziya yo'q), Telegram ichida Mini App.
