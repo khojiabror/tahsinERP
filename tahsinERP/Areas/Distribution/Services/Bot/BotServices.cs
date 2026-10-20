@@ -104,6 +104,8 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
         public const string CreditOverLimit = "CREDIT_OVER_LIMIT";
         public const string PaymentReceived = "PAYMENT_RECEIVED";
         public const string HandoverPending = "HANDOVER_PENDING";
+        public const string StoreOrderConfirmed = "STORE_ORDER";
+        public const string NewCustomer = "NEW_CUSTOMER";
 
         public static void ToUser(DistributionDbContext db, int? userId, string type, Func<string, string> text, string payload, DateTime now)
         {
@@ -130,6 +132,25 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
                 .Select(a => a.UserID.Value).Distinct().ToList();
             foreach (var m in managers.Where(m => m != exceptUserId))
                 ToUser(db, m, type, text, payload, now);
+        }
+
+        /// <summary>
+        /// Omborchilar: Telegram'da STOREKEEPER roli bilan bog'langanlar, ombor scope'i shu omborni qamrasa
+        /// (scope yozuvi yo'q yoki Admin — barcha omborlar).
+        /// </summary>
+        public static void ToStorekeepers(DistributionDbContext db, int warehouseId, string type, Func<string, string> text, string payload, DateTime now, int? exceptUserId = null)
+        {
+            var keepers = (from a in db.TelegramAccounts
+                           join u in db.Users on a.UserID equals u.ID
+                           where a.IsActive && a.Role == BotRoles.Storekeeper && u.IsActive && u.IsDeleted != true
+                           select new { u.ID, u.Uname }).Distinct().ToList();
+            if (keepers.Count == 0) return;
+            var scopes = new ScopeService(db);
+            foreach (var k in keepers.Where(k => k.ID != exceptUserId))
+            {
+                if (scopes.For(k.ID, ScopeTypes.Warehouse, tahsinERP.Models.RoleHelper.IsAdminOrDeveloper(k.Uname)).Allows(warehouseId))
+                    ToUser(db, k.ID, type, text, payload, now);
+            }
         }
 
         public sealed class PendingItem

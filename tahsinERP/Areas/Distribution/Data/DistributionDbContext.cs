@@ -116,6 +116,7 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<DstNotification> Notifications { get; set; }
         public virtual DbSet<AgentDay> AgentDays { get; set; }
         public virtual DbSet<Visit> Visits { get; set; }
+        public virtual DbSet<AgentTrackPoint> AgentTrack { get; set; }
 
         // sayt-katalog (021_SITE, Areas/Site)
         public virtual DbSet<Site.Data.SiteSetting> SiteSettings { get; set; }
@@ -281,6 +282,10 @@ namespace tahsinERP.Areas.Distribution.Data
             vis.Property(e => e.Result).IsUnicode(false);
             vis.Property(e => e.PhotoKey).IsUnicode(false);
             modelBuilder.Entity<DstOrder>().Property(e => e.SignatureKey).IsUnicode(false);
+            var trk = modelBuilder.Entity<AgentTrackPoint>();
+            trk.Property(e => e.Lat).HasPrecision(9, 6);
+            trk.Property(e => e.Lng).HasPrecision(9, 6);
+            trk.Property(e => e.Source).IsUnicode(false);
 
             var rl = modelBuilder.Entity<DstReturnLine>();
             rl.Property(e => e.QtyBase).HasPrecision(18, 4);

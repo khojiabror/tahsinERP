@@ -165,6 +165,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                         isAgent = agent != null && agent.IsActive && !agent.IsExpeditor, isExpeditor = agent != null && agent.IsActive && agent.IsExpeditor,
                         canOverrideCredit = DstPermissions.Has(UserName, DstPermissions.OverrideCredit),
                         visitRadiusM = DstSettings.Int(db, DstSetting.VisitRadiusM) ?? FieldService.DefaultRadiusM,
+                        requireSelfie = FieldService.RequireSelfie(db),
                         day
                     };
                 }
@@ -192,6 +193,23 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             {
                 using (var db = Db())
                     return FieldService.EndDay(db, userId, lat, lng, DateTime.Now);
+            });
+        }
+
+        /// <summary>Telegram jonli joylashuvi nuqtasi (faqat ochiq ish kunida yoziladi).</summary>
+        [HttpPost]
+        public ActionResult Track(decimal lat, decimal lng, int? accuracyM)
+        {
+            return Run(userId =>
+            {
+                using (var db = Db())
+                {
+                    var now = DateTime.Now;
+                    bool stored = FieldService.Track(db, userId, lat, lng, accuracyM, now);
+                    db.SaveChanges();
+                    bool dayOpen = db.AgentDays.Any(d => d.UserID == userId && d.WorkDate == now.Date && d.EndAt == null);
+                    return new { stored, dayOpen };
+                }
             });
         }
 
@@ -239,18 +257,41 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        /// <summary>
+        /// Agent botdan yangi savdo nuqtasi qo'shadi (tasdiqlanmagan holda; rahbarlarga xabar). Bot javobni olmay qolib
+        /// qayta yuborsa — shu agentning so'nggi 1 soatdagi bir xil nomli nuqtasi qaytariladi (ikkinchi nusxa yaratilmaydi).
+        /// </summary>
         [HttpPost]
-        public ActionResult NewCustomer(CustomerInput input)
+        public ActionResult NewCustomer(CustomerInput input, string photoKey)
         {
             return Run(userId =>
             {
+                if (input == null) throw new DstValidationException(DstLocalization.T("Error_NameRequired"));
+                var now = DateTime.Now;
                 input.ID = null;
-                input.AgentUserID = input.AgentUserID ?? userId;
                 using (var uow = Uow())
                 {
-                    var id = CustomerService.Save(uow, input, userId, AuditActor.Bot, DateTime.Now);
+                    var db = uow.Dst;
+                    if (input.AgentUserID == null && db.SalesAgents.Any(a => a.UserID == userId && a.IsActive && !a.IsExpeditor))
+                        input.AgentUserID = userId;
+                    var name = input.Name?.Trim();
+                    var since = now.AddHours(-1);
+                    var existing = (from p in db.CustomerProfiles
+                                    join c in db.Customers on p.CustomerID equals c.ID
+                                    where p.CreatedBy == userId && p.CreatedVia == AuditActor.Bot && p.CreatedAt >= since && c.Name == name && c.IsDeleted != true
+                                    select (int?)c.ID).FirstOrDefault();
+                    if (existing.HasValue) return new { id = existing.Value, duplicate = true };
+
+                    var id = CustomerService.Save(uow, input, userId, AuditActor.Bot, now);
+                    if (!string.IsNullOrWhiteSpace(photoKey) && photoKey.Trim().Length <= 200)
+                        db.CustomerProfiles.Find(id).PhotoKey = photoKey.Trim();
+                    var agent = db.Users.Where(u => u.ID == userId).Select(u => u.FullName ?? u.Uname).FirstOrDefault();
+                    var phone = db.Customers.Where(c => c.ID == id).Select(c => c.Telephone).FirstOrDefault();
+                    NotificationService.ToManagers(db, NotificationService.NewCustomer,
+                        l => DstLocalization.TFor(l, "Notify_NewCustomer", name, phone ?? "—", agent), null, now, userId);
+                    db.SaveChanges();
                     uow.Commit();
-                    return new { id };
+                    return new { id, duplicate = false };
                 }
             });
         }
@@ -449,6 +490,68 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                     uow.Commit();
                     var o = uow.Dst.Orders.Find(orderId);
                     return new { o.ID, o.DocNo, status = ((OrderStatus)o.OrderStatus).ToString() };
+                }
+            });
+        }
+
+        // ---------- mijoz (Telegram'da CUSTOMER roli bilan bog'langan) ----------
+
+        /// <summary>Faol mijoz bog'lanishi; bo'lmasa — 400 (bot foydalanuvchiga ko'rsatadi).</summary>
+        private static int CustomerOf(DistributionDbContext db, long telegramUserId)
+        {
+            return db.TelegramAccounts.Where(a => a.TelegramUserId == telegramUserId && a.IsActive && a.CustomerID != null)
+                       .Select(a => a.CustomerID).FirstOrDefault()
+                   ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+        }
+
+        /// <summary>Mijozning qarzi: muddatlar bo'yicha, limit, so'nggi to'lovlar.</summary>
+        [HttpGet]
+        public ActionResult MyBalance(long telegramUserId)
+        {
+            return RunSystem(() =>
+            {
+                using (var db = Db())
+                {
+                    var customerId = CustomerOf(db, telegramUserId);
+                    var aging = DebtService.Aging(db, customerId, DateTime.Now);
+                    var profile = db.CustomerProfiles.Find(customerId);
+                    var payments = db.Payments.Where(p => p.CustomerID == customerId && p.Status == DocumentStatus.Posted)
+                        .OrderByDescending(p => p.ID).Take(5).ToList()
+                        .Select(p => new { date = p.DocDate.ToString("dd.MM.yyyy"), p.Amount }).ToList();
+                    return new
+                    {
+                        name = db.Customers.Where(c => c.ID == customerId).Select(c => c.Name).FirstOrDefault(),
+                        debt = aging.Total, aging.NotDue, aging.Overdue, aging.Advance, aging.MaxOverdueDays,
+                        creditLimit = profile?.CreditLimit ?? 0, paymentDays = profile?.PaymentDays ?? 0,
+                        lastPayments = payments
+                    };
+                }
+            });
+        }
+
+        /// <summary>Akt sverki (davr bo'yicha): boshlang'ich qoldiq, yozuvlar (hujjat turi — so'ralgan tilda), yakuniy qoldiq.</summary>
+        [HttpGet]
+        public ActionResult MyStatement(long telegramUserId, DateTime from, DateTime to, string lang)
+        {
+            return RunSystem(() =>
+            {
+                if (to < from || (to - from).TotalDays > 400) throw new DstValidationException(DstLocalization.T("Error_NumberFormat"));
+                using (var db = Db())
+                {
+                    var customerId = CustomerOf(db, telegramUserId);
+                    var language = lang == DstLocalization.Russian ? DstLocalization.Russian : DstLocalization.Uzbek;
+                    var s = DebtService.BuildStatement(db, customerId, from, to);
+                    return new
+                    {
+                        name = db.Customers.Where(c => c.ID == customerId).Select(c => c.Name).FirstOrDefault(),
+                        from = from.ToString("dd.MM.yyyy"), to = to.ToString("dd.MM.yyyy"),
+                        s.Opening, s.TotalDebit, s.TotalCredit, s.Closing,
+                        rows = s.Rows.Select(r => new
+                        {
+                            date = r.Date.ToString("dd.MM.yyyy"), type = DstLocalization.TFor(language, "Ledger_" + r.DocType), doc = r.Doc,
+                            r.Debit, r.Credit, r.Balance
+                        }).ToList()
+                    };
                 }
             });
         }

@@ -161,6 +161,8 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public const string AgentCashAccountId = "AgentCashAccountId";
         public const string BotUsername = "BotUsername";
         public const string LargeOrderAmount = "LargeOrderAmount";
+        public const string RequireSelfie = "RequireSelfie";
+        public const string BotPublicUrl = "BotPublicUrl";
 
         [Key, StringLength(50), DatabaseGenerated(DatabaseGeneratedOption.None)] public string Key { get; set; }
         [StringLength(400)] public string Value { get; set; }

@@ -1799,4 +1799,125 @@ Faol agentlar: {7}/{8}</value>
   <data name="Site_LeadOrderComment" xml:space="preserve">
     <value>Sayt arizasi №{0}</value>
   </data>
+  <data name="Bot_SelfieRequired" xml:space="preserve">
+    <value>Kunni boshlash uchun selfi yuboring.</value>
+  </data>
+  <data name="Notify_StoreOrder" xml:space="preserve">
+    <value>📦 Yig'ish kerak: buyurtma {0} tasdiqlandi.
+Mijoz: {1}
+Ombor: {2}
+{3} qator, {4} kg, {5} so'm
+Yetkazish: {6}</value>
+  </data>
+  <data name="Notify_Pickup" xml:space="preserve">
+    <value>o'zi olib ketadi</value>
+  </data>
+  <data name="Notify_NewCustomer" xml:space="preserve">
+    <value>🆕 Yangi savdo nuqtasi: {0} ({1}), agent {2}. Distributsiya → Mijozlar sahifasida tasdiqlang.</value>
+  </data>
+  <data name="Field" xml:space="preserve">
+    <value>Dala nazorati</value>
+  </data>
+  <data name="Tile_Field" xml:space="preserve">
+    <value>Agentlar ish kuni, selfi, tashriflar va jonli joylashuv</value>
+  </data>
+  <data name="Field_Hint" xml:space="preserve">
+    <value>Ish kuni boshlanishi (selfi bilan), tashriflar va Telegram jonli joylashuvi. Joylashuv faqat ish kuni ochiq paytda yoziladi. Bugungi sahifa har daqiqada yangilanadi.</value>
+  </data>
+  <data name="Field_LinksOff" xml:space="preserve">
+    <value>Rasmlarni ko'rish uchun Sozlamalarda bot manzilini (Bot ochiq manzili) kiriting.</value>
+  </data>
+  <data name="Field_Selfie" xml:space="preserve">
+    <value>Selfi</value>
+  </data>
+  <data name="Field_DayStart" xml:space="preserve">
+    <value>Kun boshi</value>
+  </data>
+  <data name="Field_DayEnd" xml:space="preserve">
+    <value>Kun yakuni</value>
+  </data>
+  <data name="Field_Visits" xml:space="preserve">
+    <value>Tashriflar</value>
+  </data>
+  <data name="Field_LastPosition" xml:space="preserve">
+    <value>So'nggi joylashuv</value>
+  </data>
+  <data name="Field_Live" xml:space="preserve">
+    <value>Jonli joylashuv faol</value>
+  </data>
+  <data name="Field_NoDay" xml:space="preserve">
+    <value>boshlanmagan</value>
+  </data>
+  <data name="Field_Details" xml:space="preserve">
+    <value>Batafsil</value>
+  </data>
+  <data name="Field_NoAgents" xml:space="preserve">
+    <value>Agentlar yo'q (Jamoalar sahifasida qo'shiladi).</value>
+  </data>
+  <data name="Field_TrackMap" xml:space="preserve">
+    <value>Iz xaritada</value>
+  </data>
+  <data name="Field_Track" xml:space="preserve">
+    <value>Joylashuv izi</value>
+  </data>
+  <data name="Field_TrackHint" xml:space="preserve">
+    <value>Jonli joylashuv nuqtalari ko'pi bilan 30 soniyada bir yoziladi; xaritada 100 tagacha nuqta ko'rsatiladi.</value>
+  </data>
+  <data name="Field_CheckIn" xml:space="preserve">
+    <value>Keldi</value>
+  </data>
+  <data name="Field_Distance" xml:space="preserve">
+    <value>Masofa</value>
+  </data>
+  <data name="Field_Result" xml:space="preserve">
+    <value>Natija</value>
+  </data>
+  <data name="Field_Photo" xml:space="preserve">
+    <value>Foto</value>
+  </data>
+  <data name="Field_Time" xml:space="preserve">
+    <value>Vaqt</value>
+  </data>
+  <data name="Field_Source" xml:space="preserve">
+    <value>Manba</value>
+  </data>
+  <data name="Field_Unplanned" xml:space="preserve">
+    <value>rejadan tashqari</value>
+  </data>
+  <data name="Field_Static" xml:space="preserve">
+    <value>statik</value>
+  </data>
+  <data name="Field_StaticHint" xml:space="preserve">
+    <value>Jonli emas, oddiy joylashuv yuborilgan</value>
+  </data>
+  <data name="Field_Source_LIVE" xml:space="preserve">
+    <value>jonli</value>
+  </data>
+  <data name="Field_Source_DAY" xml:space="preserve">
+    <value>kun boshi/yakuni</value>
+  </data>
+  <data name="Field_Source_VISIT" xml:space="preserve">
+    <value>tashrif</value>
+  </data>
+  <data name="Field_Result_ORDER" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="Field_Result_PAYMENT" xml:space="preserve">
+    <value>To'lov</value>
+  </data>
+  <data name="Field_Result_NO_ORDER" xml:space="preserve">
+    <value>Buyurtmasiz</value>
+  </data>
+  <data name="Settings_BotPublicUrl" xml:space="preserve">
+    <value>Bot ochiq manzili (rasmlar uchun)</value>
+  </data>
+  <data name="Settings_RequireSelfie" xml:space="preserve">
+    <value>Kun boshida selfi majburiy</value>
+  </data>
+  <data name="Settings_BotUrlInvalid" xml:space="preserve">
+    <value>Bot manzili https://... ko'rinishida bo'lsin.</value>
+  </data>
+  <data name="Customer_Photo" xml:space="preserve">
+    <value>Nuqta fotosi</value>
+  </data>
 </root>

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Web.Mvc;
 using tahsinERP.Areas.Distribution.Data.Entities;
@@ -83,12 +84,17 @@ namespace tahsinERP.Areas.Distribution.Controllers
         /// <summary>Umumiy sozlamalar (dst.SETTINGS).</summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]
-        public JsonResult SaveGeneral(decimal? minOrderAmount, decimal? largeOrderAmount, int? visitRadiusM, int? agentCashAccountId, string botUsername)
+        public JsonResult SaveGeneral(decimal? minOrderAmount, decimal? largeOrderAmount, int? visitRadiusM, int? agentCashAccountId, string botUsername,
+            bool requireSelfie = false, string botPublicUrl = null)
         {
             return DstJson(() =>
             {
                 if (minOrderAmount < 0 || largeOrderAmount < 0 || visitRadiusM < 20 || visitRadiusM > 5000)
                     throw new DstValidationException(DstLocalization.T("Error_NumberFormat"));
+                botPublicUrl = string.IsNullOrWhiteSpace(botPublicUrl) ? null : botPublicUrl.Trim().TrimEnd('/');
+                if (botPublicUrl != null && (botPublicUrl.Length > 400 || !Uri.TryCreate(botPublicUrl, UriKind.Absolute, out var botUri)
+                                             || (botUri.Scheme != Uri.UriSchemeHttps && botUri.Scheme != Uri.UriSchemeHttp)))
+                    throw new DstValidationException(DstLocalization.T("Settings_BotUrlInvalid"));
                 using (var db = NewDb())
                 {
                     if (agentCashAccountId.HasValue && !db.FinAccounts.Any(a => a.ID == agentCashAccountId && a.IsActive && a.IsDeleted != true))
@@ -99,6 +105,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     Services.Bot.DstSettings.Set(db, DstSetting.VisitRadiusM, (visitRadiusM ?? 200).ToString(inv));
                     Services.Bot.DstSettings.Set(db, DstSetting.AgentCashAccountId, agentCashAccountId?.ToString(inv));
                     Services.Bot.DstSettings.Set(db, DstSetting.BotUsername, string.IsNullOrWhiteSpace(botUsername) ? null : botUsername.Trim().TrimStart('@'));
+                    Services.Bot.DstSettings.Set(db, DstSetting.RequireSelfie, requireSelfie ? "1" : "0");
+                    Services.Bot.DstSettings.Set(db, DstSetting.BotPublicUrl, botPublicUrl);
                     db.SaveChanges();
                     return null;
                 }

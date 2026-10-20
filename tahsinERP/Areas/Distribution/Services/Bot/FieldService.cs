@@ -77,13 +77,25 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
 
         // ---------- ish kuni ----------
 
+        /// <summary>Sozlama RequireSelfie: kun selfisiz boshlanmaydi (avtomatik boshlanish ham — "keldim"da).</summary>
+        public static bool RequireSelfie(DistributionDbContext db) => DstSettings.Get(db, DstSetting.RequireSelfie) == "1";
+
         public static AgentDay StartDay(DistributionDbContext db, int userId, decimal? lat, decimal? lng, string selfieKey, DateTime now)
         {
+            selfieKey = string.IsNullOrWhiteSpace(selfieKey) ? null : selfieKey.Trim();
+            if (selfieKey != null && selfieKey.Length > 200) throw new DstValidationException(DstLocalization.T("Error_NotFound"));
             var day = db.AgentDays.FirstOrDefault(d => d.UserID == userId && d.WorkDate == now.Date);
-            if (day != null) return day;   // takror bosilsa — o'sha kun
+            if (day != null)
+            {
+                if (day.SelfieKey == null && selfieKey != null) day.SelfieKey = selfieKey;   // kun "keldim" bilan boshlangan bo'lsa — selfi keyin
+                return day;   // takror bosilsa — o'sha kun
+            }
+            if (selfieKey == null && RequireSelfie(db))
+                throw new DstValidationException(DstLocalization.T("Bot_SelfieRequired"));
             DirectoryRules.ValidateGeo(lat, lng);
             day = new AgentDay { UserID = userId, WorkDate = now.Date, StartAt = now, StartLat = lat, StartLng = lng, SelfieKey = selfieKey };
             db.AgentDays.Add(day);
+            AddTrack(db, userId, lat, lng, null, TrackSources.Day, now);
             return day;
         }
 
@@ -123,9 +135,11 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
         {
             var day = db.AgentDays.FirstOrDefault(d => d.UserID == userId && d.WorkDate == now.Date)
                       ?? throw new DstValidationException(DstLocalization.T("Bot_DayNotStarted"));
+            DirectoryRules.ValidateGeo(lat, lng);
             day.EndAt = now;
             day.EndLat = lat;
             day.EndLng = lng;
+            AddTrack(db, userId, lat, lng, null, TrackSources.Day, now);
             foreach (var v in db.Visits.Where(v => v.UserID == userId && v.VisitDate == now.Date && v.CheckOutAt == null).ToList())
                 v.CheckOutAt = now;
             db.SaveChanges();
@@ -247,7 +261,11 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
                     throw new DstValidationException(DstLocalization.T("Bot_TooFar", distance, radius));
             }
             if (!db.AgentDays.Any(d => d.UserID == userId && d.WorkDate == now.Date))
+            {
+                if (RequireSelfie(db)) throw new DstValidationException(DstLocalization.T("Bot_DayNotStarted"));
                 StartDay(db, userId, lat, lng, null, now);
+            }
+            AddTrack(db, userId, lat, lng, accuracyM, TrackSources.Visit, now);
 
             var visit = new Visit
             {
@@ -257,6 +275,36 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             db.Visits.Add(visit);
             db.SaveChanges();
             return new CheckInResult { VisitId = visit.ID, DistanceM = distance, RadiusM = radius };
+        }
+
+        // ---------- joylashuv izi ----------
+
+        /// <summary>Jonli joylashuvdan nuqtalar orasidagi eng kichik oraliq (bot ham shuncha siyraklashtiradi).</summary>
+        public const int TrackMinSeconds = 30;
+
+        private static void AddTrack(DistributionDbContext db, int userId, decimal? lat, decimal? lng, int? accuracyM, string source, DateTime now)
+        {
+            if (!lat.HasValue || !lng.HasValue) return;
+            db.AgentTrack.Add(new AgentTrackPoint
+            {
+                UserID = userId, At = now, Lat = lat.Value, Lng = lng.Value, Source = source,
+                AccuracyM = accuracyM.HasValue ? Math.Max(0, Math.Min(accuracyM.Value, 100000)) : (int?)null
+            });
+        }
+
+        /// <summary>
+        /// Telegram jonli joylashuvi nuqtasi. Faqat ish kuni boshlangan va yakunlanmagan bo'lsa yoziladi (shaxsiy vaqt kuzatilmaydi);
+        /// oldingi jonli nuqtadan <see cref="TrackMinSeconds"/> o'tmagan bo'lsa — tashlab yuboriladi.
+        /// </summary>
+        public static bool Track(DistributionDbContext db, int userId, decimal lat, decimal lng, int? accuracyM, DateTime now)
+        {
+            DirectoryRules.ValidateGeo(lat, lng);
+            var day = db.AgentDays.FirstOrDefault(d => d.UserID == userId && d.WorkDate == now.Date);
+            if (day == null || day.EndAt != null) return false;
+            var since = now.AddSeconds(-TrackMinSeconds);
+            if (db.AgentTrack.Any(t => t.UserID == userId && t.Source == TrackSources.Live && t.At > since)) return false;
+            AddTrack(db, userId, lat, lng, accuracyM, TrackSources.Live, now);
+            return true;
         }
 
         public static void SetResult(DistributionDbContext db, int visitId, int userId, string result, int? reasonId, int? orderId, int? paymentId, string photoKey, string note, DateTime now)

@@ -35,6 +35,15 @@
                         </div>
                         <div class="form-group col-md-3"><label>@DstLocalization.T("Settings_BotUsername")</label><input id="gBot" class="form-control" placeholder="my_company_bot" value="@G("BotUsername")" @(canChange ? "" : "disabled") /></div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4"><label>@DstLocalization.T("Settings_BotPublicUrl")</label><input id="gBotUrl" class="form-control" placeholder="https://bot.example.uz" value="@G("BotPublicUrl")" @(canChange ? "" : "disabled") /></div>
+                        <div class="form-group col-md-4 d-flex align-items-end">
+                            <div class="custom-control custom-checkbox mb-50">
+                                <input type="checkbox" class="custom-control-input" id="gSelfie" @(G("RequireSelfie") == "1" ? "checked" : "") @(canChange ? "" : "disabled") />
+                                <label class="custom-control-label" for="gSelfie">@DstLocalization.T("Settings_RequireSelfie")</label>
+                            </div>
+                        </div>
+                    </div>
                     <p class="small text-muted">@DstLocalization.T("Settings_GeneralHint")</p>
                     @if (canChange) { <button type="button" class="btn btn-primary btn-sm" id="gSave">@DstLocalization.T("Save")</button> }
                 </div>
@@ -142,7 +151,8 @@
             $('#gSave').on('click', function () {
                 dstPost('@Url.Action("SaveGeneral")', {
                     minOrderAmount: $('#gMinOrder').val(), largeOrderAmount: $('#gLarge').val(), visitRadiusM: $('#gRadius').val(),
-                    agentCashAccountId: $('#gAccount').val(), botUsername: $('#gBot').val()
+                    agentCashAccountId: $('#gAccount').val(), botUsername: $('#gBot').val(),
+                    requireSelfie: $('#gSelfie').is(':checked'), botPublicUrl: $('#gBotUrl').val()
                 }).done(function () { dstNotify(); });
             });
             $('input[data-role]').on('change', function () {
