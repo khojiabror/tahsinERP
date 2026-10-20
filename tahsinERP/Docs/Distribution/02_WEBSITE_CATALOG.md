@@ -104,7 +104,7 @@ Fotolar uchun bot uchun yozilgan `IFileStore` naqshi ishlatiladi: hozircha disk,
 | **Arizalar** | Ro'yxat (holat filtri).<br>• Arizani ochganda telefon bo'yicha mavjud mijoz taklif qilinadi.<br>• **"Buyurtma yaratish"** — mavjud buyurtma formasiga tovarlar bilan o'tadi (`D_ORDERS`, manba = sayt). Rad etish sabab bilan.<br>• Yangi ariza rahbar/menejerga **Telegram bot** orqali xabar qilinadi (mavjud `NotificationService`). |
 | **Domenlar** | Domen qo'shish, DNS ko'rsatmasi (CNAME), tasdiq holati |
 
-Ruxsatlar: yangi `PERMISSIONMODULES`, masalan `SiteSettings`, `SiteCatalog`, `SiteLeads`. Paketda `ProductModule.Website` (`EditionModules`). Qaysi paketga kirishi 9-bo'limda.
+Ruxsatlar: yangi `PERMISSIONMODULES`, masalan `SiteSettings`, `SiteCatalog`, `SiteLeads`. Litsenziyada `ProductModule.Website` — paketdan tashqari alohida xizmat (9-bo'lim).
 
 ---
 
@@ -123,6 +123,7 @@ Ruxsatlar: yangi `PERMISSIONMODULES`, masalan `SiteSettings`, `SiteCatalog`, `Si
   - Slug URL'lar, `sitemap.xml` (har tilga), `robots.txt`, canonical.
   - OpenGraph (Telegram'da chiroyli ko'rinish).
   - schema.org `Product` / `Offer` / `BreadcrumbList` / `Organization`.
+- **Dizayn:** 10-bo'lim (`vercel/shop` asosi + B2B katalog naqshlari, Razor + Tailwind + htmx).
 - **Tezlik:** HTML 60 soniya keshlanadi va versiya o'zgarganda tozalanadi. Rasmlar WebP, `srcset`, lazy, CDN orqali. Maqsad: mobil Lighthouse ≥ 90.
 - **Ariza:**
   - Forma maydonlari: ism, telefon, tashkilot (ixtiyoriy) va savatcha.
@@ -148,7 +149,7 @@ Ruxsatlar: yangi `PERMISSIONMODULES`, masalan `SiteSettings`, `SiteCatalog`, `Si
 | **W3** | Arizalar | Savatcha va forma, anti-spam, sayt outbox → `SiteApi/Lead`, ERP'da arizalar sahifasi, mijozni topish, "Buyurtma yaratish", bot xabari | 1 hafta | Saytdagi ariza 1 daqiqada menejer Telegram'ida, bir tugmada buyurtma |
 | **W4** | Domen va ishga tushirish | Domenlar sahifasi va tasdiq, nginx/CloudFront, sertifikatlar, analitika, Lighthouse, deploy hujjati, bitta kompaniya bilan pilot | 1 hafta | Mijoz o'z domenida ishlaydigan sayt |
 
-Jami ~6.5 hafta. Distributsiya MVP'si bilan to'qnashmaydi. Taklif qilinadigan tartib: S5 (hisobotlar) va S6 (pilot) dan keyin. Agar sayt sotuv uchun muhimroq bo'lsa, S5 bilan parallel olib borish mumkin: W0 va W1 ERP'da, W2 alohida loyihada.
+Jami ~6.5 hafta. **Qaror:** distributsiya S5 va S6 tugagandan keyin boshlanadi.
 
 ---
 
@@ -167,10 +168,71 @@ Jami ~6.5 hafta. Distributsiya MVP'si bilan to'qnashmaydi. Taklif qilinadigan ta
 
 ---
 
-## 9. Sizdan qaror kerak
+## 9. Qarorlar (foydalanuvchi, 2026-10-20)
 
-1. **Domen:** har kompaniya o'z domeni bilanmi, yoki standart subdomen (`firma.tahsin.uz` — asosiy domen nomi Control Panel rejasida ham ochiq) va xohlasa o'z domeni?
-2. **Narx:** saytda narx ko'rinadimi (bitta "chakana / sayt" narx turi), "narxni so'rang" bo'ladimi, yoki kompaniya o'zi tanlaydimi? Tavsiya: kompaniya tanlaydi.
-3. **Paket:** "Sayt" qaysi tarifga kiradi (START / BIZNES / KORP) yoki alohida qo'shimcha xizmat bo'ladimi?
-4. **Dizayn:** bitta shablonni men tayyorlaymi (zamonaviy, mobil-birinchi) yoki tayyor dizayn yoki maket bormi?
-5. **Tartib:** sayt S5/S6 dan keyinmi yoki parallel?
+1. **Domen:** standart subdomen `{slug}.<asosiy domen>` (wildcard sertifikat, darhol ishlaydi). Kompaniya xohlasa o'z domenini ulaydi (CNAME + tasdiq, 5-bo'lim "Domenlar"). Asosiy domen nomi Control Panel rejasida hali ochiq.
+2. **Narx:** har kompaniya o'zi tanlaydi: narx turi ko'rsatiladi, "narxni so'rang" yoki yashirin. Qoldiq ko'rinishi ham kompaniya sozlamasi.
+3. **Paket:** sayt **alohida pullik xizmat** (add-on), START/BIZNES/KORP paketlariga kirmaydi.
+   - Litsenziyada alohida modul belgisi: `ProductModule.Website`, Edition'dan mustaqil.
+   - Control Panel'da obuna qatori sifatida sotiladi. Bu Control Panel'ning add-on qo'llab-quvvatlashiga bog'liq va W0'da tekshiriladi.
+4. **Dizayn:** 10-bo'limda tanlangan asos.
+5. **Tartib:** distributsiya S5 (hisobotlar) va S6 (pilot) tugagandan keyin boshlanadi.
+
+---
+
+## 10. Dizayn: shablon tanlovi (2026-10-20)
+
+**Qanday tanlandi.** E-commerce shablonlari bo'yicha forum va sharhlar o'rganildi:
+- Shopify Community muhokamalari: "Horizon vs Dawn", "qaysi premium tema".
+- Tema sharhlari: tezlik va konversiya, B2B / katta katalog bo'yicha.
+- Baymard UX tadqiqotlari: katalog sahifasi va filtrlar.
+- Ochiq kodli storefront reytinglari.
+
+Reddit va Hacker News bu vosita bilan o'qilmadi (Reddit botlarni bloklaydi). Topilgan sharhlarning ko'pi tema sotuvchilarining blogi, ularning baholari bir-biriga zid. Shuning uchun xulosa mustaqil manbalarga (Shopify Community, Baymard) va litsenziyaga tayanadi.
+
+**Asosiy xulosalar:**
+- Tezlik pul bilan bog'liq: Shopify ma'lumotiga ko'ra LCP 100 ms sekinlashsa, konversiya ~3,5% kamayadi. Demo ko'rsatkichi emas, haqiqiy tovarlar va rasmlar bilan bo'lgan tezlik muhim.
+- Forumlarda eng ko'p maqtaladigan Shopify temalari:
+  - Dawn — barqaror va tez.
+  - Horizon — yangi va moslashuvchan, lekin ayrimlarda INP yomonlashgan, eski brauzerlarni yomon qo'llaydi.
+  - Katta katalog / B2B uchun: Warehouse, Empire, Hyper, Athens — zich setka, kuchli filtrlar, tez buyurtma.
+- **Lekin ularning kodini olib bo'lmaydi.** Dawn va Horizon litsenziyasi faqat Shopify bilan ishlaydigan temalar uchun ruxsat beradi ("All other uses ... strictly prohibited"). Warehouse/Empire kabi pullik temalar ham faqat Shopify'da. Biz ulardan faqat UX naqshlarini olamiz (zich setka, filtrlar, tez qo'shish), kod va dizaynni ko'chirmaymiz.
+- Ochiq kodli (MIT) storefrontlarning holati:
+  - Vercel Next.js Commerce (14k yulduz) va Medusa Next.js starter arxivlangan.
+  - Ularning o'rnini `vercel/shop` (MIT, Next.js 16, Tailwind CSS 4, shadcn/ui, Schema.org, sitemap) va Medusa `dtc-starter` (MIT) egalladi.
+  - Ikkalasi ham chakana (DTC) savdo uchun: katta katalog filtrlari yo'q yoki zaif.
+
+**Tanlov:**
+- **Vizual asos — `vercel/shop` dizayn tizimi** (MIT, shadcn/ui ham MIT). Toza, zamonaviy, mobil-birinchi, kuzatilyapti, SEO uchun tayyor naqshlarga ega (Schema.org, sitemap, `llms.txt`).
+- **Katalog UX — B2B / katta katalog naqshlari** (Warehouse/Empire forum tavsiyalari + Baymard):
+  - **Filtrlar:** brend, kategoriya, xususiyatlar va "bor" filtrlari; har variant yonida natija soni; bir guruh ichida bir nechtasini tanlash. Tanlangan filtrlar tepada "chip" bo'lib turadi (Baymard: saytlarning 28% buni qilmaydi).
+  - **Ro'yxat:** setka ↔ zich jadval almashtirgichi.
+  - **Ro'yxat kartochkasi:** artikul, birlik, narx va qoldiq belgisi bir xil joyda.
+  - **Tez qo'shish:** ro'yxatning o'zidan, birlik tanlash va miqdor bilan.
+  - **Qidiruv:** doim ko'rinib turadi, artikul va shtrix-kod bo'yicha ham.
+  - **Savatcha → ariza.**
+- **Texnik ko'chirish:**
+  - Next.js/React ishlatilmaydi. Ikkinchi runtime qo'shmaslik uchun dizayn **Razor Pages (SSR) + Tailwind CSS 4** ga ko'chiriladi. Tailwind build vaqtida standalone CLI bilan ishlaydi, Node.js kerak emas.
+  - shadcn/ui komponentlarining belgilanishi Razor partial'lariga o'tkaziladi.
+  - Interaktivlik **htmx** (BSD-0) va kichik vanilla JS bilan: filtr va sahifalash server HTML'ini almashtiradi. Google uchun har filtr holati oddiy URL bo'lib qoladi.
+  - Litsenziya: MIT matni `THIRD-PARTY-NOTICES.md` ga qo'shiladi.
+- **Brend:** logo, asosiy rang, shrift (Google Fonts'dan 3 ta variant), burchak radiusi. Kompaniya bularni admin panelda tanlaydi, CSS o'zgaruvchilari orqali qo'llanadi. Qorong'u rejim ham bo'ladi.
+- **Sifat mezonlari (W4 qabul):**
+  - Mobil Lighthouse: Performance ≥ 90, Accessibility ≥ 95, SEO = 100.
+  - Core Web Vitals: LCP < 2,5 s, INP < 200 ms, CLS < 0,1. Haqiqiy katalogda (≥ 1000 tovar, fotolar bilan) o'lchanadi.
+  - Kirill va lotin matnlar sinab ko'riladi, 320 px ekranda gorizontal scroll bo'lmasligi kerak.
+
+**Manbalar:**
+- [Horizon versus Dawn — Shopify Community](https://community.shopify.com/t/horizon-versus-dawn/556215)
+- [Is Horizon the new Dawn? — Shopify Community](https://community.shopify.com/t/is-horizon-the-new-dawn/556102)
+- [Horizon: high INP — Shopify Community](https://community.shopify.com/t/has-anyone-successfully-debugged-high-inp-scores-on-the-horizon-theme-specifically/586915)
+- [Which premium theme — Shopify Community](https://community.shopify.com/t/which-premium-theme-should-i-choose-and-why/584317)
+- [Best Shopify themes 2026: speed, conversions](https://qualimero.com/en/blog/best-shopify-themes)
+- [Best Shopify themes for B2B wholesale](https://wholesalehelper.io/blog/best-shopify-themes-for-b2b-wholesale/)
+- [Baymard: PLP UX](https://baymard.com/blog/product-listing-page-plp-ux)
+- [Baymard: list item design](https://baymard.com/research-articles/list-item-design-ecommerce)
+- [Next.js e-commerce templates ranked](https://designrevision.com/blog/best-nextjs-ecommerce-templates.md)
+- [Shopify/dawn LICENSE](https://github.com/Shopify/dawn/blob/main/LICENSE.md)
+- [vercel/commerce (arxiv)](https://github.com/vercel/commerce)
+- [vercel/shop](https://github.com/vercel/shop)
+- [medusajs/dtc-starter](https://github.com/medusajs/dtc-starter)
