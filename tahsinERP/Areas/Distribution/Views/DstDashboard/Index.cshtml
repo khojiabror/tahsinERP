@@ -1,0 +1,299 @@
+@model tahsinERP.Areas.Distribution.Services.Reports.DashboardService.Model
+@{
+    ViewBag.Title = DstLocalization.T("Dashboard");
+    bool cost = ViewBag.DstCanSeeCost == true;
+    string N(decimal v) => v.ToString("N0");
+    string user = User.Identity.Name;
+    bool canReports = tahsinERP.Models.RoleHelper.IsViewPermitted(user, "DstReports", "Index");
+    bool canDebts = tahsinERP.Models.RoleHelper.IsViewPermitted(user, "DstDebts", "Index");
+    bool canOrders = tahsinERP.Models.RoleHelper.IsViewPermitted(user, "DstOrders", "Index");
+    var monthFrom = new DateTime(Model.Date.Year, Model.Date.Month, 1).ToString("yyyy-MM-dd");
+    var day = Model.Date.ToString("yyyy-MM-dd");
+    decimal trendMax = Model.Trend.Count == 0 ? 0 : Model.Trend.Max(t => Math.Max(t.Net, 0));
+    decimal debtTotal = Model.Debt.Total;
+    string Pct(decimal part) => debtTotal <= 0 ? "0" : Math.Round(part * 100m / debtTotal, 2).ToString(System.Globalization.CultureInfo.InvariantCulture);
+}
+<style>
+    .dash-kpi h3 { font-weight: 600; margin-bottom: .1rem; }
+    .dash-kpi .sub { font-size: .85rem; color: #828d99; }
+    .dash-bars { display: flex; align-items: flex-end; gap: 4px; height: 140px; }
+    .dash-bars .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; position: relative; height: 100%; }
+    .dash-bars .bar .net { background: #5a8dee; border-radius: 3px 3px 0 0; min-height: 1px; }
+    .dash-bars .bar .profit { background: #39da8a; position: absolute; bottom: 0; left: 30%; right: 30%; border-radius: 2px 2px 0 0; }
+    .dash-bars .bar.today .net { background: #304ffe; }
+    .dash-days { display: flex; gap: 4px; font-size: .7rem; color: #828d99; }
+    .dash-days span { flex: 1; text-align: center; }
+    .dash-aging { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #f2f4f4; }
+    .dash-aging div { height: 100%; }
+</style>
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <form method="get" class="d-flex flex-wrap align-items-center mb-1">
+                <input type="date" name="date" value="@day" max="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control form-control-sm mr-50 mb-50" style="max-width:170px" onchange="this.form.submit()" />
+                <a class="btn btn-sm btn-outline-secondary mr-50 mb-50" href="@Url.Action("Index")">@DstLocalization.T("Dash_Today")</a>
+                <a class="btn btn-sm btn-outline-success mb-50" href="@Url.Action("Export", new { date = day })"><i class="bx bxs-file-export"></i> Excel</a>
+                <span class="ml-auto small text-muted mb-50">@DstLocalization.T("Dash_AsOf", Model.Date.ToString("dd.MM.yyyy"), DateTime.Now.ToString("HH:mm"))</span>
+            </form>
+
+            @* 1. Asosiy ko'rsatkichlar *@
+            <div class="row">
+                <div class="col-xl-2 col-md-4 col-6">
+                    <div class="card dash-kpi"><div class="card-body p-1">
+                        <div class="text-muted small">@DstLocalization.T("Report_Revenue")</div>
+                        <h3 class="text-primary">@N(Model.Day.Net)</h3>
+                        <div class="sub">@DstLocalization.T("Dash_Month"): <b>@N(Model.Month.Net)</b></div>
+                    </div></div>
+                </div>
+                @if (cost)
+                {
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="card dash-kpi"><div class="card-body p-1">
+                            <div class="text-muted small">@DstLocalization.T("Report_GrossProfit")</div>
+                            <h3 class="text-success">@N(Model.Day.Profit)</h3>
+                            <div class="sub">@DstLocalization.T("Dash_Month"): <b>@N(Model.Month.Profit)</b>@if (Model.Month.MarginPct.HasValue) { <span> · @Model.Month.MarginPct%</span> }</div>
+                        </div></div>
+                    </div>
+                }
+                <div class="col-xl-2 col-md-4 col-6">
+                    <div class="card dash-kpi"><div class="card-body p-1">
+                        <div class="text-muted small">@DstLocalization.T("Dash_Collected")</div>
+                        <h3>@N(Model.CollectedToday)</h3>
+                        <div class="sub">@DstLocalization.T("Dash_Month"): <b>@N(Model.CollectedMonth)</b></div>
+                    </div></div>
+                </div>
+                <div class="col-xl-2 col-md-4 col-6">
+                    <div class="card dash-kpi"><div class="card-body p-1">
+                        <div class="text-muted small">@DstLocalization.T("Debt")</div>
+                        <h3>@N(Model.Debt.Total)</h3>
+                        <div class="sub">@DstLocalization.T("Overdue"): <b class="text-danger">@N(Model.Debt.Overdue)</b></div>
+                    </div></div>
+                </div>
+                <div class="col-xl-2 col-md-4 col-6">
+                    <div class="card dash-kpi"><div class="card-body p-1">
+                        <div class="text-muted small">@DstLocalization.T("Dash_Money")</div>
+                        @if (Model.Accounts != null)
+                        {
+                            var byCurrency = Model.Accounts.GroupBy(a => a.Currency).ToList();
+                            if (byCurrency.Count == 0) { <h3>0</h3> }
+                            foreach (var c in byCurrency.Take(2))
+                            {
+                                <h3 class="mb-0" style="font-size:1.25rem">@N(c.Sum(a => a.Balance)) <small class="text-muted">@c.Key</small></h3>
+                            }
+                        }
+                        else
+                        {
+                            <h3>—</h3>
+                        }
+                        <div class="sub">@DstLocalization.T("Dash_AgentsOnHand"): <b class="text-warning">@N(Model.AgentsOnHand)</b></div>
+                    </div></div>
+                </div>
+                @if (cost)
+                {
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="card dash-kpi"><div class="card-body p-1">
+                            <div class="text-muted small">@DstLocalization.T("Dash_StockValue")</div>
+                            <h3>@N(Model.Stock.Sum(s => s.Value))</h3>
+                            <div class="sub">@DstLocalization.T("Dash_FifoCost")</div>
+                        </div></div>
+                    </div>
+                }
+            </div>
+
+            <div class="row">
+                @* 2. 14 kunlik dinamika *@
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                            <h5 class="card-title mb-0">@DstLocalization.T("Dash_Trend")</h5>
+                            <span class="small"><span class="badge" style="background:#5a8dee">&nbsp;</span> @DstLocalization.T("Report_Revenue")
+                                @if (cost) { <span class="badge ml-50" style="background:#39da8a">&nbsp;</span> @DstLocalization.T("Report_GrossProfit") }</span>
+                        </div>
+                        <div class="card-body">
+                            @{
+                                var points = Enumerable.Range(0, 14).Select(i => Model.Date.AddDays(i - 13)).ToList();
+                                var byDate = Model.Trend.ToDictionary(t => t.Date, t => t);
+                            }
+                            <div class="dash-bars">
+                                @foreach (var d in points)
+                                {
+                                    byDate.TryGetValue(d, out var t);
+                                    var net = Math.Max(t.Net, 0);
+                                    var h = trendMax <= 0 ? 0 : Math.Round(net * 100m / trendMax, 1);
+                                    var hp = trendMax <= 0 || !cost ? 0 : Math.Round(Math.Max(t.Profit, 0) * 100m / trendMax, 1);
+                                    <div class="bar @(d == Model.Date ? "today" : "")" title="@d.ToString("dd.MM") — @N(t.Net)@(cost ? " / " + N(t.Profit) : "")">
+                                        <div class="net" style="height:@h.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                        @if (cost) { <div class="profit" style="height:@hp.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></div> }
+                                    </div>
+                                }
+                            </div>
+                            <div class="dash-days mt-25">
+                                @foreach (var d in points) { <span>@d.ToString("dd")</span> }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* 3. Buyurtmalar va agentlar *@
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header pb-0"><h5 class="card-title mb-0">@DstLocalization.T("Dash_Operations")</h5></div>
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <tr><td>@DstLocalization.T("Dash_NewOrders")</td><td class="text-right">@Model.OrdersToday</td><td class="text-right"><b>@N(Model.OrdersTodayTotal)</b></td></tr>
+                                    <tr><td>@if (canOrders) { <a href="@Url.Action("Index", "DstOrders")">@DstLocalization.T("Dash_AwaitingConfirm")</a> } else { @DstLocalization.T("Dash_AwaitingConfirm") }</td>
+                                        <td class="text-right">@Model.AwaitingConfirm</td><td class="text-right">@N(Model.AwaitingConfirmTotal)</td></tr>
+                                    <tr><td>@DstLocalization.T("Dash_AwaitingShipment")</td><td class="text-right">@Model.AwaitingShipment</td><td class="text-right">@N(Model.AwaitingShipmentTotal)</td></tr>
+                                    <tr><td>@DstLocalization.T("Returns")</td><td></td><td class="text-right">@N(Model.Day.ReturnAmount)</td></tr>
+                                    <tr><td>@DstLocalization.T("Dash_AgentsActive")</td><td class="text-right" colspan="2">@Model.AgentsActive / @Model.AgentsTotal</td></tr>
+                                    <tr><td>@if (canReports) { <a href="@Url.Action("Visits", "DstReports", new { from = day, to = day })">@DstLocalization.T("Dash_VisitsToday")</a> } else { @DstLocalization.T("Dash_VisitsToday") }</td>
+                                        <td class="text-right" colspan="2">@Model.VisitsToday</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                @* 4. Qarz *@
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                            <h5 class="card-title mb-0">@DstLocalization.T("Dash_Debts")</h5>
+                            @if (canDebts) { <a class="small" href="@Url.Action("Index", "DstDebts", new { filter = "overdue" })">@DstLocalization.T("Dash_All") →</a> }
+                        </div>
+                        <div class="card-body">
+                            <div class="dash-aging mb-50" title="@DstLocalization.T("Debt"): @N(debtTotal)">
+                                <div style="width:@Pct(Model.Debt.NotDue)%;background:#39da8a" title="@DstLocalization.T("Aging_NotDue"): @N(Model.Debt.NotDue)"></div>
+                                <div style="width:@Pct(Model.Debt.Days1To7)%;background:#fdac41" title="1–7: @N(Model.Debt.Days1To7)"></div>
+                                <div style="width:@Pct(Model.Debt.Days8To30)%;background:#ff8a3d" title="8–30: @N(Model.Debt.Days8To30)"></div>
+                                <div style="width:@Pct(Model.Debt.Days31To60)%;background:#ff5b5c" title="31–60: @N(Model.Debt.Days31To60)"></div>
+                                <div style="width:@Pct(Model.Debt.Over60)%;background:#b71c1c" title="60+: @N(Model.Debt.Over60)"></div>
+                            </div>
+                            <div class="d-flex flex-wrap small mb-1">
+                                <span class="mr-1">@DstLocalization.T("Aging_NotDue"): <b>@N(Model.Debt.NotDue)</b></span>
+                                <span class="mr-1 text-warning">1–7: <b>@N(Model.Debt.Days1To7)</b></span>
+                                <span class="mr-1 text-warning">8–30: <b>@N(Model.Debt.Days8To30)</b></span>
+                                <span class="mr-1 text-danger">31–60: <b>@N(Model.Debt.Days31To60)</b></span>
+                                <span class="mr-1 text-danger">60+: <b>@N(Model.Debt.Over60)</b></span>
+                                <span class="text-success">@DstLocalization.T("Aging_Advance"): <b>@N(Model.Debt.Advance)</b></span>
+                            </div>
+                            <div class="small text-muted mb-50">@DstLocalization.T("Dash_Debtors", Model.DebtorCount, Model.OverdueCount)</div>
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>@DstLocalization.T("Dash_TopOverdue")</th><th class="text-right">@DstLocalization.T("Overdue")</th><th class="text-right">@DstLocalization.T("Dash_Days")</th></tr></thead>
+                                <tbody>
+                                    @foreach (var o in Model.TopOverdue)
+                                    {
+                                        <tr>
+                                            <td>@if (canDebts) { <a href="@Url.Action("Statement", "DstDebts", new { id = o.CustomerID })">@o.Customer</a> } else { @o.Customer }</td>
+                                            <td class="text-right text-danger">@N(o.Overdue)</td>
+                                            <td class="text-right">@o.Days</td>
+                                        </tr>
+                                    }
+                                    @if (Model.TopOverdue.Count == 0) { <tr><td colspan="3" class="text-muted">@DstLocalization.T("Dash_NoOverdue")</td></tr> }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                @* 5. Pul *@
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                            <h5 class="card-title mb-0">@DstLocalization.T("Dash_Money")</h5>
+                            @if (canReports) { <a class="small" href="@Url.Action("Cash", "DstReports", new { from = monthFrom, to = day })">@DstLocalization.T("Report_Cash") →</a> }
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    @if (Model.Accounts != null)
+                                    {
+                                        foreach (var a in Model.Accounts)
+                                        {
+                                            <tr>
+                                                <td><i class="bx @(a.IsCash ? "bx-wallet" : "bx-building-house") text-muted"></i> @a.Name</td>
+                                                <td class="text-right @(a.Balance < 0 ? "text-danger" : "")"><b>@N(a.Balance)</b> <small class="text-muted">@a.Currency</small></td>
+                                            </tr>
+                                        }
+                                        if (Model.Accounts.Count == 0) { <tr><td colspan="2" class="text-muted">@DstLocalization.T("Dash_NoAccounts")</td></tr> }
+                                    }
+                                    <tr class="table-warning">
+                                        <td><i class="bx bx-user text-muted"></i> @DstLocalization.T("Dash_AgentsOnHand") <span class="small text-muted">(@Model.AgentsOnHandCount)</span></td>
+                                        <td class="text-right"><b>@N(Model.AgentsOnHand)</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><i class="bx bx-time text-muted"></i> @DstLocalization.T("Dash_PendingHandovers")</td>
+                                        <td class="text-right">@N(Model.PendingHandovers)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                @* 6. Agentlar reytingi (oy boshidan) *@
+                <div class="@(cost ? "col-lg-7" : "col-12")">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                            <h5 class="card-title mb-0">@DstLocalization.T("Dash_TopAgents")</h5>
+                            @if (canReports) { <a class="small" href="@Url.Action("Sales", "DstReports", new { dim = "agent", from = monthFrom, to = day })">@DstLocalization.T("Report_Sales") →</a> }
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>@DstLocalization.T("Agent")</th><th class="text-right">@DstLocalization.T("Report_Revenue")</th>
+                                    @if (cost) { <th class="text-right">@DstLocalization.T("Report_GrossProfit")</th> }
+                                    <th class="text-right">@DstLocalization.T("Orders")</th><th class="text-right">@DstLocalization.T("Customers")</th></tr></thead>
+                                <tbody>
+                                    @foreach (var a in Model.TopAgents)
+                                    {
+                                        <tr>
+                                            <td>@(a.Name ?? DstLocalization.T("Report_NotSet"))</td>
+                                            <td class="text-right"><b>@N(a.Net)</b></td>
+                                            @if (cost) { <td class="text-right">@N(a.Profit)</td> }
+                                            <td class="text-right">@a.Orders</td>
+                                            <td class="text-right">@a.Customers</td>
+                                        </tr>
+                                    }
+                                    @if (Model.TopAgents.Count == 0) { <tr><td colspan="5" class="text-muted">@DstLocalization.T("Dash_NoSales")</td></tr> }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                @* 7. Qoldiq qiymati *@
+                @if (cost)
+                {
+                    <div class="col-lg-5">
+                        <div class="card">
+                            <div class="card-header pb-0"><h5 class="card-title mb-0">@DstLocalization.T("Dash_StockValue")</h5></div>
+                            <div class="card-body">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>@DstLocalization.T("Warehouse")</th><th class="text-right">@DstLocalization.T("Products")</th><th class="text-right">@DstLocalization.T("Dash_Value")</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var w in Model.Stock)
+                                        {
+                                            <tr>
+                                                <td>@w.Warehouse @if (w.NoPrice > 0) { <span class="badge badge-light-warning" title="@DstLocalization.T("Dash_NoPriceHint")">@w.NoPrice</span> }</td>
+                                                <td class="text-right">@w.Products</td>
+                                                <td class="text-right"><b>@N(w.Value)</b></td>
+                                            </tr>
+                                        }
+                                        @if (Model.Stock.Count == 0) { <tr><td colspan="3" class="text-muted">@DstLocalization.T("Dash_NoStock")</td></tr> }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

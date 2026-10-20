@@ -1799,4 +1799,214 @@
   <data name="Site_LeadOrderComment" xml:space="preserve">
     <value>Заявка с сайта №{0}</value>
   </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Панель руководителя</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Отчёты</value>
+  </data>
+  <data name="Tile_Dashboard" xml:space="preserve">
+    <value>Итоги дня: выручка, прибыль, долги, деньги, остатки</value>
+  </data>
+  <data name="Tile_Reports" xml:space="preserve">
+    <value>Продажи в разрезах, визиты, сдача денег агентами</value>
+  </data>
+  <data name="Dash_Today" xml:space="preserve">
+    <value>Сегодня</value>
+  </data>
+  <data name="Dash_Month" xml:space="preserve">
+    <value>С начала месяца</value>
+  </data>
+  <data name="Dash_AsOf" xml:space="preserve">
+    <value>На {0}, обновлено в {1}</value>
+  </data>
+  <data name="Dash_Collected" xml:space="preserve">
+    <value>Собрано денег</value>
+  </data>
+  <data name="Dash_Money" xml:space="preserve">
+    <value>Деньги</value>
+  </data>
+  <data name="Dash_AgentsOnHand" xml:space="preserve">
+    <value>На руках у агентов</value>
+  </data>
+  <data name="Dash_PendingHandovers" xml:space="preserve">
+    <value>Сдано, ждёт подтверждения</value>
+  </data>
+  <data name="Dash_StockValue" xml:space="preserve">
+    <value>Стоимость остатков</value>
+  </data>
+  <data name="Dash_FifoCost" xml:space="preserve">
+    <value>По себестоимости FIFO, склады продаж</value>
+  </data>
+  <data name="Dash_Trend" xml:space="preserve">
+    <value>Последние 14 дней</value>
+  </data>
+  <data name="Dash_Operations" xml:space="preserve">
+    <value>Заказы и агенты</value>
+  </data>
+  <data name="Dash_NewOrders" xml:space="preserve">
+    <value>Заказы за день</value>
+  </data>
+  <data name="Dash_AwaitingConfirm" xml:space="preserve">
+    <value>Ждут подтверждения</value>
+  </data>
+  <data name="Dash_AwaitingShipment" xml:space="preserve">
+    <value>Ждут отгрузки</value>
+  </data>
+  <data name="Dash_AgentsActive" xml:space="preserve">
+    <value>Агентов на линии</value>
+  </data>
+  <data name="Dash_VisitsToday" xml:space="preserve">
+    <value>Визиты</value>
+  </data>
+  <data name="Dash_Debts" xml:space="preserve">
+    <value>Долги клиентов</value>
+  </data>
+  <data name="Dash_All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Dash_Debtors" xml:space="preserve">
+    <value>Должников: {0}, с просрочкой: {1}</value>
+  </data>
+  <data name="Dash_TopOverdue" xml:space="preserve">
+    <value>Крупнейшая просрочка</value>
+  </data>
+  <data name="Dash_Days" xml:space="preserve">
+    <value>Дней</value>
+  </data>
+  <data name="Dash_NoOverdue" xml:space="preserve">
+    <value>Просрочки нет</value>
+  </data>
+  <data name="Dash_NoAccounts" xml:space="preserve">
+    <value>Нет активных касс и счетов</value>
+  </data>
+  <data name="Dash_TopAgents" xml:space="preserve">
+    <value>Рейтинг агентов (с начала месяца)</value>
+  </data>
+  <data name="Dash_NoSales" xml:space="preserve">
+    <value>Продаж за период нет</value>
+  </data>
+  <data name="Dash_Value" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="Dash_NoStock" xml:space="preserve">
+    <value>Остатков нет</value>
+  </data>
+  <data name="Dash_NoPriceHint" xml:space="preserve">
+    <value>Товаров без цены прихода (оценены в 0)</value>
+  </data>
+  <data name="Dash_Section" xml:space="preserve">
+    <value>Раздел</value>
+  </data>
+  <data name="Dash_Indicator" xml:space="preserve">
+    <value>Показатель</value>
+  </data>
+  <data name="Report_Sales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="Report_Visits" xml:space="preserve">
+    <value>Визиты</value>
+  </data>
+  <data name="Report_Cash" xml:space="preserve">
+    <value>Сдача денег агентами</value>
+  </data>
+  <data name="Report_Dim_Agent" xml:space="preserve">
+    <value>Агент</value>
+  </data>
+  <data name="Report_Dim_Customer" xml:space="preserve">
+    <value>Клиент</value>
+  </data>
+  <data name="Report_Dim_Product" xml:space="preserve">
+    <value>Товар</value>
+  </data>
+  <data name="Report_Dim_Territory" xml:space="preserve">
+    <value>Территория</value>
+  </data>
+  <data name="Report_Dim_Category" xml:space="preserve">
+    <value>Категория</value>
+  </data>
+  <data name="Report_NotSet" xml:space="preserve">
+    <value>(не указано)</value>
+  </data>
+  <data name="Report_Shipped" xml:space="preserve">
+    <value>Отгружено</value>
+  </data>
+  <data name="Report_Revenue" xml:space="preserve">
+    <value>Выручка</value>
+  </data>
+  <data name="Report_Cost" xml:space="preserve">
+    <value>Себестоимость (FIFO)</value>
+  </data>
+  <data name="Report_GrossProfit" xml:space="preserve">
+    <value>Валовая прибыль</value>
+  </data>
+  <data name="Report_Margin" xml:space="preserve">
+    <value>Маржа, %</value>
+  </data>
+  <data name="Report_RemoveFilter" xml:space="preserve">
+    <value>Снять фильтр</value>
+  </data>
+  <data name="Report_SalesHint" xml:space="preserve">
+    <value>Выручка — проведённые отгрузки минус возвраты (по дате документа). Себестоимость — FIFO партий при отгрузке. Нажмите на строку — переход к следующему разрезу.</value>
+  </data>
+  <data name="Report_WorkDays" xml:space="preserve">
+    <value>Рабочих дней</value>
+  </data>
+  <data name="Report_Plan" xml:space="preserve">
+    <value>План</value>
+  </data>
+  <data name="Report_Fact" xml:space="preserve">
+    <value>Факт</value>
+  </data>
+  <data name="Report_PlannedVisited" xml:space="preserve">
+    <value>По плану</value>
+  </data>
+  <data name="Report_Unplanned" xml:space="preserve">
+    <value>Вне плана</value>
+  </data>
+  <data name="Report_Coverage" xml:space="preserve">
+    <value>Выполнение плана</value>
+  </data>
+  <data name="Report_WithOrder" xml:space="preserve">
+    <value>С заказом</value>
+  </data>
+  <data name="Report_Strike" xml:space="preserve">
+    <value>Результативность</value>
+  </data>
+  <data name="Report_WithPayment" xml:space="preserve">
+    <value>С оплатой</value>
+  </data>
+  <data name="Report_NoOrder" xml:space="preserve">
+    <value>Без заказа</value>
+  </data>
+  <data name="Report_OrderTotal" xml:space="preserve">
+    <value>Заказы с визитов</value>
+  </data>
+  <data name="Report_AvgOrder" xml:space="preserve">
+    <value>Средний заказ</value>
+  </data>
+  <data name="Report_VisitsHint" xml:space="preserve">
+    <value>План — дни визитов из карточки клиента (текущий агент) на каждый день периода. Результативность — доля визитов с заказом.</value>
+  </data>
+  <data name="Report_ByAgent" xml:space="preserve">
+    <value>По агентам</value>
+  </data>
+  <data name="Report_Handovers" xml:space="preserve">
+    <value>Сдачи</value>
+  </data>
+  <data name="Report_OldestOnHand" xml:space="preserve">
+    <value>Старейший платёж</value>
+  </data>
+  <data name="Report_DocNo" xml:space="preserve">
+    <value>Документ №</value>
+  </data>
+  <data name="Report_Handover_Draft" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
+  <data name="Report_Handover_Posted" xml:space="preserve">
+    <value>Принято</value>
+  </data>
+  <data name="Report_Handover_Cancelled" xml:space="preserve">
+    <value>Отклонено</value>
+  </data>
 </root>

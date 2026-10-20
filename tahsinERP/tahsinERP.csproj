@@ -991,6 +991,14 @@
     <Compile Include="Areas\Distribution\Services\PricingService.cs" />
     <Compile Include="Areas\Distribution\Services\TerritoryTree.cs" />
     <Compile Include="Areas\Distribution\Services\UnitService.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstDashboardController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstReportsController.cs" />
+    <Compile Include="Areas\Distribution\Services\Reports\CashReportService.cs" />
+    <Compile Include="Areas\Distribution\Services\Reports\DashboardService.cs" />
+    <Compile Include="Areas\Distribution\Services\Reports\ReportFilter.cs" />
+    <Compile Include="Areas\Distribution\Services\Reports\SalesReportService.cs" />
+    <Compile Include="Areas\Distribution\Services\Reports\StockValuationService.cs" />
+    <Compile Include="Areas\Distribution\Services\Reports\VisitReportService.cs" />
     <Compile Include="Services\AuditLogQueue.cs" />
     <Compile Include="Services\Common\DocumentNumberService.cs" />
     <Compile Include="Services\Common\ExcelExport.cs" />
@@ -2987,6 +2995,11 @@
     <Content Include="Areas\Distribution\Views\DstTerritories\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\Shared\_DstHeader.cshtml" />
     <Content Include="Areas\Distribution\Views\Shared\_DstScripts.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstDashboard\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstReports\Sales.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstReports\Visits.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstReports\Cash.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstReports\_ReportNav.cshtml" />
     <Content Include="Scripts\dst\dst.js" />
     <Content Include="Views\License\Index.cshtml" />
     <Content Include="Views\License\Blocked.cshtml" />
