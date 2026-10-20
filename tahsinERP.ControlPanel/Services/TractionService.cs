@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.Licensing;
 using tahsinERP.Services.Editions;
 
 namespace tahsinERP.ControlPanel.Services;
@@ -9,6 +10,9 @@ namespace tahsinERP.ControlPanel.Services;
 /// Traction analitikasi (Docs/ControlPanel/07_TRACTION.md — metrika ta'riflari). Faqat agregat jadvallardan
 /// (UsageDailyUsers / UsageDailyModules / UsageDailyDocs) va billing jadvallaridan o'qiydi — xom UsageEvents'dan emas.
 /// Sanalar Toshkent bo'yicha, davr [From, To] (ikkala kun ham kiradi).
+/// Qo'shimcha xizmatlar (Plan.IsAddOn, masalan SITE): tenantning paketi, sinov konversiyasi va churn faqat paket obunasidan;
+/// ruxsat etilgan modullar = EditionModules.ModulesOf(kalitdagi Edition, ya'ni "KORP+SITE") — xizmat modullari ham kiradi;
+/// MRR xizmat obunalarini ham qo'shadi (alohida ko'rsatkich — AddOnMrrTiyin).
 /// </summary>
 public sealed class TractionService(ControlDbContext db, Clock clock, ProvisioningService provisioning, IOptions<PanelOptions> panel)
 {
@@ -21,13 +25,14 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
 
     public sealed record Overview(int ActiveTenants, int TotalTenants, double Dau, int Wau, int Mau, double Stickiness,
         int TrialsStarted, int TrialsConverted, double Conversion, long MrrTiyin, long RevenueTiyin,
-        int PayingAtStart, int Churned, double ChurnRate, int DocsTotal);
+        int PayingAtStart, int Churned, double ChurnRate, int DocsTotal, long AddOnMrrTiyin = 0, int AddOnTenants = 0);
 
     public sealed record ModuleRow(string Module, string Name, int Tenants, int Actions, int PrevActions, double? TrendPct, int UnusedInPackage);
     public sealed record PageRow(string Controller, string Module, UsageActionType ActionType, int Actions, int Tenants, bool Mapped);
     public sealed record DocRow(string DocType, int Count, int Tenants);
     public sealed record TenantRow(Tenant Tenant, string? Plan, string? PlanCode, long MrrTiyin, DateTime? LastLoginUtc, int ActiveUsers, int SeatLimit,
-        int ModulesUsed, int ModulesAllowed, int Actions, int PrevActions, int Docs, int Score, string Risk, IReadOnlyList<string> UnusedModules);
+        int ModulesUsed, int ModulesAllowed, int Actions, int PrevActions, int Docs, int Score, string Risk, IReadOnlyList<string> UnusedModules,
+        string? Edition = null);
     public sealed record CohortRow(string Month, int Size, double?[] Weeks);
     public sealed record FunnelStep(string Name, int Count);
     public sealed record Series(List<string> Labels, Dictionary<string, List<int>> Data);
@@ -57,11 +62,18 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
         var subs = await db.Subscriptions.AsNoTracking().Include(s => s.Plan).ToListAsync(ct);
         var subsByTenant = subs.GroupBy(s => s.TenantId).ToDictionary(g => g.Key, g => g.ToList());
         Subscription? Current(int tid) => subsByTenant.GetValueOrDefault(tid)?
-            .Where(s => s.Status == SubscriptionStatus.Active).OrderByDescending(s => s.Period != BillingPeriod.Trial).ThenByDescending(s => s.EndDate).FirstOrDefault();
+            .Where(s => s.Status == SubscriptionStatus.Active && !SubscriptionService.IsAddOn(s))
+            .OrderByDescending(s => s.Period != BillingPeriod.Trial).ThenByDescending(s => s.EndDate).FirstOrDefault();
+        List<Subscription> AddOns(int tid) => subsByTenant.GetValueOrDefault(tid)?.Where(s => LicenseIssuer.AddOnCovers(s, today)).ToList() ?? [];
+        // Kalitdagi kabi Edition: paket kodi + faol xizmatlar ("KORP+SITE"). Paket yo'q — null (cheklovsiz deb hisoblanadi).
+        string? Edition(int tid) => Current(tid)?.Plan?.Code is { } code ? LicenseIssuer.ComposeEdition(code, AddOns(tid).Select(a => a.Plan!.Code)) : null;
+        bool Matches(int tid, string plan) => EditionModules.AddOnsOf("X+" + plan).Count > 0
+            ? AddOns(tid).Any(a => string.Equals(a.Plan!.Code, plan, StringComparison.OrdinalIgnoreCase))
+            : string.Equals(Current(tid)?.Plan?.Code, plan, StringComparison.OrdinalIgnoreCase);
 
         var tenants = tenantsAll.Where(t => t.DeletedAtUtc == null && !provisioning.IsDemo(t)).ToList();
         if (f.Status is not null) tenants = tenants.Where(t => t.Status == f.Status).ToList();
-        if (!string.IsNullOrWhiteSpace(f.Plan)) tenants = tenants.Where(t => string.Equals(Current(t.Id)?.Plan?.Code, f.Plan, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (!string.IsNullOrWhiteSpace(f.Plan)) tenants = tenants.Where(t => Matches(t.Id, f.Plan.Trim())).ToList();
         var ids = tenants.Select(t => t.Id).ToHashSet();
 
         // ---- MRR: faol pullik obuna × oxirgi to'langan hisob-faktura (davrga bo'lingan); bo'lmasa tarif narxi ----
@@ -76,6 +88,7 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
             return s.Period == BillingPeriod.Year ? (s.Plan?.PriceYearTiyin ?? 0) / 12 : s.Plan?.PriceMonthTiyin ?? 0;
         }
         long TenantMrr(int tid) => subsByTenant.GetValueOrDefault(tid)?.Where(s => s.Status == SubscriptionStatus.Active && s.Period != BillingPeriod.Trial).Sum(Mrr) ?? 0;
+        long TenantAddOnMrr(int tid) => subsByTenant.GetValueOrDefault(tid)?.Where(s => s.Status == SubscriptionStatus.Active && SubscriptionService.IsAddOn(s)).Sum(Mrr) ?? 0;
 
         // ---- agregatlar ----
         DateOnly mauFrom = f.To.AddDays(-29);
@@ -101,13 +114,14 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
         double dau30 = Enumerable.Range(0, 30).Select(i => mauFrom.AddDays(i)).Average(d => du.Count(x => x.Date == d));
         double stickiness = mau == 0 ? 0 : dau30 / mau;
 
-        bool EverPaid(int tid) => subsByTenant.GetValueOrDefault(tid)?.Any(s => s.Period != BillingPeriod.Trial
+        // Sinov -> pullik va churn: faqat paket obunasi (sinovdagi tenant faqat xizmat sotib olsa — konversiya emas).
+        bool EverPaid(int tid) => subsByTenant.GetValueOrDefault(tid)?.Any(s => s.Period != BillingPeriod.Trial && !SubscriptionService.IsAddOn(s)
             && (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Expired)) == true;
         var trialStarts = subs.Where(s => s.Period == BillingPeriod.Trial && InPeriod(s.StartDate) && ids.Contains(s.TenantId))
             .Select(s => s.TenantId).Distinct().ToList();
         int converted = trialStarts.Count(EverPaid);
 
-        bool PaidCovering(int tid, DateOnly d) => subsByTenant.GetValueOrDefault(tid)?.Any(s => s.Period != BillingPeriod.Trial
+        bool PaidCovering(int tid, DateOnly d) => subsByTenant.GetValueOrDefault(tid)?.Any(s => s.Period != BillingPeriod.Trial && !SubscriptionService.IsAddOn(s)
             && s.Status is SubscriptionStatus.Active or SubscriptionStatus.Expired && s.StartDate <= d && s.EndDate.AddDays(grace) >= d) == true;
         var payingAtStart = tenantsAll.Where(t => !provisioning.IsDemo(t) && (f.Plan == null || ids.Contains(t.Id)) && PaidCovering(t.Id, f.From)).Select(t => t.Id).ToList();
         DateOnly churnCheck = f.To < today ? f.To : today;
@@ -119,7 +133,8 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
         var overview = new Overview(activeTenants, tenants.Count(t => t.Status != TenantStatus.Archived), Math.Round(dau, 1), wau, mau,
             Math.Round(stickiness, 3), trialStarts.Count, converted, trialStarts.Count == 0 ? 0 : (double)converted / trialStarts.Count,
             tenants.Sum(t => TenantMrr(t.Id)), revenue, payingAtStart.Count, churned,
-            payingAtStart.Count == 0 ? 0 : (double)churned / payingAtStart.Count, dd.Where(x => InPeriod(x.Date)).Sum(x => x.Count));
+            payingAtStart.Count == 0 ? 0 : (double)churned / payingAtStart.Count, dd.Where(x => InPeriod(x.Date)).Sum(x => x.Count),
+            tenants.Sum(t => TenantAddOnMrr(t.Id)), tenants.Count(t => t.Status != TenantStatus.Archived && AddOns(t.Id).Count > 0));
 
         // ---- Tenantlar va health score ----
         var activeStatuses = new[] { TenantStatus.Trial, TenantStatus.Active, TenantStatus.Grace };
@@ -129,7 +144,8 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
         {
             var cur = Current(t.Id);
             string? planCode = cur?.Plan?.Code;
-            var allowed = EditionModules.ModulesOf(planCode).Select(m => m.ToString()).ToList();
+            string? edition = Edition(t.Id);
+            var allowed = EditionModules.ModulesOf(edition).Select(m => m.ToString()).ToList();
             var tdm = dm.Where(x => x.TenantId == t.Id).ToList();
             var usedModules = tdm.Where(x => InPeriod(x.Date) && x.Module != nameof(ProductModule.Core)).Select(x => x.Module).Distinct().ToList();
             int actions = tdm.Where(x => InPeriod(x.Date)).Sum(x => x.Count), prev = tdm.Where(x => InPrev(x.Date)).Sum(x => x.Count);
@@ -140,13 +156,14 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
             if (activeStatuses.Contains(t.Status))
                 foreach (var m in unused) unusedByModule[m] = unusedByModule.GetValueOrDefault(m) + 1;
             int score = HealthScore(ll, users, seats, usedModules.Count(allowed.Contains), allowed.Count, actions, prev, clock.UtcNow);
-            tenantRows.Add(new TenantRow(t, cur?.Plan?.Name, planCode, TenantMrr(t.Id), ll, users, seats, usedModules.Count(allowed.Contains), allowed.Count,
-                actions, prev, dd.Where(x => x.TenantId == t.Id && InPeriod(x.Date)).Sum(x => x.Count), score, Risk(score), unused));
+            string? planName = cur?.Plan?.Name is { } pn ? string.Join(" + ", AddOns(t.Id).Select(a => a.Plan!.Name).Distinct().Prepend(pn)) : null;
+            tenantRows.Add(new TenantRow(t, planName, planCode, TenantMrr(t.Id), ll, users, seats, usedModules.Count(allowed.Contains), allowed.Count,
+                actions, prev, dd.Where(x => x.TenantId == t.Id && InPeriod(x.Date)).Sum(x => x.Count), score, Risk(score), unused, edition));
         }
 
         // ---- Modullar ----
         var modules = new List<ModuleRow>();
-        foreach (var m in EditionModules.PaidModules.Select(x => x.ToString()).Append(nameof(ProductModule.Core)))
+        foreach (var m in EditionModules.PaidModules.Concat(EditionModules.AddOnModules).Select(x => x.ToString()).Append(nameof(ProductModule.Core)))
         {
             var rows = dm.Where(x => x.Module == m).ToList();
             int a = rows.Where(x => InPeriod(x.Date)).Sum(x => x.Count), p = rows.Where(x => InPrev(x.Date)).Sum(x => x.Count);

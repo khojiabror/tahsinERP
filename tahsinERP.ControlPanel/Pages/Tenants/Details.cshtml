@@ -157,12 +157,12 @@
     }
 </div>
 <h2>Obunalar</h2>
-@if (Model.CanSell) { <div class="actions"><a class="btn" href="/Subscriptions/Create?tenantId=@t.Id">+ Pullik obuna</a><a class="btn secondary" href="/Invoices/Create?tenantId=@t.Id">+ Hisob-faktura</a></div> }
+@if (Model.CanSell) { <div class="actions"><a class="btn" href="/Subscriptions/Create?tenantId=@t.Id">+ Pullik obuna / xizmat</a><a class="btn secondary" href="/Invoices/Create?tenantId=@t.Id">+ Hisob-faktura</a></div> }
 <table>
     <tr><th>#</th><th>Paket</th><th>Davr</th><th class="num">Foyd.</th><th>Boshlanish</th><th>Tugash</th><th>Holat</th></tr>
     @foreach (var s in Model.Subscriptions)
     {
-        <tr><td>@if (Model.CanSell) { <a href="/Subscriptions/Edit/@s.Id">@s.Id</a> } else { @s.Id }</td><td>@s.Plan?.Name @if (Model.CanSell && s.Status is SubscriptionStatus.Pending or SubscriptionStatus.Active && s.Period != BillingPeriod.Trial) { <a class="hint" href="/Invoices/Create?tenantId=@t.Id&subscriptionId=@s.Id">hisob-faktura</a> }</td><td>@Labels.Of(s.Period)</td><td class="num">@s.Users</td><td>@s.StartDate.ToString("dd.MM.yyyy")</td><td>@s.EndDate.ToString("dd.MM.yyyy")</td><td>@Labels.Of(s.Status)</td></tr>
+        <tr><td>@if (Model.CanSell) { <a href="/Subscriptions/Edit/@s.Id">@s.Id</a> } else { @s.Id }</td><td>@s.Plan?.Name @if (s.Plan?.IsAddOn == true) { <span class="badge info">qo'shimcha xizmat</span> } @if (Model.CanSell && s.Status is SubscriptionStatus.Pending or SubscriptionStatus.Active && s.Period != BillingPeriod.Trial) { <a class="hint" href="/Invoices/Create?tenantId=@t.Id&subscriptionId=@s.Id">hisob-faktura</a> }</td><td>@Labels.Of(s.Period)</td><td class="num">@s.Users</td><td>@s.StartDate.ToString("dd.MM.yyyy")</td><td>@s.EndDate.ToString("dd.MM.yyyy")</td><td>@Labels.Of(s.Status)</td></tr>
     }
 </table>
 <h2>Hisob-fakturalar</h2>

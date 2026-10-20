@@ -4,11 +4,21 @@ using tahsinERP.ControlPanel.Data;
 
 namespace tahsinERP.ControlPanel.Services;
 
-/// <summary>Obunalar va hayot sikli (00_PLAN.md, 6-bo'lim).</summary>
+/// <summary>
+/// Obunalar va hayot sikli (00_PLAN.md, 6-bo'lim).
+/// Qo'shimcha xizmat (Plan.IsAddOn, masalan SITE) — alohida obuna qatori: o'z davri, narxi va hisob-fakturasi bor, lekin
+/// asosiy paket obunasini almashtirmaydi, tenant holatini belgilamaydi va to'langanda faqat shu xizmatning eski obunasini yopadi.
+/// </summary>
 public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, Clock clock, IOptions<PanelOptions> options,
     ILogger<SubscriptionService> log)
 {
     private static object Snapshot(Subscription s) => new { s.TenantId, s.PlanId, s.Users, s.Period, s.StartDate, s.EndDate, s.AutoRenew, s.Status };
+
+    /// <summary>Qo'shimcha xizmat obunasimi (Plan yuklangan bo'lishi kerak).</summary>
+    public static bool IsAddOn(Subscription s) => s.Plan?.IsAddOn == true;
+
+    /// <summary>Asosiy paket obunalari (qo'shimcha xizmatlarsiz) — tenant holati, kalit paketi, paket hisobotlari shulardan.</summary>
+    public static IQueryable<Subscription> PackageOnly(IQueryable<Subscription> q) => q.Where(s => !s.Plan!.IsAddOn);
 
     public async Task<Subscription> CreateTrialAsync(Tenant t, CancellationToken ct = default)
     {
@@ -32,11 +42,26 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
         var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive, ct) ?? throw new DomainException("Tarif topilmadi.");
         if (plan.Code == PlanCodes.Trial || period == BillingPeriod.Trial)
             throw new DomainException("Sinov obunasi tenant yaratilganda avtomatik ochiladi.");
-        int u = users ?? plan.MaxUsers;
-        if (u <= 0 || u > plan.MaxUsers)
-            throw new DomainException($"{plan.Name} paketida ko'pi bilan {plan.MaxUsers} foydalanuvchi. Ko'prog'i — keyingi paket.");
-        if (await db.Subscriptions.AnyAsync(s => s.TenantId == t.Id && s.Status == SubscriptionStatus.Pending, ct))
-            throw new DomainException("Bu tenantda to'lanmagan (Pending) obuna allaqachon bor.");
+        int u;
+        if (plan.IsAddOn)
+        {
+            // Bitta xizmatga bitta ochiq obuna: uzaytirish — mavjud obunaga yangi hisob-faktura (davr oxiridan davom etadi).
+            u = 0;
+            var open = await db.Subscriptions.Where(s => s.TenantId == t.Id && s.PlanId == plan.Id
+                && (s.Status == SubscriptionStatus.Pending || s.Status == SubscriptionStatus.Active)).FirstOrDefaultAsync(ct);
+            if (open is not null)
+                throw new DomainException(open.Status == SubscriptionStatus.Pending
+                    ? $"«{plan.Name}» xizmatiga to'lanmagan obuna #{open.Id} allaqachon bor."
+                    : $"«{plan.Name}» xizmati faol (obuna #{open.Id}) — uzaytirish uchun o'sha obunaga hisob-faktura chiqaring.");
+        }
+        else
+        {
+            u = users ?? plan.MaxUsers;
+            if (u <= 0 || u > plan.MaxUsers)
+                throw new DomainException($"{plan.Name} paketida ko'pi bilan {plan.MaxUsers} foydalanuvchi. Ko'prog'i — keyingi paket.");
+            if (await PackageOnly(db.Subscriptions).AnyAsync(s => s.TenantId == t.Id && s.Status == SubscriptionStatus.Pending, ct))
+                throw new DomainException("Bu tenantda to'lanmagan (Pending) obuna allaqachon bor.");
+        }
         var sub = new Subscription
         {
             TenantId = t.Id, PlanId = plan.Id, Plan = plan, Users = u, Period = period, StartDate = startDate,
@@ -52,7 +77,14 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
     public async Task UpdateAsync(Subscription sub, int planId, int users, bool autoRenew, CancellationToken ct = default)
     {
         var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId, ct) ?? throw new DomainException("Tarif topilmadi.");
-        if (users <= 0 || users > plan.MaxUsers)
+        sub.Plan ??= await db.Plans.FirstAsync(p => p.Id == sub.PlanId, ct);
+        if (plan.IsAddOn || sub.Plan.IsAddOn)
+        {
+            if (plan.Id != sub.PlanId)
+                throw new DomainException("Qo'shimcha xizmat obunasini boshqa tarifga o'tkazib bo'lmaydi — kerak bo'lsa bekor qilib, yangisini oching.");
+            users = 0;
+        }
+        else if (users <= 0 || users > plan.MaxUsers)
             throw new DomainException($"{plan.Name} paketida ko'pi bilan {plan.MaxUsers} foydalanuvchi.");
         var before = Snapshot(sub);
         sub.PlanId = plan.Id; sub.Plan = plan; sub.Users = users; sub.AutoRenew = autoRenew;
@@ -97,16 +129,22 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
 
         // Kelajakdan boshlanadigan davr (masalan portal so'rovi: pasaytirish faqat joriy davr oxirida) — joriy obuna
         // o'z muddatigacha ishlayveradi; yangi davr boshlanganda kunlik ish kalitni yangilaydi.
+        // Qo'shimcha xizmat faqat o'z tarifidagi eski obunani yopadi; paket obunasi qo'shimcha xizmatlarga tegmaydi.
+        bool addOn = IsAddOn(sub);
+        var sameKind = addOn
+            ? db.Subscriptions.Where(s => s.PlanId == sub.PlanId)
+            : PackageOnly(db.Subscriptions);
         var others = sub.StartDate > today ? new List<Subscription>()
-            : await db.Subscriptions.Where(s => s.TenantId == sub.TenantId && s.Id != sub.Id && s.Status == SubscriptionStatus.Active).ToListAsync(ct);
+            : await sameKind.Where(s => s.TenantId == sub.TenantId && s.Id != sub.Id && s.Status == SubscriptionStatus.Active).ToListAsync(ct);
         foreach (var o in others)
         {
             o.Status = SubscriptionStatus.Expired;
             audit.Add("subscription.close", "Subscription", o.Id, new { Status = SubscriptionStatus.Active }, new { o.Status, ReplacedBy = sub.Id });
         }
 
+        // Qo'shimcha xizmat to'lovi tenantni faollashtirmaydi (sinov / to'xtatilgan holat paket obunasiga bog'liq).
         var tenant = sub.Tenant!;
-        if (tenant.Status != TenantStatus.Active && tenant.Status != TenantStatus.Archived)
+        if (!addOn && tenant.Status != TenantStatus.Active && tenant.Status != TenantStatus.Archived)
         {
             audit.Add("tenant.status", "Tenant", tenant.Id, new { tenant.Status }, new { Status = TenantStatus.Active, Reason = "To'lov: " + invoice.Number });
             tenant.Status = TenantStatus.Active;
@@ -121,7 +159,7 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
     {
         DateOnly today = clock.Today;
         int grace = options.Value.GraceDays;
-        var tenants = await db.Tenants.Include(t => t.Subscriptions)
+        var tenants = await db.Tenants.Include(t => t.Subscriptions).ThenInclude(s => s.Plan)
             .Where(t => t.Status == TenantStatus.Trial || t.Status == TenantStatus.Active || t.Status == TenantStatus.Grace)
             .ToListAsync(ct);
         int changed = 0;
@@ -132,7 +170,7 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
                 s.Status = SubscriptionStatus.Expired;
                 audit.Add("subscription.expire", "Subscription", s.Id, new { Status = SubscriptionStatus.Active }, new { s.Status, s.EndDate }, staffIdOverride: null);
             }
-            var active = t.Subscriptions.Where(s => s.Status == SubscriptionStatus.Active).OrderByDescending(s => s.EndDate).FirstOrDefault();
+            var active = t.Subscriptions.Where(s => s.Status == SubscriptionStatus.Active && !IsAddOn(s)).OrderByDescending(s => s.EndDate).FirstOrDefault();
             TenantStatus target;
             if (active is null)
                 target = TenantStatus.Suspended;

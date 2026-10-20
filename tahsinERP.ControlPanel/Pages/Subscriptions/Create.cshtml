@@ -7,11 +7,22 @@
     <input type="hidden" asp-for="TenantId" />
     <div class="row">
         <div>
-            <label asp-for="PlanId">Paket</label>
+            <label asp-for="PlanId">Paket yoki qo'shimcha xizmat</label>
             <select asp-for="PlanId">
-                @foreach (var p in Model.Plans)
+                <optgroup label="Paketlar">
+                @foreach (var p in Model.Plans.Where(p => !p.IsAddOn))
                 {
                     <option value="@p.Id">@p.Name — @p.MaxUsers foyd. (oy: @(Money.Format(p.PriceMonthTiyin) ?? "?"), yil: @(Money.Format(p.PriceYearTiyin) ?? "?"))</option>
+                }
+                </optgroup>
+                @if (Model.Plans.Any(p => p.IsAddOn))
+                {
+                    <optgroup label="Qo'shimcha xizmatlar (paketdan alohida)">
+                    @foreach (var p in Model.Plans.Where(p => p.IsAddOn))
+                    {
+                        <option value="@p.Id">@p.Name (oy: @(Money.Format(p.PriceMonthTiyin) ?? "?"), yil: @(Money.Format(p.PriceYearTiyin) ?? "?"))</option>
+                    }
+                    </optgroup>
                 }
             </select>
         </div>
@@ -21,10 +32,10 @@
         </div>
     </div>
     <div class="row">
-        <div><label asp-for="Users">Foydalanuvchilar</label><input asp-for="Users" type="number" placeholder="paket chegarasi" /><div class="hint">Bo'sh — paket chegarasi (qat'iy paket).</div></div>
+        <div><label asp-for="Users">Foydalanuvchilar</label><input asp-for="Users" type="number" placeholder="paket chegarasi" /><div class="hint">Bo'sh — paket chegarasi (qat'iy paket). Qo'shimcha xizmatda e'tiborga olinmaydi.</div></div>
         <div><label asp-for="StartDate">Boshlanish sanasi</label><input asp-for="StartDate" type="date" /></div>
     </div>
     <label class="check"><input asp-for="AutoRenew" /> Avtomatik uzaytirish (eslatma uchun belgi; to'lov baribir qo'lda)</label>
-    <div class="hint">Obuna «To'lov kutilmoqda» holatida yaratiladi; hisob-faktura to'liq to'langanda faollashadi va kalit chiqadi.</div>
+    <div class="hint">Obuna «To'lov kutilmoqda» holatida yaratiladi; hisob-faktura to'liq to'langanda faollashadi va kalit chiqadi. Qo'shimcha xizmat (masalan Sayt-katalog) paket obunasiga tegmaydi: to'langach kalitga «+KOD» qo'shiladi, muddati tugasa olib tashlanadi.</div>
     <div class="actions"><button type="submit">Yaratish va hisob-fakturaga o'tish</button><a class="btn secondary" href="/Tenants/Details/@Model.TenantId">Bekor</a></div>
 </form>
