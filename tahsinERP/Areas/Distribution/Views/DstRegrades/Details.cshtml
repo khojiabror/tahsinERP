@@ -1,0 +1,91 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    var doc = (Regrade)ViewBag.Doc;
+    var lines = (List<DstRegradesController.LineRow>)ViewBag.Lines;
+    var locations = (List<SelectListItem>)ViewBag.Locations;
+    ViewBag.Title = doc.DocNo;
+    ViewBag.DstParent = DstLocalization.T("Regrades");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool canSeeCost = ViewBag.DstCanSeeCost == true;
+    bool draft = doc.Status == DocumentStatus.Draft;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@doc.DocNo — @DstLocalization.T("Regrade")</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @DstLocalization.T("Warehouse"): <b>@ViewBag.Warehouse</b> ·
+                        @DstLocalization.T("Date"): @doc.DocDate.ToString("dd.MM.yyyy") ·
+                        @DstLocalization.T("Reason"): @(ViewBag.Reason ?? "—") ·
+                        @DstLocalization.T("Status"): <b>@DstLocalization.T("DocStatus_" + doc.Status)</b>
+                        @if (doc.CancelReason != null) { <text> — @doc.CancelReason</text> }
+                        @if (doc.Note != null) { <br /><span class="text-muted">@doc.Note</span> }
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Regrade_From")</th><th class="text-right">@DstLocalization.T("Qty")</th>
+                                    <th>@DstLocalization.T("Regrade_To")</th><th class="text-right">@DstLocalization.T("Qty")</th>
+                                    @if (canSeeCost && !draft) { <th class="text-right">@DstLocalization.T("Cost")</th><th class="text-right">@DstLocalization.T("Regrade_NewUnitCost")</th> }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var l in lines)
+                                {
+                                    <tr>
+                                        <td>@l.From</td><td class="text-right">@l.FromQtyBase.ToString("#,0.####", inv) @l.FromUnit</td>
+                                        <td>@l.To</td><td class="text-right">@l.ToQtyBase.ToString("#,0.####", inv) @l.ToUnit</td>
+                                        @if (canSeeCost && !draft)
+                                        {
+                                            <td class="text-right">@(l.CostAmount?.ToString("N0"))</td>
+                                            <td class="text-right">@(l.CostAmount.HasValue && l.ToQtyBase > 0 ? (l.CostAmount.Value / l.ToQtyBase).ToString("N2") : "")</td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (canChange && doc.Status != DocumentStatus.Cancelled)
+                    {
+                        <div class="d-flex flex-wrap">
+                            @if (draft)
+                            {
+                                <a class="btn btn-outline-primary btn-sm mr-1 mb-50" href="@Url.Action("Edit", new { id = doc.ID })"><i class="bx bx-edit"></i> @DstLocalization.T("Edit")</a>
+                                using (Html.BeginForm("Post", "DstRegrades", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "form-inline mr-1 mb-50", onsubmit = "return confirm('" + DstLocalization.T("Regrade_PostConfirm").Replace("'", "\\'") + "')" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    if (locations != null)
+                                    {
+                                        <select name="locationId" class="form-control form-control-sm mr-50" required>
+                                            <option value="">@DstLocalization.T("Location")</option>
+                                            @foreach (var l in locations) { <option value="@l.Value">@l.Text</option> }
+                                        </select>
+                                    }
+                                    <button type="submit" class="btn btn-success btn-sm"><i class="bx bx-check"></i> @DstLocalization.T("Post")</button>
+                                }
+                            }
+                            @using (Html.BeginForm("Cancel", "DstRegrades", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "form-inline mb-50" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input name="reason" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Order_CancelReason")" required minlength="3" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">@DstLocalization.T("Cancel")</button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

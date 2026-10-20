@@ -90,7 +90,10 @@ public sealed class NotificationPoller(IServiceScopeFactory scopes, TenantRegist
         outboxSignal.Signal.Set();
     }
 
-    /// <summary>Payload {"action":"override","orderId":N} — rahbarga "Tasdiqlash" tugmasi.</summary>
+    /// <summary>
+    /// Payload {"action":"override","orderId":N} — rahbarga "Tasdiqlash" tugmasi;
+    /// {"action":"writeoff","id":N} — hisobdan chiqarish: "Tasdiqlash" / "Rad etish".
+    /// </summary>
     internal static object? KeyboardFor(string? payload, string lang)
     {
         if (string.IsNullOrWhiteSpace(payload)) return null;
@@ -101,6 +104,10 @@ public sealed class NotificationPoller(IServiceScopeFactory scopes, TenantRegist
             if (root.TryGetProperty("action", out var a) && a.GetString() == "override" &&
                 root.TryGetProperty("orderId", out var o) && o.TryGetInt32(out var orderId))
                 return Kb.Inline([Kb.Button(Texts.Get(lang, "Btn_Confirm"), Callback.Make("ov", orderId))]);
+            if (root.TryGetProperty("action", out var w) && w.GetString() == "writeoff" &&
+                root.TryGetProperty("id", out var i) && i.TryGetInt32(out var writeOffId))
+                return Kb.Inline([Kb.Button(Texts.Get(lang, "Btn_Approve"), Callback.Make("wo", writeOffId, 1)),
+                                  Kb.Button(Texts.Get(lang, "Btn_Reject"), Callback.Make("wo", writeOffId, 0))]);
         }
         catch (JsonException) { }
         return null;

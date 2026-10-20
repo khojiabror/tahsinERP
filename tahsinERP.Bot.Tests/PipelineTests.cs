@@ -104,6 +104,18 @@ public class PipelineTests
     }
 
     [Fact]
+    public void Notification_WriteOffPayloadBecomesApproveRejectButtons()
+    {
+        var json = TgJson.Serialize(NotificationPoller.KeyboardFor("{\"action\":\"writeoff\",\"id\":7}", Texts.Uz)!);
+        Assert.Contains("\"callback_data\":\"wo:7:1\"", json);
+        Assert.Contains("\"callback_data\":\"wo:7:0\"", json);
+        Assert.Contains("Rad etish", json);
+        var cb = Callback.Parse("wo:7:1");
+        Assert.Equal(7, cb.Int(0));
+        Assert.Equal("1", cb.Str(1));
+    }
+
+    [Fact]
     public async Task FileStore_SavesUnderTenant_AndBlocksTraversal()
     {
         var root = Path.Combine(Path.GetTempPath(), "botfiles-" + Guid.NewGuid().ToString("N"));

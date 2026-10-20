@@ -61,6 +61,12 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public decimal DiscountSum { get; set; }
         public decimal Amount { get; set; }
         public decimal QtyShippedBase { get; set; }
+        /// <summary>Qo'llangan aksiya (chegirma yoki sovg'a qatori).</summary>
+        public int? PromotionID { get; set; }
+        /// <summary>Aksiya chegirmasi, % — DiscountPct ichida (DiscountPct = aksiya + qo'lda berilgan, ketma-ket).</summary>
+        public decimal PromoPct { get; set; }
+        /// <summary>Aksiya sovg'asi: narxsiz, buyurtma saqlanganda qayta hisoblanadi (qo'lda tahrirlanmaydi).</summary>
+        public bool IsFree { get; set; }
 
         [ForeignKey(nameof(OrderID))] public virtual DstOrder Order { get; set; }
 

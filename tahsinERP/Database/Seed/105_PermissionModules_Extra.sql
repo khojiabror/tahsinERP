@@ -79,3 +79,15 @@ SELECT v.Controller, v.Controller, 'Index', NULL
 FROM (VALUES ('DstInventory'), ('DstIssues')) v (Controller)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
 GO
+
+-- Distributsiya 3-bosqich: ombor kengaytmasi (025_DST_Warehouse)
+INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+SELECT v.Controller, v.Controller, 'Index', NULL
+FROM (VALUES ('DstLandedCosts'), ('DstWriteOffs'), ('DstRegrades'), ('DstTransfers'), ('DstReorder'), ('DstPromotions')) v (Controller)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
+GO
+
+INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+SELECT 'DstWriteOffApprove', 'Dst', 'WriteOffApprove', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = 'DstWriteOffApprove');
+GO

@@ -1,0 +1,71 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@using tahsinERP.Areas.Distribution.Services.Orders
+@{
+    ViewBag.Title = DstLocalization.T("Promotions");
+    bool canChange = ViewBag.DstCanChange == true;
+    var rows = (List<DstPromotionsController.Row>)ViewBag.Rows;
+    bool all = ViewBag.All == true;
+    var today = DateTime.Today;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@DstLocalization.T("Promotions")</h4>
+                    <div>
+                        <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index", new { all = !all })">@DstLocalization.T(all ? "Promo_ShowCurrent" : "Promo_ShowAll")</a>
+                        @if (canChange) { <a class="btn btn-primary btn-sm" href="@Url.Action("Edit")"><i class="bx bx-plus"></i> @DstLocalization.T("Promo_New")</a> }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Promo_Hint")</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Name")</th><th>@DstLocalization.T("Promo_Kind")</th><th>@DstLocalization.T("Promo_Applies")</th>
+                                    <th>@DstLocalization.T("Promo_Condition")</th><th>@DstLocalization.T("Promo_Period")</th><th>@DstLocalization.T("PriceType")</th>
+                                    <th class="text-right">@DstLocalization.T("Promo_Used")</th><th>@DstLocalization.T("Status")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in rows)
+                                {
+                                    var p = r.Promo;
+                                    bool live = p.IsValidOn(today);
+                                    <tr class="@(live ? "" : "text-muted")">
+                                        <td>@if (canChange) { <a href="@Url.Action("Edit", new { id = p.ID })">@p.Name</a> } else { @p.Name }</td>
+                                        <td>@DstLocalization.T("Promo_Kind_" + p.Kind)</td>
+                                        <td>@(r.Product ?? r.Category ?? DstLocalization.T("Promo_AllProducts"))</td>
+                                        <td>@PromotionService.Describe(p) @if (r.FreeProduct != null && p.FreeProductID != p.ProductID) { <div class="small">🎁 @r.FreeProduct</div> }</td>
+                                        <td>@p.DateFrom.ToString("dd.MM.yyyy") — @(p.DateTo?.ToString("dd.MM.yyyy") ?? "∞")</td>
+                                        <td>@(r.PriceType ?? "—")</td>
+                                        <td class="text-right">@r.Used</td>
+                                        <td>
+                                            @if (canChange)
+                                            {
+                                                using (Html.BeginForm("UpdateActive", "DstPromotions", new { area = "Distribution", id = p.ID, isActive = !p.IsActive }, FormMethod.Post))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm py-0 @(p.IsActive ? "btn-outline-warning" : "btn-outline-success")">@DstLocalization.T(p.IsActive ? "Promo_Stop" : "Promo_Resume")</button>
+                                                }
+                                            }
+                                            else { @(live ? DstLocalization.T("Active") : "—") }
+                                        </td>
+                                    </tr>
+                                }
+                                @if (rows.Count == 0) { <tr><td colspan="8" class="text-muted">@DstLocalization.T("NoData")</td></tr> }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,108 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    var doc = (WriteOff)ViewBag.Doc;
+    var lines = (List<DstWriteOffsController.LineRow>)ViewBag.Lines ?? new List<DstWriteOffsController.LineRow>();
+    ViewBag.Title = doc == null ? DstLocalization.T("WriteOff_New") : doc.DocNo;
+    ViewBag.DstParent = DstLocalization.T("WriteOffs");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var initial = Newtonsoft.Json.JsonConvert.SerializeObject(lines.Select(l => new { id = l.ProductID, text = l.Product, unit = l.Unit, qty = l.QtyBase.ToString("0.####", inv), note = l.Note }));
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@ViewBag.Title</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@(doc == null ? Url.Action("Index") : Url.Action("Details", new { id = doc.ID }))">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    @if (doc != null && doc.SubmittedAt.HasValue) { <div class="alert alert-warning">@DstLocalization.T("WriteOff_EditResubmit")</div> }
+                    @using (Html.BeginForm("Save", "DstWriteOffs", new { area = "Distribution", id = doc?.ID }, FormMethod.Post, new { id = "woForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="data" id="woData" />
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>@DstLocalization.T("Warehouse")</label>
+                                <select name="warehouseId" id="woWarehouse" class="form-control" required>
+                                    @foreach (var w in (List<SelectListItem>)ViewBag.Warehouses)
+                                    {
+                                        <option value="@w.Value" @(doc != null && doc.WarehouseID.ToString() == w.Value ? "selected" : "")>@w.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>@DstLocalization.T("Reason")</label>
+                                <select name="reasonId" class="form-control">
+                                    <option value="">—</option>
+                                    @foreach (var r in (List<SelectListItem>)ViewBag.Reasons)
+                                    {
+                                        <option value="@r.Value" @(doc != null && doc.ReasonID.ToString() == r.Value ? "selected" : "")>@r.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>@DstLocalization.T("Comment")</label>
+                                <input name="note" class="form-control" maxlength="300" value="@doc?.Note" />
+                            </div>
+                        </div>
+                        <div class="form-inline mb-1">
+                            <select id="woProduct" class="form-control" style="min-width:320px"></select>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered" id="woLines">
+                                <thead>
+                                    <tr>
+                                        <th>@DstLocalization.T("Product")</th><th>@DstLocalization.T("Unit")</th>
+                                        <th class="text-right">@DstLocalization.T("Available")</th>
+                                        <th class="text-right" style="width:140px">@DstLocalization.T("Qty")</th>
+                                        <th>@DstLocalization.T("Comment")</th><th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        (function () {
+            var lines = @Html.Raw(initial);
+            function esc(s) { return $('<div>').text(s == null ? '' : s).html(); }
+            function render() {
+                var tb = $('#woLines tbody').empty();
+                lines.forEach(function (l, i) {
+                    tb.append('<tr data-i="' + i + '"><td>' + esc(l.text) + '</td><td>' + esc(l.unit) + '</td><td class="text-right">' + (l.available == null ? '' : l.available) + '</td>' +
+                        '<td><input type="number" min="0" step="any" class="form-control form-control-sm text-right" data-f="qty" value="' + esc(l.qty) + '" required /></td>' +
+                        '<td><input class="form-control form-control-sm" maxlength="200" data-f="note" value="' + esc(l.note) + '" /></td>' +
+                        '<td><button type="button" class="btn btn-sm btn-outline-danger" data-f="del">×</button></td></tr>');
+                });
+            }
+            $('#woLines').on('change', '[data-f]', function () {
+                var l = lines[$(this).closest('tr').data('i')]; l[$(this).data('f')] = $(this).val();
+            }).on('click', '[data-f=del]', function () { lines.splice($(this).closest('tr').data('i'), 1); render(); });
+            $('#woProduct').select2({
+                placeholder: '@Html.Raw(DstLocalization.T("Order_AddProduct").Replace("'", "\\'"))',
+                ajax: { url: '@Url.Action("SearchProducts")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term, warehouseId: $('#woWarehouse').val() }; } }
+            }).on('select2:select', function (e) {
+                var p = e.params.data;
+                if (!lines.some(function (l) { return l.id === p.id; })) lines.push({ id: p.id, text: p.text, unit: p.unit, available: p.available, qty: '', note: '' });
+                $(this).val(null).trigger('change');
+                render();
+            });
+            $('#woForm').on('submit', function () {
+                $('#woData').val(JSON.stringify(lines.map(function (l) { return { ProductID: l.id, QtyBase: l.qty || 0, Note: l.note }; })));
+            });
+            render();
+        })();
+    </script>
+}

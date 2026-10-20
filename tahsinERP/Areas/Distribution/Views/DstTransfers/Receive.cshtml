@@ -1,0 +1,120 @@
+@using tahsinERP.Areas.Distribution.Data.Entities
+@using tahsinERP.Areas.Distribution.Services.Warehouse
+@{
+    var p = (TransferActService.PendingRow)ViewBag.Pending;
+    var lines = (List<TransferActService.LineRow>)ViewBag.Lines;
+    var locations = (List<SelectListItem>)ViewBag.Locations;
+    var returnLocations = (List<SelectListItem>)ViewBag.ReturnLocations;
+    bool canReceive = ViewBag.CanReceive == true;
+    ViewBag.Title = DstLocalization.T("Transfer_ReceiveBtn") + " " + p.DocNo;
+    ViewBag.DstParent = DstLocalization.T("Transfers");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@p.DocNo: @p.FromWarehouse → @p.ToWarehouse</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Transfer_ReceiveHint")</p>
+                    @if (!canReceive) { <div class="alert alert-warning">@DstLocalization.T("Transfer_NotResponsible")</div> }
+                    @using (Html.BeginForm("Receive", "DstTransfers", new { area = "Distribution", id = p.IncomeID }, FormMethod.Post, new { id = "trForm", onsubmit = "return confirm('" + DstLocalization.T("Transfer_ReceiveConfirm").Replace("'", "\\'") + "')" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="data" id="trData" />
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered" id="trLines">
+                                <thead>
+                                    <tr>
+                                        <th>@DstLocalization.T("Product")</th><th>@DstLocalization.T("Barcodes")</th>
+                                        <th class="text-right">@DstLocalization.T("Transfer_Sent")</th>
+                                        <th class="text-right" style="width:140px">@DstLocalization.T("Transfer_ReceivedQty")</th>
+                                        <th style="width:190px">@DstLocalization.T("Transfer_Resolution")</th><th>@DstLocalization.T("Comment")</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var l in lines)
+                                    {
+                                        <tr data-ip="@l.IncomeProductID" data-sent="@l.SentQty.ToString(inv)">
+                                            <td>@l.PNo — @l.Product</td>
+                                            <td class="small">@l.Barcodes</td>
+                                            <td class="text-right">@l.SentQty.ToString("#,0.####", inv) @l.Unit</td>
+                                            <td><input type="number" min="0" step="any" data-f="received" value="@l.SentQty.ToString("0.####", inv)" class="form-control form-control-sm text-right" required /></td>
+                                            <td>
+                                                <select data-f="resolution" class="form-control form-control-sm" disabled>
+                                                    <option value="">—</option>
+                                                    <option value="@TransferResolutions.Loss">@DstLocalization.T("Transfer_" + TransferResolutions.Loss)</option>
+                                                    <option value="@TransferResolutions.Return">@DstLocalization.T("Transfer_" + TransferResolutions.Return)</option>
+                                                </select>
+                                            </td>
+                                            <td><input data-f="note" maxlength="200" class="form-control form-control-sm" /></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-row">
+                            @if (locations != null)
+                            {
+                                <div class="form-group col-md-4">
+                                    <label>@DstLocalization.T("Location") (@p.ToWarehouse)</label>
+                                    <select name="locationId" class="form-control" required>
+                                        <option value=""></option>
+                                        @foreach (var l in locations) { <option value="@l.Value">@l.Text</option> }
+                                    </select>
+                                </div>
+                            }
+                            @if (returnLocations != null)
+                            {
+                                <div class="form-group col-md-4">
+                                    <label>@DstLocalization.T("Transfer_ReturnLocation") (@p.FromWarehouse)</label>
+                                    <select name="returnLocationId" class="form-control">
+                                        <option value=""></option>
+                                        @foreach (var l in returnLocations) { <option value="@l.Value">@l.Text</option> }
+                                    </select>
+                                </div>
+                            }
+                            <div class="form-group col-md-4">
+                                <label>@DstLocalization.T("Comment")</label>
+                                <input name="note" class="form-control" maxlength="300" />
+                            </div>
+                        </div>
+                        if (canReceive)
+                        {
+                            <button type="submit" class="btn btn-success"><i class="bx bx-check"></i> @DstLocalization.T("Transfer_ReceiveBtn")</button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        (function () {
+            function sync(tr) {
+                var sent = parseFloat(tr.data('sent')), got = parseFloat(tr.find('[data-f=received]').val());
+                var short = !isNaN(got) && got < sent, sel = tr.find('[data-f=resolution]');
+                sel.prop('disabled', !short).prop('required', short);
+                if (!short) sel.val('');
+                tr.toggleClass('table-warning', !isNaN(got) && got !== sent);
+            }
+            $('#trLines').on('input change', '[data-f=received]', function () { sync($(this).closest('tr')); });
+            $('#trLines tr[data-ip]').each(function () { sync($(this)); });
+            $('#trForm').on('submit', function () {
+                var rows = [];
+                $('#trLines tr[data-ip]').each(function () {
+                    var tr = $(this);
+                    rows.push({ IncomeProductID: tr.data('ip'), Received: tr.find('[data-f=received]').val(), Resolution: tr.find('[data-f=resolution]').val(), Note: tr.find('[data-f=note]').val() });
+                });
+                $('#trData').val(JSON.stringify(rows));
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,37 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    Layout = null;
+    var act = (TransferAct)ViewBag.Act;
+    var lines = (List<DstTransfersController.ActLineRow>)ViewBag.Lines;
+    bool canSeeCost = ViewBag.DstCanSeeCost == true;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@DstLocalization.T("Transfer_Act") @act.DocNo</title>
+    @Html.Partial("~/Areas/Distribution/Views/DstOrders/_PrintStyles.cshtml")
+</head>
+<body>
+    <div class="sheet">
+        <div class="noprint"><button onclick="window.print()">@DstLocalization.T("Print")</button></div>
+        <h1>@DstLocalization.T("Transfer_Act") — @act.DocNo</h1>
+        <div class="meta">
+            <div>
+                <b>@DstLocalization.T("Transfer_From"):</b> @ViewBag.From (@ViewBag.ExpenseDocNo)<br />
+                <b>@DstLocalization.T("Transfer_To"):</b> @ViewBag.To (@ViewBag.IncomeDocNo)
+            </div>
+            <div>
+                <b>@DstLocalization.T("Date"):</b> @act.DocDate.ToString("dd.MM.yyyy")<br />
+                @if (act.Note != null) { @act.Note }
+            </div>
+        </div>
+        @Html.Partial("_ActTable", Tuple.Create(act, lines, canSeeCost))
+        <div class="meta" style="margin-top:40px">
+            <div>@DstLocalization.T("Transfer_SignSender"): ____________________</div>
+            <div>@DstLocalization.T("Transfer_SignReceiver"): ____________________ (@ViewBag.Author)</div>
+        </div>
+    </div>
+</body>
+</html>

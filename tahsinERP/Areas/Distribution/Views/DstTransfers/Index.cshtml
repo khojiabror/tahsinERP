@@ -1,0 +1,80 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Services.Warehouse
+@{
+    ViewBag.Title = DstLocalization.T("Transfers");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool canSeeCost = ViewBag.DstCanSeeCost == true;
+    var pending = (List<TransferActService.PendingRow>)ViewBag.Pending;
+    var acts = (List<DstTransfersController.ActRow>)ViewBag.Acts;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Transfer_Pending")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Transfer_Hint")</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Report_DocNo")</th><th>@DstLocalization.T("Date")</th>
+                                    <th>@DstLocalization.T("Transfer_From")</th><th>@DstLocalization.T("Transfer_To")</th>
+                                    <th class="text-right">@DstLocalization.T("Lines")</th><th class="text-right">@DstLocalization.T("Qty")</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in pending)
+                                {
+                                    <tr>
+                                        <td>@p.DocNo</td><td>@p.IssueDateTime.ToString("dd.MM.yyyy")</td><td>@p.FromWarehouse</td><td>@p.ToWarehouse</td>
+                                        <td class="text-right">@p.Lines</td><td class="text-right">@p.Qty.ToString("#,0.####", inv)</td>
+                                        <td class="text-right">@if (canChange) { <a class="btn btn-sm btn-primary" href="@Url.Action("Receive", new { id = p.IncomeID })">@DstLocalization.T("Transfer_ReceiveBtn")</a> }</td>
+                                    </tr>
+                                }
+                                @if (pending.Count == 0) { <tr><td colspan="7" class="text-muted">@DstLocalization.T("NoData")</td></tr> }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Transfer_Acts")</h4></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Report_DocNo")</th><th>@DstLocalization.T("Date")</th>
+                                    <th>@DstLocalization.T("Transfer_From")</th><th>@DstLocalization.T("Transfer_To")</th>
+                                    @if (canSeeCost)
+                                    {
+                                        <th class="text-right">@DstLocalization.T("Transfer_Shortage")</th><th class="text-right">@DstLocalization.T("Transfer_Loss")</th><th class="text-right">@DstLocalization.T("Transfer_Surplus")</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in acts)
+                                {
+                                    <tr class="@(a.ShortageCost > 0 || a.SurplusCost > 0 ? "table-warning" : "")">
+                                        <td><a href="@Url.Action("Details", new { id = a.ID })">@a.DocNo</a></td><td>@a.DocDate.ToString("dd.MM.yyyy")</td><td>@a.From</td><td>@a.To</td>
+                                        @if (canSeeCost)
+                                        {
+                                            <td class="text-right">@a.ShortageCost.ToString("N0")</td><td class="text-right">@a.LossCost.ToString("N0")</td><td class="text-right">@a.SurplusCost.ToString("N0")</td>
+                                        }
+                                    </tr>
+                                }
+                                @if (acts.Count == 0) { <tr><td colspan="7" class="text-muted">@DstLocalization.T("NoData")</td></tr> }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
