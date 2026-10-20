@@ -4,6 +4,8 @@
     string user = User.Identity.Name;
     var tiles = new[]
     {
+        new { Controller = "DstDashboard", Icon = "bx-tachometer", Title = DstLocalization.T("Dashboard"), Hint = DstLocalization.T("Tile_Dashboard") },
+        new { Controller = "DstReports", Icon = "bx-line-chart", Title = DstLocalization.T("Reports"), Hint = DstLocalization.T("Tile_Reports") },
         new { Controller = "DstOrders", Icon = "bx-cart", Title = DstLocalization.T("Orders"), Hint = DstLocalization.T("Tile_Orders") },
         new { Controller = "DstStock", Icon = "bx-box", Title = DstLocalization.T("Stock"), Hint = DstLocalization.T("Tile_Stock") },
         new { Controller = "DstPayments", Icon = "bx-money", Title = DstLocalization.T("Payments"), Hint = DstLocalization.T("Tile_Payments") },

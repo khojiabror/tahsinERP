@@ -1,0 +1,101 @@
+@model List<tahsinERP.Areas.Distribution.Services.Reports.VisitReportService.AgentRow>
+@{
+    ViewBag.Title = DstLocalization.T("Report_Visits");
+    ViewBag.DstParent = DstLocalization.T("Reports");
+    var f = (tahsinERP.Areas.Distribution.Services.Reports.ReportFilter)ViewBag.Filter;
+    string N(decimal v) => v.ToString("N0");
+    string P(decimal? v) => v.HasValue ? v.Value.ToString("0.#") + "%" : "—";
+    string Cls(decimal? v) => !v.HasValue ? "" : v >= 80 ? "text-success" : v >= 50 ? "text-warning" : "text-danger";
+    int planned = Model.Sum(r => r.Planned), plannedVisited = Model.Sum(r => r.PlannedVisited), visits = Model.Sum(r => r.Visits), withOrder = Model.Sum(r => r.WithOrder);
+    decimal orderTotal = Model.Sum(r => r.OrderTotal);
+    decimal? coverage = planned == 0 ? (decimal?)null : Math.Round(plannedVisited * 100m / planned, 1);
+    decimal? strike = visits == 0 ? (decimal?)null : Math.Round(withOrder * 100m / visits, 1);
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @Html.Partial("_ReportNav", "Visits")
+            <div class="row">
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Report_Plan") / @DstLocalization.T("Report_Fact")</div><h4 class="mb-0">@planned / @visits</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Report_Coverage")</div><h4 class="mb-0 @Cls(coverage)">@P(coverage)</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Report_Strike")</div><h4 class="mb-0">@P(strike)</h4></div></div></div>
+                <div class="col-md-3 col-6"><div class="card"><div class="card-body p-1"><div class="text-muted small">@DstLocalization.T("Report_OrderTotal")</div><h4 class="mb-0">@N(orderTotal)</h4></div></div></div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="form-row mb-1">
+                        <div class="col-md-2 col-6 mb-50"><input type="date" name="from" value="@f.From.ToString("yyyy-MM-dd")" class="form-control form-control-sm" onchange="this.form.submit()" /></div>
+                        <div class="col-md-2 col-6 mb-50"><input type="date" name="to" value="@f.To.ToString("yyyy-MM-dd")" class="form-control form-control-sm" onchange="this.form.submit()" /></div>
+                        <div class="col-md-3 mb-50">@Html.DropDownList("agentId", (List<SelectListItem>)ViewBag.Agents, DstLocalization.T("All_Agents"), new { @class = "form-control form-control-sm", onchange = "this.form.submit()" })</div>
+                        <div class="col-md-3 mb-50">@Html.DropDownList("territoryId", (List<SelectListItem>)ViewBag.Territories, DstLocalization.T("All_Territories"), new { @class = "form-control form-control-sm", onchange = "this.form.submit()" })</div>
+                        <div class="col-md-2 mb-50 text-right">
+                            <a class="btn btn-sm btn-outline-success" href="@Url.Action("ExportVisits", new { from = f.From.ToString("yyyy-MM-dd"), to = f.To.ToString("yyyy-MM-dd"), agentId = f.AgentId, territoryId = f.TerritoryId })"><i class="bx bxs-file-export"></i> Excel</a>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Agent")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_WorkDays")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_Plan")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_Fact")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_PlannedVisited")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_Unplanned")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_Coverage")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_WithOrder")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_Strike")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_WithPayment")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_NoOrder")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_OrderTotal")</th>
+                                    <th class="text-right">@DstLocalization.T("Report_AvgOrder")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in Model)
+                                {
+                                    <tr>
+                                        <td>@r.Agent</td>
+                                        <td class="text-right">@r.WorkDays</td>
+                                        <td class="text-right">@r.Planned</td>
+                                        <td class="text-right"><b>@r.Visits</b></td>
+                                        <td class="text-right">@r.PlannedVisited</td>
+                                        <td class="text-right text-muted">@r.Unplanned</td>
+                                        <td class="text-right @Cls(r.CoveragePct)"><b>@P(r.CoveragePct)</b></td>
+                                        <td class="text-right">@r.WithOrder</td>
+                                        <td class="text-right">@P(r.StrikePct)</td>
+                                        <td class="text-right">@r.WithPayment</td>
+                                        <td class="text-right">@r.NoOrder</td>
+                                        <td class="text-right">@N(r.OrderTotal)</td>
+                                        <td class="text-right">@(r.AvgOrder.HasValue ? N(r.AvgOrder.Value) : "—")</td>
+                                    </tr>
+                                }
+                                @if (Model.Count == 0) { <tr><td colspan="13" class="text-muted">@DstLocalization.T("Table_Empty")</td></tr> }
+                            </tbody>
+                            <tfoot>
+                                <tr class="font-weight-bold">
+                                    <td>@DstLocalization.T("Total")</td>
+                                    <td class="text-right">@Model.Sum(r => r.WorkDays)</td>
+                                    <td class="text-right">@planned</td>
+                                    <td class="text-right">@visits</td>
+                                    <td class="text-right">@plannedVisited</td>
+                                    <td class="text-right">@(visits - plannedVisited)</td>
+                                    <td class="text-right">@P(coverage)</td>
+                                    <td class="text-right">@withOrder</td>
+                                    <td class="text-right">@P(strike)</td>
+                                    <td class="text-right">@Model.Sum(r => r.WithPayment)</td>
+                                    <td class="text-right">@Model.Sum(r => r.NoOrder)</td>
+                                    <td class="text-right">@N(orderTotal)</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <p class="small text-muted mt-1 mb-0">@DstLocalization.T("Report_VisitsHint")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

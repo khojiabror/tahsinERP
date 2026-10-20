@@ -298,7 +298,35 @@ IIS Express orqali haqiqiy ERP bilan: to'g'ri imzo (GET so'rov parametrlari bila
 
 **Qilinmagan (keyingi bosqichga):** kun boshida selfi; botdan yangi savdo nuqtasi qo'shish (API `NewCustomer` bor, bot oqimi yo'q); omborchiga "yangi tasdiqlangan buyurtma" xabari; Mini App'da kamera orqali shtrix-kod; jonli joylashuv kuzatuvi; mijoz uchun botda "qarzim / akt sverki".
 
-## 15. S6 tayyorgarligi (2026-10-20, branch `claude/dst-s6-pilot-a446b3`)
+## 15. S5 natijasi (2026-10-20, branch `claude/dst-s5-reports-5c3644`)
+
+Migratsiya `Database/Migrations/023_DST_Reports.sql` (022 — S4 qoldiqlari sessiyasiga band): yangi jadval yo'q; davr bo'yicha so'rovlar uchun indekslar (`D_SHIPMENTS`/`D_RETURNS` sanasi, `D_SHIPMENT_LINES`/`D_RETURN_LINES` hujjat bo'yicha — avval umuman yo'q edi, `VISITS` va `CASH_HANDOVERS` sanasi); ruxsat modullari `DstDashboard`, `DstReports` (Admin'ga; bo'sh baza — `Seed/105`). Lokal bazada va `DB_DST_UI` da qo'llangan (zaxira `DBTHSN-IPACK_pre_023_DST_20261020.bak`, `DB_DST_UI_pre_023_DST_20261020.bak`), qayta ishga tushirish xatosiz. Edition: ikkala controller `ProductModule.Distribution` ichida.
+
+| Sahifa (`/Distribution/...`) | Nima ko'rsatadi |
+|---|---|
+| `DstDashboard` (rahbar paneli) | Bir ekranda, tanlangan kun (standart — bugun): **tushum** va **yalpi foyda** (kun / oy boshidan, marja), yig'ilgan pul, mijozlar **qarzi** va muddatlar bo'yicha taqsimot (muddati kelmagan, 1–7, 8–30, 31–60, 60+, avans), eng katta muddati o'tgan 5 mijoz, **kassa/bank hisoblari** qoldig'i (valyuta bilan), **agentlar qo'lidagi** naqd va tasdiq kutayotgan topshirishlar, **qoldiq qiymati** (savdo omborlari, FIFO), 14 kunlik tushum/foyda grafigi, buyurtmalar oqimi (bugungi, tasdiq va jo'natish kutayotgan), ishga chiqqan agentlar va tashriflar, agentlar reytingi (oy boshidan). Excel — ko'rsatkichlar ro'yxati |
+| `DstReports/Sales` | Savdo kesimlari: **agent, mijoz, tovar, hudud, kategoriya** (yorliqlar). Ustunlar: jo'natilgan, qaytarish, tushum, yalpi foyda, marja, buyurtmalar, mijozlar (tovar kesimida — sof miqdor), jami qatori. Filtrlar: davr, agent, hudud (quyi hududlari bilan), kategoriya, ombor; qatorni bosish — keyingi kesimga (agent/hudud → mijozlar, mijoz/kategoriya → tovarlar, tovar → mijozlar) filtr bilan. Server-side: GROUP BY, saralash, qidiruv va sahifalash SQL'da (DataTables) |
+| `DstReports/Visits` | Tashrif reja/fakt agent bo'yicha: ish kunlari, reja, fakt, rejadagilar/rejadan tashqari, **reja bajarilishi %**, buyurtma bilan (**samaradorlik %**), to'lov bilan, buyurtmasiz, tashrif buyurtmalari summasi va o'rtacha buyurtma |
+| `DstReports/Cash` | **Agentlar topshirgan pul**: agent bo'yicha (topshirgan, qabul qilingan, farq, kutilayotgan, hozir qo'lidagi va eng eski to'lov sanasi) va topshirishlar ro'yxati (holat filtri, server-side sahifalash) |
+
+Har hisobotda **Excel** (`ExcelExport`, ClosedXML), joriy filtrlar bilan, 100 000 qatorgacha.
+
+Hisob manbalari (qayta hisoblanmaydi):
+- Tushum = o'tkazilgan jo'natishlar (`D_SHIPMENT_LINES.Amount`) − o'tkazilgan qaytarishlar (`D_RETURN_LINES.Amount`), hujjat sanasi bo'yicha; bekor qilingan hujjatlar kirmaydi. Tannarx — jo'natishda saqlangan FIFO (`CostAmount`), qaytarishda `UnitCost`. Agent — buyurtmadagi agent (buyurtmasiz qaytarishda — mijoz kartasidagi), hudud — mijozning joriy hududi.
+- Qarz — `CUSTOMER_LEDGER` → `DebtService.Net` → `DebtMath.Aging` (qarzlar sahifasi bilan bir xil).
+- Kassa/bank — `FinQueries.AccountBalances` (moliya moduli bilan bir xil); agent qo'lidagi pul — `D_PAYMENTS` (o'tkazilgan, hisobga tushmagan).
+- Qoldiq qiymati — `PRODUCT_STOCKS` × kirim qatlamlari: qolgan miqdor eng yangi qatlamlar (FIFO), narx qoidasi `StockCostService` bilan bir xil (qabul qilingan kirim, DLOC-ASN emas, `PiecePrice` yoki `TotalPrice/Amount`); tarix qoplamasa — eng eski ma'lum narx, umuman kirim yo'q — 0 (soni ko'rsatiladi). Bitta SQL (oyna funksiyalari).
+- Tashrif rejasi — mijoz kartasidagi tashrif kunlari × davrdagi hafta kunlari (joriy agent; tarix saqlanmaydi), fakt — `VISITS`.
+
+Huquqlar: ko'rinish ro'yxatlar bilan bir xil (mijoz/hudud/ombor scope'lari, agent — o'zi, supervayzer — jamoasi). Tannarx, foyda, marja va qoldiq qiymati — faqat `DstSeeCost` bilan (JSON va Excel'da ham yo'q). Kassa/bank qoldiqlari — faqat cheklovsiz (scope'siz) foydalanuvchiga.
+
+Kod: `Services/Reports/` (`ReportFilter`/`ReportScope`, `SalesReportService`, `StockValuationService`, `VisitReportService`, `CashReportService`, `DashboardService`), `DstDashboardController`, `DstReportsController`, menyu va bosh sahifa plitalari, resx (`tools/strings_reports.py`, 70 kalit uz/ru).
+
+Testlar 157/158 (1 — oldindan skip; yangi 9): hafta kunlari va reja, marja, filtr; integratsiya (rollback) — 10 dona jo'natish va 2 qaytarish: tushum 440 000, FIFO tannarx 320 000, foyda 120 000, 5 kesim, scope va davr filtri, jo'natishni bekor qilish tushumni olib tashlaydi; qoldiq qiymati 100×40 000 → yangi kirim 50×46 000 (6 300 000) → 120 jo'natilgandan keyin 30×46 000; tashrif reja +1, fakt +2, buyurtma bilan, buyurtmasiz, agent scope; agent naqdi → topshirish → 10 000 kamomad bilan qabul (farq, kutilayotgan, qo'ldagi, kassa qoldig'i 290 000); rahbar paneli — tushum/foyda, yig'ilgan, qarz 350 000, 15 kundan keyin 1–7 kun muddati o'tgan, tannarx huquqisiz qoldiq va kassasiz. RazorCheck: 510 view, 0 xato.
+
+**Tekshirilmagan:** sahifalar brauzerda — S5 worktree IIS Express (`DB_DST_UI`, demo/demo2026) bilan ishga tushirildi, kirish ishlaydi, lekin bazada kompaniya litsenziyasi yo'q va global filtr `License` sahifasiga yo'naltiradi (litsenziya chetlab o'tilmadi). View'lar RazorCheck bilan kompilyatsiya qilindi, hisob-kitob integratsion testlarda.
+
+## 16. S6 tayyorgarligi (2026-10-20, branch `claude/dst-s6-pilot-a446b3`)
 
 Pilotni foydalanuvchi o'tkazadi; kod va hujjat tomoni tayyor. Reja va qabul ro'yxati — `03_PILOT.md`, qo'llanma — `Qollanma_Distributsiya_uz.md` / `_ru.md`. Migratsiya kerak bo'lmadi.
 
@@ -310,3 +338,4 @@ Pilotni foydalanuvchi o'tkazadi; kod va hujjat tomoni tayyor. Reja va qabul ro'y
 | Pilot kuni E2E: import → agent → tasdiq/limit/ruxsat → yig'ish/jo'natish/qisman → to'lov → kassaga topshirish → qaytarish → kun yakuni; qoldiq, balans = aging = akt sverki, kassa tekshiruvi | `tahsinERP.Tests/Distribution/PilotDayScenarioTests.cs` (faqat `DST_PILOT_E2E` = sinov bazasi) |
 
 Tekshiruv: ERP testlari 154/157 (3 shartli skip), pilot import testlari DB_DST_S6'da 7/7, E2E ssenariy DB_DST_S6'da (DB_DST_UI nusxasi) 2 marta o'tdi, bot testlari 38/38, RazorCheck 505/0. Bot offline: webhook → inbox → handler → ERP → 403 litsenziya → to'g'ri xabar. Tekshirilmagan: brauzerda sahifalar va haqiqiy bot bilan uchidan-uchiga (litsenziya yo'q), Telegram ichida Mini App.
+||||||| 9c7068af

@@ -1,0 +1,23 @@
+@model string
+@* Hisobotlar orasida o'tish. Model — joriy amal (Sales / Visits / Cash). *@
+@{
+    var f = (tahsinERP.Areas.Distribution.Services.Reports.ReportFilter)ViewBag.Filter;
+    var from = f.From.ToString("yyyy-MM-dd");
+    var to = f.To.ToString("yyyy-MM-dd");
+    var items = new[]
+    {
+        new { Action = "Sales", Icon = "bx-line-chart", Key = "Report_Sales" },
+        new { Action = "Visits", Icon = "bx-map-pin", Key = "Report_Visits" },
+        new { Action = "Cash", Icon = "bx-money", Key = "Report_Cash" }
+    };
+}
+<ul class="nav nav-pills mb-1">
+    @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "DstDashboard", "Index"))
+    {
+        <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "DstDashboard")"><i class="bx bx-tachometer"></i> @DstLocalization.T("Dashboard")</a></li>
+    }
+    @foreach (var i in items)
+    {
+        <li class="nav-item"><a class="nav-link @(Model == i.Action ? "active" : "")" href="@Url.Action(i.Action, new { from, to })"><i class="bx @i.Icon"></i> @DstLocalization.T(i.Key)</a></li>
+    }
+</ul>
