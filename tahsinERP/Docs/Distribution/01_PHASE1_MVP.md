@@ -253,3 +253,47 @@ Migratsiya `Database/Migrations/019_DST_Money.sql`: `D_PAYMENTS`, `CASH_HANDOVER
 Testlar 133/133 (yangi: aging va FIFO yopilish, teskari yozuvlar; integratsiya — agent naqdi → topshirish 10 000 kamomad bilan → moliya yozuvlari, ofis to'lovi buyurtmani yopadi, to'lovni bekor qilish, akt sverki; buyurtma bo'yicha qaytarish (ombor +4, qarz −220 000), ortiqcha qaytarish rad, qaytarishni bekor qilish, jo'natishni bekor qilish ombor/rezerv/qarzni tiklaydi). RazorCheck: 493 view, 0 xato.
 
 Qilinmagan (ataylab): kassalar o'rtasida o'tkazma/inkassatsiya — Moliya modulining ishi (FIN_TRANSACTIONS orqali qo'lda); qaytarishda mijozga pulni qaytarish (hozircha faqat qarzni kamaytiradi); jo'natishning moliyaga "mirror" yozuvi (mavjud moliya hisobotlari faqat `SalesInvoice` mirror'ni chetlab o'tadi — boshqasi kassa qoldig'ini buzardi). Moliya hisobotlarida distributsiya mijozlarining to'lovlari tushum sifatida ko'rinadi, ularning CRM invoyslari yo'q.
+
+## 14. S4 natijasi (2026-10-19, branch `feature/distribution`)
+
+Migratsiya `Database/Migrations/020_DST_Bot.sql`: `TELEGRAM_LINK_CODES`, `TELEGRAM_ACCOUNTS` (faol hisob — TelegramUserId bo'yicha UNIQUE), `NOTIFICATIONS` (tranzaksion outbox), `AGENT_DAYS`, `VISITS`, `D_ORDERS.SignatureKey`, sozlamalar (`VisitRadiusM`=200, `AgentCashAccountId`, `BotUsername`, `LargeOrderAmount`). Ruxsat moduli yo'q — API servis imzosi bilan. Lokal bazada va `DB_DST_UI` da qo'llangan (zaxira `DBTHSN-IPACK_pre_020_DST_20261019.bak`), qayta ishga tushirish xatosiz.
+
+### 14.1 ERP tomoni
+
+| Qism | Nima qiladi |
+|---|---|
+| `DstApi` (`/Distribution/DstApi/*`) | Bot va Mini App uchun yagona kirish. `[DstApiAuth]`: so'rov imzosi (`DstApiSignature`, HMAC-SHA256: vaqt, metod, yo'l+so'rov, X-Acting-User, body hash; ±300 s); tenant kaliti = HMAC(master, "dst-api:"+slug), master — muhit o'zgaruvchisi `TAHSINERP_BOT_KEY` (yoki appSetting `DstBotKey`), yo'q bo'lsa API o'chiq (503). `X-Acting-User` — o'sha ERP foydalanuvchisi nomidan, web bilan bir xil servislar, ruxsat va scope'lar. Xato: 400 `{error}`, kredit — 409 `{error, problems}` |
+| Bog'lash | Jamoalar sahifasi (xodim + rol: rahbar/omborchi/agent/ekspeditor) va mijoz kartasi → bir martalik kod (10 belgi, 3 kun) → `t.me/<bot>?start=<kod>`; qayta ulash eski hisobni o'chiradi |
+| Bildirishnomalar | `NotificationService` biznes amali bilan bir tranzaksiyada yozadi, faqat Telegram'ga ulanganlarga, qabul qiluvchi tilida: yirik buyurtma va kredit oshishi (rahbarga, "Tasdiqlash" tugmasi bilan), tasdiq/bekor (agentga), jo'natildi/yetkazildi/to'lov qabul qilindi (mijozga), kassaga topshirish (rahbarga). Kunlik yakun — `DailySummaryService` |
+| Dala ishi (`FieldService`) | Ish kuni (joylashuv bilan), bugungi marshrut (tashrif kuni + bugun borilganlar), mijoz kartasi (qarz, limit, oxirgi buyurtmalar), tavsiya (90 kunda ≥ 2 marta olingan; odatiy oralig'idan 1,5 baravar uzoq olmagani — birinchi), "Keldim" (radius + GPS aniqligi, ko'pi bilan radiusga teng qo'shimcha), tashrif natijasi (buyurtma / to'lov / buyurtmasiz + sabab / foto) |
+| Katalog | `CatalogService` — web forma va API bitta natija (birliklar, mijoz narxi, savdo omborlaridagi qoldiq) |
+| Sozlamalar | Umumiy karta: minimal va yirik buyurtma, tashrif radiusi, agent naqdsiz to'lovlari hisobi, bot nomi |
+
+### 14.2 `tahsinERP.Bot` (ASP.NET Core .NET 10, alohida servis)
+
+- **Webhook → BotInbox** (`/tg/{slug}`, `secret_token` tekshiruvi, `update_id` UNIQUE, darhol 200) → `InboxWorker` (UPDATE…OUTPUT READPAST bilan band qiladi; chat ichida ketma-ket, chatlar parallel; 3 urinish).
+- **BotOutbox → OutboxWorker:** token-bucket — bot bo'yicha 25/s, chatga 1/s (3 tagacha portlash), 429 da `retry_after` bo'yicha chat to'xtatiladi; 400/403 — doimiy xato, tarmoq/5xx — eksponensial qayta urinish. Javoblar va bildirishnomalar bitta navbatda (javoblar ustuvor).
+- **Bildirishnomalar — pull:** `NotificationPoller` har 12 s ERP'dan oladi va yuborilganini tasdiqlaydi (Ack). ERP tashqariga hech narsa chaqirmaydi, bot URL'ini bilmaydi; bot o'chiq bo'lsa xabar ERP navbatida kutadi. Kunlik yakun — bot jadvali (Toshkent 20:00, kuniga bir marta).
+- **Agent menyusi:** kunni boshlash/yakunlash (joylashuv), marshrut (✅/⏳/🚫 belgilar, qarz), mijoz qidirish, mijoz kartasi → "Keldim" (joylashuv), "Buyurtma" (Mini App), "To'lov" (summa → usul; `ClientRequestId` — qayta bosishda ham bitta to'lov), "Buyurtmasiz" (sabab), foto, xarita; kassa (qo'ldagi naqd → kassaga topshirish). **Rahbar:** bugungi yakun, limit oshgan buyurtmani bot tugmasi bilan tasdiqlash (`DstOverrideCredit` huquqi ERP'da tekshiriladi). **Mijoz:** bildirishnomalar.
+- **Mini App** (`/app/?t=..&c=..&v=..`): katalog (qidiruv, kategoriya, tavsiya), birlik tanlash, savat, jami, yetkazish sanasi, izoh, imzo (canvas → PNG → fayl ombori, ERP'ga kalit). Har so'rovda `initData` HMAC tekshiruvi (24 soat), so'ng agent nomidan ERP'ga; brauzer ERP kalitini ko'rmaydi. CSP: faqat o'z skriptlari + telegram.org.
+- **Tenantlar:** har firma — o'z boti (`tenant add <slug> <ERP url> <token> [--erp-tenant <slug>]`, `webhook set`); token bazada AES-256-GCM. Baza `tahsin_bot` ishga tushishda o'zi yaratiladi. Deploy: `tahsinERP.Bot/deploy` (systemd + nginx), `README.md`.
+
+### 14.3 Rejadan farqlar (ataylab)
+
+| Rejada | Qilindi | Nega |
+|---|---|---|
+| Web API 2 `/api/v1/dst`, servis JWT | MVC controller `DstApi` + HMAC imzo | Yangi stack/paket yo'q; imzo body va vaqtni ham qamraydi (JWT'da yo'q), kalit almashinuvi yo'q |
+| ERP'da Hangfire → `POST /internal/notify` | Bot ERP'dan tortib oladi | ERP'ga fon jarayoni va bot manzili kerak emas; IIS app pool uxlasa ham xabar yo'qolmaydi |
+| Bitta umumiy bot | Har tenantga o'z boti (bitta servis, bitta baza) | Telegram limiti (30/s) har firmaga alohida, white-label darhol; umumiy bot keyin "router" tenant sifatida qo'shilishi mumkin |
+| Mini App — qisqa JWT | Har so'rovda `initData` tekshiruvi | Holatsiz, sessiya saqlanmaydi; tekshiruv arzon |
+| Rasmlar S3 | Lokal disk (`IFileStore`), kalit formati S3 bilan bir xil | S3'ga o'tish — bitta klass |
+
+### 14.4 Tekshiruv
+
+ERP testlari 141/141 (yangi 8: imzo — o'zgartirilgan yo'l/body/foydalanuvchi/tenant va eskirgan vaqt rad etiladi, masofa, tavsiya, kod alifbosi; integratsiya — kod bir martalik, eski kod bekor, qayta ulash eskisini o'chiradi, bildirishnoma faqat ulanganlarga va Ack, uzilgan hisob xabari yopiladi, "Keldim" radiusi va GPS tolerantligi, buyurtmasiz — sabab majburiy). RazorCheck: 494 view, 0 xato. Bot testlari 37/37 (initData, SecretBox, ERP imzosi ERP `Verify` bilan, rate limiter, Telegram natijalari tasnifi, sxema, fayl ombori — yo'l chiqib ketishi, PNG imzo; handler oqimlari in-memory baza va soxta ERP bilan: bog'lash, ERP'dan tiklash, kun boshi, to'lov — ERP xatosidan keyin qayta bosish bitta `ClientRequestId`, biznes xatosi matni, rahbar tasdig'i, guruh/bot e'tiborsiz). Lokal servis: sxema yaratildi, webhook (noto'g'ri secret — 401, dublikat — bitta yozuv) → inbox → handler → outbox → Telegram API (soxta token — 401, doimiy xato deb belgilandi). Mini App brauzerda soxta `Telegram.WebApp` bilan: katalog, birlik, savat, jami, yuborish (uz/ru), telefon kengligida.
+
+IIS Express orqali haqiqiy ERP bilan: to'g'ri imzo (GET so'rov parametrlari bilan, POST body bilan) o'tadi va litsenziya tekshiruvigacha yetadi (lokal bazada litsenziya yo'q — 403 `X-License-Message`); boshqa tenant kaliti, eskirgan vaqt, imzosiz — 401; boshqa sahifalar avvalgidek login'ga yo'naltiriladi. Shu sinovda topilib tuzatildi: `web.config` `<deny users="?">` API'ni login'ga yo'naltirardi (`<location path="Distribution/DstApi">`), area marshruti `Controllers.Api` namespace'ini topmasdi, `[AllowAnonymous]` tufayli global litsenziya filtri API'ni tekshirmasdi (endi `DstApiAuth` ichida: to'liq — hammasi, grace — faqat GET, aks holda 403); bot ERP redirect'iga ergashmaydi va JSON bo'lmagan javobni xato deb oladi.
+
+**Tekshirilmagan:** litsenziyali ERP va haqiqiy bot tokeni bilan uchidan-uchiga (lokal litsenziya kaliti yo'q), Telegram ichida Mini App (BotFather `/setdomain` va HTTPS kerak).
+
+**Qilinmagan (keyingi bosqichga):** kun boshida selfi; botdan yangi savdo nuqtasi qo'shish (API `NewCustomer` bor, bot oqimi yo'q); omborchiga "yangi tasdiqlangan buyurtma" xabari; Mini App'da kamera orqali shtrix-kod; jonli joylashuv kuzatuvi; mijoz uchun botda "qarzim / akt sverki".

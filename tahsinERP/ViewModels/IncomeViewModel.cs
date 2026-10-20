@@ -96,10 +96,10 @@ namespace tahsinERP.ViewModels
         public bool RecieveStatus { get; set; }
         
         [Display(Name = "Jami miqdor")]
-        public double? Amount { get; set; }
+        public decimal? Amount { get; set; }
         
         [Display(Name = "Jami summa")]
-        public double? TotalPrice { get; set; }
+        public decimal? TotalPrice { get; set; }
         
         public IncomeEditViewModel()
         {
@@ -121,7 +121,7 @@ namespace tahsinERP.ViewModels
         [Required(ErrorMessage = "Miqdor kiritilishi shart")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Miqdor 0 dan katta bo'lishi kerak")]
         [Display(Name = "Miqdor")]
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         
         [Required(ErrorMessage = "Birlik tanlanishi shart")]
         [Display(Name = "Birlik")]
@@ -130,15 +130,15 @@ namespace tahsinERP.ViewModels
         public string UnitName { get; set; }
         
         [Display(Name = "Narx (dona)")]
-        public double? PiecePrice { get; set; }
+        public decimal? PiecePrice { get; set; }
 
         /// <summary>QQS foizi (0–100). 0 = QQS yo‘q.</summary>
         [Display(Name = "QQS %")]
         [Range(0, 100, ErrorMessage = "QQS 0 dan 100 gacha")]
-        public double VATRate { get; set; }
+        public decimal VATRate { get; set; }
         
         [Display(Name = "Jami summa")]
-        public double? TotalPrice { get; set; }
+        public decimal? TotalPrice { get; set; }
         
         [Display(Name = "Izoh")]
         public string Comment { get; set; }
@@ -164,8 +164,8 @@ namespace tahsinERP.ViewModels
         public string SupplierName { get; set; }
         public int CurrencyID { get; set; }
         public string CurrencyName { get; set; }
-        public double? Amount { get; set; }
-        public double? TotalPrice { get; set; }
+        public decimal? Amount { get; set; }
+        public decimal? TotalPrice { get; set; }
         public string Description { get; set; }
         public bool RecieveStatus { get; set; }
         public bool IsDeleted { get; set; }

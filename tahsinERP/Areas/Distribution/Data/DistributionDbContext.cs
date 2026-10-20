@@ -110,6 +110,13 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<DstReturn> Returns { get; set; }
         public virtual DbSet<DstReturnLine> ReturnLines { get; set; }
 
+        // bot va agent ish kuni (S4)
+        public virtual DbSet<TelegramLinkCode> TelegramLinkCodes { get; set; }
+        public virtual DbSet<TelegramAccount> TelegramAccounts { get; set; }
+        public virtual DbSet<DstNotification> Notifications { get; set; }
+        public virtual DbSet<AgentDay> AgentDays { get; set; }
+        public virtual DbSet<Visit> Visits { get; set; }
+
         // dbo jadvallari — faqat o'qish (join uchun)
         public virtual DbSet<FinAccountRef> FinAccounts { get; set; }
         public virtual DbSet<StockRef> Stocks { get; set; }
@@ -232,6 +239,22 @@ namespace tahsinERP.Areas.Distribution.Data
             ret.Property(e => e.CostTotal).HasPrecision(19, 2);
             ret.Property(e => e.PhotoKey).IsUnicode(false);
             ret.Property(e => e.Source).IsUnicode(false);
+            modelBuilder.Entity<TelegramLinkCode>().Property(e => e.Code).IsUnicode(false);
+            modelBuilder.Entity<TelegramLinkCode>().Property(e => e.Role).IsUnicode(false);
+            modelBuilder.Entity<TelegramAccount>().Property(e => e.Role).IsUnicode(false);
+            modelBuilder.Entity<DstNotification>().Property(e => e.Type).IsUnicode(false);
+            modelBuilder.Entity<AgentDay>().Property(e => e.StartLat).HasPrecision(9, 6);
+            modelBuilder.Entity<AgentDay>().Property(e => e.StartLng).HasPrecision(9, 6);
+            modelBuilder.Entity<AgentDay>().Property(e => e.EndLat).HasPrecision(9, 6);
+            modelBuilder.Entity<AgentDay>().Property(e => e.EndLng).HasPrecision(9, 6);
+            modelBuilder.Entity<AgentDay>().Property(e => e.SelfieKey).IsUnicode(false);
+            var vis = modelBuilder.Entity<Visit>();
+            vis.Property(e => e.Lat).HasPrecision(9, 6);
+            vis.Property(e => e.Lng).HasPrecision(9, 6);
+            vis.Property(e => e.Result).IsUnicode(false);
+            vis.Property(e => e.PhotoKey).IsUnicode(false);
+            modelBuilder.Entity<DstOrder>().Property(e => e.SignatureKey).IsUnicode(false);
+
             var rl = modelBuilder.Entity<DstReturnLine>();
             rl.Property(e => e.QtyBase).HasPrecision(18, 4);
             rl.Property(e => e.UnitPrice).HasPrecision(19, 4);

@@ -314,37 +314,10 @@ namespace tahsinERP.Areas.Distribution.Controllers
         {
             using (var db = NewDb())
             {
-                var term = q?.Trim();
-                var barcodeProduct = string.IsNullOrEmpty(term) ? null
-                    : db.ProductBarcodes.Where(b => b.Barcode == term).Select(b => new { b.ProductID, b.ProductUnitID }).FirstOrDefault();
-                var ids = barcodeProduct != null
-                    ? new List<int> { barcodeProduct.ProductID }
-                    : (from p in db.Products
-                       where !p.IsDeleted && (term == null || p.PNo.Contains(term) || p.Name.Contains(term))
-                             && !db.ProductProfiles.Any(pf => pf.ProductID == p.ID && !pf.IsSaleActive)
-                       orderby p.Name
-                       select p.ID).Take(20).ToList();
-
-                var products = db.Products.Where(p => ids.Contains(p.ID)).ToList();
-                var prices = new PricingService(db).Resolve(customerId, ids, DateTime.Now);
-                var warehouses = warehouseId.HasValue ? new List<int> { warehouseId.Value } : StockService.SalesWarehouses(db);
-                var stock = StockService.Levels(db, ids, warehouses).GroupBy(l => l.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Available));
-                var units = new UnitService(db);
-
-                var rows = products.OrderBy(p => p.Name).Select(p =>
+                var rows = CatalogService.Search(db, q, customerId, warehouseId, null, DateTime.Now).Select(p => new
                 {
-                    var price = prices[p.ID];
-                    stock.TryGetValue(p.ID, out var available);
-                    return new
-                    {
-                        id = p.ID, text = p.PNo + " — " + p.Name, available,
-                        units = units.UnitsOf(p.ID).Select(u => new
-                        {
-                            productUnitId = u.ProductUnitID, name = u.UnitName, factor = u.Factor,
-                            price = price.Found ? UnitMath.UnitPrice(price.Price.Value, u.Factor) : (decimal?)null,
-                            isDefault = barcodeProduct != null ? u.ProductUnitID == barcodeProduct.ProductUnitID : u.IsDefaultSale
-                        })
-                    };
+                    id = p.Id, text = p.Text, available = p.Available,
+                    units = p.Units.Select(u => new { productUnitId = u.ProductUnitId, name = u.Name, factor = u.Factor, price = u.Price, isDefault = u.IsDefault })
                 }).ToList();
                 return Json(new { results = rows }, JsonRequestBehavior.AllowGet);
             }

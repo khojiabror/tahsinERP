@@ -10,11 +10,22 @@ using System.Data.Entity;
 using tahsinERP.ViewModels.Reports;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
+using tahsinERP.Filters;
 
 namespace tahsinERP.Controllers
 {
+    [Permission("Reports")]
     public class ReportsController : Controller
     {
+        /// <summary>
+        /// /Reports — alohida sahifasi yo'q (PERMISSIONMODULES'dagi "Reports" moduli shu manzilga ishora qiladi);
+        /// menyudagi birinchi hisobotga yo'naltiriladi.
+        /// </summary>
+        public ActionResult Index()
+        {
+            return RedirectToAction("Coverage");
+        }
+
         /// <summary>
         /// ABC/XYZ segmentatsiya - xomashyolarni value va variabiliti bo'yicha klassifikatsiya.
         /// </summary>
@@ -69,9 +80,9 @@ namespace tahsinERP.Controllers
                         g => g.Key,
                         g => new
                         {
-                            Total = g.Sum(x => (double)x.Amount),
+                            Total = g.Sum(x => x.Amount),
                             Daily = g.GroupBy(x => x.Date)
-                                     .ToDictionary(gg => gg.Key, gg => gg.Sum(x => (double)x.Amount))
+                                     .ToDictionary(gg => gg.Key, gg => gg.Sum(x => x.Amount))
                         });
 
                 var productIds = demandByProduct.Keys.ToList();
@@ -181,7 +192,7 @@ namespace tahsinERP.Controllers
                     .ToDictionary(
                         g => g.Key,
                         g => g.GroupBy(x => x.Date)
-                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => (double)x.Amount)));
+                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => x.Amount)));
 
                 var productIds = demandByProduct.Keys.ToList();
                 var products = await db.PRODUCTS
@@ -417,7 +428,7 @@ namespace tahsinERP.Controllers
                     .ToDictionary(
                         g => g.Key,
                         g => g.GroupBy(x => x.Date)
-                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => (double)x.Amount)));
+                              .ToDictionary(gg => gg.Key, gg => gg.Sum(x => x.Amount)));
 
                 // ABC/XYZ va Safety DOH faqat talab bo'lgan mahsulotlar uchun
                 double totalAllDemand = demandByProduct.Values.Sum(v => v.Values.Sum());

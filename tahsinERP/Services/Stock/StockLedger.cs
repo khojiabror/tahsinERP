@@ -15,10 +15,10 @@ namespace tahsinERP.Services.Stock
     {
         public int WarehouseId { get; }
         public int ProductId { get; }
-        public double Requested { get; }
-        public double Available { get; }
+        public decimal Requested { get; }
+        public decimal Available { get; }
 
-        public InsufficientStockException(int warehouseId, int productId, double requested, double available)
+        public InsufficientStockException(int warehouseId, int productId, decimal requested, decimal available)
             : base($"Omborda yetarli qoldiq yo'q (ombor #{warehouseId}, mahsulot #{productId}). " +
                    $"Mavjud: {available:N3}, talab: {requested:N3}.")
         {
@@ -55,18 +55,18 @@ namespace tahsinERP.Services.Stock
     public static class StockLedger
     {
         /// <summary>Suzuvchi nuqta xatolari uchun chegara (bundan kichik farq "nol" hisoblanadi).</summary>
-        public const double Epsilon = 1e-6;
+        public const decimal Epsilon = 0.000001m;
 
         private class AdjustResult
         {
             public bool Ok { get; set; }
-            public double Available { get; set; }
+            public decimal Available { get; set; }
         }
 
         // @p0 WHID, @p1 ProductID, @p2 delta, @p3 UnitID, @p4 epsilon
         private const string AdjustSql = @"
 SET NOCOUNT ON;
-DECLARE @keep INT, @cnt INT, @total FLOAT, @new FLOAT, @ok BIT = 1;
+DECLARE @keep INT, @cnt INT, @total DECIMAL(38,6), @new DECIMAL(38,6), @ok BIT = 1;
 BEGIN TRAN;
 SELECT @keep = MIN(ID), @cnt = COUNT(*), @total = ISNULL(SUM(Amount), 0)
 FROM dbo.PRODUCT_STOCKS WITH (UPDLOCK, HOLDLOCK)
@@ -97,10 +97,10 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         /// DLOC ledger'ga tegmaydi — DLOC omborlar uchun <see cref="ReceiveLine"/>/<see cref="IssueLine"/> ishlating.
         /// </summary>
         /// <returns>Yangi umumiy qoldiq.</returns>
-        public static double Adjust(DBTHSNEntities db, int warehouseId, int productId, double delta, int unitId = 0)
+        public static decimal Adjust(DBTHSNEntities db, int warehouseId, int productId, decimal delta, int unitId = 0)
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
-            if (Math.Abs(delta) < 1e-12)
+            if (delta == 0m)
                 return GetOnHand(db, warehouseId, productId);
 
             // SRM-B14: miqdor qoldiq qatori birligiga o'giriladi (unitId <= 0 — allaqachon qoldiq birligida)
@@ -117,7 +117,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         private class StockUnitRow
         {
             public int UnitID { get; set; }
-            public double Amount { get; set; }
+            public decimal Amount { get; set; }
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         /// </summary>
         /// <param name="stockUnitId">Natija birligi (qoldiq qatori birligi).</param>
         /// <param name="allowReunit">false — faqat hisob (tannarx va h.k.), bo'sh qator birligi o'zgartirilmaydi.</param>
-        public static double ToStockUnit(DBTHSNEntities db, int warehouseId, int productId, double qty, int lineUnitId,
+        public static decimal ToStockUnit(DBTHSNEntities db, int warehouseId, int productId, decimal qty, int lineUnitId,
             out int stockUnitId, bool allowReunit = true)
         {
             stockUnitId = lineUnitId;
@@ -138,13 +138,13 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
                 return qty;
 
             var row = db.Database.SqlQuery<StockUnitRow>(
-                "SELECT TOP 1 ISNULL(UnitID, 0) AS UnitID, CAST(Amount AS FLOAT) AS Amount FROM dbo.PRODUCT_STOCKS " +
+                "SELECT TOP 1 ISNULL(UnitID, 0) AS UnitID, Amount FROM dbo.PRODUCT_STOCKS " +
                 "WHERE WHID = @p0 AND ProductID = @p1 ORDER BY ID", warehouseId, productId).FirstOrDefault();
             if (row == null || row.UnitID <= 0 || row.UnitID == lineUnitId)
                 return qty;
 
             var ledgerQty = DlocFifoSchema.IsEnabled(db) ? DlocFifoDataAccess.GetLedgerQty(db, warehouseId, productId) : 0m;
-            if (allowReunit && Math.Abs(row.Amount) < Epsilon && ledgerQty <= 0.000001m)
+            if (allowReunit && Math.Abs(row.Amount) < Epsilon && ledgerQty <= Epsilon)
             {
                 db.Database.ExecuteSqlCommand(
                     "UPDATE dbo.PRODUCT_STOCKS SET UnitID = @p2 WHERE WHID = @p0 AND ProductID = @p1",
@@ -153,7 +153,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
             }
 
             var conversion = new UnitConversionService(db);
-            var converted = conversion.TryConvert(productId, (decimal)qty, lineUnitId, row.UnitID);
+            var converted = conversion.TryConvert(productId, qty, lineUnitId, row.UnitID);
             if (!converted.HasValue)
             {
                 throw new InvalidOperationException(
@@ -163,18 +163,18 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
             }
 
             stockUnitId = row.UnitID;
-            return (double)converted.Value;
+            return converted.Value;
         }
 
         /// <summary>Kirim: qoldiqni oshiradi (faqat PRODUCT_STOCKS).</summary>
-        public static double Increase(DBTHSNEntities db, int warehouseId, int productId, double qty, int unitId = 0)
+        public static decimal Increase(DBTHSNEntities db, int warehouseId, int productId, decimal qty, int unitId = 0)
         {
             if (qty < 0) throw new ArgumentOutOfRangeException(nameof(qty));
             return Adjust(db, warehouseId, productId, qty, unitId);
         }
 
         /// <summary>Chiqim: qoldiqni kamaytiradi (faqat PRODUCT_STOCKS), yetmasa — xato.</summary>
-        public static double Decrease(DBTHSNEntities db, int warehouseId, int productId, double qty, int unitId = 0)
+        public static decimal Decrease(DBTHSNEntities db, int warehouseId, int productId, decimal qty, int unitId = 0)
         {
             if (qty < 0) throw new ArgumentOutOfRangeException(nameof(qty));
             return Adjust(db, warehouseId, productId, -qty, unitId);
@@ -185,42 +185,42 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         /// <paramref name="lockForUpdate"/> = true bo'lsa, tranzaksiya oxirigacha qator qulflanadi
         /// (o'qib, keyin shu qiymat asosida yoziladigan holatlar uchun, masalan inventarizatsiya).
         /// </summary>
-        public static double GetOnHand(DBTHSNEntities db, int warehouseId, int productId, bool lockForUpdate = false)
+        public static decimal GetOnHand(DBTHSNEntities db, int warehouseId, int productId, bool lockForUpdate = false)
         {
             var sql = lockForUpdate
-                ? "SELECT CAST(ISNULL(SUM(Amount), 0) AS FLOAT) FROM dbo.PRODUCT_STOCKS WITH (UPDLOCK, HOLDLOCK) WHERE WHID = @p0 AND ProductID = @p1"
-                : "SELECT CAST(ISNULL(SUM(Amount), 0) AS FLOAT) FROM dbo.PRODUCT_STOCKS WHERE WHID = @p0 AND ProductID = @p1";
-            return db.Database.SqlQuery<double>(sql, warehouseId, productId).FirstOrDefault();
+                ? "SELECT CAST(ISNULL(SUM(Amount), 0) AS DECIMAL(38,6)) FROM dbo.PRODUCT_STOCKS WITH (UPDLOCK, HOLDLOCK) WHERE WHID = @p0 AND ProductID = @p1"
+                : "SELECT CAST(ISNULL(SUM(Amount), 0) AS DECIMAL(38,6)) FROM dbo.PRODUCT_STOCKS WHERE WHID = @p0 AND ProductID = @p1";
+            return db.Database.SqlQuery<decimal>(sql, warehouseId, productId).FirstOrDefault();
         }
 
         /// <summary>Bir nechta mahsulot qoldig'i bitta so'rovda (ProductID → qoldiq).</summary>
-        public static Dictionary<int, double> GetOnHand(DBTHSNEntities db, int warehouseId, IEnumerable<int> productIds)
+        public static Dictionary<int, decimal> GetOnHand(DBTHSNEntities db, int warehouseId, IEnumerable<int> productIds)
         {
             var ids = (productIds ?? Enumerable.Empty<int>()).Distinct().ToList();
             if (ids.Count == 0)
-                return new Dictionary<int, double>();
+                return new Dictionary<int, decimal>();
 
             return db.PRODUCT_STOCKS.AsNoTracking()
                 .Where(s => s.WHID == warehouseId && ids.Contains(s.ProductID))
                 .GroupBy(s => s.ProductID)
                 .Select(g => new { g.Key, Qty = g.Sum(x => x.Amount) })
-                .ToDictionary(x => x.Key, x => (double)x.Qty);
+                .ToDictionary(x => x.Key, x => x.Qty);
         }
 
         private class ProductQtyRow
         {
             public int ProductID { get; set; }
-            public double Qty { get; set; }
+            public decimal Qty { get; set; }
         }
 
         /// <summary>
         /// Ombordagi barcha mahsulotlar qoldig'i — tranzaksiya oxirigacha qulflangan holda (UPDLOCK+HOLDLOCK,
         /// yo'q qatorlar oralig'i ham). Butun omborni qayta hisoblaydigan amallar uchun (inventarizatsiya).
         /// </summary>
-        public static Dictionary<int, double> GetOnHandForUpdate(DBTHSNEntities db, int warehouseId)
+        public static Dictionary<int, decimal> GetOnHandForUpdate(DBTHSNEntities db, int warehouseId)
         {
             return db.Database.SqlQuery<ProductQtyRow>(
-                    "SELECT ProductID, CAST(ISNULL(SUM(Amount), 0) AS FLOAT) AS Qty FROM dbo.PRODUCT_STOCKS WITH (UPDLOCK, HOLDLOCK) " +
+                    "SELECT ProductID, CAST(ISNULL(SUM(Amount), 0) AS DECIMAL(38,6)) AS Qty FROM dbo.PRODUCT_STOCKS WITH (UPDLOCK, HOLDLOCK) " +
                     "WHERE WHID = @p0 GROUP BY ProductID", warehouseId)
                 .ToList()
                 .ToDictionary(r => r.ProductID, r => r.Qty);
@@ -238,7 +238,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         /// Oddiy omborda faqat PRODUCT_STOCKS oshadi.
         /// </summary>
         public static void ReceiveLine(DBTHSNEntities db, int warehouseId, int incomeId, int incomeProductId,
-            int productId, double qty, int unitId, int? locationId, DateTime receivedAt, string lotNoPrefix = null)
+            int productId, decimal qty, int unitId, int? locationId, DateTime receivedAt, string lotNoPrefix = null)
         {
             if (qty <= Epsilon)
                 return;
@@ -252,7 +252,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
                     throw new WarehouseDlocException("DLOC_REQUIRED", "Joylashuv (DLOC) tanlanmagan.");
 
                 if (!LocationLotStockLedger.TryReceive(db, warehouseId, incomeId, incomeProductId, productId,
-                        (decimal)qty, locationId.Value, receivedAt, unitId, lotNoPrefix))
+                        qty, locationId.Value, receivedAt, unitId, lotNoPrefix))
                 {
                     throw new WarehouseDlocException("DLOC_RECEIVE_FAILED",
                         $"Mahsulot #{productId}: DLOC ga kirim yozib bo'lmadi.");
@@ -268,7 +268,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         /// EXPENSE_PRODUCT_ALLOCATIONS ga yoziladi), yetmasa joylashtirilmagan qoldiqdan; oddiy omborda
         /// PRODUCT_STOCKS dan. Qoldiq yetmasa — xato (hech narsa yozilmaydi).
         /// </summary>
-        public static Task IssueLineAsync(DBTHSNEntities db, int warehouseId, int productId, double qty,
+        public static Task IssueLineAsync(DBTHSNEntities db, int warehouseId, int productId, decimal qty,
             int unitId, int expenseProductId)
         {
             return ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProductAsync(
@@ -276,7 +276,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         }
 
         /// <summary>Sinxron variant (<see cref="IssueLineAsync"/>).</summary>
-        public static void IssueLine(DBTHSNEntities db, int warehouseId, int productId, double qty,
+        public static void IssueLine(DBTHSNEntities db, int warehouseId, int productId, decimal qty,
             int unitId, int expenseProductId)
         {
             ExpenseStockIssueHelper.ApplyAutoIssueForExpenseProduct(
@@ -287,7 +287,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         /// Chiqim qatorini bekor qiladi: DLOC ajratmalari (lot/joy) tiklanadi, ajratma yozuvlari
         /// o'chiriladi va PRODUCT_STOCKS qaytariladi. EXPENSE_PRODUCTS qatorini o'chirishdan OLDIN chaqiring.
         /// </summary>
-        public static void ReverseIssueLine(DBTHSNEntities db, int warehouseId, int productId, double qty,
+        public static void ReverseIssueLine(DBTHSNEntities db, int warehouseId, int productId, decimal qty,
             int unitId, int expenseProductId)
         {
             ExpenseStockIssueHelper.ReverseExpenseProductIssue(db, warehouseId, productId, qty, unitId, expenseProductId);
@@ -306,7 +306,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
         private class IncomeLineRow
         {
             public int ProductID { get; set; }
-            public double Amount { get; set; }
+            public decimal Amount { get; set; }
             public int UnitID { get; set; }
         }
 
@@ -350,13 +350,13 @@ WHERE il.IncomeID = @p0 AND il.IsDeleted = 0";
                 return;
 
             var lines = db.Database.SqlQuery<IncomeLineRow>(
-                "SELECT ProductID, CAST(Amount AS FLOAT) AS Amount, UnitID FROM dbo.INCOME_PRODUCTS WHERE IncomeID = @p0", incomeId).ToList();
+                "SELECT ProductID, Amount, UnitID FROM dbo.INCOME_PRODUCTS WHERE IncomeID = @p0", incomeId).ToList();
 
             // Har qator o'z birligidan qoldiq birligiga o'giriladi (SRM-B14), keyin mahsulot bo'yicha jamlanadi
             foreach (var g in lines.GroupBy(l => l.ProductID))
             {
                 int stockUnitId = 0;
-                double qty = 0;
+                decimal qty = 0;
                 foreach (var line in g)
                     qty += ToStockUnit(db, warehouseId, g.Key, line.Amount, line.UnitID, out stockUnitId);
                 if (qty > Epsilon)

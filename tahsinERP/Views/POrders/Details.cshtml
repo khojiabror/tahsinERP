@@ -9,13 +9,13 @@
     // saqlangan ma'lumotdan ajratamiz: net = mahsulot satrlari yig'indisi (TotalPrice),
     // jami (QQS bilan) = Model.Amount. Shunda to'g'ridan-to'g'ri (shartnomasiz) buyurtmalarda ham
     // QQS to'g'ri ko'rsatiladi.
-    var totalWithVat = (double?)Model.Amount ?? 0d;
+    var totalWithVat = Model.Amount ?? 0m;
     var hasLines = Model.P_ORDER_PRODUCTS != null && Model.P_ORDER_PRODUCTS.Any();
-    var totalBase = hasLines ? Model.P_ORDER_PRODUCTS.Sum(p => (double)p.TotalPrice) : totalWithVat;
+    var totalBase = hasLines ? Model.P_ORDER_PRODUCTS.Sum(p => p.TotalPrice) : totalWithVat;
     var totalVat = totalWithVat - totalBase;
     var vatRate = totalBase > 0
-        ? (totalWithVat / totalBase - 1d) * 100d
-        : (ViewBag.ContractVatRate != null ? (double)ViewBag.ContractVatRate : 0d);
+        ? (totalWithVat / totalBase - 1m) * 100m
+        : (ViewBag.ContractVatRate != null ? (decimal)ViewBag.ContractVatRate : 0m);
     if (vatRate < 0) { vatRate = 0; }
 }
 
@@ -161,11 +161,11 @@
                                             {
                                                 foreach (var product in Model.P_ORDER_PRODUCTS.OrderBy(p => p.PRODUCT != null ? (p.PRODUCT.Name ?? "") : "", StringComparer.OrdinalIgnoreCase).ThenBy(p => p.ID))
                                                 {
-                                                    var lineBase = (double)product.TotalPrice;
-                                                    var unitVat = (double)product.Price * vatRate / 100d;
-                                                    var lineVat = lineBase * vatRate / 100d;
+                                                    var lineBase = product.TotalPrice;
+                                                    var unitVat = product.Price * vatRate / 100m;
+                                                    var lineVat = lineBase * vatRate / 100m;
                                                     var lineWithVat = lineBase + lineVat;
-                                                    var unitWithVat = (double)product.Price + unitVat;
+                                                    var unitWithVat = product.Price + unitVat;
                                                     <tr>
                                                         <td>@(product.PRODUCT?.PNo ?? "-")</td>
                                                         <td>@(product.PRODUCT?.Name ?? "-")</td>

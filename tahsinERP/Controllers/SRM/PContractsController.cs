@@ -163,9 +163,9 @@ namespace tahsinERP.Controllers
                 var ordersQuery = db.P_ORDERS.Where(o => o.ContractID == id && o.IsDeleted != true);
                 ViewBag.OrdersCount = await ordersQuery.CountAsync();
 
-                ViewBag.ContractedTotal = (double)(contract.Amount ?? 0);
-                ViewBag.OrderedTotal = await ordersQuery.SumAsync(o => (double?)o.Amount) ?? 0;
-                ViewBag.InvoicedTotal = linkedInvoices.Sum(i => (double?)i.Amount) ?? 0;
+                ViewBag.ContractedTotal = (contract.Amount ?? 0);
+                ViewBag.OrderedTotal = await ordersQuery.SumAsync(o => o.Amount) ?? 0;
+                ViewBag.InvoicedTotal = linkedInvoices.Sum(i => i.Amount) ?? 0;
 
                 return View(contract);
             }
@@ -266,7 +266,7 @@ namespace tahsinERP.Controllers
                     CompanyID = contract.CompanyID,
                     SupplierID = contract.SupplierID,
                     CurrencyID = contract.CurrencyID ?? 0,
-                    Amount = (double?)contract.Amount,
+                    Amount = contract.Amount,
                     Incoterms = contract.Incoterms,
                     PaymentTerms = contract.PaymentTerms,
                     DueDate = contract.DueDate,
@@ -277,13 +277,13 @@ namespace tahsinERP.Controllers
                         ProductID = cp.ProductID,
                         ProductPNo = cp.PRODUCT.PNo,
                         ProductName = cp.PRODUCT.Name,
-                        Price = (double)cp.Price,
-                        Quantity = (double)cp.Quantity,
-                        Amount = (double)cp.Amount,
+                        Price = cp.Price,
+                        Quantity = cp.Quantity,
+                        Amount = cp.Amount,
                         UnitID = cp.UnitID,
-                        MOQ = (double?)cp.MOQ,
+                        MOQ = cp.MOQ,
                         HSCodeID = cp.HSCodeID,
-                        VatPercent = VatMath.PercentFromLine((double)cp.Amount, (double?)cp.VATAmount)
+                        VatPercent = VatMath.PercentFromLine(cp.Amount, cp.VATAmount)
                     }).ToList()
                 };
 

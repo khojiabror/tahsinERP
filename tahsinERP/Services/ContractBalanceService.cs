@@ -84,14 +84,14 @@ namespace tahsinERP.Services
                 bool calculateByWeight = await _conversionService.ShouldCalculateByWeightAsync(productId);
                 bool requiresCutting = !calculateByWeight && await _conversionService.RequiresCuttingAsync(productId);
 
-                decimal contractQty = (decimal)contractQuantity;
+                decimal contractQty = contractQuantity;
                 decimal invoicedQty = 0;
                 decimal piecesToConvert = 0;
                 decimal invoicedQtyCBM = 0;
 
                 foreach (var line in linesByProduct[productId])
                 {
-                    decimal qty = (decimal)line.Quantity;
+                    decimal qty = line.Quantity;
                     invoicedQty += qty;
 
                     if (requiresCutting && line.UnitID == PieceUnitId)

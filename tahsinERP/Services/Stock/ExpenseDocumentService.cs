@@ -20,8 +20,8 @@ namespace tahsinERP.Services.Stock
         /// </summary>
         public static async Task PostLinesAsync(DBTHSNEntities db, EXPENS expense, IEnumerable<ExpenseProductViewModel> lines)
         {
-            double totalAmount = 0;
-            double totalPrice = 0;
+            decimal totalAmount = 0;
+            decimal totalPrice = 0;
 
             foreach (var line in lines ?? new List<ExpenseProductViewModel>())
             {
@@ -29,7 +29,7 @@ namespace tahsinERP.Services.Stock
                 {
                     ExpenseID = expense.ID,
                     ProductID = line.ProductID,
-                    Amount = (decimal)line.Amount,
+                    Amount = line.Amount,
                     PiecePrice = 0,
                     UnitID = line.UnitID,
                     Comment = line.Comment ?? ""
@@ -50,15 +50,15 @@ namespace tahsinERP.Services.Stock
                 var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
                     line.ProductID, line.Amount, line.UnitID, expenseProduct.ID);
                 expenseProduct.PiecePrice = StockCostService.StoredUnitCost(unitCost);
-                line.PiecePrice = (double)expenseProduct.PiecePrice;
+                line.PiecePrice = expenseProduct.PiecePrice;
                 line.TotalPrice = line.Amount * line.PiecePrice;
 
                 totalAmount += line.Amount;
                 totalPrice += line.TotalPrice;
             }
 
-            expense.Amount = (decimal?)totalAmount;
-            expense.TotalPrice = (decimal?)totalPrice;
+            expense.Amount = totalAmount;
+            expense.TotalPrice = totalPrice;
         }
     }
 }

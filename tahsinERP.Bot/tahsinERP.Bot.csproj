@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Distributsiya Telegram boti va Mini App (Docs/Distribution/01_PHASE1_MVP.md, 14-bo'lim).
+    Webhook -> BotInbox -> ishlovchi; javoblar va bildirishnomalar BotOutbox -> tezlik cheklovi -> Telegram.
+    ERP bilan faqat imzolangan API (DstApiSignature) orqali; o'z bazasi tahsin_bot (ERP bazasiga tegmaydi).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>tahsinERP.Bot</RootNamespace>
+    <UserSecretsId>tahsinERP-Bot-4f2d91c7</UserSecretsId>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\tahsinERP.Licensing\tahsinERP.Licensing.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="tahsinERP.Bot.Tests" />
+    <EmbeddedResource Include="Data\Schema.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
+    <!-- tranzitiv 9.0.11 zaif (GHSA-846f-f764-76mx) — ControlPanel kabi yangi versiya -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+</Project>

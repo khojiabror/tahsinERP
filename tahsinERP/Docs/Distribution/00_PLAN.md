@@ -3,7 +3,7 @@
 Holat: 2026-10-18. Manba: «ТЗ Дистрибуция #1 от 15.10.2026» (qurilish/xo'jalik mollari ulgurji savdosi, agentlar + ekspeditorlar + do'konlar + SaaS).
 Bog'liq: `Docs/ControlPanel/00_PLAN.md` (tenant, tarif, to'lov), `Docs/Audit-2026-10/00_PLAN.md` (core optimizatsiya).
 
-Qarorlar (foydalanuvchi, 2026-10-18): TZ'dagi **alohida mobil ilova qilinmaydi** — o'rniga Telegram bot + Mini App (4-bo'lim); **yangi distributsiya modeli** (`D_ORDERS`, 3.1); bot AWS'dagi o'z serverimiz uchun quriladi (webhook → navbat → fon ishchilari, `01_PHASE1_MVP.md` 3-bo'lim); xavflardan faqat Telegram cheklovlari hisobga olinadi. Batafsil 1-bosqich: `01_PHASE1_MVP.md`.
+Qarorlar (foydalanuvchi, 2026-10-18): TZ'dagi **alohida mobil ilova qilinmaydi** — o'rniga Telegram bot + Mini App (4-bo'lim); **yangi distributsiya modeli** (`D_ORDERS`, 3.1); bot AWS'dagi o'z serverimiz uchun quriladi (webhook → navbat → fon ishchilari, `01_PHASE1_MVP.md` 3-bo'lim); xavflardan faqat Telegram cheklovlari hisobga olinadi. Batafsil 1-bosqich: `01_PHASE1_MVP.md`. S4 (2026-10-19): bot alohida servis `tahsinERP.Bot`, bildirishnomalar ERP'dan **tortib olinadi** (pull, Hangfire yo'q), ERP API — imzoli `DstApi`, har tenantga o'z boti — `01_PHASE1_MVP.md` 14-bo'lim. Qo'shimcha (2026-10-19): Mini App'dan tashqari **ochiq sayt-katalog**, tahsinERP ichidagi "Sayt" admin paneli bilan boshqariladi — `02_WEBSITE_CATALOG.md`.
 
 ---
 
@@ -208,6 +208,7 @@ Bitta dasturchi + AI. TZ bosqichlariga mos, lekin 0-bosqich (poydevor) qo'shildi
 |---|---|---|---|
 | **0** | Poydevor (yadro) | Audit core'ni yakunlash va master'ga birlashtirish; `PRODUCT_UNITS`, shtrix-kod, narx turlari, rezerv; `AUDIT_TRAIL` (eski→yangi); Posted/Cancelled namunasi; `USER_SCOPES` + xarid narxini yashirish; `NOTIFICATIONS`; `/api/v1` + token; `.resx` infratuzilma | 3–4 hafta |
 | **1** | MVP: savdo + ombor + pul | Hudud, mijoz kartasi (limit, agent, narx turi, GPS), tovar/narx Excel importi; `D_ORDERS` holatlari, limit/min narx/chegirma limiti, rezerv; yig'ish varaqasi, nakladnoy; qaytarish; `CUSTOMER_LEDGER`, qarz muddati hisobotlari; kassalar o'rtasida o'tkazma, agent pul topshirishi; **Telegram bot + Mini App: agent buyurtmasi, to'lov, tashrif (joylashuv)**; rahbar kunlik yakuni | 8–10 hafta |
+| **1a** | Sayt-katalog | Har kompaniyaga ochiq katalog sayti (o'z domeni yoki subdomen, uz/ru, SEO), tahsinERP'da "Sayt" moduli: sozlamalar, tovar kontenti va fotolar, sahifalar, bannerlar, arizalar → buyurtma; alohida `tahsinERP.Site` servisi (pull sinxron, imzoli API). Batafsil: `02_WEBSITE_CATALOG.md` | ~6.5 hafta |
 | **2** | Yetkazish va nazorat | Mashina, reys (og'irlik/hajm), marshrut xaritada (Yandex), ekspeditor rejimi botda, reysni yopish va farq dalolatnomasi, reys xarajatlari; marshrut/tashrif rejasi, reja/fakt; agent KPI ish haqi (HR payroll'ga ulash); ovozdan buyurtma; mijozga holat xabarlari va PDF | 6–7 hafta |
 | **3** | Ombor kengaytmasi | Landed cost taqsimoti, pereso'rtitsa, hisobdan chiqarish tasdig'i, ko'chirma farq dalolatnomasi, Mini App'da shtrix-kod bilan inventarizatsiya/yig'ish, minimal qoldiq → yetkazib beruvchiga buyurtma, aksiyalar | 3–4 hafta |
 | **4** | SaaS | Control Panel rejasining 0–3 bosqichlari (`Docs/ControlPanel/00_PLAN.md`), DISTRIBUTSIYA paketi (`Edition`) | rejaga ko'ra 7–9 hafta, qisman parallel |
@@ -233,3 +234,4 @@ Qaror (2026-10-18): Telegram cheklovlaridan (4.4) boshqa xavflar hozircha e'tibo
 5. Bot: umumiy bitta bot (tavsiya qilingan, `01_PHASE1_MVP.md` 3-bo'lim) yoki har kompaniyaga alohida.
 6. Fiskal chek va Didox MVP'ga kerakmi (TZ ham ochiq savol qilib qo'ygan).
 7. Rus tili: faqat yangi ekranlarmi yoki butun tizim (butun tizim — qo'shimcha ~3–4 hafta).
+8. Sayt-katalog: domen, narx ko'rinishi, paket, dizayn va tartib — `02_WEBSITE_CATALOG.md` 9-bo'lim.

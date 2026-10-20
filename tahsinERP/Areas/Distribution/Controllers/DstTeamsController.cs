@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
@@ -162,6 +163,35 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     return null;
                 }
             });
+        }
+
+        /// <summary>Telegram'ga ulash kodi (3 kun): t.me/&lt;bot&gt;?start=&lt;kod&gt;.</summary>
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public JsonResult LinkCode(int userId, string role)
+        {
+            return DstJson(() =>
+            {
+                using (var db = NewDb())
+                {
+                    if (!db.Users.Any(u => u.ID == userId && u.IsActive && u.IsDeleted != true))
+                        throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+                    var code = Services.Bot.TelegramLinkService.CreateCode(db, userId, null, role, CurrentUserId, DateTime.Now);
+                    db.SaveChanges();
+                    return LinkResult(db, code);
+                }
+            });
+        }
+
+        internal static object LinkResult(DistributionDbContext db, TelegramLinkCode code)
+        {
+            var bot = Services.Bot.DstSettings.Get(db, DstSetting.BotUsername);
+            return new
+            {
+                code = code.Code,
+                link = string.IsNullOrWhiteSpace(bot) ? null : "https://t.me/" + bot.Trim().TrimStart('@') + "?start=" + code.Code,
+                expires = code.ExpiresAt.ToString("dd.MM.yyyy HH:mm")
+            };
         }
 
         [HttpGet]

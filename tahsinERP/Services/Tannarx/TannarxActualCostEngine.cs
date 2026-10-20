@@ -857,7 +857,7 @@ namespace tahsinERP.Services.Tannarx
                     && l.HR_TIMESHEET_HEADERS.IsDeleted != true
                     && l.HR_TIMESHEET_HEADERS.Year == year
                     && l.HR_TIMESHEET_HEADERS.Month == month)
-                .Select(l => new { Hours = l.TotalWorkedHours, BaseSalary = (decimal?)l.HR_EMPLOYEES.BaseSalary })
+                .Select(l => new { Hours = l.TotalWorkedHours, BaseSalary = l.HR_EMPLOYEES.BaseSalary })
                 .ToListAsync();
             return timesheet.Sum(l =>
             {

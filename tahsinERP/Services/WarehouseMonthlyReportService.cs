@@ -115,7 +115,7 @@ namespace tahsinERP.Services
             foreach (var x in incomeBefore)
             {
                 openingByProduct[x.ProductId] = (double)x.Total;
-                openingSumByProduct[x.ProductId] = (decimal)x.TotalSum;
+                openingSumByProduct[x.ProductId] = x.TotalSum;
             }
             foreach (var x in expenseBefore)
             {
@@ -124,7 +124,7 @@ namespace tahsinERP.Services
                 openingByProduct[x.ProductId] = q - (double)x.Total;
                 decimal s;
                 openingSumByProduct.TryGetValue(x.ProductId, out s);
-                openingSumByProduct[x.ProductId] = s - (decimal)x.TotalSum;
+                openingSumByProduct[x.ProductId] = s - x.TotalSum;
             }
 
             // Oy ichidagi kirim/chiqim qatorlari: to'liq INCOME/EXPENS entity o'rniga faqat kerakli ustunlar
@@ -159,7 +159,7 @@ namespace tahsinERP.Services
                 {
                     x.ProductID,
                     x.Amount,
-                    Sum = (decimal)x.TotalPrice,
+                    Sum = x.TotalPrice,
                     IsAdjustment = IsInventarizatsiyaDoc(x.DocNo, x.Description, x.Comment, isIncome: false)
                 })
                 .ToList();
@@ -248,7 +248,7 @@ namespace tahsinERP.Services
                     OpeningBalance = open,
                     AdjustmentQty = adj,
                     IncomeQty = inc,
-                    ExpenseQty = (double)exp,
+                    ExpenseQty = exp,
                     ClosingBalance = close,
                     OpeningBalanceSum = openSum,
                     AdjustmentSum = adjSum,

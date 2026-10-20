@@ -540,13 +540,13 @@ namespace tahsinERP.Controllers
                             foreach (var parsedRow in parsedRows)
                             {
                                 var product = productMap[parsedRow.ProductPNo.Trim().ToUpperInvariant()];
-                                double onHand;
+                                decimal onHand;
                                 onHandMap.TryGetValue(product.ID, out onHand);
                                 if (onHand <= StockLedger.Epsilon)
                                     continue;
                                 decimal ledger;
                                 ledgerMap.TryGetValue(product.ID, out ledger);
-                                var unassigned = onHand - (double)ledger;
+                                var unassigned = onHand - ledger;
                                 if (unassigned > StockLedger.Epsilon)
                                 {
                                     unassignedErrors.Add($"{parsedRow.RowNumber}-qator: {product.PNo} — DLOC ga joylashtirilmagan qoldiq {unassigned:N3}. Avval «DLOC ga joylashtirish» sahifasida joylashtiring.");
@@ -638,11 +638,11 @@ namespace tahsinERP.Controllers
         private class InventoryAdjustmentRow
         {
             public string ProductPNo { get; set; }
-            public double Quantity { get; set; }
+            public decimal Quantity { get; set; }
             public int RowNumber { get; set; }
         }
 
-        private bool TryParseQuantity(string input, out double value)
+        private bool TryParseQuantity(string input, out decimal value)
         {
             value = 0;
             if (string.IsNullOrWhiteSpace(input))
@@ -652,7 +652,7 @@ namespace tahsinERP.Controllers
 
             var cleaned = input.Trim().Replace(" ", "").Replace(",", ".");
             var filtered = new string(cleaned.Where(c => char.IsDigit(c) || c == '.' || c == '-').ToArray());
-            if (double.TryParse(filtered, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            if (decimal.TryParse(filtered, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
             {
                 value = parsed;
                 return true;

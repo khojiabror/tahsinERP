@@ -12,15 +12,6 @@ namespace tahsinERP.Services.Crm
     {
         private const NumberStyles Styles = NumberStyles.Float;
 
-        public static bool TryDouble(string raw, out double value)
-        {
-            value = 0;
-            if (string.IsNullOrWhiteSpace(raw)) return false;
-            raw = raw.Trim().Replace(" ", "").Replace(" ", "");
-            return double.TryParse(raw, Styles, CultureInfo.InvariantCulture, out value)
-                || double.TryParse(raw, Styles, CultureInfo.CurrentCulture, out value);
-        }
-
         public static bool TryDecimal(string raw, out decimal value)
         {
             value = 0;
@@ -30,18 +21,13 @@ namespace tahsinERP.Services.Crm
                 || decimal.TryParse(raw, Styles, CultureInfo.CurrentCulture, out value);
         }
 
-        public static double Double(string raw, double fallback = 0)
+        public static decimal Decimal(string raw, decimal fallback = 0)
         {
-            double v;
-            return TryDouble(raw, out v) ? v : fallback;
+            decimal v;
+            return TryDecimal(raw, out v) ? v : fallback;
         }
 
         /// <summary>HTML &lt;input type="number"&gt; value atributi uchun (nuqta bilan, guruhlashsiz).</summary>
-        public static string ForInput(double value)
-        {
-            return value.ToString("0.####", CultureInfo.InvariantCulture);
-        }
-
         public static string ForInput(decimal value)
         {
             return value.ToString("0.####", CultureInfo.InvariantCulture);

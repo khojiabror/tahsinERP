@@ -1,0 +1,29 @@
+# /etc/systemd/system/tahsin-bot.service — Linux (AWS EC2/Lightsail), nginx ortida.
+# Maxfiy qiymatlar /etc/tahsin-bot.env da (chmod 600, egasi tahsinbot):
+#   Bot__MasterKey=...            (ERP'dagi TAHSINERP_BOT_KEY bilan bir xil, >= 32 belgi)
+#   Bot__PublicBaseUrl=https://bot.example.uz
+#   ConnectionStrings__Bot=Server=...;Database=tahsin_bot;User Id=...;Password=...;TrustServerCertificate=True
+[Unit]
+Description=tahsinERP Telegram bot va Mini App
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tahsinbot
+WorkingDirectory=/opt/tahsin-bot
+ExecStart=/usr/bin/dotnet /opt/tahsin-bot/tahsinERP.Bot.dll --urls http://127.0.0.1:5190
+EnvironmentFile=/etc/tahsin-bot.env
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=Bot__FilesRoot=/var/lib/tahsin-bot/files
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/tahsin-bot
+
+[Install]
+WantedBy=multi-user.target

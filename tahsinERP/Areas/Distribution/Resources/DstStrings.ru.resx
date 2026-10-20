@@ -87,6 +87,36 @@
   <data name="BaseUnit" xml:space="preserve">
     <value>Базовая единица</value>
   </data>
+  <data name="Bot_CodeInvalid" xml:space="preserve">
+    <value>Код неверный или просрочен.</value>
+  </data>
+  <data name="Bot_DayNotStarted" xml:space="preserve">
+    <value>Сначала начните рабочий день.</value>
+  </data>
+  <data name="Bot_GetCode" xml:space="preserve">
+    <value>Получить код</value>
+  </data>
+  <data name="Bot_LinkExpires" xml:space="preserve">
+    <value>Действует до</value>
+  </data>
+  <data name="Bot_LinkHint" xml:space="preserve">
+    <value>Откройте ссылку или отправьте боту /start и код. Код одноразовый.</value>
+  </data>
+  <data name="Bot_LinkStaff" xml:space="preserve">
+    <value>Привязать сотрудника к боту</value>
+  </data>
+  <data name="Bot_LinkTitle" xml:space="preserve">
+    <value>Привязка к Telegram</value>
+  </data>
+  <data name="Bot_NoUsername" xml:space="preserve">
+    <value>Имя бота не настроено (Настройки → Общие). Отправьте код боту вручную.</value>
+  </data>
+  <data name="Bot_ReasonRequired" xml:space="preserve">
+    <value>Для визита без заказа выберите причину.</value>
+  </data>
+  <data name="Bot_TooFar" xml:space="preserve">
+    <value>Вы в {0} м от клиента (допустимо: {1} м).</value>
+  </data>
   <data name="Brand" xml:space="preserve">
     <value>Бренд</value>
   </data>
@@ -591,6 +621,30 @@
   <data name="NameRu" xml:space="preserve">
     <value>Наименование (рус)</value>
   </data>
+  <data name="Notify_CreditOverLimit" xml:space="preserve">
+    <value>Заказ {0} ({1}, {2} сум) нарушает кредитные условия — нужно подтверждение:</value>
+  </data>
+  <data name="Notify_Delivered" xml:space="preserve">
+    <value>Ваш заказ {0} доставлен: {1} сум. Спасибо!</value>
+  </data>
+  <data name="Notify_HandoverPending" xml:space="preserve">
+    <value>{0} сдал в кассу {1} сум — примите.</value>
+  </data>
+  <data name="Notify_LargeOrder" xml:space="preserve">
+    <value>Крупный заказ {0}: {1}, {2} сум.</value>
+  </data>
+  <data name="Notify_OrderCancelled" xml:space="preserve">
+    <value>Заказ {0} отменён: {1}. Причина: {2}</value>
+  </data>
+  <data name="Notify_OrderConfirmed" xml:space="preserve">
+    <value>Заказ {0} подтверждён: {1}, {2} сум.</value>
+  </data>
+  <data name="Notify_PaymentReceived" xml:space="preserve">
+    <value>Оплата принята: {0} сум ({1}). Остаток долга: {2} сум.</value>
+  </data>
+  <data name="Notify_Shipped" xml:space="preserve">
+    <value>Ваш заказ {0} отгружен: {1} сум. Текущий долг: {2} сум.</value>
+  </data>
   <data name="OrderStatus_Cancelled" xml:space="preserve">
     <value>Отменён</value>
   </data>
@@ -981,6 +1035,18 @@
   <data name="Role" xml:space="preserve">
     <value>Роль</value>
   </data>
+  <data name="Role_AGENT" xml:space="preserve">
+    <value>Агент</value>
+  </data>
+  <data name="Role_EXPEDITOR" xml:space="preserve">
+    <value>Экспедитор</value>
+  </data>
+  <data name="Role_MANAGER" xml:space="preserve">
+    <value>Руководитель</value>
+  </data>
+  <data name="Role_STOREKEEPER" xml:space="preserve">
+    <value>Кладовщик</value>
+  </data>
   <data name="Row" xml:space="preserve">
     <value>Строка</value>
   </data>
@@ -998,6 +1064,27 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Настройки</value>
+  </data>
+  <data name="Settings_AgentAccount" xml:space="preserve">
+    <value>Счёт безналичных оплат агентов</value>
+  </data>
+  <data name="Settings_BotUsername" xml:space="preserve">
+    <value>Имя Telegram-бота</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>Общие настройки</value>
+  </data>
+  <data name="Settings_GeneralHint" xml:space="preserve">
+    <value>Крупный заказ: 0 — без уведомления. Радиус: визит отмечается, только если агент в пределах этого расстояния.</value>
+  </data>
+  <data name="Settings_LargeOrder" xml:space="preserve">
+    <value>Крупный заказ, сум</value>
+  </data>
+  <data name="Settings_MinOrder" xml:space="preserve">
+    <value>Мин. заказ, сум</value>
+  </data>
+  <data name="Settings_Radius" xml:space="preserve">
+    <value>Радиус визита, м</value>
   </data>
   <data name="Ship_Hint" xml:space="preserve">
     <value>Количество в базовой единице. По умолчанию — зарезервированное. Списывается по FIFO, записывается в долг клиента.</value>
@@ -1094,6 +1181,17 @@
   </data>
   <data name="Subtotal" xml:space="preserve">
     <value>Итого (до скидки)</value>
+  </data>
+  <data name="Summary_Text" xml:space="preserve">
+    <value>Итоги дня {0}
+Заказы: {1} шт., {2} сум
+Отгружено: {3} сум
+Поступления: {4} сум
+Общий долг: {5} сум (просрочено: {6})
+Активные агенты: {7}/{8}</value>
+  </data>
+  <data name="Summary_TopAgent" xml:space="preserve">
+    <value>Лидер дня: {0} — {1} сум</value>
   </data>
   <data name="Supervisor" xml:space="preserve">
     <value>Супервайзер</value>

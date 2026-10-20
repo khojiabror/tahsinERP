@@ -84,7 +84,7 @@ namespace tahsinERP.Services
                         continue;
                     }
 
-                    decimal lineQty = (decimal)sOrderProduct.Amount;
+                    decimal lineQty = sOrderProduct.Amount;
                     if (lineQty <= 0)
                     {
                         continue;
@@ -106,7 +106,7 @@ namespace tahsinERP.Services
 
                     // BOM bo'yicha 1 FG uchun xomashyo, sotuv soniga ko'paytirilgan, ombor (income) birligida.
                     // asOfDate berilsa — o'sha oyga tegishli BOM versiyasi ishlatiladi (eng yangisi emas).
-                    var reqs = await consumptionService.CalculateRequiredRawMaterialsAsync(fgId, (double)lineQty, asOfDate);
+                    var reqs = await consumptionService.CalculateRequiredRawMaterialsAsync(fgId, lineQty, asOfDate);
 
                     foreach (var r in reqs)
                     {
@@ -115,7 +115,7 @@ namespace tahsinERP.Services
                             continue;
                         }
 
-                        var finalQuantity = (decimal)r.TotalConsumption;
+                        var finalQuantity = r.TotalConsumption;
                         var finalUnitId = r.UnitID > 0 ? r.UnitID : 1;
                         var perUnitQty = lineQty > 0 ? finalQuantity / lineQty : finalQuantity; // 1 FG uchun (norma)
                         var finalUnitName = await GetUnitShortNameAsync(finalUnitId);
@@ -705,11 +705,11 @@ namespace tahsinERP.Services
                     decimal sourcePrice = 0m;
                     if (income.TotalPrice.HasValue && income.TotalPrice.Value > 0)
                     {
-                        sourcePrice = (decimal)(income.TotalPrice.Value / income.Amount);
+                        sourcePrice = (income.TotalPrice.Value / income.Amount);
                     }
                     else if (income.PiecePrice.HasValue && income.PiecePrice.Value > 0)
                     {
-                        sourcePrice = (decimal)income.PiecePrice.Value;
+                        sourcePrice = income.PiecePrice.Value;
                     }
 
                     if (sourcePrice > 0)

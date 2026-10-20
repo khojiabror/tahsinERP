@@ -246,7 +246,7 @@ namespace tahsinERP.Services
         /// Faqat DLOC orqali qabul; DLOC yo'q bo'lsa kirim yaratilmaydi va xato qaytariladi.
         /// Chaqiruvchining tranzaksiyasida (yoki o'z tranzaksiyasida) bajariladi.
         /// </summary>
-        public static void IncreaseProductionStock(int productID, double quantity, int shopID,
+        public static void IncreaseProductionStock(int productID, decimal quantity, int shopID,
             DBTHSNEntities db, string userEmail, int? productionID = null)
         {
             if (quantity <= 0)
@@ -290,7 +290,7 @@ namespace tahsinERP.Services
                     {
                         INCOME = income,
                         ProductID = productID,
-                        Amount = (decimal)quantity,
+                        Amount = quantity,
                         PiecePrice = 0,
                         UnitID = unitId
                     };
@@ -303,7 +303,7 @@ namespace tahsinERP.Services
                         quantity, unitId, locations.First().ID, income.IssueDateTime, $"PROD-{income.ID}");
 
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "IncreaseProductionStock",
-                        $"Mahsulot {product.PNo} uchun {quantity} miqdor ishlab chiqarish omboriga qo'shildi. Kirim ID: {income.ID}, Ishlab chiqarish ID: {productionID}");
+                        $"Mahsulot {product.PNo} uchun {QtyText.Plain(quantity)} miqdor ishlab chiqarish omboriga qo'shildi. Kirim ID: {income.ID}, Ishlab chiqarish ID: {productionID}");
                 });
             }
             catch (Exception ex)
@@ -328,7 +328,7 @@ namespace tahsinERP.Services
         public sealed class ProductionTransferLine
         {
             public int ProductID { get; set; }
-            public double Quantity { get; set; }
+            public decimal Quantity { get; set; }
             /// <summary>Qaysi ishlab chiqarish lotidan qancha olingani (ProdID:123:7|ProdID:124:3).</summary>
             public System.Collections.Generic.List<LotAllocation> LotAllocations { get; set; }
         }
@@ -375,7 +375,7 @@ namespace tahsinERP.Services
                         {
                             throw new Exception(
                                 $"Ishlab chiqarish omborida yetarli mahsulot yo'q ({products[g.Key].PNo}). " +
-                                $"Mavjud: {available}, Talab qilinmoqda: {need}");
+                                $"Mavjud: {QtyText.Plain(available)}, Talab qilinmoqda: {QtyText.Plain(need)}");
                         }
                     }
 
@@ -407,7 +407,7 @@ namespace tahsinERP.Services
                         {
                             EXPENS = expense,
                             ProductID = line.ProductID,
-                            Amount = (decimal)line.Quantity,
+                            Amount = line.Quantity,
                             PiecePrice = 0, // chiqimdan keyin FIFO tannarxi bilan to'ldiriladi
                             UnitID = product.UnitID > 0 ? product.UnitID : 1,
                             Comment = ProductionLotService.BuildLotAllocationsComment(line.LotAllocations)
@@ -425,9 +425,9 @@ namespace tahsinERP.Services
                     // SRM-B19: o'tkazma tannarxda (FIFO, QQSsiz) — avval sotuv shartnomasi narxi (sotish narxi) olinardi
                     foreach (var ep in expenseLines)
                     {
-                        StockLedger.IssueLine(db, productionWH.ID, ep.ProductID, (double)ep.Amount, ep.UnitID, ep.ID);
+                        StockLedger.IssueLine(db, productionWH.ID, ep.ProductID, ep.Amount, ep.UnitID, ep.ID);
                         ep.PiecePrice = StockCostService.StoredUnitCost(StockCostService.IssuedLineUnitCost(db, productionWH.ID, ep.ProductID,
-                            (double)ep.Amount, ep.UnitID, ep.ID));
+                            ep.Amount, ep.UnitID, ep.ID));
                     }
                     expense.TotalPrice = expenseLines.Sum(x => x.Amount * x.PiecePrice);
 
@@ -497,24 +497,24 @@ namespace tahsinERP.Services
                     if (salesWH == null)
                         throw new Exception("Sotuv ombori topilmadi");
 
-                    double qtyToDeduct = (double)quantity;
+                    decimal qtyToDeduct = quantity;
                     var availableQty = InventoryValuationService.GetQty(db, salesWH.ID, productID);
 
-                    if (availableQty + 1e-9 < qtyToDeduct)
+                    if (availableQty + 0.000000001m < qtyToDeduct)
                     {
                         throw new Exception(
                             $"Sotuv omborida yetarli mahsulot yo'q. " +
-                            $"Mahsulot: {product.PNo}, Mavjud: {availableQty}, Talab qilinmoqda: {qtyToDeduct}, " +
+                            $"Mahsulot: {product.PNo}, Mavjud: {QtyText.Plain(availableQty)}, Talab qilinmoqda: {QtyText.Plain(qtyToDeduct)}, " +
                             $"Invoys: {invoiceNo}");
                     }
 
                     int currencyId = GetDefaultCurrencyId(db);
                     var issueDate = invoiceDate ?? DateTime.Now;
                     var dateStr = issueDate.ToString("yyyyMMdd");
-                    var qtyStr = ((double)quantity).ToString("0.##");
+                    var qtyStr = quantity.ToString("0.##");
 
                     // Piece price olish: avvalo tanlangan sotuv shartnomasidan, bo'lmasa oxirgi sotuv shartnomasidan
-                    double piecePrice = 0;
+                    decimal piecePrice = 0;
 
                     S_CONTRACT_PRODUCTS contractProduct = null;
                     if (contractID.HasValue)
@@ -533,7 +533,7 @@ namespace tahsinERP.Services
                     }
                     if (contractProduct != null)
                     {
-                        piecePrice = (double)contractProduct.PiecePrice;
+                        piecePrice = contractProduct.PiecePrice;
                     }
                     var totalPrice = piecePrice * qtyToDeduct;
                     var invoiceUrl = DocumentMarkers.SalesInvoiceUrl + invoiceID;
@@ -547,8 +547,8 @@ namespace tahsinERP.Services
                         CurrencyID = currencyId,
                         IsDeleted = false,
                         SendStatus = true,
-                        Amount = (decimal?)qtyToDeduct,
-                        TotalPrice = (decimal?)totalPrice,
+                        Amount = qtyToDeduct,
+                        TotalPrice = totalPrice,
                         Description = $"{issueDate:dd.MM.yyyy}y. sotuv invoysi asosida tayyor mahsulot chiqimi: {product.PNo}, Miqdor {qtyStr}. Invoys raqami: {invoiceNo}. URL: {invoiceUrl}"
                     };
 
@@ -556,9 +556,9 @@ namespace tahsinERP.Services
                     {
                         EXPENS = expense,
                         ProductID = productID,
-                        Amount = (decimal)qtyToDeduct,
-                        PiecePrice = (decimal)piecePrice,
-                        TotalPrice = (decimal)totalPrice,
+                        Amount = qtyToDeduct,
+                        PiecePrice = piecePrice,
+                        TotalPrice = totalPrice,
                         UnitID = product.UnitID > 0 ? product.UnitID : 1,
                         Comment = $"Invoys raqami: {invoiceNo}. URL: {invoiceUrl}"
                     };
@@ -570,7 +570,7 @@ namespace tahsinERP.Services
                     StockLedger.IssueLine(db, salesWH.ID, productID, qtyToDeduct, expenseProduct.UnitID, expenseProduct.ID);
 
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "DecreaseSalesStock",
-                        $"Sotuv invoysi {invoiceNo} uchun mahsulot {product.PNo} dan {qtyToDeduct} miqdor sotuv omboridan chiqarildi. " +
+                        $"Sotuv invoysi {invoiceNo} uchun mahsulot {product.PNo} dan {QtyText.Plain(qtyToDeduct)} miqdor sotuv omboridan chiqarildi. " +
                         $"Chiqim ID: {expense.ID}, Hisob-faktura ID: {invoiceID}");
                 });
             }
@@ -638,7 +638,7 @@ namespace tahsinERP.Services
                         var expense = expenses.First(e => e.ID == line.ExpenseID);
                         if (expense.IsDeleted == true)
                             continue;
-                        StockLedger.ReverseIssueLine(db, senderByExpense[line.ExpenseID], line.ProductID, (double)line.Amount,
+                        StockLedger.ReverseIssueLine(db, senderByExpense[line.ExpenseID], line.ProductID, line.Amount,
                             line.UnitID > 0 ? line.UnitID : 1, line.ID);
                     }
 
@@ -670,7 +670,7 @@ namespace tahsinERP.Services
         /// <summary>
         /// Get current stock in Production Warehouse for a product
         /// </summary>
-        public static double GetProductionStock(int productID, DBTHSNEntities db, int? shopID = null)
+        public static decimal GetProductionStock(int productID, DBTHSNEntities db, int? shopID = null)
         {
             var productionWH = GetProductionWarehouse(db, shopID);
             if (productionWH == null)

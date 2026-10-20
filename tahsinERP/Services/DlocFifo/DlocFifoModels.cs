@@ -67,9 +67,9 @@ namespace tahsinERP.Services.DlocFifo
         public int ProductID { get; set; }
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
-        public double StockQty { get; set; }
-        public double LedgerQty { get; set; }
-        public double UnassignedQty { get; set; }
+        public decimal StockQty { get; set; }
+        public decimal LedgerQty { get; set; }
+        public decimal UnassignedQty { get; set; }
         public int UnitID { get; set; }
         public string UnitName { get; set; }
     }

@@ -136,20 +136,20 @@
                                                                         @Html.HiddenFor(m => m.ExpenseProducts[i].ProductName, new { @class = "product-name" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].AvailableStock, new { @type = "number", @class = "form-control available-stock", @readonly = "readonly" })
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].AvailableStock, "{0:0.######}", new { @type = "number", @class = "form-control available-stock", @readonly = "readonly" })
                                                                     </td>
 
                                                                     <td>
-                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].Amount, new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].Amount, "{0:0.######}", new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.DropDownListFor(m => m.ExpenseProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select select2", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].PiecePrice, new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @readonly = "readonly", @title = "Saqlashda FIFO tannarxi bilan qayta hisoblanadi" })
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].PiecePrice, "{0:0.######}", new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @readonly = "readonly", @title = "Saqlashda FIFO tannarxi bilan qayta hisoblanadi" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].TotalPrice, new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
+                                                                        @Html.TextBoxFor(m => m.ExpenseProducts[i].TotalPrice, "{0:0.############}", new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.ExpenseProducts[i].Comment, new { @class = "form-control" })

@@ -136,7 +136,7 @@ namespace tahsinERP.Areas.Distribution.Services.Money
                 erp.SaveChanges();
                 try
                 {
-                    StockLedger.ReceiveLine(erp, input.WarehouseID, income.ID, ip.ID, e.ProductID, (double)e.QtyBase, ip.UnitID, input.LocationID, now);
+                    StockLedger.ReceiveLine(erp, input.WarehouseID, income.ID, ip.ID, e.ProductID, e.QtyBase, ip.UnitID, input.LocationID, now);
                 }
                 catch (Exception ex) when (!(ex is DstValidationException))
                 {

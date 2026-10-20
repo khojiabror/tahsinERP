@@ -273,10 +273,10 @@ namespace tahsinERP.Controllers
                         ComponentPNo = cr.ComponentPNo,
                         ComponentName = cr.ComponentName,
                         UnitID = cr.UnitID,
-                        RequiredQty = (double)cr.RequiredQty,
-                        EstimatedPrice = cr.EstimatedPrice.HasValue ? (double?)cr.EstimatedPrice.Value : null,
-                        EstimatedAmount = cr.EstimatedAmount.HasValue ? (double?)cr.EstimatedAmount.Value : null,
-                        MOQ = (double?)null,
+                        RequiredQty = cr.RequiredQty,
+                        EstimatedPrice = cr.EstimatedPrice.HasValue ? (decimal?)cr.EstimatedPrice.Value : null,
+                        EstimatedAmount = cr.EstimatedAmount.HasValue ? (decimal?)cr.EstimatedAmount.Value : null,
+                        MOQ = (decimal?)null,
                         CalculationExplanation = cr.CalculationExplanation ?? "",
                         CalculationSummary = cr.CalculationSummary ?? ""
                     }).ToList();
@@ -378,11 +378,11 @@ namespace tahsinERP.Controllers
                         ProductID = op.ProductID,
                         ProductPNo = op.PRODUCT.PNo,
                         ProductName = op.PRODUCT.Name,
-                        Price = (double)op.Price,
-                        Amount = (double)op.Amount,
+                        Price = op.Price,
+                        Amount = op.Amount,
                         UnitID = op.UnitID,
-                        TotalPrice = (double)op.TotalPrice,
-                        MOQ = (double?)op.MOQ,
+                        TotalPrice = op.TotalPrice,
+                        MOQ = op.MOQ,
                         CalculationExplanation = op.Priority ?? "",
                         CalculationSummary = op.Priority ?? ""
                     }).ToList()
@@ -393,10 +393,10 @@ namespace tahsinERP.Controllers
                 // Buyurtmaga avval qo'llangan QQS stavkasini saqlangan ma'lumotdan ajratamiz
                 // (Amount = net + QQS). Tahrirlashda input shartnoma stavkasi bilan emas, haqiqiy
                 // qo'llangan stavka bilan to'ldiriladi — aks holda qayta saqlashda QQS yo'qoladi (SRM-D12).
-                double editNetTotal = (double)(order.P_ORDER_PRODUCTS.Sum(p => p.TotalPrice));
+                decimal editNetTotal = order.P_ORDER_PRODUCTS.Sum(p => p.TotalPrice);
                 model.VatRate = editNetTotal > 0
-                    ? VatMath.RateFromGrossNet(editNetTotal, (double?)order.Amount ?? editNetTotal)
-                    : (double)ViewBag.ContractVatRate;
+                    ? VatMath.RateFromGrossNet(editNetTotal, order.Amount ?? editNetTotal)
+                    : (decimal)ViewBag.ContractVatRate;
                 ViewBag.AppliedVatRate = model.VatRate;
 
                 return View(model);

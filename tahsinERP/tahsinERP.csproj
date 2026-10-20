@@ -929,6 +929,13 @@
     <Compile Include="Models\DBTHSNModel.Context.Cache.cs" />
     <Compile Include="Models\DBTHSNModel.Context.SharedConnection.cs" />
     <Compile Include="Areas\Distribution\DistributionAreaRegistration.cs" />
+    <Compile Include="Areas\Distribution\Controllers\Api\DstApiAuthAttribute.cs" />
+    <Compile Include="Areas\Distribution\Controllers\Api\DstApiController.cs" />
+    <Compile Include="Areas\Distribution\Data\Entities\BotEntities.cs" />
+    <Compile Include="Areas\Distribution\Services\Bot\BotServices.cs" />
+    <Compile Include="Areas\Distribution\Services\Bot\DailySummaryService.cs" />
+    <Compile Include="Areas\Distribution\Services\Bot\FieldService.cs" />
+    <Compile Include="Areas\Distribution\Services\Orders\CatalogService.cs" />
     <Compile Include="Areas\Distribution\Controllers\DstControllerBase.cs" />
     <Compile Include="Areas\Distribution\Controllers\DstHomeController.cs" />
     <Compile Include="Areas\Distribution\Data\DistributionDbContext.cs" />
@@ -976,6 +983,7 @@
     <Compile Include="Services\Common\ExcelExport.cs" />
     <Compile Include="Services\Common\DataTablesRequest.cs" />
     <Compile Include="Services\Common\ReferenceDataCache.cs" />
+    <Compile Include="Services\Common\QtyText.cs" />
     <Compile Include="Services\Common\SystemCodes.cs" />
     <Compile Include="Services\Common\BrandingService.cs" />
     <Compile Include="Services\UserActionLogger.cs" />
@@ -2923,6 +2931,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Areas\Distribution\Views\web.config" />
     <Content Include="Areas\Distribution\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Distribution\Views\Shared\_LinkCodeModal.cshtml" />
     <Content Include="Areas\Distribution\Views\DstHome\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstDebts\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstDebts\PrintStatement.cshtml" />

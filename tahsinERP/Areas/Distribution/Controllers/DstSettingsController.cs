@@ -62,6 +62,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
                                           MinLimits = db.ProductStockLimits.Count(l => l.WarehouseID == w.ID)
                                       }).ToList();
                 ViewBag.WarehouseId = warehouseId;
+                ViewBag.General = db.Settings.ToList().ToDictionary(x => x.Key, x => x.Value);
+                ViewBag.Accounts = db.FinAccounts.Where(a => a.IsActive && a.IsDeleted != true && (a.IsCash || a.IsBank)).OrderBy(a => a.Name).ToList()
+                    .Select(a => new SelectListItem { Value = a.ID.ToString(), Text = a.Name }).ToList();
                 ViewBag.Limits = warehouseId == null
                     ? new System.Collections.Generic.List<StockLimitRow>()
                     : (from l in db.ProductStockLimits
@@ -75,6 +78,31 @@ namespace tahsinERP.Areas.Distribution.Controllers
                        }).ToList();
                 return View();
             }
+        }
+
+        /// <summary>Umumiy sozlamalar (dst.SETTINGS).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public JsonResult SaveGeneral(decimal? minOrderAmount, decimal? largeOrderAmount, int? visitRadiusM, int? agentCashAccountId, string botUsername)
+        {
+            return DstJson(() =>
+            {
+                if (minOrderAmount < 0 || largeOrderAmount < 0 || visitRadiusM < 20 || visitRadiusM > 5000)
+                    throw new DstValidationException(DstLocalization.T("Error_NumberFormat"));
+                using (var db = NewDb())
+                {
+                    if (agentCashAccountId.HasValue && !db.FinAccounts.Any(a => a.ID == agentCashAccountId && a.IsActive && a.IsDeleted != true))
+                        throw new DstValidationException(DstLocalization.T("Payment_AccountRequired"));
+                    var inv = System.Globalization.CultureInfo.InvariantCulture;
+                    Services.Bot.DstSettings.Set(db, DstSetting.MinOrderAmount, (minOrderAmount ?? 0).ToString(inv));
+                    Services.Bot.DstSettings.Set(db, DstSetting.LargeOrderAmount, (largeOrderAmount ?? 0).ToString(inv));
+                    Services.Bot.DstSettings.Set(db, DstSetting.VisitRadiusM, (visitRadiusM ?? 200).ToString(inv));
+                    Services.Bot.DstSettings.Set(db, DstSetting.AgentCashAccountId, agentCashAccountId?.ToString(inv));
+                    Services.Bot.DstSettings.Set(db, DstSetting.BotUsername, string.IsNullOrWhiteSpace(botUsername) ? null : botUsername.Trim().TrimStart('@'));
+                    db.SaveChanges();
+                    return null;
+                }
+            });
         }
 
         /// <summary>Bo'sh qiymat — rol uchun limit yo'q (chegirma berolmaydi, faqat DstDiscountUnlimited huquqi bilan).</summary>

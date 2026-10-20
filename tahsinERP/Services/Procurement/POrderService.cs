@@ -43,7 +43,7 @@ namespace tahsinERP.Services.Procurement
             public string OrderNo { get; set; }
             public byte PurchaseType { get; set; }
             public DateTime IssuedDate { get; set; }
-            public double? Amount { get; set; }
+            public decimal? Amount { get; set; }
             public string Currency { get; set; }
         }
 
@@ -73,7 +73,7 @@ namespace tahsinERP.Services.Procurement
                 OrderNo = o.OrderNo,
                 PurchaseType = o.PurchaseType,
                 IssuedDate = o.IssuedDate,
-                Amount = (double?)o.Amount,
+                Amount = o.Amount,
                 Currency = o.CURRENCy.Shortname
             });
         }
@@ -191,7 +191,7 @@ namespace tahsinERP.Services.Procurement
                         .ToDictionary(g => g.Key, g => g.First());
                 }
 
-                double totalAmount = 0;
+                decimal totalAmount = 0;
                 foreach (var orderProduct in lines)
                 {
                     if (!products.ContainsKey(orderProduct.ProductID))
@@ -224,17 +224,17 @@ namespace tahsinERP.Services.Procurement
                     {
                         P_ORDERS = order,
                         ProductID = orderProduct.ProductID,
-                        Price = (decimal)orderProduct.Price,
-                        Amount = (decimal)orderProduct.Amount,
+                        Price = orderProduct.Price,
+                        Amount = orderProduct.Amount,
                         UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : PiecesUnitId()),
-                        TotalPrice = (decimal)(orderProduct.Price * orderProduct.Amount),
-                        MOQ = (decimal?)orderProduct.MOQ,
+                        TotalPrice = (orderProduct.Price * orderProduct.Amount),
+                        MOQ = orderProduct.MOQ,
                         Priority = TruncateToPriority(priority),
                         RequiredDate = requiredDate
                     };
 
                     _db.P_ORDER_PRODUCTS.Add(pOrderProduct);
-                    totalAmount += (double)pOrderProduct.TotalPrice;
+                    totalAmount += pOrderProduct.TotalPrice;
                 }
 
                 // Buyurtmaning umumiy summasi QQS bilan: Amount = net summa + QQS.
@@ -307,7 +307,7 @@ namespace tahsinERP.Services.Procurement
                     .Select(p => new { p.ID, p.UnitID })
                     .ToDictionaryAsync(p => p.ID, p => p.UnitID);
 
-                double totalAmount = 0;
+                decimal totalAmount = 0;
                 foreach (var orderProduct in lines)
                 {
                     if (!products.ContainsKey(orderProduct.ProductID))
@@ -320,11 +320,11 @@ namespace tahsinERP.Services.Procurement
                     {
                         OrderID = order.ID,
                         ProductID = orderProduct.ProductID,
-                        Price = (decimal)orderProduct.Price,
-                        Amount = (decimal)orderProduct.Amount,
+                        Price = orderProduct.Price,
+                        Amount = orderProduct.Amount,
                         UnitID = orderProduct.UnitID ?? (productUnitId > 0 ? productUnitId : PiecesUnitId()),
-                        TotalPrice = (decimal)(orderProduct.Price * orderProduct.Amount),
-                        MOQ = (decimal?)orderProduct.MOQ,
+                        TotalPrice = (orderProduct.Price * orderProduct.Amount),
+                        MOQ = orderProduct.MOQ,
                         Priority = TruncateToPriority(
                             !string.IsNullOrWhiteSpace(orderProduct.CalculationSummary)
                                 ? orderProduct.CalculationSummary.Trim()
@@ -334,7 +334,7 @@ namespace tahsinERP.Services.Procurement
                     };
 
                     _db.P_ORDER_PRODUCTS.Add(pOrderProduct);
-                    totalAmount += (double)pOrderProduct.TotalPrice;
+                    totalAmount += pOrderProduct.TotalPrice;
                 }
 
                 // Umumiy summa QQS bilan: Amount = net summa + QQS.

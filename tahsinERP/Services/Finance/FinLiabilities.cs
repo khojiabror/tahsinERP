@@ -100,7 +100,7 @@ namespace tahsinERP.Services.Finance
 
             var accrued = PayrollLines(db, asOf, openingDate)
                 .GroupBy(l => new { l.EmployeeID, Name = l.HR_EMPLOYEES.FullName })
-                .Select(g => new { g.Key.EmployeeID, g.Key.Name, Amount = g.Sum(x => (decimal?)x.NetSalary) ?? 0m })
+                .Select(g => new { g.Key.EmployeeID, g.Key.Name, Amount = g.Sum(x => x.NetSalary) ?? 0m })
                 .ToList();
             foreach (var a in accrued)
             {

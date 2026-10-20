@@ -4,6 +4,7 @@ using System.Linq;
 using tahsinERP.Areas.Distribution.Data;
 using tahsinERP.Areas.Distribution.Data.Entities;
 using tahsinERP.Areas.Distribution.Services.Orders;
+using tahsinERP.Areas.Distribution.Services.Bot;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -132,6 +133,9 @@ namespace tahsinERP.Areas.Distribution.Services.Money
                         ?? db.CustomerProfiles.Where(p => p.CustomerID == input.CustomerID).Select(p => p.AgentUserID).FirstOrDefault();
             DebtService.Credit(db, input.CustomerID, LedgerDocTypes.Payment, payment.ID, input.OrderID, payment.Amount, now, agent, userId, payment.DocNo);
             db.SaveChanges();
+            NotificationService.ToCustomer(db, input.CustomerID, NotificationService.PaymentReceived,
+                l => DstLocalization.TFor(l, "Notify_PaymentReceived", payment.Amount.ToString("N0"), payment.DocNo,
+                    LedgerService.CreditState(db, input.CustomerID, now).Balance.ToString("N0")), now);
             DebtService.SettleOrders(db, input.CustomerID, userId, now);
             db.SaveChanges();
             return payment.ID;
