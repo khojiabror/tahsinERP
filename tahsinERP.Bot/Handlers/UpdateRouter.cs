@@ -13,7 +13,7 @@ namespace tahsinERP.Bot.Handlers;
 /// ERP texnik xatosida update qayta ishlanmaydi (amal ikki marta bajarilmasin) — foydalanuvchiga "aloqa yo'q".
 /// </summary>
 public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, SessionStore sessions, ErpClientFactory erpFactory,
-    TelegramApi telegram, IFileStore files, IOptions<BotOptions> options, TimeProvider clock, ILogger<UpdateRouter> log)
+    TelegramApi telegram, IFileStore files, IOptions<BotOptions> options, TimeProvider clock, LiveThrottle liveThrottle, ILogger<UpdateRouter> log)
 {
     /// <summary>Bitta update konteksti.</summary>
     private sealed class Ctx
@@ -35,12 +35,18 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         var from = update.From;
         var chatId = update.ChatId;
         if (from == null || chatId == null || from.IsBot) return;
-        if (update.EditedMessage != null) return;                           // jonli joylashuv yangilanishlari — hozircha kerak emas
-        var chatType = update.Message?.Chat.Type ?? update.CallbackQuery?.Message?.Chat.Type;
+        var chatType = update.Message?.Chat.Type ?? update.EditedMessage?.Chat.Type ?? update.CallbackQuery?.Message?.Chat.Type;
         if (chatType != null && chatType != "private") return;              // guruhlarda ishlamaydi
 
         var ctx = new Ctx { Tenant = tenant, From = from, ChatId = chatId.Value, Erp = erpFactory.For(tenant.Row) };
         ctx.Link = await db.Links.FindAsync([tenant.Id, from.Id], ct);
+
+        // tahrirlangan xabar — faqat jonli joylashuv yangilanishi (agent/ekspeditor), javobsiz
+        if (update.EditedMessage != null)
+        {
+            if (update.EditedMessage.Location is { } live && ctx.IsField) await TrackAsync(ctx, live, silent: true, ct);
+            return;
+        }
 
         try
         {
@@ -117,13 +123,30 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         }
         if (msg.Photo is { Count: > 0 } photo)
         {
-            if (state == States.Photo && data.VisitId is int visitId) await SavePhotoAsync(ctx, visitId, photo, ct);
+            switch (state)
+            {
+                case States.Photo when data.VisitId is int visitId: await SavePhotoAsync(ctx, visitId, photo, ct); break;
+                case States.DaySelfie: await SelfieAsync(ctx, data, photo, ct); break;
+                case States.NewPhoto: await NewPhotoAsync(ctx, data, photo, ct); break;
+            }
+            return;
+        }
+        if (msg.Contact is { } contact)
+        {
+            if (state == States.NewPhone) await NewPhoneAsync(ctx, data, contact.PhoneNumber, ct);
             return;
         }
         if (text == null) return;
 
-        switch (Texts.KeyOf(text, "Btn_DayStart", "Btn_Route", "Btn_Search", "Btn_Cash", "Btn_DayEnd", "Btn_Summary"))
+        switch (Texts.KeyOf(text, "Btn_DayStart", "Btn_Route", "Btn_Search", "Btn_Cash", "Btn_DayEnd", "Btn_Summary",
+                    "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement"))
         {
+            case "Btn_NewPoint": await NewPointStartAsync(ctx, ct); return;
+            case "Btn_Live":
+                if (RequireField(ctx)) outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Live_Howto"));
+                return;
+            case "Btn_MyDebt": await SendDebtAsync(ctx, ct); return;
+            case "Btn_Statement": AskStatementPeriod(ctx); return;
             case "Btn_DayStart": await AskDayLocationAsync(ctx, States.DayStart, "Day_AskLocation", ct); return;
             case "Btn_DayEnd": await AskDayLocationAsync(ctx, States.DayEnd, "Day_AskEndLocation", ct); return;
             case "Btn_Route": await SendRouteAsync(ctx, null, ct); return;
@@ -143,6 +166,26 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
                 return;
             case States.PayAmount:
                 await PaymentAmountAsync(ctx, data, text, ct);
+                return;
+            case States.DaySelfie:
+                if (Texts.KeyOf(text, "Btn_Skip") != null) await SelfieSkippedAsync(ctx, data, ct);
+                else outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T(data.SelfieRequired ? "Day_AskSelfie" : "Day_AskSelfieOptional"));
+                return;
+            case States.NewName:
+                await NewNameAsync(ctx, data, text, ct);
+                return;
+            case States.NewPhone:
+                await NewPhoneAsync(ctx, data, text, ct);
+                return;
+            case States.NewLocation:
+                outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("New_AskLocation"), LocationKeyboard(ctx));
+                return;
+            case States.NewLandmark:
+                await NewLandmarkAsync(ctx, data, Texts.KeyOf(text, "Btn_Skip") != null ? null : text, ct);
+                return;
+            case States.NewPhoto:
+                if (Texts.KeyOf(text, "Btn_Skip") != null) await NewPhotoAsync(ctx, data, null, ct);
+                else outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("New_AskPhoto"));
                 return;
             default:
                 await SendMenuAsync(ctx, ctx.T("Menu"), ct);
@@ -213,15 +256,21 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         if (ctx.IsField)
             keyboard = Kb.Reply([
                 [Kb.Text(ctx.T("Btn_DayStart")), Kb.Text(ctx.T("Btn_Route"))],
-                [Kb.Text(ctx.T("Btn_Search")), Kb.Text(ctx.T("Btn_Cash"))],
+                [Kb.Text(ctx.T("Btn_Search")), Kb.Text(ctx.T("Btn_NewPoint"))],
+                [Kb.Text(ctx.T("Btn_Cash")), Kb.Text(ctx.T("Btn_Live"))],
                 [Kb.Text(ctx.T("Btn_DayEnd"))]
             ]);
         else if (ctx.IsManager)
             keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Summary"))]]);
+        else if (ctx.Link?.CustomerId != null)
+        {
+            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_MyDebt")), Kb.Text(ctx.T("Btn_Statement"))]]);
+            text += "\n" + ctx.T("Customer_Menu");
+        }
         else
         {
             keyboard = Kb.Remove();
-            text += "\n" + ctx.T(ctx.Link?.CustomerId != null ? "Customer_Menu" : "Staff_Menu");
+            text += "\n" + ctx.T("Staff_Menu");
         }
         outbox.Send(ctx.Tenant.Id, ctx.ChatId, text, keyboard);
         return Task.CompletedTask;

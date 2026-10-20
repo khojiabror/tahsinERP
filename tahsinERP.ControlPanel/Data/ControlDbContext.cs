@@ -52,7 +52,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
                 new Plan { Id = 1, Code = PlanCodes.Start, Name = "Start", MaxUsers = 5, Modules = "Srm,Crm,Tasks", VatRatePercent = 12m, SortOrder = 1 },
                 new Plan { Id = 2, Code = PlanCodes.Biznes, Name = "Biznes", MaxUsers = 20, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance", VatRatePercent = 12m, SortOrder = 2 },
                 new Plan { Id = 3, Code = PlanCodes.Korp, Name = "Korporativ", MaxUsers = 50, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs", VatRatePercent = 12m, SortOrder = 3 },
-                new Plan { Id = 4, Code = PlanCodes.Trial, Name = "Sinov (14 kun)", MaxUsers = 5, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs", VatRatePercent = 12m, TrialDays = 14, PriceMonthTiyin = 0, PriceYearTiyin = 0, SortOrder = 4 });
+                new Plan { Id = 4, Code = PlanCodes.Trial, Name = "Sinov (14 kun)", MaxUsers = 5, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs", VatRatePercent = 12m, TrialDays = 14, PriceMonthTiyin = 0, PriceYearTiyin = 0, SortOrder = 4 },
+                // Qo'shimcha xizmat: narx ochiq savol (Tariflar sahifasida belgilanadi), 02_WEBSITE_CATALOG.md 9-bo'lim.
+                new Plan { Id = 5, Code = PlanCodes.Site, Name = "Sayt-katalog", MaxUsers = 0, Modules = "Website", VatRatePercent = 12m, IsAddOn = true, SortOrder = 10 });
         });
 
         b.Entity<Server>(e =>

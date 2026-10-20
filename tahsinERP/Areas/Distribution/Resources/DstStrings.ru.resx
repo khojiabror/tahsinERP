@@ -1865,7 +1865,6 @@
   <data name="Import_Order" xml:space="preserve">
     <value>Порядок загрузки: территории → типы цен → (агенты — на странице «Команды») → клиенты → маршруты → товары → единицы → цены → начальные долги. На листе «Пример» шаблона есть образец.</value>
   </data>
-||||||| 9c7068af
   <data name="Dashboard" xml:space="preserve">
     <value>Панель руководителя</value>
   </data>
@@ -2075,5 +2074,126 @@
   </data>
   <data name="Report_Handover_Cancelled" xml:space="preserve">
     <value>Отклонено</value>
+  </data>
+  <data name="Bot_SelfieRequired" xml:space="preserve">
+    <value>Чтобы начать день, отправьте селфи.</value>
+  </data>
+  <data name="Notify_StoreOrder" xml:space="preserve">
+    <value>📦 Нужно собрать: заказ {0} подтверждён.
+Клиент: {1}
+Склад: {2}
+{3} строк, {4} кг, {5} сум
+Доставка: {6}</value>
+  </data>
+  <data name="Notify_Pickup" xml:space="preserve">
+    <value>самовывоз</value>
+  </data>
+  <data name="Notify_NewCustomer" xml:space="preserve">
+    <value>🆕 Новая торговая точка: {0} ({1}), агент {2}. Подтвердите в разделе Дистрибуция → Клиенты.</value>
+  </data>
+  <data name="Field" xml:space="preserve">
+    <value>Полевой контроль</value>
+  </data>
+  <data name="Tile_Field" xml:space="preserve">
+    <value>Рабочий день агентов, селфи, визиты и живая геолокация</value>
+  </data>
+  <data name="Field_Hint" xml:space="preserve">
+    <value>Начало рабочего дня (с селфи), визиты и живая геолокация Telegram. Геолокация пишется только пока рабочий день открыт. Страница за сегодня обновляется каждую минуту.</value>
+  </data>
+  <data name="Field_LinksOff" xml:space="preserve">
+    <value>Чтобы видеть фото, укажите в Настройках публичный адрес бота.</value>
+  </data>
+  <data name="Field_Selfie" xml:space="preserve">
+    <value>Селфи</value>
+  </data>
+  <data name="Field_DayStart" xml:space="preserve">
+    <value>Начало дня</value>
+  </data>
+  <data name="Field_DayEnd" xml:space="preserve">
+    <value>Конец дня</value>
+  </data>
+  <data name="Field_Visits" xml:space="preserve">
+    <value>Визиты</value>
+  </data>
+  <data name="Field_LastPosition" xml:space="preserve">
+    <value>Последняя геопозиция</value>
+  </data>
+  <data name="Field_Live" xml:space="preserve">
+    <value>Живая геолокация активна</value>
+  </data>
+  <data name="Field_NoDay" xml:space="preserve">
+    <value>не начат</value>
+  </data>
+  <data name="Field_Details" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="Field_NoAgents" xml:space="preserve">
+    <value>Нет агентов (добавляются на странице Команды).</value>
+  </data>
+  <data name="Field_TrackMap" xml:space="preserve">
+    <value>Трек на карте</value>
+  </data>
+  <data name="Field_Track" xml:space="preserve">
+    <value>Трек геопозиции</value>
+  </data>
+  <data name="Field_TrackHint" xml:space="preserve">
+    <value>Точки живой геолокации пишутся не чаще раза в 30 секунд; на карте показывается до 100 точек.</value>
+  </data>
+  <data name="Field_CheckIn" xml:space="preserve">
+    <value>Прибыл</value>
+  </data>
+  <data name="Field_Distance" xml:space="preserve">
+    <value>Расстояние</value>
+  </data>
+  <data name="Field_Result" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="Field_Photo" xml:space="preserve">
+    <value>Фото</value>
+  </data>
+  <data name="Field_Time" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="Field_Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="Field_Unplanned" xml:space="preserve">
+    <value>вне плана</value>
+  </data>
+  <data name="Field_Static" xml:space="preserve">
+    <value>статич.</value>
+  </data>
+  <data name="Field_StaticHint" xml:space="preserve">
+    <value>Отправлена обычная, не живая геолокация</value>
+  </data>
+  <data name="Field_Source_LIVE" xml:space="preserve">
+    <value>живая</value>
+  </data>
+  <data name="Field_Source_DAY" xml:space="preserve">
+    <value>начало/конец дня</value>
+  </data>
+  <data name="Field_Source_VISIT" xml:space="preserve">
+    <value>визит</value>
+  </data>
+  <data name="Field_Result_ORDER" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="Field_Result_PAYMENT" xml:space="preserve">
+    <value>Оплата</value>
+  </data>
+  <data name="Field_Result_NO_ORDER" xml:space="preserve">
+    <value>Без заказа</value>
+  </data>
+  <data name="Settings_BotPublicUrl" xml:space="preserve">
+    <value>Публичный адрес бота (для фото)</value>
+  </data>
+  <data name="Settings_RequireSelfie" xml:space="preserve">
+    <value>Селфи в начале дня обязательно</value>
+  </data>
+  <data name="Settings_BotUrlInvalid" xml:space="preserve">
+    <value>Адрес бота должен быть вида https://...</value>
+  </data>
+  <data name="Customer_Photo" xml:space="preserve">
+    <value>Фото точки</value>
   </data>
 </root>

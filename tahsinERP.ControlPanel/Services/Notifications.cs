@@ -58,18 +58,22 @@ public sealed class ExpiryReminderService(ControlDbContext db, ITelegramSender t
             .ToListAsync(ct);
 
         // Tenantning eng uzoq faol obunasi bo'yicha (masalan TRIAL + yangi to'langan obuna bo'lsa — eskisi uchun eslatma kerak emas).
+        // Paket va har bir qo'shimcha xizmat alohida: xizmat obunasi paket eslatmasini yashirmaydi (va aksincha).
         var latestEnd = await db.Subscriptions.Where(s => s.Status == SubscriptionStatus.Active)
-            .GroupBy(s => s.TenantId).Select(g => new { g.Key, End = g.Max(s => s.EndDate) }).ToDictionaryAsync(x => x.Key, x => x.End, ct);
+            .GroupBy(s => new { s.TenantId, AddOnPlan = s.Plan!.IsAddOn ? s.PlanId : 0 })
+            .Select(g => new { g.Key.TenantId, g.Key.AddOnPlan, End = g.Max(s => s.EndDate) })
+            .ToDictionaryAsync(x => (x.TenantId, x.AddOnPlan), x => x.End, ct);
 
         int sent = 0;
         foreach (var s in subs)
         {
-            if (latestEnd.TryGetValue(s.TenantId, out var end) && end > s.EndDate)
+            bool addOn = SubscriptionService.IsAddOn(s);
+            if (latestEnd.TryGetValue((s.TenantId, addOn ? s.PlanId : 0), out var end) && end > s.EndDate)
                 continue;
             int days = s.EndDate.DayNumber - today.DayNumber;
             if (!Thresholds.Contains(days))
                 continue;
-            string template = "expiry-" + days;
+            string template = (addOn ? s.Plan!.Code.ToLowerInvariant() + "-" : "") + "expiry-" + days;
             string text = BuildText(s, days);
             var recipients = new List<string?> { s.Tenant!.TelegramChatId, tgOptions.Value.StaffChatId }
                 .Where(r => !string.IsNullOrWhiteSpace(r)).Distinct().ToList();
@@ -85,7 +89,8 @@ public sealed class ExpiryReminderService(ControlDbContext db, ITelegramSender t
     public static string BuildText(Subscription s, int days)
     {
         string when = days == 0 ? "BUGUN tugaydi" : $"tugashiga {days} kun qoldi ({s.EndDate:dd.MM.yyyy})";
-        string what = s.Period == BillingPeriod.Trial ? "sinov muddati" : $"«{s.Plan?.Name}» obunasi";
+        string what = s.Period == BillingPeriod.Trial ? "sinov muddati"
+            : SubscriptionService.IsAddOn(s) ? $"«{s.Plan?.Name}» qo'shimcha xizmati" : $"«{s.Plan?.Name}» obunasi";
         return $"tahsinERP: {s.Tenant?.LegalName} ({s.Tenant?.Slug}) — {what} {when}. " +
                (s.Period == BillingPeriod.Trial ? "Davom ettirish uchun biz bilan bog'laning." : "Uzluksiz ishlash uchun hisob-fakturani o'z vaqtida to'lang.");
     }
@@ -165,8 +170,9 @@ public sealed class DailyJobHostedService(IServiceScopeFactory scopes, TimeProvi
     }
 
     /// <summary>
-    /// Oldindan to'langan, oxirgi 3 kunda boshlangan davrlar (masalan davr oxirida paket almashuvi) uchun kalitni obunaga
-    /// moslaydi. EnsureForTenantAsync idempotent — mos kalit bo'lsa hech narsa qilmaydi.
+    /// Oldindan to'langan, oxirgi 3 kunda boshlangan davrlar (masalan davr oxirida paket almashuvi) va oxirgi 3 kunda tugagan
+    /// qo'shimcha xizmatlar (kalitdan "+KOD" olib tashlanadi) uchun kalitni obunaga moslaydi.
+    /// EnsureForTenantAsync idempotent — mos kalit bo'lsa hech narsa qilmaydi.
     /// </summary>
     public static async Task<int> EnsureKeysForStartedPeriodsAsync(IServiceProvider sp, ILogger log, CancellationToken ct)
     {
@@ -174,7 +180,10 @@ public sealed class DailyJobHostedService(IServiceScopeFactory scopes, TimeProvi
         DateOnly today = sp.GetRequiredService<Clock>().Today;
         DateOnly from = today.AddDays(-3);
         var tenantIds = await db.Subscriptions
-            .Where(s => s.Status == SubscriptionStatus.Active && s.StartDate <= today && s.StartDate >= from && s.Tenant!.InstallationId != null)
+            .Where(s => s.Tenant!.InstallationId != null
+                && ((s.Status == SubscriptionStatus.Active && s.StartDate <= today && s.StartDate >= from)
+                    || (s.Plan!.IsAddOn && (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Expired)
+                        && s.EndDate < today && s.EndDate >= from.AddDays(-1))))
             .Select(s => s.TenantId).Distinct().ToListAsync(ct);
         var issuer = sp.GetRequiredService<Licensing.LicenseIssuer>();
         int n = 0;

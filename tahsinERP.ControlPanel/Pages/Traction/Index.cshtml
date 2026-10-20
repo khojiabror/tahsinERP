@@ -17,7 +17,7 @@
     }
     <input type="date" name="From" value="@Model.From?.ToString("yyyy-MM-dd")" />
     <input type="date" name="To" value="@Model.To?.ToString("yyyy-MM-dd")" />
-    <select name="Plan"><option value="">— paket —</option>@foreach (var p in new[] { "START", "BIZNES", "KORP", "TRIAL" }) { <option value="@p" selected="@(Model.Plan == p)">@p</option> }</select>
+    <select name="Plan"><option value="">— paket —</option>@foreach (var p in new[] { "START", "BIZNES", "KORP", "TRIAL", "SITE" }) { <option value="@p" selected="@(Model.Plan == p)">@p</option> }</select>
     <select name="Status"><option value="">— holat —</option>@foreach (var s in Enum.GetValues<TenantStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }</select>
     <input type="hidden" name="Days" value="@Model.Days" />
     <button type="submit" class="secondary">Qo'llash</button>
@@ -32,6 +32,7 @@
     <div class="tile"><div class="tile-v">@Pct(o.Stickiness)</div><div class="tile-l">Stickiness (DAU/MAU)</div></div>
     <div class="tile"><div class="tile-v">@Pct(o.Conversion) <small>@o.TrialsConverted/@o.TrialsStarted</small></div><div class="tile-l">Sinov → pullik</div></div>
     <div class="tile"><div class="tile-v">@Money.Format(o.MrrTiyin)</div><div class="tile-l">MRR (so'm)</div></div>
+    <div class="tile"><div class="tile-v">@Money.Format(o.AddOnMrrTiyin) <small>@o.AddOnTenants tenant</small></div><div class="tile-l">Shundan qo'shimcha xizmatlar</div></div>
     <div class="tile"><div class="tile-v">@Money.Format(o.RevenueTiyin)</div><div class="tile-l">Davr tushumi</div></div>
     <div class="tile"><div class="tile-v">@Pct(o.ChurnRate) <small>@o.Churned/@o.PayingAtStart</small></div><div class="tile-l">Churn</div></div>
     <div class="tile"><div class="tile-v">@o.DocsTotal</div><div class="tile-l">Asosiy hujjatlar</div></div>
@@ -51,7 +52,7 @@
             <td class="num">@if (m.UnusedInPackage > 0) { <span class="badge warn">@m.UnusedInPackage tenant</span> }</td></tr>
     }
 </table>
-<p class="hint">«Paketda bor, ishlatilmagan» — faol (sinov/faol/imtiyozli) tenantlardan nechtasining paketida modul bor, lekin davrda bitta ham amal yo'q: o'qitish, UX yoki modulning o'zi ustida ishlash kerak bo'lgan joy.</p>
+<p class="hint">«Paketda bor, ishlatilmagan» — faol (sinov/faol/imtiyozli) tenantlardan nechtasining paketida modul bor, lekin davrda bitta ham amal yo'q: o'qitish, UX yoki modulning o'zi ustida ishlash kerak bo'lgan joy. Qo'shimcha xizmat (Sayt-katalog) moduli faqat uni sotib olgan tenantlarda hisoblanadi; paket filtri «SITE» — shu xizmat faol tenantlar.</p>
 
 <div class="cols">
     <div>

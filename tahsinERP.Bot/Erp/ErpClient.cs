@@ -97,6 +97,9 @@ public sealed class ErpClientFactory(IHttpClientFactory httpFactory, Microsoft.E
     public const string HttpClientName = "erp";
 
     public ErpClient For(Data.BotTenant tenant) =>
-        new(httpFactory.CreateClient(HttpClientName), new Uri(tenant.ErpBaseUrl),
-            DstApiSignature.TenantKey(options.Value.MasterKey, string.IsNullOrWhiteSpace(tenant.ErpTenant) ? DstApiSignature.DefaultTenant : tenant.ErpTenant), clock);
+        new(httpFactory.CreateClient(HttpClientName), new Uri(tenant.ErpBaseUrl), TenantKey(options.Value.MasterKey, tenant), clock);
+
+    /// <summary>Tenant ERP kaliti (API imzosi va rasm havolalari uchun).</summary>
+    public static byte[] TenantKey(string masterKey, Data.BotTenant tenant) =>
+        DstApiSignature.TenantKey(masterKey, string.IsNullOrWhiteSpace(tenant.ErpTenant) ? DstApiSignature.DefaultTenant : tenant.ErpTenant);
 }

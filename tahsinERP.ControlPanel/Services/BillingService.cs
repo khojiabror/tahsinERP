@@ -32,10 +32,10 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
     {
         long? price = sub.Period == BillingPeriod.Year ? plan.PriceYearTiyin : plan.PriceMonthTiyin;
         if (price is null)
-            throw new DomainException($"'{plan.Name}' paketining {(sub.Period == BillingPeriod.Year ? "yillik" : "oylik")} narxi hali belgilanmagan (Tariflar sahifasi).");
+            throw new DomainException($"'{plan.Name}' {(plan.IsAddOn ? "xizmatining" : "paketining")} {(sub.Period == BillingPeriod.Year ? "yillik" : "oylik")} narxi hali belgilanmagan (Tariflar sahifasi).");
         string unit = sub.Period == BillingPeriod.Year ? "yil" : "oy";
-        return new InvoiceLineInput($"tahsinERP «{plan.Name}» paketi, {sub.Users} foydalanuvchi — {periodCount} {unit}",
-            periodCount, price.Value, plan.VatRatePercent);
+        string what = plan.IsAddOn ? $"tahsinERP «{plan.Name}» qo'shimcha xizmati" : $"tahsinERP «{plan.Name}» paketi, {sub.Users} foydalanuvchi";
+        return new InvoiceLineInput($"{what} — {periodCount} {unit}", periodCount, price.Value, plan.VatRatePercent);
     }
 
     public async Task<Invoice> CreateDraftAsync(int tenantId, int? subscriptionId, int periodCount, IReadOnlyList<InvoiceLineInput> lines,

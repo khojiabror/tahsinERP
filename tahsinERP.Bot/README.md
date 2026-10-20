@@ -38,6 +38,10 @@ dotnet tahsinERP.Bot.dll webhook set firma1
 Keyin ERP → Distributsiya → Sozlamalar → "Telegram bot nomi" ga bot nomini yozing; Jamoalar sahifasida xodimga,
 mijoz kartasida mijozga ulash kodi beriladi (`t.me/<bot>?start=<kod>`). BotFather'da Mini App uchun domen: `/setdomain`.
 
+Selfi va fotolar ERP sahifalarida ko'rinishi uchun ERP Sozlamalarida "Bot ochiq manzili"ga `Bot__PublicBaseUrl` qiymatini yozing:
+ERP brauzerga `{bot}/files/{kalit}?e=..&s=..` havolasini beradi (tenant kaliti bilan imzolangan, ~2 soat amal qiladi), bot uni
+tekshirib rasmni beradi — ERP botga murojaat qilmaydi.
+
 ## Lokal sinov
 
 `tenant add ... --offline` — tokenni tekshirmasdan qo'shadi (soxta token bilan oqimni sinash uchun). Testlar: `dotnet test tahsinERP.Bot.Tests`.

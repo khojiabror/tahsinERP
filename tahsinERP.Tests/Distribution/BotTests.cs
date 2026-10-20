@@ -7,6 +7,7 @@ using tahsinERP.Areas.Distribution.Data;
 using tahsinERP.Areas.Distribution.Data.Entities;
 using tahsinERP.Areas.Distribution.Services;
 using tahsinERP.Areas.Distribution.Services.Bot;
+using tahsinERP.Areas.Distribution.Services.Orders;
 using tahsinERP.Configuration;
 using tahsinERP.Integration;
 using tahsinERP.Services.Common;
@@ -44,6 +45,34 @@ namespace tahsinERP.Tests.Distribution
             CollectionAssert.AreEqual(DstApiSignature.TenantKey(Master, "default"), DstApiSignature.TenantKey(Master, null));
             CollectionAssert.AreEqual(DstApiSignature.TenantKey(Master, "firma1"), DstApiSignature.TenantKey(Master, " FIRMA1 "));
             Assert.ThrowsException<ArgumentException>(() => DstApiSignature.TenantKey("short", "x"));
+        }
+
+        [TestMethod]
+        public void FileSignature_ExpiresAndBoundToKey()
+        {
+            var key = DstApiSignature.TenantKey(Master, "firma1");
+            var now = DateTimeOffset.FromUnixTimeSeconds(1792400000);
+            long exp = now.ToUnixTimeSeconds() + 7200;
+            var sig = DstApiSignature.SignFile(key, "firma1/2026/10/a.jpg", exp);
+            Assert.IsTrue(DstApiSignature.VerifyFile(key, "firma1/2026/10/a.jpg", exp.ToString(), sig, now));
+            Assert.IsFalse(DstApiSignature.VerifyFile(key, "firma1/2026/10/a.jpg", exp.ToString(), sig, now.AddSeconds(7201)), "muddati o'tgan");
+            Assert.IsFalse(DstApiSignature.VerifyFile(key, "firma1/2026/10/b.jpg", exp.ToString(), sig, now), "boshqa fayl");
+            Assert.IsFalse(DstApiSignature.VerifyFile(DstApiSignature.TenantKey(Master, "firma2"), "firma1/2026/10/a.jpg", exp.ToString(), sig, now));
+            Assert.IsTrue(sig.IndexOfAny(new[] { '+', '/', '=' }) < 0, "URL uchun xavfsiz: " + sig);
+        }
+
+        [TestMethod]
+        public void MapUrl_SinglePointAndSampledTrack()
+        {
+            Assert.IsNull(tahsinERP.Areas.Distribution.Controllers.DstFieldController.MapUrl(new (decimal, decimal)[0]));
+            Assert.AreEqual("https://yandex.uz/maps/?pt=69.2797,41.3111&z=17&l=map",
+                tahsinERP.Areas.Distribution.Controllers.DstFieldController.MapUrl(new[] { (41.3111m, 69.2797m) }));
+            var track = Enumerable.Range(0, 250).Select(i => (41m + i / 1000m, 69m)).ToList();
+            var url = tahsinERP.Areas.Distribution.Controllers.DstFieldController.MapUrl(track);
+            var points = url.Split(new[] { "pt=" }, StringSplitOptions.None)[1].Split('&')[0].Split('~');
+            Assert.AreEqual(100, points.Length);
+            Assert.AreEqual("69,41", points[0]);
+            Assert.AreEqual("69,41.249", points[99], "oxirgi nuqta saqlanadi");
         }
 
         [TestMethod]
@@ -224,6 +253,7 @@ namespace tahsinERP.Tests.Distribution
                 profile.Lat = 41.311100m;
                 profile.Lng = 69.279700m;
                 DstSettings.Set(db, DstSetting.VisitRadiusM, "200");
+                DstSettings.Set(db, DstSetting.RequireSelfie, "0");
                 foreach (var d in db.AgentDays.Where(d => d.UserID == f.UserId && d.WorkDate == now.Date).ToList()) db.AgentDays.Remove(d);
                 db.SaveChanges();
 
@@ -248,6 +278,151 @@ namespace tahsinERP.Tests.Distribution
                     Assert.IsNotNull(db.Visits.Find(r.VisitId).CheckOutAt);
                 }
                 Assert.IsTrue(FieldService.Route(db, f.UserId, now).Any(s => s.CustomerID == f.CustomerId && s.Visited), "bugun tashrif buyurilgan — marshrutda");
+                Assert.IsTrue(db.AgentTrack.Any(t => t.UserID == f.UserId && t.Source == TrackSources.Visit && t.At >= now.Date), "tashrif nuqtasi izda");
+            }
+        }
+
+        [TestMethod]
+        public void Selfie_RequiredSetting_BlocksDayStartAndAutoStart()
+        {
+            using (var uow = new DistributionUnitOfWork(new AuditActor(null, AuditActor.System)))
+            {
+                var f = OrderFlowIntegrationTests.Arrange(uow, 1000000m);
+                var db = uow.Dst;
+                var now = DateTime.Now;
+                foreach (var d in db.AgentDays.Where(d => d.UserID == f.UserId && d.WorkDate == now.Date).ToList()) db.AgentDays.Remove(d);
+                DstSettings.Set(db, DstSetting.RequireSelfie, "1");
+                db.SaveChanges();
+
+                var ex = Assert.ThrowsException<DstValidationException>(() => FieldService.StartDay(db, f.UserId, 41.3m, 69.2m, null, now));
+                StringAssert.Contains(ex.Message, "selfi");
+                Assert.ThrowsException<DstValidationException>(() => FieldService.CheckIn(db, f.UserId, f.CustomerId, 41.3m, 69.2m, 10, true, now),
+                    "selfi majburiy — \"keldim\" kunni o'zi boshlamaydi");
+
+                var day = FieldService.StartDay(db, f.UserId, 41.3m, 69.2m, "demo/2026/10/selfie.jpg", now);
+                db.SaveChanges();
+                Assert.AreEqual("demo/2026/10/selfie.jpg", db.AgentDays.Find(day.ID).SelfieKey);
+                Assert.IsTrue(db.AgentTrack.Any(t => t.UserID == f.UserId && t.Source == TrackSources.Day && t.At >= now.Date));
+
+                // ixtiyoriy rejimda selfisiz boshlangan kunga selfi keyin qo'shiladi
+                DstSettings.Set(db, DstSetting.RequireSelfie, "0");
+                db.AgentDays.Find(day.ID).SelfieKey = null;
+                db.SaveChanges();
+                var same = FieldService.StartDay(db, f.UserId, null, null, "demo/2026/10/later.jpg", now.AddMinutes(5));
+                db.SaveChanges();
+                Assert.AreEqual(day.ID, same.ID);
+                Assert.AreEqual("demo/2026/10/later.jpg", db.AgentDays.Find(day.ID).SelfieKey);
+            }
+        }
+
+        [TestMethod]
+        public void Track_OnlyDuringOpenDay_Throttled()
+        {
+            using (var uow = new DistributionUnitOfWork(new AuditActor(null, AuditActor.System)))
+            {
+                var db = uow.Dst;
+                var user = db.Users.First(u => u.IsActive && u.IsDeleted != true);
+                var now = DateTime.Now;
+                foreach (var d in db.AgentDays.Where(d => d.UserID == user.ID && d.WorkDate == now.Date).ToList()) db.AgentDays.Remove(d);
+                db.AgentTrack.RemoveRange(db.AgentTrack.Where(t => t.UserID == user.ID && t.At >= now.Date).ToList());
+                DstSettings.Set(db, DstSetting.RequireSelfie, "0");
+                db.SaveChanges();
+
+                Assert.IsFalse(FieldService.Track(db, user.ID, 41.3m, 69.2m, 10, now), "kun boshlanmagan — shaxsiy vaqt yozilmaydi");
+                FieldService.StartDay(db, user.ID, 41.3m, 69.2m, null, now);
+                db.SaveChanges();
+                Assert.IsTrue(FieldService.Track(db, user.ID, 41.301m, 69.2m, 10, now.AddSeconds(1)));
+                db.SaveChanges();
+                Assert.IsFalse(FieldService.Track(db, user.ID, 41.302m, 69.2m, 10, now.AddSeconds(20)), "30 s ichida");
+                Assert.IsTrue(FieldService.Track(db, user.ID, 41.303m, 69.2m, 10, now.AddSeconds(32)));
+                db.SaveChanges();
+                Assert.ThrowsException<DstValidationException>(() => FieldService.Track(db, user.ID, 91m, 69.2m, null, now.AddSeconds(70)));
+
+                FieldService.EndDay(db, user.ID, 41.31m, 69.21m, now.AddMinutes(2));
+                Assert.IsFalse(FieldService.Track(db, user.ID, 41.304m, 69.2m, 10, now.AddMinutes(3)), "kun yakunlangan");
+                var sources = db.AgentTrack.Where(t => t.UserID == user.ID && t.At >= now.Date).OrderBy(t => t.At).Select(t => t.Source).ToList();
+                CollectionAssert.AreEqual(new[] { TrackSources.Day, TrackSources.Live, TrackSources.Live, TrackSources.Day }, sources);
+            }
+        }
+
+        [TestMethod]
+        public void Confirm_NotifiesStorekeepersOfThatWarehouseOnly()
+        {
+            using (var uow = new DistributionUnitOfWork(new AuditActor(null, AuditActor.System)))
+            {
+                var f = OrderFlowIntegrationTests.Arrange(uow, 100000000m);
+                var db = uow.Dst;
+                var now = DateTime.Now;
+                var keepers = db.Users.Where(u => u.IsActive && u.IsDeleted != true && u.ID != f.UserId).OrderBy(u => u.ID).ToList()
+                    .Where(u => !tahsinERP.Models.RoleHelper.IsAdminOrDeveloper(u.Uname)).Take(2).ToList();
+                if (keepers.Count < 2) Assert.Inconclusive("Admin bo'lmagan ikki foydalanuvchi kerak.");
+                foreach (var a in db.TelegramAccounts.Where(a => a.IsActive && a.Role == BotRoles.Storekeeper).ToList()) a.IsActive = false;
+                foreach (var k in keepers)
+                {
+                    foreach (var a in db.TelegramAccounts.Where(a => a.IsActive && a.UserID == k.ID).ToList()) a.IsActive = false;
+                    db.UserScopes.RemoveRange(db.UserScopes.Where(s => s.UserID == k.ID && s.ScopeType == ScopeTypes.Warehouse).ToList());
+                }
+                db.SaveChanges();
+                db.UserScopes.Add(new UserScope { UserID = keepers[0].ID, ScopeType = ScopeTypes.Warehouse, ScopeID = f.WarehouseId });
+                db.UserScopes.Add(new UserScope { UserID = keepers[1].ID, ScopeType = ScopeTypes.Warehouse, ScopeID = f.WarehouseId + 100000 });
+                db.SaveChanges();
+                long tg = FakeTelegramId();
+                foreach (var k in keepers)
+                {
+                    var code = TelegramLinkService.CreateCode(db, k.ID, null, BotRoles.Storekeeper, f.UserId, now);
+                    db.SaveChanges();
+                    TelegramLinkService.Redeem(db, code.Code, tg, tg, now);
+                    db.SaveChanges();
+                    tg--;
+                }
+
+                var orderId = OrderService.SaveDraft(uow, new OrderInput
+                {
+                    CustomerID = f.CustomerId, WarehouseID = f.WarehouseId, DeliveryDate = now.Date.AddDays(1),
+                    Lines = { new OrderLineInput { ProductID = f.ProductId, Qty = 3 } }
+                }, OrderFlowIntegrationTests.Actor(f), now);
+                OrderService.Confirm(uow, orderId, OrderFlowIntegrationTests.Actor(f), null, now);
+                var docNo = db.Orders.Find(orderId).DocNo;
+
+                var store = db.Notifications.Where(n => n.Type == NotificationService.StoreOrderConfirmed && n.Text.Contains(docNo)).ToList();
+                Assert.AreEqual(1, store.Count, "faqat o'sha ombor omborchisiga");
+                Assert.AreEqual(keepers[0].ID, store[0].UserID);
+                StringAssert.Contains(store[0].Text, now.Date.AddDays(1).ToString("dd.MM.yyyy"));
+                StringAssert.Contains(store[0].Text, "165");   // 3 × 55 000
+            }
+        }
+
+        [TestMethod]
+        public void FileLinks_SignedUrlFromSettings()
+        {
+            const string Master = "0123456789abcdef0123456789abcdef-test";
+            var old = Environment.GetEnvironmentVariable(tahsinERP.Areas.Distribution.Controllers.Api.DstApiAuthAttribute.EnvKey);
+            try
+            {
+                Environment.SetEnvironmentVariable(tahsinERP.Areas.Distribution.Controllers.Api.DstApiAuthAttribute.EnvKey, Master);
+                using (var uow = new DistributionUnitOfWork(new AuditActor(null, AuditActor.System)))
+                {
+                    var db = uow.Dst;
+                    var now = DateTimeOffset.FromUnixTimeSeconds(1792400123);
+                    DstSettings.Set(db, DstSetting.BotPublicUrl, null);
+                    db.SaveChanges();
+                    Assert.IsFalse(FileLinks.For(db, now).Enabled, "manzil yo'q — havolasiz");
+                    Assert.IsNull(FileLinks.For(db, now).Url("demo/a.jpg"));
+
+                    DstSettings.Set(db, DstSetting.BotPublicUrl, "https://bot.example.uz/");
+                    db.SaveChanges();
+                    var links = FileLinks.For(db, now);
+                    Assert.IsNull(links.Url(null));
+                    var url = new Uri(links.Url("demo/2026/10/a b.jpg"));
+                    Assert.AreEqual("/files/demo/2026/10/a%20b.jpg", url.AbsolutePath);
+                    var q = System.Web.HttpUtility.ParseQueryString(url.Query);
+                    Assert.AreEqual((1792400123L / 3600 * 3600 + 3600 * 2).ToString(), q["e"], "soat boshi + 2 soat (havola kamida 1 soat amal qiladi)");
+                    Assert.IsTrue(DstApiSignature.VerifyFile(DstApiSignature.TenantKey(Master, DstApiSignature.DefaultTenant), "demo/2026/10/a b.jpg", q["e"], q["s"], now));
+                }
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(tahsinERP.Areas.Distribution.Controllers.Api.DstApiAuthAttribute.EnvKey, old);
             }
         }
     }

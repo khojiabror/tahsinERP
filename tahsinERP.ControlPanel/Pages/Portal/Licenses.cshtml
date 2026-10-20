@@ -12,7 +12,7 @@
     <div class="card">
         <dl class="props">
             <dt>O'rnatma (InstallationId)</dt><dd><code>@l.InstallationId</code></dd>
-            <dt>Paket</dt><dd>@l.Edition, @l.MaxUsers foydalanuvchi</dd>
+            <dt>Paket</dt><dd>@tahsinERP.Services.Editions.EditionModules.EditionDisplayName(l.Edition) <code>@l.Edition</code>, @l.MaxUsers foydalanuvchi</dd>
             <dt>Amal qiladi</dt><dd>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy") @if (l.ExpiryDate < Model.Today) { <span class="badge bad">muddati o'tgan</span> }</dd>
         </dl>
         @if (Model.IsPortalOwner)

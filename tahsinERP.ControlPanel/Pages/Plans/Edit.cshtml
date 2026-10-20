@@ -10,12 +10,19 @@
         <div><label asp-for="PriceYear">Yillik narx, so'm (QQS bilan)</label><input asp-for="PriceYear" type="text" placeholder="belgilanmagan" /><span asp-validation-for="PriceYear"></span></div>
     </div>
     <div class="row">
-        <div><label asp-for="MaxUsers">Foydalanuvchilar chegarasi</label><input asp-for="MaxUsers" type="number" /><span asp-validation-for="MaxUsers"></span></div>
+        @if (Model.Plan.IsAddOn)
+        {
+            <div><label>Foydalanuvchilar chegarasi</label><div class="hint">Qo'shimcha xizmat — foydalanuvchiga bog'liq emas (paket chegarasi amal qiladi).</div></div>
+        }
+        else
+        {
+            <div><label asp-for="MaxUsers">Foydalanuvchilar chegarasi</label><input asp-for="MaxUsers" type="number" /><span asp-validation-for="MaxUsers"></span></div>
+        }
         <div><label asp-for="VatRatePercent">QQS stavkasi, %</label><input asp-for="VatRatePercent" type="number" step="0.01" /><span asp-validation-for="VatRatePercent"></span></div>
     </div>
     <div>
         <label asp-for="Modules">Modullar (ERP ProductModule nomlari, vergul bilan)</label><input asp-for="Modules" />
-        <div class="hint">Srm, Crm, Tasks, Mes, Engineering, Finance, Hr, Logistics, Docs. Ma'lumot uchun — ERP cheklovni Edition bo'yicha qiladi.</div>
+        <div class="hint">Srm, Crm, Tasks, Mes, Engineering, Finance, Hr, Logistics, Docs, Distribution; qo'shimcha xizmat: Website. Ma'lumot uchun — ERP cheklovni Edition bo'yicha qiladi.</div>
     </div>
     @if (Model.Plan.Code == PlanCodes.Trial)
     {

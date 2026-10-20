@@ -24,6 +24,11 @@ public sealed partial class UpdateRouter
             if (RequireManager(ctx) && cb.Int(0) is int orderId) await ConfirmOverrideAsync(ctx, orderId, cq.Message, ct);
             return;
         }
+        if (cb.Command == "ak")
+        {
+            await SendStatementAsync(ctx, cb.Str(0), ct);
+            return;
+        }
         if (cb.Command == "x")
         {
             await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
@@ -54,6 +59,7 @@ public sealed partial class UpdateRouter
                 break;
             case "ho": await AskHandoverAsync(ctx, ct); break;
             case "ho!": await SubmitHandoverAsync(ctx, ct); break;
+            case "nc!": await NewPointSaveAsync(ctx, ct); break;
         }
     }
 
@@ -69,17 +75,15 @@ public sealed partial class UpdateRouter
     private async Task OnLocationAsync(Ctx ctx, string? state, SessionData data, TgLocation loc, CancellationToken ct)
     {
         if (!RequireField(ctx)) return;
-        decimal lat = Math.Round((decimal)loc.Latitude, 6), lng = Math.Round((decimal)loc.Longitude, 6);
+        decimal lat = Coord(loc.Latitude), lng = Coord(loc.Longitude);
         switch (state)
         {
             case States.DayStart:
-            {
-                var day = await ctx.Erp.PostAsync<ErpDayStarted>("DayStart", new { lat, lng }, ctx.UserId, ct);
-                await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
-                await SendMenuAsync(ctx, ctx.T("Day_Started", day?.StartAt.ToString("HH:mm", CultureInfo.InvariantCulture)), ct);
-                await SendRouteAsync(ctx, null, ct);
+                await DayLocationAsync(ctx, lat, lng, ct);
                 break;
-            }
+            case States.NewLocation:
+                await NewLocationAsync(ctx, data, lat, lng, ct);
+                break;
             case States.DayEnd:
             {
                 var d = await ctx.Erp.PostAsync<ErpDay>("DayEnd", new { lat, lng }, ctx.UserId, ct);
@@ -89,16 +93,16 @@ public sealed partial class UpdateRouter
             }
             case States.CheckIn when data.CustomerId is int customerId:
             {
-                var accuracy = loc.HorizontalAccuracy is double a ? (int?)Math.Round(a) : null;
                 var r = await ctx.Erp.PostAsync<ErpCheckIn>("CheckIn",
-                    new { customerId, lat, lng, accuracyM = accuracy, live = loc.LivePeriod is > 0 }, ctx.UserId, ct);
+                    new { customerId, lat, lng, accuracyM = Accuracy(loc), live = loc.LivePeriod is > 0 }, ctx.UserId, ct);
                 await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
                 await SendMenuAsync(ctx, ctx.T("CheckIn_Ok", r?.DistanceM is int dm ? ctx.T("CheckIn_Distance", dm) : ""), ct);
                 await SendCardAsync(ctx, customerId, ct);
                 break;
             }
             default:
-                await SendMenuAsync(ctx, ctx.T("Menu"), ct);
+                if (loc.LivePeriod is > 0) await LiveStartedAsync(ctx, loc, ct);   // jonli joylashuv ulashildi
+                else await SendMenuAsync(ctx, ctx.T("Menu"), ct);
                 break;
         }
     }
@@ -243,14 +247,8 @@ public sealed partial class UpdateRouter
 
     private async Task SavePhotoAsync(Ctx ctx, int visitId, List<TgPhotoSize> sizes, CancellationToken ct)
     {
-        var best = sizes.Where(s => s.FileSize is null or <= LocalFileStore.MaxBytes).OrderByDescending(s => s.Width * s.Height).FirstOrDefault();
-        var bytes = best == null ? null : await telegram.DownloadFileAsync(ctx.Tenant.Token, best.FileId, ct);
-        if (bytes == null || bytes.Length > LocalFileStore.MaxBytes)
-        {
-            outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Photo_TooBig"));
-            return;
-        }
-        var key = await files.SaveAsync(ctx.Tenant.Slug, bytes, "jpg", ct);
+        var key = await SaveTelegramPhotoAsync(ctx, sizes, ct);
+        if (key == null) return;
         await ctx.Erp.PostAsync<object>("VisitResult", new { visitId, photoKey = key }, ctx.UserId, ct);
         await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
         await SendMenuAsync(ctx, ctx.T("Photo_Saved"), ct);

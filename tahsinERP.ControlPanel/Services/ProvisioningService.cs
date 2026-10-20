@@ -162,7 +162,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     {
         if (t.Status == TenantStatus.Archived) throw new DomainException("Arxivdagi tenant.");
         var today = clock.Today;
-        var sub = await db.Subscriptions.Where(s => s.TenantId == t.Id && s.Status == SubscriptionStatus.Active)
+        var sub = await SubscriptionService.PackageOnly(db.Subscriptions).Where(s => s.TenantId == t.Id && s.Status == SubscriptionStatus.Active)
             .OrderByDescending(s => s.EndDate).FirstOrDefaultAsync(ct);
         if (sub is null || sub.EndDate < today)
             throw new DomainException("Faol obuna yo'q — avval to'lovni belgilang yoki obunani uzaytiring.");

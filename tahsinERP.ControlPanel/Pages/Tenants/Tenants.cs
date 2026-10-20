@@ -65,7 +65,7 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
         }
         var tenants = await q.OrderBy(t => t.LegalName).Take(500).ToListAsync();
         var ids = tenants.Select(t => t.Id).ToList();
-        var subs = await db.Subscriptions.Where(s => ids.Contains(s.TenantId) && s.Status == SubscriptionStatus.Active)
+        var subs = await SubscriptionService.PackageOnly(db.Subscriptions).Where(s => ids.Contains(s.TenantId) && s.Status == SubscriptionStatus.Active)
             .Select(s => new { s.TenantId, Plan = s.Plan!.Name, s.EndDate }).ToListAsync();
         var debts = await db.Invoices.Where(i => ids.Contains(i.TenantId) && (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid))
             .GroupBy(i => i.TenantId).Select(g => new { g.Key, D = g.Sum(i => i.TotalTiyin - i.PaidTiyin) }).ToDictionaryAsync(x => x.Key, x => x.D);
