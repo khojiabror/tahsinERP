@@ -241,6 +241,8 @@
     <Compile Include="Distribution\DirectoryIntegrationTests.cs" />
     <Compile Include="Distribution\PilotImportTests.cs" />
     <Compile Include="Distribution\PilotDayScenarioTests.cs" />
+    <Compile Include="Distribution\PilotSampleData.cs" />
+    <Compile Include="Distribution\PilotWeekSimulationTests.cs" />
     <Compile Include="Distribution\OrderRulesTests.cs" />
     <Compile Include="Distribution\OrderFlowIntegrationTests.cs" />
     <Compile Include="Distribution\MoneyTests.cs" />

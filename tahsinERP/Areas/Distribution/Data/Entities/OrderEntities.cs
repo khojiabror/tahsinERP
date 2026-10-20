@@ -163,6 +163,9 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public const string LargeOrderAmount = "LargeOrderAmount";
         public const string RequireSelfie = "RequireSelfie";
         public const string BotPublicUrl = "BotPublicUrl";
+        /// <summary>Agent qabul qiladigan to'lov usullari ("CASH,CARD,CLICK"); har naqdsiz usul hisobi — AgentAccount_&lt;usul&gt;.</summary>
+        public const string AgentPayMethods = "AgentPayMethods";
+        public const string AgentAccountPrefix = "AgentAccount_";
 
         [Key, StringLength(50), DatabaseGenerated(DatabaseGeneratedOption.None)] public string Key { get; set; }
         [StringLength(400)] public string Value { get; set; }

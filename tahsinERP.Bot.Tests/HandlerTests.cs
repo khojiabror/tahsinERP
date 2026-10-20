@@ -476,6 +476,22 @@ public class HandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task Payment_OffersOnlyMethodsAllowedInErp()
+    {
+        LinkAs("AGENT");
+        _routes["Customer"] = _ => (HttpStatusCode.OK, "{\"customerID\":5,\"name\":\"Do'kon\",\"debt\":0,\"overdue\":0,\"approved\":true,\"openVisitId\":7}");
+        _routes["Me"] = _ => (HttpStatusCode.OK, "{\"userId\":12,\"isAgent\":true,\"visitRadiusM\":200,\"payMethods\":[\"CASH\",\"CARD\",\"CLICK\"]}");
+        await Handle(Click(2, "pay:5:7"));
+        await Handle(Text(3, "100000"));
+        var keyboard = Out().Last().Payload;
+        Assert.Contains("pm:CASH", keyboard);
+        Assert.Contains("pm:CARD", keyboard);
+        Assert.Contains("pm:CLICK", keyboard);
+        Assert.DoesNotContain("pm:PAYME", keyboard);
+        Assert.DoesNotContain("pm:TRANSFER", keyboard);
+    }
+
+    [Fact]
     public async Task BusinessError_ShownToUser_CallbacksAnswered()
     {
         LinkAs("AGENT");

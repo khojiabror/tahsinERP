@@ -166,6 +166,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                         canOverrideCredit = DstPermissions.Has(UserName, DstPermissions.OverrideCredit),
                         visitRadiusM = DstSettings.Int(db, DstSetting.VisitRadiusM) ?? FieldService.DefaultRadiusM,
                         requireSelfie = FieldService.RequireSelfie(db),
+                        payMethods = Services.Money.AgentPayments.Allowed(db),
                         day
                     };
                 }
@@ -405,7 +406,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             public int? VisitId { get; set; }
         }
 
-        /// <summary>Agent to'lov oldi: naqd — agent qo'lida; boshqa usul — sozlamadagi hisobga (AgentCashAccountId).</summary>
+        /// <summary>Agent to'lov oldi: naqd — agent qo'lida; karta/Click va h.k. — sozlamadagi o'sha usul hisobiga (AgentPayments).</summary>
         [HttpPost]
         public ActionResult Payment(ApiPaymentInput input)
         {
@@ -414,10 +415,12 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                 using (var check = Db()) EnsureCustomer(check, input.CustomerID);
                 using (var uow = Uow())
                 {
-                    int? account = input.Method == PaymentMethods.Cash ? null : DstSettings.Int(uow.Dst, DstSetting.AgentCashAccountId);
+                    var method = input.Method ?? PaymentMethods.Cash;
+                    bool replay = input.ClientRequestId.HasValue && uow.Dst.Payments.Any(p => p.ClientRequestId == input.ClientRequestId);
+                    int? account = replay ? null : Services.Money.AgentPayments.ResolveAccount(uow.Dst, method);
                     var id = PaymentService.Receive(uow, new PaymentInput
                     {
-                        CustomerID = input.CustomerID, OrderID = input.OrderID, Amount = input.Amount, Method = input.Method ?? PaymentMethods.Cash,
+                        CustomerID = input.CustomerID, OrderID = input.OrderID, Amount = input.Amount, Method = method,
                         FinAccountID = account, ReceivedByUserID = userId, Note = input.Note, ClientRequestId = input.ClientRequestId
                     }, userId, AuditActor.Bot, DateTime.Now);
                     if (input.VisitId.HasValue)
@@ -578,6 +581,22 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                     NotificationService.Ack(db, sent, failed, DateTime.Now);
                     db.SaveChanges();
                     return new { ok = true };
+                }
+            });
+        }
+
+        /// <summary>Pilot xatolar jurnali: xodim botdan muammo yozadi (rasm kaliti bilan).</summary>
+        [HttpPost]
+        public ActionResult Issue(string description, string place, string docRef, string photoKey)
+        {
+            return Run(userId =>
+            {
+                using (var uow = Uow())
+                {
+                    var id = IssueService.Create(uow.Dst, new IssueInput { Description = description, Place = place, DocRef = docRef, PhotoKey = photoKey },
+                        userId, AuditActor.Bot, DateTime.Now);
+                    uow.Commit();
+                    return new { id, issueNo = uow.Dst.Issues.Where(i => i.ID == id).Select(i => i.IssueNo).FirstOrDefault() };
                 }
             });
         }

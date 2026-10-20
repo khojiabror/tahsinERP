@@ -2196,4 +2196,212 @@ Yetkazish: {6}</value>
   <data name="Customer_Photo" xml:space="preserve">
     <value>Nuqta fotosi</value>
   </data>
+  <data name="Payment_MethodNotAllowed" xml:space="preserve">
+    <value>Bu to'lov usuli agentlar uchun yoqilmagan (Sozlamalar → Agent to'lovlari).</value>
+  </data>
+  <data name="Payment_MethodNoAccount" xml:space="preserve">
+    <value>To'lov usuli uchun hisob tanlanmagan (Sozlamalar → Agent to'lovlari).</value>
+  </data>
+  <data name="Settings_HandoverAccount" xml:space="preserve">
+    <value>Agent naqdi topshiriladigan kassa</value>
+  </data>
+  <data name="Settings_AgentPayments" xml:space="preserve">
+    <value>Agent to'lovlari</value>
+  </data>
+  <data name="Settings_AgentPaymentsHint" xml:space="preserve">
+    <value>Agent botda qaysi usulda to'lov qabul qila oladi. Naqd agent qo'lida qoladi va kassaga topshiriladi; karta, Click va boshqalar darhol tanlangan hisobga tushadi.</value>
+  </data>
+  <data name="Settings_AgentAccepts" xml:space="preserve">
+    <value>Agent qabul qiladi</value>
+  </data>
+  <data name="Settings_PayAccount" xml:space="preserve">
+    <value>Hisob</value>
+  </data>
+  <data name="Settings_CashStaysWithAgent" xml:space="preserve">
+    <value>agent qo'lida → kassaga topshiradi</value>
+  </data>
+  <data name="Inventory" xml:space="preserve">
+    <value>Inventarizatsiya</value>
+  </data>
+  <data name="Tile_Inventory" xml:space="preserve">
+    <value>Boshlang'ich va nazorat sanog'i</value>
+  </data>
+  <data name="Inventory_Hint" xml:space="preserve">
+    <value>Boshlang'ich sanoq — qoldiqni sanalgan miqdorga tenglaydi (pilot boshida). Nazorat sanog'i — tizim bilan taqqoslaydi (pilot oxirida, qabul mezoni); farqni qoldiqqa yozish ixtiyoriy. Qoldiqqa yozish ombor uchun oyiga bir marta.</value>
+  </data>
+  <data name="Inventory_OPENING" xml:space="preserve">
+    <value>Boshlang'ich</value>
+  </data>
+  <data name="Inventory_CONTROL" xml:space="preserve">
+    <value>Nazorat</value>
+  </data>
+  <data name="Inventory_New" xml:space="preserve">
+    <value>Yangi sanoq</value>
+  </data>
+  <data name="Inventory_Kind" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="Inventory_Counted" xml:space="preserve">
+    <value>Sanalgan</value>
+  </data>
+  <data name="Inventory_Differences" xml:space="preserve">
+    <value>Farqlar</value>
+  </data>
+  <data name="Inventory_Applied" xml:space="preserve">
+    <value>qoldiqqa yozilgan</value>
+  </data>
+  <data name="Inventory_DraftExists" xml:space="preserve">
+    <value>Bu omborda ochiq (qoralama) sanoq bor — avval uni yakunlang yoki bekor qiling.</value>
+  </data>
+  <data name="Inventory_NotDraft" xml:space="preserve">
+    <value>Sanoq yakunlangan — o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Inventory_NotCounted" xml:space="preserve">
+    <value>{0} ta qator sanalmagan. Yo'q tovar uchun 0 yozing.</value>
+  </data>
+  <data name="Inventory_OpeningHint" xml:space="preserve">
+    <value>Miqdor asosiy birlikda. O'tkazilganda qoldiq sanalganga tenglanadi: ortiqcha — kirim (tannarx ustunidagi narxda, bo'sh bo'lsa — oxirgi kirim narxida), kamomad — FIFO chiqim.</value>
+  </data>
+  <data name="Inventory_ControlHint" xml:space="preserve">
+    <value>Miqdor asosiy birlikda. "Tizimda" — hozirgi qoldiq (o'tkazilganda qayd qilinadi). Sanoq paytida shu ombordan jo'natmang yoki kirim qilmang.</value>
+  </data>
+  <data name="Inventory_Shortage" xml:space="preserve">
+    <value>kamomad</value>
+  </data>
+  <data name="Inventory_Surplus" xml:space="preserve">
+    <value>ortiqcha</value>
+  </data>
+  <data name="Inventory_Sheet" xml:space="preserve">
+    <value>Sanoq varag'i (Excel)</value>
+  </data>
+  <data name="Inventory_AddByPno" xml:space="preserve">
+    <value>Artikul bilan qo'shish</value>
+  </data>
+  <data name="Inventory_System" xml:space="preserve">
+    <value>Tizimda</value>
+  </data>
+  <data name="Inventory_CountedQty" xml:space="preserve">
+    <value>Sanalgan</value>
+  </data>
+  <data name="Inventory_Diff" xml:space="preserve">
+    <value>Farq</value>
+  </data>
+  <data name="Inventory_UnitCost" xml:space="preserve">
+    <value>Tannarx</value>
+  </data>
+  <data name="Inventory_PostConfirm" xml:space="preserve">
+    <value>Sanoqni yakunlaysizmi? Keyin o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Inventory_ApplyDiff" xml:space="preserve">
+    <value>Farqni qoldiqqa yozish</value>
+  </data>
+  <data name="Inventory_PostOpening" xml:space="preserve">
+    <value>Yakunlash va qoldiqni tenglash</value>
+  </data>
+  <data name="Inventory_PostControl" xml:space="preserve">
+    <value>Yakunlash</value>
+  </data>
+  <data name="Inventory_CancelReason" xml:space="preserve">
+    <value>Bekor qilish sababi</value>
+  </data>
+  <data name="DocStatus_Draft" xml:space="preserve">
+    <value>Qoralama</value>
+  </data>
+  <data name="DocStatus_Posted" xml:space="preserve">
+    <value>O'tkazilgan</value>
+  </data>
+  <data name="DocStatus_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Xatolar jurnali</value>
+  </data>
+  <data name="Tile_Issues" xml:space="preserve">
+    <value>Pilot: xato va muammolar</value>
+  </data>
+  <data name="Issue_New" xml:space="preserve">
+    <value>Xato yoki muammo yozish</value>
+  </data>
+  <data name="Issue_Hint" xml:space="preserve">
+    <value>Daraja: K1 — ishni to'xtatadi yoki pul/qoldiq noto'g'ri (darhol), K2 — aylanma yo'l bor (ertasi kun), K3 — noqulaylik (pilotdan keyin). Agentlar botdagi "⚠️ Muammo" tugmasidan yozadi.</value>
+  </data>
+  <data name="Issue_Place" xml:space="preserve">
+    <value>Qayerda</value>
+  </data>
+  <data name="Issue_PlaceHint" xml:space="preserve">
+    <value>bot / Mini App / sahifa</value>
+  </data>
+  <data name="Issue_DocRef" xml:space="preserve">
+    <value>Hujjat raqami</value>
+  </data>
+  <data name="Issue_Severity" xml:space="preserve">
+    <value>Daraja</value>
+  </data>
+  <data name="Issue_NoSeverity" xml:space="preserve">
+    <value>baholanmagan</value>
+  </data>
+  <data name="Issue_K1" xml:space="preserve">
+    <value>K1 — ishni to'xtatadi</value>
+  </data>
+  <data name="Issue_K2" xml:space="preserve">
+    <value>K2 — aylanma yo'l bor</value>
+  </data>
+  <data name="Issue_K3" xml:space="preserve">
+    <value>K3 — noqulaylik</value>
+  </data>
+  <data name="Issue_Description" xml:space="preserve">
+    <value>Nima qilindi va nima bo'ldi</value>
+  </data>
+  <data name="Issue_Expected" xml:space="preserve">
+    <value>Kutilgan natija</value>
+  </data>
+  <data name="Issue_Report" xml:space="preserve">
+    <value>Yuborish</value>
+  </data>
+  <data name="Issue_Open" xml:space="preserve">
+    <value>Ochiq</value>
+  </data>
+  <data name="Issue_All" xml:space="preserve">
+    <value>Hammasi</value>
+  </data>
+  <data name="Issue_Author" xml:space="preserve">
+    <value>Kim</value>
+  </data>
+  <data name="Issue_Photo" xml:space="preserve">
+    <value>Rasm</value>
+  </data>
+  <data name="Issue_Resolution" xml:space="preserve">
+    <value>Yechim / izoh (yopish uchun majburiy)</value>
+  </data>
+  <data name="IssueStatus_New" xml:space="preserve">
+    <value>Yangi</value>
+  </data>
+  <data name="IssueStatus_InProgress" xml:space="preserve">
+    <value>Tuzatilmoqda</value>
+  </data>
+  <data name="IssueStatus_Testing" xml:space="preserve">
+    <value>Tekshirishda</value>
+  </data>
+  <data name="IssueStatus_Closed" xml:space="preserve">
+    <value>Yopildi</value>
+  </data>
+  <data name="Issue_DescriptionRequired" xml:space="preserve">
+    <value>Muammoni yozing (kamida 5 belgi).</value>
+  </data>
+  <data name="Issue_ResolutionRequired" xml:space="preserve">
+    <value>Yopish uchun yechimni yozing.</value>
+  </data>
+  <data name="Notify_IssueNew" xml:space="preserve">
+    <value>⚠️ Yangi muammo {0} ({1}):
+{2}</value>
+  </data>
+  <data name="IssueSeverity_1" xml:space="preserve">
+    <value>K1 — ishni to'xtatadi</value>
+  </data>
+  <data name="IssueSeverity_2" xml:space="preserve">
+    <value>K2 — aylanma yo'l bor</value>
+  </data>
+  <data name="IssueSeverity_3" xml:space="preserve">
+    <value>K3 — noqulaylik</value>
+  </data>
 </root>

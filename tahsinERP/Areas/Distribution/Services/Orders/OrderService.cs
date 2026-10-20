@@ -572,7 +572,13 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         {
             var db = uow.Dst;
             var order = Load(db, orderId);
-            Move(db, order, OrderStatus.Delivered, userId, now, null);
+            if ((OrderStatus)order.OrderStatus == OrderStatus.Closed && order.DeliveredAt == null && order.ShippedTotal > 0)
+            {
+                // oldindan to'langan: jo'natishda qarz yopilib buyurtma "Yopildi" bo'lgan — yetkazish baribir qayd qilinadi
+                Log(db, order, OrderStatus.Closed, OrderStatus.Closed, userId, now, DstLocalization.T("OrderStatus_Delivered"));
+            }
+            else
+                Move(db, order, OrderStatus.Delivered, userId, now, null);
             order.DeliveredAt = now;
             NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderDelivered,
                 l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);

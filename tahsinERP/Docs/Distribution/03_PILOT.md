@@ -1,11 +1,25 @@
 # Distributsiya — S6 pilot: reja va qabul ro'yxati
 
-Holat: 2026-10-20 — kod va hujjat tomoni tayyorlandi (branch `claude/dst-s6-pilot-a446b3`). Pilotni foydalanuvchi o'tkazadi.
+Holat: 2026-10-20 — kod va hujjat tomoni tayyorlandi (branch `claude/dst-s6-pilot-a446b3`, S4 qoldiqlari va S5 hisobotlari shu branch'ga merge qilingan). Pilotni foydalanuvchi o'tkazadi.
+
+**Qarorlar (2026-10-20):**
+
+| Savol | Qaror |
+|---|---|
+| Pilot kompaniyasi | Hozircha yo'q — namunaviy kompaniya bilan mashq qilindi (6-bo'lim, `pilot-sample/`) |
+| Sanalar | Ishlab chiqish tugagandan keyin |
+| Litsenziya | KORP |
+| Server, domen | Server tayyor emas; domen — 2026-10-21 |
+| S4 qoldiqlari, S5 hisobotlar | Pilotdan oldin merge — bajarildi (shu branch) |
+| Agent to'lovlari | Naqd, karta, Click — Sozlamalar → "Agent to'lovlari" (har usulga hisob) |
+| Inventarizatsiya | ERP ichida: Distributsiya → Inventarizatsiya (boshlang'ich va nazorat sanog'i) |
+| Chegirma, minimal va yirik buyurtma | Distributsiya → Sozlamalar (bor edi) |
+| Xatolar jurnali | ERP ichida: Distributsiya → Xatolar jurnali; agentlar — botdagi "⚠️ Muammo" |
 Bog'liq: `01_PHASE1_MVP.md` (S6 qatori, 1-bo'lim — qabul mezoni), qo'llanma `Qollanma_Distributsiya_uz.md` / `_ru.md` (shu papkada).
 
 **TZ qabul mezoni:** 5 agent bir hafta faqat tizimda (bot + Mini App) ishlaydi; hafta oxirida qoldiqlar inventarizatsiya bilan mos keladi.
 
-Belgilar: ⬜ tekshirilmagan · ✅ o'tdi · ❌ xato (jurnalga raqam bilan) · ⏳ keyin qo'shiladi (parallel sessiyalar)
+Belgilar: ⬜ tekshirilmagan · ✅ o'tdi · ❌ xato (jurnalga raqam bilan)
 
 ---
 
@@ -13,15 +27,15 @@ Belgilar: ⬜ tekshirilmagan · ✅ o'tdi · ❌ xato (jurnalga raqam bilan) · 
 
 | # | Ish | Kim | Holat |
 |---|---|---|---|
-| P1 | Pilot kompaniyasi bazasi (`New-TenantDb`), migratsiyalar 013–021 (+022/023 S4/S5 qoldiqlari merge bo'lgach) | dasturchi | ⬜ |
-| P2 | **Kompaniya litsenziyasi** (Edition KORP yoki TRIAL — Distribution moduli ichida). Litsenziyasiz web ham, bot API ham bloklanadi | vendor | ⬜ |
+| P1 | Pilot kompaniyasi bazasi (`New-TenantDb`), migratsiyalar 013–024 | dasturchi | ⬜ |
+| P2 | **Kompaniya litsenziyasi** (Edition **KORP** — Distribution moduli ichida). Litsenziyasiz web ham, bot API ham bloklanadi | vendor | ⬜ |
 | P3 | Server: ERP (IIS, HTTPS), `tahsinERP.Bot` (bot domeni, HTTPS), `TAHSINERP_BOT_KEY` = bot `Bot__MasterKey`, kunlik zaxira | dasturchi | ⬜ |
 | P4 | BotFather: bot, `/setdomain` (Mini App), `tenant add`, `webhook set` | dasturchi | ⬜ |
-| P5 | Foydalanuvchilar va rollar: rahbar, operator, omborchi, kassir, 5 agent (ERP `USERS` + rol ruxsatlari: `DstOrders`, `DstStock`, `DstPayments`, `DstReturns`, `DstDebts`, `DstImport`; maxsus: `DstOverrideCredit` — faqat rahbar, `DstSeeCost` — rahbar) | admin | ⬜ |
-| P6 | Distributsiya → Sozlamalar: yirik buyurtma summasi, minimal buyurtma, tashrif radiusi (200 m), **agent naqdsiz to'lovlari hisobi** (bo'sh bo'lsa agent karta/Click to'lovini qabul qila olmaydi), bot nomi; rol bo'yicha chegirma limiti; ombor sozlamalari (savdo ombori, minusga ruxsat yo'q) | admin | ⬜ |
+| P5 | Foydalanuvchilar va rollar: rahbar, operator, omborchi, kassir, 5 agent (ERP `USERS` + rol ruxsatlari: `DstOrders`, `DstStock`, `DstPayments`, `DstReturns`, `DstDebts`, `DstImport`, `DstInventory`, `DstIssues` — ko'rish hammaga (xato yozish uchun), o'zgartirish rahbarga; maxsus: `DstOverrideCredit` — faqat rahbar, `DstSeeCost` — rahbar) | admin | ⬜ |
+| P6 | Distributsiya → Sozlamalar: yirik buyurtma summasi, minimal buyurtma, tashrif radiusi (200 m), agent naqdi topshiriladigan kassa, **Agent to'lovlari** (naqd, karta, Click — karta va Click uchun hisob tanlanadi, aks holda agent ularni qabul qila olmaydi), bot nomi; rol bo'yicha chegirma limiti; ombor sozlamalari (savdo ombori, minusga ruxsat yo'q) | admin | ⬜ |
 | P7 | Jamoalar: supervayzer jamoasi, 5 agent (ombori, telefoni) | admin | ⬜ |
 | P8 | Boshlang'ich ma'lumot importi (2-bo'lim) | operator | ⬜ |
-| P9 | **Boshlang'ich inventarizatsiya:** savdo omboridagi qoldiq sanab chiqilib tizimga kiritiladi (mavjud ombor moduli: kirim/inventarizatsiya). Pilot oxiridagi taqqoslash shu qoldiqdan boshlanadi | omborchi | ⬜ |
+| P9 | **Boshlang'ich inventarizatsiya:** Distributsiya → Inventarizatsiya → "Boshlang'ich" sanoq: varaq (Excel) → sanab to'ldirish → yuklash → "Yakunlash va qoldiqni tenglash" (kirim tarixi yo'q tovarga tannarx ustuni). Qoldiqqa yozish ombor uchun oyiga bir marta. Pilot oxiridagi taqqoslash shu qoldiqdan boshlanadi | omborchi | ⬜ |
 | P10 | Telegram'ga ulash: har xodim va pilot mijozlari uchun kod (Jamoalar / mijoz kartasi → "Telegram'ga ulash") | admin | ⬜ |
 | P11 | O'qitish: 1 soat ofis, 30 daqiqa agentlar (qo'llanma bo'yicha), sinov buyurtmasi → bekor qilish | dasturchi + rahbar | ⬜ |
 | P12 | Mashq kuni (T−1): 3-bo'limdagi ssenariy 2–3 ta haqiqiy mijozda | hamma | ⬜ |
@@ -41,6 +55,9 @@ Belgilar: ⬜ tekshirilmagan · ✅ o'tdi · ❌ xato (jurnalga raqam bilan) · 
 | 6 | Tovar birliklari | Artikul + birlik | Mavjud tovarlarga (quti, poddon …), koeffitsient asosiy birlikda |
 | 7 | Narxlar | Artikul | Har narx turi ustuni + "min" |
 | 8 | Kirish qarzlari | Mijoz | Har mijozga bir marta; manfiy — avans |
+| 9 | Boshlang'ich qoldiq | Artikul | Import emas — **Inventarizatsiya** sahifasidagi boshlang'ich sanoq (P9) |
+
+Namuna fayllar (mashq kompaniyasi: 6 hudud, 40 nuqta, 5 agent, 24 tovar): `pilot-sample/1_hududlar.xlsx` … `9_boshlangich_qoldiq.xlsx`.
 
 Tekshiruv: import natijasidagi soni = Excel'dagi qatorlar soni; 5 ta tasodifiy mijoz kartasini ochib solishtirish; agent botida "Marshrut" — bugungi mijozlar to'g'ri.
 
@@ -49,7 +66,7 @@ Tekshiruv: import natijasidagi soni = Excel'dagi qatorlar soni; 5 ta tasodifiy m
 | Vaqt | Kim | Qayerda | Qadam |
 |---|---|---|---|
 | 08:30 | Agent | Bot | ▶️ Kunni boshlash (joylashuv) → 🗺 Marshrut |
-| 09:00–17:00 | Agent | Bot + Mini App | Mijoz → "Keldim" (jonli joylashuv, 200 m) → **Buyurtma** (Mini App: katalog, birlik, savat, imzo) yoki **Buyurtmasiz** (sabab) → **To'lov** (naqd — agent qo'lida) |
+| 09:00–17:00 | Agent | Bot + Mini App | Mijoz → "Keldim" (jonli joylashuv, 200 m) → **Buyurtma** (Mini App: katalog, birlik, savat, imzo) yoki **Buyurtmasiz** (sabab) → **To'lov** (naqd — agent qo'lida; karta/Click — hisobga) |
 | darhol | Rahbar | Bot | Yirik buyurtma / limit oshdi → "Tasdiqlash" tugmasi (`DstOverrideCredit`) |
 | har 1–2 soat | Operator | Web: Buyurtmalar | Yangi → **Tasdiqlash** (limit, rezerv, ombor) |
 | tushdan keyin | Omborchi | Web: Buyurtma kartasi | **Yig'ish** (yig'ish varaqasi chop) → **Jo'natish** (miqdor; qisman bo'lsa — qolganini yopish yoki keyin) → nakladnoy |
@@ -60,6 +77,7 @@ Tekshiruv: import natijasidagi soni = Excel'dagi qatorlar soni; 5 ta tasodifiy m
 | kerak bo'lsa | Operator | Web: Qaytarishlar | Buyurtma bo'yicha qaytarish (yaroqli / brak ombor, sabab) |
 | 18:00 | Agent | Bot | ⏹ Kunni yakunlash |
 | 20:00 | Rahbar | Bot | Kunlik yakun (avtomatik) |
+| istalgan vaqt | Hamma | Bot "⚠️ Muammo" / web Xatolar jurnali | Xato yoki muammo (7-bo'lim) |
 | 18:30 | Rahbar | Web: Qarzlar, Qoldiqlar | Kun tekshiruvi (5-bo'lim metrikalari) |
 
 Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
@@ -74,7 +92,7 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | M3 | Bir nechta o'lchov birligi koeffitsient bilan | Import 5–6; Mini App'da birlik tanlash, buyurtmada asosiy birlikka o'tadi | ⬜ |
 | M4 | Bir nechta shtrix-kod | Import 5–6; web formada skaner bilan qidiruv | ⬜ |
 | M5 | Narx turlari, minimal narx, narx tarixi, ommaviy % | Import 7; Narxlar sahifasi | ⬜ |
-| M6 | Agent yangi nuqta qo'shadi → rahbar tasdiqlaydi | Botdan: ⏳ (S4 qoldiqlari); web'da tasdiqlash bor | ⏳ |
+| M6 | Agent yangi nuqta qo'shadi → rahbar tasdiqlaydi | Botda "Yangi nuqta" → web'da Mijozlar → tasdiqlash | ⬜ |
 | M7 | Rus/o'zbek interfeys | Profil tili ru → distributsiya sahifalari va bot | ⬜ |
 
 ### 4.2 Buyurtma va ombor
@@ -89,15 +107,15 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | B7 | Qisman jo'natish, qolganini yopish | 1 ta buyurtma | ⬜ |
 | B8 | O'zi olib ketish | 1 ta buyurtma | ⬜ |
 | B9 | Yig'ish varaqasi, nakladnoy (chop/PDF) | Chop etish | ⬜ |
-| B10 | Omborchiga yangi tasdiqlangan buyurtma xabari | ⏳ (S4 qoldiqlari) | ⏳ |
-| B11 | Mini App'da kamera bilan shtrix-kod | ⏳ (S4 qoldiqlari) | ⏳ |
+| B10 | Omborchiga yangi tasdiqlangan buyurtma xabari | Omborchi boti | ⬜ |
+| B11 | Mini App'da kamera bilan shtrix-kod | 3 ta tovarni kamera bilan topish | ⬜ |
 
 ### 4.3 Pul va qarz
 | # | Talab | Qanday tekshiriladi | Holat |
 |---|---|---|---|
 | D1 | Mijoz balansi real vaqtda = kirish qarzi + jo'natish − to'lov − qaytarish | Har kuni 3 mijoz: Qarzlar sahifasi = akt sverki = qo'lda hisob | ⬜ |
 | D2 | Agent naqd oladi → qo'lida → kassaga topshiradi → kassir tasdiqlaydi (farq bilan) | Har kech; kassa qoldig'i = sanalgan pul | ⬜ |
-| D3 | Karta/Click/Payme/Uzum/o'tkazma — hisobga | Ofis to'lovi; agent to'lovi (P6 sozlamasi bilan) | ⬜ |
+| D3 | Agent: naqd, karta, Click; ofis: yana Payme/Uzum/o'tkazma — hisobga | Botda faqat yoqilgan usullar chiqadi; karta/Click darhol tanlangan hisobga | ⬜ |
 | D4 | Qaytarish (yaroqli/brak) qarzni kamaytiradi, omborga qaytadi | 1 ta qaytarish | ⬜ |
 | D5 | Qarz muddati: muddati kelmagan, 1–7, 8–30, 31–60, 60+ | Qarzlar sahifasi | ⬜ |
 | D6 | Akt sverki (ekran, chop) | 1 mijoz | ⬜ |
@@ -107,7 +125,7 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | # | Talab | Qanday tekshiriladi | Holat |
 |---|---|---|---|
 | A1 | Kun boshi joylashuv bilan | `AGENT_DAYS` / kunlik yakun | ⬜ |
-| A2 | Kun boshi selfi | ⏳ (S4 qoldiqlari) | ⏳ |
+| A2 | Kun boshi selfi (Sozlamalarda majburiy qilish mumkin) | Dala nazorati sahifasi | ⬜ |
 | A3 | "Keldim" radius ichida, forward qilingan joylashuv belgilanadi | 300 m uzoqdan — rad | ⬜ |
 | A4 | Bugungi marshrut (tashrif kuni bo'yicha), qarz belgisi | Har agent | ⬜ |
 | A5 | Buyurtmasiz tashrif — sabab majburiy | 1 ta | ⬜ |
@@ -123,13 +141,13 @@ Shu ssenariy kod darajasida avtomatik tekshirilgan — 6-bo'lim.
 | N2 | O'tkazilgan hujjat o'chirilmaydi, sabab bilan bekor | Jo'natilgan buyurtmani bekor qilish — rad | ⬜ |
 | N3 | Agent faqat o'z mijozlarini ko'radi | Agent A botida agent B mijozi yo'q | ⬜ |
 | N4 | Xarid narxi/foyda faqat `DstSeeCost` bilan | Operator kartasida tannarx yo'q | ⬜ |
-| N5 | Rahbar paneli, savdo kesimlari, tashrif reja/fakt, Excel | ⏳ (S5 hisobotlar) | ⏳ |
+| N5 | Rahbar paneli, savdo kesimlari, tashrif reja/fakt, Excel | Rahbar paneli va Hisobotlar sahifalari, har kech | ⬜ |
 
 ### 4.6 Yakuniy mezon (pilot oxiri, T+7)
 | # | Mezon | Qanday | Holat |
 |---|---|---|---|
 | Q1 | 5 agent 5 ish kuni **faqat tizimda** ishladi | Qog'oz/Excel buyurtma = 0; har agentda har kuni ≥1 buyurtma yoki tashrif | ⬜ |
-| Q2 | **Qoldiqlar inventarizatsiya bilan mos** | Savdo omborida to'liq sanash; har tovar: tizim qoldig'i = sanalgan. Farq bo'lsa — har biri sababi bilan (xato jurnalida) | ⬜ |
+| Q2 | **Qoldiqlar inventarizatsiya bilan mos** | Inventarizatsiya → "Nazorat" sanog'i (qoldiqqa yozmasdan): "Farqlar: 0". Farq bo'lsa — har biri sababi bilan (Xatolar jurnalida, K1) | ⬜ |
 | Q3 | Kassa = sanalgan pul; agentlar qo'lida 0 | Kassa hisobi, "Agentlar naqdi" | ⬜ |
 | Q4 | 10 ta tasodifiy mijoz: tizim qarzi = mijoz bilan akt sverki | Akt sverki chop + imzo | ⬜ |
 | Q5 | Kritik (K1) xato ochiq qolmagan | Xato jurnali | ⬜ |
@@ -156,7 +174,20 @@ Har kecha: `Qarzlar` va `Qoldiqlar` sahifalaridan Excel/ekran nusxa — kunlik t
 ## 6. Avtomatik tekshiruv (kod tomoni, 2026-10-20)
 
 - **`PilotDayScenarioTests.FullDay_FromImportToDayEnd`** — 3-bo'limdagi kunni servislar orqali (bot API'si chaqiradigan xuddi shu kod) haqiqiy yozuvlar bilan o'tkazadi: Excel import (hudud, narx turlari, mijozlar, marshrut, birlik, narx, kirish qarzi) → kun boshi → marshrut → "Keldim" (1 km — rad, 55 m — qabul) → bot buyurtmasi (takror yuborish — bitta) → buyurtmasiz (sababsiz — rad) → tasdiq → limit bloki → rahbar ruxsati → yig'ish → jo'natish (to'liq va qisman + qoldiqni yopish) → yetkazildi → agent naqdi (takror bosish — bitta) → ofis kartasi → kassaga topshirish (10 000 kamomad) → qaytarish → kun yakuni → kunlik yakun. Tekshiradi: ombor harakati = −jo'natilgan + qaytgan; mijoz balansi = aging = akt sverki; kassa = qabul qilingan naqd; agent qo'lida 0; audit. Faqat `DST_PILOT_E2E=<baza nomi>` bilan va sinov bazasida ishlaydi (yozadi). `DB_DST_S6` (DB_DST_UI nusxasi) da 2 marta o'tdi.
-- Import testlari: `PilotImportTests` (rollback), `PilotImportRulesTests`.
+- **`PilotWeekSimulationTests.FiveAgents_FiveDays_AcceptanceCriteria`** — namunaviy kompaniya (`PilotSampleData`, fayllari `pilot-sample/`) bilan **5 agent × 5 ish kuni**: import → boshlang'ich inventarizatsiya → har kuni marshrut, "Keldim", buyurtma/buyurtmasiz, to'lov (naqd/karta/Click), bot qayta yuborishi, ofis tasdig'i va rahbar ruxsati, jo'natish (qisman ham), yetkazildi, qaytarish, kassaga topshirish (kamomad bilan), xatolar jurnali. Oxirida qabul mezoni **mustaqil model** bilan: nazorat sanog'i farqsiz, har mijoz qarzi = model = aging = akt sverki, kassa = sanalgan naqd, bank = karta/Click, agentlar qo'lida 0. `DB_DST_S6` da ketma-ket 2 marta o'tdi (takroriy mashq ham). Birinchi ishga tushish:
+
+| Kun | Buyurtma | Summa | Jo'natildi | Yig'ildi | Faol agent |
+|---|---|---|---|---|---|
+| 21.10 Wed | 16 | 46,869,100 | 41,577,100 | 5,026,000 | 5/6 |
+| 22.10 Thu | 12 | 38,349,000 | 36,909,000 | 1,846,000 | 5/6 |
+| 23.10 Fri | 12 | 28,442,800 | 25,173,800 | 9,622,000 | 5/6 |
+| 24.10 Sat | 15 | 34,331,600 | 32,427,600 | 7,510,000 | 5/6 |
+| 26.10 Mon | 12 | 60,906,800 | 51,624,800 | 19,539,000 | 5/6 |
+
+Rejadagi tashrif 100, bajarildi 100; buyurtma 67 (208,899,300), buyurtmasiz 18; bot qayta yuborishi 6 (ikki buyurtma bo'lmadi); limit bo'yicha rahbar ruxsati 31; qisman jo'natish 9 (qoldiq yetmay bekor 0); qaytarish 4; to'lov 40 (43,543,000), kamomad 20,000; xato yozuvlari 5. Nazorat sanog'i: farq 0; mijoz qarzlari = model = akt sverki; kassa va bank mos.
+
+- Mashq topgan xato (tuzatildi): oldindan to'langan buyurtma jo'natishda darhol "Yopildi" bo'lardi va "Yetkazildi"ni belgilab bo'lmasdi (yetkazish vaqti va mijozga xabar yo'qolardi) — endi yopilgan buyurtmada ham yetkazish qayd qilinadi.
+- Import testlari: `PilotImportTests` (rollback; avansli buyurtma yetkazish, agent to'lov usullari), `PilotImportRulesTests`.
 - Bot offline: webhook (noto'g'ri secret 401, dublikat update — bitta yozuv) → inbox → handler → ERP → 403 litsenziya → foydalanuvchiga to'g'ri xabar (avval "aloqa yo'q" / "rolingiz uchun emas" chiqardi — tuzatildi).
 - **Tekshirilmagan:** brauzerda web sahifalar va haqiqiy ERP bilan bot (sinov bazasida litsenziya yo'q — chetlab o'tilmadi), Telegram ichidagi Mini App (HTTPS va BotFather `/setdomain` kerak). Bular P2–P4 dan keyin, mashq kunida (P12).
 
@@ -164,12 +195,13 @@ Qayta ishga tushirish (sinov bazasi):
 ```
 TAHSINERP_DB=Data Source=localhost;Initial Catalog=DB_DST_S6;Integrated Security=True
 DST_PILOT_E2E=DB_DST_S6
-vstest.console tahsinERP.Tests.dll /TestCaseFilter:FullyQualifiedName~PilotDayScenario
+vstest.console tahsinERP.Tests.dll /TestCaseFilter:"FullyQualifiedName~PilotDayScenario|FullyQualifiedName~PilotWeekSimulation"
 ```
+Ixtiyoriy: `DST_PILOT_REPORT=<fayl.md>` — metrikalar jadvali, `DST_PILOT_SAMPLE_OUT=<papka>` — namuna Excel fayllari.
 
 ## 7. Xatolarni qayd qilish
 
-Bitta umumiy jadval (Google Sheets yoki Excel, rahbarda), har xato — bitta qator:
+**tahsinERP ichida:** Distributsiya → **Xatolar jurnali** (`DstIssues`). Agent va boshqa xodimlar botdagi **⚠️ Muammo** tugmasi (yoki `/xato`) bilan yozadi — matn va skrinshot; ofis — sahifadagi forma bilan. Har yozuvga raqam (P-001 …) beriladi, rahbarlarga botda xabar boradi. Maydonlar:
 
 | Ustun | Mazmuni |
 |---|---|
@@ -182,9 +214,9 @@ Bitta umumiy jadval (Google Sheets yoki Excel, rahbarda), har xato — bitta qat
 | Kutilgan / bo'lgan | |
 | Skrinshot | Telegram yoki ekran |
 | Daraja | **K1** — ishni to'xtatadi yoki pul/qoldiq noto'g'ri; **K2** — aylanma yo'l bor; **K3** — noqulaylik, matn |
-| Holat | yangi → tuzatilmoqda → tekshirish → yopildi |
+| Holat | yangi → tuzatilmoqda → tekshirishda → yopildi (yopish uchun yechim majburiy) |
 
-Tartib: K1 — darhol telefon + jadval, shu kuni tuzatish yoki aylanma yo'l; K2 — ertasi kun relizi; K3 — pilotdan keyin. Reliz kechqurun 19:00 dan keyin (zaxiradan so'ng), har reliz jadvalda qaysi xatolarni yopgani bilan. Qoldiq yoki qarz farqi — har doim K1, avval sabab topiladi, keyin tuzatish hujjati (qo'lda o'zgartirish yo'q).
+Daraja va holatni rahbar (DstIssues o'zgartirish huquqi) qo'yadi; ochiq K1 soni sahifa sarlavhasida. Tartib: K1 — darhol telefon + jadval, shu kuni tuzatish yoki aylanma yo'l; K2 — ertasi kun relizi; K3 — pilotdan keyin. Reliz kechqurun 19:00 dan keyin (zaxiradan so'ng), har reliz jadvalda qaysi xatolarni yopgani bilan. Qoldiq yoki qarz farqi — har doim K1, avval sabab topiladi, keyin tuzatish hujjati (qo'lda o'zgartirish yo'q).
 
 ## 8. Rollar (pilotda)
 
@@ -197,6 +229,6 @@ Tartib: K1 — darhol telefon + jadval, shu kuni tuzatish yoki aylanma yo'l; K2 
 | Agentlar | 5 kishi | bot + Mini App, qog'ozsiz |
 | Dasturchi | vendor | o'rnatish, o'qitish, K1/K2 tuzatish, kunlik zaxira |
 
-## 9. Hali qo'shilmagan (parallel sessiyalar)
+## 9. Qolgan ishlar
 
-S4 qoldiqlari (migratsiya 022): kun boshida selfi, botdan yangi savdo nuqtasi, omborchiga yangi buyurtma xabari, Mini App'da kamera bilan shtrix-kod. S5 hisobotlar (migratsiya 023): rahbar paneli, savdo kesimlari, tashrif reja/fakt, Excel eksport. Ro'yxatda ⏳ bilan belgilangan; merge bo'lgach pilotgacha shu ro'yxat bo'yicha tekshiriladi.
+Server va domen (P3–P4), litsenziya (P2) tayyor bo'lgach: brauzerda web sahifalar, Telegram ichida bot va Mini App bilan mashq kuni (P12). Pilot kompaniyasi va sanalar — ishlab chiqish tugagach.

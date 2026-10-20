@@ -117,7 +117,7 @@ namespace tahsinERP.Services.Editions
                 {
                     "DstHome", "DstTerritories", "DstCustomers", "DstProducts", "DstDictionaries", "DstPrices",
                     "DstTeams", "DstSettings", "DstImport", "DstOrders", "DstStock", "DstPayments", "DstReturns", "DstDebts", "DstField", "DstApi",
-                    "DstDashboard", "DstReports"
+                    "DstDashboard", "DstReports", "DstInventory", "DstIssues"
                 } },
             { ProductModule.Website, new[] { "SiteHome", "SiteSettings", "SiteCatalog", "SitePages", "SiteLeads", "SiteApi" } },
         });

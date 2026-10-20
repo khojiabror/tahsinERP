@@ -1,0 +1,116 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("Issues");
+    bool canChange = ViewBag.DstCanChange == true;
+    var rows = (List<DstIssuesController.Row>)ViewBag.Rows;
+    var counts = (List<Tuple<IssueStatus, byte?, int>>)ViewBag.Counts;
+    IssueStatus? status = ViewBag.Status;
+    bool all = ViewBag.All;
+    var statuses = (IssueStatus[])Enum.GetValues(typeof(IssueStatus));
+    Func<byte?, string> Sev = s => s.HasValue ? "K" + s.Value : DstLocalization.T("Issue_NoSeverity");
+    int openK1 = counts.Where(c => c.Item1 != IssueStatus.Closed && c.Item2 == 1).Sum(c => c.Item3);
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Issue_New")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Issue_Hint")</p>
+                    @using (Html.BeginForm("Report", "DstIssues", new { area = "Distribution" }, FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="form-row">
+                            <div class="form-group col-md-3"><label>@DstLocalization.T("Issue_Place")</label><input name="Place" maxlength="150" class="form-control" placeholder="@DstLocalization.T("Issue_PlaceHint")" /></div>
+                            <div class="form-group col-md-3"><label>@DstLocalization.T("Issue_DocRef")</label><input name="DocRef" maxlength="100" class="form-control" placeholder="D-2026-00012" /></div>
+                            <div class="form-group col-md-2">
+                                <label>@DstLocalization.T("Issue_Severity")</label>
+                                <select name="Severity" class="form-control">
+                                    <option value="">@DstLocalization.T("Issue_NoSeverity")</option>
+                                    @for (byte s = 1; s <= 3; s++) { <option value="@s">@DstLocalization.T("IssueSeverity_" + s)</option> }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6"><label>@DstLocalization.T("Issue_Description") *</label><textarea name="Description" rows="3" maxlength="2000" class="form-control" required></textarea></div>
+                            <div class="form-group col-md-6"><label>@DstLocalization.T("Issue_Expected")</label><textarea name="Expected" rows="3" maxlength="1000" class="form-control"></textarea></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="bx bx-error"></i> @DstLocalization.T("Issue_Report")</button>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@DstLocalization.T("Issues") @if (openK1 > 0) { <span class="badge badge-danger ml-50">K1: @openK1</span> }</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-pills mb-1">
+                        <li class="nav-item"><a class="nav-link @(status == null && !all ? "active" : "")" href="@Url.Action("Index")">@DstLocalization.T("Issue_Open")</a></li>
+                        @foreach (var s in statuses)
+                        {
+                            <li class="nav-item"><a class="nav-link @(status == s ? "active" : "")" href="@Url.Action("Index", new { status = s })">@DstLocalization.T("IssueStatus_" + s) (@counts.Where(c => c.Item1 == s).Sum(c => c.Item3))</a></li>
+                        }
+                        <li class="nav-item"><a class="nav-link @(all ? "active" : "")" href="@Url.Action("Index", new { all = true })">@DstLocalization.T("Issue_All")</a></li>
+                    </ul>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>№</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Issue_Author")</th><th>@DstLocalization.T("Issue_Place")</th>
+                                    <th>@DstLocalization.T("Issue_Description")</th><th style="width:420px">@DstLocalization.T("Status")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in rows)
+                                {
+                                    var i = r.Issue;
+                                    <tr class="@(i.Severity == 1 && i.Status != IssueStatus.Closed ? "table-danger" : "")">
+                                        <td><b>@i.IssueNo</b><br /><span class="badge badge-light-secondary">@Sev(i.Severity)</span></td>
+                                        <td>@i.CreatedAt.ToString("dd.MM.yyyy HH:mm")<br /><span class="small text-muted">@i.Source</span></td>
+                                        <td>@r.Author</td>
+                                        <td>@i.Place @if (i.DocRef != null) { <br /><span class="small">@i.DocRef</span> }</td>
+                                        <td style="white-space:pre-wrap">@i.Description@if (i.Expected != null) {<br /><span class="text-muted">@DstLocalization.T("Issue_Expected"): @i.Expected</span>}@if (r.PhotoUrl != null) {<br /><a href="@r.PhotoUrl" target="_blank" rel="noopener">@DstLocalization.T("Issue_Photo")</a>}</td>
+                                        <td>
+                                            @if (canChange)
+                                            {
+                                                using (Html.BeginForm("Update", "DstIssues", new { area = "Distribution", id = i.ID }, FormMethod.Post))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <div class="d-flex mb-50">
+                                                        <select name="status" class="form-control form-control-sm mr-50">
+                                                            @foreach (var s in statuses)
+                                                            {
+                                                                <option value="@s" @(i.Status == s ? "selected" : "")>@DstLocalization.T("IssueStatus_" + s)</option>
+                                                            }
+                                                        </select>
+                                                        <select name="severity" class="form-control form-control-sm mr-50" style="width:110px">
+                                                            <option value="">—</option>
+                                                            @for (byte s = 1; s <= 3; s++) { <option value="@s" @(i.Severity == s ? "selected" : "")>K@(s)</option> }
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary">@DstLocalization.T("Save")</button>
+                                                    </div>
+                                                    <input name="resolution" value="@i.Resolution" maxlength="1000" class="form-control form-control-sm" placeholder="@DstLocalization.T("Issue_Resolution")" />
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @DstLocalization.T("IssueStatus_" + i.Status)
+                                                if (i.Resolution != null) { <br /><span class="small">@i.Resolution</span> }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -43,7 +43,10 @@ namespace tahsinERP.Services.Stock
                 .ToListAsync();
         }
 
-        public static async Task ApplyAsync(DBTHSNEntities db, int warehouseId, int? userId, IList<InventoryCountLine> lines)
+        /// <param name="unitCosts">Ixtiyoriy: ortiqcha uchun tovar tannarxi (masalan, boshlang'ich sanoqda kirim tarixi yo'q tovar); bo'lmasa — oxirgi kirim narxi.</param>
+        /// <returns>INVENTORY_ADJUSTMENTS.ID</returns>
+        public static async Task<int> ApplyAsync(DBTHSNEntities db, int warehouseId, int? userId, IList<InventoryCountLine> lines,
+            IDictionary<int, decimal> unitCosts = null)
         {
             var requireDloc = StockLedger.IsDlocWarehouse(db, warehouseId);
             var currencyId = WarehouseAccess.DefaultCurrencyId(db);
@@ -88,7 +91,7 @@ namespace tahsinERP.Services.Stock
             {
                 // Ortiqcha — oxirgi kirim narxida (QQSsiz), barcha mahsulotlar bitta so'rovda
                 var prices = await GetLatestIncomePricesAsync(db, plus.Select(d => d.Item1.ProductID).ToList());
-                Func<int, decimal> priceOf = id => { decimal p; prices.TryGetValue(id, out p); return p; };
+                Func<int, decimal> priceOf = id => { decimal p; if (unitCosts != null && unitCosts.TryGetValue(id, out p)) return p; prices.TryGetValue(id, out p); return p; };
 
                 var income = new INCOME
                 {
@@ -173,6 +176,7 @@ namespace tahsinERP.Services.Stock
             }
 
             await db.SaveChangesAsync();
+            return adjustmentLock.ID;
         }
 
         /// <summary>Har mahsulotning eng so'nggi (o'chirilmagan) kirim narxi, QQSsiz — bitta so'rov.</summary>

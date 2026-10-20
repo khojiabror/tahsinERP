@@ -991,6 +991,12 @@
     <Compile Include="Areas\Distribution\Services\DstModelBinder.cs" />
     <Compile Include="Areas\Distribution\Services\ImportService.cs" />
     <Compile Include="Areas\Distribution\Services\ImportServicePilot.cs" />
+    <Compile Include="Areas\Distribution\Services\InventoryCountService.cs" />
+    <Compile Include="Areas\Distribution\Services\IssueService.cs" />
+    <Compile Include="Areas\Distribution\Services\Money\AgentPayments.cs" />
+    <Compile Include="Areas\Distribution\Data\Entities\PilotEntities.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstInventoryController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstIssuesController.cs" />
     <Compile Include="Areas\Distribution\Services\PricingService.cs" />
     <Compile Include="Areas\Distribution\Services\TerritoryTree.cs" />
     <Compile Include="Areas\Distribution\Services\UnitService.cs" />
@@ -2989,6 +2995,9 @@
     <Content Include="Areas\Distribution\Views\DstCustomers\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstDictionaries\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstImport\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstInventory\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstInventory\Details.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstIssues\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstPrices\Customer.cshtml" />
     <Content Include="Areas\Distribution\Views\DstPrices\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstProducts\Edit.cshtml" />

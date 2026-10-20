@@ -125,6 +125,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         {
             switch (state)
             {
+                case States.IssueText: await SaveIssueAsync(ctx, msg.Caption, photo, ct); break;
                 case States.Photo when data.VisitId is int visitId: await SavePhotoAsync(ctx, visitId, photo, ct); break;
                 case States.DaySelfie: await SelfieAsync(ctx, data, photo, ct); break;
                 case States.NewPhoto: await NewPhotoAsync(ctx, data, photo, ct); break;
@@ -137,6 +138,12 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
             return;
         }
         if (text == null) return;
+
+        if (text == "/xato" || text == "/problem" || Texts.KeyOf(text, "Btn_Issue") != null)
+        {
+            await AskIssueAsync(ctx, ct);
+            return;
+        }
 
         switch (Texts.KeyOf(text, "Btn_DayStart", "Btn_Route", "Btn_Search", "Btn_Cash", "Btn_DayEnd", "Btn_Summary",
                     "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement"))
@@ -186,6 +193,9 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
             case States.NewPhoto:
                 if (Texts.KeyOf(text, "Btn_Skip") != null) await NewPhotoAsync(ctx, data, null, ct);
                 else outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("New_AskPhoto"));
+                return;
+            case States.IssueText:
+                await SaveIssueAsync(ctx, text, null, ct);
                 return;
             default:
                 await SendMenuAsync(ctx, ctx.T("Menu"), ct);
@@ -258,14 +268,19 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
                 [Kb.Text(ctx.T("Btn_DayStart")), Kb.Text(ctx.T("Btn_Route"))],
                 [Kb.Text(ctx.T("Btn_Search")), Kb.Text(ctx.T("Btn_NewPoint"))],
                 [Kb.Text(ctx.T("Btn_Cash")), Kb.Text(ctx.T("Btn_Live"))],
-                [Kb.Text(ctx.T("Btn_DayEnd"))]
+                [Kb.Text(ctx.T("Btn_DayEnd")), Kb.Text(ctx.T("Btn_Issue"))]
             ]);
         else if (ctx.IsManager)
-            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Summary"))]]);
+            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Summary")), Kb.Text(ctx.T("Btn_Issue"))]]);
         else if (ctx.Link?.CustomerId != null)
         {
             keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_MyDebt")), Kb.Text(ctx.T("Btn_Statement"))]]);
             text += "\n" + ctx.T("Customer_Menu");
+        }
+        else if (ctx.Link?.UserId != null)
+        {
+            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Issue"))]]);
+            text += "\n" + ctx.T("Staff_Menu");
         }
         else
         {

@@ -106,6 +106,7 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
         public const string HandoverPending = "HANDOVER_PENDING";
         public const string StoreOrderConfirmed = "STORE_ORDER";
         public const string NewCustomer = "NEW_CUSTOMER";
+        public const string IssueNew = "ISSUE_NEW";
 
         public static void ToUser(DistributionDbContext db, int? userId, string type, Func<string, string> text, string payload, DateTime now)
         {
