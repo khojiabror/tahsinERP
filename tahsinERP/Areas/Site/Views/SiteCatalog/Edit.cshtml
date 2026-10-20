@@ -1,0 +1,199 @@
+@using tahsinERP.Areas.Site.Controllers
+@{
+    var product = (tahsinERP.Areas.Distribution.Data.Entities.ProductRef)ViewBag.Product;
+    var c = (SiteProductContent)ViewBag.Content;
+    var attrs = (List<SiteProductAttribute>)ViewBag.Attributes;
+    var gallery = (List<SiteCatalogController.GalleryItem>)ViewBag.Gallery;
+    ViewBag.Title = product.Name;
+    bool canChange = ViewBag.DstCanChange == true;
+    var badges = (c?.Badges ?? "").Split(',');
+    string dis = canChange ? "" : "disabled";
+    string siteUrl = ViewBag.SiteUrl;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="row">
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="card-title mb-0">@product.Name</h4>
+                                <small class="text-muted">@product.PNo · @ViewBag.Category</small>
+                            </div>
+                            @if (c != null && c.IsPublished && siteUrl != null)
+                            {
+                                <a class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" href="@(siteUrl)uz/p/@c.Slug"><i class="bx bx-link-external"></i> @DstLocalization.T("Site_ViewOnSite")</a>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <div class="custom-control custom-switch mb-1">
+                                <input type="checkbox" class="custom-control-input" id="pPublished" @(c != null && c.IsPublished ? "checked" : "") @dis />
+                                <label class="custom-control-label" for="pPublished">@DstLocalization.T("Site_OnSite")</label>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>@DstLocalization.T("Site_TitleUz")</label>
+                                    <input class="form-control" id="pTitleUz" maxlength="200" value="@c?.TitleUz" placeholder="@product.Name" @dis />
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>@DstLocalization.T("Site_TitleRu")</label>
+                                    <input class="form-control" id="pTitleRu" maxlength="200" value="@c?.TitleRu" placeholder="@ViewBag.NameRu" @dis />
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>@DstLocalization.T("Site_DescriptionUz")</label>
+                                    <textarea class="form-control" id="pDescUz" rows="8" @dis>@c?.DescriptionUz</textarea>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>@DstLocalization.T("Site_DescriptionRu")</label>
+                                    <textarea class="form-control" id="pDescRu" rows="8" @dis>@c?.DescriptionRu</textarea>
+                                </div>
+                            </div>
+                            <p class="small text-muted">@DstLocalization.T("Site_TextHint")</p>
+
+                            <h6 class="mt-1">@DstLocalization.T("Site_Attributes")</h6>
+                            <table class="table table-sm" id="attrTable">
+                                <thead><tr><th>@DstLocalization.T("Site_AttrName") (uz)</th><th>@DstLocalization.T("Site_AttrValue") (uz)</th><th>@DstLocalization.T("Site_AttrName") (ru)</th><th>@DstLocalization.T("Site_AttrValue") (ru)</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach (var a in attrs)
+                                    {
+                                        <tr>
+                                            <td><input class="form-control form-control-sm a-nu" value="@a.NameUz" maxlength="100" @dis /></td>
+                                            <td><input class="form-control form-control-sm a-vu" value="@a.ValueUz" maxlength="200" @dis /></td>
+                                            <td><input class="form-control form-control-sm a-nr" value="@a.NameRu" maxlength="100" @dis /></td>
+                                            <td><input class="form-control form-control-sm a-vr" value="@a.ValueRu" maxlength="200" @dis /></td>
+                                            <td>@if (canChange) { <button type="button" class="btn btn-sm btn-outline-danger a-del"><i class="bx bx-x"></i></button> }</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            @if (canChange) { <button type="button" class="btn btn-sm btn-outline-primary" id="attrAdd"><i class="bx bx-plus"></i> @DstLocalization.T("Add")</button> }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_Gallery")</h4></div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap" id="gallery">
+                                @foreach (var g in gallery)
+                                {
+                                    <div class="border rounded p-25 mr-50 mb-50 text-center g-item" data-id="@g.MediaID" style="width:118px">
+                                        <img src="@Url.Action("Image", new { id = g.MediaID })" alt="" style="width:108px;height:108px;object-fit:contain" />
+                                        <div class="small text-muted">@g.Width×@g.Height</div>
+                                        @if (canChange)
+                                        {
+                                            <div class="btn-group btn-group-sm mt-25">
+                                                <button type="button" class="btn btn-outline-secondary g-left" title="←"><i class="bx bx-chevron-left"></i></button>
+                                                <button type="button" class="btn btn-outline-secondary g-alt" title="Alt" data-uz="@g.AltUz" data-ru="@g.AltRu"><i class="bx bx-text"></i></button>
+                                                <button type="button" class="btn btn-outline-danger g-del"><i class="bx bx-trash"></i></button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            @if (gallery.Count == 0) { <p class="text-muted">@DstLocalization.T("Site_NoPhotos")</p> }
+                            @if (canChange)
+                            {
+                                <label class="btn btn-sm btn-primary mb-0"><i class="bx bx-upload"></i> @DstLocalization.T("Site_Upload")<input type="file" id="gFiles" accept="image/png,image/jpeg" multiple hidden /></label>
+                                if ((int)ViewBag.LegacyImages > 0)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="gImport"><i class="bx bx-import"></i> @DstLocalization.T("Site_ImportLegacy", (int)ViewBag.LegacyImages)</button>
+                                }
+                            }
+                            <p class="small text-muted mt-1 mb-0">@DstLocalization.T("Site_GalleryHint")</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_Display")</h4></div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>@DstLocalization.T("Site_Badges")</label>
+                                <div>
+                                    @foreach (var b in ProductBadges.All)
+                                    {
+                                        <div class="custom-control custom-checkbox custom-control-inline">
+                                            <input type="checkbox" class="custom-control-input badge-check" id="b_@b" value="@b" @(badges.Contains(b) ? "checked" : "") @dis />
+                                            <label class="custom-control-label" for="b_@b">@DstLocalization.T("Site_Badge_" + b)</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-8"><label>@DstLocalization.T("Site_Slug")</label><input class="form-control" id="pSlug" value="@(c?.Slug ?? ViewBag.SuggestedSlug)" @dis /></div>
+                                <div class="form-group col-md-4"><label>@DstLocalization.T("Site_SortOrder")</label><input type="number" class="form-control" id="pSort" value="@(c?.SortOrder ?? 0)" @dis /></div>
+                            </div>
+                            <div class="form-group"><label>@DstLocalization.T("Site_SeoTitle")</label><input class="form-control" id="pSeoTitle" maxlength="150" value="@c?.SeoTitle" @dis /></div>
+                            <div class="form-group mb-0"><label>@DstLocalization.T("Site_SeoDescription")</label><textarea class="form-control" id="pSeoDesc" maxlength="300" rows="2" @dis>@c?.SeoDescription</textarea></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-2">
+                <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                @if (canChange) { <button type="button" class="btn btn-primary" id="pSave"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button> }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var productId = @product.ID;
+            $('#attrAdd').on('click', function () {
+                $('#attrTable tbody').append('<tr><td><input class="form-control form-control-sm a-nu" maxlength="100" /></td><td><input class="form-control form-control-sm a-vu" maxlength="200" /></td>' +
+                    '<td><input class="form-control form-control-sm a-nr" maxlength="100" /></td><td><input class="form-control form-control-sm a-vr" maxlength="200" /></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-outline-danger a-del"><i class="bx bx-x"></i></button></td></tr>');
+            });
+            $('#attrTable').on('click', '.a-del', function () { $(this).closest('tr').remove(); });
+
+            $('#pSave').on('click', function () {
+                var attrs = $('#attrTable tbody tr').map(function () {
+                    var r = $(this);
+                    return { NameUz: r.find('.a-nu').val(), ValueUz: r.find('.a-vu').val(), NameRu: r.find('.a-nr').val(), ValueRu: r.find('.a-vr').val() };
+                }).get();
+                dstPost('@Url.Action("SaveProduct")', {
+                    productId: productId, isPublished: $('#pPublished').is(':checked'), slug: $('#pSlug').val(),
+                    titleUz: $('#pTitleUz').val(), titleRu: $('#pTitleRu').val(), descriptionUz: $('#pDescUz').val(), descriptionRu: $('#pDescRu').val(),
+                    badges: $('.badge-check:checked').map(function () { return this.value; }).get(),
+                    sortOrder: $('#pSort').val() || 0, seoTitle: $('#pSeoTitle').val(), seoDescription: $('#pSeoDesc').val(),
+                    attributes: JSON.stringify(attrs)
+                }).done(function (r) { $('#pSlug').val(r.slug); dstNotify(); });
+            });
+
+            $('#gFiles').on('change', function () {
+                if (!this.files.length) return;
+                var fd = new FormData(); fd.append('productId', productId);
+                $.each(this.files, function (_, f) { fd.append('files', f); });
+                $.ajax({ url: '@Url.Action("UploadImages")', type: 'POST', data: fd, processData: false, contentType: false })
+                    .done(function (r) { if (r && r.success) location.reload(); else dstNotify(r && r.message, true); });
+            });
+            $('#gImport').on('click', function () {
+                dstPost('@Url.Action("ImportImages")', { productId: productId }).done(function () { location.reload(); });
+            });
+            $('#gallery').on('click', '.g-del', function () {
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("DeleteImage")', { productId: productId, mediaId: $(this).closest('.g-item').data('id') }).done(function () { location.reload(); });
+            });
+            $('#gallery').on('click', '.g-left', function () {
+                var item = $(this).closest('.g-item');
+                if (!item.prev().length) return;
+                item.insertBefore(item.prev());
+                dstPost('@Url.Action("ReorderImages")', { productId: productId, mediaIds: $('#gallery .g-item').map(function () { return $(this).data('id'); }).get() });
+            });
+            $('#gallery').on('click', '.g-alt', function () {
+                var b = $(this), id = b.closest('.g-item').data('id');
+                var uz = prompt('Alt (uz)', b.data('uz') || ''); if (uz === null) return;
+                var ru = prompt('Alt (ru)', b.data('ru') || ''); if (ru === null) return;
+                dstPost('@Url.Action("SaveImageAlt")', { mediaId: id, altUz: uz, altRu: ru }).done(function () { b.data('uz', uz).data('ru', ru); dstNotify(); });
+            });
+        });
+    </script>
+}

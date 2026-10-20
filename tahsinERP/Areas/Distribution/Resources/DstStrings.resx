@@ -1352,4 +1352,451 @@ Faol agentlar: {7}/{8}</value>
   <data name="WeightKg" xml:space="preserve">
     <value>Og'irlik, kg</value>
   </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Ha</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Yo'q</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="Notify_SiteLead" xml:space="preserve">
+    <value>🌐 Saytdan ariza №{0}: {1}, {2}, {3} ta tovar.</value>
+  </data>
+  <data name="Site_Title" xml:space="preserve">
+    <value>Sayt</value>
+  </data>
+  <data name="Site_Dashboard" xml:space="preserve">
+    <value>Boshqaruv</value>
+  </data>
+  <data name="Site_Catalog" xml:space="preserve">
+    <value>Katalog</value>
+  </data>
+  <data name="Site_PagesBanners" xml:space="preserve">
+    <value>Sahifalar va bannerlar</value>
+  </data>
+  <data name="Site_Leads" xml:space="preserve">
+    <value>Arizalar</value>
+  </data>
+  <data name="Site_Online" xml:space="preserve">
+    <value>Sayt yoqilgan</value>
+  </data>
+  <data name="Site_Offline" xml:space="preserve">
+    <value>Sayt o'chiq</value>
+  </data>
+  <data name="Site_DashboardHint" xml:space="preserve">
+    <value>Katalog, narx va qoldiqlar ERP'dan avtomatik yangilanadi (1 daqiqa ichida).</value>
+  </data>
+  <data name="Site_Open" xml:space="preserve">
+    <value>Saytni ochish</value>
+  </data>
+  <data name="Site_PublishedProducts" xml:space="preserve">
+    <value>Saytdagi tovarlar</value>
+  </data>
+  <data name="Site_PublishedCategories" xml:space="preserve">
+    <value>Saytdagi kategoriyalar</value>
+  </data>
+  <data name="Site_NewLeads" xml:space="preserve">
+    <value>Yangi arizalar</value>
+  </data>
+  <data name="Site_Quality" xml:space="preserve">
+    <value>Katalog sifati</value>
+  </data>
+  <data name="Site_NoPhoto" xml:space="preserve">
+    <value>Fotosiz tovarlar</value>
+  </data>
+  <data name="Site_NoDescription" xml:space="preserve">
+    <value>Tavsifsiz tovarlar</value>
+  </data>
+  <data name="Site_NoDescriptionShort" xml:space="preserve">
+    <value>tavsif yo'q</value>
+  </data>
+  <data name="Site_NoPrice" xml:space="preserve">
+    <value>Narxsiz tovarlar</value>
+  </data>
+  <data name="Site_QualityHint" xml:space="preserve">
+    <value>Fotosi va tavsifi bor tovar ko'proq ariza oladi.</value>
+  </data>
+  <data name="Site_LatestLeads" xml:space="preserve">
+    <value>Oxirgi arizalar</value>
+  </data>
+  <data name="Site_NoLeads" xml:space="preserve">
+    <value>Arizalar yo'q.</value>
+  </data>
+  <data name="Site_LeadNew" xml:space="preserve">
+    <value>Yangi</value>
+  </data>
+  <data name="Site_LeadSeen" xml:space="preserve">
+    <value>Ko'rildi</value>
+  </data>
+  <data name="Site_LeadOrdered" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="Site_LeadRejectedStatus" xml:space="preserve">
+    <value>Rad etildi</value>
+  </data>
+  <data name="Site_LeadsOpen" xml:space="preserve">
+    <value>Ochiq</value>
+  </data>
+  <data name="Site_Brand" xml:space="preserve">
+    <value>Sayt va brend</value>
+  </data>
+  <data name="Site_EnabledLabel" xml:space="preserve">
+    <value>Sayt yoqilgan (o'chiq bo'lsa — mehmonlarga "tez orada" sahifasi)</value>
+  </data>
+  <data name="Site_Name" xml:space="preserve">
+    <value>Sayt nomi</value>
+  </data>
+  <data name="Site_Tagline" xml:space="preserve">
+    <value>Shior (qisqa tavsif)</value>
+  </data>
+  <data name="Site_Logo" xml:space="preserve">
+    <value>Logotip</value>
+  </data>
+  <data name="Site_LogoHint" xml:space="preserve">
+    <value>PNG (shaffof fon) yoki JPG, eni kamida 300 px.</value>
+  </data>
+  <data name="Site_Upload" xml:space="preserve">
+    <value>Yuklash</value>
+  </data>
+  <data name="Site_Color" xml:space="preserve">
+    <value>Asosiy rang</value>
+  </data>
+  <data name="Site_ColorFormat" xml:space="preserve">
+    <value>Rang #RRGGBB ko'rinishida bo'lsin.</value>
+  </data>
+  <data name="Site_Font" xml:space="preserve">
+    <value>Shrift</value>
+  </data>
+  <data name="Site_Radius" xml:space="preserve">
+    <value>Burchak radiusi, px</value>
+  </data>
+  <data name="Site_LanguageRequired" xml:space="preserve">
+    <value>Kamida bitta tilni tanlang.</value>
+  </data>
+  <data name="Site_PricesStock" xml:space="preserve">
+    <value>Narx va qoldiq</value>
+  </data>
+  <data name="Site_PriceMode" xml:space="preserve">
+    <value>Saytda narx</value>
+  </data>
+  <data name="Site_PriceMode_SHOW" xml:space="preserve">
+    <value>Ko'rsatiladi</value>
+  </data>
+  <data name="Site_PriceMode_ASK" xml:space="preserve">
+    <value>"Narxni so'rang"</value>
+  </data>
+  <data name="Site_PriceMode_HIDDEN" xml:space="preserve">
+    <value>Yashirin</value>
+  </data>
+  <data name="Site_PriceType" xml:space="preserve">
+    <value>Narx turi</value>
+  </data>
+  <data name="Site_PriceTypeDefault" xml:space="preserve">
+    <value>Asosiy narx turi</value>
+  </data>
+  <data name="Site_StockMode" xml:space="preserve">
+    <value>Qoldiq</value>
+  </data>
+  <data name="Site_StockMode_EXACT" xml:space="preserve">
+    <value>Aniq son</value>
+  </data>
+  <data name="Site_StockMode_STATUS" xml:space="preserve">
+    <value>Bor / kam / buyurtmaga</value>
+  </data>
+  <data name="Site_StockMode_HIDDEN" xml:space="preserve">
+    <value>Ko'rsatilmaydi</value>
+  </data>
+  <data name="Site_LowStock" xml:space="preserve">
+    <value>"Kam qoldi" chegarasi (asosiy birlikda)</value>
+  </data>
+  <data name="Site_LeadsEnabled" xml:space="preserve">
+    <value>Saytdan ariza qabul qilish</value>
+  </data>
+  <data name="Site_PricesHint" xml:space="preserve">
+    <value>Narx — tanlangan narx turi bo'yicha (mijozga xos narxlar saytda ko'rinmaydi). Qoldiq — savdo omborlarida rezervsiz.</value>
+  </data>
+  <data name="Site_Contacts" xml:space="preserve">
+    <value>Kontaktlar</value>
+  </data>
+  <data name="Site_Phone2" xml:space="preserve">
+    <value>Qo'shimcha telefon</value>
+  </data>
+  <data name="Site_WorkingHours" xml:space="preserve">
+    <value>Ish vaqti</value>
+  </data>
+  <data name="Site_MapLat" xml:space="preserve">
+    <value>Xarita: kenglik</value>
+  </data>
+  <data name="Site_MapLng" xml:space="preserve">
+    <value>Xarita: uzunlik</value>
+  </data>
+  <data name="Site_SeoTitle" xml:space="preserve">
+    <value>SEO sarlavha</value>
+  </data>
+  <data name="Site_SeoDescription" xml:space="preserve">
+    <value>SEO tavsif</value>
+  </data>
+  <data name="Site_Domains" xml:space="preserve">
+    <value>Domenlar</value>
+  </data>
+  <data name="Site_DefaultAddress" xml:space="preserve">
+    <value>Standart manzil</value>
+  </data>
+  <data name="Site_Domain" xml:space="preserve">
+    <value>Domen</value>
+  </data>
+  <data name="Site_Primary" xml:space="preserve">
+    <value>asosiy</value>
+  </data>
+  <data name="Site_DomainActive" xml:space="preserve">
+    <value>Faol</value>
+  </data>
+  <data name="Site_DomainPending" xml:space="preserve">
+    <value>DNS kutilmoqda</value>
+  </data>
+  <data name="Site_Verify" xml:space="preserve">
+    <value>Tekshirish</value>
+  </data>
+  <data name="Site_MakePrimary" xml:space="preserve">
+    <value>Asosiy qilish</value>
+  </data>
+  <data name="Site_DomainHint" xml:space="preserve">
+    <value>O'z domeningiz uchun DNS'da CNAME (yoki A) yozuvini {0} ga qarating, keyin "Tekshirish" ni bosing. Sertifikat avtomatik beriladi.</value>
+  </data>
+  <data name="Site_DomainFormat" xml:space="preserve">
+    <value>Domen noto'g'ri (masalan: shop.example.uz).</value>
+  </data>
+  <data name="Site_DomainReserved" xml:space="preserve">
+    <value>Bu domen standart subdomenlar uchun band.</value>
+  </data>
+  <data name="Site_DomainNoTarget" xml:space="preserve">
+    <value>Sayt server manzili sozlanmagan (SiteCnameTarget).</value>
+  </data>
+  <data name="Site_DomainNotPointing" xml:space="preserve">
+    <value>{0} hali {1} ga qaratilmagan (DNS yangilanishi bir necha soat olishi mumkin).</value>
+  </data>
+  <data name="Site_Publish" xml:space="preserve">
+    <value>Saytga chiqarish</value>
+  </data>
+  <data name="Site_Unpublish" xml:space="preserve">
+    <value>Saytdan olish</value>
+  </data>
+  <data name="Site_ImportAll" xml:space="preserve">
+    <value>Eski rasmlarni olish</value>
+  </data>
+  <data name="Site_ImportAllHint" xml:space="preserve">
+    <value>Saytdagi fotosiz tovarlarga tovar kartasidagi (eski) rasmlarni ko'chiradi.</value>
+  </data>
+  <data name="Site_State_all" xml:space="preserve">
+    <value>Hammasi</value>
+  </data>
+  <data name="Site_State_published" xml:space="preserve">
+    <value>Saytda</value>
+  </data>
+  <data name="Site_State_unpublished" xml:space="preserve">
+    <value>Saytda emas</value>
+  </data>
+  <data name="Site_State_nophoto" xml:space="preserve">
+    <value>Saytda, fotosiz</value>
+  </data>
+  <data name="Site_State_nodesc" xml:space="preserve">
+    <value>Saytda, tavsifsiz</value>
+  </data>
+  <data name="Site_OnSite" xml:space="preserve">
+    <value>Saytda</value>
+  </data>
+  <data name="Site_Photos" xml:space="preserve">
+    <value>Foto</value>
+  </data>
+  <data name="Site_Updated" xml:space="preserve">
+    <value>O'zgartirildi</value>
+  </data>
+  <data name="Site_Categories" xml:space="preserve">
+    <value>Kategoriyalar</value>
+  </data>
+  <data name="Site_Slug" xml:space="preserve">
+    <value>URL nomi (slug)</value>
+  </data>
+  <data name="Site_PublishCategoryHint" xml:space="preserve">
+    <value>Kategoriya va undagi barcha tovarlarni saytga chiqarish</value>
+  </data>
+  <data name="Site_UnpublishCategoryHint" xml:space="preserve">
+    <value>Kategoriyadagi barcha tovarlarni saytdan olish</value>
+  </data>
+  <data name="Site_CategoriesHint" xml:space="preserve">
+    <value>Kategoriyalar ERP'dagi tovar kategoriyalaridan olinadi; bu yerda — saytdagi nomi, tavsifi va rasmi.</value>
+  </data>
+  <data name="Site_NameUz" xml:space="preserve">
+    <value>Nomi (uz)</value>
+  </data>
+  <data name="Site_NameRu" xml:space="preserve">
+    <value>Nomi (ru)</value>
+  </data>
+  <data name="Site_DescriptionUz" xml:space="preserve">
+    <value>Tavsif (uz)</value>
+  </data>
+  <data name="Site_DescriptionRu" xml:space="preserve">
+    <value>Tavsif (ru)</value>
+  </data>
+  <data name="Site_SortOrder" xml:space="preserve">
+    <value>Tartib</value>
+  </data>
+  <data name="Site_Image" xml:space="preserve">
+    <value>Rasm</value>
+  </data>
+  <data name="Site_ViewOnSite" xml:space="preserve">
+    <value>Saytda ko'rish</value>
+  </data>
+  <data name="Site_TitleUz" xml:space="preserve">
+    <value>Sarlavha (uz)</value>
+  </data>
+  <data name="Site_TitleRu" xml:space="preserve">
+    <value>Sarlavha (ru)</value>
+  </data>
+  <data name="Site_TextHint" xml:space="preserve">
+    <value>Matn: bo'sh qator — yangi paragraf, "- " bilan boshlangan qator — ro'yxat, **qalin**. HTML ishlatilmaydi.</value>
+  </data>
+  <data name="Site_Attributes" xml:space="preserve">
+    <value>Xususiyatlar</value>
+  </data>
+  <data name="Site_AttrName" xml:space="preserve">
+    <value>Nomi</value>
+  </data>
+  <data name="Site_AttrValue" xml:space="preserve">
+    <value>Qiymati</value>
+  </data>
+  <data name="Site_Gallery" xml:space="preserve">
+    <value>Fotogalereya</value>
+  </data>
+  <data name="Site_NoPhotos" xml:space="preserve">
+    <value>Foto yo'q.</value>
+  </data>
+  <data name="Site_ImportLegacy" xml:space="preserve">
+    <value>Kartadagi {0} ta rasmni olish</value>
+  </data>
+  <data name="Site_GalleryHint" xml:space="preserve">
+    <value>Birinchi rasm — asosiy. JPG/PNG, 10 MB gacha; katta rasmlar avtomatik kichraytiriladi.</value>
+  </data>
+  <data name="Site_Display" xml:space="preserve">
+    <value>Ko'rinish</value>
+  </data>
+  <data name="Site_Badges" xml:space="preserve">
+    <value>Belgilar</value>
+  </data>
+  <data name="Site_Badge_NEW" xml:space="preserve">
+    <value>Yangi</value>
+  </data>
+  <data name="Site_Badge_SALE" xml:space="preserve">
+    <value>Aksiya</value>
+  </data>
+  <data name="Site_Badge_HIT" xml:space="preserve">
+    <value>Xit</value>
+  </data>
+  <data name="Site_SlugFormat" xml:space="preserve">
+    <value>URL nomi faqat lotin kichik harflar, raqamlar va "-" dan iborat bo'lsin.</value>
+  </data>
+  <data name="Site_SlugTaken" xml:space="preserve">
+    <value>Bu URL nomi band.</value>
+  </data>
+  <data name="Site_ImageTooBig" xml:space="preserve">
+    <value>Rasm 10 MB dan oshmasin.</value>
+  </data>
+  <data name="Site_ImageInvalid" xml:space="preserve">
+    <value>Faqat JPG yoki PNG rasm.</value>
+  </data>
+  <data name="Site_ImageRequired" xml:space="preserve">
+    <value>Rasmni tanlang.</value>
+  </data>
+  <data name="Site_Pages" xml:space="preserve">
+    <value>Sahifalar</value>
+  </data>
+  <data name="Site_PagesHint" xml:space="preserve">
+    <value>Masalan: Biz haqimizda, Yetkazib berish, To'lov. Menyuda ko'rinadi.</value>
+  </data>
+  <data name="Site_InMenu" xml:space="preserve">
+    <value>Menyuda</value>
+  </data>
+  <data name="Site_NewPage" xml:space="preserve">
+    <value>Yangi sahifa</value>
+  </data>
+  <data name="Site_BodyUz" xml:space="preserve">
+    <value>Matn (uz)</value>
+  </data>
+  <data name="Site_BodyRu" xml:space="preserve">
+    <value>Matn (ru)</value>
+  </data>
+  <data name="Site_Banners" xml:space="preserve">
+    <value>Bosh sahifa bannerlari</value>
+  </data>
+  <data name="Site_BannersHint" xml:space="preserve">
+    <value>Tavsiya etilgan o'lcham 1600×600; muddat ko'rsatilsa, faqat shu kunlarda chiqadi.</value>
+  </data>
+  <data name="Site_Banner" xml:space="preserve">
+    <value>Banner</value>
+  </data>
+  <data name="Site_BannerSize" xml:space="preserve">
+    <value>1600×600 px, JPG/PNG.</value>
+  </data>
+  <data name="Site_SubtitleUz" xml:space="preserve">
+    <value>Qo'shimcha matn (uz)</value>
+  </data>
+  <data name="Site_SubtitleRu" xml:space="preserve">
+    <value>Qo'shimcha matn (ru)</value>
+  </data>
+  <data name="Site_Link" xml:space="preserve">
+    <value>Havola</value>
+  </data>
+  <data name="Site_LinkFormat" xml:space="preserve">
+    <value>Havola "/" yoki https:// bilan boshlansin.</value>
+  </data>
+  <data name="Site_From" xml:space="preserve">
+    <value>Dan</value>
+  </data>
+  <data name="Site_To" xml:space="preserve">
+    <value>Gacha</value>
+  </data>
+  <data name="Site_Lead" xml:space="preserve">
+    <value>Ariza</value>
+  </data>
+  <data name="Site_Items" xml:space="preserve">
+    <value>Tovarlar</value>
+  </data>
+  <data name="Site_Company" xml:space="preserve">
+    <value>Tashkilot</value>
+  </data>
+  <data name="Site_RejectReason" xml:space="preserve">
+    <value>Rad etish sababi</value>
+  </data>
+  <data name="Site_CreateOrder" xml:space="preserve">
+    <value>Buyurtma yaratish</value>
+  </data>
+  <data name="Site_NewCustomer" xml:space="preserve">
+    <value>➕ Yangi mijoz</value>
+  </data>
+  <data name="Site_CustomerMatchHint" xml:space="preserve">
+    <value>Telefon bo'yicha topilgan mijozlar. Yangi mijoz tasdiqlanmagan holda yaratiladi.</value>
+  </data>
+  <data name="Site_Reject" xml:space="preserve">
+    <value>Rad etish</value>
+  </data>
+  <data name="Site_LeadsDisabled" xml:space="preserve">
+    <value>Saytdan arizalar qabul qilinmaydi.</value>
+  </data>
+  <data name="Site_ProductUnavailable" xml:space="preserve">
+    <value>Tovar saytda mavjud emas.</value>
+  </data>
+  <data name="Site_LeadRejected" xml:space="preserve">
+    <value>Ariza rad etilgan.</value>
+  </data>
+  <data name="Site_LeadNoItems" xml:space="preserve">
+    <value>Arizada tovar yo'q — mijozga qo'ng'iroq qiling.</value>
+  </data>
+  <data name="Site_LeadAlreadyOrdered" xml:space="preserve">
+    <value>Arizadan buyurtma yaratilgan.</value>
+  </data>
+  <data name="Site_LeadOrderComment" xml:space="preserve">
+    <value>Sayt arizasi №{0}</value>
+  </data>
 </root>

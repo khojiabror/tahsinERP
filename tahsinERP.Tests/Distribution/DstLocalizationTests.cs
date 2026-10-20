@@ -45,6 +45,7 @@ namespace tahsinERP.Tests.Distribution
             var keys = new System.Collections.Generic.HashSet<string>(Keys("DstStrings.resx"));
             var root = Path.GetFullPath(Path.Combine(ResourcesDir(), "..", "..", ".."));   // tahsinERP loyiha papkasi
             var files = Directory.GetFiles(Path.Combine(root, "Areas", "Distribution"), "*.*", SearchOption.AllDirectories)
+                .Concat(Directory.GetFiles(Path.Combine(root, "Areas", "Site"), "*.*", SearchOption.AllDirectories))
                 .Where(f => f.EndsWith(".cs") || f.EndsWith(".cshtml"))
                 .Concat(new[] { Path.Combine(root, "Views", "Shared", "_Layout.cshtml") });
             var used = files.SelectMany(f => System.Text.RegularExpressions.Regex
@@ -67,6 +68,14 @@ namespace tahsinERP.Tests.Distribution
                 Assert.IsTrue(keys.Contains("Ledger_" + d) && keys.Contains("Ledger_" + d + "_REV") || d == "ADJUSTMENT", d);
             foreach (var st in System.Enum.GetNames(typeof(tahsinERP.Areas.Distribution.Services.Orders.OrderStatus)))
                 Assert.IsTrue(keys.Contains("OrderStatus_" + st), st);
+            foreach (var b in tahsinERP.Areas.Site.Data.ProductBadges.All)
+                Assert.IsTrue(keys.Contains("Site_Badge_" + b), b);
+            foreach (var m in tahsinERP.Areas.Site.Data.PriceModes.All)
+                Assert.IsTrue(keys.Contains("Site_PriceMode_" + m), m);
+            foreach (var m in tahsinERP.Areas.Site.Data.StockModes.All)
+                Assert.IsTrue(keys.Contains("Site_StockMode_" + m), m);
+            foreach (var st in new[] { "all", "published", "unpublished", "nophoto", "nodesc" })
+                Assert.IsTrue(keys.Contains("Site_State_" + st), st);
         }
 
         [TestMethod]

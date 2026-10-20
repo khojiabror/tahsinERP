@@ -1,0 +1,46 @@
+@page "/{lang:regex(^(uz|ru)$)}/c/{slug}"
+@model CatalogModel
+@{
+    ViewData["Page"] = Model;
+    var heading = Model.Category != null ? CatalogIndex.Name(Model.Category, Model.Lang)
+        : Model.IsSearch ? (string.IsNullOrEmpty(Model.Query) ? Model.T("Search") : Model.T("SearchResults", Model.Query)) : Model.T("AllProducts");
+    var crumbs = new List<(string Name, string Url)> { (Model.T("Home"), Site.Url("/")), (Model.T("Catalog"), Site.Url("/catalog")) };
+    if (Model.Category != null) crumbs.Add((heading, Site.Url("/c/" + Model.Category.Slug)));
+}
+@section Head {
+    @Seo.Script(Seo.Breadcrumbs(crumbs, Seo.Origin(Request)))
+}
+<div class="container page">
+    <nav class="crumbs" aria-label="breadcrumb">
+        @foreach (var (name, url) in crumbs.Take(crumbs.Count - 1)) { <a href="@url">@name</a><span>/</span> }
+        <span aria-current="page">@crumbs.Last().Name</span>
+    </nav>
+    <div class="page-head">
+        <h1>@heading</h1>
+        @if (Model.IsSearch)
+        {
+            <form class="search search-lg" action="@Site.Url("/search")" method="get" role="search">
+                <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                <input type="search" name="q" value="@Model.Query" placeholder="@Model.T("SearchPlaceholder")" aria-label="@Model.T("Search")" autofocus>
+            </form>
+        }
+        else if (Model.Category != null && CatalogIndex.Description(Model.Category, Model.Lang) is string desc)
+        {
+            <div class="lead prose">@SafeText.Render(desc)</div>
+        }
+    </div>
+
+    @if (!Model.IsSearch && Model.Category == null && Model.Catalog.Categories.Count > 0)
+    {
+        <div class="chips" role="list">
+            @foreach (var cat in Model.Catalog.Categories)
+            {
+                <a class="chip" role="listitem" href="@Site.Url("/c/" + cat.Slug)">@CatalogIndex.Name(cat, Model.Lang) <span class="muted">@Model.Catalog.CountIn(cat.Id)</span></a>
+            }
+        </div>
+    }
+
+    <div id="results" data-results>
+        <partial name="_Results" model="Model" />
+    </div>
+</div>

@@ -1352,4 +1352,451 @@
   <data name="WeightKg" xml:space="preserve">
     <value>Вес, кг</value>
   </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="Notify_SiteLead" xml:space="preserve">
+    <value>🌐 Заявка с сайта №{0}: {1}, {2}, товаров: {3}.</value>
+  </data>
+  <data name="Site_Title" xml:space="preserve">
+    <value>Сайт</value>
+  </data>
+  <data name="Site_Dashboard" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="Site_Catalog" xml:space="preserve">
+    <value>Каталог</value>
+  </data>
+  <data name="Site_PagesBanners" xml:space="preserve">
+    <value>Страницы и баннеры</value>
+  </data>
+  <data name="Site_Leads" xml:space="preserve">
+    <value>Заявки</value>
+  </data>
+  <data name="Site_Online" xml:space="preserve">
+    <value>Сайт включён</value>
+  </data>
+  <data name="Site_Offline" xml:space="preserve">
+    <value>Сайт выключен</value>
+  </data>
+  <data name="Site_DashboardHint" xml:space="preserve">
+    <value>Каталог, цены и остатки обновляются из ERP автоматически (в течение минуты).</value>
+  </data>
+  <data name="Site_Open" xml:space="preserve">
+    <value>Открыть сайт</value>
+  </data>
+  <data name="Site_PublishedProducts" xml:space="preserve">
+    <value>Товаров на сайте</value>
+  </data>
+  <data name="Site_PublishedCategories" xml:space="preserve">
+    <value>Категорий на сайте</value>
+  </data>
+  <data name="Site_NewLeads" xml:space="preserve">
+    <value>Новые заявки</value>
+  </data>
+  <data name="Site_Quality" xml:space="preserve">
+    <value>Качество каталога</value>
+  </data>
+  <data name="Site_NoPhoto" xml:space="preserve">
+    <value>Товары без фото</value>
+  </data>
+  <data name="Site_NoDescription" xml:space="preserve">
+    <value>Товары без описания</value>
+  </data>
+  <data name="Site_NoDescriptionShort" xml:space="preserve">
+    <value>нет описания</value>
+  </data>
+  <data name="Site_NoPrice" xml:space="preserve">
+    <value>Товары без цены</value>
+  </data>
+  <data name="Site_QualityHint" xml:space="preserve">
+    <value>Товары с фото и описанием получают больше заявок.</value>
+  </data>
+  <data name="Site_LatestLeads" xml:space="preserve">
+    <value>Последние заявки</value>
+  </data>
+  <data name="Site_NoLeads" xml:space="preserve">
+    <value>Заявок нет.</value>
+  </data>
+  <data name="Site_LeadNew" xml:space="preserve">
+    <value>Новая</value>
+  </data>
+  <data name="Site_LeadSeen" xml:space="preserve">
+    <value>Просмотрена</value>
+  </data>
+  <data name="Site_LeadOrdered" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="Site_LeadRejectedStatus" xml:space="preserve">
+    <value>Отклонена</value>
+  </data>
+  <data name="Site_LeadsOpen" xml:space="preserve">
+    <value>Открытые</value>
+  </data>
+  <data name="Site_Brand" xml:space="preserve">
+    <value>Сайт и бренд</value>
+  </data>
+  <data name="Site_EnabledLabel" xml:space="preserve">
+    <value>Сайт включён (если выключен — посетители видят «скоро»)</value>
+  </data>
+  <data name="Site_Name" xml:space="preserve">
+    <value>Название сайта</value>
+  </data>
+  <data name="Site_Tagline" xml:space="preserve">
+    <value>Слоган (кратко)</value>
+  </data>
+  <data name="Site_Logo" xml:space="preserve">
+    <value>Логотип</value>
+  </data>
+  <data name="Site_LogoHint" xml:space="preserve">
+    <value>PNG (прозрачный фон) или JPG, ширина от 300 px.</value>
+  </data>
+  <data name="Site_Upload" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="Site_Color" xml:space="preserve">
+    <value>Основной цвет</value>
+  </data>
+  <data name="Site_ColorFormat" xml:space="preserve">
+    <value>Цвет в формате #RRGGBB.</value>
+  </data>
+  <data name="Site_Font" xml:space="preserve">
+    <value>Шрифт</value>
+  </data>
+  <data name="Site_Radius" xml:space="preserve">
+    <value>Скругление, px</value>
+  </data>
+  <data name="Site_LanguageRequired" xml:space="preserve">
+    <value>Выберите хотя бы один язык.</value>
+  </data>
+  <data name="Site_PricesStock" xml:space="preserve">
+    <value>Цены и остатки</value>
+  </data>
+  <data name="Site_PriceMode" xml:space="preserve">
+    <value>Цена на сайте</value>
+  </data>
+  <data name="Site_PriceMode_SHOW" xml:space="preserve">
+    <value>Показывать</value>
+  </data>
+  <data name="Site_PriceMode_ASK" xml:space="preserve">
+    <value>«Цену уточняйте»</value>
+  </data>
+  <data name="Site_PriceMode_HIDDEN" xml:space="preserve">
+    <value>Скрыть</value>
+  </data>
+  <data name="Site_PriceType" xml:space="preserve">
+    <value>Тип цены</value>
+  </data>
+  <data name="Site_PriceTypeDefault" xml:space="preserve">
+    <value>Основной тип цены</value>
+  </data>
+  <data name="Site_StockMode" xml:space="preserve">
+    <value>Остаток</value>
+  </data>
+  <data name="Site_StockMode_EXACT" xml:space="preserve">
+    <value>Точное количество</value>
+  </data>
+  <data name="Site_StockMode_STATUS" xml:space="preserve">
+    <value>Есть / мало / под заказ</value>
+  </data>
+  <data name="Site_StockMode_HIDDEN" xml:space="preserve">
+    <value>Не показывать</value>
+  </data>
+  <data name="Site_LowStock" xml:space="preserve">
+    <value>Порог «мало» (в базовой единице)</value>
+  </data>
+  <data name="Site_LeadsEnabled" xml:space="preserve">
+    <value>Принимать заявки с сайта</value>
+  </data>
+  <data name="Site_PricesHint" xml:space="preserve">
+    <value>Цена — по выбранному типу цен (индивидуальные цены клиентов не показываются). Остаток — по торговым складам за вычетом резерва.</value>
+  </data>
+  <data name="Site_Contacts" xml:space="preserve">
+    <value>Контакты</value>
+  </data>
+  <data name="Site_Phone2" xml:space="preserve">
+    <value>Доп. телефон</value>
+  </data>
+  <data name="Site_WorkingHours" xml:space="preserve">
+    <value>Время работы</value>
+  </data>
+  <data name="Site_MapLat" xml:space="preserve">
+    <value>Карта: широта</value>
+  </data>
+  <data name="Site_MapLng" xml:space="preserve">
+    <value>Карта: долгота</value>
+  </data>
+  <data name="Site_SeoTitle" xml:space="preserve">
+    <value>SEO-заголовок</value>
+  </data>
+  <data name="Site_SeoDescription" xml:space="preserve">
+    <value>SEO-описание</value>
+  </data>
+  <data name="Site_Domains" xml:space="preserve">
+    <value>Домены</value>
+  </data>
+  <data name="Site_DefaultAddress" xml:space="preserve">
+    <value>Адрес по умолчанию</value>
+  </data>
+  <data name="Site_Domain" xml:space="preserve">
+    <value>Домен</value>
+  </data>
+  <data name="Site_Primary" xml:space="preserve">
+    <value>основной</value>
+  </data>
+  <data name="Site_DomainActive" xml:space="preserve">
+    <value>Активен</value>
+  </data>
+  <data name="Site_DomainPending" xml:space="preserve">
+    <value>Ожидает DNS</value>
+  </data>
+  <data name="Site_Verify" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="Site_MakePrimary" xml:space="preserve">
+    <value>Сделать основным</value>
+  </data>
+  <data name="Site_DomainHint" xml:space="preserve">
+    <value>Для своего домена направьте в DNS запись CNAME (или A) на {0} и нажмите «Проверить». Сертификат выдаётся автоматически.</value>
+  </data>
+  <data name="Site_DomainFormat" xml:space="preserve">
+    <value>Неверный домен (например: shop.example.uz).</value>
+  </data>
+  <data name="Site_DomainReserved" xml:space="preserve">
+    <value>Этот домен зарезервирован для стандартных поддоменов.</value>
+  </data>
+  <data name="Site_DomainNoTarget" xml:space="preserve">
+    <value>Не настроен адрес сервера сайтов (SiteCnameTarget).</value>
+  </data>
+  <data name="Site_DomainNotPointing" xml:space="preserve">
+    <value>{0} ещё не указывает на {1} (обновление DNS может занять несколько часов).</value>
+  </data>
+  <data name="Site_Publish" xml:space="preserve">
+    <value>Опубликовать</value>
+  </data>
+  <data name="Site_Unpublish" xml:space="preserve">
+    <value>Снять с сайта</value>
+  </data>
+  <data name="Site_ImportAll" xml:space="preserve">
+    <value>Перенести старые фото</value>
+  </data>
+  <data name="Site_ImportAllHint" xml:space="preserve">
+    <value>Переносит фото из карточки товара (старые) в товары на сайте без фото.</value>
+  </data>
+  <data name="Site_State_all" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Site_State_published" xml:space="preserve">
+    <value>На сайте</value>
+  </data>
+  <data name="Site_State_unpublished" xml:space="preserve">
+    <value>Не на сайте</value>
+  </data>
+  <data name="Site_State_nophoto" xml:space="preserve">
+    <value>На сайте, без фото</value>
+  </data>
+  <data name="Site_State_nodesc" xml:space="preserve">
+    <value>На сайте, без описания</value>
+  </data>
+  <data name="Site_OnSite" xml:space="preserve">
+    <value>На сайте</value>
+  </data>
+  <data name="Site_Photos" xml:space="preserve">
+    <value>Фото</value>
+  </data>
+  <data name="Site_Updated" xml:space="preserve">
+    <value>Изменён</value>
+  </data>
+  <data name="Site_Categories" xml:space="preserve">
+    <value>Категории</value>
+  </data>
+  <data name="Site_Slug" xml:space="preserve">
+    <value>URL (slug)</value>
+  </data>
+  <data name="Site_PublishCategoryHint" xml:space="preserve">
+    <value>Опубликовать категорию и все её товары</value>
+  </data>
+  <data name="Site_UnpublishCategoryHint" xml:space="preserve">
+    <value>Снять с сайта все товары категории</value>
+  </data>
+  <data name="Site_CategoriesHint" xml:space="preserve">
+    <value>Категории берутся из категорий товаров ERP; здесь — название, описание и картинка на сайте.</value>
+  </data>
+  <data name="Site_NameUz" xml:space="preserve">
+    <value>Название (uz)</value>
+  </data>
+  <data name="Site_NameRu" xml:space="preserve">
+    <value>Название (ru)</value>
+  </data>
+  <data name="Site_DescriptionUz" xml:space="preserve">
+    <value>Описание (uz)</value>
+  </data>
+  <data name="Site_DescriptionRu" xml:space="preserve">
+    <value>Описание (ru)</value>
+  </data>
+  <data name="Site_SortOrder" xml:space="preserve">
+    <value>Порядок</value>
+  </data>
+  <data name="Site_Image" xml:space="preserve">
+    <value>Изображение</value>
+  </data>
+  <data name="Site_ViewOnSite" xml:space="preserve">
+    <value>Смотреть на сайте</value>
+  </data>
+  <data name="Site_TitleUz" xml:space="preserve">
+    <value>Заголовок (uz)</value>
+  </data>
+  <data name="Site_TitleRu" xml:space="preserve">
+    <value>Заголовок (ru)</value>
+  </data>
+  <data name="Site_TextHint" xml:space="preserve">
+    <value>Текст: пустая строка — новый абзац, строка с «- » — список, **жирный**. HTML не используется.</value>
+  </data>
+  <data name="Site_Attributes" xml:space="preserve">
+    <value>Характеристики</value>
+  </data>
+  <data name="Site_AttrName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Site_AttrValue" xml:space="preserve">
+    <value>Значение</value>
+  </data>
+  <data name="Site_Gallery" xml:space="preserve">
+    <value>Фотогалерея</value>
+  </data>
+  <data name="Site_NoPhotos" xml:space="preserve">
+    <value>Фото нет.</value>
+  </data>
+  <data name="Site_ImportLegacy" xml:space="preserve">
+    <value>Взять {0} фото из карточки</value>
+  </data>
+  <data name="Site_GalleryHint" xml:space="preserve">
+    <value>Первое фото — основное. JPG/PNG до 10 МБ; большие фото уменьшаются автоматически.</value>
+  </data>
+  <data name="Site_Display" xml:space="preserve">
+    <value>Отображение</value>
+  </data>
+  <data name="Site_Badges" xml:space="preserve">
+    <value>Метки</value>
+  </data>
+  <data name="Site_Badge_NEW" xml:space="preserve">
+    <value>Новинка</value>
+  </data>
+  <data name="Site_Badge_SALE" xml:space="preserve">
+    <value>Акция</value>
+  </data>
+  <data name="Site_Badge_HIT" xml:space="preserve">
+    <value>Хит</value>
+  </data>
+  <data name="Site_SlugFormat" xml:space="preserve">
+    <value>URL может содержать только латинские строчные буквы, цифры и «-».</value>
+  </data>
+  <data name="Site_SlugTaken" xml:space="preserve">
+    <value>Этот URL уже занят.</value>
+  </data>
+  <data name="Site_ImageTooBig" xml:space="preserve">
+    <value>Изображение не больше 10 МБ.</value>
+  </data>
+  <data name="Site_ImageInvalid" xml:space="preserve">
+    <value>Только изображения JPG или PNG.</value>
+  </data>
+  <data name="Site_ImageRequired" xml:space="preserve">
+    <value>Выберите изображение.</value>
+  </data>
+  <data name="Site_Pages" xml:space="preserve">
+    <value>Страницы</value>
+  </data>
+  <data name="Site_PagesHint" xml:space="preserve">
+    <value>Например: О нас, Доставка, Оплата. Отображаются в меню.</value>
+  </data>
+  <data name="Site_InMenu" xml:space="preserve">
+    <value>В меню</value>
+  </data>
+  <data name="Site_NewPage" xml:space="preserve">
+    <value>Новая страница</value>
+  </data>
+  <data name="Site_BodyUz" xml:space="preserve">
+    <value>Текст (uz)</value>
+  </data>
+  <data name="Site_BodyRu" xml:space="preserve">
+    <value>Текст (ru)</value>
+  </data>
+  <data name="Site_Banners" xml:space="preserve">
+    <value>Баннеры главной</value>
+  </data>
+  <data name="Site_BannersHint" xml:space="preserve">
+    <value>Рекомендуемый размер 1600×600; если указан срок — показывается только в эти дни.</value>
+  </data>
+  <data name="Site_Banner" xml:space="preserve">
+    <value>Баннер</value>
+  </data>
+  <data name="Site_BannerSize" xml:space="preserve">
+    <value>1600×600 px, JPG/PNG.</value>
+  </data>
+  <data name="Site_SubtitleUz" xml:space="preserve">
+    <value>Подзаголовок (uz)</value>
+  </data>
+  <data name="Site_SubtitleRu" xml:space="preserve">
+    <value>Подзаголовок (ru)</value>
+  </data>
+  <data name="Site_Link" xml:space="preserve">
+    <value>Ссылка</value>
+  </data>
+  <data name="Site_LinkFormat" xml:space="preserve">
+    <value>Ссылка должна начинаться с «/» или https://.</value>
+  </data>
+  <data name="Site_From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Site_To" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Site_Lead" xml:space="preserve">
+    <value>Заявка</value>
+  </data>
+  <data name="Site_Items" xml:space="preserve">
+    <value>Товары</value>
+  </data>
+  <data name="Site_Company" xml:space="preserve">
+    <value>Организация</value>
+  </data>
+  <data name="Site_RejectReason" xml:space="preserve">
+    <value>Причина отказа</value>
+  </data>
+  <data name="Site_CreateOrder" xml:space="preserve">
+    <value>Создать заказ</value>
+  </data>
+  <data name="Site_NewCustomer" xml:space="preserve">
+    <value>➕ Новый клиент</value>
+  </data>
+  <data name="Site_CustomerMatchHint" xml:space="preserve">
+    <value>Клиенты, найденные по телефону. Новый клиент создаётся неподтверждённым.</value>
+  </data>
+  <data name="Site_Reject" xml:space="preserve">
+    <value>Отклонить</value>
+  </data>
+  <data name="Site_LeadsDisabled" xml:space="preserve">
+    <value>Заявки с сайта не принимаются.</value>
+  </data>
+  <data name="Site_ProductUnavailable" xml:space="preserve">
+    <value>Товар недоступен на сайте.</value>
+  </data>
+  <data name="Site_LeadRejected" xml:space="preserve">
+    <value>Заявка отклонена.</value>
+  </data>
+  <data name="Site_LeadNoItems" xml:space="preserve">
+    <value>В заявке нет товаров — свяжитесь с клиентом.</value>
+  </data>
+  <data name="Site_LeadAlreadyOrdered" xml:space="preserve">
+    <value>По заявке уже создан заказ.</value>
+  </data>
+  <data name="Site_LeadOrderComment" xml:space="preserve">
+    <value>Заявка с сайта №{0}</value>
+  </data>
 </root>

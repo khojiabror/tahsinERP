@@ -82,6 +82,7 @@ namespace tahsinERP.Controllers
             ViewBag.ModuleName = EditionModules.DisplayName(m);
             ViewBag.EditionName = EditionModules.EditionDisplayName(edition) ?? "-";
             ViewBag.RequiredEdition = EditionModules.EditionDisplayName(EditionModules.CheapestEditionWith(m));
+            ViewBag.IsAddOn = EditionModules.IsAddOn(m);
             ViewBag.CanManage = CanManage();
             return View();
         }

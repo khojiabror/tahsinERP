@@ -1,0 +1,110 @@
+@model SiteLead
+@{
+    ViewBag.Title = DstLocalization.T("Site_Lead") + " №" + Model.ID;
+    bool canChange = ViewBag.DstCanChange == true;
+    var items = (List<LeadItem>)ViewBag.Items;
+    var matches = (List<(int Id, string Name)>)ViewBag.Matches;
+    bool open = Model.Status == (byte)LeadStatus.New || Model.Status == (byte)LeadStatus.Seen;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">@ViewBag.Title</h4>
+                            @Html.Partial("_LeadStatus", Model.Status)
+                        </div>
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-3">@DstLocalization.T("Date")</dt><dd class="col-sm-9">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+                                <dt class="col-sm-3">@DstLocalization.T("Name")</dt><dd class="col-sm-9">@Model.Name</dd>
+                                <dt class="col-sm-3">@DstLocalization.T("Phone")</dt><dd class="col-sm-9"><a href="tel:@Model.Phone">@Model.Phone</a></dd>
+                                @if (Model.CompanyName != null) { <dt class="col-sm-3">@DstLocalization.T("Site_Company")</dt><dd class="col-sm-9">@Model.CompanyName</dd> }
+                                @if (Model.INN != null) { <dt class="col-sm-3">@DstLocalization.T("INN")</dt><dd class="col-sm-9">@Model.INN</dd> }
+                                @if (Model.Message != null) { <dt class="col-sm-3">@DstLocalization.T("Comment")</dt><dd class="col-sm-9" style="white-space:pre-wrap">@Model.Message</dd> }
+                                <dt class="col-sm-3">@DstLocalization.T("Language")</dt><dd class="col-sm-9">@Model.Language · @Model.Host</dd>
+                                @if (Model.RejectReason != null) { <dt class="col-sm-3">@DstLocalization.T("Site_RejectReason")</dt><dd class="col-sm-9">@Model.RejectReason</dd> }
+                                @if (Model.OrderID.HasValue)
+                                {
+                                    <dt class="col-sm-3">@DstLocalization.T("Order")</dt>
+                                    <dd class="col-sm-9"><a href="@Url.Action("Details", "DstOrders", new { area = "Distribution", id = Model.OrderID })">@ViewBag.OrderNo</a> · @ViewBag.CustomerName</dd>
+                                }
+                            </dl>
+                            @if (items.Count > 0)
+                            {
+                                <table class="table table-sm mt-1 mb-0">
+                                    <thead><tr><th>@DstLocalization.T("Article")</th><th>@DstLocalization.T("Name")</th><th class="text-right">@DstLocalization.T("Qty")</th><th class="text-right">@DstLocalization.T("Price")</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var i in items)
+                                        {
+                                            <tr>
+                                                <td>@i.Sku</td><td>@i.Name</td>
+                                                <td class="text-right text-nowrap">@i.Qty.ToString("0.###") @i.Unit</td>
+                                                <td class="text-right">@(i.Price.HasValue ? i.Price.Value.ToString("N0") : "—")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    @if (canChange && open)
+                    {
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_CreateOrder")</h4></div>
+                            <div class="card-body">
+                                @if (items.Count == 0)
+                                {
+                                    <p class="text-muted">@DstLocalization.T("Site_LeadNoItems")</p>
+                                }
+                                else
+                                {
+                                    <div class="form-group">
+                                        <label>@DstLocalization.T("Customer")</label>
+                                        <select class="form-control" id="customer">
+                                            @foreach (var m in matches) { <option value="@m.Id">@m.Name</option> }
+                                            <option value="">@DstLocalization.T("Site_NewCustomer")</option>
+                                        </select>
+                                        <small class="text-muted">@DstLocalization.T("Site_CustomerMatchHint")</small>
+                                    </div>
+                                    <button type="button" class="btn btn-success btn-block" id="convert"><i class="bx bx-cart-add"></i> @DstLocalization.T("Site_CreateOrder")</button>
+                                }
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-group"><label>@DstLocalization.T("Site_RejectReason")</label><input class="form-control" id="reason" maxlength="300" /></div>
+                                <button type="button" class="btn btn-outline-danger btn-block" id="reject">@DstLocalization.T("Site_Reject")</button>
+                            </div>
+                        </div>
+                    }
+                    <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('#convert').on('click', function () {
+                var b = $(this).prop('disabled', true);
+                dstPost('@Url.Action("Convert")', { id: @Model.ID, customerId: $('#customer').val() || null })
+                    .done(function (r) { location.href = r.url; })
+                    .fail(function () { b.prop('disabled', false); });
+            });
+            $('#reject').on('click', function () {
+                dstPost('@Url.Action("Reject")', { id: @Model.ID, reason: $('#reason').val() }).done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

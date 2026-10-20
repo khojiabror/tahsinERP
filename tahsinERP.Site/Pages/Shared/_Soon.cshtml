@@ -1,0 +1,22 @@
+@{
+    Layout = null;
+    var s = Site.Catalog.Settings;
+}
+<!DOCTYPE html>
+<html lang="@Site.Lang">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>@Site.SiteName</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
+</head>
+<body>
+    <main class="container page narrow center soon">
+        <h1>@Site.SiteName</h1>
+        <p class="lead">@Site.T("SoonTitle")</p>
+        <p class="muted">@Site.T("SoonText")</p>
+        @if (s.Phone != null) { <a class="btn btn-primary btn-lg" href="tel:@s.Phone">@s.Phone</a> }
+    </main>
+</body>
+</html>

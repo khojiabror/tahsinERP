@@ -117,6 +117,18 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<AgentDay> AgentDays { get; set; }
         public virtual DbSet<Visit> Visits { get; set; }
 
+        // sayt-katalog (021_SITE, Areas/Site)
+        public virtual DbSet<Site.Data.SiteSetting> SiteSettings { get; set; }
+        public virtual DbSet<Site.Data.SiteDomain> SiteDomains { get; set; }
+        public virtual DbSet<Site.Data.SiteMedia> SiteMedia { get; set; }
+        public virtual DbSet<Site.Data.SiteCategoryContent> SiteCategories { get; set; }
+        public virtual DbSet<Site.Data.SiteProductContent> SiteProducts { get; set; }
+        public virtual DbSet<Site.Data.SiteProductAttribute> SiteProductAttributes { get; set; }
+        public virtual DbSet<Site.Data.SiteProductMedia> SiteProductMedia { get; set; }
+        public virtual DbSet<Site.Data.SitePage> SitePages { get; set; }
+        public virtual DbSet<Site.Data.SiteBanner> SiteBanners { get; set; }
+        public virtual DbSet<Site.Data.SiteLead> SiteLeads { get; set; }
+
         // dbo jadvallari — faqat o'qish (join uchun)
         public virtual DbSet<FinAccountRef> FinAccounts { get; set; }
         public virtual DbSet<StockRef> Stocks { get; set; }
@@ -184,6 +196,21 @@ namespace tahsinERP.Areas.Distribution.Data
             pu.Property(e => e.VolumeM3).HasPrecision(18, 6);
 
             modelBuilder.Entity<ProductBarcode>().Property(e => e.Barcode).IsUnicode(false);
+
+            modelBuilder.Entity<Site.Data.SiteSetting>().Property(e => e.Key).IsUnicode(false);
+            modelBuilder.Entity<Site.Data.SiteDomain>().Property(e => e.Host).IsUnicode(false);
+            var sm = modelBuilder.Entity<Site.Data.SiteMedia>();
+            sm.Property(e => e.ContentType).IsUnicode(false);
+            sm.Property(e => e.Hash).IsUnicode(false).IsFixedLength();
+            modelBuilder.Entity<Site.Data.SiteCategoryContent>().Property(e => e.Slug).IsUnicode(false);
+            modelBuilder.Entity<Site.Data.SiteProductContent>().Property(e => e.Slug).IsUnicode(false);
+            modelBuilder.Entity<Site.Data.SiteProductContent>().Property(e => e.Badges).IsUnicode(false);
+            modelBuilder.Entity<Site.Data.SitePage>().Property(e => e.Slug).IsUnicode(false);
+            var lead = modelBuilder.Entity<Site.Data.SiteLead>();
+            lead.Property(e => e.Phone).IsUnicode(false);
+            lead.Property(e => e.INN).IsUnicode(false);
+            lead.Property(e => e.Language).IsUnicode(false);
+            lead.Property(e => e.Host).IsUnicode(false);
             modelBuilder.Entity<PriceListItem>().Property(e => e.Price).HasPrecision(19, 2);
             modelBuilder.Entity<PriceListItem>().Property(e => e.MinPrice).HasPrecision(19, 2);
             modelBuilder.Entity<CustomerPrice>().Property(e => e.Price).HasPrecision(19, 2);

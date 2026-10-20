@@ -1,0 +1,30 @@
+@model SnapshotProduct
+@{
+    var name = CatalogIndex.Name(Model, Site.Lang);
+    var url = Site.Url("/p/" + Model.Slug);
+    var eager = ViewData["eager"] is true;
+    var unit = Ui.DefaultUnit(Model);
+}
+<article class="card" data-product='@Ui.ProductData(Site, Model)'>
+    <div class="card-media">
+        @Ui.Image(Site, Model.Media?.FirstOrDefault()?.Id, name, "(min-width:1280px) 20vw, (min-width:768px) 30vw, 50vw", [200, 400, 600], eager)
+        @Ui.Badges(Site, Model)
+        @if (Model.StockStatus == "out")
+        {
+            <span class="card-out">@Site.T("StockOut")</span>
+        }
+    </div>
+    <div class="card-body">
+        <h3 class="card-title"><a href="@url" class="stretched">@name</a></h3>
+        <div class="card-meta">
+            <span class="sku">@Model.Sku</span>
+            @Ui.Stock(Site, Model)
+        </div>
+        <div class="card-foot">
+            @Ui.Price(Site, Model)
+            <button type="button" class="btn-add" data-add data-unit="@unit?.Id" aria-label="@Site.T("AddToCart"): @name">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
+        </div>
+    </div>
+</article>

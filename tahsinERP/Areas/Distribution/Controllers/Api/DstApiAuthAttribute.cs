@@ -24,6 +24,9 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         public const string EnvKey = "TAHSINERP_BOT_KEY";
         public const string ActingUserIdItem = "DstApi.ActingUserId";
 
+        /// <summary>Qo'shimcha xizmat/modul talab qilinsa (masalan "Website") — paketda bo'lmasa 403 Edition.</summary>
+        public string RequiredModule { get; set; }
+
         public static string MasterKey()
         {
             var key = Environment.GetEnvironmentVariable(EnvKey);
@@ -71,6 +74,12 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                 http.Response.TrySkipIisCustomErrors = true;
                 http.Response.AddHeader("X-License-Message", Uri.EscapeDataString(license.Message ?? ""));
                 filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden, "License");
+                return;
+            }
+            if (!string.IsNullOrEmpty(RequiredModule) && Enum.TryParse(RequiredModule, out tahsinERP.Services.Editions.ProductModule module)
+                && !tahsinERP.Services.Editions.EditionModules.IsModuleAllowed(tahsinERP.Services.Editions.EditionGate.CurrentEdition, module))
+            {
+                filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Edition");
                 return;
             }
 

@@ -1,0 +1,17 @@
+@page "/_status/{code:int}"
+@model StatusModel
+@{
+    ViewData["Page"] = Model;
+}
+<div class="container page narrow center">
+    <p class="muted big-code">@Model.Code</p>
+    <h1>@Model.T("NotFoundTitle")</h1>
+    <p class="lead">@Model.T("NotFoundText")</p>
+    <form class="search search-lg" action="@Site.Url("/search")" method="get" role="search">
+        <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+        <input type="search" name="q" placeholder="@Model.T("SearchPlaceholder")" aria-label="@Model.T("Search")">
+    </form>
+    <p><a class="btn btn-outline" href="@Site.Url("/")">@Model.T("Home")</a></p>
+</div>
+@functions {
+}

@@ -1,0 +1,172 @@
+@{
+    var P = ViewData["Page"] as SitePageModel;
+    var c = Site.Catalog;
+    var s = c.Settings;
+    var origin = Seo.Origin(Context.Request);
+    var color = s.PrimaryColor is { Length: 7 } pc && pc[0] == '#' && pc.Skip(1).All(Uri.IsHexDigit) ? pc : "#111827";
+    var fonts = new Dictionary<string, string>
+    {
+        ["Inter"] = "Inter:wght@400;500;600", ["Geist"] = "Geist:wght@400;500;600", ["Manrope"] = "Manrope:wght@400;500;600",
+        ["Roboto"] = "Roboto:wght@400;500;700", ["Montserrat"] = "Montserrat:wght@400;500;600", ["Nunito Sans"] = "Nunito+Sans:wght@400;600;700"
+    };
+    var font = s.Font != null && fonts.ContainsKey(s.Font) ? s.Font : "Inter";
+    var radius = Math.Clamp(s.Radius, 0, 24);
+    var title = P?.Title ?? Site.SiteName;
+    var menuCats = c.Categories.Take(6).ToList();
+    var pages = (c.Snapshot.Pages ?? []).Where(p => p.ShowInMenu).ToList();
+    SnapshotMedia? logo = s.LogoMediaId is int lid && c.Media.TryGetValue(lid, out var lm) ? lm : null;
+    var other = Site.OtherLang;
+    string switchUrl = "/" + other + (P?.CanonicalPath ?? "/");
+}
+<!DOCTYPE html>
+<html lang="@Site.Lang" style="--primary:@color;--radius:@(radius)px;--font:'@font'" data-ga="@s.AnalyticsId" data-metrika="@s.MetrikaId">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>@title</title>
+    @if (!string.IsNullOrEmpty(P?.MetaDescription)) { <meta name="description" content="@P.MetaDescription"> }
+    @if (P?.NoIndex == true) { <meta name="robots" content="noindex"> }
+    @if (P?.CanonicalPath != null)
+    {
+        <link rel="canonical" href="@(origin + "/" + Site.Lang + P.CanonicalPath)">
+        foreach (var l in c.Languages) { <link rel="alternate" hreflang="@l" href="@(origin + "/" + l + P.CanonicalPath)"> }
+        <link rel="alternate" hreflang="x-default" href="@(origin + "/" + c.DefaultLanguage + P.CanonicalPath)">
+    }
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="@Site.SiteName">
+    <meta property="og:title" content="@title">
+    @if (!string.IsNullOrEmpty(P?.MetaDescription)) { <meta property="og:description" content="@P.MetaDescription"> }
+    @if (P?.OgImage != null) { <meta property="og:image" content="@(origin + P.OgImage)"> }
+    <meta name="theme-color" content="#ffffff">
+    @if (logo != null) { <link rel="icon" href="@MediaCache.Url(logo, 200)"> }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=@(fonts[font])&display=swap">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+    <a class="skip" href="#main">@T.Get(Site.Lang, "Catalog")</a>
+    <header class="nav" id="nav">
+        <div class="container nav-row">
+            <button class="icon-btn mobile-only" type="button" data-menu-open aria-label="@Site.T("Menu")">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            </button>
+            <a class="brand" href="@Site.Url("/")">
+                @if (logo != null)
+                {
+                    <img src="@MediaCache.Url(logo, 400)" alt="@Site.SiteName" height="32" style="aspect-ratio:@logo.Width/@logo.Height">
+                }
+                else
+                {
+                    <span>@Site.SiteName</span>
+                }
+            </a>
+            <nav class="quick-links desktop-only" aria-label="@Site.T("Categories")">
+                <a href="@Site.Url("/catalog")">@Site.T("Catalog")</a>
+                @foreach (var cat in menuCats.Take(4))
+                {
+                    <a href="@Site.Url("/c/" + cat.Slug)">@CatalogIndex.Name(cat, Site.Lang)</a>
+                }
+            </nav>
+            <div class="nav-actions">
+                <form class="search desktop-only" action="@Site.Url("/search")" method="get" role="search">
+                    <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                    <input type="search" name="q" placeholder="@Site.T("SearchPlaceholder")" aria-label="@Site.T("Search")" value="@Context.Request.Query["q"]" autocomplete="off">
+                </form>
+                <a class="icon-btn mobile-only" href="@Site.Url("/search")" aria-label="@Site.T("Search")">
+                    <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                </a>
+                @if (c.Languages.Count > 1)
+                {
+                    <a class="lang-switch" href="@switchUrl" hreflang="@other" lang="@other">@other.ToUpperInvariant()</a>
+                }
+                <a class="icon-btn cart-link" href="@Site.Url("/cart")" aria-label="@Site.T("Cart")">
+                    <svg viewBox="0 0 24 24" class="icon"><path d="M6 7h12l-1 13H7L6 7Z" /><path d="M9 7a3 3 0 0 1 6 0" /></svg>
+                    <span class="cart-count" data-cart-count hidden>0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="drawer" id="menu" hidden>
+        <div class="drawer-backdrop" data-menu-close></div>
+        <aside class="drawer-panel" aria-label="@Site.T("Menu")">
+            <div class="drawer-head">
+                <span class="brand-text">@Site.SiteName</span>
+                <button class="icon-btn" type="button" data-menu-close aria-label="@Site.T("Close")"><svg viewBox="0 0 24 24" class="icon"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+            </div>
+            <form class="search search-block" action="@Site.Url("/search")" method="get" role="search">
+                <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                <input type="search" name="q" placeholder="@Site.T("SearchPlaceholder")" aria-label="@Site.T("Search")">
+            </form>
+            <nav class="drawer-links">
+                <a href="@Site.Url("/catalog")"><b>@Site.T("AllProducts")</b></a>
+                @foreach (var cat in c.Categories) { <a href="@Site.Url("/c/" + cat.Slug)">@CatalogIndex.Name(cat, Site.Lang)</a> }
+                @foreach (var p in pages) { <a class="muted" href="@Site.Url("/page/" + p.Slug)">@(Site.Lang == "ru" ? p.TitleRu ?? p.TitleUz : p.TitleUz)</a> }
+            </nav>
+        </aside>
+    </div>
+
+    <main id="main">
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="brand-text">@Site.SiteName</div>
+                    @if (s.Tagline != null) { <p class="muted">@s.Tagline</p> }
+                    <div class="social">
+                        @foreach (var (name, url) in new[] { ("Telegram", Social.Telegram(s.Telegram)), ("Instagram", Social.Instagram(s.Instagram)), ("Facebook", Social.Facebook(s.Facebook)) })
+                        {
+                            if (url != null) { <a href="@url" target="_blank" rel="noopener">@name</a> }
+                        }
+                    </div>
+                </div>
+                <div>
+                    <h3>@Site.T("Catalog")</h3>
+                    <ul>
+                        @foreach (var cat in c.Categories.Take(8)) { <li><a href="@Site.Url("/c/" + cat.Slug)">@CatalogIndex.Name(cat, Site.Lang)</a></li> }
+                        <li><a href="@Site.Url("/catalog")">@Site.T("AllProducts")</a></li>
+                    </ul>
+                </div>
+                @if (pages.Count > 0)
+                {
+                    <div>
+                        <h3>@Site.T("Info")</h3>
+                        <ul>@foreach (var p in pages) { <li><a href="@Site.Url("/page/" + p.Slug)">@(Site.Lang == "ru" ? p.TitleRu ?? p.TitleUz : p.TitleUz)</a></li> }</ul>
+                    </div>
+                }
+                <div>
+                    <h3>@Site.T("Contacts")</h3>
+                    <ul class="contacts">
+                        @if (s.Phone != null) { <li><a href="tel:@s.Phone">@s.Phone</a></li> }
+                        @if (s.Phone2 != null) { <li><a href="tel:@s.Phone2">@s.Phone2</a></li> }
+                        @if (s.Email != null) { <li><a href="mailto:@s.Email">@s.Email</a></li> }
+                        @if (s.Address != null) { <li class="muted">@s.Address</li> }
+                        @if (s.WorkingHours != null) { <li class="muted">@s.WorkingHours</li> }
+                        @if (s.MapLat.HasValue && s.MapLng.HasValue)
+                        {
+                            <li><a href="https://yandex.uz/maps/?pt=@(s.MapLng.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(s.MapLat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))&z=16&l=map" target="_blank" rel="noopener">@Site.T("OpenMap") ↗</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom muted">
+                <span>© @DateTime.Now.Year @Site.SiteName. @Site.T("Rights")</span>
+                <span>@Site.T("PoweredBy")</span>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <script src="~/js/site.js" asp-append-version="true" data-lang="@Site.Lang" data-added="@Site.T("Added")" data-tenant="@Site.Tenant!.Slug" defer></script>
+    @if (!string.IsNullOrEmpty(s.AnalyticsId) || !string.IsNullOrEmpty(s.MetrikaId))
+    {
+        <script src="~/js/analytics.js" asp-append-version="true" defer></script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

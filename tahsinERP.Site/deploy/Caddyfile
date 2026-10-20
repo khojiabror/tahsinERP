@@ -1,0 +1,24 @@
+# /etc/caddy/Caddyfile — sayt-katalog: barcha kompaniya saytlari bitta servisda (127.0.0.1:5200).
+# Sertifikatlar avtomatik (Let's Encrypt): standart subdomenlar ({slug}.tahsin.uz) va kompaniyaning o'z domenlari.
+# on_demand_tls: sertifikat faqat sayt servisi "bu domen bizniki" desa beriladi (/_tls/allowed) — begona domenlar uchun emas.
+{
+	on_demand_tls {
+		ask http://127.0.0.1:5200/_tls/allowed
+	}
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:5200 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+	request_body {
+		max_size 1MB
+	}
+}
+
+# DNS: *.tahsin.uz → A (server IP); kompaniya domeni → CNAME sites.tahsin.uz (ERP web.config: SiteBaseDomain, SiteCnameTarget).

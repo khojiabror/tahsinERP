@@ -1,0 +1,35 @@
+@model string
+@* Sayt admin sahifalari sarlavhasi va bo'limlar menyusi. Model — sahifa nomi. *@
+@{
+    var current = (string)ViewContext.RouteData.Values["controller"];
+    var tabs = new[]
+    {
+        new { C = "SiteHome", K = "Site_Dashboard", I = "bx-home-alt" },
+        new { C = "SiteCatalog", K = "Site_Catalog", I = "bx-package" },
+        new { C = "SitePages", K = "Site_PagesBanners", I = "bx-file" },
+        new { C = "SiteLeads", K = "Site_Leads", I = "bx-envelope" },
+        new { C = "SiteSettings", K = "Settings", I = "bx-cog" }
+    };
+}
+<div class="content-header row">
+    <div class="content-header-left col-12 mb-1 mt-1">
+        <div class="breadcrumb-wrapper">
+            <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
+                <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "SiteHome", new { area = "Site" })">@DstLocalization.T("Site_Title")</a></li>
+                <li class="breadcrumb-item active">@Model</li>
+            </ol>
+        </div>
+    </div>
+</div>
+<ul class="nav nav-pills mb-1">
+    @foreach (var t in tabs)
+    {
+        if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, t.C, "Index"))
+        {
+            <li class="nav-item">
+                <a class="nav-link @(t.C == current ? "active" : "")" href="@Url.Action("Index", t.C, new { area = "Site" })"><i class="bx @t.I"></i> @DstLocalization.T(t.K)</a>
+            </li>
+        }
+    }
+</ul>

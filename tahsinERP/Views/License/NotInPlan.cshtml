@@ -17,7 +17,14 @@
                             <p class="text-muted mb-50">
                                 <b>@ViewBag.ModuleName</b> moduli joriy <b>@ViewBag.EditionName</b> paketiga kirmaydi.
                             </p>
-                            <p class="text-muted">Bu modul <b>@ViewBag.RequiredEdition</b> paketidan boshlab mavjud.</p>
+                            @if (ViewBag.IsAddOn == true)
+                            {
+                                <p class="text-muted">Bu modul paketlarga kirmaydi — alohida xizmat sifatida ulanadi.</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Bu modul <b>@ViewBag.RequiredEdition</b> paketidan boshlab mavjud.</p>
+                            }
                             @if (canManage)
                             {
                                 <a href="@Url.Action("Index", "License")" class="btn btn-primary">Litsenziya va tarif</a>

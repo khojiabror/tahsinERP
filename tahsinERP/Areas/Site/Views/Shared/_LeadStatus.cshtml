@@ -1,0 +1,8 @@
+@model byte
+@switch ((LeadStatus)Model)
+{
+    case LeadStatus.New: <span class="badge badge-light-primary">@DstLocalization.T("Site_LeadNew")</span> break;
+    case LeadStatus.Seen: <span class="badge badge-light-info">@DstLocalization.T("Site_LeadSeen")</span> break;
+    case LeadStatus.Ordered: <span class="badge badge-light-success">@DstLocalization.T("Site_LeadOrdered")</span> break;
+    default: <span class="badge badge-light-secondary">@DstLocalization.T("Site_LeadRejectedStatus")</span> break;
+}

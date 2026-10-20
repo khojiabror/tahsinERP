@@ -1,0 +1,49 @@
+@model SitePage
+@{
+    ViewBag.Title = Model.ID == 0 ? DstLocalization.T("Site_NewPage") : Model.TitleUz;
+    bool canChange = ViewBag.DstCanChange == true;
+    string dis = canChange ? "" : "disabled";
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-6"><label>@DstLocalization.T("Site_TitleUz")</label><input class="form-control" id="tUz" maxlength="150" value="@Model.TitleUz" @dis /></div>
+                        <div class="form-group col-md-6"><label>@DstLocalization.T("Site_TitleRu")</label><input class="form-control" id="tRu" maxlength="150" value="@Model.TitleRu" @dis /></div>
+                        <div class="form-group col-md-6"><label>@DstLocalization.T("Site_BodyUz")</label><textarea class="form-control" id="bUz" rows="14" @dis>@Model.BodyUz</textarea></div>
+                        <div class="form-group col-md-6"><label>@DstLocalization.T("Site_BodyRu")</label><textarea class="form-control" id="bRu" rows="14" @dis>@Model.BodyRu</textarea></div>
+                        <div class="form-group col-md-4"><label>@DstLocalization.T("Site_Slug")</label><input class="form-control" id="slug" value="@Model.Slug" placeholder="biz-haqimizda" @dis /></div>
+                        <div class="form-group col-md-2"><label>@DstLocalization.T("Site_SortOrder")</label><input type="number" class="form-control" id="sort" value="@Model.SortOrder" @dis /></div>
+                    </div>
+                    <p class="small text-muted">@DstLocalization.T("Site_TextHint")</p>
+                    <div class="custom-control custom-switch custom-control-inline"><input type="checkbox" class="custom-control-input" id="pub" @(Model.IsPublished ? "checked" : "") @dis /><label class="custom-control-label" for="pub">@DstLocalization.T("Site_OnSite")</label></div>
+                    <div class="custom-control custom-switch custom-control-inline"><input type="checkbox" class="custom-control-input" id="menu" @(Model.ShowInMenu ? "checked" : "") @dis /><label class="custom-control-label" for="menu">@DstLocalization.T("Site_InMenu")</label></div>
+                </div>
+            </div>
+            <div class="mb-2">
+                <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                @if (canChange) { <button type="button" class="btn btn-primary" id="save"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button> }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('#save').on('click', function () {
+                dstPost('@Url.Action("SavePage")', {
+                    id: @(Model.ID == 0 ? "null" : Model.ID.ToString()), slug: $('#slug').val(), titleUz: $('#tUz').val(), titleRu: $('#tRu').val(),
+                    bodyUz: $('#bUz').val(), bodyRu: $('#bRu').val(), isPublished: $('#pub').is(':checked'), showInMenu: $('#menu').is(':checked'),
+                    sortOrder: $('#sort').val() || 0
+                }).done(function (r) { location.href = '@Url.Action("Edit")/' + r.id; });
+            });
+        });
+    </script>
+}

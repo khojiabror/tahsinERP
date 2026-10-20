@@ -1,0 +1,205 @@
+@using tahsinERP.Areas.Site.Controllers
+@{
+    ViewBag.Title = DstLocalization.T("Site_Catalog");
+    bool canChange = ViewBag.DstCanChange == true;
+    var categories = (List<(int Id, string Name, bool Published)>)ViewBag.Categories;
+    var rows = (List<SiteCatalogController.CategoryRow>)ViewBag.CategoryContent;
+    string state = Request.QueryString["state"];
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_SiteHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">@DstLocalization.T("Products")</h4>
+                    @if (canChange)
+                    {
+                        <div>
+                            <button type="button" class="btn btn-sm btn-success" id="pubSelected"><i class="bx bx-show"></i> @DstLocalization.T("Site_Publish")</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="unpubSelected"><i class="bx bx-hide"></i> @DstLocalization.T("Site_Unpublish")</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="importAll" title="@DstLocalization.T("Site_ImportAllHint")"><i class="bx bx-images"></i> @DstLocalization.T("Site_ImportAll")</button>
+                        </div>
+                    }
+                </div>
+                <div class="card-body">
+                    <form id="filter" class="form-row mb-1">
+                        <div class="col-md-4 mb-50">
+                            <select name="categoryId" class="form-control form-control-sm">
+                                <option value="">@DstLocalization.T("All_Categories")</option>
+                                @foreach (var c in categories) { <option value="@c.Id">@c.Name</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-50">
+                            <select name="state" class="form-control form-control-sm">
+                                @foreach (var st in new[] { "", "published", "unpublished", "nophoto", "nodesc" })
+                                {
+                                    <option value="@st" @(st == (state ?? "") ? "selected" : "")>@DstLocalization.T("Site_State_" + (st == "" ? "all" : st))</option>
+                                }
+                            </select>
+                        </div>
+                    </form>
+                    <table id="productsTable" class="table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th style="width:24px"><input type="checkbox" id="checkAll" /></th>
+                                <th>@DstLocalization.T("Article")</th>
+                                <th>@DstLocalization.T("Name")</th>
+                                <th>@DstLocalization.T("Category")</th>
+                                <th>@DstLocalization.T("Site_OnSite")</th>
+                                <th>@DstLocalization.T("Site_Photos")</th>
+                                <th>@DstLocalization.T("Site_Updated")</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="categories">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Site_Categories")</h4></div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Category")</th><th>@DstLocalization.T("Site_Slug")</th>
+                                <th class="text-right">@DstLocalization.T("Site_PublishedProducts")</th><th>@DstLocalization.T("Site_OnSite")</th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in rows)
+                            {
+                                var c = r.Content;
+                                <tr>
+                                    <td>
+                                        @if (c?.MediaID != null) { <img src="@Url.Action("Image", new { id = c.MediaID })" alt="" style="width:32px;height:32px;object-fit:cover" class="rounded mr-50" /> }
+                                        @(c?.NameUz ?? r.Name)
+                                    </td>
+                                    <td class="text-muted small">@(c?.Slug ?? "—")</td>
+                                    <td class="text-right">@r.Published / @r.Products</td>
+                                    <td>@if (c != null && c.IsPublished) { <span class="badge badge-light-success">@DstLocalization.T("Yes")</span> } else { <span class="badge badge-light-secondary">@DstLocalization.T("No")</span> }</td>
+                                    <td class="text-right text-nowrap">
+                                        @if (canChange)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success" data-pubcat="@r.ID" data-publish="true" title="@DstLocalization.T("Site_PublishCategoryHint")"><i class="bx bx-show"></i></button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-pubcat="@r.ID" data-publish="false" title="@DstLocalization.T("Site_UnpublishCategoryHint")"><i class="bx bx-hide"></i></button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-editcat="@r.ID" data-name="@r.Name"
+                                                    data-content="@(c == null ? "" : Newtonsoft.Json.JsonConvert.SerializeObject(new { c.IsPublished, c.Slug, c.NameUz, c.NameRu, c.DescriptionUz, c.DescriptionRu, c.SortOrder, c.SeoTitle, c.SeoDescription }))"><i class="bx bx-edit-alt"></i></button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p class="small text-muted mb-0">@DstLocalization.T("Site_CategoriesHint")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="catModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="catTitle"></h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="cId" />
+                <div class="form-row">
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_NameUz")</label><input class="form-control" id="cNameUz" maxlength="150" /></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_NameRu")</label><input class="form-control" id="cNameRu" maxlength="150" /></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_DescriptionUz")</label><textarea class="form-control" id="cDescUz" rows="3" maxlength="2000"></textarea></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_DescriptionRu")</label><textarea class="form-control" id="cDescRu" rows="3" maxlength="2000"></textarea></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_Slug")</label><input class="form-control" id="cSlug" /></div>
+                    <div class="form-group col-md-3"><label>@DstLocalization.T("Site_SortOrder")</label><input type="number" class="form-control" id="cSort" value="0" /></div>
+                    <div class="form-group col-md-3">
+                        <label>@DstLocalization.T("Site_Image")</label>
+                        <input type="file" class="form-control-file" id="cImage" accept="image/png,image/jpeg" />
+                    </div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_SeoTitle")</label><input class="form-control" id="cSeoTitle" maxlength="150" /></div>
+                    <div class="form-group col-md-6"><label>@DstLocalization.T("Site_SeoDescription")</label><input class="form-control" id="cSeoDesc" maxlength="300" /></div>
+                </div>
+                <div class="custom-control custom-switch"><input type="checkbox" class="custom-control-input" id="cPublished" /><label class="custom-control-label" for="cPublished">@DstLocalization.T("Site_OnSite")</label></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="cSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var editUrl = '@Url.Action("Edit")/';
+            var table = dstServerTable('#productsTable', {
+                dataUrl: '@Url.Action("ProductsData")',
+                filterForm: '#filter',
+                order: [[2, 'asc']],
+                columns: [
+                    { data: 'id', orderable: false, render: function (v) { return '<input type="checkbox" class="row-check" value="' + v + '" />'; } },
+                    { data: 'pno', render: dstEsc },
+                    { data: 'name', render: function (v, t, r) {
+                        var s = '<a href="' + editUrl + r.id + '">' + dstEsc(v) + '</a>';
+                        if (r.slug) s += '<div class="small text-muted">/' + dstEsc(r.slug) + '</div>';
+                        return s;
+                    } },
+                    { data: 'category', render: dstEsc },
+                    { data: 'published', render: function (v, t, r) {
+                        var s = v ? '<span class="badge badge-light-success">@DstLocalization.T("Yes")</span>' : '<span class="badge badge-light-secondary">@DstLocalization.T("No")</span>';
+                        if (v && !r.hasDescription) s += ' <span class="badge badge-light-warning">@DstLocalization.T("Site_NoDescriptionShort")</span>';
+                        return s;
+                    } },
+                    { data: 'photos', className: 'text-right', render: function (v, t, r) { return r.published && !v ? '<span class="text-warning">0</span>' : v; } },
+                    { data: 'updated', render: dstEsc }
+                ]
+            });
+            $('#checkAll').on('change', function () { $('.row-check').prop('checked', this.checked); });
+            function selected() { return $('.row-check:checked').map(function () { return +this.value; }).get(); }
+            function setPublished(publish) {
+                var ids = selected();
+                if (!ids.length) return;
+                dstPost('@Url.Action("SetPublished")', { ids: ids, publish: publish }).done(function () { dstNotify(); table.ajax.reload(null, false); $('#checkAll').prop('checked', false); });
+            }
+            $('#pubSelected').on('click', function () { setPublished(true); });
+            $('#unpubSelected').on('click', function () { setPublished(false); });
+            $('#importAll').on('click', function () {
+                dstPost('@Url.Action("ImportAllImages")').done(function (n) { dstNotify('+' + n); table.ajax.reload(null, false); });
+            });
+            $('[data-pubcat]').on('click', function () {
+                var b = $(this);
+                if (!confirm(dstI18n.confirm)) return;
+                dstPost('@Url.Action("PublishCategory")', { categoryId: b.data('pubcat'), publish: b.data('publish') }).done(function () { location.reload(); });
+            });
+            $('[data-editcat]').on('click', function () {
+                var b = $(this), c = b.data('content') || {};
+                $('#cId').val(b.data('editcat'));
+                $('#catTitle').text(b.data('name'));
+                $('#cNameUz').val(c.NameUz || ''); $('#cNameRu').val(c.NameRu || '');
+                $('#cDescUz').val(c.DescriptionUz || ''); $('#cDescRu').val(c.DescriptionRu || '');
+                $('#cSlug').val(c.Slug || ''); $('#cSort').val(c.SortOrder || 0);
+                $('#cSeoTitle').val(c.SeoTitle || ''); $('#cSeoDesc').val(c.SeoDescription || '');
+                $('#cPublished').prop('checked', !!c.IsPublished);
+                $('#cImage').val('');
+                $('#catModal').modal('show');
+            });
+            $('#cSave').on('click', function () {
+                var id = $('#cId').val();
+                dstPost('@Url.Action("SaveCategory")', {
+                    categoryId: id, isPublished: $('#cPublished').is(':checked'), slug: $('#cSlug').val(),
+                    nameUz: $('#cNameUz').val(), nameRu: $('#cNameRu').val(), descriptionUz: $('#cDescUz').val(), descriptionRu: $('#cDescRu').val(),
+                    sortOrder: $('#cSort').val() || 0, seoTitle: $('#cSeoTitle').val(), seoDescription: $('#cSeoDesc').val()
+                }).done(function () {
+                    var file = $('#cImage')[0].files[0];
+                    if (!file) { location.reload(); return; }
+                    var fd = new FormData(); fd.append('categoryId', id); fd.append('file', file);
+                    $.ajax({ url: '@Url.Action("UploadCategoryImage")', type: 'POST', data: fd, processData: false, contentType: false })
+                        .done(function (r) { if (r && r.success) location.reload(); else dstNotify(r && r.message, true); });
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,121 @@
+@model CatalogModel
+@{
+    var r = Model.Result;
+    bool anyFilter = Model.InStock || Model.Request.Query.Keys.Any(k => k == "b" || k.StartsWith("a."));
+}
+<div class="browse @(r.Facets.Count == 0 ? "no-filters" : "")">
+    @if (r.Facets.Count > 0 || Model.Catalog.Settings.StockMode != "HIDDEN")
+    {
+        <aside class="filters" id="filters" aria-label="@Model.T("Filters")">
+            <div class="filters-head mobile-only">
+                <b>@Model.T("Filters")</b>
+                <button class="icon-btn" type="button" data-filters-close aria-label="@Model.T("Close")"><svg viewBox="0 0 24 24" class="icon"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+            </div>
+            @if (Model.Catalog.Settings.StockMode != "HIDDEN")
+            {
+                <a class="check @(Model.InStock ? "on" : "")" href="@Model.Link(q => { if (Model.InStock) q.Remove("stock"); else q["stock"] = ["1"]; })" data-nav>
+                    <i></i>@Model.T("InStockOnly")
+                </a>
+            }
+            @foreach (var f in r.Facets)
+            {
+                var key = f.Key == "brand" ? "b" : "a." + f.Key[2..];
+                <details class="facet" open>
+                    <summary>@(f.Key == "brand" ? Model.T("Brand") : f.Title)</summary>
+                    <div class="facet-values">
+                        @foreach (var v in f.Values)
+                        {
+                            <a class="check @(v.Selected ? "on" : "") @(v.Count == 0 && !v.Selected ? "disabled" : "")" href="@Model.Toggle(key, v.Value)" data-nav rel="nofollow">
+                                <i></i><span>@v.Label</span><span class="count">@v.Count</span>
+                            </a>
+                        }
+                    </div>
+                </details>
+            }
+            @if (anyFilter)
+            {
+                <a class="btn btn-ghost btn-sm" href="@Model.Link(q => { q.Remove("b"); q.Remove("stock"); foreach (var k in q.Keys.Where(k => k.StartsWith("a.")).ToList()) q.Remove(k); })" data-nav>@Model.T("Reset")</a>
+            }
+        </aside>
+    }
+
+    <section class="results">
+        <div class="toolbar">
+            <button class="btn btn-outline btn-sm mobile-only" type="button" data-filters-open>
+                <svg viewBox="0 0 24 24" class="icon"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>
+                @Model.T("Filters")
+            </button>
+            <span class="muted count-label">@Model.T("Products", r.Total)</span>
+            <div class="toolbar-right">
+                <label class="select">
+                    <span class="sr-only">@Model.T("SortBy")</span>
+                    <select data-sort aria-label="@Model.T("SortBy")">
+                        @foreach (var sort in CatalogModel.Sorts.Where(x => Site.ShowPrices || !x.StartsWith("price")))
+                        {
+                            <option value="@Model.Link(q => { if (sort == "default") q.Remove("sort"); else q["sort"] = [sort]; })" selected="@(sort == Model.Sort)">@Model.T("Sort_" + sort)</option>
+                        }
+                    </select>
+                </label>
+                <div class="seg desktop-only" role="group">
+                    <a class="@(Model.View == "grid" ? "on" : "")" href="@Model.Link(q => q.Remove("view"))" data-nav aria-label="@Model.T("Grid")" rel="nofollow">
+                        <svg viewBox="0 0 24 24" class="icon"><rect x="4" y="4" width="6" height="6" /><rect x="14" y="4" width="6" height="6" /><rect x="4" y="14" width="6" height="6" /><rect x="14" y="14" width="6" height="6" /></svg>
+                    </a>
+                    <a class="@(Model.View == "list" ? "on" : "")" href="@Model.Link(q => q["view"] = ["list"])" data-nav aria-label="@Model.T("List")" rel="nofollow">
+                        <svg viewBox="0 0 24 24" class="icon"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @if (r.Total == 0)
+        {
+            <div class="empty">
+                <p>@Model.T("NothingFound")</p>
+                <a class="btn btn-outline" href="@Site.Url("/catalog")">@Model.T("ToCatalog")</a>
+            </div>
+        }
+        else if (Model.View == "list")
+        {
+            <div class="table-wrap">
+                <table class="product-table">
+                    <thead>
+                        <tr><th>@Model.T("Sku")</th><th>@Model.T("Catalog")</th><th>@Model.T("Price")</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in r.Items)
+                        {
+                            <tr data-product='@Ui.ProductData(Site, p)'>
+                                <td class="sku">@p.Sku</td>
+                                <td>
+                                    <a href="@Site.Url("/p/" + p.Slug)">@CatalogIndex.Name(p, Model.Lang)</a>
+                                    <div>@Ui.Stock(Site, p)</div>
+                                </td>
+                                <td class="nowrap">@Ui.Price(Site, p)</td>
+                                <td class="right"><button type="button" class="btn-add" data-add data-unit="@Ui.DefaultUnit(p)?.Id" aria-label="@Model.T("AddToCart")"><svg viewBox="0 0 24 24" class="icon"><path d="M12 5v14M5 12h14" /></svg></button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="grid">
+                @{ int i = 0; }
+                @foreach (var p in r.Items)
+                {
+                    <partial name="_ProductCard" model="p" view-data="@(new ViewDataDictionary(ViewData) { ["eager"] = i++ < 4 })" />
+                }
+            </div>
+        }
+
+        @if (r.Pages > 1)
+        {
+            <nav class="pager" aria-label="pagination">
+                @if (r.Page > 1) { <a class="btn btn-outline btn-sm" href="@Model.PageLink(r.Page - 1)" data-nav rel="prev">← @Model.T("Prev")</a> }
+                <span class="muted">@r.Page / @r.Pages</span>
+                @if (r.Page < r.Pages) { <a class="btn btn-outline btn-sm" href="@Model.PageLink(r.Page + 1)" data-nav rel="next">@Model.T("Next") →</a> }
+            </nav>
+        }
+    </section>
+</div>
