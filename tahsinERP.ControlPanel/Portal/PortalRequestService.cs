@@ -4,8 +4,44 @@ using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Portal;
 
-/// <summary>Mijoz ko'radigan obuna holati (portal bosh sahifasi va so'rov formasi uchun).</summary>
-public sealed record TenantOverview(Tenant Tenant, Subscription? Current, Subscription? Pending, Subscription? Upcoming, int? DaysLeft);
+/// <summary>Mijoz ko'radigan obuna holati (portal bosh sahifasi va so'rov formasi uchun). Current/Pending/Upcoming — faqat paket obunalari.</summary>
+public sealed record TenantOverview(Tenant Tenant, Subscription? Current, Subscription? Pending, Subscription? Upcoming, int? DaysLeft,
+    IReadOnlyList<AddOnStatus> AddOns);
+
+public enum AddOnState
+{
+    /// <summary>Obuna yo'q (yoki bekor qilingan) — xizmat ulanmagan.</summary>
+    NotConnected = 1,
+    /// <summary>Obuna ochilgan, to'lov kutilmoqda.</summary>
+    PendingPayment = 2,
+    /// <summary>To'langan, davr hali boshlanmagan.</summary>
+    Upcoming = 3,
+    /// <summary>Faol — kalitda "+KOD" bor.</summary>
+    Active = 4,
+    /// <summary>Davr tugagan (imtiyozli kunlar ham bo'lishi mumkin) — xizmat kalitdan olib tashlanadi.</summary>
+    Expired = 5,
+}
+
+/// <summary>Qo'shimcha xizmat (masalan Sayt-katalog) holati — portalda paketdan alohida ko'rsatiladi.</summary>
+public sealed record AddOnStatus(Plan Plan, AddOnState State, Subscription? Subscription, int? DaysLeft)
+{
+    public string StateText => State switch
+    {
+        AddOnState.Active => "Faol",
+        AddOnState.PendingPayment => "To'lov kutilmoqda",
+        AddOnState.Upcoming => "To'langan, hali boshlanmagan",
+        AddOnState.Expired => "Muddati tugagan",
+        _ => "Ulanmagan",
+    };
+
+    public string Badge => State switch
+    {
+        AddOnState.Active => "ok",
+        AddOnState.PendingPayment or AddOnState.Upcoming => "warn",
+        AddOnState.Expired => "bad",
+        _ => "muted",
+    };
+}
 
 /// <summary>
 /// Tarifni oshirish / uzaytirish so'rovlari. Qoidalar:
@@ -23,15 +59,36 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
     public async Task<TenantOverview> OverviewAsync(int tenantId, CancellationToken ct = default)
     {
         var tenant = await db.Tenants.AsNoTracking().FirstAsync(t => t.Id == tenantId, ct);
-        var subs = await db.Subscriptions.AsNoTracking().Include(s => s.Plan).Where(s => s.TenantId == tenantId).ToListAsync(ct);
+        var all = await db.Subscriptions.AsNoTracking().Include(s => s.Plan).Where(s => s.TenantId == tenantId).ToListAsync(ct);
         DateOnly today = clock.Today;
+        var subs = all.Where(s => !SubscriptionService.IsAddOn(s)).ToList();
         var active = subs.Where(s => s.Status == SubscriptionStatus.Active).ToList();
         // Joriy: hozir amal qilayotgan (boshlangan) faol obunalardan eng uzog'i; Upcoming — kelajakdan boshlanadigan to'langan.
         var current = active.Where(s => s.StartDate <= today).OrderByDescending(s => s.EndDate).FirstOrDefault();
         var upcoming = active.Where(s => s.StartDate > today).OrderBy(s => s.StartDate).FirstOrDefault();
         var pending = subs.Where(s => s.Status == SubscriptionStatus.Pending).OrderByDescending(s => s.Id).FirstOrDefault();
         int? days = current is null ? null : current.EndDate.DayNumber - today.DayNumber;
-        return new TenantOverview(tenant, current, pending, upcoming, days);
+        var addOnPlans = await db.Plans.AsNoTracking().Where(p => p.IsAddOn).OrderBy(p => p.SortOrder).ToListAsync(ct);
+        var addOns = addOnPlans
+            .Select(p => AddOnStatusOf(p, all.Where(s => s.PlanId == p.Id).ToList(), today))
+            .Where(a => a.Plan.IsActive || a.State != AddOnState.NotConnected) // o'chirilgan xizmat — faqat obunasi bo'lsa
+            .ToList();
+        return new TenantOverview(tenant, current, pending, upcoming, days, addOns);
+    }
+
+    /// <summary>Bitta xizmatning holati: faol → kelajakdagi to'langan → to'lov kutilmoqda → tugagan → ulanmagan.</summary>
+    public static AddOnStatus AddOnStatusOf(Plan plan, IReadOnlyList<Subscription> subs, DateOnly today)
+    {
+        var active = subs.Where(s => s.Status == SubscriptionStatus.Active).OrderByDescending(s => s.EndDate).ToList();
+        if (active.FirstOrDefault(s => s.StartDate <= today && s.EndDate >= today) is { } cur)
+            return new AddOnStatus(plan, AddOnState.Active, cur, cur.EndDate.DayNumber - today.DayNumber);
+        if (active.FirstOrDefault(s => s.StartDate > today) is { } up)
+            return new AddOnStatus(plan, AddOnState.Upcoming, up, null);
+        if (subs.Where(s => s.Status == SubscriptionStatus.Pending).OrderByDescending(s => s.Id).FirstOrDefault() is { } pend)
+            return new AddOnStatus(plan, AddOnState.PendingPayment, pend, null);
+        if (subs.Where(s => s.Status is SubscriptionStatus.Active or SubscriptionStatus.Expired).OrderByDescending(s => s.EndDate).FirstOrDefault() is { } old)
+            return new AddOnStatus(plan, AddOnState.Expired, old, null);
+        return new AddOnStatus(plan, AddOnState.NotConnected, null, null);
     }
 
     /// <summary>So'rov turini aniqlaydi va yangi davr boshlanish sanasini hisoblaydi.</summary>
@@ -51,7 +108,8 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
     {
         var tenant = await db.Tenants.FirstAsync(t => t.Id == tenantId, ct);
         if (PortalAuthService.TenantClosed(tenant)) throw new DomainException("Tashkilot arxivda.");
-        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive && p.Code != PlanCodes.Trial, ct)
+        // Qo'shimcha xizmat portal so'rovi orqali emas — xodim alohida obuna ochadi (portalda holati ko'rinadi).
+        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive && p.Code != PlanCodes.Trial && !p.IsAddOn, ct)
             ?? throw new DomainException("Paket topilmadi.");
         if (period is not (BillingPeriod.Month or BillingPeriod.Year)) throw new DomainException("Davr noto'g'ri.");
         if (periodCount < 1 || periodCount > MaxPeriods(period)) throw new DomainException($"Davrlar soni 1–{MaxPeriods(period)}.");

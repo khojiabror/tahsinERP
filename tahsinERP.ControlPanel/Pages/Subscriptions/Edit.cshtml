@@ -13,13 +13,21 @@
 @if (Model.Sub.Period != BillingPeriod.Trial && Model.Sub.Status is SubscriptionStatus.Pending or SubscriptionStatus.Active)
 {
     <form method="post" class="stack card">
+        @if (Model.Sub.Plan!.IsAddOn)
+        {
+            <input type="hidden" asp-for="PlanId" /><input type="hidden" asp-for="Users" />
+            <div class="hint">Qo'shimcha xizmat obunasi — tarif va foydalanuvchilar o'zgarmaydi. Uzaytirish: shu obunaga hisob-faktura.</div>
+        }
+        else
+        {
         <div class="row">
             <div>
                 <label asp-for="PlanId">Paket</label>
-                <select asp-for="PlanId">@foreach (var p in Model.Plans) { <option value="@p.Id">@p.Name — @p.MaxUsers foyd.</option> }</select>
+                <select asp-for="PlanId">@foreach (var p in Model.Plans.Where(p => !p.IsAddOn)) { <option value="@p.Id">@p.Name — @p.MaxUsers foyd.</option> }</select>
             </div>
             <div><label asp-for="Users">Foydalanuvchilar</label><input asp-for="Users" type="number" /></div>
         </div>
+        }
         <label class="check"><input asp-for="AutoRenew" /> Avtomatik uzaytirish</label>
         <div class="hint">Paketni o'zgartirish narxni avtomatik qayta hisoblamaydi — farq uchun alohida hisob-faktura chiqaring.</div>
         <div><button type="submit">Saqlash</button></div>

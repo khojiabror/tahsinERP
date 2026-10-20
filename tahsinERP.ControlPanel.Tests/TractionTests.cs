@@ -43,8 +43,8 @@ public class TractionUnitTests
     public void SharedEditionMap_PackagesMatchPanelPlans()
     {
         Assert.Equal(["Srm", "Crm", "Tasks"], EditionModules.ModulesOf("START").Select(m => m.ToString()));
-        Assert.Equal(9, EditionModules.ModulesOf("TRIAL").Count);
-        Assert.Equal(9, EditionModules.ModulesOf("eski-v1").Count); // cheklovsiz
+        Assert.Equal(10, EditionModules.ModulesOf("TRIAL").Count);
+        Assert.Equal(10, EditionModules.ModulesOf("eski-v1").Count); // cheklovsiz
         Assert.False(EditionModules.IsMapped("Foydalanuvchilar"));
     }
 
@@ -132,7 +132,7 @@ public class TractionTests(PanelFactory f) : IClassFixture<PanelFactory>
         var rowB = report.Tenants.Single(t => t.Tenant.Id == b.Id);
         Assert.Equal(2, rowA.ActiveUsers);
         Assert.Equal(2, rowA.ModulesUsed);
-        Assert.Equal(9, rowA.ModulesAllowed);
+        Assert.Equal(10, rowA.ModulesAllowed);
         Assert.True(rowA.Score > rowB.Score);
         Assert.Equal("Yuqori", rowB.Risk);
 

@@ -11,9 +11,19 @@
     <input type="hidden" asp-for="TenantId" />
     <div class="row">
         <div><label asp-for="Edition">Paket (Edition)</label>
-            <select asp-for="Edition">@foreach (var p in Model.Plans) { <option value="@p.Code">@p.Code — @p.Name</option> }</select></div>
+            <select asp-for="Edition">@foreach (var p in Model.Packages) { <option value="@p.Code">@p.Code — @p.Name</option> }</select></div>
         <div><label asp-for="MaxUsers">Foydalanuvchilar (0 = cheksiz)</label><input asp-for="MaxUsers" type="number" min="0" /></div>
     </div>
+    @if (Model.AddOnPlans.Any())
+    {
+        <div><label>Qo'shimcha xizmatlar</label>
+            @foreach (var p in Model.AddOnPlans)
+            {
+                <label class="check"><input type="checkbox" name="AddOnCodes" value="@p.Code" checked="@Model.AddOnCodes.Contains(p.Code)" /> @p.Name (<code>+@p.Code</code>)</label>
+            }
+            <div class="hint">Kalitdagi Edition: paket kodi + belgilangan xizmatlar, masalan <code>KORP+SITE</code>. Obunadan avtomatik chiqadigan kalit buni o'zi hisoblaydi.</div>
+        </div>
+    }
     <div class="row">
         <div><label asp-for="StartDate">Boshlanish</label><input asp-for="StartDate" type="date" /></div>
         <div><label asp-for="ExpiryDate">Tugash</label><input asp-for="ExpiryDate" type="date" /></div>

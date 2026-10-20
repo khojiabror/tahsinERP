@@ -93,7 +93,7 @@ public class RequestsModel(ControlDbContext db, PortalRequestService service, Cl
     {
         Today = clock.Today;
         Overview = await service.OverviewAsync(TenantId);
-        Plans = await db.Plans.AsNoTracking().Where(p => p.IsActive && p.Code != PlanCodes.Trial).OrderBy(p => p.SortOrder).ToListAsync();
+        Plans = await db.Plans.AsNoTracking().Where(p => p.IsActive && p.Code != PlanCodes.Trial && !p.IsAddOn).OrderBy(p => p.SortOrder).ToListAsync();
         Rows = await db.PortalRequests.AsNoTracking().Include(r => r.Plan).Where(r => r.TenantId == TenantId)
             .OrderByDescending(r => r.Id).Take(50).ToListAsync();
         var invIds = Rows.Where(r => r.InvoiceId != null).Select(r => r.InvoiceId!.Value).ToList();

@@ -174,7 +174,7 @@ Jami ~6.5 hafta. **Qaror:** distributsiya S5 va S6 tugagandan keyin boshlanadi.
 2. **Narx:** har kompaniya o'zi tanlaydi: narx turi ko'rsatiladi, "narxni so'rang" yoki yashirin. Qoldiq ko'rinishi ham kompaniya sozlamasi.
 3. **Paket:** sayt **alohida pullik xizmat** (add-on), START/BIZNES/KORP paketlariga kirmaydi.
    - Litsenziyada alohida modul belgisi: `ProductModule.Website`, Edition'dan mustaqil.
-   - Control Panel'da obuna qatori sifatida sotiladi. Bu Control Panel'ning add-on qo'llab-quvvatlashiga bog'liq va W0'da tekshiriladi.
+   - Control Panel'da obuna qatori sifatida sotiladi (bajarildi — 11.5).
 4. **Dizayn:** 10-bo'limda tanlangan asos.
 5. **Tartib:** distributsiya S5 (hisobotlar) va S6 (pilot) tugagandan keyin boshlanadi.
 
@@ -275,4 +275,12 @@ Foydalanuvchi buyrug'i bilan S5/S6 dan oldin bajarildi (W0–W4).
 
 **Tekshirilmagan:** litsenziyali ERP bilan uchidan-uchiga (nusxa → sayt, ariza → ERP), Lighthouse o'lchovi (bu muhitda yo'q), haqiqiy domen va Caddy sertifikati.
 
-**Keyingi ishlar:** Control Panel'da `+SITE` qo'shimcha xizmatini sotish va kalitga yozish; tavsif/xususiyatlar uchun Excel import-eksport; `tahsinERP.Integration` umumiy kutubxonasi (bot + sayt); 8-bo'limdagi B2B kabinet va onlayn to'lov.
+### 11.5 Control Panel: `+SITE` xizmatini sotish
+- **Tarif:** `Plans` jadvalida `IsAddOn` belgisi; urug' `SITE` — «Sayt-katalog» (Id 5, `MaxUsers = 0`, modul `Website`), narx ochiq — Tariflar sahifasida belgilanadi (migratsiya `AddOnServices`).
+- **Obuna:** paketdan alohida qator (o'z davri, narxi, hisob-fakturasi, to'lovi — mavjud billing oqimi). Bitta xizmatga bitta ochiq obuna; uzaytirish — o'sha obunaga yangi hisob-faktura. Xizmat obunasi paket obunasini yopmaydi, tenant holatini (sinov/faol/to'xtatilgan) o'zgartirmaydi, paketga yoki aksincha aylantirilmaydi; to'lanmagan xizmat paket obunasini to'smaydi.
+- **Kalit:** Edition = paket kodi + faol (boshlangan, tugamagan) xizmatlar: `LicenseIssuer.ComposeEdition` → `KORP+SITE`, `TRIAL+SITE`. To'lovdan keyin darhol yangi kalit; xizmat tugasa kunlik ish 3 kun ichida kalitni `+SITE`siz qayta chiqaradi. On-prem: `+SITE`li kalit xizmat davri oxiridan oshmaydi (offline kalitni qaytarib bo'lmaydi). Qo'lda chiqarish sahifasida xizmat belgilari.
+- **Hisobotlar:** Traction'da paket, sinov konversiyasi va churn — faqat paket obunasidan; ruxsat etilgan modullar `ModulesOf("KORP+SITE")` (Website ham), modullar jadvalida `Website`, MRR ichida «qo'shimcha xizmatlar» alohida plitka, filtr `SITE`. Dashboard muddatlari va tenantlar ro'yxati — paket bo'yicha; muddat eslatmasi xizmat uchun alohida (`site-expiry-N`).
+- **Mijoz portali:** bosh sahifada «Qo'shimcha xizmatlar» jadvali (Faol / To'lov kutilmoqda / To'langan, boshlanmagan / Muddati tugagan / Ulanmagan, davr, qolgan kunlar, 14 kundan kam qolsa ogohlantirish); kalit sahifasida «Korporativ + Sayt-katalog». Xizmatni portal so'rovi orqali buyurtma qilish yo'q — xodim ochadi.
+- **Testlar:** `AddOnTests.cs` (19), jami ControlPanel testlari yashil.
+
+**Keyingi ishlar:** portal orqali xizmat so'rovi (hozir xodim ochadi); tavsif/xususiyatlar uchun Excel import-eksport; `tahsinERP.Integration` umumiy kutubxonasi (bot + sayt); 8-bo'limdagi B2B kabinet va onlayn to'lov.

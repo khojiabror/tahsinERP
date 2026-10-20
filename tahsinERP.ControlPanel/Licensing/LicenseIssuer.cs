@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.Services.Editions;
 using ErpLicense = tahsinERP.Licensing.LicenseHelper;
 
 namespace tahsinERP.ControlPanel.Licensing;
@@ -92,10 +93,40 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
     }
 
     /// <summary>
-    /// Obunadan kelib chiqadigan kalit: Edition = paket kodi, MaxUsers = obuna, muddat — SaaS: davr oxiri + 3 kun,
-    /// Trial: sinov oxiri, OnPrem: davr oxiri (≤ 1 yil).
+    /// Kalitdagi Edition qatori: paket kodi + qo'shimcha xizmatlar "+" bilan ("KORP" + ["SITE"] → "KORP+SITE").
+    /// Takrorlar olib tashlanadi, tartib barqaror (EditionModules.AddOnModules tartibi) — bir xil to'plam doim bir xil qator,
+    /// aks holda EnsureForTenantAsync har safar yangi kalit chiqarardi. ERP bu qatorni BaseEdition / AddOnsOf bilan o'qiydi.
     /// </summary>
-    public LicenseRequest? DesiredFromSubscription(Tenant tenant, Subscription? sub)
+    public static string ComposeEdition(string baseCode, IEnumerable<string>? addOnCodes)
+    {
+        if (string.IsNullOrWhiteSpace(baseCode) || baseCode.Contains('+'))
+            throw new DomainException("Paket kodi noto'g'ri.");
+        var codes = new List<(int Order, string Code)>();
+        foreach (var raw in addOnCodes ?? [])
+        {
+            string code = (raw ?? "").Trim().ToUpperInvariant();
+            if (code.Length == 0) continue;
+            var modules = EditionModules.AddOnsOf("X+" + code);
+            if (code.Contains('+') || modules.Count != 1)
+                throw new DomainException($"Noma'lum qo'shimcha xizmat: {code}.");
+            int order = EditionModules.AddOnModules.ToList().IndexOf(modules[0]);
+            if (!codes.Any(c => c.Code == code)) codes.Add((order, code));
+        }
+        return baseCode.Trim() + string.Concat(codes.OrderBy(c => c.Order).ThenBy(c => c.Code, StringComparer.Ordinal).Select(c => "+" + c.Code));
+    }
+
+    /// <summary>Kalitga kiradigan qo'shimcha xizmat: faol, boshlangan va davri tugamagan obuna.</summary>
+    public static bool AddOnCovers(Subscription s, DateOnly today) =>
+        s.Plan is { IsAddOn: true } && s.Status == SubscriptionStatus.Active && s.StartDate <= today && s.EndDate >= today;
+
+    /// <summary>
+    /// Obunadan kelib chiqadigan kalit: Edition = paket kodi (+ faol qo'shimcha xizmatlar), MaxUsers = obuna, muddat — SaaS: davr
+    /// oxiri + 3 kun, Trial: sinov oxiri, OnPrem: davr oxiri (≤ 1 yil). OnPrem'da qo'shimcha xizmat bo'lsa kalit uning davri oxiridan
+    /// oshmaydi (offline kalitni qaytarib olib bo'lmaydi — xizmat to'lanmasa keyingi kalit "+KOD"siz chiqadi).
+    /// </summary>
+    public LicenseRequest? DesiredFromSubscription(Tenant tenant, Subscription? sub) => DesiredFromSubscription(tenant, sub, []);
+
+    public LicenseRequest? DesiredFromSubscription(Tenant tenant, Subscription? sub, IReadOnlyList<Subscription> addOns)
     {
         if (sub?.Plan is null || sub.Status != SubscriptionStatus.Active)
             return null;
@@ -114,7 +145,15 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
             if (expiry > cap)
                 expiry = cap;
         }
-        return new LicenseRequest(sub.Plan.Code, sub.Users, start, expiry, sub.Id, "Obuna bo'yicha");
+        var covering = addOns.Where(a => AddOnCovers(a, today)).ToList();
+        if (tenant.Deployment == DeploymentKind.OnPrem && covering.Count > 0)
+        {
+            DateOnly addOnEnd = covering.Min(a => a.EndDate);
+            if (expiry > addOnEnd)
+                expiry = addOnEnd;
+        }
+        string edition = ComposeEdition(sub.Plan.Code, covering.Select(a => a.Plan!.Code));
+        return new LicenseRequest(edition, sub.Users, start, expiry, sub.Id, covering.Count == 0 ? "Obuna bo'yicha" : "Obuna bo'yicha (+ qo'shimcha xizmat)");
     }
 
     /// <summary>
@@ -127,10 +166,11 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
             return null;
         DateOnly today = clock.Today;
         // Faqat boshlangan davr: kelajakdan boshlanadigan (to'langan) obuna kalitni oldindan o'zgartirmaydi.
-        var sub = await db.Subscriptions.Include(s => s.Plan)
+        var active = await db.Subscriptions.Include(s => s.Plan)
             .Where(s => s.TenantId == tenant.Id && s.Status == SubscriptionStatus.Active && s.StartDate <= today)
-            .OrderByDescending(s => s.EndDate).FirstOrDefaultAsync(ct);
-        var desired = DesiredFromSubscription(tenant, sub);
+            .ToListAsync(ct);
+        var sub = active.Where(s => !SubscriptionService.IsAddOn(s)).OrderByDescending(s => s.EndDate).FirstOrDefault();
+        var desired = DesiredFromSubscription(tenant, sub, active.Where(SubscriptionService.IsAddOn).ToList());
         if (desired is null)
             return null;
         var current = await GetCurrentAsync(tenant, ct);

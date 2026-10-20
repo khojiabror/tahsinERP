@@ -42,7 +42,7 @@ public class CreateModel(ControlDbContext db, SubscriptionService subscriptions,
         Subscription? sub = null;
         if (!await TryAsync(async () => sub = await subscriptions.CreateAsync(Tenant, PlanId, Period, Users, StartDate, AutoRenew)))
             return Page();
-        FlashOk = "Obuna yaratildi (to'lov kutilmoqda). Endi hisob-faktura chiqaring.";
+        FlashOk = (sub!.Plan?.IsAddOn == true ? "Qo'shimcha xizmat obunasi" : "Obuna") + " yaratildi (to'lov kutilmoqda). Endi hisob-faktura chiqaring.";
         return RedirectToPage("/Invoices/Create", new { tenantId = TenantId, subscriptionId = sub!.Id });
     }
 }
