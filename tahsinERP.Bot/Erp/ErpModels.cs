@@ -10,9 +10,11 @@ public sealed record ErpDay(DateTime? StartAt, DateTime? EndAt, int Planned, int
     decimal Collected, decimal CashOnHand, int NoOrder);
 
 public sealed record ErpMe(int UserId, string? Name, bool IsAgent, bool IsExpeditor, bool CanOverrideCredit, int VisitRadiusM, ErpDay? Day,
-    bool RequireSelfie = false);
+    bool RequireSelfie = false, List<string>? PayMethods = null);
 
 public sealed record ErpTrack(bool Stored, bool DayOpen);
+
+public sealed record ErpIssueResult(int Id, string? IssueNo);
 
 public sealed record ErpNewCustomer(int Id, bool Duplicate);
 

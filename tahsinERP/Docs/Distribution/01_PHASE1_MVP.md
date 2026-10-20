@@ -360,3 +360,14 @@ Pilotni foydalanuvchi o'tkazadi; kod va hujjat tomoni tayyor. Reja va qabul ro'y
 | Pilot kuni E2E: import → agent → tasdiq/limit/ruxsat → yig'ish/jo'natish/qisman → to'lov → kassaga topshirish → qaytarish → kun yakuni; qoldiq, balans = aging = akt sverki, kassa tekshiruvi | `tahsinERP.Tests/Distribution/PilotDayScenarioTests.cs` (faqat `DST_PILOT_E2E` = sinov bazasi) |
 
 Tekshiruv: ERP testlari 154/157 (3 shartli skip), pilot import testlari DB_DST_S6'da 7/7, E2E ssenariy DB_DST_S6'da (DB_DST_UI nusxasi) 2 marta o'tdi, bot testlari 38/38, RazorCheck 505/0. Bot offline: webhook → inbox → handler → ERP → 403 litsenziya → to'g'ri xabar. Tekshirilmagan: brauzerda sahifalar va haqiqiy bot bilan uchidan-uchiga (litsenziya yo'q), Telegram ichida Mini App.
+### 16.1 Qarorlardan keyin (2026-10-20, kech)
+
+S4 qoldiqlari va S5 hisobotlari shu branch'ga merge qilindi. Migratsiya `Database/Migrations/024_DST_Pilot.sql` (lokal va `DB_DST_UI` da qo'llangan, zaxira `DBTHSN-IPACK_pre_024_DST_20261020.bak`).
+
+| Ish | Joyi |
+|---|---|
+| Agent to'lovlari: usullar ro'yxati (odatiy naqd, karta, Click) va har naqdsiz usul hisobi; avval bitta `AgentCashAccountId` ham karta pulining hisobi, ham naqd topshiriladigan kassa edi — endi alohida. Bot faqat yoqilgan usullarni ko'rsatadi | `Services/Money/AgentPayments.cs`, Sozlamalar, `DstApi` Payment/Me, bot |
+| Inventarizatsiya: boshlang'ich (qoldiqni tenglaydi) va nazorat (taqqoslash, ixtiyoriy tuzatish) sanog'i, Excel varaq, mavjud `InventoryAdjustmentService` orqali (ortiqcha uchun tannarx ustuni qo'shildi) | `dst.INVENTORY_COUNTS`, `InventoryCountService`, `DstInventory` |
+| Xatolar jurnali ERP ichida: web forma + bot "⚠️ Muammo" (`/xato`, rasm bilan), raqam P-001, rahbarga xabar, daraja K1–K3, holat | `dst.ISSUES`, `IssueService`, `DstIssues`, `DstApi/Issue` |
+| Tuzatish: oldindan to'langan buyurtma jo'natishda "Yopildi" bo'lib, "Yetkazildi" qayd qilinmasdi | `OrderService.MarkDelivered` |
+| Pilot mashqi: namunaviy kompaniya (5 agent, 40 nuqta, 24 tovar) va 5 ish kunlik simulyatsiya, qabul mezoni mustaqil model bilan | `PilotSampleData`, `PilotWeekSimulationTests`, `Docs/Distribution/pilot-sample/` |

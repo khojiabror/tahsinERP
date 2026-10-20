@@ -207,7 +207,12 @@ public sealed partial class UpdateRouter
         }
         data.Amount = amount;
         await sessions.SetAsync(ctx.Tenant.Id, ctx.From.Id, States.PayMethod, data, ct);
-        var rows = Texts.PayMethods.Chunk(3)
+        // ERP sozlamasida agentga ruxsat etilgan usullar (eski ERP javobida bo'lmasa — hammasi)
+        ErpMe? me = null;
+        try { me = await ctx.Erp.GetAsync<ErpMe>("Me", ctx.UserId, ct); }
+        catch (ErpException ex) when (!ex.IsLicense) { log.LogWarning("Me: {Message}", ex.Message); }   // ro'yxatsiz ham to'lov olinadi, ERP tekshiradi
+        var methods = me?.PayMethods is { Count: > 0 } allowed ? Texts.PayMethods.Where(allowed.Contains).ToArray() : Texts.PayMethods;
+        var rows = methods.Chunk(3)
             .Select(chunk => chunk.Select(m => Kb.Button(ctx.T("PayMethod_" + m), Callback.Make("pm", m))))
             .Append([Kb.Button(ctx.T("Btn_Cancel"), "x")]);
         outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Pay_AskMethod", Texts.Money(amount)), Kb.Inline(rows));

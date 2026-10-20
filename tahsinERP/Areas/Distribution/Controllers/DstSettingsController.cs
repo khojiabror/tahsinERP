@@ -113,6 +113,36 @@ namespace tahsinERP.Areas.Distribution.Controllers
             });
         }
 
+        /// <summary>Agent to'lov usullari: qaysi usul ruxsat, naqdsiz usul — qaysi hisobga tushadi (bo'sh — usul ishlatilmaydi).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public JsonResult SaveAgentPayments(string[] methods, int? accountCard, int? accountClick, int? accountPayme, int? accountUzum, int? accountTransfer)
+        {
+            return DstJson(() =>
+            {
+                var chosen = (methods ?? new string[0]).Select(m => (m ?? "").Trim().ToUpperInvariant()).Where(m => PaymentMethods.All.Contains(m)).Distinct().ToList();
+                var accounts = new System.Collections.Generic.Dictionary<string, int?>
+                {
+                    { PaymentMethods.Card, accountCard }, { PaymentMethods.Click, accountClick }, { PaymentMethods.Payme, accountPayme },
+                    { PaymentMethods.Uzum, accountUzum }, { PaymentMethods.Transfer, accountTransfer }
+                };
+                using (var db = NewDb())
+                {
+                    foreach (var a in accounts)
+                    {
+                        if (a.Value.HasValue && !db.FinAccounts.Any(f => f.ID == a.Value && f.IsActive && f.IsDeleted != true))
+                            throw new DstValidationException(DstLocalization.T("Payment_AccountRequired"));
+                        if (chosen.Contains(a.Key) && !a.Value.HasValue)
+                            throw new DstValidationException(DstLocalization.T("Payment_MethodNoAccount") + " (" + DstLocalization.T("PayMethod_" + a.Key) + ")");
+                        Services.Bot.DstSettings.Set(db, Services.Money.AgentPayments.AccountKey(a.Key), a.Value?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    }
+                    Services.Bot.DstSettings.Set(db, DstSetting.AgentPayMethods, string.Join(",", chosen));
+                    db.SaveChanges();
+                    return null;
+                }
+            });
+        }
+
         /// <summary>Bo'sh qiymat — rol uchun limit yo'q (chegirma berolmaydi, faqat DstDiscountUnlimited huquqi bilan).</summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]

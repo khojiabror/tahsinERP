@@ -180,6 +180,58 @@ namespace tahsinERP.Tests.Distribution
         }
 
         [TestMethod]
+        public void PrepaidOrder_ClosedOnShipment_CanStillBeMarkedDelivered()
+        {
+            using (var uow = Uow())
+            {
+                var f = OrderFlowIntegrationTests.Arrange(uow, 100000000m);
+                var now = DateTime.Now;
+                // avans: mijoz oldindan to'ladi (agent naqdi)
+                tahsinERP.Areas.Distribution.Services.Money.PaymentService.Receive(uow, new tahsinERP.Areas.Distribution.Services.Money.PaymentInput
+                {
+                    CustomerID = f.CustomerId, Amount = 1000000m, Method = tahsinERP.Areas.Distribution.Data.Entities.PaymentMethods.Cash, ReceivedByUserID = f.UserId
+                }, f.UserId, AuditActor.Bot, now);
+                var orderId = tahsinERP.Areas.Distribution.Services.Orders.OrderService.SaveDraft(uow, new tahsinERP.Areas.Distribution.Services.Orders.OrderInput
+                {
+                    CustomerID = f.CustomerId, WarehouseID = f.WarehouseId,
+                    Lines = { new tahsinERP.Areas.Distribution.Services.Orders.OrderLineInput { ProductID = f.ProductId, Qty = 10 } }
+                }, OrderFlowIntegrationTests.Actor(f), now);
+                tahsinERP.Areas.Distribution.Services.Orders.OrderService.Confirm(uow, orderId, OrderFlowIntegrationTests.Actor(f), null, now);
+                tahsinERP.Areas.Distribution.Services.Orders.OrderService.Ship(uow, orderId, null, f.UserId, now);
+                var order = uow.Dst.Orders.Find(orderId);
+                Assert.AreEqual((byte)tahsinERP.Areas.Distribution.Services.Orders.OrderStatus.Closed, order.OrderStatus, "550 000 avansdan yopildi");
+
+                tahsinERP.Areas.Distribution.Services.Orders.OrderService.MarkDelivered(uow, orderId, f.UserId, now);
+                order = uow.Dst.Orders.Find(orderId);
+                Assert.IsNotNull(order.DeliveredAt, "yetkazish qayd qilindi");
+                Assert.AreEqual((byte)tahsinERP.Areas.Distribution.Services.Orders.OrderStatus.Closed, order.OrderStatus);
+                Assert.ThrowsException<DstValidationException>(() =>
+                    tahsinERP.Areas.Distribution.Services.Orders.OrderService.MarkDelivered(uow, orderId, f.UserId, now), "ikki marta emas");
+                // rollback
+            }
+        }
+
+        [TestMethod]
+        public void AgentPayments_AllowedMethodsAndAccounts()
+        {
+            using (var uow = Uow())
+            {
+                var db = uow.Dst;
+                tahsinERP.Areas.Distribution.Services.Bot.DstSettings.Set(db, tahsinERP.Areas.Distribution.Data.Entities.DstSetting.AgentPayMethods, "CASH,CLICK");
+                tahsinERP.Areas.Distribution.Services.Bot.DstSettings.Set(db, tahsinERP.Areas.Distribution.Services.Money.AgentPayments.AccountKey("CLICK"), null);
+                db.SaveChanges();
+                CollectionAssert.AreEqual(new[] { "CASH", "CLICK" }, tahsinERP.Areas.Distribution.Services.Money.AgentPayments.Allowed(db));
+                Assert.IsNull(tahsinERP.Areas.Distribution.Services.Money.AgentPayments.ResolveAccount(db, "CASH"), "naqd — agent qo'lida");
+                Assert.ThrowsException<DstValidationException>(() => tahsinERP.Areas.Distribution.Services.Money.AgentPayments.ResolveAccount(db, "CARD"), "yoqilmagan usul");
+                Assert.ThrowsException<DstValidationException>(() => tahsinERP.Areas.Distribution.Services.Money.AgentPayments.ResolveAccount(db, "CLICK"), "hisobsiz");
+                tahsinERP.Areas.Distribution.Services.Bot.DstSettings.Set(db, tahsinERP.Areas.Distribution.Services.Money.AgentPayments.AccountKey("CLICK"), "7");
+                db.SaveChanges();
+                Assert.AreEqual(7, tahsinERP.Areas.Distribution.Services.Money.AgentPayments.ResolveAccount(db, "CLICK"));
+                // rollback
+            }
+        }
+
+        [TestMethod]
         public void Units_AddToExistingProduct_WithRules()
         {
             var row = Scalar("SELECT TOP 1 p.PNo + '|' + bu.ShortName + '|' + ou.ShortName FROM dbo.PRODUCTS p " +

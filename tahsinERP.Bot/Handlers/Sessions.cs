@@ -21,6 +21,7 @@ public static class States
     public const string NewLandmark = "new_landmark";
     public const string NewPhoto = "new_photo";
     public const string NewConfirm = "new_confirm";
+    public const string IssueText = "issue_text";
 }
 
 /// <summary>Holat ma'lumoti (barcha holatlar uchun bitta shakl — kerakli maydonlar to'ldiriladi).</summary>

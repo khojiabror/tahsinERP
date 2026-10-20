@@ -91,6 +91,12 @@ public static class Texts
         ["Order_MiniApp"] = ("Buyurtma oynasini oching:", "Откройте окно заказа:"),
 
         ["Btn_NewPoint"] = ("➕ Yangi nuqta", "➕ Новая точка"),
+        ["Btn_Issue"] = ("⚠️ Muammo", "⚠️ Проблема"),
+        ["Issue_Ask"] = ("Muammoni yozing: nima qildingiz, nima bo'ldi (buyurtma/mijoz raqami bo'lsa — qo'shing). Skrinshotni izoh bilan yuborishingiz mumkin.",
+                         "Опишите проблему: что делали и что произошло (номер заказа/клиента, если есть). Можно отправить скриншот с подписью."),
+        ["Issue_TooShort"] = ("Biroz batafsilroq yozing (kamida 5 belgi) yoki rasm yuboring.", "Опишите подробнее (минимум 5 символов) или отправьте фото."),
+        ["Issue_PhotoOnly"] = ("(rasm, izohsiz)", "(фото без подписи)"),
+        ["Issue_Saved"] = ("✅ Qayd qilindi: {0}. Rahbarga xabar berildi, rahmat!", "✅ Зарегистрировано: {0}. Руководитель уведомлён, спасибо!"),
         ["Btn_Live"] = ("📡 Jonli joylashuv", "📡 Живая геолокация"),
         ["Btn_Skip"] = ("⏭ O'tkazib yuborish", "⏭ Пропустить"),
         ["Btn_Save"] = ("✅ Saqlash", "✅ Сохранить"),

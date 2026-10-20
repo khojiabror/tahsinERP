@@ -72,3 +72,10 @@ SELECT v.Controller, v.Controller, 'Index', NULL
 FROM (VALUES ('DstDashboard'), ('DstReports')) v (Controller)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
 GO
+
+-- Distributsiya pilot: inventarizatsiya va xatolar jurnali (024_DST_Pilot)
+INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+SELECT v.Controller, v.Controller, 'Index', NULL
+FROM (VALUES ('DstInventory'), ('DstIssues')) v (Controller)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = v.Controller);
+GO

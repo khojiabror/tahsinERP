@@ -267,6 +267,38 @@ public sealed partial class UpdateRouter
         outbox.Send(ctx.Tenant.Id, ctx.ChatId, StatementText(ctx.Lang, s));
     }
 
+    // ---------- pilot: xato / muammo (ERP xatolar jurnaliga) ----------
+
+    private async Task AskIssueAsync(Ctx ctx, CancellationToken ct)
+    {
+        if (ctx.UserId == null)
+        {
+            outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("NotAllowed"));
+            return;
+        }
+        await sessions.SetAsync(ctx.Tenant.Id, ctx.From.Id, States.IssueText, null, ct);
+        outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Issue_Ask"), CancelKeyboard(ctx));
+    }
+
+    /// <summary>Matn (yoki izohli rasm) → ERP Issue. Rasm izohsiz bo'lsa ham qabul qilinadi.</summary>
+    private async Task SaveIssueAsync(Ctx ctx, string? text, List<TgPhotoSize>? photo, CancellationToken ct)
+    {
+        string? photoKey = photo is { Count: > 0 } ? await SaveTelegramPhotoAsync(ctx, photo, ct) : null;
+        text = text?.Trim();
+        if (string.IsNullOrEmpty(text) || text.Length < 5)
+        {
+            if (photoKey == null)
+            {
+                outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Issue_TooShort"));
+                return;
+            }
+            text = ctx.T("Issue_PhotoOnly");
+        }
+        var r = await ctx.Erp.PostAsync<ErpIssueResult>("Issue", new { description = text, place = "Telegram", photoKey }, ctx.UserId, ct);
+        await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
+        await SendMenuAsync(ctx, ctx.T("Issue_Saved", r?.IssueNo ?? "—"), ct);
+    }
+
     /// <summary>Akt sverki matni; Telegram chegarasi (4096) ichida — sig'magan yozuvlar soni ko'rsatiladi.</summary>
     internal static string StatementText(string lang, ErpStatement s, int maxLength = 3800)
     {

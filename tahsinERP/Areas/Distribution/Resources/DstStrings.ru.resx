@@ -2196,4 +2196,212 @@
   <data name="Customer_Photo" xml:space="preserve">
     <value>Фото точки</value>
   </data>
+  <data name="Payment_MethodNotAllowed" xml:space="preserve">
+    <value>Этот способ оплаты не включён для агентов (Настройки → Оплаты агентов).</value>
+  </data>
+  <data name="Payment_MethodNoAccount" xml:space="preserve">
+    <value>Для способа оплаты не выбран счёт (Настройки → Оплаты агентов).</value>
+  </data>
+  <data name="Settings_HandoverAccount" xml:space="preserve">
+    <value>Касса для сдачи наличных агентов</value>
+  </data>
+  <data name="Settings_AgentPayments" xml:space="preserve">
+    <value>Оплаты агентов</value>
+  </data>
+  <data name="Settings_AgentPaymentsHint" xml:space="preserve">
+    <value>Какими способами агент принимает оплату в боте. Наличные остаются у агента и сдаются в кассу; карта, Click и др. сразу зачисляются на выбранный счёт.</value>
+  </data>
+  <data name="Settings_AgentAccepts" xml:space="preserve">
+    <value>Агент принимает</value>
+  </data>
+  <data name="Settings_PayAccount" xml:space="preserve">
+    <value>Счёт</value>
+  </data>
+  <data name="Settings_CashStaysWithAgent" xml:space="preserve">
+    <value>у агента → сдаёт в кассу</value>
+  </data>
+  <data name="Inventory" xml:space="preserve">
+    <value>Инвентаризация</value>
+  </data>
+  <data name="Tile_Inventory" xml:space="preserve">
+    <value>Начальный и контрольный пересчёт</value>
+  </data>
+  <data name="Inventory_Hint" xml:space="preserve">
+    <value>Начальный пересчёт — приравнивает остаток к посчитанному (в начале пилота). Контрольный — сравнивает с системой (в конце пилота, критерий приёмки); запись разницы в остаток — по желанию. Запись в остаток — раз в месяц на склад.</value>
+  </data>
+  <data name="Inventory_OPENING" xml:space="preserve">
+    <value>Начальная</value>
+  </data>
+  <data name="Inventory_CONTROL" xml:space="preserve">
+    <value>Контрольная</value>
+  </data>
+  <data name="Inventory_New" xml:space="preserve">
+    <value>Новый пересчёт</value>
+  </data>
+  <data name="Inventory_Kind" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Inventory_Counted" xml:space="preserve">
+    <value>Посчитано</value>
+  </data>
+  <data name="Inventory_Differences" xml:space="preserve">
+    <value>Расхождения</value>
+  </data>
+  <data name="Inventory_Applied" xml:space="preserve">
+    <value>записано в остаток</value>
+  </data>
+  <data name="Inventory_DraftExists" xml:space="preserve">
+    <value>По этому складу есть открытый пересчёт — сначала завершите или отмените его.</value>
+  </data>
+  <data name="Inventory_NotDraft" xml:space="preserve">
+    <value>Пересчёт завершён — изменять нельзя.</value>
+  </data>
+  <data name="Inventory_NotCounted" xml:space="preserve">
+    <value>Не посчитано строк: {0}. Для отсутствующего товара укажите 0.</value>
+  </data>
+  <data name="Inventory_OpeningHint" xml:space="preserve">
+    <value>Количество в базовой единице. При проведении остаток приравнивается к посчитанному: излишек — приход (по себестоимости из колонки, пусто — по последней цене прихода), недостача — расход FIFO.</value>
+  </data>
+  <data name="Inventory_ControlHint" xml:space="preserve">
+    <value>Количество в базовой единице. «В системе» — текущий остаток (фиксируется при проведении). Во время пересчёта не отгружайте и не оприходуйте по этому складу.</value>
+  </data>
+  <data name="Inventory_Shortage" xml:space="preserve">
+    <value>недостача</value>
+  </data>
+  <data name="Inventory_Surplus" xml:space="preserve">
+    <value>излишек</value>
+  </data>
+  <data name="Inventory_Sheet" xml:space="preserve">
+    <value>Лист пересчёта (Excel)</value>
+  </data>
+  <data name="Inventory_AddByPno" xml:space="preserve">
+    <value>Добавить по артикулу</value>
+  </data>
+  <data name="Inventory_System" xml:space="preserve">
+    <value>В системе</value>
+  </data>
+  <data name="Inventory_CountedQty" xml:space="preserve">
+    <value>Посчитано</value>
+  </data>
+  <data name="Inventory_Diff" xml:space="preserve">
+    <value>Разница</value>
+  </data>
+  <data name="Inventory_UnitCost" xml:space="preserve">
+    <value>Себестоимость</value>
+  </data>
+  <data name="Inventory_PostConfirm" xml:space="preserve">
+    <value>Завершить пересчёт? После этого изменить нельзя.</value>
+  </data>
+  <data name="Inventory_ApplyDiff" xml:space="preserve">
+    <value>Записать разницу в остаток</value>
+  </data>
+  <data name="Inventory_PostOpening" xml:space="preserve">
+    <value>Провести и выровнять остаток</value>
+  </data>
+  <data name="Inventory_PostControl" xml:space="preserve">
+    <value>Провести</value>
+  </data>
+  <data name="Inventory_CancelReason" xml:space="preserve">
+    <value>Причина отмены</value>
+  </data>
+  <data name="DocStatus_Draft" xml:space="preserve">
+    <value>Черновик</value>
+  </data>
+  <data name="DocStatus_Posted" xml:space="preserve">
+    <value>Проведён</value>
+  </data>
+  <data name="DocStatus_Cancelled" xml:space="preserve">
+    <value>Отменён</value>
+  </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Журнал ошибок</value>
+  </data>
+  <data name="Tile_Issues" xml:space="preserve">
+    <value>Пилот: ошибки и проблемы</value>
+  </data>
+  <data name="Issue_New" xml:space="preserve">
+    <value>Сообщить об ошибке</value>
+  </data>
+  <data name="Issue_Hint" xml:space="preserve">
+    <value>Уровень: K1 — работа остановлена или неверны деньги/остаток (сразу), K2 — есть обходной путь (на следующий день), K3 — неудобство (после пилота). Агенты пишут кнопкой «⚠️ Проблема» в боте.</value>
+  </data>
+  <data name="Issue_Place" xml:space="preserve">
+    <value>Где</value>
+  </data>
+  <data name="Issue_PlaceHint" xml:space="preserve">
+    <value>бот / Mini App / страница</value>
+  </data>
+  <data name="Issue_DocRef" xml:space="preserve">
+    <value>Номер документа</value>
+  </data>
+  <data name="Issue_Severity" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="Issue_NoSeverity" xml:space="preserve">
+    <value>не оценено</value>
+  </data>
+  <data name="Issue_K1" xml:space="preserve">
+    <value>K1 — блокирует работу</value>
+  </data>
+  <data name="Issue_K2" xml:space="preserve">
+    <value>K2 — есть обходной путь</value>
+  </data>
+  <data name="Issue_K3" xml:space="preserve">
+    <value>K3 — неудобство</value>
+  </data>
+  <data name="Issue_Description" xml:space="preserve">
+    <value>Что делали и что произошло</value>
+  </data>
+  <data name="Issue_Expected" xml:space="preserve">
+    <value>Ожидаемый результат</value>
+  </data>
+  <data name="Issue_Report" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="Issue_Open" xml:space="preserve">
+    <value>Открытые</value>
+  </data>
+  <data name="Issue_All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Issue_Author" xml:space="preserve">
+    <value>Кто</value>
+  </data>
+  <data name="Issue_Photo" xml:space="preserve">
+    <value>Фото</value>
+  </data>
+  <data name="Issue_Resolution" xml:space="preserve">
+    <value>Решение / комментарий (обязательно для закрытия)</value>
+  </data>
+  <data name="IssueStatus_New" xml:space="preserve">
+    <value>Новая</value>
+  </data>
+  <data name="IssueStatus_InProgress" xml:space="preserve">
+    <value>В работе</value>
+  </data>
+  <data name="IssueStatus_Testing" xml:space="preserve">
+    <value>На проверке</value>
+  </data>
+  <data name="IssueStatus_Closed" xml:space="preserve">
+    <value>Закрыта</value>
+  </data>
+  <data name="Issue_DescriptionRequired" xml:space="preserve">
+    <value>Опишите проблему (минимум 5 символов).</value>
+  </data>
+  <data name="Issue_ResolutionRequired" xml:space="preserve">
+    <value>Для закрытия укажите решение.</value>
+  </data>
+  <data name="Notify_IssueNew" xml:space="preserve">
+    <value>⚠️ Новая проблема {0} ({1}):
+{2}</value>
+  </data>
+  <data name="IssueSeverity_1" xml:space="preserve">
+    <value>K1 — блокирует работу</value>
+  </data>
+  <data name="IssueSeverity_2" xml:space="preserve">
+    <value>K2 — есть обходной путь</value>
+  </data>
+  <data name="IssueSeverity_3" xml:space="preserve">
+    <value>K3 — неудобство</value>
+  </data>
 </root>

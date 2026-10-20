@@ -1,0 +1,163 @@
+@using tahsinERP.Areas.Distribution.Data.Entities
+@using tahsinERP.Areas.Distribution.Services
+@{
+    var count = (InventoryCount)ViewBag.Count;
+    var rows = (List<InventoryCountService.Row>)ViewBag.Rows;
+    ViewBag.Title = count.DocNo;
+    ViewBag.DstParent = DstLocalization.T("Inventory");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool draft = count.Status == DocumentStatus.Draft;
+    bool opening = count.Kind == InventoryKinds.Opening;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    int counted = rows.Count(r => r.Counted.HasValue);
+    var diffs = rows.Where(r => r.Diff.HasValue && r.Diff.Value != 0).ToList();
+    Func<decimal?, string> Q = v => v.HasValue ? v.Value.ToString("#,0.####", inv) : "";
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@count.DocNo — @DstLocalization.T("Inventory_" + count.Kind)</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @DstLocalization.T("Warehouse"): <b>@ViewBag.Warehouse</b> ·
+                        @DstLocalization.T("Date"): @count.DocDate.ToString("dd.MM.yyyy") ·
+                        @DstLocalization.T("Status"): <b>@DstLocalization.T("DocStatus_" + count.Status)</b>@(count.Applied ? " · " + DstLocalization.T("Inventory_Applied") : "")
+                        @if (count.Note != null) { <br /><span class="text-muted">@count.Note</span> }
+                    </p>
+                    <p class="small text-muted">@DstLocalization.T(opening ? "Inventory_OpeningHint" : "Inventory_ControlHint")</p>
+                    <div class="alert @(diffs.Count == 0 && counted == rows.Count ? "alert-success" : "alert-warning")">
+                        @DstLocalization.T("Inventory_Counted"): @counted / @rows.Count ·
+                        @DstLocalization.T("Inventory_Differences"): @diffs.Count
+                        (@DstLocalization.T("Inventory_Shortage"): @Q(-diffs.Where(d => d.Diff < 0).Sum(d => d.Diff.Value)),
+                        @DstLocalization.T("Inventory_Surplus"): @Q(diffs.Where(d => d.Diff > 0).Sum(d => d.Diff.Value)))
+                    </div>
+
+                    @if (draft && canChange)
+                    {
+                        <div class="d-flex flex-wrap mb-1">
+                            <a class="btn btn-outline-success btn-sm mr-1 mb-50" href="@Url.Action("Sheet", new { id = count.ID })"><i class="bx bx-download"></i> @DstLocalization.T("Inventory_Sheet")</a>
+                            @using (Html.BeginForm("UploadSheet", "DstInventory", new { area = "Distribution", id = count.ID }, FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-inline mr-1 mb-50" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="file" name="file" accept=".xlsx" class="form-control form-control-sm mr-50" required />
+                                <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bx bx-upload"></i> @DstLocalization.T("Import_Upload")</button>
+                            }
+                            @using (Html.BeginForm("AddProduct", "DstInventory", new { area = "Distribution", id = count.ID }, FormMethod.Post, new { @class = "form-inline mb-50" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input name="pno" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Inventory_AddByPno")" required />
+                                <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bx bx-plus"></i></button>
+                            }
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("SaveCounts", "DstInventory", new { area = "Distribution", id = count.ID }, FormMethod.Post, new { id = "countForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="data" id="countData" />
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>@DstLocalization.T("Product")</th><th>@DstLocalization.T("Unit")</th>
+                                        <th class="text-right">@DstLocalization.T("Inventory_System")</th>
+                                        <th class="text-right" style="width:140px">@DstLocalization.T("Inventory_CountedQty")</th>
+                                        <th class="text-right">@DstLocalization.T("Inventory_Diff")</th>
+                                        @if (opening) { <th class="text-right" style="width:140px">@DstLocalization.T("Inventory_UnitCost")</th> }
+                                        <th>@DstLocalization.T("Comment")</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < rows.Count; i++)
+                                    {
+                                        var r = rows[i];
+                                        <tr data-line="@r.LineID" class="@(r.Diff.HasValue && r.Diff != 0 ? "table-warning" : "")">
+                                            <td>@r.PNo — @r.Name</td>
+                                            <td>@r.Unit</td>
+                                            <td class="text-right">@Q(r.System)</td>
+                                            <td class="text-right">
+                                                @if (draft && canChange)
+                                                {
+                                                    <input type="number" min="0" step="any" data-f="counted" value="@(r.Counted?.ToString("0.####", inv))" class="form-control form-control-sm text-right" />
+                                                }
+                                                else { @Q(r.Counted) }
+                                            </td>
+                                            <td class="text-right">@(r.Diff.HasValue ? (r.Diff > 0 ? "+" : "") + Q(r.Diff) : "")</td>
+                                            @if (opening)
+                                            {
+                                                <td class="text-right">
+                                                    @if (draft && canChange)
+                                                    {
+                                                        <input type="number" min="0" step="any" data-f="cost" value="@(r.UnitCost?.ToString("0.##", inv))" class="form-control form-control-sm text-right" />
+                                                    }
+                                                    else { @(r.UnitCost?.ToString("#,0.##", inv)) }
+                                                </td>
+                                            }
+                                            <td>
+                                                @if (draft && canChange)
+                                                {
+                                                    <input data-f="note" value="@r.Note" maxlength="200" class="form-control form-control-sm" />
+                                                }
+                                                else { @r.Note }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        if (draft && canChange)
+                        {
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button>
+                        }
+                    }
+
+                    @if (draft && canChange)
+                    {
+                        <hr />
+                        <div class="d-flex flex-wrap">
+                            @using (Html.BeginForm("Post", "DstInventory", new { area = "Distribution", id = count.ID }, FormMethod.Post, new { @class = "form-inline mr-2 mb-50", onsubmit = "return confirm('" + DstLocalization.T("Inventory_PostConfirm").Replace("'", "\\'") + "')" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                if (!opening)
+                                {
+                                    <div class="custom-control custom-checkbox mr-1">
+                                        <input type="checkbox" class="custom-control-input" id="apply" name="apply" value="true" />
+                                        <label class="custom-control-label" for="apply">@DstLocalization.T("Inventory_ApplyDiff")</label>
+                                    </div>
+                                }
+                                <button type="submit" class="btn btn-success btn-sm"><i class="bx bx-check"></i> @DstLocalization.T(opening ? "Inventory_PostOpening" : "Inventory_PostControl")</button>
+                            }
+                            @using (Html.BeginForm("Cancel", "DstInventory", new { area = "Distribution", id = count.ID }, FormMethod.Post, new { @class = "form-inline mb-50" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input name="reason" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Inventory_CancelReason")" required />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">@DstLocalization.T("Cancel")</button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        // qatorlar bitta JSON maydonda — forma kalitlari cheklovi (1000) katta ro'yxatda buzilmasin
+        $('#countForm').on('submit', function () {
+            var lines = [];
+            $(this).find('tr[data-line]').each(function () {
+                var tr = $(this), v = function (f) { var x = tr.find('[data-f=' + f + ']'); return x.length ? x.val() : null; };
+                lines.push({ LineID: tr.data('line'), Counted: v('counted'), UnitCost: v('cost'), Note: v('note') });
+            });
+            $('#countData').val(JSON.stringify(lines));
+        });
+    </script>
+}

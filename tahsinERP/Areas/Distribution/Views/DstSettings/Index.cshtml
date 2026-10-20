@@ -9,6 +9,9 @@
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     var general = (Dictionary<string, string>)ViewBag.General;
     Func<string, string> G = k => general.ContainsKey(k) ? general[k] : null;
+    var accounts = (List<SelectListItem>)ViewBag.Accounts;
+    var payAllowed = (G("AgentPayMethods") ?? "CASH,CARD,CLICK").Split(',');
+    var payMethods = new[] { "CASH", "CARD", "CLICK", "PAYME", "UZUM", "TRANSFER" };
 }
 @Html.AntiForgeryToken()
 <div class="app-content content">
@@ -24,7 +27,7 @@
                         <div class="form-group col-md-2"><label>@DstLocalization.T("Settings_LargeOrder")</label><input id="gLarge" type="number" min="0" step="1000" class="form-control" value="@G("LargeOrderAmount")" @(canChange ? "" : "disabled") /></div>
                         <div class="form-group col-md-2"><label>@DstLocalization.T("Settings_Radius")</label><input id="gRadius" type="number" min="20" max="5000" step="10" class="form-control" value="@(G("VisitRadiusM") ?? "200")" @(canChange ? "" : "disabled") /></div>
                         <div class="form-group col-md-3">
-                            <label>@DstLocalization.T("Settings_AgentAccount")</label>
+                            <label>@DstLocalization.T("Settings_HandoverAccount")</label>
                             <select id="gAccount" class="form-control" @(canChange ? "" : "disabled")>
                                 <option value="">—</option>
                                 @foreach (var a in (List<SelectListItem>)ViewBag.Accounts)
@@ -46,6 +49,43 @@
                     </div>
                     <p class="small text-muted">@DstLocalization.T("Settings_GeneralHint")</p>
                     @if (canChange) { <button type="button" class="btn btn-primary btn-sm" id="gSave">@DstLocalization.T("Save")</button> }
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Settings_AgentPayments")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Settings_AgentPaymentsHint")</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="payTable" style="max-width:640px">
+                            <thead><tr><th>@DstLocalization.T("Payment_Method")</th><th class="text-center">@DstLocalization.T("Settings_AgentAccepts")</th><th>@DstLocalization.T("Settings_PayAccount")</th></tr></thead>
+                            <tbody>
+                                @foreach (var m in payMethods)
+                                {
+                                    <tr data-method="@m">
+                                        <td>@DstLocalization.T("PayMethod_" + m)</td>
+                                        <td class="text-center"><input type="checkbox" data-f="on" @(payAllowed.Contains(m) ? "checked" : "") @(canChange ? "" : "disabled") /></td>
+                                        <td>
+                                            @if (m == "CASH")
+                                            {
+                                                <span class="text-muted small">@DstLocalization.T("Settings_CashStaysWithAgent")</span>
+                                            }
+                                            else
+                                            {
+                                                <select class="form-control form-control-sm" data-f="acc" @(canChange ? "" : "disabled")>
+                                                    <option value="">—</option>
+                                                    @foreach (var a in accounts)
+                                                    {
+                                                        <option value="@a.Value" @(a.Value == G("AgentAccount_" + m) ? "selected" : "")>@a.Text</option>
+                                                    }
+                                                </select>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (canChange) { <button type="button" class="btn btn-primary btn-sm" id="paySave">@DstLocalization.T("Save")</button> }
                 </div>
             </div>
             <div class="row">
@@ -154,6 +194,16 @@
                     agentCashAccountId: $('#gAccount').val(), botUsername: $('#gBot').val(),
                     requireSelfie: $('#gSelfie').is(':checked'), botPublicUrl: $('#gBotUrl').val()
                 }).done(function () { dstNotify(); });
+            });
+            $('#paySave').on('click', function () {
+                var data = { methods: [] };
+                $('#payTable tr[data-method]').each(function () {
+                    var m = $(this).data('method');
+                    if ($(this).find('[data-f=on]').is(':checked')) data.methods.push(m);
+                    var acc = $(this).find('[data-f=acc]');
+                    if (acc.length) data['account' + m.charAt(0) + m.slice(1).toLowerCase()] = acc.val();
+                });
+                dstPost('@Url.Action("SaveAgentPayments")', data).done(function () { dstNotify(); });
             });
             $('input[data-role]').on('change', function () {
                 dstPost('@Url.Action("SaveDiscountLimit")', { roleId: $(this).data('role'), maxPercent: $(this).val() }).done(function () { dstNotify(); });

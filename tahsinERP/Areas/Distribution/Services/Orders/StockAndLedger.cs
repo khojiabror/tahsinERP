@@ -121,7 +121,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
     /// <summary>Distributsiya hujjatlari raqami: PREFIKS-YYYY-00001 (tranzaksiya ichida, sp_getapplock bilan).</summary>
     public static class DstNumbering
     {
-        private static readonly string[] Tables = { "D_ORDERS", "D_SHIPMENTS", "D_RETURNS", "D_PAYMENTS", "CASH_HANDOVERS" };
+        private static readonly string[] Tables = { "D_ORDERS", "D_SHIPMENTS", "D_RETURNS", "D_PAYMENTS", "CASH_HANDOVERS", "INVENTORY_COUNTS" };
 
         public static string Next(DistributionDbContext db, string table, string prefix, DateTime date, int pad = 5)
         {

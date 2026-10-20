@@ -19,7 +19,7 @@ Versiya: pilot (1-bosqich), 2026-10. Web: `/Distribution` bo'limi. Bot: kompaniy
 | | **🗺 Marshrut** — bugungi mijozlar: ✅ borildi, ⏳ kutmoqda, 🚫 buyurtmasiz; qarzi bo'lsa ko'rinadi |
 | Do'konda | Mijozni tanlang (yoki **🔎 Mijoz** — nomi bilan qidirish) → **📍 Keldim** → Telegram'da **jonli joylashuv** yuboring. 200 m dan uzoqda bo'lsangiz qabul qilinmaydi |
 | Buyurtma | **🛒 Buyurtma** — Mini App ochiladi: qidiruv yoki kategoriya, tavsiya (mijoz odatda oladigan tovarlar), **birlik** (dona / quti / poddon), miqdor → savat → yetkazish sanasi, izoh → mijoz **imzosi** → Yuborish. Buyurtma "Yangi" holatda ofisga tushadi |
-| To'lov | **💵 To'lov** → summani yozing (masalan `250000`) → usul. Naqd — **sizning qo'lingizda** turadi, kassaga topshirguningizcha. Tugmani ikki marta bossangiz ham to'lov bitta |
+| To'lov | **💵 To'lov** → summani yozing (masalan `250000`) → usul: **naqd**, **karta** yoki **Click** (rahbar yoqqan usullar chiqadi). Naqd — **sizning qo'lingizda** turadi, kassaga topshirguningizcha; karta va Click darhol kompaniya hisobiga tushadi. Tugmani ikki marta bossangiz ham to'lov bitta |
 | Buyurtma yo'q | **🚫 Buyurtmasiz** → sababni tanlang (majburiy) |
 | Rasm | **📷 Foto** — tokcha / do'kon rasmi |
 | Kechqurun | **💵 Kassa** → qo'lingizdagi naqd → **📤 Kassaga topshirish** → pulni kassirga bering. Kassir sanab tasdiqlaydi |
@@ -44,6 +44,7 @@ Reys va marshrut 2-bosqichda. Hozir: botda **🔎 Mijoz** → **📍 Keldim** �
 | Jo'natish | **Jo'natish** → har qator miqdori (hammasi yoki qisman) → saqlash. Ombordan FIFO bo'yicha chiqim, mijoz qarziga yoziladi. **Nakladnoy** chop |
 | Qisman | Qolganini keyin jo'nating yoki operator **Qolganidan voz kechish** qiladi (sabab bilan) |
 | Qoldiqlar | **Qoldiqlar** — haqiqiy / rezerv / mavjud; minimaldan pastlari |
+| Inventarizatsiya | **Inventarizatsiya** → ombor va tur: **Boshlang'ich** (pilot boshida — qoldiqni sanalganga tenglaydi) yoki **Nazorat** (pilot oxirida — taqqoslash) → **Sanoq varag'i** (Excel, tizim qoldig'isiz) → sanab "Sanalgan" ustunini to'ldiring (asosiy birlikda; yo'q tovar — 0) → yuklang yoki ekranda yozing → **Yakunlash**. Natija: farqlar soni, kamomad va ortiqcha. Sanoq paytida shu ombordan jo'natmang |
 | Qaytgan tovar | Qaytarish hujjatini operator kiritadi; yaroqli yoki brak omboriga kirim bo'ladi |
 
 Xato jo'natishni bekor qilish — buyurtma kartasida (yetkazilmagan va qaytarishi yo'q bo'lsa). Keyin qo'shiladi: yangi tasdiqlangan buyurtma haqida botda xabar.
@@ -66,8 +67,16 @@ Xato jo'natishni bekor qilish — buyurtma kartasida (yetkazilmagan va qaytarish
 | Web: Buyurtmalar | Holat, agent, sana bo'yicha; tannarx va foyda — faqat "tannarxni ko'rish" huquqi bilan |
 | Web: Sozlamalar | Chegirma limiti (rol bo'yicha), minimal va yirik buyurtma, tashrif radiusi, omborlar |
 | Web: Import | Boshlang'ich ma'lumot (tartib sahifada yozilgan): avval **ko'rib chiqish**, keyin **Import qilish** |
+| Web: Sozlamalar → Agent to'lovlari | Agent qaysi usulda to'lov oladi (naqd, karta, Click …) va karta/Click qaysi hisobga tushadi; agent naqdi topshiriladigan kassa |
+| Web: Xatolar jurnali | Yangi muammolar (botda ham xabar keladi) → daraja K1/K2/K3, holat, yechim. Ochiq K1 soni sarlavhada |
 | Keyin qo'shiladi | Rahbar paneli va hisobotlar (savdo kesimlari, reja/fakt, Excel) |
 
 ## Operator (web, qisqa)
 
 Buyurtmalar → **Tasdiqlash** (limit, rezerv, ombor avtomatik). Limit bloki bo'lsa — rahbar ruxsat beradi. Yetkazilgach — **Yetkazildi**. Bekor qilish — sabab bilan (faqat jo'natilmagan). Qaytarish — **Qaytarishlar → Qaytarish** (buyurtma bo'yicha yoki buyurtmasiz, yaroqli/brak, sabab).
+
+## Xato yoki muammo bo'lsa (hamma uchun)
+
+- **Botda:** **⚠️ Muammo** tugmasi (yoki `/xato`) → nima qildingiz va nima bo'ldi, buyurtma/mijoz raqami bilan yozing. Skrinshotni izoh bilan yuborish mumkin. Bot raqam beradi (P-001 …), rahbarga xabar boradi.
+- **Web'da:** Distributsiya → **Xatolar jurnali** → forma (qayerda, hujjat raqami, nima bo'ldi, kutilgan natija).
+- Pul yoki qoldiq noto'g'ri bo'lsa — darhol rahbarga ham qo'ng'iroq qiling (K1).

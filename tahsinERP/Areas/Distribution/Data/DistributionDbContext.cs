@@ -118,6 +118,11 @@ namespace tahsinERP.Areas.Distribution.Data
         public virtual DbSet<Visit> Visits { get; set; }
         public virtual DbSet<AgentTrackPoint> AgentTrack { get; set; }
 
+        // pilot: inventarizatsiya va xatolar jurnali (S6)
+        public virtual DbSet<InventoryCount> InventoryCounts { get; set; }
+        public virtual DbSet<InventoryCountRow> InventoryCountRows { get; set; }
+        public virtual DbSet<Issue> Issues { get; set; }
+
         // sayt-katalog (021_SITE, Areas/Site)
         public virtual DbSet<Site.Data.SiteSetting> SiteSettings { get; set; }
         public virtual DbSet<Site.Data.SiteDomain> SiteDomains { get; set; }

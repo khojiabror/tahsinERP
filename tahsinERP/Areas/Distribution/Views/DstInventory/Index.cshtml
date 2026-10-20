@@ -1,0 +1,66 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("Inventory");
+    bool canChange = ViewBag.DstCanChange == true;
+    var rows = (List<DstInventoryController.ListRow>)ViewBag.Rows;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Inventory")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Inventory_Hint")</p>
+                    @if (canChange)
+                    {
+                        using (Html.BeginForm("Create", "DstInventory", new { area = "Distribution" }, FormMethod.Post, new { @class = "form-inline mb-1" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <select name="warehouseId" class="form-control mr-1 mb-50" required>
+                                @foreach (var w in (List<SelectListItem>)ViewBag.Warehouses)
+                                {
+                                    <option value="@w.Value">@w.Text</option>
+                                }
+                            </select>
+                            <select name="kind" class="form-control mr-1 mb-50">
+                                <option value="@InventoryKinds.Opening">@DstLocalization.T("Inventory_" + InventoryKinds.Opening)</option>
+                                <option value="@InventoryKinds.Control">@DstLocalization.T("Inventory_" + InventoryKinds.Control)</option>
+                            </select>
+                            <input name="note" class="form-control mr-1 mb-50" maxlength="300" placeholder="@DstLocalization.T("Comment")" />
+                            <button type="submit" class="btn btn-primary mb-50"><i class="bx bx-plus"></i> @DstLocalization.T("Inventory_New")</button>
+                        }
+                    }
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Report_DocNo")</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Warehouse")</th>
+                                    <th>@DstLocalization.T("Inventory_Kind")</th><th>@DstLocalization.T("Status")</th>
+                                    <th class="text-right">@DstLocalization.T("Inventory_Counted")</th><th class="text-right">@DstLocalization.T("Inventory_Differences")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in rows)
+                                {
+                                    <tr>
+                                        <td><a href="@Url.Action("Details", new { id = r.ID })">@r.DocNo</a></td>
+                                        <td>@r.DocDate.ToString("dd.MM.yyyy")</td>
+                                        <td>@r.Warehouse</td>
+                                        <td>@DstLocalization.T("Inventory_" + r.Kind)</td>
+                                        <td>@DstLocalization.T("DocStatus_" + r.Status)@(r.Applied ? " · " + DstLocalization.T("Inventory_Applied") : "")</td>
+                                        <td class="text-right">@r.Counted / @r.Lines</td>
+                                        <td class="text-right">@(r.Status == DocumentStatus.Posted ? r.Differences.ToString() : "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
