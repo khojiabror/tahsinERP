@@ -106,6 +106,9 @@ public sealed class StaffAuthService(ControlDbContext db, ISecretProtector prote
         return true;
     }
 
+    /// <summary>2FA o'chirilgan rejim (SecurityOptions.RequireStaffTotp=false): parol tekshirilgandan keyin kirishni yakunlaydi.</summary>
+    public Task CompletePasswordOnlyLoginAsync(StaffUser user, CancellationToken ct = default) => CompleteLoginAsync(user, ct);
+
     private async Task CompleteLoginAsync(StaffUser user, CancellationToken ct)
     {
         user.FailedLogins = 0;

@@ -82,6 +82,29 @@ public partial class WebUiTests(PanelFactory f) : IClassFixture<PanelFactory>
     }
 
     [Fact]
+    public async Task RequireStaffTotpFalse_PasswordOnlyLogin_OpensPanel()
+    {
+        await f.EnsureStaffAsync("ui-no2fa@test.uz", StaffRole.Owner);
+        using var app = f.WithWebHostBuilder(b => b.UseSetting("ControlPanel:Security:RequireStaffTotp", "false"));
+        using var c = app.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+
+        string loginHtml = await (await c.GetAsync("/Account/Login")).Content.ReadAsStringAsync();
+        Assert.DoesNotContain("2FA majburiy", loginHtml);
+
+        var r = await PostAsync(c, "/Account/Login", new() { ["Email"] = "ui-no2fa@test.uz", ["Password"] = "TestParol-2026xx" });
+        Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
+        Assert.DoesNotContain("/Account/EnrollTotp", r.Headers.Location!.OriginalString);
+        Assert.DoesNotContain("/Account/Totp", r.Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/")).StatusCode);
+
+        // Noto'g'ri parol baribir rad etiladi.
+        using var c2 = app.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        var bad = await PostAsync(c2, "/Account/Login", new() { ["Email"] = "ui-no2fa@test.uz", ["Password"] = "noto'g'ri-parol-123" });
+        Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await c2.GetAsync("/")).StatusCode);
+    }
+
+    [Fact]
     public async Task Owner_FullFlow_PagesRender_And_SecondLoginUsesTotp()
     {
         using var c = await LoginAsync("ui-owner@test.uz", StaffRole.Owner);

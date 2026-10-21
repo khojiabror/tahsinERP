@@ -12,6 +12,13 @@ public class SecurityOptions
     /// ro'yxatdan o'tadi va xodimlar 2FA'ni qayta ulaydi; shuning uchun zaxira nusxasi baza zaxirasidan ALOHIDA saqlansin.
     /// </summary>
     public string? MasterKey { get; set; }
+
+    /// <summary>
+    /// Xodimlar kirishida TOTP (2FA) majburiymi. Standart — ha. false (env <c>ControlPanel__Security__RequireStaffTotp=false</c>)
+    /// bo'lsa xodim faqat email + parol bilan kiradi; ulangan 2FA sirlari bazada qoladi va qayta yoqilganda ishlaydi.
+    /// Egasi qarori bilan o'chirilsa — panel kuchli parol va (ixtiyoriy) IP cheklovi bilan himoyalansin.
+    /// </summary>
+    public bool RequireStaffTotp { get; set; } = true;
 }
 
 /// <summary>AES-256-GCM: "v1." + Base64(nonce[12] | tag[16] | shifrmatn). AAD — maqsad nomi (bir maqsad uchun shifrlangan sirni boshqasiga qo'yib bo'lmaydi).</summary>
