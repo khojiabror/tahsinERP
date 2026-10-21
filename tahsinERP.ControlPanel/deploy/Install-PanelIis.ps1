@@ -26,6 +26,7 @@ param(
     [string] $SigningKeyFile = "$env:ProgramData\tahsinERP\panel-signing-k2.json",
     [string] $ConnectionString = 'Server=.;Database=tahsin_control;Trusted_Connection=True;TrustServerCertificate=True;Application Name=tahsinERP.ControlPanel',
     [string] $CertThumbprint,
+    [string] $CertStore = 'WebHosting',   # win-acme sertifikatni WebHosting'ga qo'yadi
     [switch] $SkipPublish,
     [switch] $KeepSecrets   # yangilashda: mavjud env sirlariga tegmaslik
 )
@@ -74,7 +75,7 @@ if ($PortalHostName -and -not (Get-WebBinding -Name $SiteName -Protocol https -H
 if ($CertThumbprint) {
     foreach ($h in @($HostName, $PortalHostName) | Where-Object { $_ }) {
         $binding = Get-WebBinding -Name $SiteName -Protocol https -HostHeader $h
-        $binding.AddSslCertificate($CertThumbprint, 'My')
+        $binding.AddSslCertificate($CertThumbprint, $CertStore)
     }
 }
 
@@ -111,9 +112,10 @@ if ($LASTEXITCODE -ne 0) { throw 'migrate xato bilan tugadi (SQL login/ruxsatni 
 
 # 6. SQL: app pool identity'ga tahsin_control bazasida huquq (skriptni ishga tushirgan administrator SQL sysadmin bo'lishi kerak)
 $csb = New-Object System.Data.SqlClient.SqlConnectionStringBuilder $ConnectionString
-$dbName = $csb.InitialCatalog
-$csb.InitialCatalog = 'master'
-$csb.IntegratedSecurity = $true
+# PowerShell builder'ni lug'at deb ko'radi - qiymatlar kalit nomi bilan ("Initial Catalog")
+$dbName = $csb['Initial Catalog']
+$csb['Initial Catalog'] = 'master'
+$csb['Integrated Security'] = $true
 $login = "IIS APPPOOL\$pool"
 $sql = @"
 IF SUSER_ID(N'$login') IS NULL CREATE LOGIN [$login] FROM WINDOWS;
