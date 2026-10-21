@@ -75,6 +75,8 @@ foreach ($a in $apps) {
 # ---------------------------------------------------------------------------------------------------------------
 Step '2/5 Bazalar va SQL huquqlari'
 foreach ($a in $apps) {
+    # IIS APPPOOL\<nom> Windows hisobi pool yaratilgandan keyingina mavjud bo'ladi
+    if (-not (Test-Path "IIS:\AppPools\$($a.Name)")) { New-WebAppPool -Name $a.Name | Out-Null }
     $login = "IIS APPPOOL\$($a.Name)"
     Invoke-Sql 'master' "IF DB_ID(N'$($a.Db)') IS NULL CREATE DATABASE [$($a.Db)];
 IF SUSER_ID(N'$login') IS NULL CREATE LOGIN [$login] FROM WINDOWS;"
