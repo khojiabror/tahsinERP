@@ -24,14 +24,17 @@
                             @foreach (var r in Model)
                             {
                                 <tr>
-                                    <td>@r.Agent @if (r.PendingHandoverID.HasValue) { <span class="badge badge-light-info">@DstLocalization.T("Cash_Submitted")</span> }</td>
+                                    <td>@r.Agent @if (r.PendingHandoverID.HasValue) { <span class="badge badge-light-info">@DstLocalization.T("Cash_Submitted")</span> }
+                                        @if (r.AfterHandover > 0) { <div class="small text-muted">@DstLocalization.T("Cash_AfterHandover", r.AfterHandover.ToString("N0"))</div> }</td>
                                     <td class="text-right"><a href="#" data-onhand="@r.AgentUserID">@r.Count</a></td>
                                     <td class="text-right"><b>@r.Amount.ToString("N0")</b></td>
                                     <td>@r.Oldest.ToString("dd.MM.yyyy")</td>
                                     <td class="text-right">
                                         @if (canChange)
                                         {
-                                            <button type="button" class="btn btn-sm btn-success" data-accept="@r.AgentUserID" data-name="@r.Agent" data-amount="@r.Amount.ToString(inv)">@DstLocalization.T("Cash_Accept")</button>
+                                            <button type="button" class="btn btn-sm btn-success" data-accept="@r.AgentUserID" data-name="@r.Agent"
+                                                    data-amount="@((r.PendingDeclared ?? r.Amount).ToString(inv))" data-pending="@(r.PendingHandoverID.HasValue ? "1" : "0")"
+                                                    data-account="@r.PendingAccountID" data-after="@r.AfterHandover.ToString(inv)">@DstLocalization.T("Cash_Accept")</button>
                                         }
                                     </td>
                                 </tr>
@@ -64,6 +67,10 @@
                                         {
                                             <button type="button" class="btn btn-sm btn-outline-danger" data-reject="@h.ID">@DstLocalization.T("Cash_Reject")</button>
                                         }
+                                        else if (h.Status == DocumentStatus.Posted && canChange)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-cancel-handover="@h.ID" title="@DstLocalization.T("Cash_CancelHandoverHint")">@DstLocalization.T("Cash_CancelHandover")</button>
+                                        }
                                         else if (h.Status == DocumentStatus.Cancelled) { <span>@DstLocalization.T("Order_Cancelled")</span> }
                                     </td>
                                 </tr>
@@ -82,7 +89,8 @@
             <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Cash_Accept") — <span id="acName"></span></h5></div>
             <div class="modal-body">
                 <input type="hidden" id="acAgent" />
-                <p>@DstLocalization.T("Cash_Declared"): <b id="acDeclared"></b></p>
+                <p class="mb-50">@DstLocalization.T("Cash_Declared"): <b id="acDeclared"></b></p>
+                <p class="small text-warning" id="acAfter" style="display:none"></p>
                 <div class="form-group">
                     <label>@DstLocalization.T("Payment_Account")</label>
                     @Html.DropDownList("acAccount", (List<SelectListItem>)ViewBag.Accounts, new { @class = "form-control", id = "acAccount" })
@@ -116,12 +124,20 @@
                 var b = $(this);
                 $('#acAgent').val(b.data('accept')); $('#acName').text(b.data('name'));
                 $('#acDeclared').text(money.format(b.data('amount'))); $('#acReceived').val(b.data('amount')); $('#acNote').val('');
+                if (b.data('account')) $('#acAccount').val(String(b.data('account')));
+                var after = Number(b.data('after')) || 0;
+                $('#acAfter').toggle(after > 0).text(after > 0 ? '@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Cash_AfterHandoverHint")))'.replace('{0}', money.format(after)) : '');
                 $('#acceptModal').modal('show');
             });
             $('#acSave').on('click', function () {
                 dstPost('@Url.Action("AcceptCash")', {
                     agentUserId: $('#acAgent').val(), finAccountId: $('#acAccount').val(), amountReceived: $('#acReceived').val(), note: $('#acNote').val()
                 }).done(function () { location.reload(); });
+            });
+            $('[data-cancel-handover]').on('click', function () {
+                var reason = prompt('@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Cash_CancelHandoverHint")))\n@DstLocalization.T("Reason")');
+                if (!reason) return;
+                dstPost('@Url.Action("CancelHandover")', { id: $(this).data('cancel-handover'), reason: reason }).done(function () { location.reload(); });
             });
             $('[data-reject]').on('click', function () {
                 var reason = prompt('@DstLocalization.T("Reason")');

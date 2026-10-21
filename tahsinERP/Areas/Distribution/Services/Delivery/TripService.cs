@@ -65,6 +65,7 @@ namespace tahsinERP.Areas.Distribution.Services.Delivery
         public const string NotifyTripStarted = "TRIP_STARTED";
         public const string NotifyStopDelivered = "STOP_DELIVERED";
         public const string NotifyStopProblem = "STOP_PROBLEM";
+        public const string NotifyTripFinished = "TRIP_FINISHED";
         public const string NotifyTripClosed = "TRIP_CLOSED";
 
         // ---------- rejalash ----------
@@ -228,6 +229,7 @@ namespace tahsinERP.Areas.Distribution.Services.Delivery
             if (stops.Count == 0) throw new DstValidationException(DstLocalization.T("Trip_NoStops"));
             trip.TripStatus = (byte)TripStatus.InTransit;
             trip.StartedAt = now;
+            FieldService.EnsureWorkDay(db, trip.ExpeditorUserID, now);   // jonli joylashuv yozilsin (K2-7)
 
             var vehicle = db.Vehicles.Find(trip.VehicleID);
             var expeditor = db.Users.Where(u => u.ID == trip.ExpeditorUserID).Select(u => u.FullName ?? u.Uname).FirstOrDefault();
@@ -353,13 +355,66 @@ namespace tahsinERP.Areas.Distribution.Services.Delivery
             var stop = db.TripStops.Find(stopId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
             var trip = Load(db, stop.TripID);
             if (trip.State != TripStatus.InTransit) throw new DstValidationException(DstLocalization.T("Trip_NotInTransit"));
+            if (stop.State == StopStatus.Pending) return;
+            var deliveredAt = stop.DeliveredAt;
             foreach (var l in db.TripStopLines.Where(l => l.StopID == stopId).ToList()) l.QtyDelivered = null;
             stop.StopStatus = (byte)StopStatus.Pending;
             stop.DeliveredAmount = null;
             stop.DeliveredAt = null;
             stop.DeliveredBy = null;
             stop.ReasonID = null;
+            // dalil va izoh ham — yangi natija bilan qayta kiritiladi (05_FINDINGS K2-9)
+            stop.PhotoKey = null;
+            stop.SignatureKey = null;
+            stop.Note = null;
+            stop.Lat = null;
+            stop.Lng = null;
+
+            // buyurtma "Yetkazildi" bo'lgan bo'lsa — qaytadi (jo'natildi), yopilgan bo'lsa faqat yetkazish sanasi olinadi
+            var order = db.Orders.Find(stop.OrderID);
+            if (order != null && order.DeliveredAt != null)
+            {
+                order.DeliveredAt = null;
+                if ((OrderStatus)order.OrderStatus == OrderStatus.Delivered)
+                    OrderService.MoveBack(db, order, OrderStatus.Shipped, userId, now, trip.DocNo + ": " + DstLocalization.T("Trip_ResetNote"));
+            }
+
+            // mijozga hali ketmagan natija xabari o'chiriladi, ketgan bo'lsa — tuzatish xabari
+            var sentBefore = deliveredAt ?? now;
+            var unsent = db.Notifications.Where(n => n.CustomerID == stop.CustomerID && n.Type == NotifyStopDelivered && n.SentAt == null && n.CreatedAt >= sentBefore).ToList();
+            if (unsent.Count > 0) db.Notifications.RemoveRange(unsent);
+            else if (order != null)
+                NotificationService.ToCustomer(db, stop.CustomerID, NotifyStopDelivered, l => DstLocalization.TFor(l, "Notify_StopReset", order.DocNo), now);
             db.SaveChanges();
+        }
+
+        /// <summary>
+        /// Qayta yetkazish (05_FINDINGS K2-10): yopilgan reysda qaytgan tovar qaytarish hujjati bilan omborga kirgan va mijoz qarzidan
+        /// ayrilgan; asl jo'natish/buyurtma o'zgarmaydi (hujjatlar zanjiri buzilmaydi). Shu qaytgan miqdorlar bilan yangi buyurtma
+        /// qoralamasi yaratiladi (asosiy birlikda, joriy narxda) — odatdagi tasdiq → jo'natish → reys oqimidan o'tadi.
+        /// </summary>
+        public static int Redeliver(DistributionUnitOfWork uow, int stopId, OrderActor actor, DateTime now)
+        {
+            var db = uow.Dst;
+            var stop = db.TripStops.Find(stopId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+            var trip = Load(db, stop.TripID);
+            if (trip.State != TripStatus.Closed || stop.ReturnID == null)
+                throw new DstValidationException(DstLocalization.T("Trip_RedeliverNothing"));
+            var lines = db.ReturnLines.Where(l => l.ReturnID == stop.ReturnID && l.Return.Status == DocumentStatus.Posted)
+                .GroupBy(l => l.ProductID).Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.QtyBase) }).ToList();
+            if (lines.Count == 0) throw new DstValidationException(DstLocalization.T("Trip_RedeliverNothing"));
+            var order = db.Orders.Find(stop.OrderID);
+            var comment = DstLocalization.T("Trip_RedeliverComment", order?.DocNo, trip.DocNo);
+            byte cancelled = (byte)OrderStatus.Cancelled;
+            var again = db.Orders.Where(o => o.CustomerID == stop.CustomerID && o.Comment == comment && o.OrderStatus != cancelled)
+                .Select(o => (int?)o.ID).FirstOrDefault();
+            if (again.HasValue) return again.Value;   // ikki marta bosilsa — o'sha qoralama
+            return OrderService.SaveDraft(uow, new OrderInput
+            {
+                CustomerID = stop.CustomerID, AgentUserID = order?.AgentUserID, WarehouseID = trip.WarehouseID,
+                Comment = comment,
+                Lines = lines.Select(l => new OrderLineInput { ProductID = l.ProductID, Qty = l.Qty }).ToList()
+            }, actor, now);
         }
 
         /// <summary>Buyurtmaning o'tkazilgan barcha jo'natishlari to'liq jo'natilgan va har biri yetkazilgan (o'zi olib ketish yoki reysda hal qilingan).</summary>
@@ -374,6 +429,47 @@ namespace tahsinERP.Areas.Distribution.Services.Delivery
         }
 
         // ---------- yopish ----------
+
+        /// <summary>
+        /// Ekspeditor (bot) reysni yakunlaydi (05_FINDINGS K2-8): hamma to'xtash hal qilingan bo'lishi kerak; reys "yo'lda" qoladi,
+        /// FinishedAt qo'yiladi va omborchi/rahbarga xabar — qaytgan tovar sanalib, reys ofisda <see cref="Close"/> bilan yopiladi
+        /// (qaytgan miqdor va kamomad o'shanda kiritiladi). Avval bot yopishi hammasini "omborga qaytdi" deb olardi.
+        /// </summary>
+        public static CloseResult Finish(DistributionUnitOfWork uow, int tripId, int expeditorUserId, DateTime now)
+        {
+            var db = uow.Dst;
+            var trip = Load(db, tripId);
+            if (trip.ExpeditorUserID != expeditorUserId) throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+            if (trip.State != TripStatus.InTransit) throw new DstValidationException(DstLocalization.T("Trip_NotInTransit"));
+            var stops = db.TripStops.Where(s => s.TripID == trip.ID).ToList();
+            var pending = stops.Count(s => s.State == StopStatus.Pending);
+            if (pending > 0) throw new DstValidationException(DstLocalization.T("Trip_PendingStops", pending));
+            var stopIds = stops.Select(s => s.ID).ToList();
+            var lines = db.TripStopLines.Where(l => stopIds.Contains(l.StopID)).ToList();
+
+            var result = new CloseResult
+            {
+                Delivered = stops.Count(s => s.State == StopStatus.Delivered),
+                Partial = stops.Count(s => s.State == StopStatus.Partial),
+                Refused = stops.Count(s => s.State == StopStatus.Refused),
+                DeliveredAmount = stops.Sum(s => s.DeliveredAmount ?? 0),
+                // kutilayotgan qaytish (yetkazilmagan qism) — haqiqiy qaytgan miqdorni ombor sanaydi
+                ReturnedAmount = lines.Sum(l => DeliveryMath.Share(l.Amount, l.QtyBase - (l.QtyDelivered ?? 0), l.QtyBase))
+            };
+            bool first = trip.FinishedAt == null;
+            trip.FinishedAt = trip.FinishedAt ?? now;
+            FieldService.EndWorkDayAfterTrip(db, expeditorUserId, trip.ID, now);
+            if (first)
+            {
+                var expeditor = db.Users.Where(u => u.ID == trip.ExpeditorUserID).Select(u => u.FullName ?? u.Uname).FirstOrDefault();
+                var back = result.ReturnedAmount;
+                Func<string, string> text = l => DstLocalization.TFor(l, "Notify_TripFinished", trip.DocNo, expeditor, back.ToString("N0"));
+                NotificationService.ToManagers(db, NotifyTripFinished, text, null, now, expeditorUserId);
+                NotificationService.ToStorekeepers(db, trip.WarehouseID, NotifyTripFinished, text, null, now, expeditorUserId);
+            }
+            db.SaveChanges();
+            return result;
+        }
 
         public sealed class CloseResult
         {
@@ -463,6 +559,7 @@ namespace tahsinERP.Areas.Distribution.Services.Delivery
             trip.ShortageCost = Math.Round(result.ShortageCost, 2);
             trip.TripStatus = (byte)TripStatus.Closed;
             trip.FinishedAt = trip.FinishedAt ?? now;
+            FieldService.EndWorkDayAfterTrip(db, trip.ExpeditorUserID, trip.ID, now);
             if (!string.IsNullOrWhiteSpace(input.Note)) trip.Note = Cut(((trip.Note == null ? "" : trip.Note + " | ") + input.Note.Trim()), 500);
             DocumentLifecycle.Post(trip, userId, now);
             db.SaveChanges();

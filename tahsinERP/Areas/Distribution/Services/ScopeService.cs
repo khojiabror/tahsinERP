@@ -60,11 +60,17 @@ namespace tahsinERP.Areas.Distribution.Services
             return query.Where(Expression.Lambda<Func<T, bool>>(contains, key.Parameters));
         }
 
-        /// <summary>Nullable kalit bo'yicha filtr: NULL qiymatli qatorlar cheklangan foydalanuvchiga ko'rinmaydi.</summary>
+        /// <summary>NULL kalitli qatorlar ham ko'rinadigan nusxa (masalan, supervayzerga agentsiz mijozlar).</summary>
+        public ScopeFilter WithNulls() => _ids == null ? this : new ScopeFilter(_ids) { _withNulls = true };
+
+        private bool _withNulls;
+
+        /// <summary>Nullable kalit bo'yicha filtr: NULL qiymatli qatorlar cheklangan foydalanuvchiga ko'rinmaydi (<see cref="WithNulls"/> — ko'rinadi).</summary>
         public IQueryable<T> Apply<T>(IQueryable<T> query, Expression<Func<T, int?>> key)
         {
             if (_ids == null) return query;
             var ids = _ids.Select(i => (int?)i).ToList();
+            if (_withNulls) ids.Add(null);
             var contains = Expression.Call(typeof(Enumerable), nameof(Enumerable.Contains), new[] { typeof(int?) },
                 Expression.Constant(ids), key.Body);
             return query.Where(Expression.Lambda<Func<T, bool>>(contains, key.Parameters));
@@ -94,6 +100,9 @@ namespace tahsinERP.Areas.Distribution.Services
                 .Where(s => s.UserID == userId && s.ScopeType == scopeType)
                 .Select(s => s.ScopeID)
                 .ToList();
+            // hudud — quyi hududlari bilan (viloyat berilsa, uning tumanlari ham), 05_FINDINGS K2-13
+            if (scopeType == ScopeTypes.Territory && ids.Count > 0)
+                ids = ids.SelectMany(id => Reports.TerritoryFilter.WithDescendants(_db, id)).Distinct().ToList();
             return ScopeFilter.FromRows(ids, false);
         }
 
@@ -111,7 +120,8 @@ namespace tahsinERP.Areas.Distribution.Services
                 var members = _db.SalesAgents.Where(a => a.TeamID != null && teamIds.Contains(a.TeamID.Value))
                     .Select(a => a.UserID).ToList();
                 members.Add(userId);
-                return ScopeFilter.FromRows(members, false);
+                // supervayzer agenti biriktirilmagan mijozlarni ham ko'radi — ularni o'z agentlariga biriktirish uchun (05_FINDINGS 44)
+                return ScopeFilter.FromRows(members, false).WithNulls();
             }
 
             bool isAgent = _db.SalesAgents.Any(a => a.UserID == userId && a.IsActive);

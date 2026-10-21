@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
@@ -46,6 +47,7 @@ namespace tahsinERP.Services.Stock
                 {
                     throw new InvalidOperationException(wex.Message, wex);
                 }
+                EnsureNotBelowReserved(db, expense.SenderWHID, line.ProductID);
 
                 var unitCost = StockCostService.IssuedLineUnitCost(db, expense.SenderWHID,
                     line.ProductID, line.Amount, line.UnitID, expenseProduct.ID);
@@ -59,6 +61,33 @@ namespace tahsinERP.Services.Stock
 
             expense.Amount = totalAmount;
             expense.TotalPrice = totalPrice;
+        }
+
+        /// <summary>
+        /// Distributsiya rezervi (dst.STOCK_RESERVATIONS — tasdiqlangan buyurtmalar uchun ushlab turilgan tovar): ombor modulidagi
+        /// chiqim/ko'chirma qoldiqni rezervdan pastga tushirsa — rad (05_FINDINGS 48). Distributsiya sxemasi yo'q bazada — tekshiruvsiz.
+        /// Avval distributsiyada buyurtma tasdig'ini qaytarish yoki rezervni boshqa omborga ko'chirish kerak.
+        /// </summary>
+        internal static void EnsureNotBelowReserved(DBTHSNEntities db, int warehouseId, int productId)
+        {
+            var row = db.Database.SqlQuery<ReserveCheck>(
+                "IF OBJECT_ID('dst.STOCK_RESERVATIONS', 'U') IS NULL SELECT CAST(0 AS decimal(19,6)) AS Reserved, CAST(0 AS decimal(19,6)) AS OnHand ELSE " +
+                "SELECT ISNULL((SELECT SUM(QtyBase) FROM dst.STOCK_RESERVATIONS WHERE WarehouseID = @p0 AND ProductID = @p1), 0) AS Reserved, " +
+                "ISNULL((SELECT SUM(Amount) FROM dbo.PRODUCT_STOCKS WHERE WHID = @p0 AND ProductID = @p1), 0) AS OnHand",
+                warehouseId, productId).FirstOrDefault();
+            if (row != null && row.Reserved > 0 && row.OnHand + StockLedger.Epsilon < row.Reserved)
+            {
+                var pno = db.PRODUCTS.Where(p => p.ID == productId).Select(p => p.PNo).FirstOrDefault();
+                throw new InvalidOperationException(
+                    $"{pno}: distributsiya buyurtmalari uchun {row.Reserved:0.####} rezervda, chiqimdan keyin qoldiq {row.OnHand:0.####} bo'lib qoladi. " +
+                    "Avval Distributsiya → Buyurtmalar'da rezervni yeching (tasdiqni qaytarish) yoki chiqim miqdorini kamaytiring.");
+            }
+        }
+
+        private sealed class ReserveCheck
+        {
+            public decimal Reserved { get; set; }
+            public decimal OnHand { get; set; }
         }
     }
 }

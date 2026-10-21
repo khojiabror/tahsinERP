@@ -67,6 +67,22 @@
                         </table>
                     </div>
 
+                    <div class="mb-1">
+                        @if (doc.PhotoKey != null)
+                        {
+                            <a href="@Url.Action("Photo", new { id = doc.ID })" target="_blank"><img src="@Url.Action("Photo", new { id = doc.ID })" alt="" style="max-height:120px;border:1px solid #eee" /></a>
+                        }
+                        @if (canChange && draft && doc.SubmittedAt == null)
+                        {
+                            using (Html.BeginForm("UploadPhoto", "DstWriteOffs", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-inline mt-50" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="file" name="file" accept="image/jpeg,image/png" class="form-control form-control-sm mr-50" required />
+                                <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bx bx-camera"></i> @DstLocalization.T(doc.PhotoKey == null ? "WriteOff_AttachPhoto" : "WriteOff_ReplacePhoto")</button>
+                            }
+                        }
+                    </div>
+
                     @if (canChange)
                     {
                         <div class="d-flex flex-wrap">

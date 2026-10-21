@@ -31,7 +31,7 @@
                     <td class="text-right r">@l.UnitCost.ToString("N2")</td>
                     <td class="text-right r">@(l.Diff == 0 ? "" : Math.Round(Math.Abs(l.Diff) * l.UnitCost, 2).ToString("N0"))</td>
                 }
-                <td>@(l.Resolution == null ? "" : DstLocalization.T("Transfer_" + l.Resolution))</td>
+                <td>@(l.Resolution == null ? "" : DstLocalization.T("Transfer_" + l.Resolution))@(l.Resolution == "SPLIT" && l.LossQty.HasValue ? ": " + DstLocalization.T("Transfer_LossQty") + " " + l.LossQty.Value.ToString("0.####") : "")</td>
                 <td>@l.Note</td>
             </tr>
         }

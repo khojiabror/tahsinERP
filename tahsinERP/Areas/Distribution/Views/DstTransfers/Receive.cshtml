@@ -51,7 +51,9 @@
                                                     <option value="">—</option>
                                                     <option value="@TransferResolutions.Loss">@DstLocalization.T("Transfer_" + TransferResolutions.Loss)</option>
                                                     <option value="@TransferResolutions.Return">@DstLocalization.T("Transfer_" + TransferResolutions.Return)</option>
+                                                    <option value="@TransferResolutions.Split">@DstLocalization.T("Transfer_" + TransferResolutions.Split)</option>
                                                 </select>
+                                                <input type="number" min="0" step="any" data-f="loss" class="form-control form-control-sm mt-25" style="display:none" placeholder="@DstLocalization.T("Transfer_LossQty")" title="@DstLocalization.T("Transfer_LossQty")" />
                                             </td>
                                             <td><input data-f="note" maxlength="200" class="form-control form-control-sm" /></td>
                                         </tr>
@@ -103,15 +105,18 @@
                 var short = !isNaN(got) && got < sent, sel = tr.find('[data-f=resolution]');
                 sel.prop('disabled', !short).prop('required', short);
                 if (!short) sel.val('');
+                var loss = tr.find('[data-f=loss]'), split = short && sel.val() === '@TransferResolutions.Split';
+                loss.toggle(split).prop('required', split);
+                if (!split) loss.val('');
                 tr.toggleClass('table-warning', !isNaN(got) && got !== sent);
             }
-            $('#trLines').on('input change', '[data-f=received]', function () { sync($(this).closest('tr')); });
+            $('#trLines').on('input change', '[data-f=received], [data-f=resolution]', function () { sync($(this).closest('tr')); });
             $('#trLines tr[data-ip]').each(function () { sync($(this)); });
             $('#trForm').on('submit', function () {
                 var rows = [];
                 $('#trLines tr[data-ip]').each(function () {
                     var tr = $(this);
-                    rows.push({ IncomeProductID: tr.data('ip'), Received: tr.find('[data-f=received]').val(), Resolution: tr.find('[data-f=resolution]').val(), Note: tr.find('[data-f=note]').val() });
+                    rows.push({ IncomeProductID: tr.data('ip'), Received: tr.find('[data-f=received]').val(), Resolution: tr.find('[data-f=resolution]').val(), LossQty: tr.find('[data-f=loss]').val(), Note: tr.find('[data-f=note]').val() });
                 });
                 $('#trData').val(JSON.stringify(rows));
             });

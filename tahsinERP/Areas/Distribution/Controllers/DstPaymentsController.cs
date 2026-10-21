@@ -134,6 +134,11 @@ namespace tahsinERP.Areas.Distribution.Controllers
             public decimal Amount { get; set; }
             public DateTime Oldest { get; set; }
             public int? PendingHandoverID { get; set; }
+            /// <summary>Kutilayotgan topshirish hujjatidagi summa va kassa (agent botdan topshirgan).</summary>
+            public decimal? PendingDeclared { get; set; }
+            public int? PendingAccountID { get; set; }
+            /// <summary>Topshirishdan keyin olingan naqd — bu hujjatga kirmaydi, agent qo'lida qoladi.</summary>
+            public decimal AfterHandover => PendingDeclared.HasValue ? Math.Max(0, Amount - PendingDeclared.Value) : 0;
         }
 
         public ActionResult Cash()
@@ -148,7 +153,11 @@ namespace tahsinERP.Areas.Distribution.Controllers
                                 AgentUserID = g.Key, Count = g.Count(), Amount = g.Sum(x => x.Amount), Oldest = g.Min(x => x.DocDate),
                                 Agent = db.Users.Where(u => u.ID == g.Key).Select(u => u.FullName ?? u.Uname).FirstOrDefault(),
                                 PendingHandoverID = db.CashHandovers.Where(h => h.AgentUserID == g.Key && h.Status == DocumentStatus.Draft)
-                                    .Select(h => (int?)h.ID).FirstOrDefault()
+                                    .Select(h => (int?)h.ID).FirstOrDefault(),
+                                PendingDeclared = db.CashHandovers.Where(h => h.AgentUserID == g.Key && h.Status == DocumentStatus.Draft)
+                                    .Select(h => (decimal?)h.AmountDeclared).FirstOrDefault(),
+                                PendingAccountID = db.CashHandovers.Where(h => h.AgentUserID == g.Key && h.Status == DocumentStatus.Draft)
+                                    .Select(h => (int?)h.FinAccountID).FirstOrDefault()
                             }).OrderByDescending(x => x.Amount).ToList();
                 var agentScope = new ScopeService(db).AgentsFor(CurrentUserName);
                 ViewBag.Handovers = (from h in db.CashHandovers
@@ -194,7 +203,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     var pending = uow.Dst.CashHandovers.Where(h => h.AgentUserID == agentUserId && h.Status == DocumentStatus.Draft)
                         .Select(h => (int?)h.ID).FirstOrDefault();
                     if (pending.HasValue)
-                        PaymentService.ConfirmHandover(uow, pending.Value, amountReceived, CurrentUserId, DateTime.Now);
+                        PaymentService.ConfirmHandover(uow, pending.Value, amountReceived, CurrentUserId, DateTime.Now, finAccountId);
                     else
                         PaymentService.AcceptCash(uow, agentUserId, finAccountId, amountReceived, CurrentUserId, note, DateTime.Now);
                     uow.Commit();
@@ -218,6 +227,26 @@ namespace tahsinERP.Areas.Distribution.Controllers
             });
         }
 
+        /// <summary>Qabul qilingan topshirishni bekor qilish: moliya yozuvlari bekor, to'lovlar yana agent qo'lida (K1-4).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public JsonResult CancelHandover(int id, string reason)
+        {
+            return DstJson(() =>
+            {
+                using (var uow = NewUnitOfWork())
+                {
+                    var agent = uow.Dst.CashHandovers.Where(h => h.ID == id).Select(h => (int?)h.AgentUserID).FirstOrDefault()
+                                ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+                    if (!new ScopeService(uow.Dst).AgentsFor(CurrentUserName).Allows(agent))
+                        throw new DstValidationException(DstLocalization.T("Forbidden"));
+                    PaymentService.CancelHandover(uow, id, CurrentUserId, reason, DateTime.Now);
+                    uow.Commit();
+                    return null;
+                }
+            });
+        }
+
         [HttpGet]
         public JsonResult OnHand(int agentUserId)
         {
@@ -227,8 +256,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
                             where p.ReceivedByUserID == agentUserId && p.Status == DocumentStatus.Posted && p.FinAccountID == null
                             join c in db.Customers on p.CustomerID equals c.ID
                             orderby p.ID
-                            select new { p.DocNo, p.DocDate, p.Amount, Customer = c.Name }).ToList();
-                return Json(rows.Select(r => new { r.DocNo, date = r.DocDate.ToString("dd.MM.yyyy"), r.Amount, r.Customer }), JsonRequestBehavior.AllowGet);
+                            select new { p.DocNo, p.DocDate, p.Amount, p.HandoverID, Customer = c.Name }).ToList();
+                return Json(rows.Select(r => new { r.DocNo, date = r.DocDate.ToString("dd.MM.yyyy"), r.Amount, r.Customer, submitted = r.HandoverID != null }),
+                    JsonRequestBehavior.AllowGet);
             }
         }
 

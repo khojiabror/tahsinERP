@@ -60,7 +60,8 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             return code;
         }
 
-        public static TelegramAccount Redeem(DistributionDbContext db, string code, long telegramUserId, long chatId, DateTime now)
+        /// <param name="language">Telegram tili (bot yuboradi) — mijoz xabarlari uchun.</param>
+        public static TelegramAccount Redeem(DistributionDbContext db, string code, long telegramUserId, long chatId, DateTime now, string language = null)
         {
             var c = db.TelegramLinkCodes.Find((code ?? "").Trim().ToUpperInvariant());
             if (c == null || c.UsedAt != null || c.ExpiresAt < now)
@@ -77,7 +78,8 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             c.TelegramUserId = telegramUserId;
             var account = new TelegramAccount
             {
-                TelegramUserId = telegramUserId, ChatId = chatId, UserID = c.UserID, CustomerID = c.CustomerID, Role = c.Role, LinkedAt = now
+                TelegramUserId = telegramUserId, ChatId = chatId, UserID = c.UserID, CustomerID = c.CustomerID, Role = c.Role, LinkedAt = now,
+                Language = c.CustomerID.HasValue && language != null ? DstLocalization.Normalize(language) : null
             };
             db.TelegramAccounts.Add(account);
             return account;
@@ -117,22 +119,20 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             });
         }
 
-        public static void ToCustomer(DistributionDbContext db, int customerId, string type, Func<string, string> text, DateTime now)
-        {
-            if (!db.TelegramAccounts.Any(a => a.CustomerID == customerId && a.IsActive)) return;
-            db.Notifications.Add(new DstNotification
-            {
-                Type = type, CustomerID = customerId, Text = Cut(text(DstLocalization.Uzbek)), CreatedAt = now
-            });
-        }
+        public static void ToCustomer(DistributionDbContext db, int customerId, string type, Func<string, string> text, DateTime now) =>
+            ToCustomer(db, customerId, type, text, null, now);
 
-        /// <summary>Mijozga qo'shimcha ma'lumot bilan (masalan nakladnoy PDF: {"action":"invoice","stopId":N} — bot hujjatni o'zi tayyorlaydi).</summary>
+        /// <summary>
+        /// Mijozga qo'shimcha ma'lumot bilan (masalan nakladnoy PDF: {"action":"invoice","stopId":N} — bot hujjatni o'zi tayyorlaydi).
+        /// Matn mijozning Telegram tilida (TELEGRAM_ACCOUNTS.Language; noma'lum — o'zbekcha), 05_FINDINGS K2-24.
+        /// </summary>
         public static void ToCustomer(DistributionDbContext db, int customerId, string type, Func<string, string> text, string payload, DateTime now)
         {
-            if (!db.TelegramAccounts.Any(a => a.CustomerID == customerId && a.IsActive)) return;
+            var account = db.TelegramAccounts.Where(a => a.CustomerID == customerId && a.IsActive).Select(a => new { a.Language }).FirstOrDefault();
+            if (account == null) return;
             db.Notifications.Add(new DstNotification
             {
-                Type = type, CustomerID = customerId, Text = Cut(text(DstLocalization.Uzbek)), Payload = payload, CreatedAt = now
+                Type = type, CustomerID = customerId, Text = Cut(text(DstLocalization.Normalize(account.Language))), Payload = payload, CreatedAt = now
             });
         }
 
@@ -143,6 +143,22 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
                 .Select(a => a.UserID.Value).Distinct().ToList();
             foreach (var m in managers.Where(m => m != exceptUserId))
                 ToUser(db, m, type, text, payload, now);
+        }
+
+        /// <summary>
+        /// Tannarx summasi bor xabar: DstSeeCost huquqi bor rahbarga <paramref name="withCost"/>, qolganlarga — summasiz
+        /// <paramref name="withoutCost"/> (05_FINDINGS K1-5). <paramref name="canSeeCost"/> — sinov uchun (null — huquq bo'yicha).
+        /// </summary>
+        public static void ToManagers(DistributionDbContext db, string type, Func<string, string> withCost, Func<string, string> withoutCost,
+            string payload, DateTime now, int? exceptUserId = null, Func<int, string, bool> canSeeCost = null)
+        {
+            var managers = (from a in db.TelegramAccounts
+                            join u in db.Users on a.UserID equals u.ID
+                            where a.IsActive && a.Role == BotRoles.Manager
+                            select new { u.ID, u.Uname }).Distinct().ToList();
+            canSeeCost = canSeeCost ?? ((id, uname) => DstPermissions.Has(uname, DstPermissions.SeeCost));
+            foreach (var m in managers.Where(m => m.ID != exceptUserId))
+                ToUser(db, m.ID, type, canSeeCost(m.ID, m.Uname) ? withCost : withoutCost, payload, now);
         }
 
         /// <summary>

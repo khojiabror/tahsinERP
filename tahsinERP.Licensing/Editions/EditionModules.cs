@@ -129,7 +129,7 @@ namespace tahsinERP.Services.Editions
                     "DstTeams", "DstSettings", "DstImport", "DstOrders", "DstStock", "DstPayments", "DstReturns", "DstDebts", "DstField", "DstApi",
                     "DstDashboard", "DstReports", "DstInventory", "DstIssues",
                     "DstTransfers", "DstWriteOffs", "DstRegrades", "DstLandedCosts", "DstReorder", "DstPromotions",
-                    "DstVehicles", "DstTrips", "DstRoutes", "DstKpi"
+                    "DstVehicles", "DstTrips", "DstRoutes", "DstKpi", "DstAudit"
                 } },
             { ProductModule.Website, new[] { "SiteHome", "SiteSettings", "SiteCatalog", "SitePages", "SiteLeads", "SiteApi" } },
         });

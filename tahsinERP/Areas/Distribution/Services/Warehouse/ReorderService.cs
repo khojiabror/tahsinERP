@@ -51,7 +51,8 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             public int ProductID { get; set; }
             public int WarehouseID { get; set; }
             public decimal Qty { get; set; }
-            public decimal Price { get; set; }
+            /// <summary>Bo'sh — oxirgi xarid narxi serverda olinadi (tannarx huquqisiz foydalanuvchi narxni ko'rmaydi, K1-5).</summary>
+            public decimal? Price { get; set; }
             public int? SupplierID { get; set; }
         }
 
@@ -94,16 +95,32 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             return result.OrderBy(r => r.Warehouse).ThenBy(r => r.PNo).ToList();
         }
 
+        private sealed class LastPurchaseInfo
+        {
+            public int ProductID { get; set; }
+            public int? SupplierID { get; set; }
+            public string Supplier { get; set; }
+            public decimal? Price { get; set; }
+            public DateTime? InvoiceDate { get; set; }
+        }
+
+        /// <summary>Tovarning oxirgi xarid hisob-fakturasi (yetkazib beruvchi, narx).</summary>
+        private static Dictionary<int, LastPurchaseInfo> LastPurchases(DBTHSNEntities erp, List<int> ids)
+        {
+            return (from ip in erp.P_INVOICE_PRODUCTS
+                    join i in erp.P_INVOICES on ip.InvoiceID equals i.ID
+                    where ids.Contains(ip.ProductID) && i.IsDeleted != true
+                    orderby i.InvoiceDate descending, ip.ID descending
+                    select new LastPurchaseInfo { ProductID = ip.ProductID, SupplierID = i.SupplierID, Supplier = i.SUPPLIER.Name, Price = ip.Price, InvoiceDate = i.InvoiceDate })
+                .Take(5000).ToList()
+                .GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.First());
+        }
+
         private static void FillSuppliers(DBTHSNEntities erp, List<Row> rows, DateTime now)
         {
             if (rows.Count == 0) return;
             var ids = rows.Select(r => r.ProductID).Distinct().ToList();
-            var last = (from ip in erp.P_INVOICE_PRODUCTS
-                        join i in erp.P_INVOICES on ip.InvoiceID equals i.ID
-                        where ids.Contains(ip.ProductID) && i.IsDeleted != true
-                        orderby i.InvoiceDate descending, ip.ID descending
-                        select new { ip.ProductID, i.SupplierID, Supplier = i.SUPPLIER.Name, ip.Price, i.InvoiceDate }).Take(5000).ToList()
-                       .GroupBy(x => x.ProductID).ToDictionary(g => g.Key, g => g.First());
+            var last = LastPurchases(erp, ids);
             var since = now.AddDays(-30);
             string marker = Marker;
             var recent = (from op in erp.P_ORDER_PRODUCTS
@@ -125,6 +142,13 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             }
         }
 
+        /// <summary>Narxi kiritilmagan (tannarx huquqisiz) qatorlarga oxirgi xarid narxi; xaridi yo'q tovar — 0 (SRM'da to'ldiriladi).</summary>
+        internal static void FillMissingPrices(IEnumerable<Selection> rows, IReadOnlyDictionary<int, decimal?> lastPrices)
+        {
+            foreach (var r in rows.Where(r => r.Price == null))
+                r.Price = lastPrices.TryGetValue(r.ProductID, out var p) ? p ?? 0 : 0;
+        }
+
         /// <summary>
         /// Xarid buyurtmalari: yetkazib beruvchi bo'yicha bittadan (yetkazib beruvchisiz tovarlar — alohida bitta).
         /// <paramref name="erp"/> — tranzaksiyasiz yangi kontekst (POrderService o'z tranzaksiyasini ochadi). Qaytaradi: buyurtma raqamlari.
@@ -135,6 +159,8 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             if (rows.Count == 0) throw new DstValidationException(DstLocalization.T("Order_NoLines"));
             if (rows.Any(r => r.Price < 0)) throw new DstValidationException(DstLocalization.T("Error_NumberFormat"));
             var ids = rows.Select(r => r.ProductID).Distinct().ToList();
+            if (rows.Any(r => r.Price == null))
+                FillMissingPrices(rows, LastPurchases(erp, ids).ToDictionary(x => x.Key, x => x.Value.Price));
             var units = erp.PRODUCTS.Where(p => ids.Contains(p.ID) && p.IsDeleted != true).ToDictionary(p => p.ID, p => p.UnitID);
             if (units.Count != ids.Count) throw new DstValidationException(DstLocalization.T("Error_NotFound"));
             var supplierIds = rows.Where(r => r.SupplierID.HasValue).Select(r => r.SupplierID.Value).Distinct().ToList();
@@ -155,7 +181,7 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
                                   + " Omborlar: " + string.Join(", ", g.Select(r => r.WarehouseID).Distinct().Select(w => warehouses.TryGetValue(w, out var n) ? n : "#" + w)),
                     OrderProducts = g.GroupBy(r => r.ProductID).Select(p => new POrderProductViewModel
                     {
-                        ProductID = p.Key, Amount = p.Sum(x => x.Qty), Price = p.First().Price, UnitID = units[p.Key],
+                        ProductID = p.Key, Amount = p.Sum(x => x.Qty), Price = p.First().Price ?? 0, UnitID = units[p.Key],
                         CalculationSummary = "Min qoldiq: " + string.Join(", ", p.Select(x => (warehouses.TryGetValue(x.WarehouseID, out var n) ? n : "#" + x.WarehouseID) + " " + x.Qty.ToString("0.##")))
                     }).ToList()
                 };

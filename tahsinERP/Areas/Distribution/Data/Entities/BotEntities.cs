@@ -41,6 +41,8 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         [Required, StringLength(20)] public string Role { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime LinkedAt { get; set; }
+        /// <summary>Mijoz tili (Telegram language_code; bot yangilab turadi) — mijoz xabarlari shu tilda (027). Xodimda — USER_SETTINGS.</summary>
+        [StringLength(5)] public string Language { get; set; }
         [NotMapped] public string AuditKey => ID.ToString();
     }
 

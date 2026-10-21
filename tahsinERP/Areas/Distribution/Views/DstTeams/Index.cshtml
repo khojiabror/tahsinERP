@@ -57,6 +57,15 @@
                                 <button type="button" class="btn btn-info btn-sm" id="lkStaff">@DstLocalization.T("Bot_GetCode")</button>
                             </div>
                         </div>
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title"><i class="bx bx-lock-alt"></i> @DstLocalization.T("Scopes_AnyUser")</h4></div>
+                            <div class="card-body">
+                                <p class="small text-muted">@DstLocalization.T("Scopes_AnyUserHint")</p>
+                                @Html.DropDownList("scUser", (List<SelectListItem>)ViewBag.Users, new { @class = "form-control mb-50", id = "scUser" })
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="location.href='@Url.Action("Scopes", new { id = 0 })'.replace(/\/0$/, '/' + $('#scUser').val())">@DstLocalization.T("Scopes")</button>
+                            </div>
+                        </div>
                     }
                 </div>
                 <div class="col-lg-8">

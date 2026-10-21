@@ -25,6 +25,8 @@ namespace tahsinERP.Areas.Distribution.Services.Money
         public DateTime? DueDate { get; set; }
         public decimal Amount { get; set; }
         public int? OrderID { get; set; }
+        /// <summary>Debet yozilgan paytdagi agent (buyurtma agenti) — KPI jarimasi shu agentga.</summary>
+        public int? AgentUserID { get; set; }
     }
 
     /// <summary>
@@ -62,6 +64,18 @@ namespace tahsinERP.Areas.Distribution.Services.Money
                 if (days > buckets.MaxOverdueDays) buckets.MaxOverdueDays = days;
             }
             return buckets;
+        }
+
+        /// <summary>
+        /// Agentning muddati <paramref name="minDays"/> kundan ortiq o'tgan ochiq qarzi: FIFO taqsimotdan keyin qolgan debetlar, faqat
+        /// debet yozilgan paytdagi agentniki (mijoz keyin boshqa agentga o'tsa ham jarima eski agentda qoladi) — 05_FINDINGS K3-36.
+        /// </summary>
+        public static decimal OverdueFor(IEnumerable<DebitItem> debits, decimal totalCredits, DateTime today, int minDays, int agentUserId)
+        {
+            return OpenDebits(debits, totalCredits)
+                .Where(x => x.Open > 0 && x.Item.AgentUserID == agentUserId && x.Item.DueDate.HasValue
+                            && (today.Date - x.Item.DueDate.Value.Date).TotalDays > minDays)
+                .Sum(x => x.Open);
         }
 
         /// <summary>To'liq yopilgan buyurtmalar (barcha debetlari FIFO bo'yicha kredit bilan qoplangan).</summary>

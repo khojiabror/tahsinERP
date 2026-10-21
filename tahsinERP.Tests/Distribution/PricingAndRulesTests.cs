@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using tahsinERP.Areas.Distribution.Data.Entities;
 using tahsinERP.Areas.Distribution.Services;
+using tahsinERP.Areas.Distribution.Services.Orders;
 
 namespace tahsinERP.Tests.Distribution
 {
@@ -44,7 +45,7 @@ namespace tahsinERP.Tests.Distribution
         }
 
         [TestMethod]
-        public void Resolve_SpecialPriceWinsWithinDates_AndHasNoMinPrice()
+        public void Resolve_SpecialPriceWinsWithinDates_AndKeepsMinPrice()
         {
             var list = new[] { Item(1, Wholesale, 100, Now.AddDays(-10), 90) };
             var special = new List<CustomerPrice>
@@ -55,8 +56,27 @@ namespace tahsinERP.Tests.Distribution
             };
             var r = PriceResolver.Resolve(special, list, Wholesale, Retail, Now);
             Assert.AreEqual(85m, r.Price);
-            Assert.IsNull(r.MinPrice);
+            Assert.AreEqual(90m, r.MinPrice, "maxsus narx ham minimumdan ozod emas (K1-6)");
             Assert.AreEqual(PriceSource.CustomerSpecial, r.Source);
+        }
+
+        [TestMethod]
+        public void Resolve_MinPrice_FromDefaultTypeWhenOwnHasNone_CappedByOwnPrice()
+        {
+            // minimum faqat Chakana'da (standart): Ulgurji mijozda ham ishlaydi, lekin Ulgurji narxidan oshmaydi
+            var list = new[] { Item(1, Wholesale, 100, Now.AddDays(-2)), Item(2, Retail, 130, Now.AddDays(-2), 95) };
+            var r = PriceResolver.Resolve(null, list, Wholesale, Retail, Now);
+            Assert.AreEqual(100m, r.Price);
+            Assert.AreEqual(95m, r.MinPrice);
+
+            var low = new[] { Item(1, Wholesale, 90, Now.AddDays(-2)), Item(2, Retail, 130, Now.AddDays(-2), 95) };
+            Assert.AreEqual(90m, PriceResolver.Resolve(null, low, Wholesale, Retail, Now).MinPrice, "chegirmasiz sotuv to'xtamaydi");
+
+            var special = new List<CustomerPrice> { new CustomerPrice { ID = 1, Price = 80, ValidFrom = Now.Date.AddDays(-1) } };
+            var s = PriceResolver.Resolve(special, list, Wholesale, Retail, Now);
+            Assert.AreEqual(95m, s.MinPrice);
+            Assert.ThrowsException<DstValidationException>(() => OrderRules.CheckMinPrice("X", s.Price.Value, s.MinPrice, false));
+            OrderRules.CheckMinPrice("X", s.Price.Value, s.MinPrice, true);   // DstDiscountUnlimited
         }
 
         [TestMethod]

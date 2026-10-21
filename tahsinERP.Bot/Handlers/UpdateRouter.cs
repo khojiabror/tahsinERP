@@ -96,7 +96,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         {
             var code = text.Length > 7 ? text[7..].Trim() : "";
             if (code.Length > 0) await LinkAsync(ctx, code, ct);
-            else if (await EnsureLinkAsync(ctx, ct)) await SendMenuAsync(ctx, ctx.T("Menu"), ct);
+            else if (await RefreshLinkAsync(ctx, ct)) await SendMenuAsync(ctx, ctx.T("Menu"), ct);
             else outbox.Send(ctx.Tenant.Id, ctx.ChatId, Texts.Get(LangOf(ctx.From), "Welcome_Unlinked"));
             return;
         }
@@ -112,6 +112,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         }
 
         var (state, data) = await sessions.GetAsync(ctx.Tenant.Id, ctx.From.Id, ct);
+        if (text == "/menu") await RefreshLinkAsync(ctx, ct);   // ERP'da til/rol o'zgargan bo'lsa (K2-24)
         if (text == "/menu" || text != null && Texts.KeyOf(text, "Btn_Cancel") != null)
         {
             await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
@@ -234,7 +235,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
             outbox.Send(ctx.Tenant.Id, ctx.ChatId, Texts.Get(LangOf(ctx.From), "Welcome_Unlinked"));
             return;
         }
-        var account = await ctx.Erp.PostAsync<ErpAccount>("Link", new { code, telegramUserId = ctx.From.Id, chatId = ctx.ChatId }, null, ct)
+        var account = await ctx.Erp.PostAsync<ErpAccount>("Link", new { code, telegramUserId = ctx.From.Id, chatId = ctx.ChatId, language = LangOf(ctx.From) }, null, ct)
                       ?? throw new ErpException(500, "Bo'sh javob");
         SaveLink(ctx, account);
         await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
@@ -247,6 +248,26 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         if (ctx.Link != null) return true;
         var account = await ctx.Erp.GetAsync<ErpAccount>("Account", null, ct, ("telegramUserId", ctx.From.Id));
         if (account == null) return false;
+        SaveLink(ctx, account);
+        return true;
+    }
+
+    /// <summary>
+    /// /start va /menu: bog'lanish ERP'dan qayta o'qiladi — xodim tili (ERP sozlamasi) va rol o'zgarsa qayta ulashsiz yangilanadi,
+    /// mijozning Telegram tili ERP'ga yuboriladi (mijoz xabarlari shu tilda). ERP javob bermasa — mavjud bog'lanish bilan davom etadi.
+    /// </summary>
+    private async Task<bool> RefreshLinkAsync(Ctx ctx, CancellationToken ct)
+    {
+        ErpAccount? account;
+        try
+        {
+            account = await ctx.Erp.GetAsync<ErpAccount>("Account", null, ct, ("telegramUserId", ctx.From.Id), ("language", LangOf(ctx.From)));
+        }
+        catch (ErpException) when (ctx.Link != null)
+        {
+            return true;
+        }
+        if (account == null) return false;   // ERP'da bog'lanish yo'q (uzilgan)
         SaveLink(ctx, account);
         return true;
     }
@@ -264,7 +285,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         link.CustomerId = a.CustomerId;
         link.Role = a.Role;
         link.Name = a.Name;
-        link.Language = a.UserId.HasValue ? (a.Language == Texts.Ru ? Texts.Ru : Texts.Uz) : LangOf(ctx.From);
+        link.Language = a.UserId.HasValue || a.Language != null ? (a.Language == Texts.Ru ? Texts.Ru : Texts.Uz) : LangOf(ctx.From);
         link.LinkedAt = clock.GetUtcNow().UtcDateTime;
         ctx.Link = link;
     }

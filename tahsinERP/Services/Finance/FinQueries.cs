@@ -19,6 +19,13 @@ namespace tahsinERP.Services.Finance
         public const string PurchaseInvoiceMirror = "PurchaseInvoice";
         public const string SalesInvoiceMirror = "SalesInvoice";
 
+        /// <summary>
+        /// Distributsiya mijoz to'lovi (Areas/Distribution DstFinancePosting.PaymentSource). Pul sifatida (kassa, tushum) hisobga olinadi,
+        /// lekin mijoz qarzi distributsiyaning o'z ledgerida (dst.CUSTOMER_LEDGER) — CRM invoysi yo'q, shuning uchun kontragent
+        /// qoldig'ida (debitorlik/avans) qatnashmaydi; aks holda har to'lov "avans" bo'lib ko'rinardi.
+        /// </summary>
+        public const string DistributionPayment = "DstPayment";
+
         /// <summary>O'chirilmagan tranzaksiyalar (o'qish uchun).</summary>
         public static IQueryable<FIN_TRANSACTIONS> Active(DBTHSNEntities db)
         {

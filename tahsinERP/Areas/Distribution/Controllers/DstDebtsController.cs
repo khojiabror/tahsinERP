@@ -81,8 +81,35 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 ViewBag.Aging = DebtService.Aging(db, id, DateTime.Today);
                 ViewBag.Company = db.Database.SqlQuery<string>("SELECT TOP 1 Name FROM dbo.COMPANIES ORDER BY ID").FirstOrDefault();
                 var statement = DebtService.BuildStatement(db, id, f, t);
+                ViewBag.Opening = DebtService.LiveOpening(db, id).Sum(l => l.Debit - l.Credit);
+                ViewBag.HasOpening = DebtService.LiveOpening(db, id).Count > 0;
                 return View(print ? "PrintStatement" : "Statement", statement);
             }
+        }
+
+        /// <summary>Kirish qoldig'ini bekor qilish (teskari yozuv) — keyin to'g'risini qayta import qilish mumkin (K2-16).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ReverseOpening(int id, string reason)
+        {
+            try
+            {
+                using (var db = NewDb())
+                {
+                    if (!new ScopeService(db).For(CurrentUserName, ScopeTypes.Customer).Allows(id)) return NotAuthorized();
+                    using (var tx = db.Database.BeginTransaction())
+                    {
+                        DebtService.ReverseOpening(db, id, CurrentUserId, reason, DateTime.Now);
+                        tx.Commit();
+                    }
+                }
+                TempData["DstSaved"] = DstLocalization.T("Opening_Reversed");
+            }
+            catch (DstValidationException ex)
+            {
+                TempData["DstError"] = ex.Message;
+            }
+            return RedirectToAction("Statement", new { id });
         }
     }
 }

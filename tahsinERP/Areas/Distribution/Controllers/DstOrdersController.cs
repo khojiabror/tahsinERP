@@ -37,7 +37,14 @@ namespace tahsinERP.Areas.Distribution.Controllers
             IQueryable<DstOrder> q = db.Orders;
             q = scopes.AgentsFor(CurrentUserName).Apply(q, o => o.AgentUserID);
             q = scopes.For(CurrentUserName, ScopeTypes.Customer).Apply(q, o => o.CustomerID);
-            q = scopes.For(CurrentUserName, ScopeTypes.Warehouse).Apply(q, o => o.WarehouseID);
+            // ombori hali tanlanmagan (tasdiqda taklif qilinadi) buyurtma omborchi scope'ida ham ko'rinadi (05_FINDINGS 43)
+            q = scopes.For(CurrentUserName, ScopeTypes.Warehouse).WithNulls().Apply(q, o => o.WarehouseID);
+            var territories = scopes.For(CurrentUserName, ScopeTypes.Territory);   // mijoz hududi bo'yicha (K2-13)
+            if (!territories.IsUnrestricted)
+            {
+                var ids = territories.Ids.Select(i => (int?)i).ToList();
+                q = q.Where(o => db.CustomerProfiles.Any(p => p.CustomerID == o.CustomerID && ids.Contains(p.TerritoryID)));
+            }
             return q;
         }
 
@@ -192,7 +199,18 @@ namespace tahsinERP.Areas.Distribution.Controllers
         [HttpPost]
         [ValidateAntiForgeryHeader]
         public JsonResult Confirm(int id, string overrideNote) =>
-            Act(id, (uow, actor) => OrderService.Confirm(uow, id, actor, overrideNote, DateTime.Now));
+            Act(id, (uow, actor) =>
+            {
+                try
+                {
+                    OrderService.Confirm(uow, id, actor, overrideNote, DateTime.Now);
+                }
+                catch (CreditBlockedException)
+                {
+                    OrderService.NotifyCreditBlocked(id, actor.UserId);   // rahbar bilsin (K2-27)
+                    throw;
+                }
+            });
 
         /// <summary>Qarz limiti sabab rad etilgan bo'lsa — UI ruxsat so'rash oynasini ko'rsatishi uchun.</summary>
         [HttpPost]
@@ -204,7 +222,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 using (var db = NewDb())
                 {
                     var order = Scoped(db).FirstOrDefault(o => o.ID == id) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
-                    var check = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, DateTime.Now), order.Total);
+                    var check = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, DateTime.Now, order.ID), order.Total);
                     return new { ok = check.Ok, problems = check.Problems, canOverride = DstPermissions.Has(CurrentUserName, DstPermissions.OverrideCredit) };
                 }
             });
@@ -218,6 +236,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
         [HttpPost, ValidateAntiForgeryHeader]
         public JsonResult StartPicking(int id) => Act(id, (uow, a) => OrderService.StartPicking(uow, id, a.UserId, DateTime.Now));
+
+        [HttpPost, ValidateAntiForgeryHeader]
+        public JsonResult StopPicking(int id) => Act(id, (uow, a) => OrderService.StopPicking(uow, id, a.UserId, DateTime.Now));
 
         public sealed class ShipLine
         {
@@ -302,7 +323,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 return Json(new
                 {
                     agentUserId = p.AgentUserID, approved = p.IsApproved, creditLimit = p.CreditLimit, paymentDays = p.PaymentDays,
-                    balance = credit.Balance, overdue = credit.Overdue,
+                    balance = credit.Balance, overdue = credit.Overdue, committed = credit.Committed,
                     priceType = db.PriceTypes.Where(t => t.ID == p.PriceTypeID).Select(t => t.Name).FirstOrDefault()
                 }, JsonRequestBehavior.AllowGet);
             }

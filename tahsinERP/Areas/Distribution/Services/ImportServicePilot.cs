@@ -295,7 +295,7 @@ namespace tahsinERP.Areas.Distribution.Services
             new Column("factor", "Koeffitsient", "Коэффициент", true, "40"),
             new Column("weight", "Og'irlik (kg)", "Вес (кг)", false, "2000"),
             new Column("volume", "Hajm (m3)", "Объём (м3)", false, "1.2"),
-            new Column("barcode", "Shtrix-kod", "Штрихкод", false, "4780000000024"),
+            new Column("barcode", "Shtrix-kod", "Штрихкод", false, "4780000000021"),
             new Column("default", "Odatiy sotish (ha/yo'q)", "Продажа по умолчанию (да/нет)", false, "yo'q"),
         };
 

@@ -1,0 +1,64 @@
+@{
+    ViewBag.Title = DstLocalization.T("Audit");
+    string entity = ViewBag.Entity, key = ViewBag.Key;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header"><h4 class="card-title mb-0">@ViewBag.Title</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Audit_Hint")</p>
+                    <form id="auditFilter" class="form-row mb-1">
+                        <div class="col-md-2 mb-50">@Html.DropDownList("entity", (List<SelectListItem>)ViewBag.Entities, DstLocalization.T("Audit_Entity"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-2 mb-50"><input name="key" value="@key" class="form-control form-control-sm" placeholder="@DstLocalization.T("Audit_Key")" /></div>
+                        <div class="col-md-2 mb-50">@Html.DropDownList("userId", (List<SelectListItem>)ViewBag.Users, DstLocalization.T("User"), new { @class = "form-control form-control-sm" })</div>
+                        <div class="col-md-2 mb-50">
+                            <select name="source" class="form-control form-control-sm">
+                                <option value="">@DstLocalization.T("Audit_Source")</option>
+                                <option value="web">web</option><option value="bot">bot</option><option value="api">api</option><option value="system">system</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-50"><input type="date" name="from" class="form-control form-control-sm" title="@DstLocalization.T("ValidFrom")" /></div>
+                        <div class="col-md-2 mb-50"><input type="date" name="to" class="form-control form-control-sm" title="@DstLocalization.T("ValidTo")" /></div>
+                    </form>
+                    <table id="auditTable" class="table table-sm table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Audit_Entity")</th><th>@DstLocalization.T("Audit_Key")</th>
+                                <th>@DstLocalization.T("Audit_Action")</th><th>@DstLocalization.T("Audit_Field")</th>
+                                <th>@DstLocalization.T("Audit_Old")</th><th>@DstLocalization.T("Audit_New")</th>
+                                <th>@DstLocalization.T("User")</th><th>@DstLocalization.T("Audit_Source")</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var small = function (v) { return v == null ? '' : '<span class="small text-break">' + dstEsc(v) + '</span>'; };
+            dstServerTable('#auditTable', {
+                dataUrl: '@Url.Action("IndexData")', filterForm: '#auditFilter', order: [[0, 'desc']],
+                columns: [
+                    { data: 'at', className: 'text-nowrap' },
+                    { data: 'entity', orderable: false, render: dstEsc },
+                    { data: 'key', orderable: false, render: dstEsc },
+                    { data: 'action', orderable: false, render: dstEsc },
+                    { data: 'field', orderable: false, render: dstEsc },
+                    { data: 'oldValue', orderable: false, render: small },
+                    { data: 'newValue', orderable: false, render: small },
+                    { data: 'user', orderable: false, render: dstEsc },
+                    { data: 'source', orderable: false, render: dstEsc }
+                ]
+            });
+        });
+    </script>
+}

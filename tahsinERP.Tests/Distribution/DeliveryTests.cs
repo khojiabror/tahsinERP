@@ -173,14 +173,14 @@ namespace tahsinERP.Tests.Distribution
             if (_sql == null) Assert.Inconclusive("Lokal baza yoki migratsiya 026 yo'q.");
         }
 
-        private sealed class World
+        internal sealed class World
         {
             public OrderFlowIntegrationTests.Fixture F;
             public int Customer2, VehicleId, ReasonId;
         }
 
         /// <summary>Tovar 50 kg (qop), ikki mijoz (koordinatali), ekspeditor (fixture foydalanuvchisi), mashina 1 500 kg, sabab.</summary>
-        private static World Arrange(DistributionUnitOfWork uow)
+        internal static World Arrange(DistributionUnitOfWork uow)
         {
             var f = OrderFlowIntegrationTests.Arrange(uow, 100000000m);
             var db = uow.Dst;
@@ -212,7 +212,7 @@ namespace tahsinERP.Tests.Distribution
             return new World { F = f, Customer2 = c2, VehicleId = vehicle.ID, ReasonId = reason.ID };
         }
 
-        private static int Ship(DistributionUnitOfWork uow, World w, int customerId, decimal qty, DateTime now)
+        internal static int Ship(DistributionUnitOfWork uow, World w, int customerId, decimal qty, DateTime now)
         {
             var f = w.F;
             var orderId = OrderService.SaveDraft(uow, new OrderInput

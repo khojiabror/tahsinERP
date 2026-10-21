@@ -170,9 +170,29 @@
 
     // ---------- yig'ish ----------
 
+    // yig'ish natijasi har o'zgarishda localStorage'ga (oyna yopilsa yo'qolmasin), jo'natilgach o'chiriladi (05_FINDINGS K2-23)
+    var pickTtlMs = 2 * 24 * 3600 * 1000;
+    function pickKey(id) { return 'dst-pick-' + tenant + '-' + id; }
+    function savePicked() {
+        try { localStorage.setItem(pickKey(state.doc.id), JSON.stringify({ at: Date.now(), picked: state.picked })); } catch (e) { /* saqlanmasa ham ishlaydi */ }
+    }
+    function loadPicked(doc) {
+        var picked = {};
+        try {
+            var raw = JSON.parse(localStorage.getItem(pickKey(doc.id)) || 'null');
+            if (raw && raw.picked && Date.now() - (raw.at || 0) < pickTtlMs)
+                doc.lines.forEach(function (l) {   // qolgan miqdordan oshmasin (boshqa joyda qisman jo'natilgan bo'lishi mumkin)
+                    var v = raw.picked[l.lineId];
+                    if (v > 0) picked[l.lineId] = Math.min(v, l.remaining);
+                });
+        } catch (e) { /* bo'sh boshlanadi */ }
+        return picked;
+    }
+    function clearPicked(id) { try { localStorage.removeItem(pickKey(id)); } catch (e) { /* jim */ } }
+
     function openOrder(id) {
         request('GET', '/orders/' + id).then(function (doc) {
-            state.doc = doc; state.kind = 'order'; state.picked = {};
+            state.doc = doc; state.kind = 'order'; state.picked = loadPicked(doc);
             $('title').textContent = doc.docNo + ' — ' + doc.customer;
             $('subtitle').textContent = (doc.warehouse || '') + ' · ' + t('status_' + doc.status);
             renderOrder();
@@ -211,6 +231,7 @@
 
     function setPicked(l, v) {
         state.picked[l.lineId] = Math.min(Math.round(v * 10000) / 10000, l.remaining);
+        savePicked();
         renderOrder();
     }
 
@@ -245,7 +266,9 @@
             if (!ok || state.busy) return;
             state.busy = true;
             if (tg && tg.MainButton) tg.MainButton.showProgress(false);
-            request('POST', '/orders/' + state.doc.id + '/ship', { lines: lines }).then(function (r) {
+            var shippedId = state.doc.id;
+            request('POST', '/orders/' + shippedId + '/ship', { lines: lines }).then(function (r) {
+                clearPicked(shippedId);
                 haptic('success');
                 toast(f('shipped', r.docNo));
                 show('orders'); loadOrders();

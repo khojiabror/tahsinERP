@@ -95,7 +95,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
             bool cost = CanSeeCost;
             using (var db = NewDb())
             {
-                var facts = SalesReportService.Facts(db, f, ReportScope.For(db, CurrentUserName));
+                var reportScope = ReportScope.For(db, CurrentUserName);
+                var facts = SalesReportService.Facts(db, f, reportScope);
                 var rows = SalesReportService.ByDimension(db, facts, dimension, IsRussian);
                 var column = page.OrderColumn >= 0 && page.OrderColumn < SalesColumns.Length ? SalesColumns[page.OrderColumn] : "net";
                 if (!cost && (column == "profit" || column == "margin")) column = "net";
@@ -105,6 +106,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     (x, s) => x.Where(r => r.Name.Contains(s)),
                     (x, c, desc) => SalesReportService.Order(x, column, desc));
                 var totals = SalesReportService.Totals(facts);
+                // landed cost'ning sotilganga tushgan qismi — faqat filtrsiz (agent/mijoz/tovar bo'yicha taqsimlanmaydi)
+                bool whole = reportScope.IsUnrestricted && f.AgentId == null && f.CustomerId == null && f.TerritoryId == null && f.CategoryId == null && f.ProductId == null && f.WarehouseId == null;
+                decimal? landed = cost && whole ? SalesReportService.LandedCostOnSold(db, f.From, f.To) : (decimal?)null;
 
                 return Json(new
                 {
@@ -115,7 +119,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     {
                         amount = totals.Amount, returns = totals.ReturnAmount, net = totals.Net,
                         profit = cost ? totals.Profit : (decimal?)null, margin = cost ? totals.MarginPct : null,
-                        orders = totals.Orders, customers = totals.Customers
+                        orders = totals.Orders, customers = totals.Customers,
+                        landed, netProfit = landed.HasValue ? totals.Profit - landed.Value : (decimal?)null
                     },
                     data = result.Rows.Select(r => new
                     {

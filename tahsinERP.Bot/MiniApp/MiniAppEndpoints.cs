@@ -34,7 +34,8 @@ public static partial class MiniAppEndpoints
 
     private sealed record Caller(TenantRegistry.Tenant Tenant, BotLink Link, ErpClient Erp);
 
-    private static readonly string[] FieldRoles = ["AGENT", "EXPEDITOR", "MANAGER"];
+    // rahbar buyurtma oynasiga kirmaydi: unda Mini App tugmasi yo'q, dala amallari ham yopiq (05_FINDINGS K3-35)
+    private static readonly string[] FieldRoles = ["AGENT", "EXPEDITOR"];
     private static readonly string[] StoreRoles = ["STOREKEEPER", "MANAGER"];
 
     public static void Map(IEndpointRouteBuilder app)

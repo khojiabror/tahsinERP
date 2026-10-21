@@ -178,7 +178,9 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
-        /// <summary>Ekspeditor reysni yopadi: yetkazilmagan hamma tovar omborga qaytgan deb (kamomad — faqat ofis yopganda).</summary>
+        /// <summary>
+        /// Ekspeditor reysni yakunlaydi (yopmaydi): qaytgan tovarni ombor sanaydi, reysni ofis yopadi — kamomad o'shanda (05_FINDINGS K2-8).
+        /// </summary>
         [HttpPost]
         public ActionResult TripClose(int tripId)
         {
@@ -186,7 +188,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             {
                 using (var uow = Uow())
                 {
-                    var r = TripService.Close(uow, new CloseInput { TripID = tripId }, userId, userId, AuditActor.Bot, DateTime.Now);
+                    var r = TripService.Finish(uow, tripId, userId, DateTime.Now);
                     uow.Commit();
                     var docNo = uow.Dst.Trips.Where(t => t.ID == tripId).Select(t => t.DocNo).FirstOrDefault();
                     var collected = uow.Dst.Payments.Where(p => p.ReceivedByUserID == userId && p.Status == DocumentStatus.Posted && p.Note == docNo)
@@ -221,6 +223,8 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                 using (var db = Db())
                 {
                     if (DstSettings.Get(db, DeliverySettings.VoiceOrders) != "1") throw new DstValidationException(DstLocalization.T("Voice_Disabled"));
+                    if (!db.SalesAgents.Any(a => a.UserID == userId && a.IsActive))   // ekspeditor/omborchi — yo'q (K3-35)
+                        throw new DstValidationException(DstLocalization.T("Voice_AgentOnly"));
                     var scopes = new ScopeService(db);
                     var visible = from p in db.CustomerProfiles
                                   join c in db.Customers on p.CustomerID equals c.ID

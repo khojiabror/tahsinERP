@@ -1027,6 +1027,8 @@
     <Compile Include="Areas\Distribution\Services\Warehouse\TransferActService.cs" />
     <Compile Include="Areas\Distribution\Services\Warehouse\WriteOffService.cs" />
     <Compile Include="Areas\Distribution\Controllers\DstIssuesController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstAuditController.cs" />
+    <Compile Include="Areas\Distribution\Services\DstLocalFiles.cs" />
     <Compile Include="Areas\Distribution\Services\PricingService.cs" />
     <Compile Include="Areas\Distribution\Services\TerritoryTree.cs" />
     <Compile Include="Areas\Distribution\Services\UnitService.cs" />
@@ -3037,6 +3039,7 @@
     <Content Include="Areas\Distribution\Views\Shared\_YandexMap.cshtml" />
     <Content Include="Areas\Distribution\Views\DstInventory\Details.cshtml" />
     <Content Include="Areas\Distribution\Views\DstIssues\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstAudit\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstLandedCosts\Details.cshtml" />
     <Content Include="Areas\Distribution\Views\DstLandedCosts\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstPromotions\Edit.cshtml" />

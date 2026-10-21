@@ -387,3 +387,6 @@ panel-signing-*.json
 *.signing.json
 tahsinERP.ControlPanel/appsettings.Local.json
 tahsinERP.ControlPanel/appsettings.Production.json
+
+# Distributsiya: web orqali yuklangan rasmlar (DstLocalFiles) — server ma'lumoti
+tahsinERP/App_Data/DstFiles/

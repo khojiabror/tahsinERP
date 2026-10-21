@@ -88,8 +88,10 @@ namespace tahsinERP.Areas.Distribution.Controllers
             }
         }
 
+        [Permission(ViewOnGet = true)]   // karta faqat ko'rish huquqi bilan ham ochiladi (o'qish rejimi); yangi mijoz — Change
         public ActionResult Edit(int? id)
         {
+            if (!id.HasValue && ViewBag.DstCanChange != true) return NotAuthorized();
             using (var db = NewDb())
             {
                 var input = new CustomerInput { PointType = PointTypes.Shop };

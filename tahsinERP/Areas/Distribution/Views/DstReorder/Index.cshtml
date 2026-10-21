@@ -84,7 +84,7 @@
             $('#roRows tr[data-p]').each(function () {
                 var tr = $(this);
                 if (!tr.find('[data-f=on]').is(':checked')) return;
-                rows.push({ ProductID: tr.data('p'), WarehouseID: tr.data('w'), SupplierID: tr.data('s') || null, Qty: tr.find('[data-f=qty]').val(), Price: tr.find('[data-f=price]').val() || '0' });
+                rows.push({ ProductID: tr.data('p'), WarehouseID: tr.data('w'), SupplierID: tr.data('s') || null, Qty: tr.find('[data-f=qty]').val(), Price: tr.find('[data-f=price]').val() || '' });
             });
             if (rows.length === 0) return false;
             $('#roData').val(JSON.stringify(rows));

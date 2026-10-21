@@ -226,15 +226,23 @@ namespace tahsinERP.Areas.Distribution.Services.Delivery
             return rows;
         }
 
-        /// <summary>Ekspeditorning joriy reysi: yo'ldagisi, bo'lmasa bugungi (yoki eng yaqin) rejalangani.</summary>
+        /// <summary>
+        /// Ekspeditorning joriy reysi: yo'ldagisi, bo'lmasa rejalanganlardan sanasi bugunga eng yaqini (bugungi → o'tib ketgan →
+        /// kelajakdagi). Avval kechagidan eskisi ko'rinmasdi — kechikkan reys botda yo'qolardi (05_FINDINGS K2-26).
+        /// </summary>
         public static int? CurrentTripId(DistributionDbContext db, int expeditorUserId, DateTime today)
         {
-            var active = db.Trips.Where(t => t.ExpeditorUserID == expeditorUserId && t.TripStatus == (byte)TripStatus.InTransit)
-                .OrderBy(t => t.DocDate).Select(t => (int?)t.ID).FirstOrDefault();
+            // yakunlangan (ofis yopishini kutayotgan) reys keyingi rejalangan reysni to'smaydi (K2-8)
+            var inTransit = db.Trips.Where(t => t.ExpeditorUserID == expeditorUserId && t.TripStatus == (byte)TripStatus.InTransit)
+                .OrderBy(t => t.DocDate).Select(t => new { t.ID, t.FinishedAt }).ToList();
+            var active = inTransit.Where(t => t.FinishedAt == null).Select(t => (int?)t.ID).FirstOrDefault();
             if (active.HasValue) return active;
-            var since = today.Date.AddDays(-1);
-            return db.Trips.Where(t => t.ExpeditorUserID == expeditorUserId && t.TripStatus == (byte)TripStatus.Planned && t.DocDate >= since)
-                .OrderBy(t => t.DocDate).ThenBy(t => t.ID).Select(t => (int?)t.ID).FirstOrDefault();
+            var day = today.Date;
+            var planned = db.Trips.Where(t => t.ExpeditorUserID == expeditorUserId && t.TripStatus == (byte)TripStatus.Planned)
+                .Select(t => new { t.ID, t.DocDate }).ToList();
+            return planned.OrderBy(t => t.DocDate == day ? 0 : t.DocDate < day ? 1 : 2)
+                .ThenBy(t => Math.Abs((t.DocDate - day).TotalDays)).ThenBy(t => t.ID)
+                .Select(t => (int?)t.ID).FirstOrDefault() ?? inTransit.Select(t => (int?)t.ID).FirstOrDefault();
         }
 
         public sealed class InvoiceLine

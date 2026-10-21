@@ -63,6 +63,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
         {
             using (var db = NewDb())
             {
+                ViewBag.DefectWarehouseId = Services.Bot.DstSettings.Int(db, DstSetting.DefectWarehouseId);
                 ViewBag.Warehouses = db.Warehouses.Where(w => w.IsDeleted != true).OrderBy(w => w.WHName).ToList()
                     .Select(w => new SelectListItem { Value = w.ID.ToString(), Text = w.WHName }).ToList();
                 ViewBag.Reasons = db.Reasons.Where(r => r.Type == ReasonTypes.Return && r.IsActive).OrderBy(r => r.SortOrder).ToList()

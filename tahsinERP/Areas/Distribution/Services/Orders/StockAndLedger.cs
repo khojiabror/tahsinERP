@@ -80,7 +80,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         public static List<int> SalesWarehouses(DistributionDbContext db)
         {
             var configured = db.WarehouseSettings.AsNoTracking().ToList();
-            var all = db.Warehouses.Where(w => w.IsDeleted != true).Select(w => w.ID).ToList();
+            var defect = Bot.DstSettings.Int(db, DstSetting.DefectWarehouseId);   // brak ombori savdoga taklif qilinmaydi (K3-31)
+            var all = db.Warehouses.Where(w => w.IsDeleted != true && w.ID != (defect ?? 0)).Select(w => w.ID).ToList();
             if (configured.Count == 0) return all;
             return all.Where(id => configured.Any(c => c.WarehouseID == id && c.IsSalesPoint)).ToList();
         }
@@ -89,7 +90,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
     /// <summary>Mijoz qarzi (dst.CUSTOMER_LEDGER).</summary>
     public static class LedgerService
     {
-        public static CreditState CreditState(DistributionDbContext db, int customerId, DateTime today)
+        /// <param name="excludeOrderId">Tekshirilayotgan buyurtma — u "band" summaga qo'shilmaydi (summasi alohida beriladi).</param>
+        public static CreditState CreditState(DistributionDbContext db, int customerId, DateTime today, int? excludeOrderId = null)
         {
             var profile = db.CustomerProfiles.AsNoTracking().FirstOrDefault(p => p.CustomerID == customerId);
             var rows = db.CustomerLedger.AsNoTracking().Where(l => l.CustomerID == customerId).ToList();
@@ -100,8 +102,27 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 HasProfile = profile != null,
                 CreditLimit = profile?.CreditLimit ?? 0,
                 Balance = rows.Sum(l => l.Debit - l.Credit),
-                Overdue = aging.Overdue
+                Overdue = aging.Overdue,
+                Committed = Committed(db, customerId, excludeOrderId)
             };
+        }
+
+        /// <summary>
+        /// Tasdiqlangan / yig'ilayotgan / qisman jo'natilgan buyurtmalarning jo'natilmagan qismi (buyurtma chegirmasi bilan):
+        /// jo'natilganda qarzga aylanadi, shuning uchun limit tekshiruvida hozirdan hisobga olinadi (05_FINDINGS K1-2).
+        /// </summary>
+        public static decimal Committed(DistributionDbContext db, int customerId, int? excludeOrderId = null)
+        {
+            byte confirmed = (byte)OrderStatus.Confirmed, picking = (byte)OrderStatus.Picking, partial = (byte)OrderStatus.PartiallyShipped;
+            int exclude = excludeOrderId ?? 0;
+            var lines = (from l in db.OrderLines.AsNoTracking()
+                         join o in db.Orders.AsNoTracking() on l.OrderID equals o.ID
+                         where o.CustomerID == customerId && o.ID != exclude
+                               && (o.OrderStatus == confirmed || o.OrderStatus == picking || o.OrderStatus == partial)
+                               && l.QtyBase > l.QtyShippedBase && l.QtyBase > 0
+                         select new { l.Amount, l.QtyBase, l.QtyShippedBase, o.DiscountPct }).ToList();
+            return Math.Round(lines.Sum(l => l.Amount * (l.QtyBase - l.QtyShippedBase) / l.QtyBase * (100m - l.DiscountPct) / 100m),
+                2, MidpointRounding.AwayFromZero);
         }
 
         public static CustomerLedgerEntry Debit(DistributionDbContext db, int customerId, string docType, int docId, int? orderId,
@@ -137,7 +158,15 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             long? max = db.Database.SqlQuery<long?>(
                 "SELECT MAX(TRY_CAST(SUBSTRING(DocNo, @p0, 30) AS bigint)) FROM dst.[" + table + "] WHERE DocNo LIKE @p1",
                 full.Length + 1, full.Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]") + "%").FirstOrDefault();
-            return full + ((max ?? 0) + 1).ToString().PadLeft(pad, '0');
+            // oxirgi berilgan raqam dst.SETTINGS'da ham saqlanadi: o'chirilgan qoralama raqami qayta berilmaydi (05_FINDINGS 46)
+            string key = "DocNo:" + table + ":" + full;
+            long? last = db.Database.SqlQuery<string>("SELECT [Value] FROM dst.SETTINGS WHERE [Key] = @p0", key).FirstOrDefault() is string s
+                         && long.TryParse(s, out var v) ? v : (long?)null;
+            long next = Math.Max(max ?? 0, last ?? 0) + 1;
+            db.Database.ExecuteSqlCommand(System.Data.Entity.TransactionalBehavior.DoNotEnsureTransaction,
+                "UPDATE dst.SETTINGS SET [Value] = @p1 WHERE [Key] = @p0; IF @@ROWCOUNT = 0 INSERT INTO dst.SETTINGS ([Key], [Value]) VALUES (@p0, @p1);",
+                key, next.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            return full + next.ToString().PadLeft(pad, '0');
         }
     }
 }

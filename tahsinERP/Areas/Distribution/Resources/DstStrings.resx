@@ -136,7 +136,7 @@
     <value>Farq</value>
   </data>
   <data name="Cash_DifferenceHint" xml:space="preserve">
-    <value>Kamomad agent hisobida qoladi va kassada chiqim sifatida, ortiqcha — kirim sifatida yoziladi.</value>
+    <value>Kamomad kassada chiqim sifatida yoziladi; agent KPI sxemasida HR xodimiga bog'langan bo'lsa — xodimga berilgan pul (ish haqidan ushlanadi). Ortiqcha — kirim.</value>
   </data>
   <data name="Cash_Handovers" xml:space="preserve">
     <value>Kassaga topshirishlar</value>
@@ -196,7 +196,7 @@
     <value>Limitdan qolgan</value>
   </data>
   <data name="Credit_LimitExceeded" xml:space="preserve">
-    <value>Qarz + buyurtma {0} — limit {1} dan oshadi.</value>
+    <value>Qarz + jo'natilmagan buyurtmalar + shu buyurtma {0} — limit {1} dan oshadi.</value>
   </data>
   <data name="Credit_Overdue" xml:space="preserve">
     <value>Muddati o'tgan qarz bor: {0}.</value>
@@ -235,7 +235,7 @@
     <value>Maxsus narxlar</value>
   </data>
   <data name="Customer_SpecialPricesHint" xml:space="preserve">
-    <value>Maxsus narx narx turidan ustun turadi va minimal narx tekshiruvidan ozod. To'xtatilgan narx tarixda qoladi.</value>
+    <value>Maxsus narx narx turidan ustun turadi; minimal narx unga ham qo'llanadi (ozod — faqat cheksiz chegirma huquqi bilan). Kecha yoki undan oldin boshlangan narx to'xtatilsa tarixda qoladi; bugun yoki keyin boshlangani o'chiriladi (audit jurnalida qoladi).</value>
   </data>
   <data name="Customers" xml:space="preserve">
     <value>Mijozlar</value>
@@ -826,7 +826,7 @@
     <value>Kassa yoki hisobni tanlang (naqddan boshqa to'lov darhol hisobga tushadi).</value>
   </data>
   <data name="Payment_AlreadyHandedOver" xml:space="preserve">
-    <value>Bu to'lov kassaga topshirilgan — bekor qilib bo'lmaydi.</value>
+    <value>Bu to'lov kassaga topshirilgan. Avval Agentlar naqdi va kassa sahifasida topshirishni bekor qiling.</value>
   </data>
   <data name="Payment_AmountPositive" xml:space="preserve">
     <value>Summa 0 dan katta bo'lsin.</value>
@@ -945,9 +945,6 @@
   <data name="Product" xml:space="preserve">
     <value>Tovar</value>
   </data>
-  <data name="Product_Bulky" xml:space="preserve">
-    <value>Katta o'lchamli</value>
-  </data>
   <data name="Product_Create" xml:space="preserve">
     <value>Yangi tovar</value>
   </data>
@@ -962,9 +959,6 @@
   </data>
   <data name="Product_Profile" xml:space="preserve">
     <value>Distributsiya kartasi</value>
-  </data>
-  <data name="Product_Weighted" xml:space="preserve">
-    <value>Tortiladigan tovar</value>
   </data>
   <data name="Products" xml:space="preserve">
     <value>Tovarlar</value>
@@ -1064,9 +1058,6 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Sozlamalar</value>
-  </data>
-  <data name="Settings_AgentAccount" xml:space="preserve">
-    <value>Agent naqdsiz to'lovlari hisobi</value>
   </data>
   <data name="Settings_BotUsername" xml:space="preserve">
     <value>Telegram bot nomi</value>
@@ -1186,7 +1177,7 @@
     <value>Kun yakuni {0}
 Buyurtmalar: {1} ta, {2} so'm
 Jo'natildi: {3} so'm
-Tushum: {4} so'm
+Yig'ilgan pul (to'lovlar): {4} so'm
 Umumiy qarz: {5} so'm (muddati o'tgan: {6})
 Faol agentlar: {7}/{8}</value>
   </data>
@@ -1331,17 +1322,11 @@ Faol agentlar: {7}/{8}</value>
   <data name="Warehouse" xml:space="preserve">
     <value>Ombor</value>
   </data>
-  <data name="Warehouse_AllowNegative" xml:space="preserve">
-    <value>Minusga ruxsat</value>
-  </data>
   <data name="Warehouse_Hint" xml:space="preserve">
     <value>"Savdoda" — buyurtmalar shu ombordan jo'natiladi. Minimal qoldiq — "tugayapti" ogohlantirishi uchun (asosiy birlikda).</value>
   </data>
   <data name="Warehouse_SalesPoint" xml:space="preserve">
     <value>Savdoda</value>
-  </data>
-  <data name="Warehouse_Zone" xml:space="preserve">
-    <value>Yetkazish zonasi</value>
   </data>
   <data name="Warehouses" xml:space="preserve">
     <value>Omborlar</value>
@@ -3369,5 +3354,180 @@ Mashina: {4}</value>
   </data>
   <data name="Kpi_ManualPenalty" xml:space="preserve">
     <value>Qo'shimcha jarima</value>
+  </data>
+  <data name="Credit_Committed" xml:space="preserve">
+    <value>(shundan tasdiqlangan, hali jo'natilmagan buyurtmalar: {0})</value>
+  </data>
+  <data name="Credit_CommittedShort" xml:space="preserve">
+    <value>Tasdiqlangan, jo'natilmagan</value>
+  </data>
+  <data name="Cash_AfterHandover" xml:space="preserve">
+    <value>topshirishdan keyin olingan: {0} (keyingi topshirishga)</value>
+  </data>
+  <data name="Cash_AfterHandoverHint" xml:space="preserve">
+    <value>Agent topshirgandan keyin yana {0} naqd olgan — u bu hujjatga kirmaydi va agent qo'lida qoladi.</value>
+  </data>
+  <data name="Cash_CancelHandover" xml:space="preserve">
+    <value>Bekor qilish</value>
+  </data>
+  <data name="Cash_CancelHandoverHint" xml:space="preserve">
+    <value>Qabul bekor qilinadi: kassaga yozilgan to'lovlar va farq moliyadan olib tashlanadi, to'lovlar yana agent qo'lida bo'ladi.</value>
+  </data>
+  <data name="Inventory_BlindHint" xml:space="preserve">
+    <value>"ko'r" sanoq: tizim qoldig'i va farqlar sanoq o'tkazilgandan keyin ko'rsatiladi.</value>
+  </data>
+  <data name="Notify_TransferDiffQty" xml:space="preserve">
+    <value>📦 Ko'chirma farqi {0} ({1}): {2} → {3}
+Kamomad: {4} qator, ortiqcha: {5} qator</value>
+  </data>
+  <data name="Inventory_CountingBlocks" xml:space="preserve">
+    <value>{0} inventarizatsiyada sanalgan ({1}) — sanoq o'tkazilmaguncha yoki bekor qilinmaguncha ombordan chiqarilmaydi.</value>
+  </data>
+  <data name="Trip_ResetNote" xml:space="preserve">
+    <value>yetkazish natijasi bekor qilindi</value>
+  </data>
+  <data name="Notify_StopReset" xml:space="preserve">
+    <value>↺ {0} buyurtma bo'yicha yetkazish natijasi bekor qilindi va qayta kiritiladi. Oldingi xabarni hisobga olmang.</value>
+  </data>
+  <data name="Notify_TripFinished" xml:space="preserve">
+    <value>🏁 Reys {0} yakunlandi ({1}). Qaytadigan tovar: {2} so'm — omborda sanab, Reyslar sahifasida yoping (qaytgan miqdor va kamomad).</value>
+  </data>
+  <data name="Trip_Redeliver" xml:space="preserve">
+    <value>Qayta yetkazish</value>
+  </data>
+  <data name="Trip_RedeliverHint" xml:space="preserve">
+    <value>Qaytgan tovar bilan yangi buyurtma qoralamasi yaratiladi (joriy narxda) — tasdiqlab, keyingi reysga qo'shing.</value>
+  </data>
+  <data name="Trip_RedeliverNothing" xml:space="preserve">
+    <value>Qayta yetkazish uchun qaytgan tovar yo'q (reys yopilmagan yoki qaytarish hujjati yo'q).</value>
+  </data>
+  <data name="Trip_RedeliverComment" xml:space="preserve">
+    <value>Qayta yetkazish: {0} ({1})</value>
+  </data>
+  <data name="Order_StopPicking" xml:space="preserve">
+    <value>Yig'ishni to'xtatish</value>
+  </data>
+  <data name="Opening_Reverse" xml:space="preserve">
+    <value>Kirish qoldig'ini bekor qilish</value>
+  </data>
+  <data name="Opening_ReverseConfirm" xml:space="preserve">
+    <value>Kirish qoldig'i teskari yozuv bilan bekor qilinadi. Keyin to'g'ri summani Import → Kirish qoldig'i orqali qayta kiriting. Davom etilsinmi?</value>
+  </data>
+  <data name="Opening_Reversed" xml:space="preserve">
+    <value>Kirish qoldig'i bekor qilindi — to'g'ri summani qayta import qilishingiz mumkin.</value>
+  </data>
+  <data name="Opening_NothingToReverse" xml:space="preserve">
+    <value>Bu mijozda bekor qilinadigan kirish qoldig'i yo'q.</value>
+  </data>
+  <data name="Dash_CurrentState" xml:space="preserve">
+    <value>hozirgi holat</value>
+  </data>
+  <data name="Dash_CurrentStateHint" xml:space="preserve">
+    <value>Bu ko'rsatkich tanlangan sanaga emas, hozirgi holatga (o'tgan kun uchun tiklab bo'lmaydi).</value>
+  </data>
+  <data name="Transfer_SPLIT" xml:space="preserve">
+    <value>Bo'lish (yo'qotish + qaytarish)</value>
+  </data>
+  <data name="Transfer_LossQty" xml:space="preserve">
+    <value>yo'qotish miqdori</value>
+  </data>
+  <data name="Transfer_SplitQty" xml:space="preserve">
+    <value>{0}: yo'qotish miqdori 0 dan katta va kamomad ({1}) dan kichik bo'lsin (qolgani qaytariladi).</value>
+  </data>
+  <data name="Transfer_CancelAct" xml:space="preserve">
+    <value>Dalolatnomani bekor qilish</value>
+  </data>
+  <data name="Transfer_CancelHint" xml:space="preserve">
+    <value>Qabul va qaytarish kirimi bekor qilinadi, ko'chirma yana qabul kutadi (tovar qabul qiluvchi ombordan chiqarilgan bo'lsa — bo'lmaydi).</value>
+  </data>
+  <data name="Transfer_Cancelled" xml:space="preserve">
+    <value>Dalolatnoma bekor qilindi — ko'chirmani qayta qabul qiling.</value>
+  </data>
+  <data name="Transfer_CancelConsumed" xml:space="preserve">
+    <value>Bekor qilib bo'lmaydi: qabul qilingan tovardan chiqim qilingan.</value>
+  </data>
+  <data name="Report_LandedOnSold" xml:space="preserve">
+    <value>Qo'shimcha xarajat — sotilgan tovarga tushgan qismi (davr xarajati)</value>
+  </data>
+  <data name="Report_NetProfit" xml:space="preserve">
+    <value>Foyda (qo'shimcha xarajatdan keyin)</value>
+  </data>
+  <data name="Bot_LiveRequired" xml:space="preserve">
+    <value>"Keldim" uchun jonli joylashuv kerak: 📎 → Joylashuv → "Jonli joylashuvni ulashish".</value>
+  </data>
+  <data name="Settings_CheckInLiveOnly" xml:space="preserve">
+    <value>"Keldim" — faqat jonli joylashuv</value>
+  </data>
+  <data name="Settings_CheckInLiveOnlyHint" xml:space="preserve">
+    <value>Yoqilsa, statik joylashuv (tugma bilan yuborilgan) rad etiladi — agent jonli joylashuvni ulashishi kerak. O'chiq — qabul qilinadi va hisobotda belgilanadi.</value>
+  </data>
+  <data name="Audit" xml:space="preserve">
+    <value>Audit jurnali</value>
+  </data>
+  <data name="Tile_Audit" xml:space="preserve">
+    <value>Kim, qachon, nimani o'zgartirgan</value>
+  </data>
+  <data name="Audit_Hint" xml:space="preserve">
+    <value>Distributsiya yozuvlaridagi har bir o'zgarish: yaratish (to'liq qiymat), tahrir (maydon bo'yicha eski → yangi), o'chirish. Faqat o'qish.</value>
+  </data>
+  <data name="Audit_Entity" xml:space="preserve">
+    <value>Obyekt</value>
+  </data>
+  <data name="Audit_Key" xml:space="preserve">
+    <value>Kalit (ID)</value>
+  </data>
+  <data name="Audit_Action" xml:space="preserve">
+    <value>Amal</value>
+  </data>
+  <data name="Audit_Field" xml:space="preserve">
+    <value>Maydon</value>
+  </data>
+  <data name="Audit_Old" xml:space="preserve">
+    <value>Eski qiymat</value>
+  </data>
+  <data name="Audit_New" xml:space="preserve">
+    <value>Yangi qiymat</value>
+  </data>
+  <data name="Audit_Source" xml:space="preserve">
+    <value>Manba</value>
+  </data>
+  <data name="Audit_I" xml:space="preserve">
+    <value>yaratildi</value>
+  </data>
+  <data name="Audit_U" xml:space="preserve">
+    <value>o'zgartirildi</value>
+  </data>
+  <data name="Audit_D" xml:space="preserve">
+    <value>o'chirildi</value>
+  </data>
+  <data name="Settings_DefectWarehouse" xml:space="preserve">
+    <value>Brak ombori</value>
+  </data>
+  <data name="Settings_DefectWarehouseHint" xml:space="preserve">
+    <value>"Brak" belgili qaytarish faqat shu omborga kiradi; bu ombor buyurtmalarga taklif qilinmaydi.</value>
+  </data>
+  <data name="Return_DefectWarehouse" xml:space="preserve">
+    <value>Brak tovar brak omboriga qaytariladi: {0}.</value>
+  </data>
+  <data name="File_ImageOnly" xml:space="preserve">
+    <value>Faqat JPEG yoki PNG rasm, 5 MB gacha.</value>
+  </data>
+  <data name="WriteOff_AttachPhoto" xml:space="preserve">
+    <value>Foto biriktirish</value>
+  </data>
+  <data name="WriteOff_ReplacePhoto" xml:space="preserve">
+    <value>Fotoni almashtirish</value>
+  </data>
+  <data name="Voice_AgentOnly" xml:space="preserve">
+    <value>Ovozli buyurtma faqat agentlar uchun.</value>
+  </data>
+  <data name="Order_DeliverViaTrip" xml:space="preserve">
+    <value>Buyurtma reysda ({0}) — yetkazish natijasi reys orqali kiritiladi (ekspeditor botda yoki Reyslar sahifasida).</value>
+  </data>
+  <data name="Scopes_AnyUser" xml:space="preserve">
+    <value>Xodimning ko'rinish doirasi</value>
+  </data>
+  <data name="Scopes_AnyUserHint" xml:space="preserve">
+    <value>Agent bo'lmagan xodimlar (omborchi, kassir, rahbar) uchun ombor/hudud/mijoz cheklovi.</value>
   </data>
 </root>

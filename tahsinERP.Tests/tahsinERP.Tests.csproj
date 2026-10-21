@@ -247,6 +247,9 @@
     <Compile Include="Distribution\PilotWeekSimulationTests.cs" />
     <Compile Include="Distribution\OrderRulesTests.cs" />
     <Compile Include="Distribution\OrderFlowIntegrationTests.cs" />
+    <Compile Include="Distribution\FindingsFixTests.cs" />
+    <Compile Include="Distribution\FindingsFixK2Tests.cs" />
+    <Compile Include="Distribution\FindingsUatTests.cs" />
     <Compile Include="Distribution\MoneyTests.cs" />
     <Compile Include="Distribution\BotTests.cs" />
     <Compile Include="Distribution\SiteTests.cs" />

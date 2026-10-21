@@ -95,13 +95,13 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         // ---------- bog'lash (vakil foydalanuvchisiz) ----------
 
         [HttpPost]
-        public ActionResult Link(string code, long telegramUserId, long chatId)
+        public ActionResult Link(string code, long telegramUserId, long chatId, string language = null)
         {
             return RunSystem(() =>
             {
                 using (var db = Db())
                 {
-                    var account = TelegramLinkService.Redeem(db, code, telegramUserId, chatId, DateTime.Now);
+                    var account = TelegramLinkService.Redeem(db, code, telegramUserId, chatId, DateTime.Now, language);
                     db.SaveChanges();
                     return AccountInfo(db, account);
                 }
@@ -124,13 +124,19 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
 
         /// <summary>Bot o'z bazasini yo'qotsa — bog'lanishni ERP'dan tiklash.</summary>
         [HttpGet]
-        public ActionResult Account(long telegramUserId)
+        /// <param name="language">Mijozning hozirgi Telegram tili — o'zgargan bo'lsa yangilanadi (xodim tili — ERP sozlamasida).</param>
+        public ActionResult Account(long telegramUserId, string language = null)
         {
             return RunSystem(() =>
             {
                 using (var db = Db())
                 {
                     var a = db.TelegramAccounts.FirstOrDefault(x => x.TelegramUserId == telegramUserId && x.IsActive);
+                    if (a != null && a.CustomerID.HasValue && language != null && a.Language != DstLocalization.Normalize(language))
+                    {
+                        a.Language = DstLocalization.Normalize(language);
+                        db.SaveChanges();
+                    }
                     return a == null ? null : AccountInfo(db, a);
                 }
             });
@@ -144,7 +150,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             return new
             {
                 a.UserID, a.CustomerID, a.Role, Name = name,
-                Language = a.UserID.HasValue ? DstLocalization.LanguageOf(a.UserID.Value) : DstLocalization.Uzbek
+                Language = a.UserID.HasValue ? DstLocalization.LanguageOf(a.UserID.Value) : DstLocalization.Normalize(a.Language)
             };
         }
 

@@ -85,6 +85,12 @@
                                 <th class="text-right" data-total="margin"></th><th class="text-right" data-total="orders"></th>
                                 <th class="text-right" data-total="customers"></th>
                             </tr>
+                            <tr class="small" data-landed-row style="display:none">
+                                <th colspan="5">@DstLocalization.T("Report_LandedOnSold")</th><th class="text-right text-danger" data-total="landed"></th><th colspan="3"></th>
+                            </tr>
+                            <tr class="font-weight-bold" data-landed-row style="display:none">
+                                <th colspan="5">@DstLocalization.T("Report_NetProfit")</th><th class="text-right" data-total="netProfit"></th><th colspan="3"></th>
+                            </tr>
                         </tfoot>
                     </table>
                     <p class="small text-muted mt-1 mb-0">@DstLocalization.T("Report_SalesHint")</p>
@@ -131,6 +137,7 @@
             table.on('xhr', function (e, settings, json) {
                 var t = json && json.totals;
                 if (!t) return;
+                $('[data-landed-row]').toggle(!!t.landed);
                 $('#salesTable_wrapper [data-total], #salesTable [data-total]').each(function () {
                     var k = $(this).data('total'), v = t[k];
                     $(this).text(v === null || v === undefined ? '' : (k === 'margin' ? v + '%' : (k === 'orders' || k === 'customers' ? v : money.format(v))));

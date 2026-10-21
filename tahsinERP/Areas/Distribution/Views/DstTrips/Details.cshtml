@@ -146,6 +146,10 @@
                                                 <button type="button" class="btn btn-sm btn-light py-0" data-reset="@s.ID" title="@DstLocalization.T("Trip_ResetHint")">↺</button>
                                             }
                                         }
+                                        @if (canChange && state == TripStatus.Closed && s.ReturnID.HasValue)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary py-0" data-redeliver="@s.ID" title="@DstLocalization.T("Trip_RedeliverHint")">@DstLocalization.T("Trip_Redeliver")</button>
+                                        }
                                     </td>
                                 </tr>
                                 <tr class="collapse" id="lines@(s.ID)">
@@ -354,6 +358,10 @@
                 var lineIds = [], qtys = [];
                 $('[data-dline]').each(function () { lineIds.push($(this).data('dline')); qtys.push($(this).val() || 0); });
                 dstPost('@Url.Action("Deliver")', { stopId: $('#dStop').val(), mode: mode, lineIds: lineIds, qtys: qtys, reasonId: $('#dReason').val(), note: $('#dNote').val() }).done(reload);
+            });
+            $('[data-redeliver]').on('click', function () {
+                if (!confirm('@Html.Raw(HttpUtility.JavaScriptStringEncode(DstLocalization.T("Trip_RedeliverHint")))')) return;
+                dstPost('@Url.Action("Redeliver")', { stopId: $(this).data('redeliver') }).done(function (r) { if (r && r.url) location.href = r.url; });
             });
             $('[data-reset]').on('click', function () { if (confirm(ask)) dstPost('@Url.Action("ResetStop")', { stopId: $(this).data('reset') }).done(reload); });
 

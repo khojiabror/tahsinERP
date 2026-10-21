@@ -43,11 +43,12 @@ namespace tahsinERP.Areas.Distribution.Controllers
             {
                 using (var db = NewDb())
                     foreach (var wh in input.Select(i => i.WarehouseID).Distinct()) EnsureWarehouse(db, wh);
+                bool seeCost = CanSeeCost;   // huquqsiz — narx ko'rinmaydi, oxirgi xarid narxi serverda olinadi
                 var selections = input.Select(i => new ReorderService.Selection
                 {
                     ProductID = i.ProductID, WarehouseID = i.WarehouseID, SupplierID = i.SupplierID,
                     Qty = DstModelBinder.TryParseDecimal(i.Qty ?? "", out var q) ? q : 0,
-                    Price = DstModelBinder.TryParseDecimal(i.Price ?? "", out var p) ? p : 0
+                    Price = seeCost && DstModelBinder.TryParseDecimal(i.Price ?? "", out var p) ? p : (decimal?)null
                 }).ToList();
                 List<string> numbers;
                 using (var erp = new DBTHSNEntities())

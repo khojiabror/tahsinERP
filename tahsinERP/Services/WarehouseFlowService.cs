@@ -568,6 +568,7 @@ namespace tahsinERP.Services
                     db.SaveChanges();
 
                     StockLedger.IssueLine(db, salesWH.ID, productID, qtyToDeduct, expenseProduct.UnitID, expenseProduct.ID);
+                    Stock.ExpenseDocumentService.EnsureNotBelowReserved(db, salesWH.ID, productID);   // distributsiya rezervi (05_FINDINGS 48)
 
                     LogHelper.LogToDatabase(userEmail, "WarehouseFlowService", "DecreaseSalesStock",
                         $"Sotuv invoysi {invoiceNo} uchun mahsulot {product.PNo} dan {QtyText.Plain(qtyToDeduct)} miqdor sotuv omboridan chiqarildi. " +

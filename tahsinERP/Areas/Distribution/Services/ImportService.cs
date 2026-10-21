@@ -96,7 +96,7 @@ namespace tahsinERP.Areas.Distribution.Services
             new Column("manufacturer", "Ishlab chiqaruvchi", "Производитель"),
             new Column("weight", "Og'irlik (kg)", "Вес (кг)", false, "50"),
             new Column("volume", "Hajm (m3)", "Объём (м3)"),
-            new Column("barcode", "Shtrix-kod", "Штрихкод", false, "4780000000017"),
+            new Column("barcode", "Shtrix-kod", "Штрихкод", false, "4780000000014"),
             new Column("unit2", "Birlik 2", "Единица 2", false, "poddon"),
             new Column("factor2", "Koeffitsient 2", "Коэффициент 2", false, "40"),
             new Column("barcode2", "Shtrix-kod 2", "Штрихкод 2"),
@@ -700,7 +700,7 @@ namespace tahsinERP.Areas.Distribution.Services
                                  join c in db.Customers on p.CustomerID equals c.ID
                                  where c.IsDeleted != true
                                  select new { c.ID, c.Name, p.INN, p.AgentUserID, p.PaymentDays }).ToList();
-                var already = new HashSet<int>(db.CustomerLedger.Where(l => l.DocType == LedgerDocTypes.Opening).Select(l => l.CustomerID).Distinct().ToList());
+                var already = new HashSet<int>(Services.Money.DebtService.LiveOpening(db).Select(l => l.CustomerID));   // bekor qilingani — qayta import mumkin
                 var seen = new HashSet<int>();
                 var entries = new List<CustomerLedgerEntry>();
                 var now = DateTime.Now;

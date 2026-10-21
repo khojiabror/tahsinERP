@@ -80,6 +80,8 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
         /// <summary>Sozlama RequireSelfie: kun selfisiz boshlanmaydi (avtomatik boshlanish ham — "keldim"da).</summary>
         public static bool RequireSelfie(DistributionDbContext db) => DstSettings.Get(db, DstSetting.RequireSelfie) == "1";
 
+        public static bool CheckInLiveOnly(DistributionDbContext db) => DstSettings.Get(db, DstSetting.CheckInLiveOnly) == "1";
+
         public static AgentDay StartDay(DistributionDbContext db, int userId, decimal? lat, decimal? lng, string selfieKey, DateTime now)
         {
             selfieKey = string.IsNullOrWhiteSpace(selfieKey) ? null : selfieKey.Trim();
@@ -97,6 +99,33 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             db.AgentDays.Add(day);
             AddTrack(db, userId, lat, lng, null, TrackSources.Day, now);
             return day;
+        }
+
+        /// <summary>
+        /// Reys boshlanganda ekspeditor ish kuni (05_FINDINGS K2-7): menyusida "Kunni boshlash" yo'q, jonli joylashuv esa faqat ochiq
+        /// ish kunida yoziladi. Selfi talab qilinmaydi; shu kun yakunlangan bo'lsa — qayta ochiladi.
+        /// </summary>
+        public static AgentDay EnsureWorkDay(DistributionDbContext db, int userId, DateTime now)
+        {
+            var day = db.AgentDays.FirstOrDefault(d => d.UserID == userId && d.WorkDate == now.Date);
+            if (day == null)
+                db.AgentDays.Add(day = new AgentDay { UserID = userId, WorkDate = now.Date, StartAt = now });
+            else if (day.EndAt != null)
+            {
+                day.EndAt = null;
+                day.EndLat = null;
+                day.EndLng = null;
+            }
+            return day;
+        }
+
+        /// <summary>Reys tugaganda ekspeditor ish kuni yopiladi (yo'lda boshqa reysi bo'lmasa) — shaxsiy vaqt kuzatilmaydi.</summary>
+        public static void EndWorkDayAfterTrip(DistributionDbContext db, int userId, int tripId, DateTime now)
+        {
+            byte inTransit = (byte)TripStatus.InTransit;
+            if (db.Trips.Any(t => t.ExpeditorUserID == userId && t.ID != tripId && t.TripStatus == inTransit)) return;
+            var day = db.AgentDays.FirstOrDefault(d => d.UserID == userId && d.WorkDate == now.Date && d.EndAt == null);
+            if (day != null) day.EndAt = now;
         }
 
         public sealed class DaySummary
@@ -250,11 +279,14 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
 
         /// <summary>
         /// "Keldim": mijozning koordinatasi bo'lsa — radius ichida bo'lishi shart (sozlama VisitRadiusM, aniqlik hisobga olinadi);
-        /// koordinata yo'q bo'lsa — qabul qilinadi (masofa noma'lum). Statik (live emas) joylashuv ham qabul qilinadi, lekin belgilanadi.
+        /// koordinata yo'q bo'lsa — qabul qilinadi (masofa noma'lum). Statik (live emas) joylashuv: sozlama CheckInLiveOnly = "1" bo'lsa
+        /// rad etiladi (01_PHASE1_MVP qoidasi), aks holda qabul qilinadi va belgilanadi (IsLive = false — tashriflar hisobotida ko'rinadi).
+        /// Standart — qabul: botning "joylashuvni yuborish" tugmasi faqat statik joylashuv yuboradi.
         /// </summary>
         public static CheckInResult CheckIn(DistributionDbContext db, int userId, int customerId, decimal lat, decimal lng, int? accuracyM, bool isLive, DateTime now)
         {
             DirectoryRules.ValidateGeo(lat, lng);
+            if (!isLive && CheckInLiveOnly(db)) throw new DstValidationException(DstLocalization.T("Bot_LiveRequired"));
             var p = db.CustomerProfiles.Find(customerId) ?? throw new DstValidationException(DstLocalization.T("Order_CustomerNotDistribution"));
             int radius = DstSettings.Int(db, DstSetting.VisitRadiusM) ?? DefaultRadiusM;
             int? distance = null;

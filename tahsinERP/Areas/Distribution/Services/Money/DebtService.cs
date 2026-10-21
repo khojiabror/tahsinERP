@@ -20,9 +20,15 @@ namespace tahsinERP.Areas.Distribution.Services.Money
         /// Teskari yozuvlar (X_REV) o'z asl yozuvi bilan birga chiqarib tashlanadi — shunda bekor qilingan jo'natish
         /// FIFO taqsimotni buzmaydi. Qolgan debetlar va kreditlar summasi.
         /// </summary>
-        public static Dictionary<int, CustomerDebts> Load(DistributionDbContext db, IReadOnlyCollection<int> customerIds = null)
+        /// <param name="before">Faqat shu paytdan oldingi yozuvlar (o'tgan sana holati); null — hammasi.</param>
+        public static Dictionary<int, CustomerDebts> Load(DistributionDbContext db, IReadOnlyCollection<int> customerIds = null, DateTime? before = null)
         {
             IQueryable<CustomerLedgerEntry> q = db.CustomerLedger.AsNoTracking();
+            if (before.HasValue)
+            {
+                var b = before.Value;
+                q = q.Where(l => l.EntryDate < b);
+            }
             if (customerIds != null)
             {
                 var ids = customerIds.ToList();
@@ -41,7 +47,7 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             return new CustomerDebts
             {
                 Debits = live.Where(r => r.Debit > 0)
-                    .Select(r => new DebitItem { Date = r.EntryDate, DueDate = r.DueDate, Amount = r.Debit, OrderID = r.OrderID }).ToList(),
+                    .Select(r => new DebitItem { Date = r.EntryDate, DueDate = r.DueDate, Amount = r.Debit, OrderID = r.OrderID, AgentUserID = r.AgentUserID }).ToList(),
                 Credits = live.Sum(r => r.Credit)
             };
         }
@@ -134,6 +140,71 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             };
             db.CustomerLedger.Add(entry);
             return entry;
+        }
+
+        /// <summary>
+        /// Kredit bekor qilinganda (to'lov, qaytarish, kirish qoldig'i): qarzi endi to'liq yopilmagan "Yopildi" buyurtmalar qayta ochiladi —
+        /// yetkazilgan bo'lsa "Yetkazildi", aks holda "Jo'natildi" (05_FINDINGS 40). Qaytaradi: ochilganlar soni.
+        /// </summary>
+        public static int ReopenOrders(DistributionDbContext db, int customerId, int userId, DateTime now, string note)
+        {
+            var debts = Load(db, new[] { customerId });
+            if (!debts.TryGetValue(customerId, out var d)) return 0;
+            var withDebt = new HashSet<int>(d.Debits.Where(x => x.OrderID.HasValue).Select(x => x.OrderID.Value));
+            var settled = DebtMath.SettledOrders(d.Debits, d.Credits);
+            byte closed = (byte)OrderStatus.Closed;
+            var ids = withDebt.Where(id => !settled.Contains(id)).ToList();
+            var orders = db.Orders.Where(o => o.CustomerID == customerId && o.OrderStatus == closed && ids.Contains(o.ID)).ToList();
+            foreach (var order in orders)
+            {
+                var to = order.DeliveredAt.HasValue ? OrderStatus.Delivered : OrderStatus.Shipped;
+                order.OrderStatus = (byte)to;
+                db.OrderStatusLog.Add(new DstOrderStatusLog
+                {
+                    OrderID = order.ID, FromStatus = closed, ToStatus = (byte)to, UserID = userId, At = now,
+                    Note = note != null && note.Length > 500 ? note.Substring(0, 500) : note
+                });
+            }
+            return orders.Count;
+        }
+
+        /// <summary>Mijozning amaldagi (bekor qilinmagan) kirish qoldig'i yozuvlari.</summary>
+        public static List<CustomerLedgerEntry> LiveOpening(DistributionDbContext db, int? customerId = null)
+        {
+            string rev = LedgerDocTypes.ReversalOf(LedgerDocTypes.Opening);
+            var q = db.CustomerLedger.Where(l => l.DocType == LedgerDocTypes.Opening
+                                                 && !db.CustomerLedger.Any(r => r.DocType == rev && r.CustomerID == l.CustomerID && l.DocID != null && r.DocID == l.DocID));
+            if (customerId.HasValue) q = q.Where(l => l.CustomerID == customerId.Value);
+            return q.ToList();
+        }
+
+        /// <summary>
+        /// Kirish qoldig'ini bekor qilish (xato import, 05_FINDINGS K2-16): teskari OPENING_REV yozuvi; keyin to'g'ri summani qayta
+        /// import qilish mumkin. Import yozuvida hujjat raqami yo'q — teskari yozuv bilan juftlash uchun DocID = yozuvning o'z ID'si qo'yiladi
+        /// (summa va sana o'zgarmaydi).
+        /// </summary>
+        public static int ReverseOpening(DistributionDbContext db, int customerId, int userId, string reason, DateTime now)
+        {
+            reason = reason?.Trim();
+            if (string.IsNullOrEmpty(reason) || reason.Length < DocumentLifecycle.MinCancelReasonLength)
+                throw new DstValidationException(DstLocalization.T("Error_CancelReasonRequired"));
+            var rows = LiveOpening(db, customerId);
+            if (rows.Count == 0) throw new DstValidationException(DstLocalization.T("Opening_NothingToReverse"));
+            foreach (var o in rows.Where(r => r.DocID == null)) o.DocID = (int)o.ID;
+            foreach (var o in rows)
+            {
+                db.CustomerLedger.Add(new CustomerLedgerEntry
+                {
+                    CustomerID = o.CustomerID, EntryDate = now, DocType = LedgerDocTypes.ReversalOf(LedgerDocTypes.Opening), DocID = o.DocID,
+                    Debit = o.Credit, Credit = o.Debit, AgentUserID = o.AgentUserID, CreatedBy = userId,
+                    Note = DstLocalization.T("Ledger_OPENING_REV") + ": " + (reason.Length > 200 ? reason.Substring(0, 200) : reason)
+                });
+            }
+            db.SaveChanges();
+            SettleOrders(db, customerId, userId, now);
+            ReopenOrders(db, customerId, userId, now, DstLocalization.T("Ledger_OPENING_REV"));
+            db.SaveChanges();
+            return rows.Count;
         }
 
         /// <summary>Hujjat bekor qilinganda teskari yozuv (asl yozuvga qarama-qarshi).</summary>

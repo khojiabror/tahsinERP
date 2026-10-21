@@ -5,12 +5,15 @@
     DateTime from = ViewBag.From, to = ViewBag.To;
     ViewBag.DstParent = DstLocalization.T("Debts");
     ViewBag.Title = DstLocalization.T("Statement") + ": " + customer.Name;
+    bool canChange = ViewBag.DstCanChange == true;
 }
 <div class="app-content content">
     <div class="content-overlay"></div>
     <div class="content-wrapper">
         @Html.Partial("_DstHeader", (string)ViewBag.Title)
         <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
             <div class="card">
                 <div class="card-body">
                     <form method="get" class="form-row align-items-end">
@@ -48,6 +51,17 @@
                             <tr class="table-active"><th colspan="5">@DstLocalization.T("Statement_Closing") @to.ToString("dd.MM.yyyy")</th><th class="text-right">@Model.Closing.ToString("N0")</th></tr>
                         </tfoot>
                     </table>
+                    @if (canChange && ViewBag.HasOpening == true)
+                    {
+                        using (Html.BeginForm("ReverseOpening", "DstDebts", new { area = "Distribution", id = customer.ID }, FormMethod.Post,
+                            new { @class = "form-inline mb-1", onsubmit = "return confirm('" + DstLocalization.T("Opening_ReverseConfirm").Replace("'", "\\'") + "')" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <span class="small mr-50">@DstLocalization.T("Ledger_OPENING"): <b>@(((decimal)ViewBag.Opening).ToString("N0"))</b></span>
+                            <input name="reason" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Reason")" required minlength="3" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">@DstLocalization.T("Opening_Reverse")</button>
+                        }
+                    }
                     <div class="small text-muted">
                         @DstLocalization.T("Overdue"): <b class="text-danger">@aging.Overdue.ToString("N0")</b> ·
                         1–7: @aging.Days1To7.ToString("N0") · 8–30: @aging.Days8To30.ToString("N0") · 31–60: @aging.Days31To60.ToString("N0") · 60+: @aging.Over60.ToString("N0")

@@ -197,6 +197,7 @@ namespace tahsinERP.Areas.Distribution.Data
             audit.Property(e => e.Source).IsUnicode(false);
             modelBuilder.Entity<UserScope>().Property(e => e.ScopeType).IsUnicode(false);
             modelBuilder.Entity<UserSetting>().Property(e => e.Language).IsUnicode(false);
+            modelBuilder.Entity<TelegramAccount>().Property(e => e.Language).IsUnicode(false);
 
             var cp = modelBuilder.Entity<CustomerProfile>();
             cp.Property(e => e.INN).IsUnicode(false);
@@ -347,6 +348,7 @@ namespace tahsinERP.Areas.Distribution.Data
             tal.Property(e => e.ReceivedQty).HasPrecision(18, 6);
             tal.Property(e => e.UnitCost).HasPrecision(19, 6);
             tal.Property(e => e.Resolution).IsUnicode(false);
+            tal.Property(e => e.LossQty).HasPrecision(18, 6);
             var promo = modelBuilder.Entity<Promotion>();
             promo.Property(e => e.Kind).IsUnicode(false);
             promo.Property(e => e.MinQtyBase).HasPrecision(18, 4);

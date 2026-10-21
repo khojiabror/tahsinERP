@@ -84,11 +84,20 @@
             });
     }
 
+    // savat localStorage'da (Telegram oynasi yopilsa ham qoladi), 3 kun — keyin eskirgan narxli savat tashlanadi (05_FINDINGS K2-23)
+    var cartTtlMs = 3 * 24 * 3600 * 1000;
     function saveCart() {
-        try { sessionStorage.setItem(cartKey, JSON.stringify(state.cart)); } catch (e) { /* saqlanmasa ham ishlaydi */ }
+        try {
+            if (state.cart.length === 0) localStorage.removeItem(cartKey);
+            else localStorage.setItem(cartKey, JSON.stringify({ at: Date.now(), items: state.cart }));
+        } catch (e) { /* saqlanmasa ham ishlaydi */ }
     }
     function loadCart() {
-        try { state.cart = JSON.parse(sessionStorage.getItem(cartKey) || '[]') || []; } catch (e) { state.cart = []; }
+        try {
+            var raw = JSON.parse(localStorage.getItem(cartKey) || sessionStorage.getItem(cartKey) || 'null');
+            if (Array.isArray(raw)) state.cart = raw;   // eski format (sessionStorage)
+            else state.cart = raw && raw.items && Date.now() - (raw.at || 0) < cartTtlMs ? raw.items : [];
+        } catch (e) { state.cart = []; }
     }
 
     // ---------- katalog ----------
