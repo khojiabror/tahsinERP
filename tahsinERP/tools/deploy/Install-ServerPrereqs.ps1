@@ -21,12 +21,12 @@
     Berilsa - SQL Server 'max server memory' shu qiymatga o'rnatiladi (4 GB RAM'li server uchun 1024 tavsiya). 0 - tegilmaydi.
 
 .PARAMETER SqlInstance
-    SQL instance (blueprint'da odatda .\SQLEXPRESS). Faqat -SqlMaxMemoryMB uchun kerak.
+    SQL instance ('.' yoki '.\SQLEXPRESS'). Bo'sh bo'lsa serverdagi yagona SQL xizmatidan avtomatik aniqlanadi. Faqat -SqlMaxMemoryMB uchun.
 #>
 [CmdletBinding()]
 param(
     [int]$SqlMaxMemoryMB = 0,
-    [string]$SqlInstance = '.\SQLEXPRESS',
+    [string]$SqlInstance = '',
     [string]$DownloadDir = "$env:TEMP\tahsinERP-prereqs",
     [string]$WinAcmeDir = 'C:\tools\win-acme',
     [string]$DotnetChannel = '10.0'
@@ -164,9 +164,15 @@ $svc = Get-Service 'MSSQL*' -ErrorAction SilentlyContinue | Where-Object { $_.Na
 if (-not $svc) {
     Write-Warning 'SQL Server xizmati topilmadi - "SQL Server 2022 Express" blueprint tanlanganini tekshiring yoki SQL Express''ni o''rnating.'
 } else {
+    $found = @()
     foreach ($s in $svc) {
         $inst = if ($s.Name -eq 'MSSQLSERVER') { '.' } else { '.\' + $s.Name.Substring(6) }
-        Ok "SQL xizmati: $($s.Name) ($($s.Status)) -> qo'llanmada ulanish nomi: $inst"
+        $found += $inst
+        Ok "SQL xizmati: $($s.Name) ($($s.Status)) -> qo'llanmadagi '.\SQLEXPRESS' o'rniga: $inst"
+    }
+    if (-not $SqlInstance) {
+        if ($found.Count -eq 1) { $SqlInstance = $found[0] }
+        else { $SqlInstance = '.\SQLEXPRESS'; Write-Warning "Bir nechta SQL xizmati topildi - -SqlInstance bilan aniq ko'rsating." }
     }
     if ($SqlMaxMemoryMB -gt 0) {
         $cs = "Server=$SqlInstance;Database=master;Integrated Security=True;TrustServerCertificate=True"
