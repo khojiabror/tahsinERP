@@ -123,6 +123,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
 
         if (p.SampleData)
             log.Info($"namuna foydalanuvchisi '{SampleUserLogin}' o'chirib qo'yildi ({await sql.DisableSampleUserAsync(p.DbName, SampleUserLogin, p.AdminLogin, ct)})");
+        if (!string.IsNullOrWhiteSpace(options.Sql.AppLogin)) log.Info(await sql.GrantAppLoginAsync(p.DbName, options.Sql.AppLogin!, ct));
         log.Info(await sql.WriteRegTokenAsync(p.DbName, regToken, ct));
         bool changed = Tenants().Upsert(p.Slug, p.DbName, p.CompanyId, p.Enabled);
         log.Info($"tenants.json: {p.Slug} → {p.DbName}, enabled={p.Enabled.ToString().ToLowerInvariant()}" + (changed ? "" : " (o'zgarishsiz)"));
@@ -169,6 +170,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             log.Info($"demo foydalanuvchi: {options.Demo.UserLogin} (parol agent sozlamasidan)");
         }
         else log.Info("demo foydalanuvchi — Database/Demo skriptidagi (demo / demo2026)");
+        if (!string.IsNullOrWhiteSpace(options.Sql.AppLogin)) log.Info(await sql.GrantAppLoginAsync(p.DbName, options.Sql.AppLogin!, ct));
         if (lease.Secrets?.RegToken is { Length: > 0 } token) log.Info(await sql.WriteRegTokenAsync(p.DbName, token, ct));
         Tenants().Upsert(p.Slug, p.DbName, p.CompanyId, true);
         c.RegistryEnabled = true;
