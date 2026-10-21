@@ -33,18 +33,11 @@ public static class Cli
 
                 case ("tenant", "add"):
                 {
-                    var slug = Arg(2).Trim().ToLowerInvariant();
-                    if (!slug.All(c => char.IsAsciiLetterOrDigit(c) || c == '-') || slug.Length > 50) throw new ArgumentException("Slug: a-z, 0-9, '-'");
-                    var erp = new Uri(Arg(3), UriKind.Absolute).AbsoluteUri;
                     var flags = args.Skip(4).ToList();
                     var at = flags.IndexOf("--erp-tenant");
-                    var t = await db.Tenants.FirstOrDefaultAsync(x => x.Slug == slug);
-                    if (t == null) db.Tenants.Add(t = new SiteTenant { Slug = slug, CreatedAt = DateTime.UtcNow });
-                    t.ErpBaseUrl = erp;
-                    t.ErpTenant = at >= 0 ? flags.ElementAtOrDefault(at + 1)?.Trim().ToLowerInvariant() : null;
-                    t.IsActive = true;
-                    await db.SaveChangesAsync();
-                    Console.WriteLine($"Sayt tenanti {slug}: ERP {erp} (tenant: {t.ErpTenant ?? "default"}).");
+                    var t = await scope.ServiceProvider.GetRequiredService<Admin.SiteTenantAdmin>()
+                        .UpsertAsync(Arg(2), Arg(3), at >= 0 ? flags.ElementAtOrDefault(at + 1) : null, CancellationToken.None);
+                    Console.WriteLine($"Sayt tenanti {t.Slug}: ERP {t.ErpBaseUrl} (tenant: {t.ErpTenant ?? "default"}).");
                     return 0;
                 }
 

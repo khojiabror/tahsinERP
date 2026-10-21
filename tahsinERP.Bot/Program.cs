@@ -34,6 +34,7 @@ services.AddScoped<Outbox>();
 services.AddScoped<SessionStore>();
 services.AddScoped<UpdateRouter>();
 services.AddScoped<MiniAppEndpoints.Deps>();
+services.AddScoped<tahsinERP.Bot.Admin.BotTenantAdmin>();
 
 services.AddHttpClient<TelegramApi>(c => c.Timeout = TimeSpan.FromSeconds(30));
 services.AddHttpClient(ErpClientFactory.HttpClientName, (sp, c) =>
@@ -83,6 +84,7 @@ app.UseRateLimiter();
 app.MapGet("/health", async (BotDbContext db, CancellationToken ct) =>
     await db.Database.CanConnectAsync(ct) ? Results.Ok(new { ok = true }) : Results.StatusCode(503));
 WebhookEndpoint.Map(app);
+tahsinERP.Bot.Admin.AdminEndpoints.Map(app);
 FileEndpoint.Map(app);
 MiniAppEndpoints.Map(app.MapGroup("").RequireRateLimiting("miniapp"));
 

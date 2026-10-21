@@ -7,7 +7,8 @@
     * Bitta master kalit (>=32 belgi) ERP (TAHSINERP_BOT_KEY), bot (Bot__MasterKey) va sayt (Site__MasterKey) pool'lariga
       yoziladi. Birinchi o'rnatishda ERP'da bor bo'lsa o'sha olinadi, bo'lmasa tasodifiy yaratiladi - qo'lda tarqatish shart emas.
     * tahsin_bot va tahsin_site bazalari administrator sifatida yaratiladi; ilova pool'lariga faqat o'z bazasida db_owner.
-    * Bot/sayt buyruqlari (tenant add, webhook set) uchun: Invoke-AppCli.ps1 (kalitni pool'dan o'qiydi).
+    * Panel pool'iga ControlPanel__Apps__* yoziladi: firma botini/saytini panelning firma sahifasidan ulash.
+    * Zaxira yo'l - bot/sayt buyruqlari (tenant add, webhook set): Invoke-AppCli.ps1 (kalitni pool'dan o'qiydi).
     Yangilash: -KeepSecrets.
 
 .EXAMPLE
@@ -22,6 +23,7 @@ param(
     [string] $SqlServer = '.',
     [string] $DataDir = 'C:\ProgramData\tahsinERP',
     [string] $ErpPool = 'tahsinERP',
+    [string] $PanelPool = 'tahsinERP.ControlPanel',
     [string] $CertThumbprint,
     [string] $SaytCertThumbprint,
     [switch] $KeepSecrets
@@ -136,6 +138,18 @@ if (-not $KeepSecrets) {
     Ok 'master kalit bot va sayt pool''lariga yozildi (ERP bilan bir xil)'
 } else { Skip 'master kalit saqlandi (-KeepSecrets)' }
 
+# Panel firma sahifasidan bot/saytni ulashi uchun: master kalitning HMAC hosilasi (u bilan bot tokenlarini ochib bo'lmaydi)
+if (Test-Path "IIS:\AppPools\$PanelPool") {
+    $mk = Get-PoolEnv $bot 'Bot__MasterKey'
+    $h = New-Object System.Security.Cryptography.HMACSHA256 (,[Text.Encoding]::UTF8.GetBytes($mk))
+    $adminKey = [Convert]::ToBase64String($h.ComputeHash([Text.Encoding]::UTF8.GetBytes('tahsin-admin-api'))).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+    Set-PoolEnv $PanelPool 'ControlPanel__Apps__BotUrl' "https://bot.$Domain"
+    Set-PoolEnv $PanelPool 'ControlPanel__Apps__SiteUrl' "https://api.sayt.$Domain"
+    Set-PoolEnv $PanelPool 'ControlPanel__Apps__AdminKey' $adminKey
+    & $appcmd recycle apppool /apppool.name:$PanelPool | Out-Null
+    Ok 'panel: firma sahifasidan bot/sayt ulash yoqildi (ControlPanel__Apps__*)'
+} else { Skip "panel pool'i yo'q ($PanelPool) - panel ulanishi keyin shu skriptni -KeepSecrets bilan qayta ishga tushirib yoziladi" }
+
 # ---------------------------------------------------------------------------------------------------------------
 Step '5/5 Ishga tushirish'
 foreach ($a in $apps) {
@@ -148,7 +162,6 @@ Write-Host @"
 Keyingi qadamlar (DNS va sertifikat tayyor bo'lgach):
   - Sertifikat: .\Install-BotSite.ps1 -Domain $Domain -KeepSecrets -CertThumbprint <*.$Domain> -SaytCertThumbprint <*.sayt.$Domain>
   - Tekshiruv: https://bot.$Domain/health  va  https://demo.sayt.$Domain/health
-  - Har firma boti:   .\Invoke-AppCli.ps1 -App Bot  tenant add firma1 https://firma1.$Domain/ <TOKEN> --erp-tenant firma1
-                      .\Invoke-AppCli.ps1 -App Bot  webhook set firma1
-  - Har firma sayti:  .\Invoke-AppCli.ps1 -App Site tenant add firma1 https://firma1.$Domain/ --erp-tenant firma1
+  - Har firma boti va sayti: panel -> Tashkilotlar -> firma -> "Telegram bot va sayt-katalog"
+    (zaxira yo'l: .\Invoke-AppCli.ps1 -App Bot tenant add / webhook set, -App Site tenant add)
 "@
