@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Foydalanuvchining barcha rollariga Distributsiya (Dst*) ruxsatlarini beradi va ERP keshini yangilaydi.
+    Foydalanuvchining barcha rollariga Distributsiya (Dst*) va Sayt (Site*) ruxsatlarini beradi va ERP keshini yangilaydi.
 
 .DESCRIPTION
-    Migratsiyalar Dst* ruxsatlarini faqat SystemCode='ADMIN' rolga beradi. Boshqa rolda (masalan "developer") ishlaydigan
+    Migratsiyalar Dst*/Site* ruxsatlarini faqat SystemCode='ADMIN' rolga beradi. Boshqa rolda (masalan "developer") ishlaydigan
     foydalanuvchi uchun shu skript. Bor ruxsat qayta qo'shilmaydi. Administrator PowerShell'da.
 
 .EXAMPLE
@@ -24,7 +24,7 @@ IF @u IS NULL THROW 50001, 'Foydalanuvchi topilmadi', 1;
 INSERT INTO dbo.PERMISSIONS (ViewPermit, ChangePermit, DeletePermit, RoleID, PermissionModuleID)
 SELECT 1, 1, 1, ur.RoleID, pm.ID
 FROM dbo.USERROLES ur CROSS JOIN dbo.PERMISSIONMODULES pm
-WHERE ur.UserID = @u AND pm.Module LIKE 'Dst%'
+WHERE ur.UserID = @u AND (pm.Module LIKE 'Dst%' OR pm.Module LIKE 'Site%')
   AND NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONS p WHERE p.RoleID = ur.RoleID AND p.PermissionModuleID = pm.ID);
 SELECT @@ROWCOUNT;
 "@
