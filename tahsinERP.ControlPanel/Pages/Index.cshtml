@@ -7,11 +7,11 @@
 }
 <h1>Bosh sahifa</h1>
 <div class="grid">
-    <div class="stat"><div class="l">Faol tenantlar</div><div class="v">@Model.Count(TenantStatus.Active)</div><div class="hint">SaaS @d.SaasCount · On-prem @d.OnPremCount</div></div>
-    <div class="stat"><div class="l">Sinovda</div><div class="v">@Model.Count(TenantStatus.Trial)</div></div>
-    <div class="stat"><div class="l">Imtiyozli / to'xtatilgan</div><div class="v">@Model.Count(TenantStatus.Grace) / @Model.Count(TenantStatus.Suspended)</div></div>
-    <div class="stat"><div class="l">To'lanmagan jami</div><div class="v">@Money.Format(d.UnpaidTotalTiyin)</div><div class="hint">so'm, QQS bilan</div></div>
-    <div class="stat"><div class="l">ERP'ga bog'lanmagan</div><div class="v">@Model.UnboundCount</div><div class="hint">reg_token kutilmoqda</div></div>
+    <div class="stat"><span class="stat-ic"><svg class="i"><use href="#i-building" /></svg></span><div class="l">Faol tenantlar</div><div class="v">@Model.Count(TenantStatus.Active)</div><div class="hint">SaaS @d.SaasCount · On-prem @d.OnPremCount</div></div>
+    <div class="stat"><span class="stat-ic violet"><svg class="i"><use href="#i-clock" /></svg></span><div class="l">Sinovda</div><div class="v">@Model.Count(TenantStatus.Trial)</div></div>
+    <div class="stat"><span class="stat-ic warn"><svg class="i"><use href="#i-pause" /></svg></span><div class="l">Imtiyozli / to'xtatilgan</div><div class="v">@Model.Count(TenantStatus.Grace) / @Model.Count(TenantStatus.Suspended)</div></div>
+    <div class="stat"><span class="stat-ic bad"><svg class="i"><use href="#i-wallet" /></svg></span><div class="l">To'lanmagan jami</div><div class="v">@Money.Format(d.UnpaidTotalTiyin)</div><div class="hint">so'm, QQS bilan</div></div>
+    <div class="stat"><span class="stat-ic teal"><svg class="i"><use href="#i-unlink" /></svg></span><div class="l">ERP'ga bog'lanmagan</div><div class="v">@Model.UnboundCount</div><div class="hint">reg_token kutilmoqda</div></div>
 </div>
 @if (d.OfflineOnPrem.Count > 0)
 {
@@ -83,15 +83,17 @@
 </div>
 <div class="card">
     <h2>Oylik tushum (storno qilinmagan to'lovlar, to'lov sanasi bo'yicha)</h2>
-    <svg viewBox="0 0 600 160" width="100%" height="160" role="img" aria-label="Oylik tushum">
+    <svg viewBox="0 0 600 160" width="100%" height="180" role="img" aria-label="Oylik tushum">
+        <defs><linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b7cff" /><stop offset="1" stop-color="#3b5bfd" stop-opacity=".35" /></linearGradient></defs>
+        <line x1="0" y1="125.5" x2="600" y2="125.5" class="grid-line" />
         @for (int i = 0; i < d.Revenue.Count; i++)
         {
             var r = d.Revenue[i];
             double w = 600.0 / d.Revenue.Count;
             double h = r.AmountTiyin * 110.0 / max;
-            <g><rect x="@(i * w + 10)" y="@(125 - h)" width="@(w - 20)" height="@Math.Max(1, h)" fill="#4f7fcf" rx="2"></rect>
-            <text x="@(i * w + w / 2)" y="@(120 - h)" text-anchor="middle" font-size="11" fill="#374151">@Money.Format(r.AmountTiyin)</text>
-            <text x="@(i * w + w / 2)" y="145" text-anchor="middle" font-size="11" fill="#6b7280">@Labels.Month(r.Month) @r.Year</text></g>
+            <g><rect x="@(i * w + 10)" y="@(125 - h)" width="@(w - 20)" height="@Math.Max(1, h)" class="bar-rect" rx="5"></rect>
+            <text x="@(i * w + w / 2)" y="@(120 - h)" text-anchor="middle" font-size="11" class="bar-val">@Money.Format(r.AmountTiyin)</text>
+            <text x="@(i * w + w / 2)" y="145" text-anchor="middle" font-size="11" class="bar-lbl">@Labels.Month(r.Month) @r.Year</text></g>
         }
     </svg>
     <table>

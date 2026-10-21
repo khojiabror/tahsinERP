@@ -360,7 +360,7 @@ public class PortalRequestTests : IClassFixture<PanelFactory>
         string queue = Html(await staff.GetAsync("/Requests"));
         Assert.Contains("rq-a MChJ", queue);
         Assert.Contains("50 kishi bo'ldik", queue);
-        Assert.Contains("So'rovlar (", Html(await staff.GetAsync("/")));
+        Assert.Contains("class=\"sb-count\">1<", Html(await staff.GetAsync("/")));
         var approve = await PostAsync(staff, "/Requests?handler=Approve", new() { ["RequestId"] = req.Id.ToString() }, tokenFrom: "/Requests");
         Assert.Equal(HttpStatusCode.Redirect, approve.StatusCode);
         Assert.Contains("/Invoices/Details/", approve.Headers.Location!.OriginalString);
