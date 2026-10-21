@@ -74,9 +74,11 @@ public sealed class NotificationPoller(IServiceScopeFactory scopes, TenantRegist
         var chats = pending.Select(p => p.ChatId).Distinct().ToList();
         var langs = await db.Links.Where(l => l.TenantId == tenant.Id && chats.Contains(l.ChatId))
             .Select(l => new { l.ChatId, l.Language }).ToListAsync(ct);
+        var files = scope.ServiceProvider.GetRequiredService<Files.IFileStore>();
         foreach (var p in pending.Where(p => existing.All(e => e.ErpNotificationId != p.Id)))
         {
             var lang = langs.FirstOrDefault(l => l.ChatId == p.ChatId)?.Language ?? Texts.Uz;
+            if (InvoiceStopId(p.Payload) is int stopId && await InvoiceAsync(tenant, erp, files, outbox, p, stopId, lang, ct)) continue;
             outbox.Send(tenant.Id, p.ChatId, p.Text, KeyboardFor(p.Payload, lang), Outbox.Background, p.Id);
         }
         try
@@ -94,6 +96,44 @@ public sealed class NotificationPoller(IServiceScopeFactory scopes, TenantRegist
     /// Payload {"action":"override","orderId":N} — rahbarga "Tasdiqlash" tugmasi;
     /// {"action":"writeoff","id":N} — hisobdan chiqarish: "Tasdiqlash" / "Rad etish".
     /// </summary>
+    /// <summary>
+    /// Yetkazildi xabari + nakladnoy PDF: ERP'dan ma'lumot → PDF (MigraDoc) → fayl ombori → Outbox "sendDocument" (matn — izoh sifatida).
+    /// Tayyorlab bo'lmasa (ERP/shrift xatosi) — false: xabar oddiy matn bo'lib ketadi, mijoz yetkazish haqidagi xabarni baribir oladi.
+    /// </summary>
+    private async Task<bool> InvoiceAsync(TenantRegistry.Tenant tenant, ErpClient erp, Files.IFileStore files, Outbox outbox, ErpPending p, int stopId,
+        string lang, CancellationToken ct)
+    {
+        try
+        {
+            var inv = await erp.GetAsync<ErpInvoice>("StopInvoice", null, ct, ("stopId", stopId));
+            if (inv == null || inv.Lines.Count == 0) return false;
+            Documents.BotFontResolver.ExtraFontsDir ??= options.Value.FontsDir;
+            var pdf = Documents.InvoicePdf.Render(inv, lang);
+            var key = await files.SaveAsync(tenant.Slug, pdf, "pdf", ct);
+            outbox.SendDocument(tenant.Id, p.ChatId, key, Documents.InvoicePdf.FileName(inv), p.Text, Outbox.Background, p.Id);
+            return true;
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            log.LogWarning(ex, "Nakladnoy PDF tayyorlanmadi (tenant {Slug}, stop {Stop})", tenant.Slug, stopId);
+            return false;
+        }
+    }
+
+    /// <summary>Payload {"action":"invoice","stopId":N} — nakladnoy PDF bilan yuboriladigan xabar.</summary>
+    internal static int? InvoiceStopId(string? payload)
+    {
+        if (string.IsNullOrWhiteSpace(payload)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(payload);
+            var root = doc.RootElement;
+            return root.TryGetProperty("action", out var a) && a.GetString() == "invoice" && root.TryGetProperty("stopId", out var s) && s.TryGetInt32(out var id)
+                ? id : null;
+        }
+        catch (JsonException) { return null; }
+    }
+
     internal static object? KeyboardFor(string? payload, string lang)
     {
         if (string.IsNullOrWhiteSpace(payload)) return null;

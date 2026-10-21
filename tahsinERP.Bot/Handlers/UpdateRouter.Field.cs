@@ -41,6 +41,9 @@ public sealed partial class UpdateRouter
             return;
         }
         if (!RequireField(ctx)) return;
+        if (await OnDeliveryCallbackAsync(ctx, cb, cq.Message, ct)) return;
+        if (cb.Command == "vo!") { await VoiceSubmitAsync(ctx, ct); return; }
+        if (cb.Command == "vc" && cb.Int(0) is int voiceCustomer) { await VoicePickCustomerAsync(ctx, voiceCustomer, ct); return; }
 
         switch (cb.Command)
         {
@@ -231,9 +234,11 @@ public sealed partial class UpdateRouter
             await SendMenuAsync(ctx, ctx.T("Menu"), ct);
             return;
         }
-        // ClientRequestId — takroriy bosishda ham bitta to'lov
-        var r = await ctx.Erp.PostAsync<ErpPaymentResult>("Payment",
-            new ErpPaymentInput(customerId, null, amount, method, null, rid, data.VisitId is > 0 ? data.VisitId : null), ctx.UserId, ct);
+        // ClientRequestId — takroriy bosishda ham bitta to'lov; ekspeditor manzilida — StopPayment (mijoz va buyurtma manzildan)
+        var r = data.StopId is int stopId
+            ? await ctx.Erp.PostAsync<ErpPaymentResult>("StopPayment", new { stopId, amount, method, clientRequestId = rid }, ctx.UserId, ct)
+            : await ctx.Erp.PostAsync<ErpPaymentResult>("Payment",
+                new ErpPaymentInput(customerId, null, amount, method, null, rid, data.VisitId is > 0 ? data.VisitId : null), ctx.UserId, ct);
         await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
         await SendMenuAsync(ctx, ctx.T("Pay_Done", r?.DocNo, Texts.Money(r?.Amount ?? amount), Texts.Money(r?.OnHand ?? 0)), ct);
     }

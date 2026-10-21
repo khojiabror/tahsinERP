@@ -14,7 +14,7 @@ namespace tahsinERP.Bot.MiniApp;
 /// Telegram foydalanuvchisi BotLinks orqali ERP foydalanuvchisiga aylanadi va ERP'ga uning nomidan imzolangan so'rov ketadi.
 /// Brauzer ERP kalitini hech qachon ko'rmaydi.
 /// </summary>
-public static class MiniAppEndpoints
+public static partial class MiniAppEndpoints
 {
     public const string InitDataHeader = "X-Telegram-Init-Data";
     private const int MaxSignatureBytes = 512 * 1024;
@@ -40,6 +40,7 @@ public static class MiniAppEndpoints
     public static void Map(IEndpointRouteBuilder app)
     {
         var g = app.MapGroup("/app/api/{slug}");
+        MapDelivery(g);
         g.MapGet("/me", async (string slug, HttpRequest req, Deps d, CancellationToken ct) =>
             await Run(slug, req, d, ct, c => Task.FromResult<object?>(new { name = c.Link.Name, language = c.Link.Language, role = c.Link.Role }),
                 [.. FieldRoles, .. StoreRoles]));

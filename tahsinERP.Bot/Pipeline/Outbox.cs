@@ -61,6 +61,11 @@ public sealed class Outbox(BotDbContext db, OutboxSignal signal, TimeProvider cl
     public BotOutboxItem AnswerCallback(int tenantId, long chatId, string callbackId, string? text = null, bool alert = false) =>
         Enqueue(tenantId, chatId, "answerCallbackQuery", new { callback_query_id = callbackId, text, show_alert = alert });
 
+    /// <summary>Fayl omboridagi hujjat (PDF) — OutboxWorker multipart bilan yuboradi (sendDocument JSON'da fayl ololmaydi).</summary>
+    public BotOutboxItem SendDocument(int tenantId, long chatId, string fileKey, string fileName, string? caption, byte priority = Interactive,
+        long? erpNotificationId = null) =>
+        Enqueue(tenantId, chatId, "sendDocument", new { chat_id = chatId, caption, file_key = fileKey, file_name = fileName }, priority, erpNotificationId);
+
     public BotOutboxItem SendLocation(int tenantId, long chatId, decimal lat, decimal lng) =>
         Enqueue(tenantId, chatId, "sendLocation", new { chat_id = chatId, latitude = lat, longitude = lng });
 

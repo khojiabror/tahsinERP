@@ -23,6 +23,7 @@ public static class FileEndpoint
             var bytes = await files.ReadAsync(key, ct);
             if (bytes == null) return Results.NotFound();
             response.Headers.CacheControl = "private, max-age=3600";
-            return Results.File(bytes, key.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? "image/png" : "image/jpeg");
+            return Results.File(bytes, key.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? "image/png"
+                : key.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "application/pdf" : "image/jpeg");
         });
 }

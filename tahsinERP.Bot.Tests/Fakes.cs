@@ -35,3 +35,21 @@ public sealed class FixedClock(DateTimeOffset now) : TimeProvider
     public DateTimeOffset Now { get; set; } = now;
     public override DateTimeOffset GetUtcNow() => Now;
 }
+
+/// <summary>Ovozli buyurtma uchun soxta tanuvchi: tayyor matn va qoidaviy ajratgich.</summary>
+public sealed class FakeVoice : tahsinERP.Bot.Voice.IVoiceRecognizer
+{
+    public bool Enabled { get; set; } = true;
+    public int MaxSeconds => 90;
+    public string? Transcript { get; set; } = "Baraka do'koniga 20 qop sement M400, 5 quti kafel";
+    public int Calls { get; private set; }
+
+    public Task<string?> TranscribeAsync(byte[] audio, string fileName, string lang, CancellationToken ct)
+    {
+        Calls++;
+        return Task.FromResult(Transcript);
+    }
+
+    public Task<tahsinERP.Bot.Voice.VoiceOrderParse> ExtractAsync(string transcript, string lang, CancellationToken ct) =>
+        Task.FromResult(tahsinERP.Bot.Voice.VoiceParser.Parse(transcript));
+}

@@ -11,7 +11,7 @@ namespace tahsinERP.Bot.Pipeline;
 /// tarmoq/5xx — eksponensial qayta urinish (8 martagacha).
 /// </summary>
 public sealed class OutboxWorker(IServiceScopeFactory scopes, TenantRegistry tenants, TelegramApi telegram, OutboxSignal signal,
-    IOptions<BotOptions> options, TimeProvider clock, ILogger<OutboxWorker> log) : BackgroundService
+    IOptions<BotOptions> options, TimeProvider clock, ILogger<OutboxWorker> log, Files.IFileStore files) : BackgroundService
 {
     internal const int MaxAttempts = 8;
     private readonly RateLimiter _limiter = new(Math.Max(1, options.Value.GlobalPerSecond));
@@ -98,7 +98,9 @@ public sealed class OutboxWorker(IServiceScopeFactory scopes, TenantRegistry ten
         TgResult r;
         try
         {
-            r = await telegram.CallAsync(tenant.Token, item.Method, item.Payload, ct);
+            r = item.Method == "sendDocument"
+                ? await SendDocumentAsync(tenant, item, ct)
+                : await telegram.CallAsync(tenant.Token, item.Method, item.Payload, ct);
         }
         catch (Exception ex) when (!ct.IsCancellationRequested)   // bitta yozuv xatosi butun aylanani to'xtatmasin
         {
@@ -129,6 +131,19 @@ public sealed class OutboxWorker(IServiceScopeFactory scopes, TenantRegistry ten
                 else item.NotBefore = now + Backoff(item.Attempts);
                 return true;
         }
+    }
+
+    /// <summary>Payload: {chat_id, caption, file_key, file_name}; fayl yo'q bo'lsa — doimiy xato (400).</summary>
+    private async Task<TgResult> SendDocumentAsync(TenantRegistry.Tenant tenant, BotOutboxItem item, CancellationToken ct)
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(item.Payload);
+        var root = doc.RootElement;
+        var key = root.TryGetProperty("file_key", out var k) ? k.GetString() : null;
+        var bytes = key == null ? null : await files.ReadAsync(key, ct);
+        if (bytes == null) return new TgResult(false, 400, "Fayl topilmadi: " + key, null, null);
+        var caption = root.TryGetProperty("caption", out var c) ? c.GetString() : null;
+        var name = root.TryGetProperty("file_name", out var n) ? n.GetString() ?? "document.pdf" : "document.pdf";
+        return await telegram.SendDocumentAsync(tenant.Token, item.ChatId, caption, name, bytes, ct);
     }
 
     internal enum OutcomeKind { Sent, RetryAfter, Permanent, Transient }

@@ -81,3 +81,43 @@ public sealed class ErpException(int status, string message, IReadOnlyList<strin
     public bool IsLicense => Status == 403 && Message == LicenseMessage;
     public const string LicenseMessage = "License";
 }
+
+// ---------- 2-bosqich: ekspeditor, nakladnoy, ovozli buyurtma ----------
+
+public sealed record ErpDeliveryMe(bool IsExpeditor, bool IsAgent, bool VoiceOrders, int? TripId);
+
+public sealed record ErpStopLine(int Id, string Product, string? Unit, decimal Qty, decimal Amount, decimal? Delivered);
+
+public sealed record ErpStop(int Id, int Seq, string Customer, string? Address, string? Landmark, string? Phone, decimal? Lat, decimal? Lng,
+    string? OrderNo, string? ShipmentNo, decimal Amount, decimal? DeliveredAmount, int Status, string? StatusName, string? Reason, decimal Debt,
+    decimal WeightKg, string? NavUrl, List<ErpStopLine>? Lines);
+
+public sealed record ErpTrip(int Id, string DocNo, string Date, int Status, string? StatusName, string? Vehicle, string? Warehouse, decimal WeightKg,
+    decimal Total, string? RouteUrl, decimal Expenses, List<ErpStop> Stops)
+{
+    public const int Planned = 0;
+    public const int InTransit = 1;
+}
+
+public sealed record ErpTripRef(int Id, string DocNo, int Status);
+
+public sealed record ErpTripStop(ErpTripRef Trip, ErpStop Stop);
+
+public sealed record ErpDeliverResult(string Status, decimal DeliveredAmount, decimal Amount);
+
+public sealed record ErpTripClosed(string? DocNo, int Delivered, int Partial, int Refused, decimal DeliveredAmount, decimal ReturnedAmount,
+    decimal Collected, decimal OnHand);
+
+public sealed record ErpInvoiceLine(string Product, string? Unit, decimal Qty, decimal Price, decimal Amount);
+
+public sealed record ErpInvoice(string? Company, string? Warehouse, string ShipmentNo, string? OrderNo, string Date, string Customer, string? Inn,
+    string? Address, string? Phone, string? Expeditor, string? Vehicle, string? TripNo, bool Partial, List<ErpInvoiceLine> Lines, decimal Total,
+    decimal Debt, string? DeliveredAt);
+
+public sealed record ErpVoiceItem(string Text, decimal Qty, string? Unit);
+
+public sealed record ErpVoiceLine(string Text, int ProductId, int? ProductUnitId, string Product, string? Unit, decimal Qty, decimal? Price,
+    decimal? Amount, decimal Available, int Score);
+
+public sealed record ErpVoiceDraft(int? CustomerId, string? Customer, List<ErpNamed>? CustomerOptions, List<ErpVoiceLine>? Lines,
+    List<string>? Unmatched, decimal Total);
