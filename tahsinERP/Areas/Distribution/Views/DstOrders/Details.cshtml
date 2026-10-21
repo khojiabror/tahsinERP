@@ -48,7 +48,7 @@
                             {
                                 <button type="button" class="btn btn-outline-warning btn-sm" data-reason="CloseRemainder">@DstLocalization.T("Order_CloseRemainder")</button>
                             }
-                            @if (st == OrderStatus.Shipped || st == OrderStatus.PartiallyShipped || (st == OrderStatus.Closed && o.DeliveredAt == null && o.ShippedTotal > 0))
+                            @if (st == OrderStatus.Shipped || (st == OrderStatus.Closed && o.DeliveredAt == null && o.ShippedTotal > 0))
                             {
                                 <button type="button" class="btn btn-success btn-sm" data-act="Deliver"><i class="bx bx-check-double"></i> @DstLocalization.T("Order_Delivered")</button>
                             }

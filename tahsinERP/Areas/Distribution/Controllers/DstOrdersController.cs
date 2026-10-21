@@ -37,7 +37,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
             IQueryable<DstOrder> q = db.Orders;
             q = scopes.AgentsFor(CurrentUserName).Apply(q, o => o.AgentUserID);
             q = scopes.For(CurrentUserName, ScopeTypes.Customer).Apply(q, o => o.CustomerID);
-            q = scopes.For(CurrentUserName, ScopeTypes.Warehouse).Apply(q, o => o.WarehouseID);
+            // ombori hali tanlanmagan (tasdiqda taklif qilinadi) buyurtma omborchi scope'ida ham ko'rinadi (05_FINDINGS 43)
+            q = scopes.For(CurrentUserName, ScopeTypes.Warehouse).WithNulls().Apply(q, o => o.WarehouseID);
             var territories = scopes.For(CurrentUserName, ScopeTypes.Territory);   // mijoz hududi bo'yicha (K2-13)
             if (!territories.IsUnrestricted)
             {

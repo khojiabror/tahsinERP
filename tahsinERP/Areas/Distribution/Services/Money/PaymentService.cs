@@ -132,12 +132,16 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             if (input.OrderID.HasValue && !db.Orders.Any(o => o.ID == input.OrderID && o.CustomerID == input.CustomerID))
                 throw new DstValidationException(DstLocalization.T("Error_NotFound"));
             FIN_ACCOUNTS account = input.FinAccountID.HasValue ? DstFinancePosting.RequireAccount(uow.Erp, input.FinAccountID.Value) : null;
+            var agent = db.Orders.Where(o => o.ID == input.OrderID).Select(o => o.AgentUserID).FirstOrDefault()
+                        ?? db.CustomerProfiles.Where(p => p.CustomerID == input.CustomerID).Select(p => p.AgentUserID).FirstOrDefault();
+            // web'da "Agent qo'lida (naqd)": pul buyurtma (mijoz) agentida, kiritgan kassirda emas (05_FINDINGS 41); agent yo'q — kiritganda
+            int receiver = input.ReceivedByUserID ?? (account == null && source == AuditActor.Web && agent.HasValue ? agent.Value : userId);
 
             var payment = new DstPayment
             {
                 DocNo = DstNumbering.Next(db, "D_PAYMENTS", PaymentPrefix, now), DocDate = now.Date, Status = DocumentStatus.Draft,
                 CustomerID = input.CustomerID, OrderID = input.OrderID, Amount = Math.Round(input.Amount, 2), Method = input.Method,
-                ReceivedByUserID = input.ReceivedByUserID ?? userId, FinAccountID = input.FinAccountID,
+                ReceivedByUserID = receiver, FinAccountID = input.FinAccountID,
                 Note = string.IsNullOrWhiteSpace(input.Note) ? null : input.Note.Trim(), Source = source ?? AuditActor.Web,
                 ClientRequestId = input.ClientRequestId, CreatedBy = userId, CreatedAt = now
             };
@@ -148,8 +152,6 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             if (account != null)
                 payment.FinTransactionID = DstFinancePosting.PostPayment(uow.Erp, payment, account, customer.Name, userId, now);
 
-            var agent = db.Orders.Where(o => o.ID == input.OrderID).Select(o => o.AgentUserID).FirstOrDefault()
-                        ?? db.CustomerProfiles.Where(p => p.CustomerID == input.CustomerID).Select(p => p.AgentUserID).FirstOrDefault();
             DebtService.Credit(db, input.CustomerID, LedgerDocTypes.Payment, payment.ID, input.OrderID, payment.Amount, now, agent, userId, payment.DocNo);
             db.SaveChanges();
             NotificationService.ToCustomer(db, input.CustomerID, NotificationService.PaymentReceived,
@@ -173,6 +175,8 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             DocumentLifecycle.Cancel(payment, userId, reason, now);
             DstFinancePosting.RemovePosting(uow.Erp, payment.FinTransactionID);
             DebtService.Reverse(db, LedgerDocTypes.Payment, payment.ID, now, userId, payment.DocNo + ": " + payment.CancelReason);
+            db.SaveChanges();
+            DebtService.ReopenOrders(db, payment.CustomerID, userId, now, payment.DocNo + ": " + payment.CancelReason);
             db.SaveChanges();
         }
 

@@ -189,6 +189,8 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             }
             DebtService.Reverse(db, LedgerDocTypes.Return, doc.ID, now, userId, doc.DocNo + ": " + doc.CancelReason);
             db.SaveChanges();
+            DebtService.ReopenOrders(db, doc.CustomerID, userId, now, doc.DocNo + ": " + doc.CancelReason);
+            db.SaveChanges();
         }
 
         /// <summary>Buyurtmasiz qaytarishda tannarx: tovarning oxirgi kirim narxi (QQSsiz).</summary>

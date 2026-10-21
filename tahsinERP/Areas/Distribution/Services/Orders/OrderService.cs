@@ -594,9 +594,13 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 order.DeliveredAt = now;
                 Move(db, order, OrderStatus.Delivered, userId, now, null);
             }
-            NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderShipped,
-                l => DstLocalization.TFor(l, "Notify_Shipped", order.DocNo, total.ToString("N0"),
-                    LedgerService.CreditState(db, order.CustomerID, now).Balance.ToString("N0")), now);
+            if (order.IsPickup && all)   // o'zi olib ketdi — "jo'natildi" emas, "yetkazildi" (05_FINDINGS 45)
+                NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderDelivered,
+                    l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);
+            else
+                NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderShipped,
+                    l => DstLocalization.TFor(l, "Notify_Shipped", order.DocNo, total.ToString("N0"),
+                        LedgerService.CreditState(db, order.CustomerID, now).Balance.ToString("N0")), now);
             db.SaveChanges();
             Warehouse.StockAlerts.AfterDecrease(db, warehouseId,
                 availableBefore.Where(x => products.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value), now, userId);
@@ -675,6 +679,13 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
 
         public static void MarkDelivered(DistributionUnitOfWork uow, int orderId, int userId, DateTime now)
         {
+            // reysdagi jo'natish natijasi reys orqali kiritiladi (ekspeditor yoki reys kartasi) — aks holda nuqta "kutmoqda" qolardi (05_FINDINGS 42)
+            byte pending = (byte)StopStatus.Pending, closedTrip = (byte)TripStatus.Closed, cancelledTrip = (byte)TripStatus.Cancelled;
+            var onTrip = (from s in uow.Dst.TripStops
+                          join t in uow.Dst.Trips on s.TripID equals t.ID
+                          where s.OrderID == orderId && s.StopStatus == pending && t.TripStatus != closedTrip && t.TripStatus != cancelledTrip
+                          select t.DocNo).FirstOrDefault();
+            if (onTrip != null) throw new DstValidationException(DstLocalization.T("Order_DeliverViaTrip", onTrip));
             var order = MarkDeliveredSilently(uow, orderId, userId, now, null);
             NotificationService.ToCustomer(uow.Dst, order.CustomerID, NotificationService.OrderDelivered,
                 l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);

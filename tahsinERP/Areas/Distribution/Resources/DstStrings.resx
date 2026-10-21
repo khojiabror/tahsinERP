@@ -235,7 +235,7 @@
     <value>Maxsus narxlar</value>
   </data>
   <data name="Customer_SpecialPricesHint" xml:space="preserve">
-    <value>Maxsus narx narx turidan ustun turadi va minimal narx tekshiruvidan ozod. To'xtatilgan narx tarixda qoladi.</value>
+    <value>Maxsus narx narx turidan ustun turadi; minimal narx unga ham qo'llanadi (ozod — faqat cheksiz chegirma huquqi bilan). Kecha yoki undan oldin boshlangan narx to'xtatilsa tarixda qoladi; bugun yoki keyin boshlangani o'chiriladi (audit jurnalida qoladi).</value>
   </data>
   <data name="Customers" xml:space="preserve">
     <value>Mijozlar</value>
@@ -3520,5 +3520,14 @@ Kamomad: {4} qator, ortiqcha: {5} qator</value>
   </data>
   <data name="Voice_AgentOnly" xml:space="preserve">
     <value>Ovozli buyurtma faqat agentlar uchun.</value>
+  </data>
+  <data name="Order_DeliverViaTrip" xml:space="preserve">
+    <value>Buyurtma reysda ({0}) — yetkazish natijasi reys orqali kiritiladi (ekspeditor botda yoki Reyslar sahifasida).</value>
+  </data>
+  <data name="Scopes_AnyUser" xml:space="preserve">
+    <value>Xodimning ko'rinish doirasi</value>
+  </data>
+  <data name="Scopes_AnyUserHint" xml:space="preserve">
+    <value>Agent bo'lmagan xodimlar (omborchi, kassir, rahbar) uchun ombor/hudud/mijoz cheklovi.</value>
   </data>
 </root>

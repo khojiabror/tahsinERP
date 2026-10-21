@@ -142,6 +142,32 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             return entry;
         }
 
+        /// <summary>
+        /// Kredit bekor qilinganda (to'lov, qaytarish, kirish qoldig'i): qarzi endi to'liq yopilmagan "Yopildi" buyurtmalar qayta ochiladi —
+        /// yetkazilgan bo'lsa "Yetkazildi", aks holda "Jo'natildi" (05_FINDINGS 40). Qaytaradi: ochilganlar soni.
+        /// </summary>
+        public static int ReopenOrders(DistributionDbContext db, int customerId, int userId, DateTime now, string note)
+        {
+            var debts = Load(db, new[] { customerId });
+            if (!debts.TryGetValue(customerId, out var d)) return 0;
+            var withDebt = new HashSet<int>(d.Debits.Where(x => x.OrderID.HasValue).Select(x => x.OrderID.Value));
+            var settled = DebtMath.SettledOrders(d.Debits, d.Credits);
+            byte closed = (byte)OrderStatus.Closed;
+            var ids = withDebt.Where(id => !settled.Contains(id)).ToList();
+            var orders = db.Orders.Where(o => o.CustomerID == customerId && o.OrderStatus == closed && ids.Contains(o.ID)).ToList();
+            foreach (var order in orders)
+            {
+                var to = order.DeliveredAt.HasValue ? OrderStatus.Delivered : OrderStatus.Shipped;
+                order.OrderStatus = (byte)to;
+                db.OrderStatusLog.Add(new DstOrderStatusLog
+                {
+                    OrderID = order.ID, FromStatus = closed, ToStatus = (byte)to, UserID = userId, At = now,
+                    Note = note != null && note.Length > 500 ? note.Substring(0, 500) : note
+                });
+            }
+            return orders.Count;
+        }
+
         /// <summary>Mijozning amaldagi (bekor qilinmagan) kirish qoldig'i yozuvlari.</summary>
         public static List<CustomerLedgerEntry> LiveOpening(DistributionDbContext db, int? customerId = null)
         {
@@ -176,6 +202,7 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             }
             db.SaveChanges();
             SettleOrders(db, customerId, userId, now);
+            ReopenOrders(db, customerId, userId, now, DstLocalization.T("Ledger_OPENING_REV"));
             db.SaveChanges();
             return rows.Count;
         }

@@ -158,7 +158,15 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             long? max = db.Database.SqlQuery<long?>(
                 "SELECT MAX(TRY_CAST(SUBSTRING(DocNo, @p0, 30) AS bigint)) FROM dst.[" + table + "] WHERE DocNo LIKE @p1",
                 full.Length + 1, full.Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]") + "%").FirstOrDefault();
-            return full + ((max ?? 0) + 1).ToString().PadLeft(pad, '0');
+            // oxirgi berilgan raqam dst.SETTINGS'da ham saqlanadi: o'chirilgan qoralama raqami qayta berilmaydi (05_FINDINGS 46)
+            string key = "DocNo:" + table + ":" + full;
+            long? last = db.Database.SqlQuery<string>("SELECT [Value] FROM dst.SETTINGS WHERE [Key] = @p0", key).FirstOrDefault() is string s
+                         && long.TryParse(s, out var v) ? v : (long?)null;
+            long next = Math.Max(max ?? 0, last ?? 0) + 1;
+            db.Database.ExecuteSqlCommand(System.Data.Entity.TransactionalBehavior.DoNotEnsureTransaction,
+                "UPDATE dst.SETTINGS SET [Value] = @p1 WHERE [Key] = @p0; IF @@ROWCOUNT = 0 INSERT INTO dst.SETTINGS ([Key], [Value]) VALUES (@p0, @p1);",
+                key, next.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            return full + next.ToString().PadLeft(pad, '0');
         }
     }
 }

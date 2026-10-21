@@ -118,3 +118,13 @@ STRINGS.update({
 STRINGS.update({
     "Voice_AgentOnly": ("Ovozli buyurtma faqat agentlar uchun.", "Голосовой заказ доступен только агентам."),
 })
+# UAT'da topilganlar (38–49)
+STRINGS.update({
+    "Order_DeliverViaTrip": ("Buyurtma reysda ({0}) — yetkazish natijasi reys orqali kiritiladi (ekspeditor botda yoki Reyslar sahifasida).",
+                             "Заказ в рейсе ({0}) — результат доставки вносится через рейс (экспедитор в боте или на странице «Рейсы»)."),
+    "Scopes_AnyUser": ("Xodimning ko'rinish doirasi", "Область видимости сотрудника"),
+    "Scopes_AnyUserHint": ("Agent bo'lmagan xodimlar (omborchi, kassir, rahbar) uchun ombor/hudud/mijoz cheklovi.",
+                           "Ограничение по складу/территории/клиентам для сотрудников, не являющихся агентами (кладовщик, кассир, руководитель)."),
+    "Customer_SpecialPricesHint": ("Maxsus narx narx turidan ustun turadi; minimal narx unga ham qo'llanadi (ozod — faqat cheksiz chegirma huquqi bilan). Kecha yoki undan oldin boshlangan narx to'xtatilsa tarixda qoladi; bugun yoki keyin boshlangani o'chiriladi (audit jurnalida qoladi).",
+                                   "Спеццена приоритетнее типа цены; минимальная цена применяется и к ней (исключение — только право неограниченной скидки). Остановленная цена, начавшаяся вчера или раньше, остаётся в истории; начавшаяся сегодня или позже — удаляется (остаётся в журнале аудита)."),
+})

@@ -218,7 +218,10 @@ namespace tahsinERP.Areas.Distribution.Controllers
             });
         }
 
-        /// <summary>Maxsus narxni to'xtatish: kechagi sana bilan yopiladi (tarix saqlanadi).</summary>
+        /// <summary>
+        /// Maxsus narxni to'xtatish: kechagidan oldin boshlangani kechagi sana bilan yopiladi (narxlar tarixida qoladi); bugun yoki kelajakda
+        /// boshlangani o'chiriladi (sana oralig'i bo'sh bo'lib qolardi) — o'chirish audit jurnalida qoladi, buyurtmalar o'z narxini saqlaydi (05_FINDINGS 47).
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]
         public JsonResult CloseCustomerPrice(int id)

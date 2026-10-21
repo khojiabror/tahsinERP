@@ -235,7 +235,7 @@
     <value>Спеццены</value>
   </data>
   <data name="Customer_SpecialPricesHint" xml:space="preserve">
-    <value>Спеццена важнее типа цены и не проверяется по мин. цене. Остановленная цена остаётся в истории.</value>
+    <value>Спеццена приоритетнее типа цены; минимальная цена применяется и к ней (исключение — только право неограниченной скидки). Остановленная цена, начавшаяся вчера или раньше, остаётся в истории; начавшаяся сегодня или позже — удаляется (остаётся в журнале аудита).</value>
   </data>
   <data name="Customers" xml:space="preserve">
     <value>Клиенты</value>
@@ -3520,5 +3520,14 @@
   </data>
   <data name="Voice_AgentOnly" xml:space="preserve">
     <value>Голосовой заказ доступен только агентам.</value>
+  </data>
+  <data name="Order_DeliverViaTrip" xml:space="preserve">
+    <value>Заказ в рейсе ({0}) — результат доставки вносится через рейс (экспедитор в боте или на странице «Рейсы»).</value>
+  </data>
+  <data name="Scopes_AnyUser" xml:space="preserve">
+    <value>Область видимости сотрудника</value>
+  </data>
+  <data name="Scopes_AnyUserHint" xml:space="preserve">
+    <value>Ограничение по складу/территории/клиентам для сотрудников, не являющихся агентами (кладовщик, кассир, руководитель).</value>
   </data>
 </root>

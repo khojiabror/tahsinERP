@@ -28,7 +28,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             { OrderStatus.Confirmed, new[] { OrderStatus.New, OrderStatus.Picking, OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Cancelled } },
             { OrderStatus.Picking, new[] { OrderStatus.Confirmed, OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Cancelled } },
             // jo'natish bekor qilinsa: qisman/to'liq -> qisman yoki tasdiqlangan
-            { OrderStatus.PartiallyShipped, new[] { OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Confirmed, OrderStatus.Closed } },
+            // qisman jo'natilgan "yetkazildi" bo'lmaydi: avval qolgani jo'natiladi yoki "qolganidan voz kechish" (05_FINDINGS 39)
+            { OrderStatus.PartiallyShipped, new[] { OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Confirmed, OrderStatus.Closed } },
             { OrderStatus.Shipped, new[] { OrderStatus.Delivered, OrderStatus.Closed, OrderStatus.PartiallyShipped, OrderStatus.Confirmed } },
             // yetkazish natijasi bekor qilinsa (reys yopilguncha) — yana "jo'natildi" (05_FINDINGS K2-9)
             { OrderStatus.Delivered, new[] { OrderStatus.Closed, OrderStatus.Shipped } },
