@@ -91,6 +91,10 @@ Set-PoolEnv 'ControlPanel__DataProtection__KeysDir' (Join-Path $DataDir 'keys')
 Set-PoolEnv 'ControlPanel__Hosts__AdminHost' $HostName
 if ($PortalHostName) { Set-PoolEnv 'ControlPanel__Hosts__PortalHost' $PortalHostName; Set-PoolEnv 'ControlPanel__Hosts__PortalPublicUrl' "https://$PortalHostName" }
 Set-PoolEnv 'ControlPanel__Hosts__OtherHosts' 'None'
+# Firma ERP manzili https://<slug>.<domen> (provisioning, bot/sayt ulash): admin.<domen> -> <domen>
+$baseDomain = $HostName.Substring($HostName.IndexOf('.') + 1)
+Set-PoolEnv 'ControlPanel__Hosts__Domain' $baseDomain
+Set-PoolEnv 'ControlPanel__Provisioning__BaseDomain' $baseDomain
 if (-not $KeepSecrets) {
     if ($SecretsFile) {
         $lines = @(Get-Content $SecretsFile | ForEach-Object { $_.Trim() }) + @('', '', '', '')
