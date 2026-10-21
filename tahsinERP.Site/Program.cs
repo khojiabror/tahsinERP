@@ -27,6 +27,7 @@ services.AddSingleton<MediaCache>();
 services.AddSingleton<CatalogSyncWorker>();
 services.AddScoped<SiteContext>();
 services.AddScoped<LeadService>();
+services.AddScoped<tahsinERP.Site.Admin.SiteTenantAdmin>();
 services.AddHttpClient(SiteErpClient.HttpClientName, (sp, c) =>
         c.Timeout = TimeSpan.FromSeconds(Math.Clamp(sp.GetRequiredService<IOptions<SiteOptions>>().Value.ErpTimeoutSeconds, 5, 120)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
@@ -73,6 +74,7 @@ app.MapGet("/health", () => Results.Ok(new { ok = true }));
 // Caddy on_demand_tls "ask": sertifikat faqat bizga ma'lum domenlarga (standart subdomen yoki ERP'da tasdiqlangan domen)
 app.MapGet("/_tls/allowed", (string? domain, CatalogStore store) =>
     !string.IsNullOrWhiteSpace(domain) && store.TenantForHost(domain) != null ? Results.Ok() : Results.NotFound());
+tahsinERP.Site.Admin.AdminEndpoints.Map(app);   // tenant middleware /admin/api ni o'tkazib yuboradi
 app.UseMiddleware<TenantMiddleware>();
 app.Use(async (ctx, next) =>
 {

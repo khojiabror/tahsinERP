@@ -37,6 +37,7 @@ services.Configure<PortalOptions>(config.GetSection("ControlPanel:Portal"));
 services.Configure<DidoxOptions>(config.GetSection("ControlPanel:Didox"));
 services.Configure<EskizOptions>(config.GetSection("ControlPanel:Eskiz"));
 services.Configure<SmtpOptions>(config.GetSection("ControlPanel:Smtp"));
+services.Configure<AppsOptions>(config.GetSection("ControlPanel:Apps"));
 PanelFontResolver.ExtraFontsDir = config["ControlPanel:Pdf:FontsDir"];
 
 services.AddDbContext<ControlDbContext>(o => o.UseSqlServer(
@@ -85,6 +86,8 @@ services.AddScoped<PortalRequestService>();
 services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ZoneMatcherPolicy>());
 services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
+services.AddHttpClient<IAppsClient, AppsHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
+services.AddScoped<TenantAppsService>();
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
 {
     services.AddHostedService<DailyJobHostedService>();

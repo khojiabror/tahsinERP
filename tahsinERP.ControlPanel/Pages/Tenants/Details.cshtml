@@ -98,6 +98,69 @@
         }
     </table>
 }
+@if (Model.AppsLoaded)
+{
+    <h2>Telegram bot va sayt-katalog</h2>
+    <div class="cols">
+        <div class="card">
+            <h3>Telegram bot</h3>
+            @if (Model.BotError != null) { <p class="hint">@Model.BotError</p> }
+            else if (Model.Bot is { } b)
+            {
+                <dl class="props">
+                    <dt>Holat</dt><dd>@(!b.Exists ? "ulanmagan" : b.Active ? "faol" : "o'chirilgan")</dd>
+                    @if (b.Exists)
+                    {
+                        <dt>Bot</dt><dd>@if (b.BotUsername != null) { <a href="https://t.me/@b.BotUsername" target="_blank" rel="noopener">@@@b.BotUsername</a> }</dd>
+                        <dt>Webhook</dt><dd class="mono">@(b.WebhookUrl ?? "—")</dd>
+                        @if (b.PendingUpdates > 0) { <dt>Navbatda</dt><dd>@b.PendingUpdates</dd> }
+                        @if (b.LastError != null) { <dt>Oxirgi xato</dt><dd class="mono">@b.LastError</dd> }
+                    }
+                </dl>
+                @if (b.Active && b.BotUsername != null)
+                {
+                    <p class="hint">ERP → Distributsiya → Sozlamalar: «Telegram bot nomi» = <code>@b.BotUsername</code>, «Bot ochiq manzili» = bot manzili. BotFather'da <code>/setdomain</code> — bot domeni (Mini App uchun).</p>
+                }
+            }
+            @if (Model.CanSell && Model.BotConfigured && Model.BotError == null)
+            {
+                <form method="post" class="stack" autocomplete="off">
+                    <div><label for="BotToken">BotFather tokeni @(Model.Bot?.Exists == true ? "(yangi bot yoki token almashsa)" : "")</label>
+                        <input id="BotToken" name="BotToken" type="password" autocomplete="new-password" placeholder="123456789:AA..." /></div>
+                    <p class="hint">Token panelda saqlanmaydi — bot ilovasiga uzatiladi va u yerda shifrlanadi. Webhook avtomatik o'rnatiladi.
+                        @(Model.Bot?.Exists == true ? "Tokensiz bosilsa — ERP manzili va webhook yangilanadi." : "")</p>
+                    <div class="actions">
+                        <button type="submit" asp-page-handler="BotConnect">@(Model.Bot?.Exists == true ? "Yangilash" : "Botni ulash")</button>
+                        @if (Model.Bot?.Active == true) { <button type="submit" class="secondary" asp-page-handler="BotDisable">Botni o'chirish</button> }
+                    </div>
+                </form>
+            }
+        </div>
+        <div class="card">
+            <h3>Sayt-katalog</h3>
+            @if (Model.SiteError != null) { <p class="hint">@Model.SiteError</p> }
+            else if (Model.Site is { } st)
+            {
+                <dl class="props">
+                    <dt>Holat</dt><dd>@(!st.Exists ? "yoqilmagan" : st.Active ? "faol" : "o'chirilgan")</dd>
+                    @if (st.Exists && Model.SitePublicUrl != null) { <dt>Manzil</dt><dd><a href="@Model.SitePublicUrl" target="_blank" rel="noopener">@Model.SitePublicUrl</a></dd> }
+                    @if (st.Exists)
+                    {
+                        <dt>Katalog nusxasi</dt><dd>@(st.SnapshotAt?.ToString("dd.MM.yyyy HH:mm") ?? "hali olinmagan") @(st.Products is int n ? $"· {n} tovar" : "")</dd>
+                    }
+                </dl>
+            }
+            @if (Model.CanSell && Model.SiteConfigured && Model.SiteError == null)
+            {
+                <form method="post" class="actions">
+                    @if (Model.Site?.Active != true) { <button type="submit" asp-page-handler="SiteEnable">Saytni yoqish</button> }
+                    else { <button type="submit" class="secondary" asp-page-handler="SiteDisable">Saytni o'chirish</button> }
+                </form>
+                <p class="hint">Katalog ERP'dagi «Sayt» sozlamalaridan olinadi (tovarlar, kategoriyalar, aloqa).</p>
+            }
+        </div>
+    </div>
+}
 <partial name="_TrialActivity" model="Model" />
 <h2>Mijoz portali (my.&lt;domen&gt;)</h2>
 @if (Model.NewInviteUrl is not null)
