@@ -6,60 +6,98 @@
     string Nav(string prefix) => (prefix == "/" ? path == "/" : path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
     var flashPage = Model as PanelPageModel;
     int openRequests = signedIn ? await LayoutDb.PortalRequests.CountAsync(r => r.Status == PortalRequestStatus.Pending) : 0;
+    string userName = User.Identity?.Name ?? "";
+    string initials = string.Concat(userName.Split(' ', '.', '@').Where(s => s.Length > 0).Take(2).Select(s => char.ToUpperInvariant(s[0])));
+    string role = User.IsInRole(nameof(StaffRole.Owner)) ? "Owner" : User.IsInRole(nameof(StaffRole.Sales)) ? "Sotuv" : "Qo'llab-quvvatlash";
+    bool authPage = !signedIn || new[] { "/Account/Login", "/Account/Totp", "/Account/EnrollTotp" }.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+    if (authPage) { Layout = "_AuthLayout"; ViewData["AuthKind"] = "staff"; }
 }
+@if (authPage)
+{
+    @if (!string.IsNullOrEmpty(flashPage?.FlashOk)) { <div class="flash ok">@flashPage.FlashOk</div> }
+    @if (!string.IsNullOrEmpty(flashPage?.FlashError)) { <div class="flash bad">@flashPage.FlashError</div> }
+    @RenderBody()
+}
+else
+{
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] — tahsinERP panel</title>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @if (ViewData["AutoRefresh"] is int refreshSeconds) { <meta http-equiv="refresh" content="@refreshSeconds" /> }
 </head>
-<body>
-<header class="topbar">
-    <a class="brand" href="/">tahsinERP <span>panel</span></a>
-    @if (signedIn)
-    {
-        <nav>
-            <a class="@Nav("/")" href="/">Bosh sahifa</a>
-            <a class="@Nav("/Tenants")" href="/Tenants">Tashkilotlar</a>
-            <a class="@Nav("/Invoices")" href="/Invoices">Hisob-fakturalar</a>
-            @if (owner || User.IsInRole(nameof(StaffRole.Sales)))
-            {
-                <a class="@Nav("/Bank")" href="/Bank">Bank</a>
-            }
-            <a class="@Nav("/Requests")" href="/Requests">So'rovlar@(openRequests > 0 ? $" ({openRequests})" : "")</a>
-            <a class="@Nav("/Licenses")" href="/Licenses">Kalitlar</a>
-            <a class="@Nav("/Provisioning")" href="/Provisioning">Provisioning</a>
-            <a class="@Nav("/Traction")" href="/Traction">Traction</a>
-            <a class="@Nav("/Plans")" href="/Plans">Tariflar</a>
-            <a class="@Nav("/Notifications")" href="/Notifications">Eslatmalar</a>
-            @if (owner)
-            {
-                <a class="@Nav("/Servers")" href="/Servers">Serverlar</a>
-                <a class="@Nav("/Staff")" href="/Staff">Xodimlar</a>
-                <a class="@Nav("/Audit")" href="/Audit">Audit</a>
-            }
-        </nav>
-        <form method="post" action="/Account/Logout" class="userbox">
-            <span>@User.Identity!.Name</span>
-            <a href="/Account/ChangePassword">Parol</a>
-            @Html.AntiForgeryToken()
-            <button type="submit" class="link">Chiqish</button>
-        </form>
-    }
-</header>
-<main>
-    @if (!string.IsNullOrEmpty(flashPage?.FlashOk))
-    {
-        <div class="flash ok">@flashPage.FlashOk</div>
-    }
-    @if (!string.IsNullOrEmpty(flashPage?.FlashError))
-    {
-        <div class="flash bad">@flashPage.FlashError</div>
-    }
-    @RenderBody()
-</main>
+<body class="app">
+<partial name="_Icons" />
+<aside class="sidebar" id="sidebar">
+    <a class="sb-brand" href="/">
+        <span class="logo-mark"><svg class="i"><use href="#i-shield" /></svg></span>
+        <span class="sb-brand-t">tahsin<b>ERP</b><small>Boshqaruv paneli</small></span>
+    </a>
+    <nav class="sb-nav">
+        <div class="sb-group">Asosiy</div>
+        <a class="@Nav("/")" href="/"><svg class="i"><use href="#i-home" /></svg>Bosh sahifa</a>
+        <a class="@Nav("/Tenants")" href="/Tenants"><svg class="i"><use href="#i-building" /></svg>Tashkilotlar</a>
+        <a class="@Nav("/Requests")" href="/Requests"><svg class="i"><use href="#i-inbox" /></svg><span>So'rovlar</span>@if (openRequests > 0) { <span class="sb-count">@openRequests</span> }</a>
+        <div class="sb-group">Moliya</div>
+        <a class="@Nav("/Invoices")" href="/Invoices"><svg class="i"><use href="#i-file" /></svg>Hisob-fakturalar</a>
+        @if (owner || User.IsInRole(nameof(StaffRole.Sales)))
+        {
+            <a class="@Nav("/Bank")" href="/Bank"><svg class="i"><use href="#i-bank" /></svg>Bank</a>
+        }
+        <a class="@Nav("/Plans")" href="/Plans"><svg class="i"><use href="#i-layers" /></svg>Tariflar</a>
+        <div class="sb-group">Texnik</div>
+        <a class="@Nav("/Licenses")" href="/Licenses"><svg class="i"><use href="#i-key" /></svg>Kalitlar</a>
+        <a class="@Nav("/Provisioning")" href="/Provisioning"><svg class="i"><use href="#i-cpu" /></svg>Provisioning</a>
+        @if (owner)
+        {
+            <a class="@Nav("/Servers")" href="/Servers"><svg class="i"><use href="#i-server" /></svg>Serverlar</a>
+        }
+        <div class="sb-group">Tahlil</div>
+        <a class="@Nav("/Traction")" href="/Traction"><svg class="i"><use href="#i-trending" /></svg>Traction</a>
+        <a class="@Nav("/Notifications")" href="/Notifications"><svg class="i"><use href="#i-bell" /></svg>Eslatmalar</a>
+        @if (owner)
+        {
+            <div class="sb-group">Boshqaruv</div>
+            <a class="@Nav("/Staff")" href="/Staff"><svg class="i"><use href="#i-users" /></svg>Xodimlar</a>
+            <a class="@Nav("/Audit")" href="/Audit"><svg class="i"><use href="#i-shield" /></svg>Audit</a>
+        }
+    </nav>
+    <form method="post" action="/Account/Logout" class="sb-user">
+        <span class="avatar">@initials</span>
+        <span class="sb-user-t"><b>@userName</b><small>@role</small></span>
+        <a href="/Account/ChangePassword" class="icon-btn" title="Parolni almashtirish"><svg class="i"><use href="#i-lock" /></svg></a>
+        @Html.AntiForgeryToken()
+        <button type="submit" class="icon-btn" title="Chiqish"><svg class="i"><use href="#i-logout" /></svg></button>
+    </form>
+</aside>
+<div class="sb-backdrop" data-nav-close></div>
+<div class="shell">
+    <header class="topbar">
+        <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-label="Menyu"><svg class="i"><use href="#i-menu" /></svg></button>
+        <div class="crumbs"><span>Panel</span><b>@ViewData["Title"]</b></div>
+        <div class="tb-right">
+            <span class="tb-secure"><svg class="i"><use href="#i-shield" /></svg>Himoyalangan seans</span>
+            <button type="button" class="icon-btn" data-theme-toggle aria-label="Mavzu"><svg class="i only-light"><use href="#i-moon" /></svg><svg class="i only-dark"><use href="#i-sun" /></svg></button>
+        </div>
+    </header>
+    <main>
+        @if (!string.IsNullOrEmpty(flashPage?.FlashOk))
+        {
+            <div class="flash ok">@flashPage.FlashOk</div>
+        }
+        @if (!string.IsNullOrEmpty(flashPage?.FlashError))
+        {
+            <div class="flash bad">@flashPage.FlashError</div>
+        }
+        @RenderBody()
+    </main>
+</div>
+<script src="~/js/app.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+}
