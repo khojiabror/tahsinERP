@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     tahsinERP serveri uchun tayyorgarlik (Docs/Deploy/01_DEPLOY_GUIDE.md, 1-bo'lim): IIS rollari, ASP.NET Core 10 Hosting Bundle,
     IIS URL Rewrite 2.1, win-acme (+ Cloudflare DNS plagini), papkalar va (ixtiyoriy) SQL xotira chegarasi.
@@ -7,18 +7,18 @@
     Windows Server 2022 (AWS Lightsail "SQL Server 2022 Express" blueprint) uchun. Administrator PowerShell'da ishga tushiring.
     Qayta ishga tushirish xavfsiz: o'rnatilganlari o'tkazib yuboriladi.
 
-    Xavfsizlik: har yuklab olingan fayl tekshiriladi —
-      * Hosting Bundle — Microsoft rasmiy release metadata'sidagi SHA-512 + Authenticode (Microsoft imzosi);
-      * URL Rewrite — qayd qilingan SHA-256 + Authenticode;
-      * win-acme — qayd qilingan versiya va SHA-256 (GitHub release).
-    Mos kelmasa — o'rnatmaydi va to'xtaydi.
+    Xavfsizlik: har yuklab olingan fayl tekshiriladi -
+      * Hosting Bundle - Microsoft rasmiy release metadata'sidagi SHA-512 + Authenticode (Microsoft imzosi);
+      * URL Rewrite - qayd qilingan SHA-256 + Authenticode;
+      * win-acme - qayd qilingan versiya va SHA-256 (GitHub release).
+    Mos kelmasa - o'rnatmaydi va to'xtaydi.
 
 .EXAMPLE
     Set-ExecutionPolicy -Scope Process Bypass -Force
     .\Install-ServerPrereqs.ps1 -SqlMaxMemoryMB 1024
 
 .PARAMETER SqlMaxMemoryMB
-    Berilsa — SQL Server 'max server memory' shu qiymatga o'rnatiladi (4 GB RAM'li server uchun 1024 tavsiya). 0 — tegilmaydi.
+    Berilsa - SQL Server 'max server memory' shu qiymatga o'rnatiladi (4 GB RAM'li server uchun 1024 tavsiya). 0 - tegilmaydi.
 
 .PARAMETER SqlInstance
     SQL instance (blueprint'da odatda .\SQLEXPRESS). Faqat -SqlMaxMemoryMB uchun kerak.
@@ -90,11 +90,11 @@ if ($missing) {
     $r = Install-WindowsFeature -Name $missing
     if (-not $r.Success) { throw "IIS rollari o'rnatilmadi: $($missing -join ', ')" }
     Ok "o'rnatildi: $($missing -join ', ')"
-    if ($r.RestartNeeded -eq 'Yes') { Write-Warning 'Server qayta yuklanishi kerak — skript oxirida qayta yuklang va yana ishga tushiring.' }
+    if ($r.RestartNeeded -eq 'Yes') { Write-Warning 'Server qayta yuklanishi kerak - skript oxirida qayta yuklang va yana ishga tushiring.' }
 } else { Skip 'IIS rollari allaqachon bor' }
 
 $net = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -ErrorAction SilentlyContinue).Release
-if ($net -ge 528040) { Ok ".NET Framework 4.8+ bor (release $net)" } else { throw ".NET Framework 4.8 topilmadi (release $net) — Windows Update'ni o'rnating." }
+if ($net -ge 528040) { Ok ".NET Framework 4.8+ bor (release $net)" } else { throw ".NET Framework 4.8 topilmadi (release $net) - Windows Update'ni o'rnating." }
 
 # ---------------------------------------------------------------------------------------------------------------
 Step "2/6 ASP.NET Core $DotnetChannel Hosting Bundle (panel, bot, sayt, agent)"
@@ -145,7 +145,7 @@ if (Test-Path (Join-Path $WinAcmeDir 'wacs.exe')) {
     New-Item -ItemType Directory -Force $WinAcmeDir | Out-Null
     Expand-Archive -Path $zip -DestinationPath $WinAcmeDir -Force
     Expand-Archive -Path $cf  -DestinationPath $WinAcmeDir -Force
-    # Faqat administratorlar va SYSTEM (yangilash vazifasi) — sertifikat kalitlari va Cloudflare tokeni shu yerda saqlanadi
+    # Faqat administratorlar va SYSTEM (yangilash vazifasi) - sertifikat kalitlari va Cloudflare tokeni shu yerda saqlanadi
     icacls $WinAcmeDir /inheritance:r /grant:r 'Administrators:(OI)(CI)F' 'SYSTEM:(OI)(CI)F' | Out-Null
     Ok "win-acme o'rnatildi: $WinAcmeDir\wacs.exe"
 }
@@ -162,7 +162,7 @@ foreach ($d in $dirs) {
 Step '6/6 SQL Server'
 $svc = Get-Service 'MSSQL*' -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'MSSQL$*' -or $_.Name -eq 'MSSQLSERVER' }
 if (-not $svc) {
-    Write-Warning 'SQL Server xizmati topilmadi — "SQL Server 2022 Express" blueprint tanlanganini tekshiring yoki SQL Express''ni o''rnating.'
+    Write-Warning 'SQL Server xizmati topilmadi - "SQL Server 2022 Express" blueprint tanlanganini tekshiring yoki SQL Express''ni o''rnating.'
 } else {
     foreach ($s in $svc) {
         $inst = if ($s.Name -eq 'MSSQLSERVER') { '.' } else { '.\' + $s.Name.Substring(6) }
@@ -189,7 +189,7 @@ Ok 'IIS qayta ishga tushirildi'
 Write-Host @"
 
 Keyingi qadamlar (01_DEPLOY_GUIDE.md):
-  2-bo'lim — Cloudflare DNS va win-acme sertifikatlari (ERP IIS sayti yaratilgandan keyin)
-  3-bo'lim — SQL login va huquqlar
-  4-bo'lim — ERP publish va IIS sayti
+  2-bo'lim - Cloudflare DNS va win-acme sertifikatlari (ERP IIS sayti yaratilgandan keyin)
+  3-bo'lim - SQL login va huquqlar
+  4-bo'lim - ERP publish va IIS sayti
 "@
