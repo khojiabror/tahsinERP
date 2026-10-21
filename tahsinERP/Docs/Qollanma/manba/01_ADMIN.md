@@ -123,6 +123,8 @@ Ro'yxatda Rol nomi, Tavsif, foydalanuvchilar soni va Huquqlar soni ko'rinadi.
 
 > **Diqqat:** Yangi rol yaratilganda unga **barcha** modullarda View (ko'rish) huquqi avtomatik beriladi. Huquqlarni tozalamasangiz, yangi xodim moliya, ish haqi va boshqa maxfiy sahifalarni ko'radi.
 
+> **Eslatma:** Distributsiyaning maxsus huquqlari — `DstSeeCost` (tannarx va foyda), `DstOverrideCredit` (qarz limitidan oshgan buyurtmani tasdiqlash), `DstDiscountUnlimited` (chegirma va minimal narxdan ozod), `DstWriteOffApprove` (hisobdan chiqarishni tasdiqlash) — **Change** ustuni bilan beriladi; View belgisi ularni bermaydi, shuning uchun yangi rolga avtomatik View berilganda ham ular yopiq qoladi. Yangilanishdan oldin bu huquqlarga View berilgan rollarda migratsiya Change ham qo'ygan — ularni bir marta ko'rib chiqing.
+
 Xato xabarlari: "Rol nomi kiritilishi shart", "Bu nomli rol allaqachon mavjud".
 
 **Tahrirlash va o'chirish.** Rol nomi va tavsifi Tahrirlash orqali o'zgartiriladi. Rolni o'chirishdan oldin undagi foydalanuvchilarni boshqa rolga o'tkazing.

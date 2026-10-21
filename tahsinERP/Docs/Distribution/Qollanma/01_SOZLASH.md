@@ -22,7 +22,7 @@ Barcha misollar **DEMO Qurilish Savdo MChJ** ssenariysida (0-bob, 0.8).
 | 10 | Ko'rinish doirasi va botga ulash | Agentlar va jamoalar | 1.8 |
 | 11 | Mijozlar | Distributsiya → Mijozlar (yoki import) | 1.9 |
 | 12 | Kirish qarzlari | Distributsiya → Excel import | 1.11 |
-| 13 | Boshlang'ich qoldiq | Bosh sahifa → Inventarizatsiya (boshlang'ich sanoq) | 4.3 |
+| 13 | Boshlang'ich qoldiq | Distributsiya → Inventarizatsiya (boshlang'ich sanoq) | 4.3 |
 | 14 | Aksiyalar (kerak bo'lsa) | Distributsiya → Aksiyalar | 2.17 |
 | 15 | Sinov buyurtmasi → bekor qilish | Distributsiya → Buyurtmalar | 2-bob |
 
@@ -45,6 +45,8 @@ Sahifada beshta blok bor: Umumiy sozlamalar, Agent to'lovlari, Chegirma limitlar
 | Telegram bot nomi | Kompaniya botining username'i (@ belgisiz). Ulanish havolasi shu nom bilan tuziladi | demo_qurilish_bot |
 | Bot ochiq manzili (rasmlar uchun) | Bot serverining https manzili. To'ldirilsa ERP'da selfi, tashrif fotosi va nuqta fotolari ko'rinadi | https://bot.demo.uz |
 | Kun boshida selfi majburiy | Belgilansa agent selfisiz ish kunini boshlay olmaydi. Belgilanmasa selfini o'tkazib yuborish mumkin | belgilanmagan |
+| Keldim — faqat jonli joylashuv | Belgilansa agent "📍 Keldim" uchun faqat jonli joylashuv yuboradi, statik joylashuv rad etiladi. Belgilanmasa statik joylashuv ham qabul qilinadi va tashriflar hisobotida belgilanadi. Standart — o'chiq, chunki botning "joylashuvni yuborish" tugmasi faqat statik joylashuv yuboradi | belgilanmagan |
+| Brak ombori | Belgilansa "brak" qaytarish faqat shu omborga qilinadi (qaytarish formasida brak belgilanganda ombor o'zi tanlanadi, boshqa ombor tanlansa xato), bu ombor buyurtmalarga taklif qilinmaydi. Bo'sh — cheklov yo'q | — |
 
 > **Eslatma:** Bot nomi kiritilmasa ulanish kodi baribir beriladi, lekin havola chiqmaydi — xodim kodni botga `/start KOD` ko'rinishida qo'lda yuboradi.
 
@@ -98,8 +100,6 @@ Har ombor qatorida:
 | Ustun | Ma'nosi |
 |---|---|
 | Savdoda | Belgilansa — buyurtmalar shu ombordan jo'natiladi; buyurtma formasida va ombor taklifida faqat savdo omborlari qatnashadi |
-| Minusga ruxsat | Ombor sozlamasi sifatida saqlanadi (hozirgi versiyada jo'natish baribir haqiqiy qoldiqdan ko'p chiqarmaydi) |
-| Yetkazish zonasi | Erkin matn, ma'lumot uchun |
 | Minimal qoldiq | Shu omborda nechta tovarga minimal qoldiq belgilangan; bosilsa pastda ro'yxat ochiladi |
 
 > **Muhim:** Agar birorta ombor ham sozlanmagan bo'lsa (sahifada hech qaysi qatorda saqlash bosilmagan), **barcha omborlar savdo ombori** hisoblanadi. Bitta omborni saqlashingiz bilan faqat "Savdoda" belgilanganlari qoladi. Shuning uchun hamma savdo omborlarini birdaniga belgilab chiqing.
@@ -137,7 +137,7 @@ Batafsil — 7-bob, 7.4.
 
 **Kim:** Admin, Rahbar, Operator   **Menyu:** Distributsiya → Hududlar
 
-Hudud uch darajali daraxt: **Viloyat → Tuman → Hudud**. Mijozlar hududga biriktiriladi. Savdo hisobotlarida yuqori darajani tanlasangiz ichidagi hududlar ham kiradi. Mijozlar ro'yxati filtri va ko'rinish doirasi esa faqat aynan tanlangan hudud bo'yicha ishlaydi (1.8.1).
+Hudud uch darajali daraxt: **Viloyat → Tuman → Hudud**. Mijozlar hududga biriktiriladi. Savdo hisobotlarida yuqori darajani tanlasangiz ichidagi hududlar ham kiradi. Ko'rinish doirasida ham hudud ichidagi quyi hududlar bilan birga olinadi (1.8.1).
 
 1. **Viloyat qo'shish** tugmasini bosing, **Nomi** va **Nomi (rus)** ni yozing, saqlang.
 2. Viloyat qatorida **Ichiga qo'shish** — tuman qo'shiladi.
@@ -179,6 +179,8 @@ Sahifada beshta yorliq bor. Har yozuvda **Nomi**, **Nomi (rus)**, **Tartib** va 
 ### Narx turlari
 
 Yangi bazada to'rtta narx turi tayyor turadi: Chakana, Ulgurji (standart), Yirik ulgurji, Diler. Ularni o'z siyosatingizga moslang.
+
+> **Eslatma:** Standart narx turi ataylab "Ulgurji" — ulgurji distributor uchun narxi topilmagan mijozga ulgurji narx chiqadi. Boshqasi kerak bo'lsa, shu yerda **Standart qilish** bilan o'zgartiring; pilot import faylidagi "Standart" ustuni ham uni o'zi belgilaydi.
 
 DEMO misoli:
 
@@ -227,8 +229,6 @@ Ro'yxatda kategoriya, brend va sotuvdaligi bo'yicha filtr, nom/artikul/shtrix-ko
 | Og'irlik, kg (asosiy birlik) | Bitta asosiy birlik og'irligi — buyurtma va reys og'irligi shundan | 50 |
 | Hajm, m³ (asosiy birlik) | Bitta asosiy birlik hajmi | 0,035 |
 | Sotuvda | Belgi olib tashlansa tovar buyurtmaga qo'shilmaydi ("… sotuvdan olingan.") | ✓ |
-| Katta o'lchamli | Ma'lumot uchun belgi | — |
-| Tortiladigan tovar | Ma'lumot uchun belgi | — |
 
 Kartada narx turlari bo'yicha joriy narxlar ham ko'rinadi ("Narxlar 1 qop uchun.") — ular Narxlar sahifasida o'zgartiriladi (1.6).
 
@@ -302,7 +302,7 @@ DEMO misoli (asosiy birlik narxlari):
 | Kafel 30×30 (m²) | 95 000 | 88 000 | — | — |
 | Gipsokarton (list) | 68 000 | — | — | — |
 
-> **Muhim:** Minimal narx narx turi qatoriga bog'liq. Sement uchun "52 000 dan arzon sotilmasin" desangiz, minimal narxni **har uchta** narx turi katagiga yozing. Faqat Chakana katagiga yozsangiz, Diler mijozlari uchun minimal narx tekshirilmaydi.
+> **Muhim:** Minimal narx avval mijoz narx turi qatoridan olinadi. U bo'sh bo'lsa — standart narx turidagi minimum ishlaydi, lekin mijozning o'z narxidan yuqori emas. Shuning uchun umumiy minimumni standart narx turi katagiga yozish yetarli; narx turi uchun boshqa minimum kerak bo'lsa — o'sha katakka yozing.
 
 Qoidalar:
 
@@ -343,9 +343,9 @@ Bitta mijozga alohida kelishilgan narx.
 | Qoidasi | Izoh |
 |---|---|
 | Ustunlik | Maxsus narx narx turidan ustun turadi |
-| Minimal narx | Maxsus narxga qo'llanmaydi (rahbar qarori hisoblanadi) |
+| Minimal narx | Maxsus narxga ham qo'llanadi (mijoz narx turidagi, u bo'sh bo'lsa standart narx turidagi minimum). Ozod — faqat "Cheksiz chegirma" huquqi |
 | Muddat | Faqat Boshlanish–Tugash oralig'ida amal qiladi; Tugash bo'sh — muddatsiz |
-| To'xtatish | **To'xtatish** tugmasi narxni kechagi sana bilan yopadi; yozuv tarixda qoladi |
+| To'xtatish | **To'xtatish**: kecha yoki undan oldin boshlangan narx kechagi sana bilan yopiladi va tarixda qoladi; bugun yoki keyin boshlangani o'chiriladi (audit jurnalida qoladi) |
 | Sana xatosi | "Tugash sanasi boshlanishdan oldin bo'lmasin." |
 
 DEMO misoli: DEMO Bunyodkor qurilish uchun Gipsokarton — 64 000 so'm/list, 01.11.2026 dan 31.12.2026 gacha. Gipsokartonning Diler narxi yo'q, shuning uchun maxsus narxsiz Bunyodkorga standart Chakana narxi (68 000) chiqardi; endi bu muddatda 64 000 dan chiqadi. Sement esa avvalgidek Diler narxida (55 000) qoladi.
@@ -390,7 +390,7 @@ Jadvalda har agentga biriktirilgan mijozlar soni ko'rinadi.
 
 ### 1.8.1 Ko'rinish doirasi (scope)
 
-**Kim:** Admin   **Menyu:** Distributsiya → Agentlar va jamoalar → foydalanuvchi qatoridagi **Ko'rinish doirasi**
+**Kim:** Admin   **Menyu:** Distributsiya → Agentlar va jamoalar → foydalanuvchi qatoridagi **Ko'rinish doirasi** yoki **Xodimning ko'rinish doirasi** kartasi (istalgan xodimni — agent bo'lmasa ham, masalan omborchi yoki operator — tanlab, uning cheklov sahifasiga o'tish)
 
 Bu sahifada foydalanuvchiga uchta ro'yxat beriladi: **Omborlar**, **Hududlar**, **Mijozlar**.
 
@@ -404,12 +404,12 @@ DEMO misollari:
 | Foydalanuvchi | Doira | Natija |
 |---|---|---|
 | demo_ombor (omborchi) | Omborlar: DEMO Asosiy ombor | Faqat Asosiy ombor buyurtmalari, qoldiqlari; yig'ish xabari faqat shu ombordan |
-| Chilonzor operatori | Hududlar: Toshkent sh. / Chilonzor | Faqat Chilonzor hududiga biriktirilgan mijozlar |
+| Chilonzor operatori | Hududlar: Toshkent sh. / Chilonzor | Faqat Chilonzor (va uning ichidagi hududlar) mijozlari va ularning buyurtmalari |
 | demo_kassir | (bo'sh) | Cheklovsiz |
 
-> **Muhim:** Hudud doirasi faqat aynan tanlangan hududlarni qamraydi — ichidagi quyi hududlar avtomatik kirmaydi. Mijozlar tuman darajasiga biriktirilgan bo'lsa, doiraga viloyatni emas, kerakli tumanlarni (har birini) tanlang.
+> **Eslatma:** Hudud doirasi tanlangan hududni ichidagi quyi hududlari bilan qamraydi: viloyat tanlansa — uning barcha tumanlari va hududlari kiradi. Buyurtmalar ro'yxati, buyurtma kartasi va chop etish ham mijoz hududi bo'yicha cheklanadi.
 
-> **Eslatma:** Agent va supervayzer uchun mijoz cheklovi alohida sozlanmaydi — u agent ierarxiyasidan avtomatik (0-bob, 0.4). Ko'rinish doirasi bunga qo'shimcha qo'llanadi.
+> **Eslatma:** Agent va supervayzer uchun mijoz cheklovi alohida sozlanmaydi — u agent ierarxiyasidan avtomatik (0-bob, 0.4); supervayzer agenti biriktirilmagan mijozlarni ham ko'radi. Ko'rinish doirasi bunga qo'shimcha qo'llanadi. Ombor doirasi bor xodim ombori hali tanlanmagan buyurtmalarni ham ko'radi.
 
 ### 1.8.2 Xodimni botga ulash
 
@@ -469,7 +469,7 @@ Koordinata kiritilgach yonida Yandex xaritada ochish tugmasi chiqadi — joyni t
 | Kredit limiti (so'm) | Qarz + buyurtma chegarasi | 20 000 000 |
 | To'lov muddati (kun) | 0–365 | 7 |
 
-> Qarz + yangi buyurtma limitdan oshsa yoki muddati o'tgan qarz bo'lsa, buyurtma tasdiqlanmaydi (rahbar ruxsatisiz). 0 — faqat oldindan to'lov.
+> Qarz + tasdiqlangan, lekin hali jo'natilmagan buyurtmalar + yangi buyurtma limitdan oshsa yoki muddati o'tgan qarz bo'lsa, buyurtma tasdiqlanmaydi (rahbar ruxsatisiz). 0 — faqat oldindan to'lov.
 
 DEMO Bunyodkor qurilish: hudud Toshkent sh. / Yunusobod, narx turi Diler, limit 50 000 000, muddat 14 kun.
 
@@ -513,7 +513,7 @@ Mijoz yozuvi bitta qoladi, unga distributsiya kartasi qo'shiladi. Distributsiya 
 2. Kod va havola chiqadi (bir martalik, 3 kun).
 3. Havolani mijozga yuboring.
 
-Ulangan mijoz botda buyurtmasi tasdiqlangani, jo'natilgani, yo'lga chiqqani, yetkazilgani (nakladnoy PDF bilan) va to'lovi qabul qilingani haqida xabar oladi, **💳 Qarzim** va **📄 Akt sverki** tugmalaridan foydalanadi.
+Ulangan mijoz botda buyurtmasi tasdiqlangani, jo'natilgani, yo'lga chiqqani, yetkazilgani (nakladnoy PDF bilan) va to'lovi qabul qilingani haqida xabar oladi, **💳 Qarzim** va **📄 Akt sverki** tugmalaridan foydalanadi. Xabarlar mijozning Telegram tilida keladi.
 
 ## 1.10 Rollar va huquqlar
 
@@ -522,7 +522,7 @@ Ulangan mijoz botda buyurtmasi tasdiqlangani, jo'natilgani, yo'lga chiqqani, yet
 Distributsiyaning har sahifasi alohida ruxsat moduli. Qidiruvga `Dst` yozsangiz hammasi chiqadi.
 
 - **View** — sahifani ochish va ko'rish (menyuda ko'rinadi).
-- **Change** — yaratish, tahrirlash, tasdiqlash, jo'natish, bekor qilish va boshqa barcha amallar. Mijoz, tovar kartasi va buyurtma formasini ochish ham Change talab qiladi.
+- **Change** — yaratish, tahrirlash, tasdiqlash, jo'natish, bekor qilish va boshqa barcha amallar. Mijoz va tovar kartasi View bilan ham ochiladi — o'qish rejimida; saqlash va yangi mijoz yaratish Change talab qiladi.
 - **Delete** ustuni Distributsiyada ishlatilmaydi (o'chirish va bekor qilish Change bilan).
 
 ### 1.10.1 Sahifa modullari
@@ -558,14 +558,15 @@ Distributsiyaning har sahifasi alohida ruxsat moduli. Qidiruvga `Dst` yozsangiz 
 | DstTrips | Reyslar | V C | V C | V | — | — |
 | DstVehicles | Mashinalar, yetkazish sozlamalari | V C | — | — | — | — |
 | DstKpi | Agent KPI | V C | — | — | — | — |
+| DstAudit | Audit jurnali (faqat o'qish) | — | — | — | — | — |
 
-V — View, C — Change. Jadval tavsiya; o'z tuzilmangizga moslang.
+V — View, C — Change. Jadval tavsiya; o'z tuzilmangizga moslang. **DstAudit** odatda faqat Admin'da (Admin uni doim ko'radi).
 
 \* Agent asosan botda ishlaydi. Bot va Mini App ham agentning ERP foydalanuvchisi nomidan, shu huquqlar va ko'rinish doirasi bilan ishlaydi — botdan buyurtma yuborish uchun agentda **DstOrders** bo'yicha Change bo'lishi kerak.
 
 ### 1.10.2 Maxsus huquqlar
 
-Bular sahifa emas, balki ruxsat bayrog'i. Ular huquqlar jadvalida modul sifatida turadi va **View** belgisi bilan beriladi.
+Bular sahifa emas, balki ruxsat bayrog'i. Ular huquqlar jadvalida modul sifatida turadi va **Change** belgisi bilan beriladi — faqat View yetmaydi.
 
 | Modul | Nima ochadi | Kimga |
 |---|---|---|
@@ -576,7 +577,9 @@ Bular sahifa emas, balki ruxsat bayrog'i. Ular huquqlar jadvalida modul sifatida
 
 Admin va Developer bu huquqlarning hammasiga avtomatik ega.
 
-> **Muhim:** Admin panelda yangi rol yaratilganda unga **barcha** modullarda View avtomatik beriladi — demak DstSeeCost, DstOverrideCredit va DstDiscountUnlimited ham. Agent, operator yoki kassir roli yaratgach, darhol shu uchta va DstWriteOffApprove belgisini olib tashlang. Aks holda agent tannarxni ko'radi va limitni chetlab o'tadi.
+> **Eslatma:** Admin panelda yangi rol yaratilganda unga barcha modullarda View avtomatik beriladi, lekin maxsus huquqlar bu bilan berilmaydi — ular uchun Change ni alohida belgilang.
+
+> **Muhim:** Yangilanishdan keyin mavjud bazada avval View belgilangan maxsus huquq qatorlariga Change ham avtomatik qo'yilgan (egalari saqlangan). Har rolda shu to'rt qatorni ko'rib chiqing va keraksiz joyda Change ni olib tashlang.
 
 ## 1.11 Excel import
 
@@ -643,7 +646,9 @@ DEMO Bunyodkor qurilish tizimga o'tishdan oldin 3 000 000 so'm qarzdor, muddati 
 
 Import qilingach mijoz qarzi 3 000 000 so'm, akt sverkida "Kirish qoldig'i" qatori. Avans bo'lsa summani minus bilan yozing (`-500000`).
 
-> **Muhim:** Boshlang'ich ombor qoldig'i import orqali kiritilmaydi. U **Bosh sahifa → Inventarizatsiya** dagi **Boshlang'ich** sanoq bilan kiritiladi (omborchi sanaydi, tizim qoldiqni sanalganga tenglaydi). Batafsil — 4-bob, 4.3.
+Summa xato kiritilgan bo'lsa: **Qarzlar → mijoz akti** sahifasida **Kirish qoldig'ini bekor qilish** (sabab bilan) — teskari yozuv qilinadi, keyin to'g'ri summani shu import orqali qayta kiriting (3-bob, 3.10).
+
+> **Muhim:** Boshlang'ich ombor qoldig'i import orqali kiritilmaydi. U **Distributsiya → Inventarizatsiya** dagi **Boshlang'ich** sanoq bilan kiritiladi (omborchi sanaydi, tizim qoldiqni sanalganga tenglaydi). Batafsil — 4-bob, 4.3.
 
 ## 1.12 Tayyorlik tekshiruvi
 
@@ -656,5 +661,5 @@ Sozlash tugagach, quyidagilarni tekshiring:
 | 3 | Narxlar → "Standart narxi yo'q" filtri | Bo'sh (yoki ataylab narxsiz tovarlar) |
 | 4 | Qoldiqlar | Boshlang'ich sanoqdan keyin haqiqiy = sanalgan |
 | 5 | Agent botida 🗺 Marshrut | Bugungi tashrif kunidagi mijozlar chiqadi |
-| 6 | Agent roli huquqlari | DstSeeCost, DstOverrideCredit, DstDiscountUnlimited — olib tashlangan |
+| 6 | Agent roli huquqlari | DstSeeCost, DstOverrideCredit, DstDiscountUnlimited, DstWriteOffApprove — Change belgilanmagan |
 | 7 | Sinov buyurtmasi (2-bob) | Yaratildi → tasdiqlandi → bekor qilindi, rezerv qaytdi |

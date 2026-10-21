@@ -21,7 +21,7 @@ Filtrlar:
 | Ombor | Barcha omborlar yoki bittasi |
 | Boshlanish / Tugash | Buyurtma sanasi oralig'i |
 
-Ko'rinish (0-bob, 0.4): agent — faqat o'z buyurtmalari, supervayzer — jamoasiniki, ombor doirasi berilgan omborchi — faqat o'z omborlaridagi buyurtmalar (ombori hali tanlanmagan yangi buyurtmalar unga ko'rinmaydi).
+Ko'rinish (0-bob, 0.4): agent — faqat o'z buyurtmalari, supervayzer — jamoasiniki, ombor doirasi berilgan omborchi — o'z omborlaridagi va ombori hali tanlanmagan buyurtmalar (ombor tasdiqda taklif qilinadi), hudud doirasi berilgan xodim — faqat shu hudud va uning quyi hududlaridagi mijozlar buyurtmalari (ro'yxat, karta va chop etishda).
 
 Kunlik ish uchun qulay filtrlar:
 
@@ -48,7 +48,7 @@ Kunlik ish uchun qulay filtrlar:
 | O'zi olib ketadi | Belgilansa mijoz tovarni ombordan o'zi oladi: minimal summa tekshirilmaydi, jo'natish bilan birga "Yetkazildi" bo'ladi | — |
 | Izoh | Erkin matn | "Ertalab 10 gacha" |
 
-Mijoz tanlangach o'ngda **Qarz va limit** paneli chiqadi: Qarz, Muddati o'tgan, Kredit limiti, Limitdan qolgan, Narx turi, To'lov muddati (kun). Mijoz tasdiqlanmagan bo'lsa "Tasdiq kutilmoqda" belgisi turadi.
+Mijoz tanlangach o'ngda **Qarz va limit** paneli chiqadi: Qarz, Muddati o'tgan, **Tasdiqlangan, jo'natilmagan** (tasdiqlangan, yig'ilayotgan va qisman jo'natilgan buyurtmalarning hali jo'natilmagan qismi), Kredit limiti, Limitdan qolgan (qarz va jo'natilmagan buyurtmalar ayirilgan holda), Narx turi, To'lov muddati (kun). Xuddi shu qatorlar buyurtma kartasida ham bor. Mijoz tasdiqlanmagan bo'lsa "Tasdiq kutilmoqda" belgisi turadi.
 
 ### 2.2.2 Tovar qatorlari
 
@@ -62,7 +62,7 @@ Har qatorda: **Narx** — tanlangan birlik uchun mijoz narxi (avtomatik, o'zgart
 
 > Narx mijozning narx turidan (yoki maxsus narxdan) avtomatik olinadi; chegirma va minimal narx saqlashda tekshiriladi.
 
-Saqlangach buyurtma **Yangi** holatda, raqami beriladi (masalan D-2026-00001) va buyurtma kartasi ochiladi. Shu paytda tizim aksiyalarni qo'llaydi (2.17), summa 30 000 000 dan katta bo'lsa rahbarlarga "Yirik buyurtma" xabari, mijoz limiti yetmasa — "kredit shartidan chiqdi" xabari **✅ Tasdiqlash** tugmasi bilan ketadi.
+Saqlangach buyurtma **Yangi** holatda, raqami beriladi (masalan D-2026-00001) va buyurtma kartasi ochiladi. Shu paytda tizim aksiyalarni qo'llaydi (2.17), summa 30 000 000 dan katta bo'lsa rahbarlarga "Yirik buyurtma" xabari, mijoz limiti yetmasa — "kredit shartidan chiqdi" xabari **✅ Tasdiqlash** tugmasi bilan ketadi. Bu xabar tahrirdan keyin limitdan oshganda va tasdiqlash qarz sabab rad etilganda ham yuboriladi — bir buyurtmaga kuniga bir marta.
 
 ### 2.2.3 DEMO misoli: Anvar do'koni buyurtmasi
 
@@ -118,18 +118,18 @@ Batafsil — 6-bob, 6.4.
 |---|---|---|---|---|
 | **Yangi** | Saqlangan | yo'q | yo'q | Tahrirlash, Tasdiqlash, O'chirish, Bekor qilish |
 | **Tasdiqlangan** | Tasdiqlashdan o'tgan | bor | yo'q | Tasdiqni qaytarish, Yig'ishni boshlash, Rezervni yangilash, Jo'natish, Bekor qilish |
-| **Yig'ilmoqda** | Omborchi yig'ishni boshlagan | bor | yo'q | Rezervni yangilash, Jo'natish, Bekor qilish |
-| **Qisman jo'natildi** | Bir qismi jo'natilgan | qolgan qismga | jo'natilgan qism | Jo'natish (qolganini), Qolganidan voz kechish, Yetkazildi, To'lov, Qaytarish, jo'natishni bekor qilish |
+| **Yig'ilmoqda** | Omborchi yig'ishni boshlagan | bor | yo'q | Yig'ishni to'xtatish, Rezervni yangilash, Jo'natish, Bekor qilish |
+| **Qisman jo'natildi** | Bir qismi jo'natilgan | qolgan qismga | jo'natilgan qism | Jo'natish (qolganini), Qolganidan voz kechish, To'lov, Qaytarish, jo'natishni bekor qilish |
 | **Jo'natildi** | Hammasi jo'natilgan (yoki qolganidan voz kechilgan) | yo'q | to'liq | Yetkazildi, To'lov, Qaytarish, jo'natishni bekor qilish |
 | **Yetkazildi** | Mijoz qabul qilgan | yo'q | to'liq | To'lov, Qaytarish |
-| **Yopildi** | Buyurtma qarzi to'liq yopilgan (avtomatik) | yo'q | 0 | Qaytarish |
+| **Yopildi** | Buyurtma qarzi to'liq yopilgan (avtomatik); to'lov/qaytarish/kirish qoldig'i bekor qilinib qarz qayta ochilsa — yana Yetkazildi yoki Jo'natildi | yo'q | 0 | Qaytarish |
 | **Bekor qilingan** | Sabab bilan bekor qilingan | yechilgan | yo'q | — |
 
 O'tishlar sxemasi:
 
 ```
  Yangi ──Tasdiqlash──> Tasdiqlangan ──Yig'ishni boshlash──> Yig'ilmoqda
-   ^                      |   |                                  |
+   ^                      |   ^ <──────Yig'ishni to'xtatish──────┤
    └──Tasdiqni qaytarish──┘   └──────────── Jo'natish ───────────┤
                                                                   v
                           Qisman jo'natildi <──Jo'natish (qisman)─┤
@@ -140,6 +140,7 @@ O'tishlar sxemasi:
                                        Yetkazildi <──Yetkazildi───┘
                                            |
               qarz to'liq to'langanda ──> Yopildi
+              (to'lov/qaytarish bekor qilinib qarz ochilsa — qaytadi)
 
  Yangi / Tasdiqlangan / Yig'ilmoqda ──Bekor qilish (sabab)──> Bekor qilingan
  Jo'natishni bekor qilish: Jo'natildi/Qisman ──> Qisman yoki Tasdiqlangan
@@ -149,7 +150,7 @@ Ruxsat etilmagan o'tishda: "Holatni o'zgartirib bo'lmaydi: Yangi → Jo'natildi.
 
 Kartadagi **Tarix** blokida har holat o'zgarishi, kim bajargani va izohi (sabab, ruxsat izohi, jo'natish raqami) ko'rinadi.
 
-> **Eslatma:** "Yopildi" faqat **Jo'natildi** yoki **Yetkazildi** holatidan avtomatik keladi. Qisman jo'natilgan buyurtma to'liq to'langan bo'lsa ham qisman holatda qoladi — qolganini jo'nating yoki "Qolganidan voz kechish" qiling.
+> **Eslatma:** "Yopildi" faqat **Jo'natildi** yoki **Yetkazildi** holatidan avtomatik keladi. Qisman jo'natilgan buyurtma jo'natilgani to'liq to'langan bo'lsa ham qisman holatda qoladi — ataylab, chunki qolgani hali jo'natilishi mumkin. "Qolganidan voz kechish" qilinsa va jo'natilgani to'langan bo'lsa, buyurtma darhol **Yopildi** bo'ladi (2.11).
 
 ## 2.5 Tasdiqlash
 
@@ -162,7 +163,7 @@ Tasdiqlash tugmasi bosilganda tizim ketma-ket tekshiradi:
 | 1 | Mijoz tasdiqlanganmi | "Mijoz hali tasdiqlanmagan — avval mijoz kartasini tasdiqlang." |
 | 2 | Minimal buyurtma summasi (o'zi olib ketishdan tashqari) | "Yetkazish uchun minimal buyurtma summasi — 500 000." |
 | 3 | Muddati o'tgan qarz yo'qmi | "Muddati o'tgan qarz bor: …" |
-| 4 | Qarz + buyurtma ≤ kredit limiti | "Qarz + buyurtma … — limit … dan oshadi." |
+| 4 | Qarz + tasdiqlangan, jo'natilmagan buyurtmalar + shu buyurtma ≤ kredit limiti | "Qarz + buyurtma … — limit … dan oshadi." (jo'natilmagan buyurtmalar bo'lsa: "(shundan tasdiqlangan, hali jo'natilmagan buyurtmalar: …)") |
 | 5 | Ombor (tanlanmagan bo'lsa — avtomatik) | "Hech bir savdo omborida bu tovarlar yo'q — omborni qo'lda tanlang." |
 | 6 | Rezerv | Yetmagan qism "kirimni kutmoqda" bo'ladi (xato emas) |
 
@@ -174,11 +175,12 @@ DEMO misoli. DEMO Anvar do'koni D-2026-00001 bo'yicha 15 376 400 so'm qarzdor (2
 
 - qarz + buyurtma = 15 252 400 + 6 000 000 = 21 252 400 > 20 000 000;
 - tasdiqlashda: "Qarz + buyurtma 21 252 400 — limit 20 000 000 dan oshadi.";
+- Anvar do'konining boshqa tasdiqlangan, lekin jo'natilmagan buyurtmasi bo'lsa (masalan 2 000 000), u ham qo'shiladi va xabarda "(shundan tasdiqlangan, hali jo'natilmagan buyurtmalar: 2 000 000)" ko'rinadi — shuning uchun bir nechta buyurtmani alohida-alohida tasdiqlab limitdan o'tib bo'lmaydi;
 - agar to'lov muddati (7 kun) ham o'tgan bo'lsa, qo'shimcha: "Muddati o'tgan qarz bor: 15 252 400."
 
 Nima qilinadi:
 
-1. **Ruxsat huquqi yo'q xodim** (operator) xatoni ko'radi va buyurtmani shu holatda qoldiradi — rahbarga botda xabar allaqachon ketgan.
+1. **Ruxsat huquqi yo'q xodim** (operator) xatoni ko'radi va buyurtmani shu holatda qoldiradi — rahbarga botda xabar ketadi (yaratishda yoki shu rad etilgan tasdiqlashda; bir buyurtmaga kuniga bir marta).
 2. **"Limitdan oshishga ruxsat" huquqi bor xodim** (rahbar) web'da **Tasdiqlash** ni bossa, **Limitdan oshishga ruxsat** oynasi chiqadi: muammolar ro'yxati va izoh maydoni. Izoh (masalan "Ertaga 10 mln to'laydi, kafolat — egasi") yozib **Qo'llash** — buyurtma tasdiqlanadi.
 3. Yoki rahbar botdagi xabardagi **✅ Tasdiqlash** tugmasini bosadi — natija bir xil.
 
@@ -216,9 +218,9 @@ Endi DEMO Bunyodkor qurilish (Diler) 450 m² kafel buyuradi. Diler narx turida k
 - kartadagi qatorda: "kirimni kutmoqda: 50,8";
 - yig'ish varaqasida ham "kirimni kutmoqda" ko'rsatiladi.
 
-Kirim kelgach (masalan 300 m² kafel qabul qilindi) kartada **Rezervni yangilash** ni bosing — yetmagan 50,8 m² rezervga olinadi. Shu paytgacha 399,2 m² ni qisman jo'natish ham mumkin (2.8).
+Kirim kelgach (masalan 300 m² kafel qabul qilindi) yetmagan 50,8 m² avtomatik rezervga olinadi. Shu paytgacha 399,2 m² ni qisman jo'natish ham mumkin (2.8).
 
-> **Muhim:** Rezerv avtomatik yangilanmaydi. Kirimdan keyin "kutmoqda" qatorli buyurtmalarni ochib **Rezervni yangilash** ni bosing — aks holda yangi kelgan tovarni boshqa buyurtma rezerv qilib oladi.
+> **Eslatma:** Rezerv shu omborga har kirimdan keyin avtomatik yangilanadi: ta'minot (SRM) kirim qabuli, distributsiya qaytarishi, ko'chirma qabuli, pereso'rtitsa kirimi. "Kirimni kutmoqda" qatorlari birinchi tasdiqlangan buyurtmadan boshlab to'ldiriladi. Kartadagi **Rezervni yangilash** tugmasi qo'lda tekshirish uchun qoladi.
 
 ## 2.6 Tasdiqni qaytarish
 
@@ -245,6 +247,8 @@ Faqat **Tasdiqlangan** holatda ishlaydi. Yig'ish boshlangan yoki jo'natish bo'lg
 
 Mini App'da ham yig'ish mumkin: omborchi botda **📦 Ombor** → buyurtma → yig'ishni boshlash → shtrix-kodlarni skanerlaydi → "Jo'natish" (6-bob, 6.6).
 
+Yig'ishni to'xtatish kerak bo'lsa (masalan buyurtmani o'zgartirish uchun), kartadagi **Yig'ishni to'xtatish** ni bosing — buyurtma yana **Tasdiqlangan**, rezerv saqlanadi. Shundan keyin kerak bo'lsa **Tasdiqni qaytarish** (2.6).
+
 > **Eslatma:** "Yig'ishni boshlash" majburiy emas — tasdiqlangan buyurtmani to'g'ridan-to'g'ri jo'natish mumkin.
 
 ## 2.8 Jo'natish
@@ -267,8 +271,8 @@ Natija:
 | Tannarx | Har qator FIFO tannarxi jo'natishda saqlanadi |
 | Qarz | Mijoz hisobiga debet = jo'natish summasi, muddat = bugun + to'lov muddati |
 | Holat | Hammasi jo'natilsa — **Jo'natildi**, aks holda **Qisman jo'natildi** |
-| Xabar | Mijozga (botga ulangan bo'lsa): "Buyurtmangiz … jo'natildi: … so'm. Joriy qarzingiz: … so'm." |
-| Minimal qoldiq | Qoldiq minimaldan pastga tushsa rahbar va omborchiga ogohlantirish |
+| Xabar | Mijozga (botga ulangan bo'lsa): "Buyurtmangiz … jo'natildi: … so'm. Joriy qarzingiz: … so'm." (o'zi olib ketishda — bitta "yetkazildi" xabari) |
+| Minimal qoldiq | Ogohlantirish **mavjud** qoldiq (haqiqiy − rezerv) bo'yicha — u tasdiqlashda (rezervda) kamayadi, shuning uchun xabar odatda tasdiqlashda keladi; rezervdagi tovarni jo'natish mavjud qoldiqni o'zgartirmaydi |
 
 ### 2.8.1 DEMO misoli: to'liq jo'natish
 
@@ -301,7 +305,7 @@ Qisman jo'natilgan summa = qator summasi × (jo'natilgan / buyurtma miqdori), bu
 
 ### 2.8.3 O'zi olib ketish
 
-Buyurtmada "O'zi olib ketadi" belgilangan bo'lsa, oxirgi jo'natish bilan buyurtma darhol **Yetkazildi** bo'ladi — alohida belgilash kerak emas. Bunday jo'natish reysga qo'shilmaydi.
+Buyurtmada "O'zi olib ketadi" belgilangan bo'lsa, oxirgi jo'natish bilan buyurtma darhol **Yetkazildi** bo'ladi — alohida belgilash kerak emas. Mijozga "jo'natildi" emas, bitta "yetkazildi" xabari ketadi. Bunday jo'natish reysga qo'shilmaydi.
 
 ### 2.8.4 Jo'natishdagi xatolar
 
@@ -312,6 +316,7 @@ Buyurtmada "O'zi olib ketadi" belgilangan bo'lsa, oxirgi jo'natish bilan buyurtm
 | "Jo'natish uchun miqdor yo'q." | Barcha qatorlar 0 |
 | "N-qator: buyurtmadan ko'p jo'natib bo'lmaydi." | Qolgandan ko'p miqdor |
 | "N-qator: omborda yetarli emas (mavjud …)." | Rezerv + mavjud qoldiqdan ko'p; boshqa buyurtmalar rezervi olinmaydi |
+| "… inventarizatsiyada sanalgan (INV-…) — sanoq o'tkazilmaguncha yoki bekor qilinmaguncha ombordan chiqarilmaydi" | Shu omborda ochiq sanoqda bu tovar allaqachon sanalgan — sanoq tugashini kuting (4-bob, 4.3) |
 | "N-qator: ombor chiqimi xatosi." | Ombor hisobida muammo (masalan, joylashuvli omborda partiya topilmadi) — administratorga |
 
 ## 2.9 Nakladnoy
@@ -353,7 +358,7 @@ Qisman jo'natilgan buyurtmaning qolgani endi kerak emas bo'lsa:
 1. **Qolganidan voz kechish** ni bosing.
 2. **Sabab** ni yozing (kamida 3 belgi), **Qo'llash**.
 
-Qolgan qism rezervi yechiladi, buyurtma **Jo'natildi** holatiga o'tadi. Qarz faqat jo'natilgan qism bo'yicha.
+Qolgan qism rezervi yechiladi, buyurtma **Jo'natildi** holatiga o'tadi. Qarz faqat jo'natilgan qism bo'yicha. Jo'natilgan qism allaqachon to'langan bo'lsa — buyurtma darhol **Yopildi**.
 
 DEMO: 2.8.2 dagi buyurtmada kafel jo'natilmasdan mijoz undan voz kechdi. Sabab: "Mijoz kafelni boshqa joydan oldi". Natija: holat Jo'natildi, qarz 6 279 200, kafel rezervi (100,8 m²) bo'shaydi.
 
@@ -366,7 +371,11 @@ Ikki yo'l:
 | Yo'l | Qanday |
 |---|---|
 | Reys bilan | Ekspeditor botda **✅ Yetkazildi (rasm)** yoki **✍️ Imzo / qisman** — buyurtmaning barcha jo'natishlari hal bo'lgach buyurtma avtomatik **Yetkazildi**, mijozga nakladnoy PDF (7-bob, 7.7) |
-| Qo'lda | Kartadagi **Yetkazildi** tugmasi — Jo'natildi yoki Qisman jo'natildi holatida; mijozga "Buyurtmangiz … yetkazildi: … so'm. Rahmat!" |
+| Qo'lda | Kartadagi **Yetkazildi** tugmasi — faqat **Jo'natildi** holatida; mijozga "Buyurtmangiz … yetkazildi: … so'm. Rahmat!" |
+
+Qisman jo'natilgan buyurtmada **Yetkazildi** yo'q — avval qolganini jo'nating yoki "Qolganidan voz kechish" qiling (2.11).
+
+Buyurtma ochiq reysda bo'lsa (natijasi kutilayotgan manzil), qo'lda yetkazib bo'lmaydi: "Buyurtma reysda (R-…) — yetkazish natijasi reys orqali kiritiladi". Natijani reys orqali kiriting (7-bob); reys bekor qilinib jo'natish reysdan chiqsa — qo'lda mumkin.
 
 Oldindan to'langan buyurtma jo'natish bilan darhol **Yopildi** bo'ladi. Bunday buyurtmada ham **Yetkazildi** tugmasi turadi — bosilsa yetkazish sanasi qayd qilinadi, holat Yopildi qoladi.
 
@@ -376,7 +385,7 @@ Oldindan to'langan buyurtma jo'natish bilan darhol **Yopildi** bo'ladi. Bunday b
 
 Oynada: summa (sukut — mijozning joriy qarzi), to'lov usuli, kassa/hisob, izoh. Naqd pulni agent olgan bo'lsa hisob tanlanmaydi ("Agent qo'lida (naqd)") — u kassaga topshirilganda yoziladi. Batafsil — 3-bob, 3.3–3.5.
 
-To'lov mijozning **eng eski** qarzini birinchi yopadi (buyurtma tanlansa ham). Buyurtmaning jo'natish qarzlari to'liq yopilganda Jo'natildi yoki Yetkazildi holatidagi buyurtma avtomatik **Yopildi** bo'ladi.
+To'lov mijozning **eng eski** qarzini birinchi yopadi (buyurtma tanlansa ham). Buyurtmaning jo'natish qarzlari to'liq yopilganda Jo'natildi yoki Yetkazildi holatidagi buyurtma avtomatik **Yopildi** bo'ladi. To'lov, qaytarish yoki kirish qoldig'i keyin bekor qilinib buyurtma qarzi yana ochilsa, buyurtma qayta ochiladi — **Yetkazildi** (yetkazilmagan bo'lsa **Jo'natildi**), sabab Tarixda.
 
 DEMO: 2.16-dagi qaytarishdan keyin Anvar do'koni qarzi 15 252 400. Kassir 15 252 400 so'm naqd (kassaga) qabul qiladi — qarz 0, D-2026-00001 **Yopildi**.
 
@@ -390,7 +399,7 @@ DEMO: 2.16-dagi qaytarishdan keyin Anvar do'koni qarzi 15 252 400. Kassir 15 252
 | Qator summasi | yalpi − qator chegirmasi |
 | Buyurtma jami | qatorlar summasi − buyurtma chegirmasi % |
 | Chegirma limiti tekshiruvi | faqat **qo'lda** berilgan: 1 − (1 − qator %)(1 − buyurtma %) ≤ rol limiti |
-| Minimal narx tekshiruvi | qo'lda chegirmadan keyingi birlik narxi ≥ minimal narx × koeffitsient (aksiya chegirmasi hisobga olinmaydi) |
+| Minimal narx tekshiruvi | qo'lda chegirmadan keyingi birlik narxi ≥ minimal narx × koeffitsient (aksiya chegirmasi hisobga olinmaydi). Minimum — mijoz narx turi qatoridan, bo'sh bo'lsa standart narx turidan (mijoz narxidan yuqori emas); maxsus narxga ham qo'llanadi |
 | Qarz muddati | jo'natish sanasi + mijozning to'lov muddati |
 
 Misol (chegirma ketma-ketligi): kafel qatoriga 5% aksiya + operator 2% qo'lda → qatordagi chegirma 1 − 0,95 × 0,98 = 6,9%. 70 quti: 9 576 000 × 6,9% = 660 744, qator summasi 8 915 256. Limit tekshiruvida faqat 2% hisobga olinadi (operator limiti 5% — o'tadi).
@@ -417,7 +426,7 @@ Mijoz tovarni qaytarsa — qaytarish hujjati (DQ-...) tuziladi. U ombor kirimi v
 | Maydon | Nima kiritiladi |
 |---|---|
 | Mijoz * | Mijoz (buyurtma kartasidan ochilsa — tayyor) |
-| Ombor * | Qaysi omborga kirim bo'ladi. Brak uchun alohida ombor bo'lsa — uni tanlang |
+| Ombor * | Qaysi omborga kirim bo'ladi. Sozlamalarda **Brak ombori** belgilangan bo'lsa, "Brak" belgilanganda shu ombor o'zi tanlanadi |
 | Joylashuv * | Faqat joylashuvli (yacheykali) omborda — "Bu omborda joylashuvni tanlang." |
 | Sabab | Qaytarish sabablaridan (Brak, Muddati o'tgan, Noto'g'ri tovar, Mijoz rad etdi) |
 | Brak | Belgi — qaytgan tovar yaroqsiz (hujjat va ombor kirimida "(brak)" deb belgilanadi) |
@@ -430,7 +439,7 @@ Ikki blok:
 
 **Saqlash** — hujjat darhol o'tkaziladi.
 
-> **Muhim:** "Brak" belgisi tovarni o'zi boshqa omborga o'tkazmaydi — tovar siz tanlagan omborga kiradi. Yaroqsiz tovar sotuvga tushmasligi uchun brak omborini tanlang yoki keyin hisobdan chiqaring (4-bob, 4.5).
+> **Muhim:** Sozlamalar → Umumiy'da **Brak ombori** belgilangan bo'lsa (1-bob, 1.2.1), "brak" qaytarish faqat shu omborga qilinadi — boshqa ombor tanlansa xato chiqadi; bu ombor buyurtmalarga taklif qilinmaydi. Brak ombori belgilanmagan bo'lsa, tovar siz tanlagan omborga kiradi — yaroqsiz tovarni keyin hisobdan chiqaring (4-bob, 4.5).
 
 ### 2.16.2 Ta'siri
 
@@ -470,7 +479,7 @@ Sovg'a qatoridan qaytarilgan qop 0 so'm bo'ladi (sovg'a narxi 0) — qarz kamaym
 | Buyurtmasiz qatorda narx topilmadi va kiritilmadi | "…: narx belgilanmagan." |
 | Ombor kirimi muammosi | "Ombor kirimi xatosi." |
 
-Xato qaytarish **Qaytarishlar** ro'yxatida sabab bilan bekor qilinadi: ombor kirimi qaytariladi, qarz tiklanadi. Qaytgan tovar allaqachon boshqa mijozga chiqarilgan bo'lsa: "Qaytgan tovar allaqachon chiqarilgan — bekor qilib bo'lmaydi."
+Xato qaytarish **Qaytarishlar** ro'yxatida sabab bilan bekor qilinadi: ombor kirimi qaytariladi, qarz tiklanadi (buyurtma Yopildi bo'lgan bo'lsa — qayta ochiladi). Qaytgan tovar allaqachon boshqa mijozga chiqarilgan bo'lsa: "Qaytgan tovar allaqachon chiqarilgan — bekor qilib bo'lmaydi."
 
 ## 2.17 Aksiyalar
 
@@ -581,14 +590,15 @@ Forma xatolari:
 | "Buyurtmani boshqa foydalanuvchi o'zgartirdi — sahifani yangilang." | Bir vaqtda ikki xodim | Sahifani yangilab qayta urining |
 | "Mijoz hali tasdiqlanmagan — avval mijoz kartasini tasdiqlang." | Agent qo'shgan yangi nuqta | Mijozlar → Tasdiqlash (1-bob, 1.9.2) |
 | "Yetkazish uchun minimal buyurtma summasi — 500 000." | Buyurtma minimal summadan kam | Buyurtmani ko'paytiring yoki "O'zi olib ketadi" |
-| "Qarz + buyurtma … — limit … dan oshadi." | Kredit limiti yetmaydi | To'lov oling yoki rahbar ruxsati (2.5.1) |
+| "Qarz + buyurtma … — limit … dan oshadi." | Kredit limiti yetmaydi (jo'natilmagan tasdiqlangan buyurtmalar ham hisobga olinadi) | To'lov oling yoki rahbar ruxsati (2.5.1) |
 | "Muddati o'tgan qarz bor: …" | To'lov muddati o'tgan qarz | To'lov oling yoki rahbar ruxsati |
 | "Hech bir savdo omborida bu tovarlar yo'q — omborni qo'lda tanlang." | Avtomatik ombor topilmadi | Formada omborni tanlang yoki kirim kuting |
 | "Holatni o'zgartirib bo'lmaydi: … → …." | Bu holatdan bunday amal yo'q | 2.4 jadvaliga qarang |
 | "Buyurtma bo'yicha jo'natish bor — avval qaytarish hujjati kerak." | Jo'natilgan buyurtmani bekor qilish yoki tasdiqni qaytarish | Jo'natishni bekor qiling (2.10) yoki qaytarish (2.16) |
 | "Bu holatdagi buyurtmani jo'natib bo'lmaydi." | Tasdiqlanmagan yoki yakunlangan | Avval tasdiqlang |
-| "N-qator: omborda yetarli emas (mavjud …)." | Qoldiq yetmaydi | Miqdorni kamaytiring, kirimdan keyin Rezervni yangilang |
+| "N-qator: omborda yetarli emas (mavjud …)." | Qoldiq yetmaydi | Miqdorni kamaytiring yoki kirimni kuting (rezerv kirimdan keyin o'zi yangilanadi) |
 | "Faqat jo'natilgan (yetkazilmagan) buyurtma jo'natishi bekor qilinadi — aks holda qaytarish." | Yetkazilgan buyurtma | Qaytarish qiling |
+| "Buyurtma reysda (R-…) — yetkazish natijasi reys orqali kiritiladi" | Qo'lda "Yetkazildi" — buyurtma ochiq reysda | Natijani reys sahifasida yoki ekspeditor botda kiriting |
 | "Bekor qilish sababini yozing." | Sabab bo'sh yoki 3 belgidan qisqa | Sababni yozing |
 | "Jo'natilgandan ko'p qaytarib bo'lmaydi (qolgan …)." | Qaytarish miqdori ortiq | Miqdorni kamaytiring |
 | "Ruxsat yo'q" | Sizda sahifa yoki amal uchun Change huquqi yo'q | Administratorga (1-bob, 1.10) |

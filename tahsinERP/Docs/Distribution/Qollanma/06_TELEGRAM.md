@@ -21,7 +21,7 @@ Misollar umumiy demo-ssenariy bo'yicha: kompaniya **DEMO Qurilish Savdo MChJ**, 
 | Rol | Asosiy menyu | Mini App | Asosiy ishlar |
 |---|---|---|---|
 | Agent | ▶️ Kunni boshlash, 🗺 Marshrut, 🔎 Mijoz, ➕ Yangi nuqta, 💵 Kassa, 📡 Jonli joylashuv, 🏁 Kunni yakunlash, ⚠️ Muammo | Buyurtma oynasi | Tashrif, buyurtma, to'lov, foto, yangi nuqta, naqdni topshirish |
-| Ekspeditor | 🚚 Reys, 💵 Kassa, 📡 Jonli joylashuv, ⚠️ Muammo, 🏁 Reysni yopish | Yetkazish oynasi | Reys manzillari, yetkazish (rasm/imzo), qisman/rad, to'lov, xarajat, reysni yopish |
+| Ekspeditor | 🚚 Reys, 💵 Kassa, 📡 Jonli joylashuv, ⚠️ Muammo, 🏁 Reysni yakunlash | Yetkazish oynasi | Reys manzillari, yetkazish (rasm/imzo), qisman/rad, to'lov, xarajat, reysni yakunlash |
 | Omborchi | 📦 Ombor, ⚠️ Muammo | Ombor ilovasi | Inventarizatsiya sanog'i, buyurtma yig'ish va jo'natish |
 | Rahbar | 📊 Bugungi yakun, 📦 Ombor, ⚠️ Muammo | Ombor ilovasi | Xabarlar, kredit va hisobdan chiqarish tasdig'i, kunlik yakun |
 | Mijoz | 💳 Qarzim, 📄 Akt sverki | — | Buyurtma holati xabarlari, nakladnoy PDF, qarz va akt sverki |
@@ -36,7 +36,7 @@ Botning o'zini (BotFather tokeni, server) tizim administratori o'rnatadi. Foydal
 
 1. Distributsiya → **Sozlamalar** → "Umumiy sozlamalar" kartasida **Telegram bot nomi** maydoniga bot nomini yozing (masalan `demo_qurilish_bot`, `@` siz). Bo'lmasa ulash oynasi havola o'rniga "Bot nomi sozlanmagan (Sozlamalar → Umumiy). Kodni botga qo'lda yuboring." deydi.
 2. **Bot ochiq manzili (rasmlar uchun)** maydoniga bot manzilini yozing (`https://...`). Usiz selfi, tashrif fotosi, yetkazish rasmi va imzo ERP sahifalarida ko'rinmaydi (Dala nazorati sahifasi "Rasmlarni ko'rish uchun Sozlamalarda bot manzilini (Bot ochiq manzili) kiriting." deydi).
-3. Shu sahifada dala ishiga oid sozlamalar: **Tashrif radiusi, m** (standart 200), **Kun boshida selfi majburiy**, **Yirik buyurtma, so'm** (0 — xabar yuborilmaydi), **Agent to'lovlari** (agent botda qaysi usulda to'lov qabul qila oladi). Ular quyida tegishli bo'limlarda tushuntirilgan.
+3. Shu sahifada dala ishiga oid sozlamalar: **Tashrif radiusi, m** (standart 200), **Kun boshida selfi majburiy**, **Keldim — faqat jonli joylashuv** (standart o'chiq), **Yirik buyurtma, so'm** (0 — xabar yuborilmaydi), **Agent to'lovlari** (agent botda qaysi usulda to'lov qabul qila oladi). Ular quyida tegishli bo'limlarda tushuntirilgan.
 
 ## 6.3 Xodim va mijozni botga ulash
 
@@ -92,8 +92,8 @@ Ulanmagan odam botga nima yozsa ham javob bitta: "Assalomu alaykum! Botdan foyda
 
 **Til.** Bot o'zbek va rus tillarida ishlaydi:
 
-- **Xodim** uchun til — ERP'dagi shaxsiy til (Distributsiya bosh sahifasidagi til tanlovi). Bot menyusi va tugmalar ulangan paytdagi tilda bo'ladi; ERP'dan keladigan bildirishnomalar esa joriy tilda tayyorlanadi. Tilni o'zgartirgandan keyin menyu ham yangi tilda bo'lishi uchun xodimni qayta ulang (yangi kod).
-- **Mijoz** uchun bot tugmalari va nakladnoy PDF tili — mijozning Telegram ilovasi tili (rus tilidagi Telegram — rus, qolganlari — o'zbek).
+- **Xodim** uchun til — ERP'dagi shaxsiy til (Distributsiya bosh sahifasidagi til tanlovi). ERP'dan keladigan bildirishnomalar joriy tilda tayyorlanadi. Tilni o'zgartirgandan keyin botga **/start** yoki **/menu** yuboring — menyu va tugmalar yangi tilga o'tadi (qayta ulash shart emas).
+- **Mijoz** uchun bot tugmalari, bildirishnomalar va nakladnoy PDF tili — mijozning Telegram ilovasi tili (rus tilidagi Telegram — rus, qolganlari — o'zbek). Til ulanishda va har **/start**, **/menu** da yangilanadi.
 - Mini App tili ulanishdagi tilga mos.
 
 ## 6.4 Agent
@@ -202,7 +202,7 @@ Qoidalar:
 - GPS aniqligi hisobga olinadi: telefon "aniqlik 50 m" desa, ruxsat 200 + 50 m bo'ladi (qo'shimcha ko'pi bilan radiusga teng).
 - Kun boshlanmagan bo'lsa, "Keldim" kunni o'zi boshlaydi. Lekin selfi majburiy bo'lsa — "Avval ish kunini boshlang." deydi.
 - Tashrif rejadami yoki rejadan tashqarimi — avtomatik belgilanadi (rahbar Tashrif rejasi sahifasida ko'radi).
-- Oddiy (jonli bo'lmagan) joylashuv ham qabul qilinadi, lekin Dala nazoratida "statik" deb belgilanadi.
+- Oddiy (jonli bo'lmagan) joylashuv standart bo'yicha qabul qilinadi, lekin Dala nazoratida va tashriflar hisobotida "statik" deb belgilanadi. Sozlamalarda **Keldim — faqat jonli joylashuv** yoqilgan bo'lsa, statik joylashuv rad etiladi: `"Keldim" uchun jonli joylashuv kerak: 📎 → Joylashuv → "Jonli joylashuvni ulashish".` (**📍 Joylashuvni yuborish** tugmasi faqat statik joylashuv yuboradi — shuning uchun sozlama standart o'chiq.)
 
 ### 6.4.6 Buyurtma (Mini App)
 
@@ -231,7 +231,9 @@ Oyna tepasida mijoz nomi va qarzi (`Qarz: 3 400 000 so'm`, muddati o'tgan bo'lsa
 
 > **Muhim:** Agent buyurtmasi **qoralama** sifatida tushadi — ofis tasdiqlaydi (rezerv, kredit tekshiruvi). Tasdiqlanganda agentga "Buyurtma D-2026-00045 tasdiqlandi: ..." xabari keladi, bekor qilinsa — sababi bilan.
 > **Eslatma:** "Buyurtma berish"ni ikki marta bosish yoki aloqa uzilib qayta yuborish ikkinchi buyurtma yaratmaydi — bitta savat bitta buyurtma.
-> **Eslatma:** Aksiya chegirmasi va sovg'a qatorlari (masalan "Sement 10+1") Mini App jamisida ko'rinmaydi — ular ERP'da buyurtma saqlanganda qo'shiladi. Agentga keladigan "qabul qilindi" xabaridagi summa — ERP hisoblagan yakuniy summa.
+> **Eslatma:** Aksiya chegirmasi va sovg'a qatorlari (masalan "Sement 10+1") Mini App jamisida ataylab ko'rinmaydi — aksiya buyurtma qabul qilinganda ERP'da hisoblanadi (savatda shu haqda ogohlantirish bor). Agentga keladigan "qabul qilindi" xabaridagi summa — ERP hisoblagan yakuniy summa.
+> **Eslatma:** Savat telefon xotirasida **3 kun** saqlanadi — oyna yopilsa ham yo'qolmaydi.
+> **Eslatma:** Buyurtma oynasi faqat agent va ekspeditor uchun — rahbar uni ocha olmaydi.
 
 **Shtrix-kod skaneri:**
 
@@ -267,6 +269,7 @@ Jami: 1 924 000 so'm. Buyurtma berilsinmi?
 | 🎤 Ovozli buyurtma o'chirilgan. | ERP sozlamasi o'chiq |
 | 🎤 Ovozli buyurtma sozlanmagan (nutqni aniqlash kaliti yo'q). | Bot serverida kalit yo'q — administratorga |
 | 🎤 Xabar juda uzun — 90 soniyagacha yozing. | Xabar uzun |
+| 🎙 Ovozli buyurtma faqat agentlar uchun. | Ovozli xabarni ekspeditor (yoki boshqa rol) yuborgan |
 | 🎤 Tushunilmadi. Aniqroq ayting: «Anvar do'koniga 20 qop sement M400, 5 quti kafel». | Nutq aniqlanmadi yoki tovar/miqdor ajratilmadi |
 
 > **Eslatma:** Ovozli buyurtma ham ofis tasdig'iga tushadi; izohida `🎤` va aytilgan matn saqlanadi. Ovoz yozuvi saqlanmaydi. Mijoz faqat agentning ko'rinishidagi mijozlar orasidan tanlanadi.
@@ -360,8 +363,10 @@ Ekspeditor menyusi:
 ```
 [ 🚚 Reys           ] [ 💵 Kassa     ]
 [ 📡 Jonli joylashuv ] [ ⚠️ Muammo   ]
-[ 🏁 Reysni yopish   ]
+[ 🏁 Reysni yakunlash ]
 ```
+
+Ekspeditorda alohida "Kunni boshlash" yo'q: ish kuni reys boshlanganda (**▶️ Yo'lga chiqish**) avtomatik, selfisiz ochiladi va reys yakunlanganda yoki yopilganda (boshqa yo'ldagi reysi bo'lmasa) yopiladi.
 
 Reysni ofis rejalaydi (7.5-bo'lim). Reys biriktirilganda ekspeditorga xabar keladi:
 
@@ -369,7 +374,7 @@ Reysni ofis rejalaydi (7.5-bo'lim). Reys biriktirilganda ekspeditorga xabar kela
 
 ### 6.5.1 Bugungi reys
 
-**🚚 Reys** bosilganda joriy reys ko'rsatiladi: avval **Yo'lda** holatidagisi, bo'lmasa kechagi kundan boshlab eng yaqin **Rejalandi** reysi. Reys bo'lmasa: "Sizga hozircha reys biriktirilmagan."
+**🚚 Reys** bosilganda joriy reys ko'rsatiladi: avval **Yo'lda** holatidagi yakunlanmagan reys; bo'lmasa **Rejalandi** reyslardan sanasi bugunga eng yaqini — avval bugungi, keyin o'tib ketgani (sana cheklovi yo'q), keyin kelajakdagi. Yakunlangan (lekin hali yopilmagan) reys keyingi rejalangan reysni to'smaydi. Reys bo'lmasa: "Sizga hozircha reys biriktirilmagan."
 
 ```
 🚚 Reys R-2026-00007 (21.11.2026) — Rejalandi
@@ -387,7 +392,7 @@ Tugmalar:
 ### 6.5.2 Yo'lga chiqish
 
 1. Yuk ortilgach **▶️ Yo'lga chiqish** ni bosing.
-2. Bot: `✅ Yo'lga chiqdingiz. Mijozlarga "yo'lga chiqdi" xabari yuborildi.`
+2. Bot: `✅ Yo'lga chiqdingiz. Mijozlarga "yo'lga chiqdi" xabari yuborildi.` Shu payt ish kuningiz ochiladi — jonli joylashuvni ulashing (📡), u reys davomida yoziladi.
 
 Telegram'ga ulangan har mijoz oladi: `🚚 Buyurtmangiz yo'lga chiqdi: D-2026-00045 (1 240 000 so'm).\nEkspeditor: Sherzod, +998901112233\nMashina: 01 A 123 AA`. Ofis ham reys sahifasidagi **Yo'lga chiqarish** bilan shuni bajarishi mumkin.
 
@@ -449,11 +454,11 @@ Qisman yetkazishda mijozga: `✅ Buyurtma D-2026-00045 qisman yetkazildi (DJ-202
 ### 6.5.6 Rad etildi
 
 1. **🚫 Rad etildi** → "Rad etish sababini tanlang:" (qaytarish sabablari).
-2. Sababni tanlang → "🚫 Rad etildi qayd qilindi. Tovar reys yopilganda omborga qaytariladi."
+2. Sababni tanlang → "🚫 Rad etildi qayd qilindi. Tovar reys yopilganda omborga qaytariladi." Rad etilgan tovarni mijozga qayta yetkazish — ofis yopilgan reysdan **Qayta yetkazish** bilan yangi buyurtma ochadi (7-bob).
 
 Mijozga: `🚫 Buyurtma D-2026-00045 qabul qilinmadi. Sabab: ....`; rahbarlarga — muammo xabari.
 
-> **Muhim:** Botdan to'liq yoki qisman yetkazishda **rasm yoki imzo majburiy** ("Yetkazishni tasdiqlang: rasm yuboring yoki mijoz imzosini oling."). Natijani kiritgandan keyin ekspeditor uni o'zgartira olmaydi — xato bo'lsa ofisga ayting: ofis reys yopilguncha natijani bekor qila oladi (7.7-bo'lim).
+> **Muhim:** Botdan to'liq yoki qisman yetkazishda **rasm yoki imzo majburiy** ("Yetkazishni tasdiqlang: rasm yuboring yoki mijoz imzosini oling."). Natijani kiritgandan keyin ekspeditor uni o'zgartira olmaydi — xato bo'lsa ofisga ayting: ofis reys yopilguncha natijani **↺** bilan qaytaradi (buyurtma holati, foto/imzo va mijoz xabari ham qaytadi, 7.7-bo'lim), keyin natijani qayta kiritasiz.
 
 ### 6.5.7 Manzilda to'lov olish
 
@@ -470,24 +475,27 @@ To'lov shu manzildagi mijoz va buyurtmaga, izohida reys raqami bilan yoziladi. N
 
 Xarajat reys sahifasida "Kutmoqda" holatida, **bot** belgisi bilan chiqadi; moliyaga ofis o'tkazadi (7.9-bo'lim).
 
-### 6.5.9 Reysni yopish
+### 6.5.9 Reysni yakunlash
 
-1. Hamma manzil bo'yicha natija kiritilgach **🏁 Reysni yopish**.
+1. Hamma manzil bo'yicha natija kiritilgach **🏁 Reysni yakunlash**.
    - Kutayotgan manzil bo'lsa: "Hali 2 ta manzil bo'yicha natija yo'q." va reys ro'yxati.
    - Yo'lda reys bo'lmasa: "Yo'ldagi reys yo'q."
-2. "Reys R-2026-00007ni yopasizmi? Yetkazilmagan tovar omborga qaytgan deb hisoblanadi." → **✅ Tasdiqlash**.
+2. "Reys R-2026-00007ni yakunlaysizmi? Yetkazilmagan tovarni omborga topshiring — ombor sanaydi, reysni ofis yopadi." → **✅ Tasdiqlash**.
 3. Bot yakun beradi:
 
 ```
-🏁 Reys R-2026-00007 yopildi.
+🏁 Reys R-2026-00007 yakunlandi.
 Yetkazildi: 4, qisman: 1, rad: 1
-Yetkazilgan: 8 380 000 so'm, qaytdi: 1 480 000 so'm
+Yetkazilgan: 8 380 000 so'm, omborga topshiriladi: 1 480 000 so'm
 Reysda yig'ilgan: 4 200 000 so'm, qo'lingizda: 4 200 000 so'm
+Ombor tovarni sanab, reysni ofis yopadi.
 ```
 
 4. Qo'lda naqd bo'lsa darhol kassa ma'lumoti va **📤 Kassaga topshirish** tugmasi chiqadi (6.4.13 bilan bir xil).
 
-> **Muhim:** Ekspeditor botdan yopganda yetkazilmagan **hamma** tovar omborga qaytgan deb yoziladi (qaytarish hujjati bilan). Agar tovarning bir qismi yo'qolgan bo'lsa, botdan yopmang — ofis reys sahifasida qaytgan miqdorni aniq kiritib yopadi va farq kamomad sifatida qayd qilinadi (7.8-bo'lim).
+Rahbar va omborchiga: `🏁 Reys R-2026-00007 yakunlandi (…). Qaytadigan tovar: 1 480 000 so'm — omborda sanab, Reyslar sahifasida yoping (qaytgan miqdor va kamomad).`
+
+> **Muhim:** Yakunlash reysni **yopmaydi** — reys "Yo'lda" qoladi, ombor hali hech narsa qabul qilmaydi. Yetkazilmagan tovarni omborga topshiring: ombor uni sanaydi, ofis **Reyslar → reys → Yopish** da haqiqatda qaytgan miqdorni kiritadi, farq kamomad sifatida qayd qilinadi (7.8-bo'lim). Yakunlangan reys keyingi rejalangan reysni to'smaydi — botda keyingi reys ko'rinadi.
 
 ## 6.6 Omborchi
 
@@ -538,7 +546,7 @@ Sanoq hujjatini ofis ERP'da yaratadi (Distributsiya → Inventarizatsiya → Yan
 
 Jo'natish ERP'dagi ofis "Jo'natish" amali bilan bir xil: ombordan chiqim, mijoz qarzi, mijozga "Buyurtmangiz D-2026-00045 jo'natildi ..." xabari. Qisman yig'ilgan bo'lsa buyurtma "qisman jo'natilgan" bo'lib ro'yxatda qoladi. Jo'natish (DJ) yetkazish uchun bo'lsa, u reys rejalashda paydo bo'ladi (7.5-bo'lim).
 
-> **Muhim:** Yig'ilgan miqdorlar **Jo'natish** bosilguncha faqat ilovada turadi. Ilova yopilsa yoki ro'yxatga qaytilsa, yig'ish qaytadan boshlanadi. Hech narsa yig'ilmagan bo'lsa: "Hali hech narsa yig'ilmadi."
+> **Eslatma:** Yig'ilgan miqdorlar har o'zgarishda telefon xotirasida saqlanadi (**2 kun**) — ilova yopilsa yoki ro'yxatga qaytilsa ham yig'ish o'sha joydan davom etadi. Jo'natilgach saqlangan natija o'chadi. Hech narsa yig'ilmagan bo'lsa: "Hali hech narsa yig'ilmadi."
 
 ## 6.7 Rahbar
 
@@ -551,14 +559,15 @@ Rahbar menyusi: **📊 Bugungi yakun** · **📦 Ombor** / **⚠️ Muammo**.
 | Hodisa | Xabar | Amal |
 |---|---|---|
 | Yirik buyurtma (Sozlamalar → "Yirik buyurtma, so'm" dan katta) | `Yirik buyurtma D-2026-00045: DEMO Bunyodkor qurilish, 48 000 000 so'm.` | — |
-| Buyurtma kredit shartidan chiqdi (limit yoki muddati o'tgan qarz) | `Buyurtma D-2026-00046 (DEMO Anvar do'koni, 25 000 000 so'm) kredit shartidan chiqdi — tasdiqlash kerak:` | **✅ Tasdiqlash** |
+| Buyurtma kredit shartidan chiqdi (limit yoki muddati o'tgan qarz) — yaratishda, tahrirdan keyin yoki tasdiqlash qarz sabab rad etilganda; bir buyurtmaga kuniga bir marta | `Buyurtma D-2026-00046 (DEMO Anvar do'koni, 25 000 000 so'm) kredit shartidan chiqdi — tasdiqlash kerak:` | **✅ Tasdiqlash** |
 | Hisobdan chiqarish tasdiqqa yuborildi | `🗑 Hisobdan chiqarish DW-2026-00004 tasdiqni kutmoqda` + ombor, sabab, tuzgan | **✅ Tasdiqlash** / **❌ Rad etish** |
 | Tovar minimal qoldiqdan past | `⚠️ Minimal qoldiqdan past — ...` | — |
-| Ko'chirma farq bilan qabul qilindi | `📦 Ko'chirma farqi DT-...: ombor → ombor` + kamomad, yo'qotish, ortiqcha | — |
+| Ko'chirma farq bilan qabul qilindi | `📦 Ko'chirma farqi DT-...: ombor → ombor` + kamomad, yo'qotish, ortiqcha (summalar — tannarx huquqi bilan, aks holda faqat qatorlar soni) | — |
 | Agent yangi nuqta qo'shdi | `🆕 Yangi savdo nuqtasi: ...` | ERP'da tasdiqlash |
 | Agent/ekspeditor naqdni topshirdi | `... kassaga ... so'm topshirdi — qabul qiling.` | Kassir qabul qiladi |
 | Yangi muammo (⚠️ Muammo) | `⚠️ Yangi muammo P-...: ...` | Xatolar jurnali |
 | Yetkazishda qisman yoki rad | `⚠️ Reys R-...: mijoz, buyurtma ... — Qisman. Sabab: .... Ekspeditor: ...` | — |
+| Ekspeditor reysni yakunladi (omborchiga ham) | `🏁 Reys R-... yakunlandi (...). Qaytadigan tovar: ... so'm — omborda sanab, Reyslar sahifasida yoping (qaytgan miqdor va kamomad).` | Ombor sanaydi, ofis yopadi |
 | Reys yopildi | `🏁 Reys R-2026-00007 yopildi: yetkazildi 5/6, ... so'm; omborga qaytdi ... so'm, kamomad ... so'm; xarajat ... so'm.` | — |
 
 Amalni bajargan rahbarning o'ziga (masalan reysni o'zi yopsa) xabar yuborilmaydi.
@@ -585,13 +594,13 @@ Bot har kuni kechqurun (standart — Toshkent vaqti bilan 20:00 dan keyin, kunig
 Kun yakuni 21.11.2026
 Buyurtmalar: 23 ta, 61 400 000 so'm
 Jo'natildi: 48 900 000 so'm
-Tushum: 17 300 000 so'm
+Yig'ilgan pul (to'lovlar): 17 300 000 so'm
 Umumiy qarz: 212 000 000 so'm (muddati o'tgan: 18 500 000)
 Faol agentlar: 5/6
 Kun yetakchisi: Jasur — 14 600 000 so'm
 ```
 
-"Faol agentlar" — bugun kunini boshlagan agentlar / jami faol agentlar. Ma'lumot tayyor bo'lmasa: "Yakun hozircha tayyor emas."
+"Yig'ilgan pul (to'lovlar)" — shu kunda olingan mijoz to'lovlari (5.8). "Faol agentlar" — bugun kunini boshlagan agentlar / jami faol agentlar. Ma'lumot tayyor bo'lmasa: "Yakun hozircha tayyor emas."
 
 ## 6.8 Mijoz
 
@@ -603,12 +612,13 @@ Mijoz menyusi: **💳 Qarzim** · **📄 Akt sverki** ("Buyurtmalaringiz holati 
 
 | Hodisa | Xabar mijozga |
 |---|---|
-| Buyurtma jo'natildi (ombordan chiqdi) | `Buyurtmangiz D-2026-00045 jo'natildi: 1 240 000 so'm. Joriy qarzingiz: 4 640 000 so'm.` |
+| Buyurtma jo'natildi (ombordan chiqdi) | `Buyurtmangiz D-2026-00045 jo'natildi: 1 240 000 so'm. Joriy qarzingiz: 4 640 000 so'm.` (o'zi olib ketishda bu xabar o'rniga bitta "yetkazildi" xabari) |
 | Reys yo'lga chiqdi | `🚚 Buyurtmangiz yo'lga chiqdi: D-2026-00045 (1 240 000 so'm).` + ekspeditor, telefoni, mashina |
 | To'liq yetkazildi | `✅ Buyurtma ... yetkazildi (...): ... so'm. Nakladnoy ilova qilingan.` + **PDF** |
 | Qisman yetkazildi | `✅ Buyurtma ... qisman yetkazildi (...): ... so'm (... so'mdan). Sabab: .... Nakladnoy ilova qilingan.` + **PDF** |
 | Rad etildi | `🚫 Buyurtma ... qabul qilinmadi. Sabab: ....` |
 | Ofis buyurtmani "Yetkazildi" deb belgiladi (reyssiz) | `Buyurtmangiz ... yetkazildi: ... so'm. Rahmat!` |
+| Ofis yetkazish natijasini qaytardi (↺), xabar allaqachon ketgan bo'lsa | `↺ yetkazish natijasi bekor qilindi va qayta kiritiladi` |
 | To'lov qabul qilindi | `To'lovingiz qabul qilindi: ... so'm (...). Qolgan qarz: ... so'm.` |
 
 ### 6.8.2 Nakladnoy PDF
@@ -644,7 +654,7 @@ Qarz bo'lmasa: "Qarzingiz yo'q. ✅"; oldindan to'lov bo'lsa — "Avans (oldinda
 
 | Talab | Holat | Izoh va maslahat |
 |---|---|---|
-| Oflayn ishlash | Yo'q | Bot va Mini App internet talab qiladi. Aloqa yo'q joyda buyurtmani tuzib, aloqa chiqqanda yuboring; qayta yuborish ikkinchi buyurtma yaratmaydi. Mini App savati faqat oyna ochiq turganda saqlanadi — yopmang |
+| Oflayn ishlash | Yo'q | Bot va Mini App internet talab qiladi. Aloqa yo'q joyda buyurtmani tuzib, aloqa chiqqanda yuboring; qayta yuborish ikkinchi buyurtma yaratmaydi. Mini App savati telefonda 3 kun saqlanadi — oyna yopilsa ham yo'qolmaydi |
 | Soxta GPS'ni aniqlash | Yo'q | Telegram imkon bermaydi. Bilvosita nazorat: jonli/statik belgisi, GPS aniqligi, vaqt, selfi, javon fotosi (Dala nazorati) |
 | "Keldim" radiusi | Bor | Radius sozlamada; GPS aniqligi hisobga olinadi. Bino ichida GPS yomon — eshik oldida yuboring |
 | Selfi "hozir tushirilgan"mi | Qisman | Gallereyadan yuborilgan rasmni ajratib bo'lmaydi. Rahbar selfilarni Dala nazoratida ko'rib boradi |
@@ -674,11 +684,13 @@ Qo'shimcha maslahatlar:
 | Avval ish kunini boshlang. | Selfi majburiy, kun boshlanmagan | ▶️ Kunni boshlash |
 | Avval 📍 Keldim tugmasi bilan tashrifni boshlang. | Tashrifsiz amal | Kartada 📍 Keldim |
 | Rasm juda katta. / Rasmni olib bo'lmadi, qayta yuboring. | Rasm 5 MB dan katta yoki yuklanmadi | Oddiy foto sifatida qayta yuboring |
-| Sizga hozircha reys biriktirilmagan. | Ekspeditorga reys yo'q yoki eski | Ofis reys rejalashi kerak |
+| Sizga hozircha reys biriktirilmagan. | Ekspeditorga yo'ldagi yoki rejalangan reys yo'q | Ofis reys rejalashi kerak |
+| "Keldim" uchun jonli joylashuv kerak: ... | Sozlamada "Keldim — faqat jonli joylashuv" yoqilgan, statik joylashuv yuborilgan | 📎 → Joylashuv → "Jonli joylashuvni ulashish" |
+| 🎙 Ovozli buyurtma faqat agentlar uchun. | Ekspeditor ovozli xabar yuborgan | Buyurtmani agent beradi |
 | Yetkazishni tasdiqlang: rasm yuboring yoki mijoz imzosini oling. | Isbotsiz yetkazish | Rasm yoki imzo |
 | Reys yo'lda emas. | Yo'lga chiqilmagan yoki reys yopilgan | ▶️ Yo'lga chiqish |
 | Mini App: "Bu sahifa Telegram ichida ochiladi." | Havola brauzerda ochilgan | Faqat bot tugmasidan oching |
 | Mini App: "initData" / Xatolik 401 | Mini App juda uzoq ochiq turgan (sessiya eskirgan) | Oynani yopib, bot tugmasidan qayta oching |
-| Mini App: "Bu amal sizning rolingiz uchun emas." | Masalan omborchi buyurtma oynasini yoki agent yetkazish oynasini ochgan | Rolga mos tugmadan foydalaning |
+| Mini App: "Bu amal sizning rolingiz uchun emas." | Masalan omborchi yoki rahbar buyurtma oynasini, yoki agent yetkazish oynasini ochgan | Rolga mos tugmadan foydalaning |
 | Selfi/foto ERP'da ko'rinmaydi | Sozlamalarda "Bot ochiq manzili" bo'sh | 6.2-bo'lim |
 | Mijozga xabar bormayapti | Mijoz botga ulanmagan yoki botni bloklagan | Mijozni qayta ulang |

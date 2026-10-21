@@ -14,4 +14,4 @@ Barcha misollar bitta demo-ssenariyda: `_DEMO.md`.
 | 6. Telegram bot va Mini App: agent, ekspeditor, omborchi, rahbar, mijoz | `06_TELEGRAM.md` | dala xodimlari, rahbar |
 | 7. Yetkazish: mashinalar, reys, marshrut, reysni yopish, xarajatlar, tashrif rejasi | `07_YETKAZISH.md` | logist, ekspeditor, rahbar |
 
-Qo'llanma yozilganda kodda topilgan kamchiliklar va savollar — `../05_FINDINGS.md`.
+Qo'llanma yozilganda kodda topilgan kamchiliklar ro'yxati — `../05_FINDINGS.md`; ular tuzatilgan (bir qismi ataylab qoldirilgan), qo'llanma yangi xatti-harakatga moslangan.

@@ -107,7 +107,7 @@ To'lov oynasini uch joydan ochish mumkin:
 
 > **Muhim:** Naqddan boshqa usulda hisob tanlash shart. Aks holda: "Kassa yoki hisobni tanlang (naqddan boshqa to'lov darhol hisobga tushadi)."
 
-> **Muhim:** Ofisda naqd to'lov kiritib, hisobni bo'sh qoldirsangiz, pul **sizning qo'lingizda** deb yoziladi va "Agentlar naqdi va kassa" sahifasida sizning nomingiz bilan chiqadi. Kassaga darhol tushgan naqd uchun hisobda `Naqd pul` ni tanlang.
+> **Muhim:** Ofisda naqd to'lov kiritib, hisobni bo'sh qoldirsangiz ("Agent qo'lida (naqd)"), pul **buyurtma agenti** qo'lida deb yoziladi (buyurtmasiz to'lovda — mijoz kartasidagi agent) va "Agentlar naqdi va kassa" sahifasida o'sha agent naqdida chiqadi. Agent yo'q bo'lsa — to'lovni kiritgan foydalanuvchi qo'lida. Kassaga darhol tushgan naqd uchun hisobda `Naqd pul` ni tanlang.
 
 > **Eslatma:** Web'da hamma 6 usul tanlanadi — "Agent to'lovlari" sozlamasi faqat botga ta'sir qiladi.
 
@@ -123,9 +123,9 @@ Ro'yxatda faqat ko'rinish doirangizdagi mijozlar va agentlar to'lovlari chiqadi 
 
 Xato kiritilgan to'lov qatoridagi ✕ tugmasi → sababni yozing → OK.
 
-**Natija:** to'lov "Bekor qilingan" bo'ladi, Moliya yozuvi o'chiriladi, mijoz hisob varag'iga teskari yozuv ("To'lov bekor qilindi") tushadi — qarz qayta oshadi.
+**Natija:** to'lov "Bekor qilingan" bo'ladi, Moliya yozuvi o'chiriladi, mijoz hisob varag'iga teskari yozuv ("To'lov bekor qilindi") tushadi — qarz qayta oshadi. Buyurtma shu to'lov bilan **Yopildi** bo'lgan bo'lsa va qarzi endi yopilmasa, u qayta ochiladi (Yetkazildi yoki Jo'natildi; sabab holat tarixida).
 
-> **Muhim:** Kassaga topshirilgan (topshirish hujjatiga kirgan) agent to'lovini bekor qilib bo'lmaydi: "Bu to'lov kassaga topshirilgan — bekor qilib bo'lmaydi." Tugma ham ko'rinmaydi. Kassir qabul qilgan pul bo'yicha xato bo'lsa — tuzatish Moliya modulida qo'lda qilinadi va rahbar bilan kelishiladi.
+> **Muhim:** Kassaga topshirilgan (topshirish hujjatiga kirgan) agent to'lovini to'g'ridan-to'g'ri bekor qilib bo'lmaydi: "Bu to'lov kassaga topshirilgan. Avval Agentlar naqdi va kassa sahifasida topshirishni bekor qiling." Avval topshirish hujjatini bekor qiling (3.5.4) — to'lovlar yana agent qo'lida bo'ladi, keyin xato to'lovni shu yerda oddiy tartibda bekor qiling.
 
 ## 3.4 Dalada to'lov (agent, bot)
 
@@ -171,7 +171,7 @@ Agent qo'lidagi pulni botda ko'rish: **💵 Kassa** → "💵 Qo'lingizdagi naqd
 2. **📤 Kassaga topshirish** → bot: "2 500 000 so'mni kassaga topshirasizmi? Kassir sanab qabul qiladi." → tasdiqlang.
 3. Pulni kassirga bering.
 
-**Natija:** `DK-2026-00001` hujjati "kutmoqda" holatida yaratiladi. Unga qo'lingizdagi **barcha** naqd to'lovlar kiradi. Rahbarlarga Telegram'da "Jasur kassaga 2 500 000 so'm topshirdi — qabul qiling." xabari boradi. Pul "Agent naqdi topshiriladigan kassa" sozlamasidagi kassaga yoziladi.
+**Natija:** `DK-2026-00001` hujjati "kutmoqda" holatida yaratiladi. Unga qo'lingizdagi **barcha** naqd to'lovlar kiradi. Rahbarlarga Telegram'da "Jasur kassaga 2 500 000 so'm topshirdi — qabul qiling." xabari boradi. Hujjatga "Agent naqdi topshiriladigan kassa" sozlamasidagi kassa yoziladi; kassir qabul qilishda boshqa kassani tanlashi mumkin (3.5.3).
 
 > **Muhim:** Agentda bitta kutilayotgan topshirish bo'lsa, ikkinchisini yuborib bo'lmaydi: "Agentning kutilayotgan topshirishi bor — avval uni qabul qiling yoki rad eting." Qo'lida naqd bo'lmasa: "Agent qo'lida topshiriladigan naqd pul yo'q."
 
@@ -191,7 +191,7 @@ Agent qo'lidagi pulni botda ko'rish: **💵 Kassa** → "💵 Qo'lingizdagi naqd
 
 Qadamlar:
 1. Agent qatoridagi **Qabul qilish** ni bosing.
-2. Oynada "To'lovlar bo'yicha: 2 500 000" ko'rinadi.
+2. Oynada "To'lovlar bo'yicha: 2 500 000" ko'rinadi. Agent botdan topshirgan bo'lsa — bu topshirish hujjatidagi summa.
 3. Maydonlarni to'ldiring:
 
 | Maydon | Nima kiritiladi | Misol |
@@ -204,20 +204,29 @@ Qadamlar:
 
 **Natija (misol):** `DK-2026-00001` qabul qilindi, Farq = 2 490 000 − 2 500 000 = **−10 000** (kamomad). Moliya'da:
 - "Naqd pul" hisobiga **2 500 000 kirim** ("Sotuv daromadi", kontragent — DEMO Anvar do'koni, maqsad "Distributsiya to'lovi DP-2026-00002");
-- "Naqd pul" hisobidan **10 000 chiqim** ("Agent kassa farqi" moddasi, maqsad "Kamomad: DK-2026-00001", kontragent nomi — Jasur).
+- "Naqd pul" hisobidan **10 000 chiqim** ("Agent kassa farqi" moddasi, maqsad "Kamomad: DK-2026-00001"). Jasur agent KPI sxemasida HR xodimiga bog'langan bo'lsa, chiqim kontragenti — shu **xodim** (kontragent turi Xodim): kamomad agent qarzi bo'lib ish haqi qarzidan ayriladi. Bog'lanmagan bo'lsa — oddiy kassa chiqimi (kontragent nomi — Jasur).
 - Kassa qoldig'i jami +2 490 000 — qutidagi haqiqiy pulga teng. Jasurning qo'lida 0 qoladi.
 
 Ortiqcha bo'lsa (masalan sanalgan 2 505 000), farq +5 000 shu moddada **kirim** bo'lib yoziladi.
 
-> **Eslatma:** Mijoz qarzi farqdan o'zgarmaydi: mijoz 2 500 000 to'lagan, kamomad — agent va kompaniya o'rtasidagi masala. Kamomadni agentdan undirish (ish haqidan ushlash va h.k.) tizimda avtomatik emas — rahbar qarori bilan HR yoki Moliya modulida qo'lda qilinadi.
+> **Eslatma:** Mijoz qarzi farqdan o'zgarmaydi: mijoz 2 500 000 to'lagan, kamomad — agent va kompaniya o'rtasidagi masala. Agent HR xodimiga bog'langan bo'lsa (5-bob, 5.7), kamomad uning ish haqi qarzidan avtomatik ayriladi; bog'lanmagan bo'lsa undirish rahbar qarori bilan qo'lda qilinadi.
 
-> **Muhim:** Agent botdan topshirgan bo'lsa (qatorda "topshirdi, kutmoqda"), **Qabul qilish** oynasidagi "Kassa / hisob" tanlovi hisobga olinmaydi — pul botdan topshirishda belgilangan kassaga yoziladi. Shuningdek, oynadagi "To'lovlar bo'yicha" summa agent qo'lidagi **hamma** naqdni ko'rsatadi; agar agent topshirgandan keyin yana naqd olgan bo'lsa, u summa hujjatdagidan katta bo'ladi. Bunday holda "Sanalgan" ga faqat topshirish hujjatidagi pulni yozing yoki avval topshirishni rad etib, agentdan qaytadan topshirishni so'rang.
+> **Eslatma:** Agent botdan topshirgan bo'lsa (qatorda "topshirdi, kutmoqda"), oynadagi summa — topshirish hujjatidagi summa, "Kassa / hisob" tanlovi esa hisobga olinadi: boshqa kassani tanlasangiz pul o'sha kassaga yoziladi. Agent topshirgandan keyin yana naqd olgan bo'lsa, qatorda "topshirishdan keyin olingan: … (keyingi topshirishga)" deb ko'rsatiladi va oynada ogohlantirish chiqadi — bu pul hujjatga kirmaydi va agent qo'lida qoladi. "Sanalgan" ga faqat topshirish hujjatidagi pulni yozing.
 
 ### 3.5.4 Rad etish
 
 Pastdagi **"Kassaga topshirishlar"** jadvalida (oxirgi 100 ta) kutayotgan hujjat qatorida **Rad etish** → sabab → OK.
 
 **Natija:** hujjat "Bekor qilingan", to'lovlar yana agent qo'lida. Agent qaytadan topshiradi.
+
+### 3.5.5 Qabul qilingan topshirishni bekor qilish
+
+Qabul qilingan topshirishda xato topilsa (masalan, ichida xato kiritilgan to'lov bor):
+
+1. **"Kassaga topshirishlar"** jadvalida qabul qilingan hujjat qatoridagi **Bekor qilish** ni bosing.
+2. Sababni yozing → OK.
+
+**Natija:** hujjat "Bekor qilingan"; to'lovlarning Moliya yozuvlari va farq yozuvi bekor qilinadi, to'lovlar yana agent qo'lida. Keyin xato to'lovni To'lovlar ro'yxatida oddiy tartibda bekor qiling (3.3), qolganini agent qaytadan topshiradi.
 
 Jadval ustunlari: Raqam, Sana, Agent, Kassa / hisob, To'lovlar bo'yicha, Sanalgan, Farq (kamomad qizil, ortiqcha yashil).
 
@@ -228,6 +237,7 @@ Mijoz qarzi hech qachon qo'lda yozilmaydi — u hujjatlardan avtomatik yig'iladi
 | Hujjat (akt sverkida "Turi") | Yozuv | Muddat |
 |---|---|---|
 | Kirish qoldig'i | Debet (qarz) yoki kredit (avans) | Importdagi muddat yoki import sanasi + to'lov muddati |
+| Kirish qoldig'i bekor qilindi | Teskari yozuv (3.11) | — |
 | Jo'natish | Debet — jo'natilgan summa | Jo'natish sanasi + to'lov muddati |
 | Jo'natish bekor qilindi | Teskari yozuv | — |
 | To'lov | Kredit | — |
@@ -297,7 +307,7 @@ Kreditlar jami 3 500 000. FIFO: avval 05.11 muddatli kirish qoldig'i 1 500 000 t
 
 ### Buyurtmaning "Yopildi" holati
 
-Har to'lov, qaytarish va jo'natishdan keyin tizim tekshiradi: buyurtmaning barcha jo'natish debetlari FIFO bo'yicha to'liq yopilgan bo'lsa, "Jo'natildi" yoki "Yetkazildi" holatidagi buyurtma avtomatik **Yopildi** ga o'tadi. "Qisman jo'natildi" holatidagi buyurtma yopilmaydi.
+Har to'lov, qaytarish va jo'natishdan keyin tizim tekshiradi: buyurtmaning barcha jo'natish debetlari FIFO bo'yicha to'liq yopilgan bo'lsa, "Jo'natildi" yoki "Yetkazildi" holatidagi buyurtma avtomatik **Yopildi** ga o'tadi. To'lov, qaytarish yoki kirish qoldig'i bekor qilinib qarz yana ochilsa, Yopildi buyurtma qayta ochiladi (Yetkazildi; yetkazilmagan bo'lsa Jo'natildi). "Qisman jo'natildi" holatidagi buyurtma yopilmaydi — ataylab, qolgani hali jo'natilishi mumkin. "Qolganidan voz kechish" qilinsa va jo'natilgani to'langan bo'lsa — darhol Yopildi (2-bob, 2.11).
 
 ## 3.8 Muddati o'tgan qarz va kredit limiti: buyurtmaga ta'siri
 
@@ -306,9 +316,9 @@ Mijoz kartasida "Kredit limiti" va "To'lov muddati (kun)" beriladi (limit 0 dan,
 | Shart | Xabar |
 |---|---|
 | Mijozda muddati o'tgan qarz bor (1 kundan ko'p) | "Muddati o'tgan qarz bor: {summa}." |
-| Balans + yangi buyurtma summasi > kredit limiti | "Qarz + buyurtma {summa} — limit {limit} dan oshadi." |
+| Balans + tasdiqlangan, jo'natilmagan buyurtmalar + yangi buyurtma summasi > kredit limiti | "Qarz + buyurtma {summa} — limit {limit} dan oshadi." (+ "(shundan tasdiqlangan, hali jo'natilmagan buyurtmalar: {summa})") |
 
-Shartlardan biri buzilsa, buyurtma tasdiqlanmaydi. Uni faqat **"Limitdan oshishga ruxsat"** huquqi (DstOverrideCredit) bor foydalanuvchi izoh yozib tasdiqlay oladi — web'da buyurtma kartasida yoki Telegram'da rahbarga kelgan xabardagi **✅ Tasdiqlash** tugmasi bilan. Agent buyurtmani saqlaganda ham shu tekshiruv bajariladi va shart buzilsa rahbarlarga "Buyurtma … kredit shartidan chiqdi — tasdiqlash kerak" xabari ketadi.
+Shartlardan biri buzilsa, buyurtma tasdiqlanmaydi. Uni faqat **"Limitdan oshishga ruxsat"** huquqi (DstOverrideCredit) bor foydalanuvchi izoh yozib tasdiqlay oladi — web'da buyurtma kartasida yoki Telegram'da rahbarga kelgan xabardagi **✅ Tasdiqlash** tugmasi bilan. Agent buyurtmani saqlaganda ham shu tekshiruv bajariladi va shart buzilsa rahbarlarga "Buyurtma … kredit shartidan chiqdi — tasdiqlash kerak" xabari ketadi. Xabar tahrirdan keyin limitdan oshganda va tasdiqlash qarz sabab rad etilganda ham yuboriladi — bir buyurtmaga kuniga bir marta.
 
 **Misol 1 — muddati o'tgan qarz (12.11.2026):** Anvar do'koni 50 list gipsokarton × 68 000 = 3 400 000 so'mlik buyurtma berdi. Balans 4 200 000, shundan 4 200 000 muddati o'tgan (2 kun). Limit bo'yicha 4 200 000 + 3 400 000 = 7 600 000 < 20 000 000 — muammo yo'q, lekin muddati o'tgan qarz bor → "Muddati o'tgan qarz bor: 4 200 000." Buyurtma "Yangi" holatida qoladi, rahbar ruxsati kerak.
 
@@ -316,7 +326,7 @@ Shartlardan biri buzilsa, buyurtma tasdiqlanmaydi. Uni faqat **"Limitdan oshishg
 
 > **Muhim:** Limit 0 — mijoz faqat oldindan to'lov bilan ishlaydi: avansi buyurtma summasini qoplamasa, tasdiq bloklanadi.
 
-> **Muhim:** Limit tekshiruvida faqat hisob varag'idagi balans olinadi. Tasdiqlangan, lekin hali **jo'natilmagan** buyurtmalar balansga kirmaydi. Masalan, Anvar do'konining 05.11 dagi 12 400 000 so'mlik tasdiqlangan (rezervdagi) buyurtmasi jo'natilmaguncha limitni "band" qilmaydi. Bir mijozga ketma-ket bir nechta yirik buyurtma tasdiqlashda buni hisobga oling.
+> **Eslatma:** Limit tekshiruvida balansga tasdiqlangan, yig'ilayotgan va qisman jo'natilgan buyurtmalarning hali **jo'natilmagan** qismi ham qo'shiladi. Masalan, Anvar do'konining 05.11 dagi 12 400 000 so'mlik tasdiqlangan (rezervdagi) buyurtmasi jo'natilmagan bo'lsa ham limitni band qiladi: Misol 2 dagi buyurtma uchun 4 200 000 + 12 400 000 + 16 000 000 = 32 600 000 > 20 000 000. Buyurtma kartasida va yangi buyurtma oynasida "Tasdiqlangan, jo'natilmagan" qatori ko'rinadi, "Limitdan qolgan" uni ayirib ko'rsatadi.
 
 ## 3.9 Oldindan to'lov (avans) va avtomatik yopilish
 
@@ -380,7 +390,7 @@ Tizimga o'tish kunidagi mijoz qarzlari va avanslari bir marta yuklanadi. Tartib 
 
 > **Muhim:** Har mijozga kirish qoldig'i faqat **bir marta**: ikkinchi marta "Bu mijozga kirish qoldig'i allaqachon kiritilgan." Bitta faylda bir mijoz ikki marta — "Faylda takrorlangan". Bitta qatorda xato bo'lsa ham hech narsa yozilmaydi.
 
-> **Muhim:** Kirish qoldig'ini bekor qiladigan yoki tahrirlaydigan sahifa yo'q. Xato yuklangan summani tuzatish uchun dasturchi yoki administrator bilan bog'laning. Shuning uchun avval ko'rib chiqish bilan tekshiring.
+> **Muhim:** Xato yuklangan kirish qoldig'ini tuzatish: **Qarzlar → mijoz akti** (📄) sahifasida **Kirish qoldig'ini bekor qilish** ni bosing va sababni yozing — teskari yozuv qilinadi. Keyin to'g'ri summani shu import orqali qayta kiriting. Shunga qaramay, avval ko'rib chiqish bilan tekshirish tavsiya etiladi.
 
 > **Eslatma:** Nol summali qator o'tkazib yuboriladi. Kirish qoldig'i Moliya moduliga yozilmaydi (3.12).
 
@@ -393,8 +403,9 @@ Distributsiya Moliya moduliga (FIN tranzaksiyalar) **faqat haqiqiy pul harakatin
 | Ofisda to'lov (hisob tanlangan) | Kirim, "Sotuv daromadi", kontragent — mijoz, maqsad "Distributsiya to'lovi DP-…", izohda to'lov usuli | Tanlangan kassa/hisob |
 | Agent naqdsiz to'lovi (karta, Click …) | Xuddi shunday kirim, darhol | "Agent to'lovlari" dagi usul hisobi |
 | Agent naqd to'lovi | Hech narsa — toki kassir qabul qilmaguncha | — |
-| Kassir topshirishni qabul qildi | Har to'lov uchun alohida kirim + farq bo'lsa "Agent kassa farqi" moddasida kirim (ortiqcha) yoki chiqim (kamomad) | Topshirish kassasi |
+| Kassir topshirishni qabul qildi | Har to'lov uchun alohida kirim + farq bo'lsa "Agent kassa farqi" moddasida kirim (ortiqcha) yoki chiqim (kamomad; agent HR xodimiga bog'langan bo'lsa — kontragent xodim, ish haqi qarzidan ayriladi) | Kassir tanlagan kassa |
 | To'lovni bekor qilish | Moliya yozuvi o'chiriladi | — |
+| Qabul qilingan topshirishni bekor qilish | To'lovlar kirimlari va farq yozuvi bekor qilinadi | — |
 | Reys xarajati "Moliyaga" o'tkazildi (2-bob) | Chiqim, tanlangan chiqim moddasi | Tanlangan kassa |
 
 **Ataylab yozilmaydigan** amallar:
@@ -419,7 +430,7 @@ Distributsiya Moliya moduliga (FIN tranzaksiyalar) **faqat haqiqiy pul harakatin
 
 Jami pul: 10 000 000 + 1 000 000 + 2 500 000 − 10 000 = **13 490 000**. Mijozlardan yig'ilgan (Rahbar panelidagi "Yig'ilgan pul"): 13 500 000 — farq 10 000 aynan kamomad.
 
-> **Muhim:** Moliya modulining "Kontragent qarzi" va P&L hisobotlarida distributsiya mijozlarining to'lovlari tushum sifatida ko'rinadi, lekin ularning jo'natishlari (CRM sotuv invoysi yo'q) ko'rinmaydi. Shuning uchun Moliya'dagi kontragent qoldig'ida distributsiya mijozi "ortiqcha to'lagan" bo'lib chiqishi mumkin. **Distributsiya mijozining haqiqiy qarzi — faqat Distributsiya → Qarzlar sahifasi va akt sverkida.**
+> **Eslatma:** Moliya modulida distributsiya to'lovlari pul sifatida (kassa, tushum) ko'rinadi, lekin kontragentlar qoldig'i va debitorlik hisobotlarida "avans" bo'lib qatnashmaydi — distributsiya jo'natishlari Moliya'ga yozilmagani uchun. **Distributsiya mijozining qarzi — faqat Distributsiya → Qarzlar sahifasi va akt sverkida.**
 
 > **Eslatma:** "Agent kassa farqi" va "Sotuv daromadi" moddalari topilmasa, tizim ularni o'zi yaratadi. Ularning nomini o'zgartirmang.
 

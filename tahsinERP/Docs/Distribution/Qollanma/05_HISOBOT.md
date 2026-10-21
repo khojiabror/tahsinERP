@@ -7,7 +7,7 @@ Bu bob rahbar va supervayzer uchun:
 - **Agent KPI** — % savdo, bonus, jarima va HR ish haqiga o'tkazish;
 - Telegram'dagi kunlik yakun;
 - **Xatolar jurnali** va botdagi ⚠️ Muammo;
-- o'zgarishlar tarixi (kim nimani o'zgartirdi) va tannarxni ko'rish huquqi.
+- o'zgarishlar tarixi va **Audit jurnali** (kim nimani o'zgartirdi), tannarxni ko'rish huquqi.
 
 **Namunaviy ssenariy (umumiy demo, noyabr 2026):**
 
@@ -45,6 +45,8 @@ Sement tannarxi 40 000 so'm/qop (FIFO). Bunyodkor qurilishga agent biriktirilmag
 **Kim:** rahbar   **Menyu:** Distributsiya → Rahbar paneli
 
 Yuqorida: sana (standart — bugun; kelajak sanani tanlab bo'lmaydi), **Bugun** tugmasi, **Excel**, o'ng tomonda "05.11.2026 holatiga, yangilangan 18:40".
+
+O'tgan sana tanlansa: tushum, foyda, yig'ilgan pul — o'sha kun bo'yicha; qarz va muddatlar — **o'sha kun oxiridagi** holat. Tarixiy holati saqlanmaydigan ko'rsatkichlar (tasdiq/jo'natish kutmoqda, agentlar naqdi, kutilayotgan topshirishlar, ombor qiymati) yonida **hozirgi holat** belgisi turadi.
 
 ### 5.2.1 Yuqori plitalar
 
@@ -84,7 +86,7 @@ Kunlar bo'yicha tushum (ko'k) va — tannarx huquqi bilan — yalpi foyda (yashi
 | Ishga chiqqan agentlar | Kunni boshlagan agentlar / barcha faol agentlar (ekspeditorsiz) | 1 / 1 |
 | Tashriflar | Shu kundagi tashriflar (bosilsa — Tashriflar hisoboti) | 1 |
 
-> **Eslatma:** "Tasdiq kutmoqda" va "Jo'natish kutmoqda" har doim **hozirgi** holatni ko'rsatadi — o'tgan sana tanlansa ham.
+> **Eslatma:** "Tasdiq kutmoqda" va "Jo'natish kutmoqda" har doim **hozirgi** holatni ko'rsatadi — o'tgan sana tanlansa, ular yonida "hozirgi holat" belgisi chiqadi.
 
 ### 5.2.4 "Mijozlar qarzi" bloki
 
@@ -97,7 +99,7 @@ Misolda: Muddati kelmagan 4 200 000, Avans 1 750 000 (Bunyodkor qurilish).
 
 ### 5.2.5 "Pul" bloki
 
-Har faol kassa/bank hisobi qoldig'i (valyuta bilan), **Agentlar qo'lida** (nechta agentda) va **Topshirilgan, tasdiq kutmoqda**. **Agentlar topshirgan pul →** — kassa hisobotiga.
+Har faol kassa/bank hisobi qoldig'i (valyuta bilan), **Agentlar qo'lida** (nechta agentda) va **Topshirilgan, tasdiq kutmoqda** — o'tgan sanada ular "hozirgi holat" belgisi bilan. **Agentlar topshirgan pul →** — kassa hisobotiga.
 
 ### 5.2.6 "Agentlar reytingi (oy boshidan)"
 
@@ -137,6 +139,15 @@ Filtrlar: davr (standart — oy boshidan bugungacha), Barcha agentlar, Barcha hu
 | Buyurtmalar, Mijozlar | Nechta buyurtma va mijoz |
 
 Pastda **Jami** qatori. Qidiruv, saralash va sahifalash — server tomonida (katta bazada ham tez).
+
+Filtrsiz hisobotda (tannarx huquqi bilan) Jami ostida yana ikki qator:
+
+| Qator | Ma'nosi |
+|---|---|
+| Qo'shimcha xarajat — sotilgan tovarga tushgan qismi (davr xarajati) | Davrda o'tkazilgan landed cost hujjatlarining allaqachon sotilgan tovarga to'g'ri kelgan qismi (4-bob, 4.7), o'tkazilgan kun bo'yicha |
+| Foyda (qo'shimcha xarajatdan keyin) | Yalpi foyda − shu qism |
+
+Bu summa agent, mijoz va boshqa kesimlar bo'yicha taqsimlanmaydi.
 
 ### Drill-down (qatorni bosish)
 
@@ -232,14 +243,14 @@ Tanlangan sana (standart — bugun) bo'yicha har agent va ekspeditor:
 | | **Batafsil** |
 
 **Batafsil** (bitta agent):
-- **Tashriflar:** Mijoz, Keldi (vaqt), Masofa (mijoz nuqtasidan, m), Natija (Buyurtma / To'lov / Buyurtmasiz + sabab), Foto; belgilar "rejadan tashqari" va "statik" (jonli emas, oddiy joylashuv yuborilgan).
+- **Tashriflar:** Mijoz, Keldi (vaqt), Masofa (mijoz nuqtasidan, m), Natija (Buyurtma / To'lov / Buyurtmasiz + sabab), Foto; belgilar "rejadan tashqari" va "statik" (jonli emas, oddiy joylashuv yuborilgan). Sozlamalarda "Keldim — faqat jonli joylashuv" yoqilgan bo'lsa, statik joylashuv bilan tashrif qabul qilinmaydi (1-bob, 1.2.1).
 - **Joylashuv izi:** Vaqt, Manba (jonli / kun boshi/yakuni / tashrif). **Iz xaritada (N)** — Yandex xaritada 100 tagacha nuqta bilan ochiladi.
 
 Bugungi sahifa har daqiqada o'zi yangilanadi (rasm ochiq bo'lsa kutadi).
 
 > **Muhim:** Selfi va fotolarni ko'rish uchun Sozlamalarda **Bot ochiq manzili (rasmlar uchun)** to'ldirilgan bo'lishi kerak, aks holda "Rasmlarni ko'rish uchun Sozlamalarda bot manzilini (Bot ochiq manzili) kiriting." Selfi majburiyligi — Sozlamalar → "Kun boshida selfi majburiy".
 
-> **Eslatma:** Jonli joylashuv faqat ish kuni ochiq paytda (kun boshidan yakunigacha) yoziladi, ko'pi bilan 30 soniyada bir nuqta — agentning shaxsiy vaqti kuzatilmaydi.
+> **Eslatma:** Jonli joylashuv faqat ish kuni ochiq paytda (kun boshidan yakunigacha) yoziladi, ko'pi bilan 30 soniyada bir nuqta — agentning shaxsiy vaqti kuzatilmaydi. Ekspeditorning ish kuni reys boshlanganda (**Yo'lga chiqish**) avtomatik, selfisiz ochiladi va reys yakunlanganda yoki yopilganda (boshqa yo'ldagi reysi bo'lmasa) yopiladi — shuning uchun reys davomida ekspeditor izi ham yoziladi.
 
 Kunlik reja va marshrut xaritasi (rejadagi/borilgan/borilmagan nuqtalar) — **Tashrif rejasi** sahifasida (2-bob).
 
@@ -260,7 +271,7 @@ Agent qatoridagi ✏️ → "Sxema — Jasur":
 | Rejadan ortig'iga % | Rejadan oshgan qismdan | 0,5 |
 | Tashrif rejasi min, % | Bundan past bo'lsa jarima | 90 |
 | Bajarilmasa jarima | Qat'iy summa | 300 000 |
-| Muddati o'tgan qarzdan, % | Agent mijozlarining 30 kundan ortiq kechikkan qarzidan | 1 |
+| Muddati o'tgan qarzdan, % | Agent jo'natgan qarzlarning 30 kundan ortiq kechikkan qismidan | 1 |
 | Reys kamomadidan, % | Ekspeditor uchun: yopilgan reyslar kamomad tannarxidan | 0 |
 | Faol | Hisoblashga kiradi | ✓ |
 
@@ -291,7 +302,7 @@ Hamma summa butun so'mga yaxlitlanadi. Ish haqiga o'tkazilgan natija qayta hisob
 | Jarima | 300 000 (85% < 90%) + 2 000 000 × 1% = 300 000 + 20 000 | 320 000 |
 | **Jami** | 1 200 000 + 1 100 000 − 320 000 | **1 980 000** |
 
-> **Eslatma:** "Muddati o'tgan qarz" KPI'da — faqat 31–60 va 60+ ustunlari (30 kundan ortiq), oy oxiri holatida, agentning **hozirgi** mijozlari bo'yicha. Anvar do'konining 4 200 000 (muddat 10.11) 30.11 da 20 kun kechikkan — 8–30 ustunida, jarimaga kirmaydi.
+> **Eslatma:** "Muddati o'tgan qarz" KPI'da — faqat 31–60 va 60+ ustunlari (30 kundan ortiq; reja qoidasi, ataylab), oy oxiri holatida. Qarz debet (jo'natish) yozilgan paytdagi agentga tegishli — mijoz keyin boshqa agentga o'tkazilsa ham. Anvar do'konining 4 200 000 (muddat 10.11) 30.11 da 20 kun kechikkan — 8–30 ustunida, jarimaga kirmaydi.
 
 ### 5.7.3 Qo'lda tuzatish
 
@@ -315,7 +326,7 @@ Natija qatoridagi **±** → **Qo'shimcha bonus**, **Qo'shimcha jarima**, Izoh �
 
 **Qaytarish:** "Ish haqida" yonidagi ↺ — summalar qatordan ayiriladi va natija yana tahrirlanadi. Faqat HR hisobi hali qoralama bo'lsa: aks holda "Ish haqi hisobi tasdiqlangan — qaytarib bo'lmaydi."
 
-> **Eslatma:** HR formulasi bo'yicha daromad solig'i faqat **hisoblangan** ish haqidan olinadi; KPI mukofoti soliq summasini o'zgartirmaydi. Soliq hisobi bo'yicha savol bo'lsa — buxgalter bilan kelishing.
+> **Eslatma:** HR formulasi bo'yicha daromad solig'i faqat **hisoblangan** ish haqidan olinadi; KPI mukofoti soliq summasini o'zgartirmaydi — bu HR formulasining qoidasi, ataylab o'zgartirilmagan (o'zgartirish HR egasining qarori bilan). Soliq hisobi bo'yicha savol bo'lsa — buxgalter bilan kelishing.
 
 ## 5.8 Telegram'dagi kunlik yakun
 
@@ -327,7 +338,7 @@ Xabar:
 Kun yakuni 05.11.2026
 Buyurtmalar: 1 ta, 12 400 000 so'm
 Jo'natildi: 0 so'm
-Tushum: 3 500 000 so'm
+Yig'ilgan pul (to'lovlar): 3 500 000 so'm
 Umumiy qarz: 4 200 000 so'm (muddati o'tgan: 0)
 Faol agentlar: 1/1
 Kun yetakchisi: Jasur — 12 400 000 so'm
@@ -337,12 +348,12 @@ Kun yetakchisi: Jasur — 12 400 000 so'm
 |---|---|
 | Buyurtmalar | Shu kunda yaratilgan, bekor qilinmagan buyurtmalar soni va summasi |
 | Jo'natildi | Shu kunda o'tkazilgan jo'natishlar summasi |
-| Tushum | Shu kunda kiritilgan mijoz to'lovlari (agent qo'lidagi naqd ham) |
+| Yig'ilgan pul (to'lovlar) | Shu kunda kiritilgan mijoz to'lovlari (agent qo'lidagi naqd ham) |
 | Umumiy qarz | Barcha mijozlar ochiq qarzi (avanslar ayirilmaydi) |
 | Faol agentlar | Kunni boshlaganlar / faol agentlar |
 | Kun yetakchisi | Shu kun buyurtmalari summasi eng katta agent |
 
-> **Muhim:** Kunlik yakundagi "Tushum" — **yig'ilgan pul** (Rahbar panelidagi "Yig'ilgan pul" bilan bir xil ma'noda), Rahbar panelidagi va Savdo hisobotidagi "Tushum" esa **jo'natish minus qaytarish**. Raqamlarni solishtirishda shuni yodda tuting.
+> **Eslatma:** Kunlik yakundagi "Yig'ilgan pul (to'lovlar)" Rahbar panelidagi "Yig'ilgan pul" bilan bir xil. "Tushum" so'zi faqat Rahbar paneli va hisobotlarda ishlatiladi va **jo'natish minus qaytarish** degani.
 
 > **Eslatma:** Kunlik yakun ko'rinish doirasidan qat'i nazar butun kompaniya bo'yicha hisoblanadi.
 
@@ -350,9 +361,7 @@ Boshqa avtomatik rahbar xabarlari (tegishli boblarda): yirik buyurtma va limitda
 
 ## 5.9 Xatolar jurnali
 
-**Kim:** hamma (yozadi), rahbar/mas'ul (baholaydi va yopadi)   **Menyu:** Distributsiya bosh sahifasi → **Xatolar jurnali** plitasi; bot — **⚠️ Muammo** yoki `/xato`
-
-> **Eslatma:** Xatolar jurnali chap menyuda yo'q — Distributsiya bosh sahifasidagi plita orqali kiriladi.
+**Kim:** hamma (yozadi), rahbar/mas'ul (baholaydi va yopadi)   **Menyu:** Distributsiya → **Xatolar jurnali** (yoki bosh sahifadagi plita); bot — **⚠️ Muammo** yoki `/xato`
 
 ### 5.9.1 Botdan yozish (agent, ekspeditor, omborchi)
 
@@ -388,7 +397,7 @@ Ro'yxat: **Ochiq** (standart) yoki **Hammasi**; tartib — avval ochiqlar, K1 yu
 
 > **Muhim:** Pul yoki qoldiq farqi — har doim K1. Avval sabab topiladi, keyin tuzatish hujjati kiritiladi; ma'lumotni "qo'lda" o'zgartirish yo'q.
 
-## 5.10 O'zgarishlar tarixi (kim nimani o'zgartirdi)
+## 5.10 O'zgarishlar tarixi va Audit jurnali
 
 Distributsiya ma'lumotlaridagi har o'zgarish (mijoz kartasi, narx, limit, tovar birligi, buyurtma qatorlari, to'lov, hisob varag'i yozuvlari, ombor hujjatlari, KPI sxemasi va boshqalar) avtomatik **o'zgarishlar jurnaliga** yoziladi: kim (foydalanuvchi yoki bot), qachon, qaysi maydon, eski va yangi qiymat. Yozuv shu amalning o'zi bilan bitta tranzaksiyada — amal bekor bo'lsa, jurnal ham yozilmaydi.
 
@@ -402,11 +411,17 @@ Ekranda ko'rinadigan tarix:
 | To'lovlar ro'yxati | "Qabul qildi", manba (web/bot) |
 | Hujjatlar | Bekor qilingan hujjatda sabab |
 
-> **Eslatma:** To'liq maydon darajasidagi jurnal uchun alohida sahifa yo'q — kerak bo'lsa administrator bazadan (o'zgarishlar jurnali jadvali) hisobot tayyorlaydi. O'tkazilgan hujjatni o'chirib bo'lmaydi va bekor qilingan hujjatni tahrirlab bo'lmaydi — tarix doim saqlanadi.
+### Audit jurnali
+
+**Kim:** Admin (ruxsat moduli **DstAudit**)   **Menyu:** Distributsiya → Audit jurnali
+
+To'liq maydon darajasidagi jurnal. Filtrlar: obyekt (jadval), kalit (yozuv ID), foydalanuvchi, manba (web/bot), davr. Har qatorda: kim, qachon, qaysi manbadan, qaysi obyekt va maydon o'zgargani — **eski → yangi** qiymat. Sahifa faqat o'qish uchun — undan hech narsani o'zgartirib bo'lmaydi.
+
+> **Eslatma:** O'tkazilgan hujjatni o'chirib bo'lmaydi va bekor qilingan hujjatni tahrirlab bo'lmaydi — tarix doim saqlanadi.
 
 ## 5.11 Tannarxni ko'rish huquqi (DstSeeCost)
 
-**Kim beradi:** Admin   **Menyu:** Admin panel → Rollar → (rol qatori) → Huquqlar → `DstSeeCost`
+**Kim beradi:** Admin   **Menyu:** Admin panel → Rollar → (rol qatori) → Huquqlar → `DstSeeCost` (**Change** belgisi; View yetmaydi — 1-bob, 1.10.2)
 
 Huquqsiz foydalanuvchi (agent, operator, omborchi) quyidagilarni **ko'rmaydi**:
 
@@ -417,7 +432,9 @@ Huquqsiz foydalanuvchi (agent, operator, omborchi) quyidagilarni **ko'rmaydi**:
 | Buyurtma kartasi | Tannarx va foyda |
 | Ko'chirma dalolatnomalari | Kamomad, yo'qotish, ortiqcha summalari, qator tannarxi va summasi (chop etishda ham) |
 | Hisobdan chiqarish, Pereso'rtitsa | Tannarx ustunlari |
-| Buyurtma taklifi | Narx ustuni (buyurtma 0 narx bilan yaratiladi) |
+| Inventarizatsiya (boshlang'ich sanoq) | "Tannarx" ustuni (Excel varag'ida ham; importda e'tiborsiz) |
+| Telegram: ko'chirma farqi xabari | Summalar — huquqsiz rahbarga faqat qatorlar soni |
+| Buyurtma taklifi | Narx ustuni (xarid buyurtmasiga oxirgi xarid narxi o'zi yoziladi) |
 | Qo'shimcha xarajatlar (landed cost) | Butun sahifa |
 
 Boshqa maxsus huquqlar (Admin panel → Rollar → Huquqlar):
@@ -429,8 +446,6 @@ Boshqa maxsus huquqlar (Admin panel → Rollar → Huquqlar):
 | DstWriteOffApprove | Hisobdan chiqarishni tasdiqlash / rad etish, tasdiqlanganni bekor qilish |
 
 > **Muhim:** Admin va Developer barcha maxsus huquqlarga ega. Kassa/bank qoldiqlari (Rahbar paneli "Pul") esa huquqdan tashqari yana bir shartga bog'liq — foydalanuvchining hech qanday ko'rinish cheklovi bo'lmasligi kerak.
-
-> **Eslatma:** Ba'zi joylarda summa huquqsiz ham ko'rinadi: inventarizatsiya boshlang'ich sanog'idagi "Tannarx" ustuni va Telegram'dagi ko'chirma farqi xabaridagi summalar (u faqat rahbarlarga boradi).
 
 ## 5.12 Rahbarning kundalik nazorat tartibi
 

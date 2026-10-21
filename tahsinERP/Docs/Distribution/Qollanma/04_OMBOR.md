@@ -43,7 +43,9 @@ Distributsiya alohida ombor yuritmaydi — u asosiy **Ombor (SRM)** modulining o
 
 Distributsiya hujjatlari asosiy Ombor modulidagi kirim/chiqim izohida `URL: /Distribution/...` havolasi bilan ko'rinadi.
 
-> **Muhim:** Omborlarning "Savdoda" belgisi, "Minusga ruxsat", yetkazish zonasi va minimal qoldiqlar **Distributsiya → Sozlamalar → Omborlar** da beriladi. Buyurtmalar faqat "Savdoda" belgili omborlardan jo'natiladi.
+> **Muhim:** Asosiy Ombor modulidagi chiqim yoki ko'chirma, shuningdek CRM savdo hisob-fakturasi tasdig'idagi savdo ombori chiqimi tovarni distributsiya rezervidan pastga tushirsa, u rad etiladi: "<artikul>: distributsiya buyurtmalari uchun X rezervda, chiqimdan keyin qoldiq Y bo'lib qoladi. Avval Distributsiya → Buyurtmalar'da rezervni yeching …". Tovar rostdan kerak bo'lsa, avval buyurtma rezervini yeching (tasdiqni qaytarish yoki bekor qilish).
+
+> **Muhim:** Omborlarning "Savdoda" belgisi va minimal qoldiqlar **Distributsiya → Sozlamalar → Omborlar** da, brak ombori — **Sozlamalar → Umumiy** da beriladi. Buyurtmalar faqat "Savdoda" belgili omborlardan jo'natiladi; brak ombori buyurtmalarga taklif qilinmaydi.
 
 ## 4.2 Qoldiqlar
 
@@ -84,9 +86,7 @@ Hisob: 1 000 − 110 − 165 = 725 haqiqiy; rezerv 200 + 20 sovg'a = 220; mavjud
 
 ## 4.3 Inventarizatsiya
 
-**Kim:** omborchi (sanaydi), rahbar (yakunlaydi)   **Menyu:** Distributsiya bosh sahifasi → **Inventarizatsiya** plitasi
-
-> **Eslatma:** Inventarizatsiya chap menyuda yo'q — unga Distributsiya bosh sahifasidagi plita orqali kiriladi.
+**Kim:** omborchi (sanaydi), rahbar (yakunlaydi)   **Menyu:** Distributsiya → Inventarizatsiya (yoki bosh sahifadagi plita)
 
 Ikki turdagi sanoq bor:
 
@@ -107,7 +107,7 @@ Ro'yxat ustunlari: Hujjat №, Sana, Ombor, Turi, Holat ("O'tkazilgan · qoldiqq
 ### 4.3.2 Sanash (uch usul)
 
 **A. Excel varaq ("ko'r" sanoq).**
-1. **Sanoq varag'i (Excel)** ni yuklab oling. Ustunlar: Artikul, Nomi, Birlik, Sanalgan, Tannarx. Tizim qoldig'i varaqda **yo'q** — sanovchi nima bo'lishi kerakligini bilmaydi.
+1. **Sanoq varag'i (Excel)** ni yuklab oling. Ustunlar: Artikul, Nomi, Birlik, Sanalgan, Tannarx (Tannarx — faqat boshlang'ich sanoqda va tannarx huquqi bilan). Tizim qoldig'i varaqda **yo'q** — sanovchi nima bo'lishi kerakligini bilmaydi.
 2. Omborda sanab "Sanalgan" ustunini **asosiy birlikda** to'ldiring. Yo'q tovarga `0` yozing.
 3. Faylni tanlab **Yuklash**. Ro'yxatda yo'q artikul bo'lsa, qator qo'shiladi; noma'lum artikul yoki takror — xato, hech narsa yozilmaydi.
 
@@ -115,9 +115,11 @@ Ro'yxat ustunlari: Hujjat №, Sana, Ombor, Turi, Holat ("O'tkazilgan · qoldiqq
 
 **C. Telegram Mini App (shtrix-kod).** Omborchi (yoki rahbar) botda **📦 Ombor** → **📦 Ombor ilovasi** → ochiq sanoqni tanlaydi → har skanerlash sanalganga qo'shiladi (qutidagi shtrix-kod — quti koeffitsienti bilan, masalan kafel qutisi = 1,44 m²). Mini App'da tizim qoldig'i ko'rsatilmaydi. Qatorga aniq miqdorni ham yozish mumkin. Yakunlash — faqat web'da.
 
-Ekrandagi jadval ustunlari: Tovar, Birlik, **Tizimda** (hozirgi qoldiq), **Sanalgan**, **Farq** (farqli qatorlar sariq), **Tannarx** (faqat boshlang'ich sanoqda), Izoh. Yuqorida: "Sanalgan: 12 / 24 · Farqlar: 2 (kamomad: …, ortiqcha: …)".
+Ekrandagi jadval ustunlari: Tovar, Birlik, **Sanalgan**, **Tannarx** (faqat boshlang'ich sanoqda va tannarx huquqi bilan), Izoh. Yuqorida: "Sanalgan: 12 / 24".
 
-> **Eslatma:** Web jadvalida "Tizimda" ustuni ko'rinadi. Ko'r sanoq kerak bo'lsa — sanovchilarga Excel varaq yoki Mini App bering, ekranni rahbar to'ldiradi.
+> **Eslatma:** Sanoq davomida (qoralamada) web sahifada ham **Tizimda** va **Farq** ustunlari ko'rinmaydi — sanoq uch usulda ham "ko'r". Ular sanoq o'tkazilgandan keyin chiqadi (farqli qatorlar sariq, farqlar soni kamomad/ortiqcha bilan).
+
+> **Eslatma:** Tannarx huquqi bo'lmagan foydalanuvchida "Tannarx" ustuni yo'q: Excel varaqda ham chiqmaydi, import qilingan faylda bo'lsa e'tiborsiz qoldiriladi, saqlashda mavjud qiymat o'zgarmaydi.
 
 ### 4.3.3 Yakunlash
 
@@ -125,7 +127,7 @@ Ekrandagi jadval ustunlari: Tovar, Birlik, **Tizimda** (hozirgi qoldiq), **Sanal
 2. Nazorat sanog'ida qoldiqni tuzatish kerak bo'lsa — **Farqni qoldiqqa yozish** belgisini qo'ying.
 3. **Yakunlash va qoldiqni tenglash** (boshlang'ich) yoki **Yakunlash** (nazorat) → tasdiq "Sanoqni yakunlaysizmi? Keyin o'zgartirib bo'lmaydi."
 
-**Natija:** "Tizimda" ustuni yakunlash paytidagi qoldiq bilan qotib qoladi. Qoldiqqa yozilsa, asosiy Ombor modulida bitta `INV_…` kirim (ortiqcha) va bitta chiqim (kamomad) paydo bo'ladi.
+**Natija:** "Tizimda" ustuni yakunlash paytidagi qoldiq bilan qotib qoladi, "Tizimda" va "Farq" ustunlari endi ko'rinadi. Qoldiqqa yozilsa, asosiy Ombor modulida bitta `INV_…` kirim (ortiqcha) va bitta chiqim (kamomad) paydo bo'ladi.
 
 | Farq | Qanday yoziladi | Narx |
 |---|---|---|
@@ -142,9 +144,9 @@ Ekrandagi jadval ustunlari: Tovar, Birlik, **Tizimda** (hozirgi qoldiq), **Sanal
 
 Yakunlangandan keyin qoldiq: sement 1 000, kafel 498, gipsokarton 200.
 
-> **Muhim — oyiga bir marta:** Qoldiqqa yozish har ombor uchun **kalendar oyida bir marta**. Ikkinchi urinishda: "Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi." Shuning uchun boshlang'ich sanoqni oy oxirida (masalan 30.10), nazoratni keyingi oy oxirida qiling. Shu oyda yana tekshirish kerak bo'lsa — nazorat sanog'ini **belgisiz** (faqat taqqoslash) yakunlang. Bu qoida asosiy Ombor modulidagi inventarizatsiya bilan umumiy.
+> **Muhim — oyiga bir marta:** "Farqni qoldiqqa yozish"li nazorat sanog'i har ombor uchun **kalendar oyida bir marta**. Ikkinchi urinishda: "Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi." Bu qoida asosiy Ombor modulidagi inventarizatsiya bilan umumiy. Boshlang'ich sanoq oylik qulfni olmaydi — shu oyning o'zida "farqni yozish"li nazorat sanog'ini ham o'tkazish mumkin. Shu oyda yana tekshirish kerak bo'lsa — nazorat sanog'ini **belgisiz** (faqat taqqoslash) yakunlang.
 
-> **Muhim:** Sanoq paytida shu ombordan jo'natmang va kirim qilmang — tizim buni bloklamaydi, lekin "Tizimda" ustuni yakunlash paytidagi qoldiq bilan olinadi va farq noto'g'ri chiqadi.
+> **Muhim:** Sanoq ochiqligida sanalgan tovar shu ombordan chiqmaydi (jo'natish, hisobdan chiqarish, pereso'rtitsa): "… inventarizatsiyada sanalgan (INV-…) — sanoq o'tkazilmaguncha yoki bekor qilinmaguncha ombordan chiqarilmaydi". Hali sanalmagan tovar chiqariladi. Sanoq paytida shu omborga kirim qilmaslikka harakat qiling — "Tizimda" ustuni yakunlash paytidagi qoldiq bilan olinadi.
 
 > **Eslatma:** Ro'yxatga kirmagan tovar qoldig'iga tegilmaydi (boshlang'ich sanoqda ham). Yo'q tovar nolga tushirilishi uchun u ro'yxatda "0" bilan turishi kerak.
 
@@ -175,7 +177,7 @@ Sahifada ikki jadval: **"Qabul kutayotgan ko'chirmalar"** (Hujjat №, Sana, Jo'
 | Tovar, Shtrix-kodlar | Avtomatik | DEMO-SEM-400 Sement M400 |
 | Jo'natilgan | Avtomatik | 100 |
 | Kelgan | Haqiqatda kelgan miqdor (standart — jo'natilgani) | 97 |
-| Kamomad | Kelgan < jo'natilgan bo'lsa majburiy: **Yo'qotish** yoki **Jo'natuvchiga qaytarish** | Yo'qotish |
+| Kamomad | Kelgan < jo'natilgan bo'lsa majburiy: **Yo'qotish**, **Jo'natuvchiga qaytarish** yoki **Bo'lish (yo'qotish + qaytarish)** | Yo'qotish |
 | Izoh | Ixtiyoriy | "2 qop yirtilgan, 1 qop yuklanmagan" |
 
 3. DLOC omborda — **Joylashuv (qabul qiluvchi ombor)**; qaytarish bo'lsa **Qaytarish joyi (jo'natuvchi ombor)**.
@@ -186,9 +188,10 @@ Sahifada ikki jadval: **"Qabul kutayotgan ko'chirmalar"** (Hujjat №, Sana, Jo'
 | Kelgan = jo'natilgan | Oddiy qabul |
 | Kamomad → **Yo'qotish** | Tovar yo'lda yo'qolgan: hech qaysi omborga kirmaydi, summasi dalolatnomada "Shundan yo'qotish" |
 | Kamomad → **Jo'natuvchiga qaytarish** | Jo'natilmay qolgan tovar jo'natuvchi omborga o'sha tannarxda kirim qilinadi (`DT-…-RET`) |
+| Kamomad → **Bo'lish (yo'qotish + qaytarish)** | Yo'qotish miqdori kiritiladi; u "Shundan yo'qotish"ga tushadi, kamomadning qolgani jo'natuvchiga qaytariladi (`DT-…-RET`) |
 | Ortiqcha (kelgan > jo'natilgan) | Ortig'i qabul qiluvchi omborga jo'natuvchi tannarxida kirim |
 
-Bitta qatorda bir nechta tanlov yo'q: qatordagi butun kamomad bitta yo'l bilan hal qilinadi. Turli sabablar bo'lsa (2 qop yo'qoldi, 1 qop yuklanmadi), kamomadning asosiy qismini tanlang va izohda yozing yoki rahbar bilan kelishing.
+Turli sabablar bo'lsa (2 qop yo'qoldi, 1 qop yuklanmadi), **Bo'lish (yo'qotish + qaytarish)** ni tanlang va yo'qotish miqdoriga 2 yozing — qolgan 1 qop jo'natuvchiga qaytadi.
 
 **Misol (10.11.2026):** Asosiy ombordan Filial omborga 100 qop sement (tannarx 40 000) va 50 list gipsokarton (50 000) jo'natildi. Samarqandda: sement 97 (kamomad 3 — Yo'qotish), gipsokarton 51 (ortiqcha 1).
 
@@ -200,15 +203,15 @@ Bitta qatorda bir nechta tanlov yo'q: qatordagi butun kamomad bitta yo'l bilan h
 
 Agar sement kamomadi "Jo'natuvchiga qaytarish" tanlanganida edi: Kamomad 120 000, yo'qotish 0, Asosiy omborga 3 qop 40 000 dan qaytib kirim qilinardi.
 
-**Natija:** dalolatnoma `DT-2026-00001` (o'tkazilgan). Filialda +97 qop, +51 list. Asosiy Ombor modulidagi chiqim "Yuborilgan" holatiga o'tadi. Farq bo'lgani uchun rahbarlarga Telegram: "📦 Ko'chirma farqi DT-2026-00001 (…): DEMO Asosiy ombor (Toshkent) → DEMO Filial ombor (Samarqand) Kamomad: 120 000 (yo'qotish 120 000), ortiqcha: 50 000".
+**Natija:** dalolatnoma `DT-2026-00001` (o'tkazilgan). Filialda +97 qop, +51 list. Asosiy Ombor modulidagi chiqim "Yuborilgan" holatiga o'tadi. Farq bo'lgani uchun rahbarlarga Telegram: "📦 Ko'chirma farqi DT-2026-00001 (…): DEMO Asosiy ombor (Toshkent) → DEMO Filial ombor (Samarqand) Kamomad: 120 000 (yo'qotish 120 000), ortiqcha: 50 000". Summalar faqat tannarx huquqi bor rahbarga; huquqsiz rahbarga faqat qatorlar soni: "Kamomad: 1 qator, ortiqcha: 1 qator".
 
 **Chop etish:** dalolatnoma sahifasida **Chop etish** — "Ko'chirma dalolatnomasi": jo'natuvchi va qabul qiluvchi (hujjat raqamlari bilan), sana, qatorlar (Jo'natilgan, Kelgan, Farq, tannarx huquqi bilan — Birlik tannarxi va Summa, Kamomad, Izoh), imzo joylari "Topshirdi" va "Qabul qildi".
 
 > **Muhim:** Qabul qilishni faqat qabul qiluvchi omborning mas'uli yoki Admin bajaradi: "Qabul qilishni faqat omborning mas'uli (yoki Admin) bajaradi." Ikki kishi bir vaqtda qabul qila olmaydi — ikkinchisiga "Ko'chirma qabul kutmayapti (allaqachon qabul qilingan yoki o'chirilgan)."
 
-> **Muhim:** Qabul qilingan ko'chirma va dalolatnomani bekor qilib bo'lmaydi. Xato bo'lsa — hisobdan chiqarish yoki inventarizatsiya bilan tuzating.
+**Dalolatnomani bekor qilish:** xato qabul qilingan bo'lsa, dalolatnoma sahifasida **Dalolatnomani bekor qilish** ni bosing va sababni yozing. Qabul va qaytarish kirimi teskari qilinadi, ko'chirma yana "Qabul kutayotgan" ro'yxatiga qaytadi — uni qaytadan to'g'ri qabul qiling. Qabul qilingan tovar qabul qiluvchi ombordan allaqachon chiqarilgan bo'lsa, bekor qilib bo'lmaydi.
 
-> **Eslatma:** Yo'qotish summasi Moliya'ga avtomatik yozilmaydi va hech kimga qarz sifatida ochilmaydi — ekspeditordan undirish rahbar qarori bilan qo'lda.
+> **Eslatma:** Yo'qotish uchun Moliya yoki qarz yozuvi ataylab qilinmaydi — Moliya'ga faqat haqiqiy pul harakati yoziladi. Yo'qotish summasi dalolatnomada qayd qilinadi; aybdordan undirish rahbar qarori bilan ish haqi orqali qo'lda.
 
 ## 4.5 Hisobdan chiqarish (rahbar tasdig'i bilan)
 
@@ -240,7 +243,8 @@ Ro'yxat yorliqlari: Hammasi, Tasdiq kutilmoqda, Qoralama, Tasdiqlangan. Ustunlar
 | Izoh (qatorda) | Ixtiyoriy | |
 
 3. **Saqlash** → hujjat `DW-2026-00001` (Qoralama).
-4. Hujjat kartasida **Tasdiqqa yuborish**.
+4. Kerak bo'lsa hujjat kartasida **Foto biriktirish** (JPEG/PNG, 5 MB gacha) — rasm sahifada ko'rinadi; yuborishdan oldin **Foto almashtirish** bilan o'zgartirish mumkin.
+5. Hujjat kartasida **Tasdiqqa yuborish**.
 
 **Natija:** rahbarlarga Telegram xabari: "🗑 Hisobdan chiqarish DW-2026-00001 tasdiqni kutmoqda / Ombor: DEMO Asosiy ombor (Toshkent) / Sabab: Brak / Tuzgan: demo_ombor" + tovarlar ro'yxati (15 tagacha) va ✅ Tasdiqlash / ❌ Rad etish tugmalari.
 
@@ -258,6 +262,7 @@ Rad etish: web'da sabab yozib **Rad etish** yoki Telegram'da **❌ Rad etish** (
 | O'z hujjatini tasdiqlab bo'lmaydi (Admin bundan mustasno) | "O'zingiz tuzgan hujjatni boshqa rahbar tasdiqlashi kerak." |
 | Avval yuborilishi kerak | "Hujjat hali tasdiqqa yuborilmagan." |
 | Rezervdagi tovar chiqarilmaydi | "DEMO-SEM-400 Sement M400: mavjud qoldiq 505, kerak 510 (rezervdagi tovar hisobga olinmaydi)." |
+| Ochiq sanoqda sanalgan tovar chiqarilmaydi | "… inventarizatsiyada sanalgan (INV-…) — sanoq o'tkazilmaguncha yoki bekor qilinmaguncha ombordan chiqarilmaydi" |
 
 > **Muhim — rezerv himoyasi:** Mijoz buyurtmasi uchun band qilingan tovarni hisobdan chiqarib bo'lmaydi. Misolda haqiqiy 725, rezerv 220 — 506 qop va undan ko'pini chiqarish rad etiladi. Rostdan ham tovar yo'q bo'lsa, avval buyurtma rezervini kamaytiring (buyurtmani tahrirlash yoki bekor qilish).
 
@@ -337,7 +342,7 @@ O'tkazishdan oldin sementdan 275 qop jo'natilgan bo'lsa (110 + 165), "Sotilgan" 
 
 **Natija:** kirim qatorlarining birlik narxi oshadi. Keyingi jo'natishlar, hisobdan chiqarishlar, qoldiq qiymati va hisobotlar yangi narxni (sement — 41 600) oladi. O'tgan jo'natishlarning tannarxi va foydasi o'zgarmaydi.
 
-> **Muhim:** Sotilgan qismga to'g'ri kelgan summa (misolda 440 000) hech qaysi tannarxga kirmaydi — yalpi foyda hisobotlarida u ko'rinmaydi. Yo'l haqi hujjatini kirim qabul qilingan zahoti, tovar sotilishidan oldin kiriting.
+> **Eslatma:** Sotilgan qismga to'g'ri kelgan summa (misolda 440 000) o'tgan jo'natishlar tannarxini o'zgartirmaydi — u davr xarajati sifatida Savdo hisobotida (filtrsiz, tannarx huquqi bilan) jami ostida "Qo'shimcha xarajat — sotilgan tovarga tushgan qismi (davr xarajati)" qatorida, landed cost o'tkazilgan kun bo'yicha ko'rinadi va "Foyda (qo'shimcha xarajatdan keyin)" dan ayiriladi (5-bob). Agent/mijoz bo'yicha taqsimlanmaydi, shuning uchun yo'l haqi hujjatini imkon qadar tovar sotilishidan oldin kiriting.
 
 > **Muhim:** "Og'irlik bo'yicha" uchun har tovarda asosiy birlik og'irligi bo'lishi va kirim qatori asosiy birlikda bo'lishi shart. Aks holda qator qizil va o'tkazishda: "Og'irlik bo'yicha taqsimlab bo'lmaydi — og'irligi yo'q: …".
 
@@ -349,14 +354,14 @@ O'tkazishdan oldin sementdan 275 qop jo'natilgan bo'lsa (110 + 165), "Sotilgan" 
 
 ### 4.8.1 Telegram ogohlantirishi
 
-Jo'natish, hisobdan chiqarish yoki pereso'rtitsa natijasida tovarning **haqiqiy** qoldig'i minimal qoldiqdan **pastga tushgan** paytda rahbarlarga va shu ombor omborchilariga bir marta xabar boradi:
+Buyurtma tasdiqlash (rezerv), jo'natish, hisobdan chiqarish yoki pereso'rtitsa natijasida tovarning **mavjud** qoldig'i (haqiqiy − rezerv) minimal qoldiqdan **pastga tushgan** paytda rahbarlarga va shu ombor omborchilariga bir marta xabar boradi:
 
 "⚠️ Minimal qoldiqdan past — DEMO Asosiy ombor (Toshkent):
 • DEMO-SEM-400 Sement M400: 505 / min 600"
 
 Qoldiq allaqachon minimaldan past bo'lsa, keyingi chiqimlarda xabar takrorlanmaydi.
 
-> **Eslatma:** Xabar **haqiqiy** qoldiqqa qarab ketadi, "Buyurtma taklifi" sahifasi esa **mavjud** qoldiqqa (rezervdan tashqari) qaraydi. Misolda 05.11 da haqiqiy 725 ≥ 600 — xabar yo'q, lekin mavjud 505 < 600 — tovar taklif sahifasida allaqachon bor. Xabar 220 qopli buyurtma jo'natilganda (haqiqiy 725 → 505) keladi.
+> **Eslatma:** Xabar ham, "Buyurtma taklifi" sahifasi ham bir xil — **mavjud** qoldiqqa qaraydi. Misolda 05.11 da 220 qopli buyurtma tasdiqlanganda mavjud 725 → 505 < 600 — xabar shu paytda keladi va tovar taklif sahifasiga tushadi. Keyin shu rezervdagi tovar jo'natilganda mavjud qoldiq o'zgarmaydi — xabar takrorlanmaydi.
 
 ### 4.8.2 Buyurtma taklifi
 
@@ -373,7 +378,7 @@ Sahifada mavjud qoldig'i minimaldan past tovarlar (minimal qoldiq berilgan ombor
 | Maqsad | Maksimal; bo'lmasa minimal × 2 |
 | Buyurtma | Taklif = maqsad − mavjud (butun songa yuqoriga yaxlitlanadi), tahrirlanadi |
 | Yetkazib beruvchi | Tovarning oxirgi xarid hisob-fakturasidan |
-| Narx | Oxirgi xarid narxi (faqat tannarx huquqi bilan ko'rinadi va tahrirlanadi) |
+| Narx | Oxirgi xarid narxi (ustun faqat tannarx huquqi bilan ko'rinadi va tahrirlanadi) |
 | 30 kunda buyurtma | So'nggi 30 kundagi taklif buyurtmasi raqami |
 
 **Misol (05.11):** Sement — mavjud 505, minimal 600, maksimal 1 500 → taklif 1 500 − 505 = **995 qop**; oxirgi xarid narxi 40 000 → buyurtma summasi 995 × 40 000 = 39 800 000 so'm. Maksimal berilmaganida: 600 × 2 − 505 = 695 qop.
@@ -389,7 +394,7 @@ Keyingi qadamlar (shartnoma, xarid invoysi, kirim, qabul) — odatdagidek **Ta'm
 
 > **Muhim:** SRM qoidasi bo'yicha xarid buyurtmasida yetkazib beruvchi maydoni bo'sh qoladi — taklif qilingan yetkazib beruvchi faqat izohda. Ta'minotchi uni SRM'da tanlaydi.
 
-> **Muhim:** Tannarx huquqi bo'lmagan foydalanuvchida "Narx" ustuni yo'q va buyurtma **0 narx** bilan yaratiladi. Narxni SRM'da kiriting yoki taklifni tannarx huquqi bor xodim yaratsin.
+> **Eslatma:** Tannarx huquqi bo'lmagan foydalanuvchida "Narx" ustuni yo'q — xarid buyurtmasiga oxirgi xarid narxi server tomonida o'zi yoziladi. Huquqi bor foydalanuvchi narxni bo'sh qoldirsa ham shunday.
 
 ## 4.9 Omborchining kundalik ish tartibi
 

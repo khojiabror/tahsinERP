@@ -48,7 +48,7 @@ Alohida mobil ilova yo'q — dala xodimlari faqat Telegram orqali ishlaydi. Botg
 | **Supervayzer** | O'z jamoasi agentlarini boshqaradi | Faqat o'z jamoasi agentlari va ularning mijozlari, buyurtmalari ko'rinadi | Rahbar sifatida yoki agent sifatida ulanadi |
 | **Operator** (ofis) | Buyurtmani tasdiqlash, bekor qilish, qaytarish kiritish, mijoz kartasi | Buyurtmalar, Mijozlar, Qaytarishlar, Import | — |
 | **Agent** | Do'konlarni aylanadi, buyurtma va to'lov oladi | Odatda kerak emas (faqat o'z mijozlarini ko'radi) | Kun boshi/yakuni, marshrut, **📍 Keldim**, **🛒 Buyurtma** (Mini App), **💵 To'lov**, **🚫 Buyurtmasiz**, **📷 Foto**, **➕ Yangi nuqta**, **💵 Kassa**, ovozli buyurtma |
-| **Ekspeditor** (haydovchi-yetkazuvchi) | Reys bo'yicha yetkazadi, to'lov oladi | Kerak emas | **🚚 Reys**, manzil kartasi, **✅ Yetkazildi (rasm)**, **✍️ Imzo / qisman**, **🚫 Rad etildi**, **💵 To'lov**, **⛽ Xarajat**, **🏁 Reysni yopish** |
+| **Ekspeditor** (haydovchi-yetkazuvchi) | Reys bo'yicha yetkazadi, to'lov oladi | Kerak emas | **🚚 Reys**, manzil kartasi, **✅ Yetkazildi (rasm)**, **✍️ Imzo / qisman**, **🚫 Rad etildi**, **💵 To'lov**, **⛽ Xarajat**, **🏁 Reysni yakunlash** |
 | **Omborchi** | Yig'ish, jo'natish, sanoq, ko'chirma qabul qilish | Buyurtma kartasi (yig'ish, jo'natish, chop etish), Qoldiqlar, Inventarizatsiya, Ko'chirmalarni qabul qilish, Hisobdan chiqarish | Yangi tasdiqlangan buyurtma xabari, **📦 Ombor** — Mini App'da skaner bilan sanoq va yig'ish |
 | **Kassir** | Ofisdagi to'lov, agent naqdini qabul qilish | To'lovlar, **Agentlar naqdi va kassa** | — |
 | **Mijoz** (do'kon egasi) | Buyurtma holatini kuzatadi | — | Bildirishnomalar (jo'natildi, yo'lga chiqdi, yetkazildi + nakladnoy PDF, to'lov qabul qilindi), **💳 Qarzim**, **📄 Akt sverki** |
@@ -88,8 +88,9 @@ Distributsiyadagi har bir hujjat oldingisidan kelib chiqadi. Bitta ma'lumot ikki
         |                   Nakladnoy (chop / PDF)
         |
         +--> REYS (mashina, ekspeditor) --> Yetkazildi / Qisman / Rad
-        |                                   Reysni yopish: qaytgani omborga,
-        |                                   kamomad dalolatnomasi
+        |                                   Reysni yakunlash (bot), keyin
+        |                                   Reysni yopish (web): ombor sanagan
+        |                                   qaytgani omborga, kamomad dalolatnomasi
         v
    holat: Yetkazildi
         |
@@ -113,7 +114,7 @@ Ombor tomonidagi qo'shimcha hujjatlar (inventarizatsiya, ko'chirma qabul qilish,
 | Jo'natish | DJ-YYYY-NNNNN | DJ-2026-00001 |
 | Qaytarish | DQ-YYYY-NNNNN | DQ-2026-00001 |
 
-Raqam har yil 1 dan boshlanadi va avtomatik beriladi; qo'lda kiritilmaydi.
+Raqam har yil 1 dan boshlanadi va avtomatik beriladi; qo'lda kiritilmaydi. O'chirilgan qoralama raqami qayta berilmaydi — raqamlarda bo'shliq bo'lishi mumkin.
 
 ## 0.4 Asosiy tushunchalar
 
@@ -137,7 +138,7 @@ Buyurtmada agent "2 poddon" yozadi, tizim uni 80 qop deb hisoblaydi va omborda 8
 - **Standart narx turi** — bittagina; mijozga narx turi berilmagan bo'lsa yoki uning narx turida tovarning narxi yo'q bo'lsa, shu turdagi narx olinadi.
 - **Narx varag'i** — tovar × narx turi jadvali (asosiy birlik uchun, so'mda). Har o'zgarish sanasi va muallifi bilan tarixga yoziladi.
 - **Maxsus narx** — bitta mijozga bitta tovar uchun alohida narx, boshlanish va (ixtiyoriy) tugash sanasi bilan. U narx turidan ustun turadi.
-- **Minimal narx** — narx varag'ida har narx turi qatoriga yoziladi. Chegirma berilganda ham tovar shu narxdan arzon sotilmaydi. Maxsus narxga minimal narx qo'llanmaydi.
+- **Minimal narx** — narx varag'ida har narx turi qatoriga yoziladi. Chegirma berilganda ham tovar shu narxdan arzon sotilmaydi. Mijoz narx turi qatorida minimum bo'sh bo'lsa — standart narx turidagi minimum olinadi (lekin mijoz narxidan yuqori emas). Maxsus narxga ham shu minimum qo'llanadi; minimal narxdan faqat "Cheksiz chegirma" huquqi ozod qiladi.
 
 Buyurtmada narx **har doim avtomatik** aniqlanadi, qo'lda yozilmaydi. Tartib:
 
@@ -158,7 +159,7 @@ Misol: DEMO Bunyodkor qurilish — narx turi **Diler**. Sement uchun Diler narxi
 ### Qarz
 
 - **Mijoz qarzi (balans)** = kirish qarzi + jo'natishlar − to'lovlar − qaytarishlar. Real vaqtda hisoblanadi.
-- **Qarz (kredit) limiti** — mijozning qarzi + yangi buyurtma summasi shu limitdan oshsa, buyurtma tasdiqlanmaydi. **Limit 0** — mijoz faqat oldindan to'lov bilan oladi (avansi bo'lmasa har qanday buyurtma bloklanadi).
+- **Qarz (kredit) limiti** — mijozning qarzi + tasdiqlangan, lekin hali jo'natilmagan buyurtmalari (jo'natilmagan qismi) + yangi buyurtma summasi shu limitdan oshsa, buyurtma tasdiqlanmaydi. **Limit 0** — mijoz faqat oldindan to'lov bilan oladi (avansi bo'lmasa har qanday buyurtma bloklanadi).
 - **To'lov muddati (kechiktirish)** — kunlarda. Har jo'natish qarzining muddati = jo'natish sanasi + shu kunlar. Muddati o'tgan qarz bo'lsa, yangi buyurtma limitdan qat'i nazar tasdiqlanmaydi.
 - **Rahbar ruxsati** — limitdan oshgan yoki muddati o'tgan qarzli mijoz buyurtmasini "Limitdan oshishga ruxsat" huquqi bor xodim izoh yozib tasdiqlaydi (web'da yoki botdagi tugma bilan).
 - To'lov eng eski qarzni birinchi yopadi (FIFO). Qarz muddatlar bo'yicha guruhlanadi: **muddati kelmagan, 1–7, 8–30, 31–60 va 60 kundan ortiq**, alohida — **avans**.
@@ -168,7 +169,7 @@ Misol: DEMO Bunyodkor qurilish — narx turi **Diler**. Sement uchun Diler narxi
 - **Haqiqiy qoldiq** — omborda jismonan turgan tovar (ombor hisobidan).
 - **Rezerv** — tasdiqlangan, lekin hali jo'natilmagan buyurtmalarga band qilingan miqdor.
 - **Mavjud = haqiqiy − rezerv.** Yangi buyurtma faqat mavjud qoldiqdan rezerv oladi. Ikki operator bir vaqtda oxirgi qoldiqni ikki marta rezerv qila olmaydi.
-- **"Kirimni kutmoqda"** — tasdiqlashda mavjud qoldiq yetmagan qism. U rezervsiz qoladi; kirimdan keyin **Rezervni yangilash** bilan band qilinadi.
+- **"Kirimni kutmoqda"** — tasdiqlashda mavjud qoldiq yetmagan qism. U rezervsiz qoladi; shu omborga kirim bo'lganda (ta'minot kirimi, qaytarish, ko'chirma qabuli, pereso'rtitsa) avtomatik rezervga olinadi — birinchi tasdiqlangan buyurtma birinchi. Qo'lda **Rezervni yangilash** tugmasi ham bor.
 - **Savdo ombori** — Sozlamalarda "Savdoda" belgisi qo'yilgan ombor. Buyurtmalar faqat shu omborlardan jo'natiladi.
 - **Minimal qoldiq** — ombor × tovar bo'yicha chegara; mavjud qoldiq undan pastga tushganda ogohlantirish beriladi va tovar "Buyurtma taklifi" ro'yxatiga tushadi.
 
@@ -195,12 +196,12 @@ Buyurtmaning bulardan tashqari o'z **ish holatlari** bor (Yangi, Tasdiqlangan, Y
 Har bir xodim faqat o'ziga tegishli yozuvlarni ko'radi:
 
 - **Agent** — faqat o'ziga biriktirilgan mijozlar va ularning buyurtmalari.
-- **Supervayzer** — o'z jamoasidagi agentlar va o'zi.
+- **Supervayzer** — o'z jamoasidagi agentlar va o'zi, hamda agenti biriktirilmagan mijozlar (ularni agentlarga biriktirish uchun).
 - **Ofis xodimlari** (agent ham, supervayzer ham emas) — cheklovsiz.
-- Bundan tashqari har foydalanuvchiga **omborlar, hududlar va mijozlar** bo'yicha ro'yxat berish mumkin (Agentlar va jamoalar → Ko'rinish doirasi). Ro'yxat bo'sh bo'lsa — cheklov yo'q; to'ldirilsa — faqat tanlanganlar ko'rinadi.
+- Bundan tashqari har foydalanuvchiga **omborlar, hududlar va mijozlar** bo'yicha ro'yxat berish mumkin (Agentlar va jamoalar → Ko'rinish doirasi). Ro'yxat bo'sh bo'lsa — cheklov yo'q; to'ldirilsa — faqat tanlanganlar ko'rinadi. Hudud berilsa, uning quyi hududlari ham kiradi (viloyat — barcha tumanlari bilan); buyurtmalar ham mijoz hududi bo'yicha cheklanadi.
 - **Admin** har doim hammasini ko'radi.
 
-Qoida web, bot va Mini App'da bir xil ishlaydi. Masalan, omborchiga ombor doirasi "DEMO Asosiy ombor" qilib berilsa, u faqat shu ombor buyurtmalari haqida xabar oladi va faqat shu omborni ko'radi.
+Qoida web, bot va Mini App'da bir xil ishlaydi. Masalan, omborchiga ombor doirasi "DEMO Asosiy ombor" qilib berilsa, u faqat shu ombor buyurtmalari haqida xabar oladi va faqat shu omborni ko'radi (ombori hali tanlanmagan yangi buyurtmalar ham ko'rinadi — ombor tasdiqda taklif qilinadi).
 
 ### Jurnal (audit)
 
@@ -210,7 +211,7 @@ Distributsiya ma'lumotlaridagi har o'zgarish (yaratish, o'zgartirish, o'chirish)
 - narxlar sahifasidagi **Narx tarixi**;
 - bekor qilingan hujjatlarda — kim, qachon, qaysi sabab bilan.
 
-To'liq jurnal bazada saqlanadi; uni ko'rish uchun alohida sahifa hozircha yo'q — kerak bo'lsa administratorga murojaat qiling.
+To'liq jurnal **Distributsiya → Audit jurnali** sahifasida (odatda faqat administratorga ochiq): obyekt, kalit, foydalanuvchi, manba va davr bo'yicha filtr, har o'zgarishda eski → yangi qiymat. Sahifa faqat o'qish uchun (5-bob, 5.10).
 
 ## 0.5 Litsenziya va paket
 
@@ -242,6 +243,7 @@ Shuni bilish kerak:
 | Hisobotlar | Savdo kesimlari (agent, mijoz, tovar, hudud, kategoriya), tashriflar, agentlar topshirgan pul | 5.3–5.5 |
 | Buyurtmalar | Buyurtma, tasdiqlash, rezerv, yig'ish, jo'natish, chop etish | 2 |
 | Qoldiqlar | Haqiqiy / rezerv / mavjud qoldiq, minimaldan past tovarlar | 4.2 |
+| Inventarizatsiya | Boshlang'ich (qoldiqni tenglash) va nazorat sanog'i | 4.3 |
 | Ko'chirmalarni qabul qilish | Boshqa ombordan kelgan tovarni haqiqiy miqdor bilan qabul qilish, farq dalolatnomasi | 4.4 |
 | Hisobdan chiqarish | Brak, sinish, kamomad — rahbar tasdig'i bilan | 4.5 |
 | Pereso'rtitsa | Bir tovar o'rniga boshqasi (tannarx saqlanadi) | 4.6 |
@@ -264,13 +266,10 @@ Shuni bilish kerak:
 | Ma'lumotnomalar | Brendlar, ishlab chiqaruvchilar, subkategoriyalar, narx turlari, sabablar | 1.4 |
 | Sozlamalar | Umumiy, agent to'lovlari, chegirma limitlari, omborlar, minimal qoldiq | 1.2 |
 | Excel import | Boshlang'ich ma'lumotni Excel'dan yuklash | 1.11 |
+| Xatolar jurnali | Xato va muammolarni yozish va kuzatish, K1–K3 | 5.9 |
+| Audit jurnali | Barcha o'zgarishlar: kim, qachon, eski → yangi qiymat (faqat o'qish) | 5.10 |
 
-Ikki sahifa chap menyuda yo'q — ular faqat **Bosh sahifa** plitkalari orqali ochiladi:
-
-| Plitka | Nima uchun |
-|---|---|
-| Inventarizatsiya | Boshlang'ich (qoldiqni tenglash) va nazorat sanog'i (4.3) |
-| Xatolar jurnali | Xato va muammolarni yozish va kuzatish, K1–K3 (5.9) |
+Barcha sahifalar **Bosh sahifa** plitkalari orqali ham ochiladi.
 
 > **Eslatma:** Menyuda kerakli band ko'rinmasa — bu xato emas. Sizning rolingizda shu sahifani ko'rish huquqi yo'q. Administrator 1.10-bo'limga ko'ra huquq qo'shadi.
 
@@ -288,10 +287,10 @@ Shuni bilish kerak:
 
 - Til har foydalanuvchiga alohida saqlanadi va boshqa xodimlarga ta'sir qilmaydi. Hech narsa tanlanmagan bo'lsa — o'zbekcha.
 - Faqat matnlar almashadi. Sana va son ko'rinishi (masalan `15 376 400`) o'zgarmaydi.
-- Bot va bildirishnomalar ham xodimning shu tilida keladi (Telegram ilovasining tili emas). Agent ruscha ishlashi uchun uning ERP foydalanuvchisi nomidan bir marta Русский tanlanadi.
+- Bot va bildirishnomalar ham xodimning shu tilida keladi (Telegram ilovasining tili emas). Agent ruscha ishlashi uchun uning ERP foydalanuvchisi nomidan bir marta Русский tanlanadi. Tilni o'zgartirgandan keyin botda **/start** yoki **/menu** bosilsa, bot menyusi yangi tilga o'tadi (qayta ulash shart emas).
 - Ma'lumotnomalarda ikkita nom bor: **Nomi** va **Nomi (rus)** (hudud, tovar, narx turi, sabab, brend). Ruscha interfeysda rus nomi to'ldirilgan bo'lsa u, bo'lmasa o'zbekcha nom ko'rsatiladi. Excel shablonlari ham interfeys tilida yuklanadi.
 - Tizimning boshqa modullari (Omborxona, Moliya va hokazo) hozircha o'zbekcha; til tugmasi faqat Distributsiyaga ta'sir qiladi.
-- Mijozga boradigan bildirishnomalar hozircha o'zbek tilida.
+- Mijozga boradigan bildirishnomalar mijozning Telegram ilovasi tilida keladi (ulanishda va har **/start**, **/menu** da yangilanadi).
 
 > **Eslatma:** Tilni almashtirish uchun alohida huquq kerak emas — Distributsiya bosh sahifasini ko'ra oladigan har kim o'z tilini tanlaydi.
 

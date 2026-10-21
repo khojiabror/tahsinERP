@@ -1,6 +1,6 @@
 # 7. Yetkazish va nazorat
 
-Bu bob ofis tomonidan yetkazishni boshqarishni tushuntiradi: mashinalar, reys rejalash (sig'im tekshiruvi va marshrut), yo'lga chiqarish, yetkazish natijalarini kuzatish, reysni yopish va farq dalolatnomasi, reys xarajatlarini moliyaga o'tkazish, shuningdek agentlarning kunlik tashrif rejasi (reja/fakt), ovozli buyurtmani yoqish va mijozga yuboriladigan xabarlar. Ekspeditorning botdagi ishi — 6.5-bo'limda.
+Bu bob ofis tomonidan yetkazishni boshqarishni tushuntiradi: mashinalar, reys rejalash (sig'im tekshiruvi va marshrut), yo'lga chiqarish, yetkazish natijalarini kuzatish, reysni yakunlash va yopish, farq dalolatnomasi, qayta yetkazish, reys xarajatlarini moliyaga o'tkazish, shuningdek agentlarning kunlik tashrif rejasi (reja/fakt), ovozli buyurtmani yoqish va mijozga yuboriladigan xabarlar. Ekspeditorning botdagi ishi — 6.5-bo'limda.
 
 Asosiy foydalanuvchilar — **logist / yetkazish bo'limi** (reys rejalaydi va yopadi), **omborchi** (yuk ortadi, qaytgan tovarni qabul qiladi), **buxgalter / kassir** (reys xarajatlari), **rahbar va supervayzer** (tashrif rejasi, nazorat). Misollar demo-ssenariy bo'yicha: mashina **01 A 123 AA** (Isuzu, 5 000 kg, 20 m³), ekspeditor **Sherzod**, agent **Jasur**, ombor **DEMO Asosiy ombor (Toshkent)**, mijoz **DEMO Anvar do'koni**.
 
@@ -28,8 +28,13 @@ Buyurtma (D) → ofis tasdig'i → yig'ish → Jo'natish (DJ, o'tkazilgan)
           mijozga xabar + nakladnoy PDF; buyurtma → "Yetkazildi"
                                        │
                                        ▼
-          Reysni yopish: qaytgan tovar → qaytarish hujjati (DQ) → ombor
-                         qaytmagani → kamomad; rahbarga yakun xabari
+          Reysni yakunlash (ekspeditor, bot): reys "Yo'lda" qoladi,
+                         rahbar va omborchiga "omborda sanab, yoping" xabari
+                                       │
+                                       ▼
+          Reysni yopish (ofis): ombor sanagan qaytgan tovar → qaytarish
+                         hujjati (DQ) → ombor; qaytmagani → kamomad;
+                         rahbarga yakun xabari
                                        │
                                        ▼
           Reys xarajatlari → Moliyaga (kassa/hisobdan chiqim)
@@ -82,7 +87,7 @@ Xatolar: "Davlat raqamini kiriting (4–20 belgi).", "Yuk ko'tarish va hajm musb
 
 **Saqlash** ni bosing. Noto'g'ri kalit — "Kalit formati noto'g'ri."; noto'g'ri koordinata — "Koordinatalar noto'g'ri."
 
-Boshqa sozlamalar Distributsiya → **Sozlamalar** sahifasida: Telegram bot nomi, **Bot ochiq manzili** (yetkazish rasmi va imzo ERP'da ko'rinishi uchun shart), Tashrif radiusi, Kun boshida selfi majburiy, Agent to'lovlari (ekspeditor to'lovlari ham shu qoidaga bo'ysunadi) — 6.2-bo'lim.
+Boshqa sozlamalar Distributsiya → **Sozlamalar** sahifasida: Telegram bot nomi, **Bot ochiq manzili** (yetkazish rasmi va imzo ERP'da ko'rinishi uchun shart), Tashrif radiusi, Kun boshida selfi majburiy, Keldim — faqat jonli joylashuv, Agent to'lovlari (ekspeditor to'lovlari ham shu qoidaga bo'ysunadi) — 6.2-bo'lim.
 
 ## 7.5 Reys rejalash
 
@@ -136,8 +141,8 @@ Reys yaratilganda (yoki ekspeditor almashtirilganda) ekspeditorga xabar ketadi: 
 | Reys holati | Ma'nosi | Mumkin amallar |
 |---|---|---|
 | **Rejalandi** | Yaratilgan, yuk ortilmoqda | Tahrirlash, Yo'lga chiqarish, Bekor, Tartiblash |
-| **Yo'lda** | Mashina chiqdi | Natija kiritish/bekor qilish, Tartiblash, xarajat, Reysni yopish |
-| **Yopildi** | Hammasi hal qilingan, farqlar qayd etilgan | Farq dalolatnomasi, xarajatlarni moliyaga o'tkazish |
+| **Yo'lda** | Mashina chiqdi (ekspeditor botda yakunlagan bo'lsa ham — yopilguncha shu holatda) | Natija kiritish/qaytarish (↺), Tartiblash, xarajat, Reysni yopish |
+| **Yopildi** | Hammasi hal qilingan, farqlar qayd etilgan | Farq dalolatnomasi, xarajatlarni moliyaga o'tkazish, Qayta yetkazish |
 | **Bekor qilingan** | Rejalangan reys bekor qilindi | — |
 
 | Manzil holati | Rang (xaritada) |
@@ -175,6 +180,7 @@ Kalit bo'lmasa: "Xarita uchun Yandex kaliti sozlanmagan (Mashinalar → Yetkazis
 Yuk ortilgach reys sahifasida **Yo'lga chiqarish** → "Ishonchingiz komilmi?" → OK. Ekspeditor buni botda **▶️ Yo'lga chiqish** bilan o'zi ham qiladi — natija bir xil:
 
 - reys holati **Yo'lda**, "Yo'lga chiqdi" vaqti yoziladi;
+- ekspeditorning ish kuni avtomatik (selfisiz) ochiladi — jonli joylashuvi Dala nazoratida yoziladi; reys yakunlanganda yoki yopilganda (boshqa yo'ldagi reysi bo'lmasa) ish kuni yopiladi;
 - Telegram'ga ulangan har mijozga (bir nechta buyurtmasi bo'lsa — bitta xabar): `🚚 Buyurtmangiz yo'lga chiqdi: D-2026-00045 (1 240 000 so'm).\nEkspeditor: Sherzod, +998901112233\nMashina: 01 A 123 AA`.
 
 Reysda manzil bo'lmasa — "Reysda jo'natish yo'q."
@@ -206,13 +212,19 @@ Tekshiruvlar: "Yetkazilgan miqdor jo'natilgandan (20) ko'p bo'lmasin.", "Qisman 
 
 Xato kiritilgan natijani reys **yopilguncha** bekor qilish mumkin: qatordagi **↺** (Natijani bekor qilish) → tasdiq. Manzil yana **Kutmoqda** bo'ladi, keyin natijani qayta kiriting (ofisdan yoki ekspeditor botdan).
 
-> **Eslatma:** Natija bekor qilinganda mijozga yuborilgan xabar qaytarib olinmaydi — kerak bo'lsa mijozga qo'ng'iroq qiling.
+↺ bilan birga qaytariladi:
+
+- buyurtma natija sabab **Yetkazildi** bo'lgan bo'lsa — yana **Jo'natildi**, yetkazish sanasi olib tashlanadi (buyurtma allaqachon Yopildi bo'lsa — faqat sana);
+- yetkazish fotosi/imzosi, izoh va koordinata tozalanadi;
+- mijozga hali yuborilmagan natija xabari o'chiriladi; yuborilgan bo'lsa mijozga `↺ yetkazish natijasi bekor qilindi va qayta kiritiladi` xabari ketadi.
 
 ## 7.8 Reysni yopish va farq dalolatnomasi
 
 **Kim:** logist + omborchi (qaytgan tovarni sanaydi)   **Qayerda:** reys sahifasi → **Reysni yopish** kartasi
 
 Reys yopilishi uchun **hamma manzil bo'yicha natija** bo'lishi kerak; aks holda kartada "Avval barcha manzillar bo'yicha natija kiriting (ekspeditor botda yoki shu yerda)." yozuvi turadi.
+
+Odatiy tartib: ekspeditor hamma manzilni hal qilgach botda **🏁 Reysni yakunlash** ni bosadi (6.5.9). Bu reysni yopmaydi — reys "Yo'lda" qoladi, rahbar va shu ombor omborchisiga xabar keladi: `🏁 Reys R-2026-00007 yakunlandi (…). Qaytadigan tovar: 1 480 000 so'm — omborda sanab, Reyslar sahifasida yoping (qaytgan miqdor va kamomad).` Reysni har doim ofis shu sahifada yopadi.
 
 1. Mashina qaytgach omborchi ortib qolgan tovarni sanaydi.
 2. Kartadagi jadvalda yetkazilmagan har qator: Mijoz, Tovar, **Yetkazilmagan** miqdor va **Omborga qaytdi** maydoni (standart — yetkazilmaganning hammasi). Haqiqatda qaytgan miqdorni yozing.
@@ -231,7 +243,7 @@ So'ng reys **Yopildi**, mijozlar qarzi buyurtmalar bo'yicha qayta taqsimlanadi v
 
 Tekshiruv: "Qaytgan miqdor yetkazilmagandan (3) ko'p bo'lmasin."; kutayotgan manzil bo'lsa — "2 ta manzil bo'yicha natija yo'q — avval yetkazildi/rad belgilang."
 
-> **Muhim:** Ekspeditor reysni botdan yopsa, yetkazilmagan **hamma** tovar omborga qaytgan deb hisoblanadi (kamomad yozilmaydi). Tovar yo'qolgani gumon qilinsa, ekspeditorga botdan yopmaslikni ayting — reysni ofis yopadi.
+> **Eslatma:** Botdagi yakunlash hech narsani omborga yozmaydi — qaytgan miqdor va kamomad faqat shu yerda, ombor sanog'i bo'yicha kiritiladi. Yakunlangan reys ekspeditorning keyingi rejalangan reysini to'smaydi.
 
 ### 7.8.1 Ishlangan misol
 
@@ -250,6 +262,16 @@ Reys **R-2026-00007**, manzil **DEMO Anvar do'koni**: jo'natish DJ-2026-00031 �
 | Reysning kamomad tannarxi | 1 × 40 000 | 40 000 |
 
 Ombor qoldig'i 2 qopga oshadi; 1 qop kamomad farq dalolatnomasida ko'rinadi va ekspeditor KPI'siga (sxemada "Reys kamomadidan, %") ta'sir qiladi.
+
+### 7.8.3 Qayta yetkazish
+
+Rad etilgan yoki qisman qaytgan tovarni mijozga qayta yetkazish kerak bo'lsa:
+
+1. Yopilgan reys sahifasida qaytarish hujjati bor manzil qatorida **Qayta yetkazish** ni bosing.
+2. Yangi buyurtma **qoralamasi** ochiladi: qaytgan miqdorlar (asosiy birlikda), joriy narx, izoh `Qayta yetkazish: D-2026-00045 (R-2026-00007)`.
+3. Kerak bo'lsa tahrirlang, oddiy tartibda tasdiqlang, jo'nating va keyingi reysga qo'shing.
+
+Tugma ikkinchi marta bosilsa — o'sha qoralama ochiladi (yangisi yaratilmaydi). Asl jo'natish va buyurtma o'zgarmaydi.
 
 ### 7.8.2 Farq dalolatnomasi (chop etish)
 
@@ -338,7 +360,7 @@ Davr bo'yicha agentlar kesimida Reja, Fakt, Rejadagilar, Rejadan tashqari, Reja 
 | 08:30 | Marshrut varag'i chop etiladi, yuk ortiladi | 🚚 Reys — manzillarni ko'radi |
 | 09:00 | (yoki ofisdan Yo'lga chiqarish) | ▶️ Yo'lga chiqish — mijozlarga xabar |
 | Kun davomida | Reys sahifasida natijalar, rasm/imzo; qisman/rad xabarlari | Manzil → Yetkazildi (rasm) / Imzo / qisman / Rad, 💵 To'lov, ⛽ Xarajat |
-| Qaytgach | Omborchi qaytgan tovarni sanaydi, logist Reysni yopish (qaytgan miqdor bilan) | 💵 Kassa → 📤 Kassaga topshirish |
+| Qaytgach | Omborchi qaytgan tovarni sanaydi, logist Reysni yopish (qaytgan miqdor bilan) | 🏁 Reysni yakunlash, qaytgan tovarni omborga topshiradi; 💵 Kassa → 📤 Kassaga topshirish |
 | Keyin | Xarajatlar → Moliyaga; kassir naqdni qabul qiladi; Farq dalolatnomasi imzolanadi | — |
 
 ## 7.12 Ovozli buyurtmani yoqish
@@ -355,6 +377,7 @@ Qanday ishlaydi: ovoz matnga o'giriladi (qurilish mollari lug'ati bilan), matnda
 |---|---|
 | ERP'da o'chiq | 🎤 Ovozli buyurtma o'chirilgan. |
 | Serverda kalit yo'q | 🎤 Ovozli buyurtma sozlanmagan (nutqni aniqlash kaliti yo'q). |
+| Ovozli xabarni agent emas (masalan ekspeditor) yuborgan | 🎙 Ovozli buyurtma faqat agentlar uchun. |
 
 > **Maslahat:** Tovar nomlarini katalogdagidek, artikul belgilari bilan ayting ("sement M400", "kafel 30 ga 30"). Ovozli buyurtma oddiy buyurtma kabi ofis tasdig'iga tushadi — xato tovar chiqsa, ofis yoki agent Mini App'da tuzatadi.
 
@@ -364,12 +387,15 @@ Mijoz Telegram'ga ulangan bo'lsa (6.3.2), yetkazish jarayonida avtomatik xabar o
 
 | Hodisa | Qachon | Xabar |
 |---|---|---|
-| Jo'natildi | Jo'natish o'tkazilganda (ofis yoki omborchi Mini App) | `Buyurtmangiz D-... jo'natildi: ... so'm. Joriy qarzingiz: ... so'm.` |
+| Jo'natildi | Jo'natish o'tkazilganda (ofis yoki omborchi Mini App); o'zi olib ketishda — o'rniga bitta "yetkazildi" xabari | `Buyurtmangiz D-... jo'natildi: ... so'm. Joriy qarzingiz: ... so'm.` |
 | Yo'lga chiqdi | Reys yo'lga chiqqanda | `🚚 Buyurtmangiz yo'lga chiqdi: ...` + ekspeditor, telefon, mashina |
 | Yetkazildi | Manzil "Yetkazildi" | `✅ Buyurtma ... yetkazildi (DJ-...): ... so'm. Nakladnoy ilova qilingan.` + PDF |
 | Qisman | Manzil "Qisman" | `✅ Buyurtma ... qisman yetkazildi (...): ... so'm (... so'mdan). Sabab: .... Nakladnoy ilova qilingan.` + PDF |
 | Rad etildi | Manzil "Rad etildi" | `🚫 Buyurtma ... qabul qilinmadi. Sabab: ....` |
 | To'lov | Agent yoki ekspeditor to'lov olganda | `To'lovingiz qabul qilindi: ... so'm (...). Qolgan qarz: ... so'm.` |
+| Natija qaytarildi (↺) | Ofis natijani bekor qilganda, natija xabari allaqachon ketgan bo'lsa | `↺ yetkazish natijasi bekor qilindi va qayta kiritiladi` |
+
+Xabarlar mijozning Telegram tilida (o'zbek yoki rus) yuboriladi.
 
 **Nakladnoy PDF** (`Nakladnoy_DJ-2026-00031.pdf`) — 6.8.2-bo'limda tasvirlangan; qisman yetkazishda faqat yetkazilgan miqdorlar bilan va "(qisman yetkazilgan)" belgisi. PDF'ni bot serveri tayyorlaydi; tayyorlab bo'lmasa xabar matn sifatida ketadi.
 
@@ -400,9 +426,11 @@ Mijoz Telegram'ga ulangan bo'lsa (6.3.2), yetkazish jarayonida avtomatik xabar o
 | Reysda og'irlik 0 kg | Tovar kartasida og'irlik kiritilmagan |
 | "Og'irlik ... mashina sig'imidan oshdi" | Jo'natishni olib tashlang yoki boshqa mashina |
 | Ekspeditor ro'yxatda yo'q | Jamoalar sahifasida "Ekspeditor" belgisi va faollikni tekshiring |
-| Ekspeditor "Sizga hozircha reys biriktirilmagan." deydi | Reys boshqa ekspeditorga, bekor qilingan yoki sanasi kechagidan oldin va rejalangan holda qolgan |
+| Ekspeditor "Sizga hozircha reys biriktirilmagan." deydi | Unga yo'ldagi yoki rejalangan reys yo'q (reys boshqa ekspeditorga berilgan yoki bekor qilingan). Rejalangan reys sanasi o'tib ketgan bo'lsa ham ko'rinadi |
+| Ekspeditor reysni yakunladi, lekin reys "Yo'lda" | Shunday bo'lishi kerak — ombor qaytgan tovarni sanagach, reysni ofis **Reysni yopish** bilan yopadi (7.8) |
 | Ekspeditor natija kirita olmaydi ("Reys yo'lda emas.") | Reys yo'lga chiqarilmagan |
 | Tasdiq ustunida rasm o'rniga 📷 / ✍️ belgisi | Sozlamalarda "Bot ochiq manzili" bo'sh |
 | Reysni yopib bo'lmaydi | Kutayotgan manzil bor — natija kiriting |
+| Buyurtma kartasida "Yetkazildi": "Buyurtma reysda (R-…) — yetkazish natijasi reys orqali kiritiladi" | Buyurtma ochiq reysda — natijani reys sahifasida (7.7.3) yoki ekspeditor botda kiriting |
 | Xaritada nuqtalar yo'q | Mijozlarda koordinata yo'q yoki Yandex kaliti noto'g'ri |
-| Rad etilgan buyurtmani qayta yetkazish kerak | Yopilgan reysdagi jo'natish boshqa reysga qayta qo'shilmaydi — tovar qaytarish hujjati bilan omborga qaytgan. Qayta yetkazish uchun yangi jo'natish kerak (Buyurtmalar bobiga qarang) |
+| Rad etilgan buyurtmani qayta yetkazish kerak | Yopilgan reysdagi jo'natish boshqa reysga qayta qo'shilmaydi — tovar qaytarish hujjati bilan omborga qaytgan. Reys sahifasida **Qayta yetkazish** — qaytgan miqdorlar bilan yangi buyurtma qoralamasi (7.8.3) |

@@ -1,56 +1,80 @@
 # Qo'llanma yozilganda topilgan kamchiliklar (2026-10-21)
 
-Chuqur qo'llanma (`Qollanma/`) kod bo'yicha yozilganda aniqlangan nomuvofiqliklar. Hali tuzatilmagan. Daraja: **K1** — pul, ruxsat yoki ma'lumotga xavf; **K2** — jarayon noto'g'ri yoki chalkash; **K3** — qulaylik.
-Qo'llanmada har biri "Muhim/Eslatma" sifatida qayd qilingan (foydalanuvchi vaqtinchalik qanday ishlashi kerakligi bilan).
+Chuqur qo'llanma (`Qollanma/`) kod bo'yicha yozilganda aniqlangan nomuvofiqliklar. Daraja: **K1** — pul, ruxsat yoki ma'lumotga xavf; **K2** — jarayon noto'g'ri yoki chalkash; **K3** — qulaylik.
+
+**Holat (2026-10-21, branch `claude/dst-findings-fix-efcdb4`):** 37 banddan 32 tasi to'liq tuzatildi; 5 tasida bir qism (K3-34 — to'liq) ataylab qoldirildi, sababi bilan: K2-11 (qisman jo'natilgan holat), K2-21 (yo'qotish uchun moliya yozuvi), K3-34, K3-35 (savat jami), K3-36 (30 kun, soliq). Qo'llanmadagi vaqtinchalik eslatmalar yangi xatti-harakatga moslab yangilandi.
+
+- Migratsiya **027_DST_FindingsFix** (idempotent; `Seed/105` — `DstAudit` moduli): maxsus huquqlar egalariga Change, `TRANSFER_ACT_LINES.LossQty` + `SPLIT`, filtrlangan `UX_DST_TRANSFER_ACTS_Income`, `TELEGRAM_ACCOUNTS.Language`, `DstAudit` ruxsat moduli. Lokal `DBTHSN-IPACK` va `DB_DST_UI`'ga qo'llandi (oldin `*_pre027_*.bak` zaxira).
+- Testlar: ERP 222/226 (4 — avvalgidek shartli skip), yangi `FindingsFixTests.cs`, `FindingsFixK2Tests.cs` (unit + integratsiya, rollback bilan); bot 79/79 (`FindingsBotTests.cs`). RazorCheck: 541 view, 0 xato.
+- Matnlar: `Resources/tools/strings_findings.py` (`resx_add.py`), ishlatilmaydigan kalitlar — `resx_remove.py`.
 
 ## K1
 
-| # | Kamchilik | Joy |
-|---|---|---|
-| 1 | Yangi rolga hamma modulga "ko'rish" berilsa (admin qo'llanmasidagi tartib), maxsus huquqlar ham beriladi: `DstSeeCost`, `DstOverrideCredit`, `DstDiscountUnlimited`, `DstWriteOffApprove` — chunki ular View huquqi bilan tekshiriladi | `DstPermissions.Has` |
-| 2 | Qarz limiti faqat ledger qoldig'ini tekshiradi — tasdiqlangan, lekin jo'natilmagan buyurtmalar hisobga olinmaydi: bir nechta katta buyurtma alohida-alohida o'tib ketadi | `OrderRules.CheckCredit`, `Confirm` |
-| 3 | Kassa: agent botdan topshirgan bo'lsa, web modalidagi hisob e'tiborsiz; "e'lon qilingan" summa — topshirishdan keyingi to'lovlarni ham qo'shib ko'rsatadi → soxta ortiqcha | `DstPayments/Cash` |
-| 4 | Kassaga topshirilgan to'lovni bekor qilib bo'lmaydi (faqat Moliya'da qo'lda) | `PaymentService` |
-| 5 | Tannarx huquqisiz ko'rinadigan summalar: boshlang'ich inventarizatsiyadagi "Tannarx" ustuni, ko'chirma farqi Telegram xabaridagi summalar; buyurtma taklifida narx ustuni yo'q → buyurtmalar 0 narxda yaratiladi | `DstInventory`, `TransferActService`, `DstReorder` |
-| 6 | Minimal narx narx turi qatorida — faqat Chakana'ga qo'yilgan minimum Diler mijozida tekshirilmaydi; maxsus narx minimumdan butunlay ozod | `PricingService` |
+| # | Kamchilik | Joy | Natija |
+|---|---|---|---|
+| 1 | Yangi rolga hamma modulga "ko'rish" berilsa (admin qo'llanmasidagi tartib), maxsus huquqlar ham beriladi: `DstSeeCost`, `DstOverrideCredit`, `DstDiscountUnlimited`, `DstWriteOffApprove` — chunki ular View huquqi bilan tekshiriladi | `DstPermissions.Has` | ✅ Tuzatildi. `DstPermissions.Has` — Admin/Developer yoki (paketda bor **va** Change belgilangan); View yetmaydi (`Grants`). 027: mavjud View egalariga Change qo'yildi (egalari saqlandi). Admin bu to'rt qatorni yangilanishdan keyin ko'rib chiqishi kerak (qo'llanmada). |
+| 2 | Qarz limiti faqat ledger qoldig'ini tekshiradi — tasdiqlangan, lekin jo'natilmagan buyurtmalar hisobga olinmaydi | `OrderRules.CheckCredit`, `Confirm` | ✅ `CreditState.Committed` = tasdiqlangan/yig'ilayotgan/qisman jo'natilgan buyurtmalarning jo'natilmagan qismi (buyurtma chegirmasi bilan, tekshirilayotgan buyurtma bundan tashqari); `CheckCredit`: qarz + band + buyurtma > limit. Kartada va yangi buyurtma oynasida ko'rinadi. |
+| 3 | Kassa: agent botdan topshirgan bo'lsa, web modalidagi hisob e'tiborsiz; "e'lon qilingan" summa — topshirishdan keyingi to'lovlarni ham qo'shib ko'rsatadi | `DstPayments/Cash` | ✅ `ConfirmHandover(..., finAccountId)` — kassir tanlagan kassa yoziladi; modalda summa — hujjatdagi `AmountDeclared`, keyin olingan naqd alohida ko'rsatiladi va hujjatga kirmaydi. |
+| 4 | Kassaga topshirilgan to'lovni bekor qilib bo'lmaydi (faqat Moliya'da qo'lda) | `PaymentService` | ✅ `PaymentService.CancelHandover`: qabul qilingan topshirish bekor — to'lovlarning FIN yozuvlari va farq yozuvi bekor (IsDeleted), to'lovlar yana agent qo'lida; keyin to'lov oddiy `Cancel`. Kassa sahifasida "Bekor qilish". |
+| 5 | Tannarx huquqisiz ko'rinadigan summalar: boshlang'ich inventarizatsiyadagi "Tannarx", ko'chirma farqi Telegram xabaridagi summalar; buyurtma taklifida narx ustuni yo'q → buyurtmalar 0 narxda yaratiladi | `DstInventory`, `TransferActService`, `DstReorder` | ✅ Inventarizatsiya: ustun, Excel varag'i va importda tannarx faqat `DstSeeCost` bilan, huquqsiz saqlash mavjud qiymatni o'chirmaydi. Ko'chirma xabari: `NotificationService.ToManagers(withCost, withoutCost)` — huquqsiz rahbarga qatorlar soni. Buyurtma taklifi: huquqsiz/bo'sh narx — `ReorderService.FillMissingPrices` oxirgi xarid narxini serverda qo'yadi. |
+| 6 | Minimal narx narx turi qatorida — faqat Chakana'ga qo'yilgan minimum Diler mijozida tekshirilmaydi; maxsus narx minimumdan butunlay ozod | `PricingService` | ✅ `PriceResolver`: o'z turi minimumi, bo'lmasa standart turdagi minimum (o'z narxidan yuqori emas — aks holda chegirmasiz sotuv ham to'xtardi; "eng katta MinPrice" varianti shu sababli tanlanmadi). Maxsus narxga ham minimum; ozod — faqat `DstDiscountUnlimited`. |
 
 ## K2
 
-| # | Kamchilik | Joy |
-|---|---|---|
-| 7 | Ekspeditorda "Kunni boshlash" tugmasi yo'q, jonli joylashuv esa faqat ochiq ish kunida yoziladi → ekspeditor izi yozilmaydi | bot `SendMenuAsync`, `FieldService.Track` |
-| 8 | Reysni botdan yopishda yetkazilmagan hammasi "omborga qaytdi" deb olinadi — kamomad qayd qilinmaydi | 2-bosqich reys yopish |
-| 9 | Yetkazish natijasini qaytarish (↺) buyurtma holatini, foto/imzoni va mijozga ketgan xabarni qaytarmaydi | 2-bosqich |
-| 10 | Rad etilgan / qisman qaytgan jo'natma yopilgan reysga bog'liq qoladi — qayta yetkazish oqimi aniq emas | 2-bosqich |
-| 11 | Qisman jo'natilgan va to'liq to'langan buyurtma "Yopildi" bo'lmaydi | `DebtService.SettleOrders` |
-| 12 | "Yig'ilmoqda" → "Tasdiqlangan" qaytarish tugmasi yo'q; yangi kirimdan keyin rezerv avtomatik yangilanmaydi | `DstOrders` |
-| 13 | Hudud scope'i quyi hududlarni qamramaydi; buyurtmalar ro'yxati hudud scope'ini umuman hisobga olmaydi | `ScopeService` |
-| 14 | "Edit" bilan boshlanadigan sahifalar faqat ko'rish huquqi bilan ochilmaydi (mijoz/tovar kartasi, buyurtma) | `PermissionAttribute` |
-| 15 | Kassa kamomadi uchun agentdan debitorlik yaratilmaydi — faqat xarajat ("agent hisobida qoladi" matni noto'g'ri) | `CashHandoverService` |
-| 16 | Kirish qoldig'ini (opening balance) bekor qilish/tuzatish UI'si yo'q | `ImportService` |
-| 17 | Moliya'da distributsiya mijozlari "avans to'lagan" ko'rinadi (to'lov bor, jo'natish mirror yo'q) | Moliya integratsiyasi |
-| 18 | "Tushum" ikki ma'noda: kunlik Telegram xulosasida — yig'ilgan pul, panel/hisobotlarda — jo'natish − qaytarish | `DailySummaryService` |
-| 19 | Minimal qoldiq xabari haqiqiy qoldiqdan, buyurtma taklifi — mavjud (rezervsiz) qoldiqdan | `StockAlerts`, `ReorderService` |
-| 20 | Inventarizatsiya: web sahifada "Tizimda" ustuni ko'rinadi ("ko'r" sanoq emas); sanoq ochiqligida jo'natish to'xtamaydi; boshlang'ich va "farqni yozish"li nazorat sanog'i bir oyda — oylik qulf xatosi | `DstInventory` |
-| 21 | Ko'chirma dalolatnomasi: bir qator kamomadini yo'qotish va qaytarishga bo'lib bo'lmaydi; dalolatnomani bekor qilib bo'lmaydi; yo'qotish uchun qarz/moliya yozuvi yo'q | `TransferActService` |
-| 22 | Landed cost: sotilgan tovarga tushgan qism hech qaysi tannarx/foyda hisobiga tushmaydi | `LandedCostService` |
-| 23 | Mini App: yig'ish natijasi oyna yopilsa yo'qoladi (sanoq esa har skanerda saqlanadi); savat `sessionStorage`da | `store.js`, `app.js` |
-| 24 | Mijoz bildirishnomalari doim o'zbekcha; xodim boti menyu tili faqat qayta ulashda o'zgaradi | `NotificationService.ToCustomer` |
-| 25 | "Keldim" statik joylashuvni ham qabul qiladi (faqat belgilaydi) — rejada rad etilishi yozilgan | `FieldService.CheckIn` |
-| 26 | Ekspeditor faqat kechagi kundan boshlab rejalangan reysni ko'radi | bot `CurrentTripId` |
-| 27 | Qarz limiti oshgani haqidagi rahbar xabari faqat buyurtma yaratilganda (keyin muddat o'tsa — yo'q) | `NotifyNewOrder` |
-| 28 | Rahbar paneli o'tgan sanada ham "tasdiq/jo'natish kutmoqda" va agent naqdini joriy holatda ko'rsatadi | `DstDashboard` |
+| # | Kamchilik | Joy | Natija |
+|---|---|---|---|
+| 7 | Ekspeditorda "Kunni boshlash" tugmasi yo'q, jonli joylashuv faqat ochiq ish kunida yoziladi → ekspeditor izi yozilmaydi | bot `SendMenuAsync`, `FieldService.Track` | ✅ `TripService.Start` → `FieldService.EnsureWorkDay` (selfisiz; yopilgan bo'lsa qayta ochadi). `Finish`/`Close` → `EndWorkDayAfterTrip` (yo'lda boshqa reys bo'lmasa) — shaxsiy vaqt kuzatilmaydi. |
+| 8 | Reysni botdan yopishda yetkazilmagan hammasi "omborga qaytdi" deb olinadi — kamomad qayd qilinmaydi | 2-bosqich reys yopish | ✅ Bot endi yopmaydi: `TripService.Finish` — FinishedAt, reys "yo'lda", rahbar va omborchiga xabar; qaytgan miqdor va kamomad ofis `Close`'ida. Bot tugmasi "🏁 Reysni yakunlash". Yakunlangan reys keyingi rejalangan reysni botda to'smaydi. (01_PHASE1_MVP'dagi "ekspeditor yopishi — hammasi omborga" qarori shu bilan almashtirildi.) |
+| 9 | Yetkazish natijasini qaytarish (↺) buyurtma holatini, foto/imzoni va mijozga ketgan xabarni qaytarmaydi | 2-bosqich | ✅ `ResetStop`: dalil/izoh/koordinata tozalanadi; buyurtma Yetkazildi → Jo'natildi (`OrderStateMachine`ga Delivered → Shipped qo'shildi), DeliveredAt olinadi; ketmagan xabar o'chiriladi, ketgan bo'lsa mijozga tuzatish xabari. |
+| 10 | Rad etilgan / qisman qaytgan jo'natma yopilgan reysga bog'liq qoladi — qayta yetkazish oqimi aniq emas | 2-bosqich | ✅ Oqim: qaytgan tovar qaytarish hujjati bilan omborda, qarzdan ayrilgan; asl hujjatlar o'zgarmaydi. `TripService.Redeliver` — reys kartasida "Qayta yetkazish": qaytgan miqdorlar bilan yangi buyurtma qoralamasi (takroriy bosish — o'sha qoralama). |
+| 11 | Qisman jo'natilgan va to'liq to'langan buyurtma "Yopildi" bo'lmaydi | `DebtService.SettleOrders` | ✅/ataylab. `CloseRemainder` endi `SettleOrders` chaqiradi — qolganidan voz kechilgach to'langan buyurtma darhol yopiladi. "Qisman jo'natilgan" holatda yopilmasligi ataylab: qolgani hali jo'natilishi mumkin (01_PHASE1_MVP 5-bo'lim). |
+| 12 | "Yig'ilmoqda" → "Tasdiqlangan" qaytarish tugmasi yo'q; yangi kirimdan keyin rezerv avtomatik yangilanmaydi | `DstOrders` | ✅ `OrderService.StopPicking` + tugma. `RereserveWaiting` (birinchi tasdiqlangan — birinchi): `StockDocs.Receive`, `ReturnService.Create`, `TransferActService.Receive` ichida; SRM `IncomesController.Receive`dan keyin `AfterExternalReceipt` (alohida tranzaksiya, xato kirimni buzmaydi). |
+| 13 | Hudud scope'i quyi hududlarni qamramaydi; buyurtmalar ro'yxati hudud scope'ini hisobga olmaydi | `ScopeService` | ✅ `ScopeService.For(Territory)` — `TerritoryFilter.WithDescendants`; `DstOrdersController.Scoped` mijoz hududi bo'yicha ham cheklaydi. |
+| 14 | "Edit" bilan boshlanadigan sahifalar faqat ko'rish huquqi bilan ochilmaydi (mijoz/tovar kartasi, buyurtma) | `PermissionAttribute` | ✅ `[Permission(ViewOnGet = true)]` — mijoz va tovar kartasi GET'da View bilan (o'qish rejimi, saqlash POST — Change; yangi mijoz — Change). Buyurtma ro'yxati Details'ga ochiladi (Edit — faqat qoralama tahriri). |
+| 15 | Kassa kamomadi uchun agentdan debitorlik yaratilmaydi — faqat xarajat | `CashHandoverService` | ✅ Kamomad FIN yozuvi agent KPI sxemasidagi HR xodimiga (CounterpartyType 6) — Moliya uni xodimga berilgan pul, ish haqi qarzidan ayriladigan deb o'qiydi. Xodim bog'lanmagan bo'lsa — avvalgidek kassa chiqimi. Topshirish bekor qilinsa — yozuv ham bekor. Matn yangilandi. |
+| 16 | Kirish qoldig'ini (opening balance) bekor qilish/tuzatish UI'si yo'q | `ImportService` | ✅ `DebtService.ReverseOpening` (OPENING_REV, juftlash uchun DocID = yozuv ID) + akt sahifasida tugma; import "allaqachon bor" tekshiruvi faqat amaldagi kirish qoldig'ini ko'radi — bekor qilingach qayta import qilinadi. |
+| 17 | Moliya'da distributsiya mijozlari "avans to'lagan" ko'rinadi | Moliya integratsiyasi | ✅ `FinQueries.DistributionPayment`; `CounterpartyBalanceService` mijoz tushumlaridan DstPayment'ni chiqaradi (pul — kassa/tushumda qoladi). Jo'natish mirror'i yo'qligi ataylab (01_PHASE1_MVP 255) — distributsiya qarzi Distributsiya → Qarzlar'da. |
+| 18 | "Tushum" ikki ma'noda | `DailySummaryService` | ✅ Kunlik xulosada "Yig'ilgan pul (to'lovlar)"; "Tushum" — faqat jo'natish − qaytarish. |
+| 19 | Minimal qoldiq xabari haqiqiy qoldiqdan, buyurtma taklifi — mavjud qoldiqdan | `StockAlerts`, `ReorderService` | ✅ `StockAlerts.AfterDecrease` mavjud (haqiqiy − rezerv) qoldiq bo'yicha; tasdiqlash (rezerv) ham chaqiradi. |
+| 20 | Inventarizatsiya: "Tizimda" ustuni ko'rinadi; sanoq ochiqligida jo'natish to'xtamaydi; boshlang'ich va "farqni yozish"li nazorat sanog'i bir oyda — oylik qulf xatosi | `DstInventory` | ✅ Qoralamada "Tizimda" va "Farq" yashirin ("ko'r"). `InventoryCountService.EnsureNotCounting` — qoralama sanoqda sanalgan tovar `Ship` va `StockDocs.Issue`'dan (hisobdan chiqarish, pereso'rtitsa) chiqmaydi. Boshlang'ich sanoq `InventoryAdjustmentService.ApplyAsync(monthlyLock: false)` — oylik qulfni olmaydi; nazorat sanog'i qoidasi (oyiga bir marta) qoladi. |
+| 21 | Ko'chirma dalolatnomasi: kamomadni yo'qotish va qaytarishga bo'lib bo'lmaydi; dalolatnomani bekor qilib bo'lmaydi; yo'qotish uchun qarz/moliya yozuvi yo'q | `TransferActService` | ✅/ataylab. `SPLIT` + `LossQty`; `TransferActService.Cancel` (kirimlar teskari, lot nomi bo'shatiladi, ko'chirma yana qabul kutadi; indeks faqat amaldagi dalolatnomaga). Yo'qotish uchun moliya yozuvi ataylab yo'q: moliyaga faqat haqiqiy pul yoziladi (`DstFinancePosting`), yo'qotish summasi dalolatnomada; aybdordan undirish — HR ish haqi orqali. |
+| 22 | Landed cost: sotilgan tovarga tushgan qism hech qaysi tannarx/foyda hisobiga tushmaydi | `LandedCostService` | ✅ Hisobotda: `SalesReportService.LandedCostOnSold` — savdo hisoboti jamida (filtrsiz, tannarx huquqi bilan) davr xarajati va "Foyda (qo'shimcha xarajatdan keyin)". FIFO qayta baholanmasligi — 04_PHASE3 qarori. |
+| 23 | Mini App: yig'ish natijasi oyna yopilsa yo'qoladi; savat `sessionStorage`da | `store.js`, `app.js` | ✅ Savat `localStorage` (3 kun), yig'ish natijasi `localStorage` (2 kun, jo'natilgach o'chadi). |
+| 24 | Mijoz bildirishnomalari doim o'zbekcha; xodim boti menyu tili faqat qayta ulashda o'zgaradi | `NotificationService.ToCustomer` | ✅ `TELEGRAM_ACCOUNTS.Language` (bot ulanishda va `/start`, `/menu` da yuboradi), `ToCustomer` shu tilda. Bot `/start`, `/menu` da ERP'dan bog'lanishni qayta o'qiydi — xodim tili qayta ulashsiz. |
+| 25 | "Keldim" statik joylashuvni ham qabul qiladi — rejada rad etilishi yozilgan | `FieldService.CheckIn` | ✅ Sozlama `CheckInLiveOnly` ("Keldim — faqat jonli joylashuv"): yoqilsa statik rad etiladi. Standart o'chiq: botning joylashuv tugmasi faqat statik yuboradi — majburiy rad asosiy oqimni to'xtatardi; o'chiqda statik belgilanadi (IsLive). |
+| 26 | Ekspeditor faqat kechagi kundan boshlab rejalangan reysni ko'radi | bot `CurrentTripId` | ✅ Sana cheklovi olib tashlandi: bugungi → o'tib ketgan → kelajakdagi (eng yaqini). |
+| 27 | Qarz limiti oshgani haqidagi rahbar xabari faqat buyurtma yaratilganda | `NotifyNewOrder` | ✅ `OrderService.NotifyCredit`: yaratishda, tahrirda va tasdiqlash qarz sabab rad etilganda (alohida tranzaksiyada) — bir buyurtmaga kuniga bir marta. |
+| 28 | Rahbar paneli o'tgan sanada ham "tasdiq/jo'natish kutmoqda" va agent naqdini joriy holatda ko'rsatadi | `DstDashboard` | ✅ Qarz va muddatlar — tanlangan kun oxiridagi holat (`DebtService.Load(before)`). Tarixini tiklab bo'lmaydigan ko'rsatkichlar (kutmoqda, agent naqdi, topshirishlar, ombor qiymati) — o'tgan sanada "hozirgi holat" belgisi bilan. |
 
 ## K3
 
-| # | Kamchilik |
-|---|---|
-| 29 | Inventarizatsiya va Xatolar jurnali chap menyuda yo'q (faqat bosh sahifa plitkalari) |
-| 30 | Saqlanadigan, lekin ishlatilmaydigan sozlamalar: "Minusga ruxsat", "Yetkazish zonasi", tovarda "Katta o'lchamli"/"Tortiladigan" |
-| 31 | "Brak" qaytarish faqat belgi — tovar brak omboriga avtomatik yuborilmaydi |
-| 32 | Hisobdan chiqarishda foto maydoni bor, web formada biriktirish yo'q |
-| 33 | Audit jurnali (`dst.AUDIT_TRAIL`) uchun ekran yo'q |
-| 34 | Migratsiya standart narx turi sifatida "Ulgurji"ni qo'yadi (demo — Chakana) |
-| 35 | Mini App savat jami aksiyasiz; rahbar Mini App'ga kira oladi, lekin tugmasi yo'q; ovozli buyurtma ekspeditorda ham ishlaydi |
-| 36 | KPI: muddati o'tgan qarz jarimasi agentning joriy mijozlari bo'yicha, faqat 30+ kun; KPI bonusi HR formulasida soliqsiz |
-| 37 | Ishlatilmaydigan resx kaliti `Settings_AgentAccount` |
+| # | Kamchilik | Natija |
+|---|---|---|
+| 29 | Inventarizatsiya va Xatolar jurnali chap menyuda yo'q | ✅ Menyuga qo'shildi (+ Audit jurnali). |
+| 30 | Saqlanadigan, lekin ishlatilmaydigan sozlamalar: "Minusga ruxsat", "Yetkazish zonasi", "Katta o'lchamli"/"Tortiladigan" | ✅ UI'dan olib tashlandi (ishlatish uchun qoida yo'q: FIFO minusga ruxsat bermaydi, zona reyslarda yo'q); ustunlar bazada qoladi, saqlash mavjud qiymatga tegmaydi. |
+| 31 | "Brak" qaytarish faqat belgi | ✅ Sozlama "Brak ombori" (`DefectWarehouseId`): brak qaytarish faqat shu omborga (formada o'zi tanlanadi), u savdo omborlaridan chiqariladi. |
+| 32 | Hisobdan chiqarishda foto maydoni bor, web formada biriktirish yo'q | ✅ `DstLocalFiles` (App_Data/DstFiles/{tenant}, faqat JPEG/PNG, 5 MB) + `UploadPhoto`/`Photo` (ruxsat tekshiruvi bilan); yuborilgunga qadar. |
+| 33 | Audit jurnali (`dst.AUDIT_TRAIL`) uchun ekran yo'q | ✅ `DstAuditController` — filtrlar (obyekt, kalit, foydalanuvchi, manba, davr), faqat o'qish; ruxsat moduli `DstAudit` (027 + Seed/105), paket — Distribution. |
+| 34 | Migratsiya standart narx turi sifatida "Ulgurji"ni qo'yadi (demo — Chakana) | ⏸ Ataylab qoldirildi: ulgurji distributor uchun standart (fallback) — Ulgurji; demo/pilot import fayli o'z standartini belgilaydi, Ma'lumotnomalarda o'zgartiriladi. Mavjud bazalarni migratsiya bilan o'zgartirish narxlarni sezdirmay o'zgartirib yuborardi. |
+| 35 | Mini App savat jami aksiyasiz; rahbar Mini App'ga kira oladi, lekin tugmasi yo'q; ovozli buyurtma ekspeditorda ham ishlaydi | ✅/ataylab. Rahbar buyurtma oynasidan chiqarildi (`FieldRoles`), ovozli buyurtma faqat agent (bot va ERP `VoiceDraft`). Savat jami aksiyasiz — ataylab: aksiya buyurtma saqlanganda hisoblanadi (04_PHASE3), savatda ogohlantirish bor. |
+| 36 | KPI: muddati o'tgan qarz jarimasi agentning joriy mijozlari bo'yicha, faqat 30+ kun; KPI bonusi HR formulasida soliqsiz | ✅/ataylab. Jarima endi debet yozilgan paytdagi agent bo'yicha (`DebtMath.OverdueFor`). 30+ kun — 01_PHASE1_MVP qoidasi. Bonus soliqsizligi — HR `HrPayrollCalculator` qoidasi (soliq faqat hisoblangan summadan); o'zgartirish HR egasi qarori. |
+| 37 | Ishlatilmaydigan resx kaliti `Settings_AgentAccount` | ✅ O'chirildi (K3-30 kalitlari bilan, `resx_remove.py`). |
+
+## UAT yozilganda topilganlar (38–49)
+
+| # | Daraja | Kamchilik | Natija |
+|---|---|---|---|
+| 38 | K3 | Import "Namuna" varag'idagi namunaviy shtrix-kodlar 4780000000017 va 4780000000024 EAN-13 nazorat raqamidan o'tmaydi | ✅ To'g'ri kodlar: 4780000000014 (Tovarlar), 4780000000021 (Birliklar); test — `DirectoryRules.NormalizeBarcode` bilan. |
+| 39 | K1 | Qisman jo'natilgan buyurtmada ham "Yetkazildi" tugmasi chiqadi — qolgan rezerv osilib qoladi, qolganini jo'natib bo'lmaydi | ✅ `OrderStateMachine`: PartiallyShipped → Delivered olib tashlandi, tugma faqat to'liq jo'natilganda. Avval qolgani jo'natiladi yoki "Qolganidan voz kechish". |
+| 40 | K2 | To'lov bekor qilinganda qarz qaytadi, "Yopildi" buyurtma qayta ochilmaydi | ✅ `DebtService.ReopenOrders` — to'lov, qaytarish va kirish qoldig'i bekor qilinganda qarzi yopilmagan "Yopildi" buyurtma "Yetkazildi"/"Jo'natildi" ga qaytadi (holat jurnalida). |
+| 41 | K2 | Web'da "Agent qo'lida (naqd)" to'lov buyurtma agentiga emas, kiritgan foydalanuvchiga yoziladi | ✅ `PaymentService.Receive`: web, hisobsiz — qabul qiluvchi = buyurtma agenti (buyurtmasiz — mijoz kartasidagi agent), agent yo'q bo'lsa — kiritgan. |
+| 42 | K2 | Buyurtmani qo'lda "yetkazildi" deb belgilash reys nuqtasini yangilamaydi | ✅ `OrderService.MarkDelivered`: natijasi kutilayotgan, yopilmagan reysdagi buyurtma qo'lda yetkazilmaydi — natija reys orqali (bot yoki reys kartasi); nuqtani qaytarish — K2-9. |
+| 43 | K2 | Ombor scope'i bor foydalanuvchi ombori tanlanmagan buyurtmalarni ko'rmaydi | ✅ `ScopeFilter.WithNulls()` — buyurtmalar ro'yxatida ombori hali tanlanmaganlar ham (ombor tasdiqda taklif qilinadi). |
+| 44 | K2 | Jamoa supervayzeri agenti biriktirilmagan mijozlarni ko'rmaydi | ✅ `ScopeService.AgentsFor` supervayzerga `WithNulls()` — agentsiz mijozlar (va ularning buyurtma/to'lovlari) ko'rinadi, agentga biriktirish uchun. Oddiy agentga — yo'q. |
+| 45 | K3 | O'zi olib ketishda mijozga "jo'natildi" ketadi, "yetkazildi" ketmaydi | ✅ `Ship`: o'zi olib ketish to'liq jo'natilsa — bitta `ORDER_DELIVERED` xabari. |
+| 46 | K2 | O'chirilgan qoralama raqami qayta beriladi (MAX+1) | ✅ `DstNumbering.Next`: oxirgi berilgan raqam `dst.SETTINGS` (`DocNo:<jadval>:<prefiks-yil>`) da saqlanadi, keyingisi = max(jadvaldagi, saqlangan) + 1 (o'sha applock ostida). Migratsiya shart emas. |
+| 47 | K2 | Maxsus narx boshlangan kunining o'zida to'xtatilsa, tarixdan o'chadi — UI izohi tarixda qoladi deydi | ✅/ataylab. O'chirish saqlandi: bugun boshlangan narxni "kechagi sana bilan yopish" bo'sh sana oralig'i (CHECK ValidTo ≥ ValidFrom) beradi; o'chirish audit jurnalida qoladi (K3-33), buyurtmalar o'z narxini saqlaydi. UI izohi aniq qoidaga moslandi (shuningdek, K1-6 dan keyin eskirgan "minimal narxdan ozod" matni tuzatildi). |
+| 48 | K1 | ERP ombor modulidagi ko'chirma va chiqimlar distributsiya rezervini hisobga olmaydi — mavjud qoldiq manfiy bo'lishi mumkin | ✅ `ExpenseDocumentService.EnsureNotBelowReserved` (ERP chiqim va ko'chirma — yaratish va tahrir; CRM savdo hisob-fakturasi tasdig'idagi savdo ombori chiqimi `WarehouseFlowService.DecreaseSalesStock`): chiqimdan keyin qoldiq `dst.STOCK_RESERVATIONS` dan kam bo'lsa — rad, sababi va yechimi bilan. Ishlab chiqarish sarfi va inventarizatsiya tekshirilmaydi (ishlab chiqarish omborlari; inventarizatsiya — haqiqiy sanoq). |
+| 49 | K3 | Agent bo'lmagan xodimlarga ombor scope'ini berish uchun UI'da havola yo'q | ✅ Jamoalar sahifasida "Xodimning ko'rinish doirasi" kartasi — istalgan xodim → Scopes sahifasi. |
+
+Tekshiruv (38–49 bilan): ERP testlari 231/235 (4 — shartli skip), yangi `FindingsUatTests.cs`.
