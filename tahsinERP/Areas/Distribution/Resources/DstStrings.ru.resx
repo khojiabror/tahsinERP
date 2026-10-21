@@ -3019,4 +3019,355 @@
   <data name="Notify_TripClosed" xml:space="preserve">
     <value>🏁 Рейс {0} закрыт: доставлено {1}/{2}, {3} сум; возврат на склад {4} сум, недостача {5} сум; расходы {6} сум.</value>
   </data>
+  <data name="Vehicles" xml:space="preserve">
+    <value>Машины</value>
+  </data>
+  <data name="Vehicle" xml:space="preserve">
+    <value>Машина</value>
+  </data>
+  <data name="Trips" xml:space="preserve">
+    <value>Рейсы</value>
+  </data>
+  <data name="Trip" xml:space="preserve">
+    <value>Рейс</value>
+  </data>
+  <data name="Routes" xml:space="preserve">
+    <value>План визитов</value>
+  </data>
+  <data name="Kpi" xml:space="preserve">
+    <value>KPI агентов</value>
+  </data>
+  <data name="Tile_Trips" xml:space="preserve">
+    <value>Планирование рейсов, доставка, акт расхождений</value>
+  </data>
+  <data name="Tile_Routes" xml:space="preserve">
+    <value>Дневной маршрут агента и план/факт</value>
+  </data>
+  <data name="Tile_Vehicles" xml:space="preserve">
+    <value>Машины, вместимость, настройки карты</value>
+  </data>
+  <data name="Tile_Kpi" xml:space="preserve">
+    <value>% с продаж, бонус, штраф → зарплата</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Показать</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Сегодня</value>
+  </data>
+  <data name="Prev_Day" xml:space="preserve">
+    <value>Предыдущий день</value>
+  </data>
+  <data name="Next_Day" xml:space="preserve">
+    <value>Следующий день</value>
+  </data>
+  <data name="Fin_Category" xml:space="preserve">
+    <value>Статья расхода</value>
+  </data>
+  <data name="Vehicle_Plate" xml:space="preserve">
+    <value>Госномер</value>
+  </data>
+  <data name="Vehicle_Model" xml:space="preserve">
+    <value>Марка</value>
+  </data>
+  <data name="Vehicle_CapacityKg" xml:space="preserve">
+    <value>Грузоподъёмность, кг</value>
+  </data>
+  <data name="Vehicle_CapacityM3" xml:space="preserve">
+    <value>Объём, м³</value>
+  </data>
+  <data name="Vehicle_Driver" xml:space="preserve">
+    <value>Водитель</value>
+  </data>
+  <data name="Vehicle_Empty" xml:space="preserve">
+    <value>Машины ещё не добавлены.</value>
+  </data>
+  <data name="Vehicle_PlateRequired" xml:space="preserve">
+    <value>Введите госномер (4–20 символов).</value>
+  </data>
+  <data name="Vehicle_CapacityPositive" xml:space="preserve">
+    <value>Грузоподъёмность и объём должны быть положительными.</value>
+  </data>
+  <data name="Delivery_Settings" xml:space="preserve">
+    <value>Настройки доставки</value>
+  </data>
+  <data name="Map_Key" xml:space="preserve">
+    <value>Ключ Yandex Maps JavaScript API</value>
+  </data>
+  <data name="Map_KeyHint" xml:space="preserve">
+    <value>Получается на developer.tech.yandex.ru. Если пусто — вместо карты ссылки на Яндекс.</value>
+  </data>
+  <data name="Map_BadKey" xml:space="preserve">
+    <value>Неверный формат ключа.</value>
+  </data>
+  <data name="Voice_Enable" xml:space="preserve">
+    <value>Голосовые заказы в боте</value>
+  </data>
+  <data name="Voice_Hint" xml:space="preserve">
+    <value>Агент отправляет голосовое → текст → товары и количество → черновик → подтверждение. Распознавание — ключом Groq на сервере бота (Bot__Voice__GroqApiKey); без ключа бот сообщит, что функция отключена.</value>
+  </data>
+  <data name="Depot_Geo" xml:space="preserve">
+    <value>Координаты складов (начало маршрута)</value>
+  </data>
+  <data name="Depot_GeoHint" xml:space="preserve">
+    <value>Формат: широта,долгота — например 41.311081,69.240562 (скопируйте с Яндекс Карт).</value>
+  </data>
+  <data name="Map_NoKey" xml:space="preserve">
+    <value>Ключ Яндекс Карт не задан (Машины → Настройки доставки).</value>
+  </data>
+  <data name="Map_OpenYandex" xml:space="preserve">
+    <value>Открыть в Яндекс Картах</value>
+  </data>
+  <data name="Map_NoPoints" xml:space="preserve">
+    <value>Нет точек с координатами для карты.</value>
+  </data>
+  <data name="Trip_New" xml:space="preserve">
+    <value>Новый рейс</value>
+  </data>
+  <data name="Trip_Available" xml:space="preserve">
+    <value>Отгрузки (без рейса)</value>
+  </data>
+  <data name="Trip_AvailableHint" xml:space="preserve">
+    <value>Проведённые, не доставленные отгрузки (кроме самовывоза). ⚠ — у клиента нет координат.</value>
+  </data>
+  <data name="Trip_Route" xml:space="preserve">
+    <value>Маршрут</value>
+  </data>
+  <data name="Trip_Optimize" xml:space="preserve">
+    <value>Упорядочить</value>
+  </data>
+  <data name="Trip_OptimizeHint" xml:space="preserve">
+    <value>Порядок по ближайшему адресу от склада</value>
+  </data>
+  <data name="Trip_LoadKg" xml:space="preserve">
+    <value>Вес, кг</value>
+  </data>
+  <data name="Trip_LoadM3" xml:space="preserve">
+    <value>Объём, м³</value>
+  </data>
+  <data name="Trip_NoGeo" xml:space="preserve">
+    <value>Нет координат клиента</value>
+  </data>
+  <data name="Trip_Stops" xml:space="preserve">
+    <value>Адреса</value>
+  </data>
+  <data name="Trip_Delivered" xml:space="preserve">
+    <value>Доставлено</value>
+  </data>
+  <data name="Trip_Expenses" xml:space="preserve">
+    <value>Расходы рейса</value>
+  </data>
+  <data name="Trip_ShortageCost" xml:space="preserve">
+    <value>Себестоимость недостачи</value>
+  </data>
+  <data name="Trip_StartedAt" xml:space="preserve">
+    <value>Выехал</value>
+  </data>
+  <data name="Trip_ClosedAt" xml:space="preserve">
+    <value>Закрыт</value>
+  </data>
+  <data name="Trip_RouteSheet" xml:space="preserve">
+    <value>Маршрутный лист</value>
+  </data>
+  <data name="Trip_Act" xml:space="preserve">
+    <value>Акт расхождений</value>
+  </data>
+  <data name="Trip_ActNoDiff" xml:space="preserve">
+    <value>Расхождений нет — всё доставлено.</value>
+  </data>
+  <data name="Trip_Start" xml:space="preserve">
+    <value>Отправить в рейс</value>
+  </data>
+  <data name="Trip_Proof" xml:space="preserve">
+    <value>Подтверждение</value>
+  </data>
+  <data name="Trip_Lines" xml:space="preserve">
+    <value>Товары</value>
+  </data>
+  <data name="Trip_Result" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="Trip_ResetHint" xml:space="preserve">
+    <value>Отменить результат (до закрытия рейса)</value>
+  </data>
+  <data name="Trip_Shipped" xml:space="preserve">
+    <value>Отгружено</value>
+  </data>
+  <data name="Trip_Returned" xml:space="preserve">
+    <value>Вернулось на склад</value>
+  </data>
+  <data name="Trip_ReturnedToWarehouse" xml:space="preserve">
+    <value>Возвращено на склад (документ возврата)</value>
+  </data>
+  <data name="Trip_Undelivered" xml:space="preserve">
+    <value>Не доставлено</value>
+  </data>
+  <data name="Trip_CloseTitle" xml:space="preserve">
+    <value>Закрытие рейса</value>
+  </data>
+  <data name="Trip_CloseNeedResults" xml:space="preserve">
+    <value>Сначала внесите результат по всем адресам (экспедитор в боте или здесь).</value>
+  </data>
+  <data name="Trip_CloseHint" xml:space="preserve">
+    <value>Проверьте количество недоставленного товара, вернувшегося на склад: возврат оприходуется документом возврата, остальное — недостача (с клиента не взыскивается, себестоимость на рейсе).</value>
+  </data>
+  <data name="Trip_Close" xml:space="preserve">
+    <value>Закрыть рейс</value>
+  </data>
+  <data name="Trip_ExpenseKind" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="Trip_OfficeResultHint" xml:space="preserve">
+    <value>При вводе из офиса фото/подпись не требуются (например, подтверждение по телефону).</value>
+  </data>
+  <data name="TripExpense_Pending" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
+  <data name="TripExpense_Post" xml:space="preserve">
+    <value>Провести</value>
+  </data>
+  <data name="TripExpense_AccountHint" xml:space="preserve">
+    <value>Если выбрана касса — сразу расход в финансах; пусто — провести позже.</value>
+  </data>
+  <data name="Plan_Day" xml:space="preserve">
+    <value>План на день</value>
+  </data>
+  <data name="Plan_Saved" xml:space="preserve">
+    <value>Сохранённый план</value>
+  </data>
+  <data name="Plan_Template" xml:space="preserve">
+    <value>По дням визитов</value>
+  </data>
+  <data name="Plan_Hint" xml:space="preserve">
+    <value>Шаблон — дни визитов в карточке клиента. Добавьте, удалите, упорядочьте и сохраните — агент увидит маршрут в боте в этом порядке.</value>
+  </data>
+  <data name="Plan_OptimizeHint" xml:space="preserve">
+    <value>Сохранить и упорядочить по ближайшему адресу (от места начала дня)</value>
+  </data>
+  <data name="Plan_Reset" xml:space="preserve">
+    <value>Вернуть шаблон</value>
+  </data>
+  <data name="Plan_AddCustomer" xml:space="preserve">
+    <value>Добавить клиента…</value>
+  </data>
+  <data name="Plan_Fact" xml:space="preserve">
+    <value>План / факт</value>
+  </data>
+  <data name="Plan_Planned" xml:space="preserve">
+    <value>В плане</value>
+  </data>
+  <data name="Plan_Visited" xml:space="preserve">
+    <value>Посещено</value>
+  </data>
+  <data name="Plan_Unplanned" xml:space="preserve">
+    <value>Вне плана</value>
+  </data>
+  <data name="Plan_CheckIn" xml:space="preserve">
+    <value>Прибыл</value>
+  </data>
+  <data name="Plan_NotVisited" xml:space="preserve">
+    <value>Не посещён</value>
+  </data>
+  <data name="Plan_Report" xml:space="preserve">
+    <value>Отчёт за период</value>
+  </data>
+  <data name="Plan_NoAgents" xml:space="preserve">
+    <value>В вашей видимости нет агентов.</value>
+  </data>
+  <data name="VisitResult_ORDER" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="VisitResult_PAYMENT" xml:space="preserve">
+    <value>Оплата</value>
+  </data>
+  <data name="VisitResult_NO_ORDER" xml:space="preserve">
+    <value>Без заказа</value>
+  </data>
+  <data name="VisitResult_NONE" xml:space="preserve">
+    <value>Визит</value>
+  </data>
+  <data name="Kpi_Month" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="Kpi_Calculate" xml:space="preserve">
+    <value>Рассчитать</value>
+  </data>
+  <data name="Kpi_Hint" xml:space="preserve">
+    <value>Чистые продажи = отгружено − возвраты (как в отчётах). Штраф: невыполнение плана визитов, % от долга с просрочкой более 30 дней, % от недостачи рейса. Перенос — в строку сотрудника черновой ведомости HR за этот месяц как премия и штраф.</value>
+  </data>
+  <data name="Kpi_Scheme" xml:space="preserve">
+    <value>Схема</value>
+  </data>
+  <data name="Kpi_Employee" xml:space="preserve">
+    <value>Сотрудник HR (строка зарплаты)</value>
+  </data>
+  <data name="Kpi_SalesPct" xml:space="preserve">
+    <value>% с продаж</value>
+  </data>
+  <data name="Kpi_Plan" xml:space="preserve">
+    <value>План на месяц</value>
+  </data>
+  <data name="Kpi_PlanBonus" xml:space="preserve">
+    <value>Бонус за выполнение плана</value>
+  </data>
+  <data name="Kpi_OverPlanPct" xml:space="preserve">
+    <value>% сверх плана</value>
+  </data>
+  <data name="Kpi_MinCoverage" xml:space="preserve">
+    <value>Мин. выполнение плана визитов, %</value>
+  </data>
+  <data name="Kpi_CoveragePenalty" xml:space="preserve">
+    <value>Штраф за невыполнение</value>
+  </data>
+  <data name="Kpi_OverduePct" xml:space="preserve">
+    <value>% от просроченного долга</value>
+  </data>
+  <data name="Kpi_ShortagePct" xml:space="preserve">
+    <value>% от недостачи рейса</value>
+  </data>
+  <data name="Kpi_NetSales" xml:space="preserve">
+    <value>Чистые продажи</value>
+  </data>
+  <data name="Kpi_PlanPct" xml:space="preserve">
+    <value>План, %</value>
+  </data>
+  <data name="Kpi_Coverage" xml:space="preserve">
+    <value>Визиты, %</value>
+  </data>
+  <data name="Kpi_Commission" xml:space="preserve">
+    <value>% с продаж</value>
+  </data>
+  <data name="Kpi_Bonus" xml:space="preserve">
+    <value>Бонус</value>
+  </data>
+  <data name="Kpi_Penalty" xml:space="preserve">
+    <value>Штраф</value>
+  </data>
+  <data name="Kpi_Total" xml:space="preserve">
+    <value>Итого</value>
+  </data>
+  <data name="Kpi_Overdue" xml:space="preserve">
+    <value>Просроченный долг</value>
+  </data>
+  <data name="Kpi_NotCalculated" xml:space="preserve">
+    <value>Не рассчитано</value>
+  </data>
+  <data name="Kpi_Applied" xml:space="preserve">
+    <value>В зарплате</value>
+  </data>
+  <data name="Kpi_Apply" xml:space="preserve">
+    <value>В зарплату</value>
+  </data>
+  <data name="Kpi_ManualBonus" xml:space="preserve">
+    <value>Доп. бонус</value>
+  </data>
+  <data name="Kpi_ManualPenalty" xml:space="preserve">
+    <value>Доп. штраф</value>
+  </data>
 </root>

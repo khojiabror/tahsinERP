@@ -3019,4 +3019,355 @@ Mashina: {4}</value>
   <data name="Notify_TripClosed" xml:space="preserve">
     <value>🏁 Reys {0} yopildi: yetkazildi {1}/{2}, {3} so'm; omborga qaytdi {4} so'm, kamomad {5} so'm; xarajat {6} so'm.</value>
   </data>
+  <data name="Vehicles" xml:space="preserve">
+    <value>Mashinalar</value>
+  </data>
+  <data name="Vehicle" xml:space="preserve">
+    <value>Mashina</value>
+  </data>
+  <data name="Trips" xml:space="preserve">
+    <value>Reyslar</value>
+  </data>
+  <data name="Trip" xml:space="preserve">
+    <value>Reys</value>
+  </data>
+  <data name="Routes" xml:space="preserve">
+    <value>Tashrif rejasi</value>
+  </data>
+  <data name="Kpi" xml:space="preserve">
+    <value>Agent KPI</value>
+  </data>
+  <data name="Tile_Trips" xml:space="preserve">
+    <value>Reys rejalash, yetkazish, farq dalolatnomasi</value>
+  </data>
+  <data name="Tile_Routes" xml:space="preserve">
+    <value>Agentning kunlik marshruti va reja/fakt</value>
+  </data>
+  <data name="Tile_Vehicles" xml:space="preserve">
+    <value>Mashinalar, sig'im, xarita sozlamalari</value>
+  </data>
+  <data name="Tile_Kpi" xml:space="preserve">
+    <value>% savdo, bonus, jarima → ish haqi</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Dan</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>Gacha</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Ko'rsatish</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Bugun</value>
+  </data>
+  <data name="Prev_Day" xml:space="preserve">
+    <value>Oldingi kun</value>
+  </data>
+  <data name="Next_Day" xml:space="preserve">
+    <value>Keyingi kun</value>
+  </data>
+  <data name="Fin_Category" xml:space="preserve">
+    <value>Chiqim moddasi</value>
+  </data>
+  <data name="Vehicle_Plate" xml:space="preserve">
+    <value>Davlat raqami</value>
+  </data>
+  <data name="Vehicle_Model" xml:space="preserve">
+    <value>Rusumi</value>
+  </data>
+  <data name="Vehicle_CapacityKg" xml:space="preserve">
+    <value>Yuk ko'tarish, kg</value>
+  </data>
+  <data name="Vehicle_CapacityM3" xml:space="preserve">
+    <value>Hajm, m³</value>
+  </data>
+  <data name="Vehicle_Driver" xml:space="preserve">
+    <value>Haydovchi</value>
+  </data>
+  <data name="Vehicle_Empty" xml:space="preserve">
+    <value>Mashinalar hali qo'shilmagan.</value>
+  </data>
+  <data name="Vehicle_PlateRequired" xml:space="preserve">
+    <value>Davlat raqamini kiriting (4–20 belgi).</value>
+  </data>
+  <data name="Vehicle_CapacityPositive" xml:space="preserve">
+    <value>Yuk ko'tarish va hajm musbat bo'lsin.</value>
+  </data>
+  <data name="Delivery_Settings" xml:space="preserve">
+    <value>Yetkazish sozlamalari</value>
+  </data>
+  <data name="Map_Key" xml:space="preserve">
+    <value>Yandex Maps JavaScript API kaliti</value>
+  </data>
+  <data name="Map_KeyHint" xml:space="preserve">
+    <value>developer.tech.yandex.ru da olinadi. Bo'sh bo'lsa xarita o'rniga Yandex havolalari ko'rsatiladi.</value>
+  </data>
+  <data name="Map_BadKey" xml:space="preserve">
+    <value>Kalit formati noto'g'ri.</value>
+  </data>
+  <data name="Voice_Enable" xml:space="preserve">
+    <value>Botda ovozli buyurtma</value>
+  </data>
+  <data name="Voice_Hint" xml:space="preserve">
+    <value>Agent ovozli xabar yuboradi → matn → tovar va miqdor → qoralama → tasdiq. Nutqni matnga o'girish bot serveridagi Groq kaliti bilan (Bot__Voice__GroqApiKey); kalit bo'lmasa bot o'chiq deydi.</value>
+  </data>
+  <data name="Depot_Geo" xml:space="preserve">
+    <value>Omborlar koordinatasi (marshrut boshi)</value>
+  </data>
+  <data name="Depot_GeoHint" xml:space="preserve">
+    <value>Ko'rinishi: kenglik,uzunlik — masalan 41.311081,69.240562 (Yandex xaritadan nusxa).</value>
+  </data>
+  <data name="Map_NoKey" xml:space="preserve">
+    <value>Xarita uchun Yandex kaliti sozlanmagan (Mashinalar → Yetkazish sozlamalari).</value>
+  </data>
+  <data name="Map_OpenYandex" xml:space="preserve">
+    <value>Yandex xaritada ochish</value>
+  </data>
+  <data name="Map_NoPoints" xml:space="preserve">
+    <value>Xaritada ko'rsatish uchun koordinatali nuqta yo'q.</value>
+  </data>
+  <data name="Trip_New" xml:space="preserve">
+    <value>Yangi reys</value>
+  </data>
+  <data name="Trip_Available" xml:space="preserve">
+    <value>Jo'natishlar (reyssiz)</value>
+  </data>
+  <data name="Trip_AvailableHint" xml:space="preserve">
+    <value>O'tkazilgan, yetkazilmagan va o'zi olib ketish bo'lmagan jo'natishlar. ⚠ — mijozda koordinata yo'q.</value>
+  </data>
+  <data name="Trip_Route" xml:space="preserve">
+    <value>Marshrut</value>
+  </data>
+  <data name="Trip_Optimize" xml:space="preserve">
+    <value>Tartiblash</value>
+  </data>
+  <data name="Trip_OptimizeHint" xml:space="preserve">
+    <value>Ombordan eng yaqin manzil bo'yicha tartib</value>
+  </data>
+  <data name="Trip_LoadKg" xml:space="preserve">
+    <value>Og'irlik, kg</value>
+  </data>
+  <data name="Trip_LoadM3" xml:space="preserve">
+    <value>Hajm, m³</value>
+  </data>
+  <data name="Trip_NoGeo" xml:space="preserve">
+    <value>Mijoz koordinatasi yo'q</value>
+  </data>
+  <data name="Trip_Stops" xml:space="preserve">
+    <value>Manzillar</value>
+  </data>
+  <data name="Trip_Delivered" xml:space="preserve">
+    <value>Yetkazildi</value>
+  </data>
+  <data name="Trip_Expenses" xml:space="preserve">
+    <value>Reys xarajatlari</value>
+  </data>
+  <data name="Trip_ShortageCost" xml:space="preserve">
+    <value>Kamomad tannarxi</value>
+  </data>
+  <data name="Trip_StartedAt" xml:space="preserve">
+    <value>Yo'lga chiqdi</value>
+  </data>
+  <data name="Trip_ClosedAt" xml:space="preserve">
+    <value>Yopildi</value>
+  </data>
+  <data name="Trip_RouteSheet" xml:space="preserve">
+    <value>Marshrut varag'i</value>
+  </data>
+  <data name="Trip_Act" xml:space="preserve">
+    <value>Farq dalolatnomasi</value>
+  </data>
+  <data name="Trip_ActNoDiff" xml:space="preserve">
+    <value>Farq yo'q — hammasi yetkazildi.</value>
+  </data>
+  <data name="Trip_Start" xml:space="preserve">
+    <value>Yo'lga chiqarish</value>
+  </data>
+  <data name="Trip_Proof" xml:space="preserve">
+    <value>Tasdiq</value>
+  </data>
+  <data name="Trip_Lines" xml:space="preserve">
+    <value>Tovarlar</value>
+  </data>
+  <data name="Trip_Result" xml:space="preserve">
+    <value>Natija</value>
+  </data>
+  <data name="Trip_ResetHint" xml:space="preserve">
+    <value>Natijani bekor qilish (reys yopilguncha)</value>
+  </data>
+  <data name="Trip_Shipped" xml:space="preserve">
+    <value>Jo'natilgan</value>
+  </data>
+  <data name="Trip_Returned" xml:space="preserve">
+    <value>Omborga qaytdi</value>
+  </data>
+  <data name="Trip_ReturnedToWarehouse" xml:space="preserve">
+    <value>Omborga qaytgan (qaytarish hujjati)</value>
+  </data>
+  <data name="Trip_Undelivered" xml:space="preserve">
+    <value>Yetkazilmagan</value>
+  </data>
+  <data name="Trip_CloseTitle" xml:space="preserve">
+    <value>Reysni yopish</value>
+  </data>
+  <data name="Trip_CloseNeedResults" xml:space="preserve">
+    <value>Avval barcha manzillar bo'yicha natija kiriting (ekspeditor botda yoki shu yerda).</value>
+  </data>
+  <data name="Trip_CloseHint" xml:space="preserve">
+    <value>Yetkazilmagan tovarning omborga qaytgan miqdorini tekshiring: qaytgani qaytarish hujjati bilan kirim qilinadi, qolgani — kamomad (mijozdan undirilmaydi, tannarxi reysda).</value>
+  </data>
+  <data name="Trip_Close" xml:space="preserve">
+    <value>Reysni yopish</value>
+  </data>
+  <data name="Trip_ExpenseKind" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="Trip_OfficeResultHint" xml:space="preserve">
+    <value>Ofisdan kiritilganda rasm/imzo talab qilinmaydi (masalan telefon orqali tasdiq).</value>
+  </data>
+  <data name="TripExpense_Pending" xml:space="preserve">
+    <value>Kutmoqda</value>
+  </data>
+  <data name="TripExpense_Post" xml:space="preserve">
+    <value>Moliyaga</value>
+  </data>
+  <data name="TripExpense_AccountHint" xml:space="preserve">
+    <value>Kassa tanlansa — darhol moliyaga chiqim; bo'sh — keyin o'tkaziladi.</value>
+  </data>
+  <data name="Plan_Day" xml:space="preserve">
+    <value>Kun rejasi</value>
+  </data>
+  <data name="Plan_Saved" xml:space="preserve">
+    <value>Saqlangan reja</value>
+  </data>
+  <data name="Plan_Template" xml:space="preserve">
+    <value>Tashrif kunlaridan</value>
+  </data>
+  <data name="Plan_Hint" xml:space="preserve">
+    <value>Andoza — mijoz kartasidagi tashrif kunlari. Qo'shing, olib tashlang, tartiblang va saqlang — agent botdagi marshrutni shu tartibda ko'radi.</value>
+  </data>
+  <data name="Plan_OptimizeHint" xml:space="preserve">
+    <value>Saqlash va eng yaqin manzil bo'yicha tartiblash (kun boshi joyidan)</value>
+  </data>
+  <data name="Plan_Reset" xml:space="preserve">
+    <value>Andozaga qaytish</value>
+  </data>
+  <data name="Plan_AddCustomer" xml:space="preserve">
+    <value>Mijoz qo'shish…</value>
+  </data>
+  <data name="Plan_Fact" xml:space="preserve">
+    <value>Reja / fakt</value>
+  </data>
+  <data name="Plan_Planned" xml:space="preserve">
+    <value>Rejada</value>
+  </data>
+  <data name="Plan_Visited" xml:space="preserve">
+    <value>Borildi</value>
+  </data>
+  <data name="Plan_Unplanned" xml:space="preserve">
+    <value>Rejadan tashqari</value>
+  </data>
+  <data name="Plan_CheckIn" xml:space="preserve">
+    <value>Keldi</value>
+  </data>
+  <data name="Plan_NotVisited" xml:space="preserve">
+    <value>Borilmagan</value>
+  </data>
+  <data name="Plan_Report" xml:space="preserve">
+    <value>Davr bo'yicha hisobot</value>
+  </data>
+  <data name="Plan_NoAgents" xml:space="preserve">
+    <value>Ko'rinishingizda agent yo'q.</value>
+  </data>
+  <data name="VisitResult_ORDER" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="VisitResult_PAYMENT" xml:space="preserve">
+    <value>To'lov</value>
+  </data>
+  <data name="VisitResult_NO_ORDER" xml:space="preserve">
+    <value>Buyurtmasiz</value>
+  </data>
+  <data name="VisitResult_NONE" xml:space="preserve">
+    <value>Tashrif</value>
+  </data>
+  <data name="Kpi_Month" xml:space="preserve">
+    <value>Oy</value>
+  </data>
+  <data name="Kpi_Calculate" xml:space="preserve">
+    <value>Hisoblash</value>
+  </data>
+  <data name="Kpi_Hint" xml:space="preserve">
+    <value>Sof savdo = jo'natilgan − qaytarilgan (Hisobotlar bilan bir xil). Jarima: tashrif rejasi bajarilmasa, 30 kundan ortiq kechikkan qarzdan %, reys kamomadidan %. O'tkazish — shu oyning qoralama HR ish haqi hisobidagi xodim qatoriga mukofot va jarima.</value>
+  </data>
+  <data name="Kpi_Scheme" xml:space="preserve">
+    <value>Sxema</value>
+  </data>
+  <data name="Kpi_Employee" xml:space="preserve">
+    <value>HR xodimi (ish haqi qatori)</value>
+  </data>
+  <data name="Kpi_SalesPct" xml:space="preserve">
+    <value>% savdodan</value>
+  </data>
+  <data name="Kpi_Plan" xml:space="preserve">
+    <value>Oylik reja</value>
+  </data>
+  <data name="Kpi_PlanBonus" xml:space="preserve">
+    <value>Reja bajarilsa bonus</value>
+  </data>
+  <data name="Kpi_OverPlanPct" xml:space="preserve">
+    <value>Rejadan ortig'iga %</value>
+  </data>
+  <data name="Kpi_MinCoverage" xml:space="preserve">
+    <value>Tashrif rejasi min, %</value>
+  </data>
+  <data name="Kpi_CoveragePenalty" xml:space="preserve">
+    <value>Bajarilmasa jarima</value>
+  </data>
+  <data name="Kpi_OverduePct" xml:space="preserve">
+    <value>Muddati o'tgan qarzdan, %</value>
+  </data>
+  <data name="Kpi_ShortagePct" xml:space="preserve">
+    <value>Reys kamomadidan, %</value>
+  </data>
+  <data name="Kpi_NetSales" xml:space="preserve">
+    <value>Sof savdo</value>
+  </data>
+  <data name="Kpi_PlanPct" xml:space="preserve">
+    <value>Reja, %</value>
+  </data>
+  <data name="Kpi_Coverage" xml:space="preserve">
+    <value>Tashrif, %</value>
+  </data>
+  <data name="Kpi_Commission" xml:space="preserve">
+    <value>% savdo</value>
+  </data>
+  <data name="Kpi_Bonus" xml:space="preserve">
+    <value>Bonus</value>
+  </data>
+  <data name="Kpi_Penalty" xml:space="preserve">
+    <value>Jarima</value>
+  </data>
+  <data name="Kpi_Total" xml:space="preserve">
+    <value>Jami</value>
+  </data>
+  <data name="Kpi_Overdue" xml:space="preserve">
+    <value>Muddati o'tgan qarz</value>
+  </data>
+  <data name="Kpi_NotCalculated" xml:space="preserve">
+    <value>Hisoblanmagan</value>
+  </data>
+  <data name="Kpi_Applied" xml:space="preserve">
+    <value>Ish haqida</value>
+  </data>
+  <data name="Kpi_Apply" xml:space="preserve">
+    <value>Ish haqiga</value>
+  </data>
+  <data name="Kpi_ManualBonus" xml:space="preserve">
+    <value>Qo'shimcha bonus</value>
+  </data>
+  <data name="Kpi_ManualPenalty" xml:space="preserve">
+    <value>Qo'shimcha jarima</value>
+  </data>
 </root>

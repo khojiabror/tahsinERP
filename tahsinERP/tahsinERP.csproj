@@ -939,6 +939,11 @@
     <Compile Include="Areas\Distribution\Services\Delivery\TripService.cs" />
     <Compile Include="Areas\Distribution\Services\Delivery\VisitPlanService.cs" />
     <Compile Include="Areas\Distribution\Services\Delivery\VoiceOrderService.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstVehiclesController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstTripsController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstRoutesController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstKpiController.cs" />
+    <Compile Include="Areas\Distribution\Services\Delivery\MapModel.cs" />
     <Compile Include="Areas\Site\Controllers\Api\SiteApiController.cs" />
     <Compile Include="Areas\Site\Controllers\SiteCatalogController.cs" />
     <Compile Include="Areas\Site\Controllers\SiteControllerBase.cs" />
@@ -3021,6 +3026,15 @@
     <Content Include="Areas\Distribution\Views\DstDictionaries\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstImport\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstInventory\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstVehicles\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstTrips\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstTrips\Edit.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstTrips\Details.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstTrips\PrintRoute.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstTrips\PrintAct.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstRoutes\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstKpi\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\Shared\_YandexMap.cshtml" />
     <Content Include="Areas\Distribution\Views\DstInventory\Details.cshtml" />
     <Content Include="Areas\Distribution\Views\DstIssues\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstLandedCosts\Details.cshtml" />
