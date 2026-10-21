@@ -1,6 +1,6 @@
 # tahsinERP — serverga o'rnatish bo'yicha yagona qo'llanma
 
-Holat: 2026-10-21. Bitta Windows server (variant A, `00_SERVER_PLAN.md`) uchun **hamma komponent bir joyda**: ERP, boshqaruv paneli
+Holat: 2026-10-21 (distributsiya yakuniy relizi — migratsiya 027 bilan — hisobga olingan). Bitta Windows server (variant A, `00_SERVER_PLAN.md`) uchun **hamma komponent bir joyda**: ERP, boshqaruv paneli
 (`admin.`) va mijoz portali (`my.`), provisioning agenti, Telegram bot (distributsiya), sayt-katalog, SQL bazalar, domen va SSL.
 Manbalar: `00_SERVER_PLAN.md`, `Docs/ControlPanel/04–08`, `Docs/Distribution/02–03`, `tahsinERP.Bot/README.md`,
 `tahsinERP.Site/README.md`, `Database/README.md`, `tools/DEPLOY-SECURITY.md`. Ziddiyatlar shu qo'llanmada hal qilingan (oxirgi bo'lim).
@@ -236,8 +236,10 @@ New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\tahsinERP.Provisi
 
 Qo'lda (agentsiz) firma bazasi kerak bo'lsa:
 `.\Database\tools\New-TenantDb.ps1 -Server .\SQLEXPRESS -DbName DB_firma1 -CompanyName '"Firma 1" MChJ'` (oxirgi qatorda `RESULT {...}` — vaqtinchalik admin paroli),
-keyin `tenants.json` ga qo'shing. Relizdan keyin barcha firmalarga migratsiya:
-`.\Database\tools\Invoke-DbMigrations.ps1 -Server .\SQLEXPRESS -AllTenants -TenantsFile C:\ProgramData\tahsinERP\tenants.json` (avval `-DryRun`).
+keyin `tenants.json` ga qo'shing. Relizdan keyin barcha firmalarga migratsiya **va seed** (yangi ruxsat modullari seed'da keladi,
+masalan 027 bilan `DstAudit`; seed idempotent — qayta ishlatish xavfsiz):
+`.\Database\tools\Invoke-DbMigrations.ps1 -Server .\SQLEXPRESS -AllTenants -TenantsFile C:\ProgramData\tahsinERP\tenants.json -Seed` (avval `-DryRun`).
+Hozirgi oxirgi migratsiya — `027_DST_FindingsFix.sql`.
 
 ---
 
@@ -276,7 +278,11 @@ dotnet tahsinERP.Bot.dll tenant add firma1 https://firma1.tahsin.uz/ <TOKEN> --e
 dotnet tahsinERP.Bot.dll webhook set firma1
 ```
 
-3. ERP → **Distributsiya → Sozlamalar**: "Telegram bot nomi" va "Bot ochiq manzili" = `https://bot.tahsin.uz`.
+3. ERP → **Distributsiya → Sozlamalar**: "Telegram bot nomi" va **"Bot ochiq manzili"** = `https://bot.tahsin.uz`
+   (usiz selfi, tashrif fotosi, yetkazish rasmi va imzo ERP sahifalarida ko'rinmaydi).
+4. Ovozli buyurtma (ixtiyoriy): bot pool'ida `Bot__Voice__GroqApiKey` + ERP → **Mashinalar → Yetkazish sozlamalari → "Botda ovozli buyurtma"**.
+5. Bot hujjat PDF'lari (yetkazish, hisob-faktura) uchun shrift: Windows'da Arial bor — sozlash shart emas; Linux'ga ko'chirilsa `Bot__FontsDir` (DejaVu/Liberation).
+6. Foydalanuvchilar uchun to'liq tartib (agent/haydovchi ulash, Mini App) — `Docs/Distribution/Qollanma/06_TELEGRAM.md`; sinov — `Docs/Distribution/UAT/`.
 
 ### Har firma uchun sayt
 
@@ -320,7 +326,8 @@ Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime
    (Express'da `COMPRESSION` qo'llanmasa — olib tashlang.) **Serverdan tashqariga nusxa** (provayder object storage yoki boshqa server) va provayder snapshot'i.
    Eng muhimi `tahsin_control` — to'lov tarixi shu yerda.
 2. **Kuzatuv**: UptimeRobot (bepul) — `https://admin.tahsin.uz/health`, `https://bot.tahsin.uz/health`, `https://demo.sayt.tahsin.uz/health`, `https://demo.tahsin.uz/Account/Login`.
-3. **Relizlar** 19:00 dan keyin, zaxiradan so'ng: ERP fayllarini almashtirish (serverdagi `Web.config` machineKey'ni saqlab) → `Invoke-DbMigrations -AllTenants` → pool recycle; panel uchun `Install-PanelIis.ps1 -KeepSecrets`.
+3. **Relizlar** 19:00 dan keyin, zaxiradan so'ng: ERP fayllarini almashtirish (serverdagi `Web.config` machineKey'ni saqlab) → `Invoke-DbMigrations -AllTenants -Seed` → pool recycle;
+   panel uchun `Install-PanelIis.ps1 -KeepSecrets`; bot/sayt uchun `dotnet publish` → pool recycle (sozlamalar pool muhitida, o'chmaydi).
 
 ---
 
@@ -331,7 +338,8 @@ Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime
 - [ ] `admin.tahsin.uz` — 2FA bilan kirish; `my.tahsin.uz` — mijoz kirishi (Telegram kodi)
 - [ ] Panelda yangi firma → "Bazani yaratish" → agent bajardi → yangi subdomen ochiladi
 - [ ] Panel bergan litsenziya kaliti ERP'da qabul qilinadi (k2 kaliti ERP'ga qo'yilgan)
-- [ ] Bot: `/start`, Mini App ochiladi, buyurtma ERP'ga tushadi
+- [ ] Bot: `/start`, Mini App ochiladi, buyurtma ERP'ga tushadi; selfi/foto ERP'da ko'rinadi ("Bot ochiq manzili")
+- [ ] Distributsiya UAT (`Docs/Distribution/UAT/`, 135 test) asosiy ssenariylari real Telegram bilan
 - [ ] Sayt: `demo.sayt.tahsin.uz` katalog ko'rinadi
 - [ ] Zaxira fayllari paydo bo'ldi va serverdan tashqariga ko'chdi; bitta bazani sinov tiklash
 
