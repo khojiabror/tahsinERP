@@ -35,25 +35,22 @@ Domen — **`tahsinerp.uz`** (sotib olingan, 2026-10-21). SQL — `.\SQLEXPRESS`
 
 1. RDP faqat o'z IP'ingizdan (provayder firewall'ida). Windows Firewall: kirishga faqat **80, 443** (va RDP — cheklangan).
 2. Windows Update → hammasini o'rnating, qayta yuklang.
-3. Rollar va dasturlar (PowerShell, administrator):
+3. **Hammasi bitta skript bilan** — `tools\deploy\Install-ServerPrereqs.ps1` ni serverga ko'chiring (RDP orqali) va administrator PowerShell'da:
 
 ```powershell
-Install-WindowsFeature Web-Server, Web-Asp-Net45, Web-WebSockets, Web-Http-Redirect, Web-Dyn-Compression, Web-Mgmt-Console, NET-Framework-45-ASPNET
+Set-ExecutionPolicy -Scope Process Bypass -Force
+.\Install-ServerPrereqs.ps1 -SqlMaxMemoryMB 1024
 ```
 
-4. Qo'lda o'rnatiladi:
-   - **ASP.NET Core 10 Hosting Bundle** (panel, bot, sayt, agent uchun runtime) — o'rnatgandan keyin `iisreset`.
-   - **IIS URL Rewrite 2.1**.
-   - **SQL Server Express** — Lightsail "SQL Server 2022 Express" blueprint'ida **allaqachon o'rnatilgan**. Instance nomini tekshiring:
-     `Get-Service MSSQL*` (`MSSQL$SQLEXPRESS` → `.\SQLEXPRESS`; `MSSQLSERVER` → `.` — qo'llanmadagi `.\SQLEXPRESS` ni shunga almashtiring).
-     Autentifikatsiya: Mixed; `sa` ishlatilmaydi. SSMS — ixtiyoriy.
-   - **win-acme** → `C:\tools\win-acme`.
-   - **Git** (ixtiyoriy) yoki relizni ZIP ko'rinishida ko'chirish.
-5. Papkalar:
-
-```powershell
-New-Item -ItemType Directory -Force C:\ProgramData\tahsinERP, C:\ProgramData\tahsinERP\Backups, C:\inetpub\tahsinERP, C:\inetpub\tahsinERP.ControlPanel, C:\inetpub\tahsinERP.Bot, C:\inetpub\tahsinERP.Site, C:\tahsinERP\Agent
-```
+   Skript o'rnatadi/sozlaydi: IIS rollari (WebSockets, compression, redirect) va .NET 4.8 tekshiruvi; **ASP.NET Core 10 Hosting Bundle**
+   (eng oxirgi patch, rasmiy metadata'dagi SHA-512 va Microsoft imzosi bilan tekshiriladi); **IIS URL Rewrite 2.1**; **win-acme** +
+   Cloudflare DNS plagini → `C:\tools\win-acme` (qayd qilingan versiya va SHA-256; papka faqat administratorlarga); ish papkalari;
+   SQL xizmati nomini ko'rsatadi va `max server memory` ni cheklaydi. Qayta ishga tushirish xavfsiz (bor narsani o'tkazib yuboradi).
+   Server qayta yuklanishni so'rasa — qayta yuklab, skriptni yana ishga tushiring.
+4. **SQL Server Express** — Lightsail "SQL Server 2022 Express" blueprint'ida allaqachon o'rnatilgan. Skript chiqargan instance nomi
+   (`MSSQL$SQLEXPRESS` → `.\SQLEXPRESS`; `MSSQLSERVER` → `.`) qo'llanmadagi `.\SQLEXPRESS` o'rniga ishlatiladi; nomi boshqacha bo'lsa
+   `-SqlInstance` bilan qayta ishga tushiring. Autentifikatsiya: Mixed; `sa` ishlatilmaydi.
+5. Ixtiyoriy: **Git** (relizni `git pull` bilan olish uchun) — yoki relizni ZIP ko'rinishida ko'chirish.
 
 ---
 
