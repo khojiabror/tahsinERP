@@ -123,6 +123,11 @@ Bazalar: har firma — `DB_<slug>`; markaziy — `tahsin_control` (panel), `tahs
 
 ## 4. ERP (`{firma}.tahsinerp.uz`)
 
+> **Tayyor skript:** `tools\deploy\Install-Erp.ps1 -Domain tahsinerp.uz` (paket: `app\` + `database\` + skript) 4.2–4.4-bandlarni va
+> 3-bo'limdagi ERP/agent SQL login'larini bitta qadamda bajaradi. ERP SQL'ga **Windows auth** bilan (`IIS APPPOOL\tahsinERP`, parolsiz)
+> ulanadi; `database\` → `C:\tahsinERP\Database` (veb-papkadan tashqarida). Yangilash: `-KeepSecrets`.
+> Quyidagi qo'lda qadamlar — skript nima qilishini tushunish uchun.
+
 ### 4.1 Build (ishlab chiquvchi kompyuterida)
 
 1. **Litsenziya k2 kaliti** (bir marta, 5.1-bandda panel kaliti yaratilgandan keyin): `print-public-key` chiqargan XML'ni
@@ -239,8 +244,9 @@ New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\tahsinERP.Provisi
 ```
 
 3. `C:\tahsinERP\Agent\appsettings.json`: `Panel:Url=https://admin.tahsinerp.uz`, `Panel:ServerId=<ID>`, `Sql:Server=.\SQLEXPRESS`,
-   `Paths:DatabaseRoot=C:\inetpub\tahsinERP\Database`, `Paths:BaseDomain=tahsinerp.uz`, `Paths:BackupDir=C:\ProgramData\tahsinERP\Backups`.
-4. Huquqlar: `NETWORK SERVICE` → `C:\ProgramData\tahsinERP` (yozish), `C:\inetpub\tahsinERP\Database` (o'qish); SQL `dbcreator` (3-bo'lim).
+   `Sql:AppLogin=IIS APPPOOL\tahsinERP` (har yangi/tiklangan firma bazasida ERP'ga db_owner beradi),
+   `Paths:DatabaseRoot=C:\tahsinERP\Database`, `Paths:BaseDomain=tahsinerp.uz`, `Paths:BackupDir=C:\ProgramData\tahsinERP\Backups`.
+4. Huquqlar: `NETWORK SERVICE` → `C:\ProgramData\tahsinERP` (yozish), `C:\tahsinERP\Database` (o'qish); SQL `dbcreator` — `Install-Erp.ps1` beradi.
 5. Sinov: `C:\tahsinERP\Agent\tahsinERP.ProvisioningAgent.exe --once`, keyin `Start-Service tahsinERP.ProvisioningAgent`.
 6. Birinchi firma: panelda tenant (masalan `demo`, KORP, uzoq muddat) → **"Bazani yaratish"** → agent `DB_demo` yaratadi, `tenants.json` ga yozadi,
    litsenziya ro'yxat tokenini qo'yadi. Demo har kecha 03:00–06:00 da tiklanadi. `https://demo.tahsinerp.uz` ochilishini tekshiring.
@@ -368,7 +374,8 @@ Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime
 | `machineKey` yaratish `DEPLOY-SECURITY.md` da yo'q | 4.2-band. |
 | Panel hujjatida AWS (KMS/S3/SES), server rejasida O'zbekiston VPS | O'zbekiston VPS; imzo — `Local` provayder (KMS hali yo'q), zaxira — 9-bo'lim. |
 | `02_MULTI_TENANT.md` dagi band nomlar ro'yxati eski | Koddagi 17 ta nom (2.1-band) to'g'ri. |
-| ERP publish yo'li hujjatlanmagan | `C:\inetpub\tahsinERP` (`Database\` bilan) — agent `DatabaseRoot` shunga mos. |
+| ERP publish yo'li hujjatlanmagan | ERP — `C:\inetpub\tahsinERP`; SQL skriptlar veb-papkadan tashqarida — `C:\tahsinERP\Database` (agent `DatabaseRoot`). |
+| Yangi firma bazasiga ERP'ning SQL huquqi hech qayerda berilmasdi | Agent `Sql:AppLogin` — yaratish/tiklashdan keyin `db_owner` (ERP ish vaqtida DDL ham bajaradi). |
 
 ## 12. Hali real serverda sinalmagan (birinchi o'rnatishda e'tibor bering)
 
