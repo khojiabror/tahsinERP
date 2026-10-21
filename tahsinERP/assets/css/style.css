@@ -83,3 +83,13 @@ ul.tree {
 	top: 0px;
 	width: 100%;
 }
+
+/* Matnli switch: tema label kengligini 42px qiladi (faqat tugma) - matn uning ichida ustunga tushib ketardi.
+   Matn bo'lsa label to'liq kenglikda, tugma chapda, matn undan keyin. Bo'sh label (masalan Rollar jadvali) o'zgarmaydi. */
+.custom-switch .custom-control-label:not(:empty) {
+	width: auto;
+	height: auto;
+	min-height: 20px;
+	padding-left: 54px;
+	line-height: 20px;
+}
