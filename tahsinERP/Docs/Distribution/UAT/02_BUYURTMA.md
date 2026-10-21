@@ -27,7 +27,7 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 6. `GIP` bo'yicha **DEMO-GIP-125** ni qo'shing, Miqdor = `20`.
 7. **Saqlash** ni bosing.
 **Kutilgan natija:**
-- 1-qadamda panel: Qarz 0, Muddati o'tgan 0, Kredit limiti 20 000 000, Limitdan qolgan 20 000 000, Narx turi Chakana, To'lov muddati 7.
+- 1-qadamda panel: Qarz 0, Muddati o'tgan 0, Tasdiqlangan, jo'natilmagan 0, Kredit limiti 20 000 000, Limitdan qolgan 20 000 000, Narx turi Chakana, To'lov muddati 7.
 - Narxlar: Sement **2 480 000** / poddon (62 000 × 40), Kafel **136 800** / quti (95 000 × 1,44), Gipsokarton **68 000** / list. "Mavjud" ustunida 1 000, 500, 200.
 - 5-qadamda "Shtrix-kod topilmadi." xabari, qator qo'shilmaydi.
 - Summalar: 2 480 000 + 30 × 136 800 = 4 104 000 + 20 × 68 000 = 1 360 000 → **Jami 7 944 000**.
@@ -58,7 +58,7 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 2. Qatorlar: DEMO-SEM-400 birlik `qop` `10`, qator % = `6`; DEMO-KAF-3030 birlik `m²` `10`; DEMO-GIP-125 `5`. Yetkazish sanasi = ertaga. **Saqlash**.
 3. Sement qator % ni `5` qiling. **Saqlash** (buyurtma **C**).
 **Kutilgan natija:**
-- Panel: Qarz 5 000 000, Muddati o'tgan **5 000 000** (qizil), Kredit limiti 50 000 000, Limitdan qolgan 45 000 000, Narx turi Diler, muddat 14.
+- Panel: Qarz 5 000 000, Muddati o'tgan **5 000 000** (qizil), Tasdiqlangan, jo'natilmagan 0, Kredit limiti 50 000 000, Limitdan qolgan 45 000 000, Narx turi Diler, muddat 14.
 - Narxlar: Sement **55 000** (Diler), Kafel **95 000** (Diler narxi yo'q — standart Chakana), Gipsokarton **68 000** (standart).
 - 2-qadamda "DEMO-SEM-400 Sement M400: narx 51 700 minimal narxdan (52 000) past." (55 000 × 0,94 = 51 700). Saqlanmaydi.
 - 3-qadamda saqlanadi: Sement 550 000 − 5% = **522 500**; Kafel **950 000**; Gipsokarton **340 000**; **Jami 1 812 500**. Og'irlik 795 kg (500 + 170 + 125). Holat Yangi, Agent — bo'sh.
@@ -90,21 +90,22 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-ORD-06. Kredit limitidan oshish: huquqsiz rad, rahbar ruxsati (E)
-**Nima tekshiriladi:** Qarz + buyurtma limitdan oshsa buyurtma `DstOverrideCredit` huquqisiz tasdiqlanmaydi; rahbar izoh bilan ruxsat beradi; yirik buyurtma va limit haqida rahbarga botda xabar (pilot B4, A8).
+**Nima tekshiriladi:** Qarz + tasdiqlangan, hali jo'natilmagan buyurtmalar + shu buyurtma limitdan oshsa buyurtma `DstOverrideCredit` huquqisiz tasdiqlanmaydi; rahbar izoh bilan ruxsat beradi; yirik buyurtma va limit haqida rahbarga botda xabar (pilot B4, A8).
 **Kim:** demo_ombor (operator vazifasida), demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-05
 **Qadamlar:**
-1. demo_ombor bilan: Yangi buyurtma — Mijoz = DEMO Anvar do'koni, Agent = DEMO Jasur, **Ombor = DEMO Asosiy ombor**, DEMO-SEM-400 birlik `poddon` `9`. **Saqlash** (buyurtma **E**).
+1. demo_ombor bilan: Yangi buyurtma — Mijoz = DEMO Anvar do'koni (o'ngdagi "Qarz va limit" panelini ko'ring), Agent = DEMO Jasur, **Ombor = DEMO Asosiy ombor**, DEMO-SEM-400 birlik `poddon` `9`. **Saqlash** (buyurtma **E**). E kartasidagi qarz blokini ko'ring.
 2. Rahbar telefonidagi bot xabarlarini ko'ring (**✅ Tasdiqlash tugmasini bosmang** — u T-DST-BOT-09 da sinaladi).
 3. demo_ombor bilan E kartasida **Tasdiqlash**.
 4. demo_rahbar bilan E kartasida **Tasdiqlash**. Ochilgan "Limitdan oshishga ruxsat" oynasida izohni bo'sh qoldirib **Qo'llash**.
 5. Izoh = `DEMO: rahbar ruxsati, oldindan kelishilgan` → **Qo'llash**.
 **Kutilgan natija:**
 - E summasi 9 × 2 480 000 = **22 320 000**.
-- 2-qadam: rahbarga ikki xabar — "Yirik buyurtma D-…: DEMO Anvar do'koni, 22 320 000 so'm." va "Buyurtma D-… (DEMO Anvar do'koni, 22 320 000 so'm) kredit shartidan chiqdi — tasdiqlash kerak: Qarz + buyurtma 22 320 000 — limit 20 000 000 dan oshadi." + **✅ Tasdiqlash** tugmasi.
-- 3-qadam: "Qarz + buyurtma 22 320 000 — limit 20 000 000 dan oshadi." xabari; ruxsat oynasi chiqmaydi (huquq yo'q); holat Yangi.
+- 1-qadam panel (va E kartasi): Qarz 0, **Tasdiqlangan, jo'natilmagan 8 284 000** (A 7 944 000 + D 340 000), Kredit limiti 20 000 000, Limitdan qolgan **11 716 000**.
+- 2-qadam: rahbarga ikki xabar — "Yirik buyurtma D-…: DEMO Anvar do'koni, 22 320 000 so'm." va "Buyurtma D-… (DEMO Anvar do'koni, 22 320 000 so'm) kredit shartidan chiqdi — tasdiqlash kerak: Qarz + jo'natilmagan buyurtmalar + shu buyurtma 30 604 000 — limit 20 000 000 dan oshadi. (shundan tasdiqlangan, hali jo'natilmagan buyurtmalar: 8 284 000)" + **✅ Tasdiqlash** tugmasi (0 + 8 284 000 + 22 320 000 = 30 604 000).
+- 3-qadam: "Qarz + jo'natilmagan buyurtmalar + shu buyurtma 30 604 000 — limit 20 000 000 dan oshadi. (shundan tasdiqlangan, hali jo'natilmagan buyurtmalar: 8 284 000)" xabari; ruxsat oynasi chiqmaydi (huquq yo'q); holat Yangi. Rahbarga shu buyurtma bo'yicha bugun ikkinchi limit xabari kelmaydi (kuniga bir marta).
 - 4-qadam: oynada shu muammo matni qizil; bo'sh izoh bilan buyurtma tasdiqlanmaydi (oyna qayta chiqadi).
 - 5-qadam: holat Tasdiqlangan; kartada sariq blok "Limitdan oshishga ruxsat berdi: DEMO Rahbar — DEMO: rahbar ruxsati, oldindan kelishilgan"; tarix izohida ham shu matn. Rezerv Sement 360. Qoldiq S 1 000/400/600.
-- Izohga yozing: tasdiqlangan, lekin hali jo'natilmagan A (7 944 000) limit hisobiga kirmaydi — limit faqat jo'natilgan qarzni oladi (biznes bilan aniqlashtiring).
+- Limit hisobiga tasdiqlangan, yig'ilayotgan va qisman jo'natilgan buyurtmalarning jo'natilmagan qismi ham kiradi (endi E ham — keyingi F, G1, G2 tasdig'ida rahbar ruxsati kerak bo'ladi).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-ORD-07. Muddati o'tgan qarz bloki va ruxsat (C)
@@ -122,24 +123,24 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 **Nima tekshiriladi:** Mavjud qoldiqdan ko'p buyurtma tasdiqlanadi, lekin faqat mavjud miqdor rezervga olinadi; qolgani "kirimni kutmoqda"; mavjud qoldiq manfiy bo'lmaydi (pilot B5).
 **Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-07
 **Qadamlar:**
-1. Yangi buyurtma: DEMO Anvar do'koni, Agent DEMO Jasur, DEMO-GIP-125 `180` list. **Saqlash** (buyurtma **F**), **Tasdiqlash**.
+1. Yangi buyurtma: DEMO Anvar do'koni, Agent DEMO Jasur, DEMO-GIP-125 `180` list. **Saqlash** (buyurtma **F**), **Tasdiqlash**. "Limitdan oshishga ruxsat" oynasida izoh = `DEMO: F — kirimni kutish sinovi` → **Qo'llash**.
 2. **Qoldiqlar**: filtr "Rezerv qoldiqdan ko'p" ni ham tanlab ko'ring.
 **Kutilgan natija:**
-- F summasi 180 × 68 000 = **12 240 000**; qarz 0 + 12 240 000 < 20 000 000 — blok yo'q.
+- F summasi 180 × 68 000 = **12 240 000**. Oynada: "Qarz + jo'natilmagan buyurtmalar + shu buyurtma 42 844 000 — limit 20 000 000 dan oshadi. (shundan tasdiqlangan, hali jo'natilmagan buyurtmalar: 30 604 000)" (A + D + E = 30 604 000). Izoh bilan tasdiqlanadi.
 - F kartasida Gipsokarton: Rezerv **170**, ostida qizil "kirimni kutmoqda: 10" (mavjud edi 200 − 30 = 170).
 - Qoldiq G **200/200/0**. "Rezerv qoldiqdan ko'p" filtri bo'sh.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
-### T-DST-ORD-09. Kirimdan keyin "Rezervni yangilash" (F)
-**Nima tekshiriladi:** Ombor modulidagi yangi kirim mavjud qoldiqni oshiradi; "kutmoqda" qator rezervni yangilash bilan to'ladi. Yangi kirim — FIFO'da alohida (52 000 so'mlik) qatlam.
+### T-DST-ORD-09. Kirimdan keyin avtomatik rezerv (F)
+**Nima tekshiriladi:** Ombor modulidagi yangi kirim qabul qilingach "kirimni kutmoqda" qatorlar shu omborda avtomatik rezervga olinadi (birinchi tasdiqlangan — birinchi); "Rezervni yangilash" tugmasi qo'lda ham ishlaydi. Yangi kirim — FIFO'da alohida (52 000 so'mlik) qatlam.
 **Kim:** demo_ombor (kirim), demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-08
 **Qadamlar:**
 1. demo_ombor: **Omborxona → Ombor → Operatsiyalar → Kirimlar → Yangi kirim**: Invoys bo'sh, Qabul qiluvchi ombor = DEMO Asosiy ombor, DEMO-GIP-125 `50` list × `52000`, QQS % 0, Izoh = `DEMO 2-partiya gipsokarton`. Saqlang va **Qabul qilish**.
-2. **Qoldiqlar** ni tekshiring.
+2. **Qoldiqlar** ni va F kartasini tekshiring.
 3. demo_rahbar: F kartasida **Rezervni yangilash**.
 **Kutilgan natija:**
-- Kirim summasi 2 600 000. Qoldiq 2-qadamda G **250/200/50**.
-- 3-qadamdan keyin F: Gipsokarton rezerv **180**, "kirimni kutmoqda" yozuvi yo'q. Qoldiq G **250/210/40**.
+- Kirim summasi 2 600 000. 2-qadamda (qabul qilish bilanoq) F: Gipsokarton rezerv **180**, "kirimni kutmoqda" yozuvi yo'q. Qoldiq G **250/210/40**.
+- 3-qadam: o'zgarish yo'q (rezerv allaqachon to'liq) — qoldiq G 250/210/40.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-ORD-10. Ikki operator oxirgi qoldiqni ikki marta ololmaydi (G1, G2)
@@ -147,9 +148,10 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 **Kim:** demo_rahbar (ikki brauzer oynasi)   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-09
 **Qadamlar:**
 1. Ikkita yangi buyurtma: DEMO Anvar do'koni, Agent DEMO Jasur, har birida DEMO-GIP-125 `40` list (buyurtmalar **G1** va **G2**, har biri 2 720 000). Saqlang.
-2. G1 kartasini 1-oynada, G2 kartasini 2-oynada (Inkognito, demo_rahbar) oching. Ikkala oynada **Tasdiqlash** ni imkon qadar bir vaqtda bosing.
+2. G1 kartasini 1-oynada, G2 kartasini 2-oynada (Inkognito, demo_rahbar) oching. Ikkala oynada **Tasdiqlash** ni bosing — limit oshgani uchun "Limitdan oshishga ruxsat" oynasi chiqadi; ikkalasiga izoh `DEMO: parallel sinov` yozing va **Qo'llash** ni imkon qadar bir vaqtda bosing.
 3. Ikkala kartani yangilang va **Qoldiqlar** ni tekshiring.
 **Kutilgan natija:**
+- Ruxsat oynasida limit matni (tasdiqlangan, jo'natilmagan: kamida 42 844 000 — A, D, E, F).
 - Ikkala buyurtma Tasdiqlangan. Ulardan birida rezerv **40**, ikkinchisida rezerv **0** va "kirimni kutmoqda: 40".
 - Qoldiq G **250/250/0** — rezerv 290 emas, mavjud manfiy emas.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -170,14 +172,14 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-ORD-12. Yig'ish va yig'ish varaqasi (A)
-**Nima tekshiriladi:** Omborchi tasdiqlangan buyurtmani yig'ishga oladi; yig'ish varaqasi sotish va asosiy birlikda, shtrix-kodlar bilan chop etiladi (pilot B9).
+**Nima tekshiriladi:** Omborchi tasdiqlangan buyurtmani yig'ishga oladi va kerak bo'lsa to'xtatadi (rezerv saqlanadi); yig'ish varaqasi sotish va asosiy birlikda, shtrix-kodlar bilan chop etiladi (pilot B9).
 **Kim:** demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-04
 **Qadamlar:**
 1. **Buyurtmalar**: filtr Holat = Tasdiqlangan, Ombor = DEMO Asosiy ombor. A ni oching.
-2. **Yig'ishni boshlash** ni bosing.
+2. **Yig'ishni boshlash** ni bosing. So'ng **Yig'ishni to'xtatish** ni bosing, keyin yana **Yig'ishni boshlash**.
 3. **Yig'ish varaqasi** ni oching (yangi oynada) va **Chop etish** ni bosing (PDF ga saqlang).
 **Kutilgan natija:**
-- Holat **Yig'ilmoqda**; tarixda "Tasdiqlangan → Yig'ilmoqda — DEMO Omborchi".
+- "Yig'ishni to'xtatish" dan keyin holat **Tasdiqlangan**, rezerv o'zgarmagan (40 / 43.2 / 20). Oxirida holat **Yig'ilmoqda**; tarixda "Tasdiqlangan → Yig'ilmoqda", "Yig'ilmoqda → Tasdiqlangan", "Tasdiqlangan → Yig'ilmoqda" — DEMO Omborchi.
 - Varaqada: Ombor DEMO Asosiy ombor, Mijoz DEMO Anvar do'koni, Yetkazish sanasi; 3 qator: DEMO-SEM-400 — `4780000000014 4780000000021` — Miqdor "1 poddon", Yig'ish "40 qop"; DEMO-KAF-3030 — "30 quti" / "43.2 m²"; DEMO-GIP-125 — "20 list" / "20 list". Og'irlik 3234.4 kg, Hajm 2.582 m³; "Yig'di" va "Tekshirdi" imzo joylari.
 - demo_ombor kartada tannarx va yalpi foydani ko'rmaydi.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -215,14 +217,14 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-ORD-15. Qisman jo'natish (F)
-**Nima tekshiriladi:** Buyurtmaning bir qismi jo'natiladi, qolgani rezervda qoladi; buyurtmadan ko'p jo'natib bo'lmaydi (pilot B7).
+**Nima tekshiriladi:** Buyurtmaning bir qismi jo'natiladi, qolgani rezervda qoladi; buyurtmadan ko'p jo'natib bo'lmaydi; qisman jo'natilgan buyurtmani "Yetkazildi" qilib bo'lmaydi (pilot B7).
 **Kim:** demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-09
 **Qadamlar:**
 1. F kartasida **Jo'natish** → Gipsokarton Miqdor = `200` → **Jo'natish**.
 2. Miqdor = `100` → **Jo'natish**.
 **Kutilgan natija:**
 - 1-qadam: "1-qator: buyurtmadan ko'p jo'natib bo'lmaydi."
-- 2-qadam: holat **Qisman jo'natildi**; jo'natish Jami 100 × 68 000 = **6 800 000**; rezerv 80; "Jo'natildi" 100 list.
+- 2-qadam: holat **Qisman jo'natildi**; jo'natish Jami 100 × 68 000 = **6 800 000**; rezerv 80; "Jo'natildi" 100 list. Kartada **"Yetkazildi" tugmasi yo'q** (avval qolgani jo'natiladi yoki "Qolganidan voz kechish").
 - Qoldiq G **130/90/40**. Anvar qarzi 7 944 000 + 6 800 000 = **14 744 000**.
 - (demo_rahbar uchun) tannarx 100 × 50 000 = **5 000 000** — eski 50 000 so'mlik partiyadan (unda 180 list qolgan edi), 52 000 so'mlik yangi partiyaga tegilmagan.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -235,16 +237,17 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 2. Sabab = `DEMO: mijoz qolganidan voz kechdi` → **Qo'llash**.
 **Kutilgan natija:**
 - 1-qadam: "Bekor qilish sababini yozing."
-- 2-qadam: holat **Jo'natildi**, rezerv 0, tarix izohida sabab. Qoldiq G **130/10/120**. Qarz o'zgarmaydi (14 744 000).
+- 2-qadam: holat **Jo'natildi**, rezerv 0, tarix izohida sabab. Qoldiq G **130/10/120**. Qarz o'zgarmaydi (14 744 000). (Jo'natilgan qism to'langan bo'lsa buyurtma darhol "Yopildi" bo'lardi; F hali to'lanmagan.)
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-ORD-17. O'zi olib ketish: jo'natish bilan birga "Yetkazildi" (D)
-**Nima tekshiriladi:** O'zi olib ketadigan buyurtma to'liq jo'natilganda darhol "Yetkazildi" bo'ladi (pilot B8).
+**Nima tekshiriladi:** O'zi olib ketadigan buyurtma to'liq jo'natilganda darhol "Yetkazildi" bo'ladi; mijozga bitta "yetkazildi" xabari ketadi (pilot B8).
 **Kim:** demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-05
 **Qadamlar:**
-1. D kartasida **Jo'natish** → **Jo'natish**.
+1. D kartasida **Jo'natish** → **Jo'natish**. Mijoz (Anvar) botini ko'ring.
 **Kutilgan natija:**
 - Holat to'g'ridan-to'g'ri **Yetkazildi**; tarixda ketma-ket "Jo'natildi" va "Yetkazildi".
+- Anvar botiga **bitta** xabar: "Buyurtmangiz D-… yetkazildi: 340 000 so'm. Rahmat!" ("jo'natildi" xabari kelmaydi).
 - Jo'natish 340 000 (tannarx 5 × 50 000 = 250 000). Qoldiq G **125/5/120**. Anvar qarzi **15 084 000**.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
@@ -288,13 +291,15 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-ORD-21. Brak qaytarish brak omboriga (A)
-**Nima tekshiriladi:** Brak tovar savdoda bo'lmagan omborga kirim qilinadi — sotiladigan qoldiq oshmaydi; qarz baribir kamayadi (pilot D4).
-**Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-20
+**Nima tekshiriladi:** "Brak" belgili qaytarish faqat Sozlamalardagi brak omboriga kiradi (T-DST-SET-09) — sotiladigan qoldiq oshmaydi; qarz baribir kamayadi (pilot D4).
+**Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-20, T-DST-SET-09
 **Qadamlar:**
-1. A → **Qaytarish**: Ombor = `DEMO Brak ombor`, Sabab = `Brak`, **Brak ✓**, Sement Miqdor = `2`. **Saqlash**.
-2. **Qoldiqlar**: Ombor = DEMO Asosiy ombor, keyin DEMO Brak ombor. **Qarzlar**.
+1. A → **Qaytarish**: Ombor = `DEMO Asosiy ombor`, Sabab = `Brak`, **Brak ✓** belgisini qo'ying va Ombor maydonini ko'ring. Ombor ni qo'lda yana `DEMO Asosiy ombor` qilib, Sement Miqdor = `2` → **Saqlash**.
+2. Ombor = `DEMO Brak ombor`, Brak ✓, Sement `2` → **Saqlash**.
+3. **Qoldiqlar**: Ombor = DEMO Asosiy ombor, keyin DEMO Brak ombor. **Qarzlar**.
 **Kutilgan natija:**
-- Qaytarish 2 × 62 000 = **124 000**, ro'yxatda "Brak" belgisi bilan.
+- 1-qadam: Brak ✓ qo'yilganda Ombor o'zi `DEMO Brak ombor` ga o'tadi; Asosiy omborga saqlashda "Brak tovar brak omboriga qaytariladi: DEMO Brak ombor." — hech narsa yozilmaydi.
+- 2-qadam: qaytarish 2 × 62 000 = **124 000**, ro'yxatda "Brak" belgisi bilan.
 - DEMO Brak ombor: Sement **2**. DEMO Asosiy ombor Sement haqiqiy **960** (o'zgarmagan).
 - Anvar qarzi 14 810 400 − 124 000 = **14 686 400**. A da Sement "Qaytarish mumkin" endi 38.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -388,7 +393,7 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 **Kutilgan natija:**
 - 1-qadam: "Jo'natildi" — F va P1; Agent = DEMO Jasur — A, D, E, F, G1, G2, P1 (C yo'q); qidiruv — faqat C. "Jami" ustunida qisman jo'natilgan F uchun jo'natilgan summa ham ko'rinadi.
 - 3-qadam: demo_agent faqat Agent = DEMO Jasur bo'lgan buyurtmalarni (C yo'q) va faqat DEMO Anvar do'koni mijozini ko'radi (Bunyodkor yo'q).
-- 4-qadam: demo_omborda faqat ombori DEMO Asosiy ombor bo'lgan buyurtmalar; 2-qadamdagi omborsiz qoralama **ko'rinmaydi**. (Izohga yozing: ombor scope'li foydalanuvchi omborsiz yangi buyurtma yaratsa, uni saqlagandan keyin o'zi ocholmaydi — ombor tanlanishi shart.)
+- 4-qadam: demo_omborda ombori DEMO Asosiy ombor bo'lgan buyurtmalar va ombori hali tanlanmagan buyurtmalar — 2-qadamdagi omborsiz qoralama ham **ko'rinadi** (ombor tasdiqda taklif qilinadi). Boshqa omborning buyurtmalari ko'rinmaydi.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ---
@@ -405,8 +410,8 @@ Boshlang'ich holat (T-DST-SET-15 dan keyin): S 1 000/0/1 000, K 500/0/500, G 200
 | Ochiq buyurtmalar | C — Tasdiqlangan (rezervda); A — Yetkazildi; D — Yetkazildi; F, P1 — Jo'natildi; E, G1, G2 — Bekor qilingan |
 
 ## Ma'lum cheklovlar va kuzatish kerak bo'lgan joylar
-- Kredit limiti tekshiruvida faqat jo'natilgan qarz hisobga olinadi; tasdiqlangan, lekin jo'natilmagan buyurtmalar limitni band qilmaydi (T-DST-ORD-06).
-- O'chirilgan qoralama raqami keyingi buyurtmaga qayta berilishi mumkin (raqam eng katta mavjud raqamdan olinadi) — qoralama hech qayerda o'tkazilmagani uchun xavfsiz, lekin raqamlar ketma-ketligida "teshik" bo'lmaydi.
-- "Brak" belgisi qaytgan tovarni sotuvdan avtomatik chiqarmaydi — brak tovar savdoda bo'lmagan omborga qaytarilishi kerak (T-DST-ORD-21).
-- "Qisman jo'natildi" holatidagi buyurtmada ham "Yetkazildi" tugmasi bor; uni bosish qolgan rezervni yechmaydi. Avval "Qolganidan voz kechish" ni bajaring (bu holatni alohida tekshiring va Izohga yozing).
-- Mini App savati jami summasi aksiya chegirmasi va sovg'asiz ko'rsatiladi ("Aksiya chegirmasi va sovg'alar buyurtma qabul qilinganda hisoblanadi.") — yakuniy summa ERP'da.
+- Kredit limiti = qarz + tasdiqlangan/yig'ilayotgan/qisman jo'natilgan buyurtmalarning jo'natilmagan qismi + shu buyurtma (T-DST-ORD-06). Shu sababli bir mijozga ketma-ket bir nechta yirik buyurtma tasdiqlansa, keyingilari rahbar ruxsatini talab qiladi (ORD-08, ORD-10).
+- O'chirilgan qoralama hujjat raqami qayta berilmaydi (oxirgi raqam saqlanadi) — raqamlar ketma-ketligida "teshik" bo'lishi normal.
+- Brak ombori Sozlamalarda belgilanmagan bo'lsa, "Brak" belgisi qaytgan tovarni sotuvdan avtomatik chiqarmaydi — omborni qo'lda tanlang (T-DST-SET-09, ORD-21).
+- Qisman jo'natilgan buyurtma "Qolganidan voz kechish" bilan yopilganda jo'natilgan qismi to'langan bo'lsa — darhol "Yopildi"; qolgani hali jo'natilishi mumkin bo'lgan holatda avtomatik yopilmaydi (ataylab).
+- Mini App savati jami summasi aksiya chegirmasi va sovg'asiz ko'rsatiladi ("Aksiya chegirmasi va sovg'alar buyurtma qabul qilinganda hisoblanadi.") — ataylab, yakuniy summa ERP'da.

@@ -1,6 +1,6 @@
 # 4. Telegram bot va Mini App
 
-Bu bo'lim botni har rol ko'zi bilan tekshiradi: **agent** (kun boshi, marshrut, "Keldim", Mini App buyurtma, to'lov, buyurtmasiz tashrif, yangi nuqta, jonli joylashuv, kassaga topshirish, kun yakuni, muammo), **rahbar** (limit ruxsati, hisobdan chiqarish tasdig'i, kunlik yakun), **omborchi** (Mini App'da yig'ish va ko'r sanoq), **mijoz** (xabarlar, qarzim, akt sverki), **ekspeditor** (2-bosqich: reys, yetkazish, imzo/qisman, rad, to'lov, xarajat, reysni yopish), ovozli buyurtma va oflayn holatlar.
+Bu bo'lim botni har rol ko'zi bilan tekshiradi: **agent** (kun boshi, marshrut, "Keldim", Mini App buyurtma, to'lov, buyurtmasiz tashrif, yangi nuqta, jonli joylashuv, kassaga topshirish, kun yakuni, muammo), **rahbar** (limit ruxsati, hisobdan chiqarish tasdig'i, kunlik yakun), **omborchi** (Mini App'da yig'ish va ko'r sanoq), **mijoz** (xabarlar, qarzim, akt sverki), **ekspeditor** (2-bosqich: reys, yetkazish, imzo/qisman, rad, to'lov, xarajat, reysni yakunlash — reysni ofis yopadi), ovozli buyurtma va oflayn holatlar.
 
 Ikki qismda bajariladi (00_INTRO, "Bajarish tartibi"):
 - **T-DST-BOT-01 … 25** — buyurtmalar blokidan (02) keyin, pul/ombor blokidan (03) **oldin**;
@@ -125,7 +125,7 @@ Boshlang'ich holat (ORD blokidan keyin): DEMO Anvar do'koni qarzi **15 926 400**
 - 4-qadam savat: "2 poddon × 2 480 000 = 4 960 000 so'm", "2 quti × 136 800 = 273 600 so'm", Jami **5 233 600 so'm**.
 - 5-qadam: "Buyurtma D-… qabul qilindi" (toast), Mini App yopiladi; chatda "✅ Buyurtma D-… qabul qilindi: 5 233 600 so'm. Ofis tasdiqlaydi." Ikki marta bosilganda ham **bitta** buyurtma. Vaqt ≤ 3 daqiqa (Izohga yozing, pilot B1).
 - Web: M1 holati Yangi, Manba bot/Mini App, Agent DEMO Jasur, qatorlar 2 poddon (= 80 qop) va 2 quti (= 2.88 m²), Jami 5 233 600, og'irlik 4048.96 kg.
-- Rahbar botiga: "Buyurtma D-… (DEMO Anvar do'koni, 5 233 600 so'm) kredit shartidan chiqdi — tasdiqlash kerak: Qarz + buyurtma 21 160 000 — limit 20 000 000 dan oshadi." + ✅ Tasdiqlash (15 926 400 + 5 233 600 = 21 160 000).
+- Rahbar botiga: "Buyurtma D-… (DEMO Anvar do'koni, 5 233 600 so'm) kredit shartidan chiqdi — tasdiqlash kerak: Qarz + jo'natilmagan buyurtmalar + shu buyurtma 21 160 000 — limit 20 000 000 dan oshadi." + ✅ Tasdiqlash (15 926 400 + 0 + 5 233 600 = 21 160 000; Anvarda tasdiqlangan, jo'natilmagan buyurtma yo'q — "(shundan …)" qismi chiqmaydi).
 - Marshrutda Anvar belgisi ✅ (natija — buyurtma).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
@@ -255,7 +255,7 @@ Boshlang'ich holat (ORD blokidan keyin): DEMO Anvar do'koni qarzi **15 926 400**
 **Qadamlar:**
 1. **⚠️ Muammo** → `abc`.
 2. **⚠️ Muammo** → skrinshotni izoh bilan yuboring: `DEMO: Mini App'da kafel rasmi chiqmadi`.
-3. Web: **Bosh sahifa → Xatolar jurnali**.
+3. Web: **Distributsiya → Xatolar jurnali**.
 **Kutilgan natija:**
 - 1-qadam: "Muammoni yozing: …" → `abc` ga "Biroz batafsilroq yozing (kamida 5 belgi) yoki rasm yuboring."
 - 2-qadam: "✅ Qayd qilindi: P-001. Rahbarga xabar berildi, rahmat!" (raqam ketma-ket). Rahbarga "⚠️ Yangi muammo P-001 (DEMO Jasur): DEMO: Mini App'da kafel rasmi chiqmadi".
@@ -269,8 +269,8 @@ Boshlang'ich holat (ORD blokidan keyin): DEMO Anvar do'koni qarzi **15 926 400**
 1. **📊 Bugungi yakun** ni bosing.
 2. 20:00 dan keyin rahbar chatini tekshiring.
 **Kutilgan natija:**
-- "Kun yakuni <bugun> / Buyurtmalar: N ta, … so'm / Jo'natildi: … so'm / Tushum: … so'm / Umumiy qarz: … so'm (muddati o'tgan: …) / Faol agentlar: 1/1" va "Kun yetakchisi: DEMO Jasur — … so'm".
-- "Buyurtmalar" — bugun yaratilgan barcha bekor qilinmagan buyurtmalar (agentsizlar ham); "Tushum" — bugungi barcha to'lovlar (shu kungacha: 2 000 000 agent to'lovlari); "Umumiy qarz" = **Qarzlar** sahifasidagi jami (Anvar 13 926 400 + Bunyodkor 5 000 000 = **18 926 400**), muddati o'tgan 5 000 000. Faol agentlar 1/1 (ekspeditor hisobga kirmaydi).
+- "Kun yakuni <bugun> / Buyurtmalar: N ta, … so'm / Jo'natildi: … so'm / Yig'ilgan pul (to'lovlar): … so'm / Umumiy qarz: … so'm (muddati o'tgan: …) / Faol agentlar: 1/1" va "Kun yetakchisi: DEMO Jasur — … so'm".
+- "Buyurtmalar" — bugun yaratilgan barcha bekor qilinmagan buyurtmalar (agentsizlar ham); "Yig'ilgan pul (to'lovlar)" — bugungi barcha to'lovlar (shu kungacha: 2 000 000 agent to'lovlari; "Tushum" so'zi faqat jo'natish − qaytarish ma'nosida — panel va hisobotlarda); "Umumiy qarz" = **Qarzlar** sahifasidagi jami (Anvar 13 926 400 + Bunyodkor 5 000 000 = **18 926 400**), muddati o'tgan 5 000 000. Faol agentlar 1/1 (ekspeditor hisobga kirmaydi).
 - 2-qadam: xuddi shunday matn kuniga bir marta avtomatik.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
@@ -282,7 +282,7 @@ Boshlang'ich holat (ORD blokidan keyin): DEMO Anvar do'koni qarzi **15 926 400**
 2. **💳 Qarzim** ni bosing.
 3. **📄 Akt sverki** → **Shu oy**.
 **Kutilgan natija:**
-- 1-qadam: ORD va BOT bloklaridagi xabarlar: A jo'natildi (ikki marta), F jo'natildi, D jo'natildi, P1 jo'natildi, A yetkazildi, ikki to'lov (1 500 000 va 500 000). D (o'zi olib ketish) uchun alohida "yetkazildi" xabari **yo'q** — u jo'natish bilan birga yetkazildi deb belgilanadi (Izohga yozing: mijoz faqat "jo'natildi" xabarini oladi).
+- 1-qadam: ORD va BOT bloklaridagi xabarlar: A jo'natildi (ikki marta), F jo'natildi, D **yetkazildi** (o'zi olib ketish — bitta xabar, "jo'natildi" yo'q), P1 jo'natildi, A yetkazildi, ikki to'lov (1 500 000 va 500 000). Xabarlar mijozning Telegram tilida.
 - 2-qadam: "💳 DEMO Anvar do'koni / Qarz: 13 926 400 so'm / muddati kelmagan: 13 926 400 / muddati o'tgan: 0 / Limit: 20 000 000 so'm, to'lov muddati 7 kun", "So'nggi to'lovlar:" — "• <sana> — 500 000 so'm", "• <sana> — 1 500 000 so'm".
 - 3-qadam: "📄 Akt sverki: DEMO Anvar do'koni / 01.MM.yyyy — <bugun> / Boshlang'ich qoldiq: 0 so'm", yozuvlar (+ jo'natishlar, − bekor qilish, qaytarishlar, to'lovlar), "Jami: +24 268 000 / −10 341 600 / Yakuniy qoldiq: 13 926 400 so'm".
   Hisob: + (7 944 000 × 2 + 6 800 000 + 340 000 + 1 240 000) = 24 268 000; − (7 944 000 bekor + 273 600 + 124 000 + 1 500 000 + 500 000) = 10 341 600.
@@ -307,19 +307,21 @@ Boshlang'ich holat (ORD blokidan keyin): DEMO Anvar do'koni qarzi **15 926 400**
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-BOT-20. Omborchi: Mini App'da "ko'r" sanoq
-**Nima tekshiriladi:** Ochiq sanoq Mini App'da skaner bilan to'ldiriladi; tizim qoldig'i ko'rsatilmaydi; qutidagi shtrix-kod koeffitsient bilan qo'shiladi; miqdorni qo'lda kiritish mumkin.
-**Kim:** demo_ombor (web), omborchi telefoni   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-19
+**Nima tekshiriladi:** Ochiq sanoq Mini App'da skaner bilan to'ldiriladi; tizim qoldig'i Mini App'da ham, web qoralamada ham ko'rsatilmaydi; qutidagi shtrix-kod koeffitsient bilan qo'shiladi; miqdorni qo'lda kiritish mumkin; sanoq ochiqligida sanalgan tovar ombordan chiqmaydi, sanalmagani chiqadi.
+**Kim:** demo_ombor (web), demo_rahbar (web), omborchi telefoni   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-19
 **Qadamlar:**
-1. Web: **Bosh sahifa → Inventarizatsiya** → **Yangi sanoq**: Ombor = DEMO Asosiy ombor, Turi = Nazorat, Izoh = `DEMO bot sinovi`.
+1. Web: **Distributsiya → Inventarizatsiya** → **Yangi sanoq**: Ombor = DEMO Asosiy ombor, Turi = Nazorat, Izoh = `DEMO bot sinovi`.
 2. Mini App → **Inventarizatsiya** yorlig'i → shu sanoqni oching.
 3. Ketma-ket: `4780000000014` uch marta, `4780000000021` bir marta, `4780000000045` bir marta. Gipsokarton qatorini bosib `125` kiriting.
 4. Web: sanoq kartasini yangilang.
-5. Web: **Bekor** → sabab `DEMO: bot sinovi tugadi`.
+5. Web (demo_ombor): **Hisobdan chiqarish → Yangi**: Asosiy, Sabab = Sinish, DEMO-SEM-400 `1` → Saqlash → Tasdiqqa yuborish. demo_rahbar: **Tasdiqlash va chiqarish**. So'ng **Rad etish** → sabab `DEMO: sanoq ochiq`.
+6. Web: **Bekor** (sanoq) → sabab `DEMO: bot sinovi tugadi`.
 **Kutilgan natija:**
 - 2-qadam: "Sanaldi: 0 / 4" (4 qator: Sement, Kafel, Gipsokarton, Kafel 2-nav); qatorlarda tizim qoldig'i **yo'q**.
 - 3-qadam: Sement — 1, 2, 3, so'ng +40 → **43**; Kafel **1.44**; Gipsokarton **125**. "Sanaldi: 3 / 4".
-- 4-qadam: web'da "Sanalgan" ustuni 43 / 1.44 / 125 / bo'sh, "Tizimda" ustuni 858 / 456.8 / 125 / 0.
-- 5-qadam: holat Bekor qilingan; qoldiq o'zgarmagan.
+- 4-qadam: web'da "Sanalgan" ustuni 43 / 1.44 / 125 / bo'sh; "Tizimda" va "Farq" ustunlari **ko'rinmaydi** ("ko'r" sanoq — o'tkazilgandan keyin ko'rsatiladi).
+- 5-qadam: tasdiqlashda "DEMO-SEM-400 … inventarizatsiyada sanalgan (DI-…) — sanoq o'tkazilmaguncha yoki bekor qilinmaguncha ombordan chiqarilmaydi." Ombor o'zgarmaydi; hujjat rad etiladi (Bekor qilingan). (Kafel 2-nav kabi hali sanalmagan tovar chiqishi mumkin.)
+- 6-qadam: holat Bekor qilingan; qoldiq o'zgarmagan (S 858, K 456.8, G 125).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-BOT-21. Rahbar hisobdan chiqarishni botda tasdiqlaydi va rad etadi
@@ -347,25 +349,29 @@ Boshlang'ich holat (ORD blokidan keyin): DEMO Anvar do'koni qarzi **15 926 400**
 4. Ovozli xabar — "o'n qop sement" (mijozsiz). Bot so'raganda `Anvar` yozing. Qoralamani tasdiqlamang (✖️).
 5. 95 soniyalik ovozli xabar yuboring.
 6. Web: 3-qadamdagi buyurtmani **Bekor qilish** → sabab `DEMO: ovozli sinov`.
+7. Ekspeditor telefonidan qisqa ovozli xabar yuboring.
 **Kutilgan natija:**
 - 1-qadam: "🎤 Ovozli buyurtma o'chirilgan."
 - 2-qadam: bot serverida Groq kaliti bo'lmasa — "🎤 Ovozli buyurtma sozlanmagan (nutqni aniqlash kaliti yo'q)." (qolgan qadamlarni o'tkazib yuboring). Kalit bo'lsa: "🎤 «…» / Mijoz: DEMO Anvar do'koni / • DEMO-SEM-400 … — 10 qop × 62 000 = 620 000 / • DEMO-KAF-3030 … — 2 quti × 136 800 = 273 600 / Jami: 893 600 so'm. Buyurtma berilsinmi?"
 - 3-qadam: "✅ Buyurtma D-… qabul qilindi: 893 600 so'm. Ofis tasdiqlaydi." — ikki bosishda ham bitta buyurtma. Rahbarga limit xabari keladi (19 160 000 + 893 600 = 20 053 600 > 20 000 000) — ✅ ni bosmang.
 - 4-qadam: "🎤 «o'n qop sement» / Qaysi mijozga? Nomini yozing." → `Anvar` dan keyin qoralama.
 - 5-qadam: "🎤 Xabar juda uzun — 90 soniyagacha yozing."
+- 7-qadam: "🎙 Ovozli buyurtma faqat agentlar uchun." (ekspeditor va rahbar ovozli buyurtma bera olmaydi).
 - Nutq sifatini (to'g'ri tanilgan tovar va miqdor) Izohga yozing.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-BOT-23. Mini App katalogida aksiya belgisi
-**Nima tekshiriladi:** Amaldagi aksiya Mini App katalogida tovar yonida ko'rsatiladi; savatda "aksiya buyurtma qabul qilinganda hisoblanadi" eslatmasi.
+**Nima tekshiriladi:** Amaldagi aksiya Mini App katalogida tovar yonida ko'rsatiladi; savatda "aksiya buyurtma qabul qilinganda hisoblanadi" eslatmasi (savat jami aksiyasiz — ataylab); savat telefon xotirasida saqlanadi (oyna yopilsa ham, 3 kun).
 **Kim:** demo_rahbar (web), agent telefoni   **Oldin bajarilgan bo'lishi kerak:** T-DST-ORD-26, T-DST-BOT-06
 **Qadamlar:**
 1. Web: **Aksiyalar** → "Hammasi" → DEMO Sement 10+1 → **Yoqish**.
 2. Agent: Anvar kartasi → **🛒 Buyurtma**. Sement qatorini ko'ring, 10 qop savatga qo'shing, **Savat** ni oching.
-3. Savatni tozalang (O'chirish) va Mini App'ni yoping (buyurtma bermang). Web: aksiyani yana **To'xtatish**.
+3. Mini App'ni yoping (buyurtma bermang) va **🛒 Buyurtma** bilan qayta oching, **Savat** ni ko'ring.
+4. Savatni tozalang (O'chirish) va Mini App'ni yoping. Web: aksiyani yana **To'xtatish**.
 **Kutilgan natija:**
 - 2-qadam: Sement qatorida "🏷 10+1". Savatda Jami 620 000 va "Aksiya chegirmasi va sovg'alar buyurtma qabul qilinganda hisoblanadi."
-- 3-qadamdan keyin yangi buyurtma yaratilmagan; aksiya nofaol.
+- 3-qadam: savatda 10 qop sement saqlangan (Jami 620 000).
+- 4-qadamdan keyin savat bo'sh, yangi buyurtma yaratilmagan; aksiya nofaol.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-BOT-24. Oflayn va cheklov holatlari
@@ -384,19 +390,20 @@ Boshlang'ich holat (ORD blokidan keyin): DEMO Anvar do'koni qarzi **15 926 400**
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-BOT-25. Rus tili: bot va Mini App
-**Nima tekshiriladi:** Foydalanuvchi tili bot va Mini App'da qo'llanadi; ERP'da til o'zgarsa Mini App darhol, bot menyusi qayta ulangandan keyin ruschaga o'tadi (pilot M7).
-**Kim:** demo_agent (web), agent telefoni   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-07
+**Nima tekshiriladi:** Foydalanuvchi tili bot va Mini App'da qo'llanadi; ERP'da til o'zgarsa Mini App darhol, bot tili `/start` yoki `/menu` bosilganda ruschaga o'tadi (qayta ulash shart emas); mijoz bildirishnomalari mijozning Telegram tilida (pilot M7).
+**Kim:** demo_agent (web), agent va mijoz telefonlari   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-07
 **Qadamlar:**
 1. demo_agent bilan web'ga kiring, **Distributsiya → Bosh sahifa** → **Русский**.
 2. Agent telefonida **🗺 Marshrut** ni bosing, so'ng Anvar kartasidan **🛒 Buyurtma** (Mini App) ni oching va yoping.
-3. Agent: `/stop`. Web (demo_rahbar): yangi agent kodi; agent `/start <kod>`.
+3. Agent: `/menu`.
 4. Agent menyusini va **🗺 Marshrut** ni ko'ring. Rahbar web'da istalgan Jasur buyurtmasi bilan xabar keltiradigan amal bajarmasin — faqat menyu tekshiriladi.
-5. Qaytarish: demo_agent web'da **O'zbekcha**; agent `/stop`, yangi kod bilan qayta ulanadi.
+5. Qaytarish: demo_agent web'da **O'zbekcha**; agent `/menu`.
+6. (Ixtiyoriy) Mijoz telefonida Telegram tilini rus tiliga o'zgartirib, botga `/menu` yuboring; keyingi mijoz xabari (masalan, T-DST-PAY-04 dagi to'lov xabari) ruscha keladi. Shundan keyin Telegram tilini qaytaring va `/menu`.
 **Kutilgan natija:**
-- 2-qadam: bot javoblari hali o'zbekcha (bot tili ulanish paytida saqlangan); Mini App ruscha: "Каталог", "Корзина", "Название, артикул или штрих-код".
-- 4-qadam: "✅ DEMO Jasur, вы подключены. Роль: агент." Menyu: ▶️ Начать день, 🗺 Маршрут, 🔎 Клиент, ➕ Новая точка, 💵 Касса, 📡 Живая геолокация, 🏁 Завершить день, ⚠️ Проблема; "🗺 Маршрут на сегодня: 1 клиентов, посещено …".
+- 2-qadam: bot javoblari hali o'zbekcha (`/start` yoki `/menu` bosilmagan); Mini App ruscha: "Каталог", "Корзина", "Название, артикул или штрих-код".
+- 4-qadam: menyu ruscha (qayta ulashsiz): ▶️ Начать день, 🗺 Маршрут, 🔎 Клиент, ➕ Новая точка, 💵 Касса, 📡 Живая геолокация, 🏁 Завершить день, ⚠️ Проблема; "🗺 Маршрут на сегодня: 1 клиентов, посещено …".
 - 5-qadamdan keyin yana o'zbekcha.
-- Izohga yozing: ERP'da til o'zgarganda bot menyusi avtomatik almashmaydi — qayta ulash kerak (K3).
+- 6-qadam: mijoz bildirishnomasi mijozning Telegram tilida (ulanishda va har `/start`, `/menu` da yangilanadi).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ---
@@ -428,16 +435,16 @@ Shu paytdagi qarzlar (PAY blokidan keyin): Anvar **13 613 600**, Bunyodkor **0**
 2. Manzil 1 kartasini oching, **🧭 Navigatsiya** ni bosing.
 3. Mijoz (Anvar) chatini ko'ring. Web: Reyslar ro'yxati.
 **Kutilgan natija:**
-- 1-qadam: "✅ Yo'lga chiqdingiz. Mijozlarga "yo'lga chiqdi" xabari yuborildi." Reys holati "Yo'lda".
+- 1-qadam: "✅ Yo'lga chiqdingiz. Mijozlarga "yo'lga chiqdi" xabari yuborildi." Reys holati "Yo'lda". Ekspeditorning ish kuni avtomatik ochiladi (selfisiz): Dala nazoratida DEMO Sherzod — "Kun boshi" = yo'lga chiqish vaqti; jonli joylashuv yoqilsa yoziladi.
 - 2-qadam: kartada endi ✅ Yetkazildi (rasm), ✍️ Imzo / qisman, 🚫 Rad etildi, 💵 To'lov tugmalari bor; Navigatsiya Yandex Maps'ni `rtext=~41.2856,69.2034` bilan ochadi.
 - 3-qadam: Anvarga "🚚 Buyurtmangiz yo'lga chiqdi: D-… (5 233 600 so'm). Ekspeditor: DEMO Sherzod, +998904444444 Mashina: 01 A 123 AA". Web'da reys holati "Yo'lda", "Yo'lga chiqdi" vaqti.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
-### T-DST-BOT-28. Natijasiz manzil bilan reysni yopib bo'lmaydi
-**Nima tekshiriladi:** Reys barcha manzillar hal bo'lmaguncha yopilmaydi.
+### T-DST-BOT-28. Natijasiz manzil bilan reysni yakunlab bo'lmaydi
+**Nima tekshiriladi:** Reys barcha manzillar hal bo'lmaguncha yakunlanmaydi.
 **Kim:** ekspeditor telefoni   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-27
 **Qadamlar:**
-1. **🏁 Reysni yopish** ni bosing.
+1. **🏁 Reysni yakunlash** ni bosing.
 **Kutilgan natija:**
 - "Hali 2 ta manzil bo'yicha natija yo'q." va reys ko'rinishi qayta yuboriladi.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -511,27 +518,36 @@ Shu paytdagi qarzlar (PAY blokidan keyin): Anvar **13 613 600**, Bunyodkor **0**
 - 3-qadam: DEMO Kassa qoldig'i 7 386 400 + 4 000 000 = **11 386 400** (PAY blokidagi 7 536 400 − T-DST-DLV-07 dagi yoqilg'i 150 000 = 7 386 400).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
-### T-DST-BOT-34. 2-reys: rad etish, rasm bilan yetkazish va botdan yopish
-**Nima tekshiriladi:** Manzil "Rad etildi" (sabab bilan) — mijozga va rahbarga xabar; ekspeditor reysni botdan yopadi — yetkazilmagan tovar avtomatik omborga qaytadi (qaytarish hujjati), yakun xabari.
-**Kim:** ekspeditor, mijoz va rahbar telefonlari, demo_rahbar (web)   **Oldin bajarilgan bo'lishi kerak:** T-DST-DLV-09
+### T-DST-BOT-34. 2-reys: natijani qaytarish (↺), rad etish, botda yakunlash va ofisda yopish
+**Nima tekshiriladi:** Ofis "Yetkazildi" natijasini ↺ bilan qaytarsa buyurtma "Jo'natildi" ga qaytadi va mijozga tuzatish xabari ketadi; manzil "Rad etildi" (sabab bilan) — mijozga va rahbarga xabar; ekspeditor reysni botda **yakunlaydi** (reys yopilmaydi — "Yo'lda" qoladi, ombor va rahbarga xabar); omborchi qaytgan tovarni sanab reysni web'da yopadi — qaytarish hujjati shu yerda.
+**Kim:** ekspeditor, mijoz, rahbar va omborchi telefonlari, demo_rahbar va demo_ombor (web)   **Oldin bajarilgan bo'lishi kerak:** T-DST-DLV-09
 **Qadamlar:**
 1. **🚚 Reys** (2-reys, Yo'lda; manzillar F — 6 800 000 va P1 — 1 240 000).
 2. F manzili → **✅ Yetkazildi (rasm)** → rasm.
-3. P1 manzili → **🚫 Rad etildi** → ro'yxatni ko'ring → **Mijoz rad etdi**.
-4. **🏁 Reysni yopish** → **✅ Tasdiqlash**.
-5. Web: **Qaytarishlar**, **Qoldiqlar**, **Qarzlar**, F va P1 kartalari.
+3. Web (demo_rahbar): 2-reys kartasida F qatoridagi **↺** (natijani bekor qilish). F kartasini va mijoz chatini ko'ring.
+4. Ekspeditor: F manzili → **✅ Yetkazildi (rasm)** → rasm (qayta).
+5. P1 manzili → **🚫 Rad etildi** → ro'yxatni ko'ring → **Mijoz rad etdi**.
+6. **🏁 Reysni yakunlash** → **✅ Tasdiqlash**. So'ng **🚚 Reys**.
+7. Web (demo_ombor): 2-reys kartasi → "Reysni yopish" bloki: P1 qatorlarida "Omborga qaytdi" standart qiymatlarini o'zgartirmang (20 + 2 sovg'a = 22 qop sanalgan) → **Reysni yopish** → tasdiqlang.
+8. Web: **Qaytarishlar**, **Qoldiqlar**, **Qarzlar**, F va P1 kartalari.
 **Kutilgan natija:**
 - 2-qadam: "✅ Yetkazildi: 6 800 000 so'm. …"; mijozga "✅ Buyurtma D-… yetkazildi (DJ-…): 6 800 000 so'm. Nakladnoy ilova qilingan." + PDF. F holati **Yetkazildi**.
-- 3-qadam: sabablar — Brak, Muddati o'tgan, Noto'g'ri tovar, Mijoz rad etdi, ✖️ Bekor qilish. "🚫 Rad etildi qayd qilindi. Tovar reys yopilganda omborga qaytariladi." Mijozga "🚫 Buyurtma D-… qabul qilinmadi. Sabab: Mijoz rad etdi." Rahbarga "⚠️ Reys R-…: DEMO Anvar do'koni, buyurtma D-… — Rad etildi. Sabab: Mijoz rad etdi. Ekspeditor: DEMO Sherzod."
-- 4-qadam: "Reys R-…ni yopasizmi? Yetkazilmagan tovar omborga qaytgan deb hisoblanadi." → "🏁 Reys R-… yopildi. / Yetkazildi: 1, qisman: 0, rad: 1 / Yetkazilgan: 6 800 000 so'm, qaytdi: 1 240 000 so'm / Reysda yig'ilgan: 0 so'm, qo'lingizda: 0 so'm". Rahbarga "🏁 Reys R-… yopildi: yetkazildi 1/2, 6 800 000 so'm; omborga qaytdi 1 240 000 so'm, kamomad 0 so'm; xarajat 0 so'm."
-- 5-qadam: yangi qaytarish DQ — P1 bo'yicha 22 qop (20 + 2 sovg'a), Jami **1 240 000** (sovg'a qatori 0). Qoldiq S haqiqiy 757 + 22 = **779**. Anvar qarzi 8 993 600 − 1 240 000 = **7 753 600**. P1 — yetkazilmagan (Jo'natildi/Yopildi — qarz FIFO bo'yicha), yetkazish sanasi bo'sh.
+- 3-qadam: F manzili yana "Kutmoqda" (foto, izoh, koordinata tozalangan); F holati **Jo'natildi**, yetkazish sanasi bo'sh, tarixda "Yetkazildi → Jo'natildi" ("R-…: yetkazish natijasi bekor qilindi"). Mijozga: "yetkazildi" xabari hali ketmagan bo'lsa — o'chiriladi; ketgan bo'lsa — "↺ D-… buyurtma bo'yicha yetkazish natijasi bekor qilindi va qayta kiritiladi. Oldingi xabarni hisobga olmang."
+- 4-qadam: F yana **Yetkazildi**, mijozga yangi "yetkazildi" xabari + PDF.
+- 5-qadam: sabablar — Brak, Muddati o'tgan, Noto'g'ri tovar, Mijoz rad etdi, ✖️ Bekor qilish. "🚫 Rad etildi qayd qilindi. Tovar reys yopilganda omborga qaytariladi." Mijozga "🚫 Buyurtma D-… qabul qilinmadi. Sabab: Mijoz rad etdi." Rahbarga "⚠️ Reys R-…: DEMO Anvar do'koni, buyurtma D-… — Rad etildi. Sabab: Mijoz rad etdi. Ekspeditor: DEMO Sherzod."
+- 6-qadam: "Reys R-…ni yakunlaysizmi? Yetkazilmagan tovarni omborga topshiring — ombor sanaydi, reysni ofis yopadi." → "🏁 Reys R-… yakunlandi. / Yetkazildi: 1, qisman: 0, rad: 1 / Yetkazilgan: 6 800 000 so'm, omborga topshiriladi: 1 240 000 so'm / Reysda yig'ilgan: 0 so'm, qo'lingizda: 0 so'm / Ombor tovarni sanab, reysni ofis yopadi." Rahbar va omborchiga: "🏁 Reys R-… yakunlandi (DEMO Sherzod). Qaytadigan tovar: 1 240 000 so'm — omborda sanab, Reyslar sahifasida yoping (qaytgan miqdor va kamomad)." Web'da reys hali **Yo'lda**, qaytarish hujjati **yo'q**. Ekspeditor ish kuni yopiladi. **🚚 Reys** — "Sizga hozircha reys biriktirilmagan." (yakunlangan reys ko'rsatilmaydi; rejalangan reys bo'lsa — o'sha).
+- 7-qadam: reys **Yopildi**. Rahbarga "🏁 Reys R-… yopildi: yetkazildi 1/2, 6 800 000 so'm; omborga qaytdi 1 240 000 so'm, kamomad 0 so'm; xarajat 0 so'm."
+- 8-qadam: yangi qaytarish DQ — P1 bo'yicha 22 qop (20 + 2 sovg'a), Jami **1 240 000** (sovg'a qatori 0). Qoldiq S haqiqiy 757 + 22 = **779**. Anvar qarzi 8 993 600 − 1 240 000 = **7 753 600**. P1 — yetkazilmagan (Jo'natildi/Yopildi — qarz FIFO bo'yicha), yetkazish sanasi bo'sh.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ---
 
 ## Ma'lum cheklovlar va kuzatish kerak bo'lgan joylar
-- Bot tili ulanish paytida saqlanadi; ERP profilida til o'zgarsa, bot menyusi qayta ulanmaguncha eski tilda (bildirishnomalar va Mini App esa yangi tilda) — T-DST-BOT-25.
-- Ekspeditor menyusida "▶️ Kunni boshlash" yo'q — ekspeditor uchun ish kuni, selfi va "Keldim" ishlatilmaydi; Dala nazoratida ekspeditor kuni bo'sh bo'ladi.
+- Xodim boti tili ERP'da til o'zgargach `/start` yoki `/menu` bosilganda yangilanadi (qayta ulash shart emas); Mini App darhol yangi tilda. Mijoz bildirishnomalari — mijozning Telegram tilida (T-DST-BOT-25).
+- Ekspeditor menyusida "▶️ Kunni boshlash" yo'q — ish kuni reys boshlanganda (Yo'lga chiqish) avtomatik ochiladi va reys yakunlanganda/yopilganda (boshqa yo'ldagi reysi bo'lmasa) yopiladi; selfi va "Keldim" ishlatilmaydi.
+- Botdagi "🏁 Reysni yakunlash" reysni yopmaydi: qaytgan tovarni ombor sanaydi va reysni ofis (Reyslar → Reysni yopish) yopadi; kamomad shu yerda kiritiladi. Yakunlangan reys keyingi rejalangan reysni to'smaydi.
+- Ekspeditor botida joriy reys: yo'ldagi (yakunlanmagan), bo'lmasa rejalanganlardan sanasi bugunga eng yaqini (bugungi, keyin o'tib ketgani, keyin kelajakdagi).
+- Mini App savat jami aksiyasiz — ataylab; rahbar Mini App buyurtma oynasiga kira olmaydi (agent va ekspeditor); ovozli buyurtma faqat agent uchun.
 - Agent o'z mijozi bo'lmagan nuqtada (masalan, Bunyodkor) ishlay olmaydi — agentsiz mijozlar botda ko'rinmaydi.
 - Galereyadan yuborilgan rasm selfi sifatida qabul qilinadi (Telegram cheklovi — farqlab bo'lmaydi).
 - Telegram Web/Desktop'da Mini App kamerasi ishlamasligi mumkin; skaner o'rniga kodni qidiruvga yozing.

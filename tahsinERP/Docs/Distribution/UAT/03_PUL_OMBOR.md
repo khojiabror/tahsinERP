@@ -1,10 +1,10 @@
 # 3. Pul va ombor
 
 Bu bo'lim ikki qismdan iborat:
-- **T-DST-PAY** — to'lovlar (ofis, agent), agent naqdini kassada sanab qabul qilish (kamomad bilan) va rad etish, qarz muddatlari (aging), akt sverki, to'lovni bekor qilish, to'lov buyurtmani yopishi, avans.
-- **T-DST-WH** — ombor kengaytmasi: qoldiqlar, boshlang'ich va nazorat inventarizatsiyasi (oyiga bir marta qoidasi), ko'chirmani farq dalolatnomasi bilan qabul qilish, hisobdan chiqarish rahbar tasdig'i bilan, pereso'rtitsa, landed cost (sotilgan qism bilan) va bekor qilish, minimal qoldiq ogohlantirishi, buyurtma taklifi → SRM xarid buyurtmasi.
+- **T-DST-PAY** — to'lovlar (ofis, agent), agent naqdini kassada sanab qabul qilish (kamomad bilan), rad etish va qabul qilingan topshirishni bekor qilish, qarz muddatlari (aging), akt sverki, to'lovni bekor qilish (yopilgan buyurtma qayta ochiladi), to'lov buyurtmani yopishi, avans, kirish qoldig'ini bekor qilish.
+- **T-DST-WH** — ombor kengaytmasi: qoldiqlar, boshlang'ich va nazorat inventarizatsiyasi ("ko'r" sanoq, oyiga bir marta qoidasi), ko'chirmani farq dalolatnomasi bilan qabul qilish (bo'lish, dalolatnomani bekor qilish), hisobdan chiqarish rahbar tasdig'i va foto bilan, pereso'rtitsa, landed cost (sotilgan qism bilan) va bekor qilish, minimal qoldiq ogohlantirishi, buyurtma taklifi → SRM xarid buyurtmasi, ERP chiqimida distributsiya rezervi himoyasi.
 
-**Bu blok T-DST-BOT-01 … 25 dan keyin bajariladi** (agent naqdi botda yig'ilgan). Testlarni T-DST-PAY-01 … 08, keyin T-DST-WH-01 … 12 tartibida bajaring.
+**Bu blok T-DST-BOT-01 … 25 dan keyin bajariladi** (agent naqdi botda yig'ilgan). Testlarni T-DST-PAY-01 … 11, keyin T-DST-WH-01 … 13 tartibida bajaring.
 
 Boshlang'ich holat (BOT-01…25 dan keyin):
 - DEMO Anvar do'koni qarzi **19 160 000** (muddati kelmagan); DEMO Bunyodkor qurilish **5 000 000** (muddati o'tgan).
@@ -47,7 +47,7 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-PAY-03. Agent naqdini kassada qabul qilish (kamomad bilan)
-**Nima tekshiriladi:** Kassir agent topshirgan pulni sanaydi; har to'lov kassaga yoziladi, farq alohida chiqim — kassa qoldig'i haqiqiy pulga teng; agent qo'lida 0 (pilot D2, Q3).
+**Nima tekshiriladi:** Kassir agent topshirgan pulni sanaydi; oynadagi summa — topshirish hujjatidagi summa, tanlangan kassa hisobga olinadi; har to'lov kassaga yoziladi, farq alohida chiqim — kassa qoldig'i haqiqiy pulga teng; agent qo'lida 0 (pilot D2, Q3).
 **Kim:** demo_kassir   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-14
 **Qadamlar:**
 1. **To'lovlar → Agentlar naqdi va kassa** ni oching.
@@ -55,8 +55,8 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 3. **Moliya → Boshqaruv → Tranzaksiyalar** (bugun) va **Moliya → Hisobotlar → Hisoblardagi qoldiq**.
 **Kutilgan natija:**
 - 1-qadam: "Agentlar qo'lidagi naqd pul" jadvalida DEMO Jasur — 1 500 000, eng eski to'lov sanasi, "topshirdi, kutmoqda".
-- 2-qadam oynasida: To'lovlar bo'yicha 1 500 000, Farq **−10 000** va eslatma "Kamomad agent hisobida qoladi va kassada chiqim sifatida, ortiqcha — kirim sifatida yoziladi." Qabul qilingach Jasur qatori yo'qoladi; "Kassaga topshirishlar" jadvalida DK — 1 500 000 / 1 490 000 / Farq −10 000, holat "Qabul qilindi".
-- 3-qadam: DEMO Kassa'ga kirim **1 500 000** ("Distributsiya to'lovi DP-…", kontragent DEMO Anvar do'koni) va chiqim **10 000** ("Kamomad: DK-…", kategoriya "Agent kassa farqi"). DEMO Kassa qoldig'i **1 490 000**.
+- 2-qadam oynasida: To'lovlar bo'yicha **1 500 000** (DK hujjatidagi summa), Farq **−10 000** va eslatma "Kamomad kassada chiqim sifatida yoziladi; agent KPI sxemasida HR xodimiga bog'langan bo'lsa — xodimga berilgan pul (ish haqidan ushlanadi). Ortiqcha — kirim." (Agent topshirgandan keyin yana naqd olgan bo'lsa, qatorda "topshirishdan keyin olingan: X (keyingi topshirishga)" va oynada ogohlantirish chiqadi — bu summa hujjatga kirmaydi; bu testda yo'q.) Qabul qilingach Jasur qatori yo'qoladi; "Kassaga topshirishlar" jadvalida DK — 1 500 000 / 1 490 000 / Farq −10 000, holat "Qabul qilindi".
+- 3-qadam: DEMO Kassa'ga kirim **1 500 000** ("Distributsiya to'lovi DP-…", kontragent DEMO Anvar do'koni) va chiqim **10 000** ("Kamomad: DK-…", kategoriya "Agent kassa farqi"; DEMO Jasur hali KPI sxemasida HR xodimiga bog'lanmagan — oddiy kassa chiqimi). DEMO Kassa qoldig'i **1 490 000**.
 - Anvar qarzi o'zgarmaydi (19 160 000) — to'lov agent olgan paytda yozilgan.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
@@ -88,7 +88,7 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-PAY-06. To'lov tekshiruvlari va to'lovni bekor qilish
-**Nima tekshiriladi:** Naqdsiz to'lov hisobsiz qabul qilinmaydi; xato to'lov sabab bilan bekor qilinadi (moliya yozuvi o'chadi, qarz tiklanadi); kassaga topshirilgan agent puli bekor qilinmaydi.
+**Nima tekshiriladi:** Naqdsiz to'lov hisobsiz qabul qilinmaydi; xato to'lov sabab bilan bekor qilinadi (moliya yozuvi o'chadi, qarz tiklanadi); kassaga topshirilgan agent puli to'g'ridan-to'g'ri bekor qilinmaydi — avval topshirish bekor qilinadi (T-DST-PAY-09).
 **Kim:** demo_kassir   **Oldin bajarilgan bo'lishi kerak:** T-DST-PAY-04
 **Qadamlar:**
 1. Qarzlar → DEMO Anvar do'koni → **To'lov qabul qilish**: Summa = `0` → saqlang.
@@ -100,7 +100,7 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 - 1-qadam: "Summa 0 dan katta bo'lsin."
 - 2-qadam: "Kassa yoki hisobni tanlang (naqddan boshqa to'lov darhol hisobga tushadi)."
 - 3-qadam: to'lov "Bekor qilingan"; Moliyada uning kirim yozuvi o'chirilgan; DEMO Bank hisobi **5 000 000**.
-- 4-qadam: "Bu to'lov kassaga topshirilgan — bekor qilib bo'lmaydi."
+- 4-qadam: "Bu to'lov kassaga topshirilgan. Avval Agentlar naqdi va kassa sahifasida topshirishni bekor qiling." To'lov o'zgarmaydi.
 - Anvar qarzi 19 060 000 + 500 000 = **19 560 000**. Akt sverkida "To'lov bekor qilindi 500 000" (debet) yozuvi paydo bo'ladi.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
@@ -127,6 +127,54 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 - Qarzlar: Bunyodkor — Qarz 0, "Avans (oldindan to'lov)" **1 812 500**.
 - Akt sverki: yakuniy qoldiq **−1 812 500**, yozuv "Mijozning avansi".
 - DEMO Bank hisobi **6 812 500**.
+- Moliyada bu to'lov pul (bank kirimi, tushum) sifatida ko'rinadi, lekin moliyaning kontragentlar qoldig'i / debitorlik hisobotlarida Bunyodkor uchun "avans" bo'lib **qatnashmaydi** — distributsiya mijoz qarzi faqat Distributsiya → Qarzlar'da.
+**Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
+
+### T-DST-PAY-09. Web'da "Agent qo'lida (naqd)" to'lov va qabul qilingan topshirishni bekor qilish
+**Nima tekshiriladi:** Web'da hisobsiz kiritilgan naqd to'lov mijoz agentining naqdiga yoziladi; qabul qilingan topshirish sabab bilan bekor qilinadi (moliya yozuvlari va farq o'chadi, to'lovlar yana agent qo'lida); shundan keyin xato to'lov oddiy tartibda bekor qilinadi (pilot D2, Q3).
+**Kim:** demo_kassir   **Oldin bajarilgan bo'lishi kerak:** T-DST-PAY-08
+**Qadamlar:**
+1. **Qarzlar** → DEMO Anvar do'koni → **To'lov qabul qilish**: Summa = `50000`, usul = Naqd, Kassa / hisob = "Agent qo'lida (naqd)", buyurtma — tanlanmagan, Izoh = `DEMO: xato kiritilgan to'lov`.
+2. **To'lovlar → Agentlar naqdi va kassa**: DEMO Jasur qatorida **Qabul qilish**: DEMO Kassa, Sanalgan = `50000` → tasdiqlang.
+3. To'lovlar ro'yxatida shu 50 000 lik to'lovni **Bekor qilish** ga urining.
+4. "Kassaga topshirishlar" jadvalida 2-qadamdagi DK (Qabul qilindi) qatorida **Bekor qilish** → sabab `DEMO: xato to'lov`.
+5. To'lovlar ro'yxatida 50 000 lik to'lovni **Bekor qilish** → sabab `DEMO: xato to'lov`.
+6. **Qarzlar**, Agentlar naqdi va kassa, **Moliya → Hisobotlar → Hisoblardagi qoldiq**.
+**Kutilgan natija:**
+- 1-qadam: DP — Qabul qildi **DEMO Jasur** (mijoz kartasidagi agent; buyurtma tanlansa — buyurtma agenti), "Agent qo'lida (naqd)". Anvar qarzi 13 613 600 − 50 000 = **13 563 600**. Agentlar qo'lidagi naqd jadvalida DEMO Jasur — 50 000 (kassir emas).
+- 2-qadam: DK — 50 000 / 50 000 / farq 0, "Qabul qilindi". DEMO Kassa **7 586 400**.
+- 3-qadam: "Bu to'lov kassaga topshirilgan. Avval Agentlar naqdi va kassa sahifasida topshirishni bekor qiling."
+- 4-qadam: tasdiq oynasida "Qabul bekor qilinadi: kassaga yozilgan to'lovlar va farq moliyadan olib tashlanadi, to'lovlar yana agent qo'lida bo'ladi."; DK holati bekor qilingan, moliyadagi 50 000 kirim o'chirilgan; DEMO Kassa **7 536 400**; DEMO Jasur qatori yana 50 000 (qo'lida).
+- 5-qadam: to'lov "Bekor qilingan"; Anvar qarzi **13 613 600**; DEMO Jasur qatori yo'qoladi (qo'lida 0). A holati "Yopildi" bo'lib qoladi (A qarzi boshqa kreditlar bilan yopilgan).
+**Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
+
+### T-DST-PAY-10. To'lov bekor qilinsa yopilgan buyurtma qayta ochiladi (A)
+**Nima tekshiriladi:** To'lov (qaytarish, kirish qoldig'i) bekor qilinib buyurtma qarzi endi yopilmagan bo'lsa, "Yopildi" buyurtma qayta ochiladi ("Yetkazildi"; yetkazilmagan bo'lsa "Jo'natildi") va holat jurnaliga sabab yoziladi; qayta to'lov uni yana yopadi.
+**Kim:** demo_kassir, demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-PAY-07, T-DST-PAY-09
+**Qadamlar:**
+1. demo_kassir: **To'lovlar** ro'yxatida T-DST-PAY-07 dagi **5 946 400** (Naqd, DEMO Kassa) to'lovni **Bekor qilish** → sabab `DEMO: qayta ochish sinovi`.
+2. demo_rahbar: A kartasi (holat va Tarix).
+3. demo_kassir: Qarzlar → Anvar → **To'lov qabul qilish**: Summa = `5946400`, usul = Naqd, Kassa / hisob = DEMO Kassa.
+4. demo_rahbar: A kartasi.
+**Kutilgan natija:**
+- 1-qadam: Anvar qarzi **19 560 000**; DEMO Kassa 7 536 400 − 5 946 400 = **1 590 000**.
+- 2-qadam: A holati **Yetkazildi** (qayta ochildi); tarixda "Yopildi → Yetkazildi", izohida to'lov raqami va sabab ("DP-…: DEMO: qayta ochish sinovi").
+- 4-qadam: A yana **Yopildi**. Anvar qarzi **13 613 600**, DEMO Kassa **7 536 400**. D, F holati o'zgarmagan.
+**Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
+
+### T-DST-PAY-11. Kirish qoldig'ini bekor qilish va qayta import
+**Nima tekshiriladi:** Xato kiritilgan kirish qoldig'i akt sahifasida sabab bilan teskari yozuv orqali bekor qilinadi; keyin to'g'ri summa Import → Kirish qarzlari orqali qayta kiritiladi ("allaqachon kiritilgan" xatosi chiqmaydi).
+**Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-PAY-08
+**Qadamlar:**
+1. **Qarzlar** → DEMO Bunyodkor qurilish → **Akt sverki** → **Kirish qoldig'ini bekor qilish** → tasdiqlang, sabab = `DEMO: kirish qoldig'i sinovi`.
+2. **Qarzlar** (Bunyodkor).
+3. **Excel import → 8. Kirish qarzlari**: T-DST-SET-21 dagi fayl (`300000012` | `5000000` | bugun − 10 kun) → ko'rib chiqish → **Import qilish**.
+4. **Qarzlar** va Bunyodkor akt sverki.
+**Kutilgan natija:**
+- 1-qadam: tasdiq matni "Kirish qoldig'i teskari yozuv bilan bekor qilinadi. Keyin to'g'ri summani Import → Kirish qoldig'i orqali qayta kiriting. Davom etilsinmi?" → "Kirish qoldig'i bekor qilindi — to'g'ri summani qayta import qilishingiz mumkin."
+- 2-qadam: Bunyodkor avansi 1 812 500 + 5 000 000 = **6 812 500**.
+- 3-qadam: "yangi — 1", xato yo'q.
+- 4-qadam: Avans yana **1 812 500**, muddati o'tgan 0. Aktda: Kirish qoldig'i 5 000 000, To'lov 5 000 000, To'lov 1 812 500, kirish qoldig'i bekor qilindi 5 000 000 (kredit), Kirish qoldig'i 5 000 000; yakuniy **−1 812 500** ("Mijozning avansi").
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ---
@@ -147,34 +195,34 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-WH-02. Boshlang'ich inventarizatsiya (Excel varaq, tannarx ustuni)
-**Nima tekshiriladi:** Boshlang'ich sanoq qoldiqni sanalganga tenglaydi; varaqda tizim qoldig'i yo'q ("ko'r" sanoq); kirim tarixi yo'q tovarga tannarx ustunidan narx olinadi; hamma qator sanalishi shart (pilot P9).
-**Kim:** demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-17
+**Nima tekshiriladi:** Boshlang'ich sanoq qoldiqni sanalganga tenglaydi; varaqda va sahifada tizim qoldig'i yo'q ("ko'r" sanoq); kirim tarixi yo'q tovarga tannarx ustunidan narx olinadi — "Tannarx" ustuni faqat `DstSeeCost` bilan; hamma qator sanalishi shart; boshlang'ich sanoq oylik qulfni olmaydi (pilot P9).
+**Kim:** demo_rahbar (tannarx huquqi bilan), demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-17
 **Qadamlar:**
-1. **Bosh sahifa → Inventarizatsiya → Yangi sanoq**: Ombor = DEMO Filial ombor, Turi = Boshlang'ich, Izoh = `DEMO Samarqand boshlang'ich`.
-2. Sanoq kartasida **Sanoq varag'i (Excel)** ni yuklab oling. Ustunlarni ko'ring.
-3. Varaqda: DEMO-SEM-400 Sanalgan `200`, Tannarx `41000`; DEMO-KAF-3030 `100`, `72000`; DEMO-KAF-3030-2 `0`; DEMO-GIP-125 — **bo'sh**. Faylni **Yuklash**.
+1. demo_rahbar: **Distributsiya → Inventarizatsiya → Yangi sanoq**: Ombor = DEMO Filial ombor, Turi = Boshlang'ich, Izoh = `DEMO Samarqand boshlang'ich`.
+2. demo_ombor: shu sanoq kartasini oching va **Sanoq varag'i (Excel)** ni yuklab oling. Ustunlarni ko'ring. demo_rahbar: xuddi shunday.
+3. demo_rahbar varag'ida: DEMO-SEM-400 Sanalgan `200`, Tannarx `41000`; DEMO-KAF-3030 `100`, `72000`; DEMO-KAF-3030-2 `0`; DEMO-GIP-125 — **bo'sh**. Faylni **Yuklash**.
 4. **Yakunlash va qoldiqni tenglash** ni bosing.
 5. Gipsokarton "Sanalgan" = `0` → **Saqlash** → **Yakunlash va qoldiqni tenglash** → tasdiqlang.
 6. **Qoldiqlar** (Filial) va ombor modulidagi **Kirimlar** (`INV` bo'yicha).
 **Kutilgan natija:**
-- 2-qadam: ustunlar Artikul, Nomi, Birlik, Sanalgan, Tannarx — tizim qoldig'i **yo'q**. Qatorlar: 4 ta sotuvdagi DEMO tovar.
+- 2-qadam: demo_ombor (tannarx huquqisiz) — kartada ham, varaqda ham "Tannarx" ustuni **yo'q**: Artikul, Nomi, Birlik, Sanalgan. demo_rahbar — Artikul, Nomi, Birlik, Sanalgan, Tannarx. Ikkalasida tizim qoldig'i **yo'q**. Qatorlar: 4 ta sotuvdagi DEMO tovar. (Huquqsiz foydalanuvchi yuklagan faylda Tannarx bo'lsa ham e'tiborsiz qoladi.)
 - 4-qadam: "1 ta qator sanalmagan. Yo'q tovar uchun 0 yozing."
 - 5-qadam: "Sanoqni yakunlaysizmi? Keyin o'zgartirib bo'lmaydi." → holat "O'tkazilgan", "qoldiqqa yozilgan"; Farqlar **2** (ikkalasi ortiqcha: +200, +100).
 - 6-qadam: Filial: Sement **200**, Kafel **100**. Ombor modulida INV kirimi: 200 × 41 000 = 8 200 000 va 100 × 72 000 = 7 200 000 (jami 15 400 000).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
-### T-DST-WH-03. Nazorat sanog'i va "oyiga bir marta" qoidasi
-**Nima tekshiriladi:** Nazorat sanog'i tizim bilan taqqoslaydi; farqni qoldiqqa yozish shu ombor uchun oyiga bir marta; yozmasdan yakunlash mumkin (pilot Q2).
+### T-DST-WH-03. Nazorat sanog'i ("ko'r") va "oyiga bir marta" qoidasi
+**Nima tekshiriladi:** Sanoq davomida tizim qoldig'i va farq ko'rsatilmaydi, o'tkazilgandan keyin ko'rinadi; boshlang'ich sanoq oylik qulfni olmaydi — shu oyda farqni yozadigan nazorat sanog'i mumkin; farqni qoldiqqa yozish shu ombor uchun oyiga bir marta; yozmasdan yakunlash mumkin (pilot Q2).
 **Kim:** demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-WH-02
 **Qadamlar:**
-1. Yangi sanoq: Filial, Turi = **Nazorat**. Kartada "Sanalgan" ni ekranda kiriting: Sement `199`, Kafel `100`, Gipsokarton `0`, Kafel 2-nav `0` → **Saqlash**.
-2. "Farqni qoldiqqa yozish" ✓ → **Yakunlash**.
+1. Yangi sanoq: Filial, Turi = **Nazorat**. Kartadagi ustunlarni ko'ring. "Sanalgan" ni ekranda kiriting: Sement `200`, Kafel `100`, Gipsokarton `0`, Kafel 2-nav `0` → **Saqlash**. "Farqni qoldiqqa yozish" ✓ → **Yakunlash**.
+2. Yana yangi sanoq: Filial, Nazorat. Sement `199`, Kafel `100`, Gipsokarton `0`, Kafel 2-nav `0` → **Saqlash**. "Farqni qoldiqqa yozish" ✓ → **Yakunlash**.
 3. Belgini olib **Yakunlash**.
 4. Filial qoldiqlarini tekshiring.
 **Kutilgan natija:**
-- 1-qadam: "Tizimda" ustuni 200 / 100 / 0 / 0, "Farq" Sement −1.
+- 1-qadam: qoralamada "Tizimda" va "Farq" ustunlari **yo'q** (izoh: "\"ko'r\" sanoq: tizim qoldig'i va farqlar sanoq o'tkazilgandan keyin ko'rsatiladi."). Yakunlash qabul qilinadi (WH-02 dagi boshlang'ich sanoq qulf olmagan): "O'tkazilgan", "qoldiqqa yozilgan", Farqlar **0**; endi "Tizimda" 200 / 100 / 0 / 0 ko'rinadi.
 - 2-qadam: "Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi." Sanoq qoralama bo'lib qoladi.
-- 3-qadam: "O'tkazilgan" (qoldiqqa yozilmagan), Farqlar **1** (kamomad −1).
+- 3-qadam: "O'tkazilgan" (qoldiqqa yozilmagan), "Tizimda" 200, Farqlar **1** (Sement kamomad −1).
 - 4-qadam: Filial Sement **200** (o'zgarmagan).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
@@ -205,23 +253,23 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 **Kutilgan natija:**
 - 1-qadam: Asosiy darhol S 758, K 405.36, G 105 (haqiqiy); Filial o'zgarmagan (kirim "Kutilmoqda").
 - 2-qadam: "Qabul qilishni faqat omborning mas'uli (yoki Admin) bajaradi." (demo_rahbar Filial mas'uli emas).
-- 3-qadam: "DEMO-KAF-3030 Kafel 30×30: kamomadni nima qilishni tanlang." — hech narsa yozilmaydi.
+- 3-qadam: "DEMO-KAF-3030 Kafel 30×30: kamomadni nima qilishni tanlang." — hech narsa yozilmaydi. Kamomad tanlovida: Yo'qotish, Jo'natuvchiga qaytarish, Bo'lish (yo'qotish + qaytarish) — bo'lish T-DST-WH-13 da.
 - 4-qadam: "Ko'chirma qabul qilindi." Dalolatnoma DT-…: Sement 100 → 98, farq −2 × 40 000 = **80 000** (Yo'qotish); Kafel 50 → 47, −3 × 70 000 = **210 000** (Jo'natuvchiga qaytarish); Gipsokarton 20 → 21, +1 × 50 000 = **50 000**. Kamomad summasi **290 000**, Shundan yo'qotish **80 000**, Ortiqcha summasi **50 000**.
 - 5-qadam: chop etishda "Topshirdi / Qabul qildi" imzo joylari. Takroriy qabul: "Ko'chirma qabul kutmayapti (allaqachon qabul qilingan yoki o'chirilgan)."
-- 6-qadam: Asosiy: S **758**, K **408.36** (405,36 + 3 qaytgan), G **105**. Filial: S **298**, K **147**, G **21**. Rahbarga: "📦 Ko'chirma farqi DT-… (INC-…): DEMO Asosiy ombor → DEMO Filial ombor Kamomad: 290 000 (yo'qotish 80 000), ortiqcha: 50 000".
+- 6-qadam: Asosiy: S **758**, K **408.36** (405,36 + 3 qaytgan), G **105**. Filial: S **298**, K **147**, G **21**. Rahbarga (tannarx huquqi bor): "📦 Ko'chirma farqi DT-… (INC-…): DEMO Asosiy ombor → DEMO Filial ombor Kamomad: 290 000 (yo'qotish 80 000), ortiqcha: 50 000". Xabar oluvchida tannarx huquqi bo'lmasa — summasiz: "Kamomad: 2 qator, ortiqcha: 1 qator". Yo'qotish uchun moliya yoki qarz yozuvi **yo'q** (ataylab — summa dalolatnomada, aybdordan undirish ish haqi orqali qo'lda).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-WH-06. Hisobdan chiqarish: web'da tasdiqlash, o'zgartirilsa qayta yuborish
-**Nima tekshiriladi:** Qoralama → tasdiqqa yuborish → rahbar tasdig'i: FIFO tannarxda ombor chiqimi; yuborilgan hujjat o'zgartirilsa qayta yuboriladi.
+**Nima tekshiriladi:** Qoralama → foto biriktirish → tasdiqqa yuborish → rahbar tasdig'i: FIFO tannarxda ombor chiqimi; yuborilgan hujjat o'zgartirilsa qayta yuboriladi.
 **Kim:** demo_ombor, demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-WH-05
 **Qadamlar:**
-1. demo_ombor: **Hisobdan chiqarish → Yangi**: Asosiy, Sabab = Sinish, DEMO-KAF-3030 `2.88`, Izoh = `DEMO: 2 quti singan`. Saqlang → **Tasdiqqa yuborish**.
+1. demo_ombor: **Hisobdan chiqarish → Yangi**: Asosiy, Sabab = Sinish, DEMO-KAF-3030 `2.88`, Izoh = `DEMO: 2 quti singan`. Saqlang. Hujjat sahifasida **Foto biriktirish**: avval PDF yoki 5 MB dan katta fayl, so'ng singan qutining JPEG rasmi. **Fotoni almashtirish** bilan boshqa PNG rasm. So'ng **Tasdiqqa yuborish**.
 2. demo_ombor: **Tahrirlash** ni oching (ogohlantirishni o'qing), o'zgartirmasdan **Saqlash**.
 3. demo_rahbar: hujjatda **Tasdiqlash va chiqarish**.
 4. demo_ombor: **Tasdiqqa yuborish**. demo_rahbar: **Tasdiqlash va chiqarish** → tasdiqlang.
 5. **Qoldiqlar** (Asosiy).
 **Kutilgan natija:**
-- 1-qadam: holat "Tasdiq kutilmoqda", Yuborilgan vaqti; rahbarga botda ✅/❌ xabari (T-DST-BOT-21 dagidek).
+- 1-qadam: PDF / katta fayl — "Faqat JPEG yoki PNG rasm, 5 MB gacha."; JPEG dan keyin rasm sahifada ko'rinadi, almashtirilgach — yangi PNG. Yuborilgach holat "Tasdiq kutilmoqda", Yuborilgan vaqti; rahbarga botda ✅/❌ xabari (T-DST-BOT-21 dagidek); rahbar web'da hujjat fotosini ko'radi.
 - 2-qadam: "Hujjat tasdiqqa yuborilgan. O'zgartirsangiz, qayta yuborish kerak bo'ladi."; saqlangach holat "Qoralama".
 - 3-qadam: "Hujjat hali tasdiqqa yuborilmagan."
 - 4-qadam: "Tovar ombordan chiqariladi. Davom etasizmi?" → "Tasdiqlangan", Tasdiqlagan DEMO Rahbar, Tannarx 2,88 × 70 000 = **201 600**. Omborchiga "✅ Hisobdan chiqarish DW-… tasdiqlandi."
@@ -289,7 +337,7 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-WH-11. Minimal qoldiq va "tugayapti" ogohlantirishi
-**Nima tekshiriladi:** Minimal va maksimal qoldiq sozlanadi; qoldiq minimaldan pastga **tushganda** omborchiga va rahbarlarga (amalni bajargandan tashqari) bir marta xabar; "Minimaldan past" filtri.
+**Nima tekshiriladi:** Minimal va maksimal qoldiq sozlanadi; **mavjud** qoldiq (haqiqiy − rezerv, buyurtma taklifi bilan bir xil) minimaldan pastga **tushganda** omborchiga va rahbarlarga (amalni bajargandan tashqari) bir marta xabar; "Minimaldan past" filtri.
 **Kim:** demo_rahbar, demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-WH-10
 **Qadamlar:**
 1. **Sozlamalar** → Omborlar jadvalida DEMO Asosiy ombor "Minimal qoldiq" ustunidagi raqamni bosing. Tovar = DEMO-GIP-125, Minimal = `100`, Maksimal = `50` → ➕.
@@ -299,8 +347,8 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 **Kutilgan natija:**
 - 1-qadam: "Maksimal minimaldan kam bo'lmasin."
 - 2-qadam: ro'yxatda "DEMO-GIP-125 — Gipsokarton 12,5 mm 100 list → 200"; Omborlar jadvalida Minimal qoldiq = 1.
-- 3-qadam: tannarx 6 × 50 000 = **300 000**; G haqiqiy **99**.
-- 4-qadam: omborchiga "⚠️ Minimal qoldiqdan past — DEMO Asosiy ombor: • DEMO-GIP-125 Gipsokarton 12,5 mm: 99 / min 100" (rahbarga yuborilmaydi — tasdiqlagan o'zi). "Minimaldan past" filtrida Gipsokarton.
+- 3-qadam: tannarx 6 × 50 000 = **300 000**; G haqiqiy **99**, mavjud **94** (C rezervi 5). Mavjud 100 → 94 — minimaldan pastga tushdi.
+- 4-qadam: omborchiga "⚠️ Minimal qoldiqdan past — DEMO Asosiy ombor: • DEMO-GIP-125 Gipsokarton 12,5 mm: 94 / min 100" (mavjud qoldiq; rahbarga yuborilmaydi — tasdiqlagan o'zi). "Minimaldan past" filtrida Gipsokarton.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-WH-12. Buyurtma taklifi → SRM xarid buyurtmasi
@@ -316,6 +364,26 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 - 2-qadam: "Xarid buyurtmalari yaratildi: PO-2026-MM-NNNN".
 - 3-qadam: holat Created, izoh "DST_REORDER: minimal qoldiq bo'yicha (distributsiya). Omborlar: DEMO Asosiy ombor", qator DEMO-GIP-125 106 × 52 000 = **5 512 000**, QQS 0.
 - 4-qadam: "30 kunda buyurtma" ustunida PO raqami, qator belgisi olib tashlangan (ikki marta buyurtma qilinmasin).
+- Narx ustuni faqat `DstSeeCost` bilan ko'rinadi; huquqsiz (yoki narx bo'sh) yaratilsa xarid buyurtmasiga oxirgi xarid narxi yoziladi (0 emas) — ixtiyoriy: demo_ombor bilan sahifani ochib narx ustuni yo'qligini tekshiring.
+**Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
+
+### T-DST-WH-13. ERP ko'chirmasi: rezerv himoyasi, "Bo'lish" va dalolatnomani bekor qilish
+**Nima tekshiriladi:** Ombor modulidagi chiqim/ko'chirma tovarni distributsiya rezervidan pastga tushirmaydi; ko'chirma kamomadi "Bo'lish (yo'qotish + qaytarish)" bilan qabul qilinadi; dalolatnoma sabab bilan bekor qilinsa qabul va qaytarish kirimi teskari, ko'chirma yana qabul kutadi.
+**Kim:** demo_ombor (yuboradi va Filial mas'uli sifatida qabul qiladi), demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-WH-12
+**Qadamlar:**
+1. demo_ombor: **Omborxona → Ombor → Operatsiyalar → Chiqimlar → Yangi chiqim**: DEMO Asosiy ombor → DEMO Filial ombor, DEMO-GIP-125 `95`. Saqlang.
+2. Miqdorni `2` qiling → Saqlang. **Qoldiqlar** (Asosiy).
+3. **Ko'chirmalarni qabul qilish** → shu ko'chirma: Kelgan `0`, Kamomad = **Bo'lish (yo'qotish + qaytarish)**, yo'qotish miqdori `2` → **Qabul qilish**.
+4. Yo'qotish miqdori `1` → **Qabul qilish** → tasdiqlang. Dalolatnomani oching. **Qoldiqlar** (Asosiy, Filial).
+5. Dalolatnoma sahifasida **Dalolatnomani bekor qilish** → sabab `DEMO: bo'lish sinovi`. **Ko'chirmalarni qabul qilish** va **Qoldiqlar**.
+6. Shu ko'chirmani qayta qabul qiling: Kelgan `0`, Kamomad = **Jo'natuvchiga qaytarish** → **Qabul qilish** → tasdiqlang.
+**Kutilgan natija:**
+- 1-qadam: "DEMO-GIP-125: distributsiya buyurtmalari uchun 5 rezervda, chiqimdan keyin qoldiq 4 bo'lib qoladi. Avval Distributsiya → Buyurtmalar'da rezervni yeching (tasdiqni qaytarish) yoki chiqim miqdorini kamaytiring." Chiqim saqlanmaydi, G 99.
+- 2-qadam: saqlanadi; Asosiy G **97/5/92**.
+- 3-qadam: "… yo'qotish miqdori 0 dan katta va kamomad (2) dan kichik bo'lsin (qolgani qaytariladi)." — hech narsa yozilmaydi.
+- 4-qadam: dalolatnoma DT-…: Gipsokarton 2 → 0, yo'qotish 1, jo'natuvchiga qaytarish 1. Asosiy G **98**, Filial G **21** (o'zgarmagan). Moliya/qarz yozuvi yo'q.
+- 5-qadam: "Dalolatnoma bekor qilindi — ko'chirmani qayta qabul qiling."; ko'chirma yana kutilayotganlar ro'yxatida; Asosiy G yana **97**. (Qabul qilingan tovardan chiqim bo'lganda: "Bekor qilib bo'lmaydi: qabul qilingan tovardan chiqim qilingan.")
+- 6-qadam: Asosiy G **99/5/94**, Filial G **21** — WH-12 dagi holat tiklandi.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ---
@@ -334,9 +402,11 @@ Boshlang'ich holat (BOT-01…25 dan keyin):
 | Agentlar qo'lida | 0 |
 
 ## Ma'lum cheklovlar va kuzatish kerak bo'lgan joylar
-- Web to'lov oynasida "Agent qo'lida (naqd)" tanlansa, naqd **to'lovni kiritgan web foydalanuvchining** (masalan, kassirning) qo'lida hisoblanadi, buyurtma agentining emas. Agent naqdini faqat bot orqali qabul qiling.
-- To'lov bekor qilinganda allaqachon "Yopildi" bo'lgan buyurtma holati avtomatik qaytmaydi (qarz to'g'ri tiklanadi, holat — yo'q). Bekor qilishni buyurtma yopilishidan oldin bajaring yoki holatni kuzating.
-- Ombor modulidagi chiqim/ko'chirma distributsiya rezervini tekshirmaydi — ko'chirmadan keyin "Rezerv qoldiqdan ko'p" filtrini tekshirib turing.
-- Inventarizatsiyada qoldiqqa yozish ombor bo'yicha oyiga bir marta (boshlang'ich sanoq ham hisobga kiradi) — xato kiritilsa tuzatish keyingi oyda yoki administrator orqali.
+- Web to'lov oynasida "Agent qo'lida (naqd)" tanlansa, naqd buyurtma agentiga (buyurtmasiz — mijoz kartasidagi agentga), agent yo'q bo'lsa — kiritgan foydalanuvchiga yoziladi (T-DST-PAY-09).
+- Kassaga topshirilgan to'lovni bekor qilish uchun avval topshirish bekor qilinadi (Agentlar naqdi va kassa → Topshirishlar → Bekor qilish), keyin to'lov (T-DST-PAY-09).
+- Kassa kamomadi: agent KPI sxemasida HR xodimiga bog'langan bo'lsa — moliyada xodimga berilgan pul (ish haqidan ushlanadi), bog'lanmagan bo'lsa — kassa chiqimi.
+- Ombor modulidagi chiqim/ko'chirma distributsiya rezervidan pastga tushirmaydi (T-DST-WH-13) — avval buyurtma tasdig'ini qaytaring.
+- Inventarizatsiyada qoldiqqa yozish ombor bo'yicha oyiga bir marta (boshlang'ich sanoq hisobga kirmaydi) — xato kiritilsa tuzatish keyingi oyda yoki administrator orqali. Sanoq ochiqligida sanalgan tovar shu ombordan chiqmaydi (T-DST-BOT-20).
+- Ko'chirma yo'qotishi uchun moliya/qarz yozuvi yo'q — ataylab; aybdordan undirish ish haqi orqali qo'lda.
 - Buyurtma taklifida yetkazib beruvchi va narx faqat SRM xarid hisob-fakturasidan olinadi; ombor modulidagi oddiy kirim (invoyssiz) hisobga olinmaydi.
 - Landed cost valyutasiz (asosiy valyutada) kiritiladi.

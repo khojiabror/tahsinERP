@@ -2,7 +2,7 @@
 
 Bu bo'lim keyingi barcha testlar ishlaydigan asosni tayyorlaydi va shu bilan birga sozlash sahifalarining o'zini tekshiradi: sozlamalar, hududlar, narx turlari va narxlar, tovarlar (birlik, shtrix-kod), omborlar, jamoalar, mijozlar, Excel import (avval ko'rib chiqish), ruxsatlar va ko'rinish doirasi, Telegram'ga ulash. Testlarni T-DST-SET-01 … 25 tartibida bajaring.
 
-Distributsiya sahifalari chap menyuda **Distributsiya** bo'limida. "Inventarizatsiya" va "Xatolar jurnali" menyuda yo'q — ular **Distributsiya → Bosh sahifa** plitalaridan ochiladi. Qadamlarda "**Distributsiya → X**" deb yozilgan joy — shu menyu bandi.
+Distributsiya sahifalari chap menyuda **Distributsiya** bo'limida ("Inventarizatsiya", "Xatolar jurnali" va "Audit jurnali" ham menyuda; Bosh sahifa plitalaridan ham ochiladi). Qadamlarda "**Distributsiya → X**" deb yozilgan joy — shu menyu bandi.
 
 Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqadi; biznes xatosi — qizil xabar (matni testda ko'rsatilgan); ruxsat yo'q bo'lsa sahifa "Sizga ruxsat berilmagan!" sahifasiga o'tadi, AJAX amalda esa "Ruxsat yo'q" xabari chiqadi.
 
@@ -18,24 +18,24 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 4. Chiqib, qayta kiring va Distributsiya sahifasini oching. Keyin **O'zbekcha** ni bosing.
 **Kutilgan natija:**
 - Sahifa License/Blocked sahifasiga yo'naltirmaydi (litsenziya faol).
-- Menyuda (tartib bilan): Bosh sahifa, Rahbar paneli, Hisobotlar, Buyurtmalar, Qoldiqlar, Ko'chirmalarni qabul qilish, Hisobdan chiqarish, Pereso'rtitsa, Qo'shimcha xarajatlar (landed cost), Buyurtma taklifi, Aksiyalar, To'lovlar, Qarzlar, Qaytarishlar, Dala nazorati, Tashrif rejasi, Reyslar, Mashinalar, Agent KPI, Mijozlar, Tovarlar, Narxlar, Hududlar, Agentlar va jamoalar, Ma'lumotnomalar, Sozlamalar, Excel import.
-- Bosh sahifada 28 ta plita bor, jumladan **Inventarizatsiya** ("Boshlang'ich va nazorat sanog'i") va **Xatolar jurnali** ("Pilot: xato va muammolar") — bu ikkalasi chap menyuda yo'q (Izohga yozing — K3 taklifi).
+- Menyuda (tartib bilan): Bosh sahifa, Rahbar paneli, Hisobotlar, Buyurtmalar, Qoldiqlar, **Inventarizatsiya**, Ko'chirmalarni qabul qilish, Hisobdan chiqarish, Pereso'rtitsa, Qo'shimcha xarajatlar (landed cost), Buyurtma taklifi, Aksiyalar, To'lovlar, Qarzlar, Qaytarishlar, Dala nazorati, Tashrif rejasi, **Xatolar jurnali**, Reyslar, Mashinalar, Agent KPI, Mijozlar, Tovarlar, Narxlar, Hududlar, Agentlar va jamoalar, Ma'lumotnomalar, Sozlamalar, Excel import, **Audit jurnali**.
+- Bosh sahifa plitalari orasida **Inventarizatsiya** ("Boshlang'ich va nazorat sanog'i"), **Xatolar jurnali** ("Pilot: xato va muammolar") va **Audit jurnali** ("Kim, qachon, nimani o'zgartirgan") bor.
 - 3-qadamda distributsiya sahifalari ruscha ("Заказы" va h.k.), 4-qadamda qayta kirgandan keyin ham ruscha qoladi (til foydalanuvchiga saqlangan). "O'zbekcha" dan keyin yana o'zbekcha.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-SET-02. Rollar bo'yicha menyu va ruxsatsiz sahifalar
-**Nima tekshiriladi:** Har rol faqat o'ziga berilgan sahifalarni ko'radi; URL orqali ham ruxsatsiz sahifa ochilmaydi; faqat ko'rish huquqi bilan o'zgartirish tugmalari ko'rinmaydi.
+**Nima tekshiriladi:** Har rol faqat o'ziga berilgan sahifalarni ko'radi; URL orqali ham ruxsatsiz sahifa ochilmaydi; faqat ko'rish huquqi bilan o'zgartirish tugmalari ko'rinmaydi, karta o'qish rejimida ochiladi.
 **Kim:** demo_agent, demo_kassir, demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-01
 **Qadamlar:**
 1. demo_agent bilan kiring. Distributsiya menyusini ko'ring. Manzil satrida ketma-ket oching: `/Distribution/DstOrders/Edit`, `/Distribution/DstPrices`, `/Distribution/DstSettings`.
-2. **Distributsiya → Mijozlar** ni oching.
+2. **Distributsiya → Mijozlar** ni oching va istalgan mijoz kartasini oching (bazada mijoz bo'lmasa — bu bandni T-DST-SET-18 dan keyin DEMO Anvar do'koni bilan bajaring).
 3. demo_kassir bilan kiring. Menyuni ko'ring. `/Distribution/DstOrders`, `/Distribution/DstStock`, `/Distribution/DstSettings` ni oching.
 4. demo_ombor bilan kiring. Menyuni ko'ring. `/Distribution/DstPayments`, `/Distribution/DstSettings`, `/Distribution/DstLandedCosts` ni oching.
 **Kutilgan natija:**
-- demo_agent menyusi: Bosh sahifa, Buyurtmalar, Mijozlar. 1-qadamdagi har uchala manzilda "Sizga ruxsat berilmagan!" sahifasi chiqadi.
-- 2-qadamda Mijozlar ro'yxati ochiladi, lekin "Yangi mijoz", "Mavjud mijozni qo'shish", "Excel import" tugmalari yo'q (faqat ko'rish huquqi).
-- demo_kassir menyusi: Bosh sahifa, To'lovlar, Qarzlar. 3-qadamdagi uchala manzilda "Sizga ruxsat berilmagan!".
-- demo_ombor menyusi: Bosh sahifa, Buyurtmalar, Qoldiqlar, Ko'chirmalarni qabul qilish, Hisobdan chiqarish, Pereso'rtitsa, Qaytarishlar, Reyslar. 4-qadamdagi uchala manzilda "Sizga ruxsat berilmagan!".
+- demo_agent menyusi: Bosh sahifa, Buyurtmalar, Xatolar jurnali, Mijozlar. 1-qadamdagi har uchala manzilda "Sizga ruxsat berilmagan!" sahifasi chiqadi.
+- 2-qadamda Mijozlar ro'yxati ochiladi, lekin "Yangi mijoz", "Mavjud mijozni qo'shish", "Excel import" tugmalari yo'q (faqat ko'rish huquqi). Mijoz kartasi **o'qish rejimida** ochiladi — "Saqlash" tugmasi yo'q (saqlash — Change bilan).
+- demo_kassir menyusi: Bosh sahifa, To'lovlar, Qarzlar, Xatolar jurnali. 3-qadamdagi uchala manzilda "Sizga ruxsat berilmagan!".
+- demo_ombor menyusi: Bosh sahifa, Buyurtmalar, Qoldiqlar, Inventarizatsiya, Ko'chirmalarni qabul qilish, Hisobdan chiqarish, Pereso'rtitsa, Qaytarishlar, Xatolar jurnali, Reyslar. 4-qadamdagi uchala manzilda "Sizga ruxsat berilmagan!".
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-SET-03. Narx turlari, brend va sabablar (Ma'lumotnomalar)
@@ -100,11 +100,11 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 **Qadamlar:**
 1. **Distributsiya → Sozlamalar** ni oching. "Umumiy sozlamalar" kartasida: Minimal buyurtma, so'm = `500000`; Yirik buyurtma, so'm = `10000000`; Tashrif radiusi, m = `10`; Agent naqdi topshiriladigan kassa = `DEMO Kassa`; Telegram bot nomi = test botining nomi (`@` siz); Bot ochiq manzili = bot domeni (masalan `https://bot-test.<domen>`). **Saqlash** ni bosing.
 2. Radiusni `200` qiling, Bot ochiq manzilini `ftp://bot` qiling. **Saqlash**.
-3. Bot ochiq manzilini yana bot domeniga qaytaring. "Kun boshida selfi majburiy" belgisi **qo'yilmagan** bo'lsin. **Saqlash**. Sahifani yangilang.
+3. Bot ochiq manzilini yana bot domeniga qaytaring. "Kun boshida selfi majburiy" belgisi **qo'yilmagan** bo'lsin. "\"Keldim\" — faqat jonli joylashuv" belgisini ko'ring va **qo'ymang**. **Saqlash**. Sahifani yangilang.
 **Kutilgan natija:**
 - 1-qadamda "Son noto'g'ri kiritilgan" xabari chiqadi (radius 20–5000 oralig'ida bo'lishi kerak), hech narsa saqlanmaydi.
 - 2-qadamda "Bot manzili https://... ko'rinishida bo'lsin." xabari chiqadi, hech narsa saqlanmaydi.
-- 3-qadamda "Saqlandi"; yangilangandan keyin barcha qiymatlar saqlangan: 500000, 10000000, 200, DEMO Kassa, bot nomi, bot manzili; selfi belgisi yo'q.
+- 3-qadamda "Saqlandi"; yangilangandan keyin barcha qiymatlar saqlangan: 500000, 10000000, 200, DEMO Kassa, bot nomi, bot manzili; selfi belgisi yo'q. "\"Keldim\" — faqat jonli joylashuv" standart holatda **o'chiq** (izoh: yoqilsa statik joylashuv rad etiladi; o'chiq — qabul qilinadi va tashriflar hisobotida belgilanadi).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-SET-07. Agent to'lovlari (usullar va hisoblar)
@@ -132,16 +132,18 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 - 3-qadamda DEMO-Rahbar 10, DEMO-Agent 5, qolganlar bo'sh.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
-### T-DST-SET-09. Omborlar: savdo ombori, minus, zona
-**Nima tekshiriladi:** "Savdoda" belgilangan omborlardan buyurtma jo'natiladi va avtomatik ombor tanlashda faqat ular qatnashadi; minusga ruxsat berilmaydi (pilot P6).
+### T-DST-SET-09. Omborlar: savdo ombori va brak ombori
+**Nima tekshiriladi:** "Savdoda" belgilangan omborlardan buyurtma jo'natiladi va avtomatik ombor tanlashda faqat ular qatnashadi; "Brak ombori" sozlamasi belgilanadi (brak qaytarish — faqat shu omborga, T-DST-ORD-21) (pilot P6).
 **Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** 00_INTRO tayyorgarlik (6 — uchala DEMO ombor yaratilgan)
 **Qadamlar:**
-1. Sozlamalar → **Omborlar** jadvalida **DEMO Asosiy ombor**: Savdoda ✓, Minusga ruxsat ✗, Yetkazish zonasi = `Toshkent`; qator oxiridagi 💾 tugmasini bosing.
-2. **DEMO Filial ombor**: Savdoda ✓, Minusga ruxsat ✗, zona = `Samarqand`; 💾.
-3. **DEMO Brak ombor**: Savdoda ✗, Minusga ruxsat ✗; 💾.
-4. Sahifani yangilang. **Distributsiya → Buyurtmalar → Yangi buyurtma** formasida "Ombor" tanlovini oching (saqlamang).
+1. Sozlamalar → **Omborlar** jadvalida **DEMO Asosiy ombor**: Savdoda ✓; qator oxiridagi 💾 tugmasini bosing.
+2. **DEMO Filial ombor**: Savdoda ✓; 💾.
+3. **DEMO Brak ombor**: Savdoda ✗; 💾.
+4. "Umumiy sozlamalar" kartasida **Brak ombori** = `DEMO Brak ombor` → **Saqlash**.
+5. Sahifani yangilang. **Distributsiya → Buyurtmalar → Yangi buyurtma** formasida "Ombor" tanlovini oching (saqlamang).
 **Kutilgan natija:**
-- Har saqlashda "Saqlandi". Yangilangandan keyin belgilar saqlangan.
+- Omborlar jadvalida "Minusga ruxsat" va "Yetkazish zonasi" ustunlari **yo'q** (ishlatilmagani uchun olib tashlangan).
+- Har saqlashda "Saqlandi". Yangilangandan keyin belgilar va Brak ombori saqlangan (izoh: "\"Brak\" belgili qaytarish faqat shu omborga kiradi; bu ombor buyurtmalarga taklif qilinmaydi.").
 - Buyurtma formasidagi "Ombor" tanlovida faqat "avtomatik tanlanadi", DEMO Asosiy ombor va DEMO Filial ombor (Brak ombor va boshqa sozlanmagan omborlar yo'q).
 - "Minimal qoldiq" ustunida hozircha 0 (minimal qoldiq T-DST-WH-11 da qo'yiladi).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -150,7 +152,7 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 **Nima tekshiriladi:** Bitta xato qator butun importni to'xtatadi; shtrix-kod nazorat raqami tekshiriladi; to'g'ri faylda tovar, distributsiya kartasi, qo'shimcha birlik va shtrix-kodlar birga yaratiladi (pilot M3, M4).
 **Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-03, 00_INTRO (birliklar, kategoriyalar, sex)
 **Qadamlar:**
-1. Excel import → **5. Tovarlar** → shablonni yuklab oling. Quyidagi 4 qatorni yozing (ustunlar: Artikul | Nomi | Nomi (rus) | Kategoriya | Asosiy birlik | Brend | Ishlab chiqaruvchi | Og'irlik (kg) | Hajm (m3) | Shtrix-kod | Birlik 2 | Koeffitsient 2 | Shtrix-kod 2):
+1. Excel import → **5. Tovarlar** → shablonni yuklab oling. "Namuna" varag'idagi misol shtrix-kodni ko'ring (6. Tovar birliklari shablonida ham). Quyidagi 4 qatorni yozing (ustunlar: Artikul | Nomi | Nomi (rus) | Kategoriya | Asosiy birlik | Brend | Ishlab chiqaruvchi | Og'irlik (kg) | Hajm (m3) | Shtrix-kod | Birlik 2 | Koeffitsient 2 | Shtrix-kod 2):
    - `DEMO-SEM-400` | `Sement M400` | `Цемент М400` | `DEMO Qurilish aralashmalari` | `qop` | `DEMO Qizilqum` | | `50` | `0.035` | `4780000000015` | `poddon` | `40` | `4780000000021`
    - `DEMO-KAF-3030` | `Kafel 30×30` | `Плитка 30×30` | `DEMO Kafel` | `m²` | | | `17` | `0.01` | `4780000000038` | | |
    - `DEMO-GIP-125` | `Gipsokarton 12,5 mm` | `Гипсокартон 12,5 мм` | `DEMO Qurilish aralashmalari` | `list` | | | `25` | `0.0375` | `4780000000052` | | |
@@ -159,6 +161,7 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 3. Birinchi qatordagi shtrix-kodni `4780000000014` ga tuzating. Yana yuklang.
 4. **Import qilish** ni bosing. **Distributsiya → Tovarlar** da `DEMO` bo'yicha qidiring, so'ng qidiruvga `4780000000021` yozing.
 **Kutilgan natija:**
+- 1-qadamda "Namuna" varag'idagi shtrix-kodlar to'g'ri EAN-13: `4780000000014` (Tovarlar), `4780000000021` (Tovar birliklari).
 - 2-qadamda "1 ta xato — hech narsa yozilmadi." Xato: 2-qator, "Shtrix-kod nazorat raqami noto'g'ri (EAN/UPC)." Tovarlar ro'yxatida DEMO tovar yo'q.
 - 3-qadamda "Xato yo'q … yangi — 4, yangilandi — 0", ko'rib chiqish jadvalida 4 ta "Yangi" qator.
 - 4-qadamdan keyin ro'yxatda 4 ta DEMO tovar: Sement M400 (birliklar: qop, poddon; shtrix-kodlar 2), Kafel 30×30 (m²; 1), Gipsokarton 12,5 mm (list; 1), Kafel 30×30 (2-nav) (m²; 1). Holat "Sotuvda". Brend DEMO Qizilqum — Sementda.
@@ -268,13 +271,13 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 **Nima tekshiriladi:** Ombor scope'i to'ldirilsa foydalanuvchi faqat tanlangan omborlarni ko'radi; bo'sh scope — cheklovsiz (pilot N3).
 **Kim:** demo_rahbar, demo_ombor   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-15
 **Qadamlar:**
-1. Admin panel → Foydalanuvchilar ro'yxatida demo_ombor ning ID raqamini toping (tahrirlash havolasidagi oxirgi raqam). Manzil satrida `/Distribution/DstTeams/Scopes/<ID>` ni oching (omborchi agent bo'lmagani uchun Jamoalar sahifasida 🔒 tugmasi yo'q).
+1. **Distributsiya → Agentlar va jamoalar** → **Xodimning ko'rinish doirasi** kartasida xodim = `demo_ombor` ni tanlang va ochish tugmasini bosing (agent bo'lmagan xodimlar — omborchi, kassir, rahbar uchun; sahifa `/Distribution/DstTeams/Scopes/<ID>`).
 2. **Omborlar** ro'yxatida DEMO Asosiy ombor va DEMO Filial ombor ni belgilang. **Saqlash**.
 3. demo_ombor bilan kiring: **Qoldiqlar** sahifasidagi Ombor tanlovini, **Hisobdan chiqarish → Yangi hisobdan chiqarish** dagi Ombor tanlovini oching (saqlamang).
 **Kutilgan natija:**
+- 1-qadamda demo_ombor ning ko'rinish doirasi sahifasi ochiladi (Omborlar, Hududlar, Mijozlar bloklari).
 - 2-qadamda "Saqlandi".
 - 3-qadamda Hisobdan chiqarish formasida faqat DEMO Asosiy ombor va DEMO Filial ombor (DEMO Brak ombor yo'q).
-- Izohga yozing: omborchi uchun scope sahifasiga UI'da havola yo'q (faqat URL orqali) — K3.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-SET-18. Mijozni web'da yaratish (DEMO Anvar do'koni)
@@ -342,31 +345,31 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-SET-22. Mijozning maxsus narxi
-**Nima tekshiriladi:** Maxsus narx narx turidan ustun turadi; to'xtatilgandan keyin narx turi narxi qaytadi; kuchga kirgan narx to'xtatilganda tarixda qoladi, hali kuchga kirmagani (bugun boshlangan) o'chiriladi (pilot B2).
+**Nima tekshiriladi:** Maxsus narx narx turidan ustun turadi; to'xtatilgandan keyin narx turi narxi qaytadi; kecha yoki undan oldin boshlangan narx to'xtatilganda kechagi sana bilan yopilib tarixda qoladi, bugun boshlangani o'chiriladi (audit jurnalida qoladi); minimal narx maxsus narxga ham qo'llanadi (pilot B2).
 **Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-13, T-DST-SET-18
 **Qadamlar:**
-1. Mijozlar → DEMO Anvar do'koni kartasi → **Maxsus narxlar** ni oching. Tovar = DEMO-GIP-125, Narx = `64000`, Boshlanish = **kecha**, Tugash = bo'sh. Saqlang.
+1. Mijozlar → DEMO Anvar do'koni kartasi → **Maxsus narxlar** ni oching. Sahifadagi izohni o'qing. Tovar = DEMO-GIP-125, Narx = `64000`, Boshlanish = **kecha**, Tugash = bo'sh. Saqlang.
 2. Yana bitta narx: Tovar = DEMO-KAF-3030, Narx = `90000`, Boshlanish = **bugun**. Saqlang.
 3. **Buyurtmalar → Yangi buyurtma**: Mijoz = DEMO Anvar do'koni, tovar qo'shish — `GIP`, so'ng `KAF-3030` (birlik m²). Narx ustunini ko'ring. **Saqlamang** (Orqaga).
 4. Maxsus narxlar sahifasida ikkala qatorda **To'xtatish** ni bosing.
 5. 3-qadamni takrorlang.
 **Kutilgan natija:**
+- 1-qadamdagi izoh: "Maxsus narx narx turidan ustun turadi; minimal narx unga ham qo'llanadi (ozod — faqat cheksiz chegirma huquqi bilan). Kecha yoki undan oldin boshlangan narx to'xtatilsa tarixda qoladi; bugun yoki keyin boshlangani o'chiriladi (audit jurnalida qoladi)."
 - 3-qadamda Gipsokarton narxi **64 000**, Kafel **90 000** (maxsus narxlar).
 - 4-qadamdan keyin Gipsokarton qatori ro'yxatda qoladi, Tugash = kecha (tarix saqlangan); Kafel qatori (bugun boshlangan) ro'yxatdan **o'chadi**.
 - 5-qadamda narxlar **68 000** va **95 000** (Chakana).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-SET-23. Supervayzer ko'rinishi
-**Nima tekshiriladi:** Supervayzer faqat o'z jamoasi agentlari va ularning mijozlarini ko'radi; agentsiz mijoz unga ko'rinmaydi (pilot N3).
+**Nima tekshiriladi:** Supervayzer o'z jamoasi agentlarining mijozlarini va agent biriktirilmagan mijozlarni (ularni agentlarga biriktirish uchun) ko'radi; boshqa jamoa agentining mijozi ko'rinmaydi (pilot N3).
 **Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-20
 **Qadamlar:**
 1. Agentlar va jamoalar → DEMO Toshkent jamoasi ni tahrirlang: Supervayzer = DEMO Rahbar. Saqlang.
 2. **Mijozlar** ro'yxatida `DEMO` bo'yicha qidiring.
 3. Jamoani qayta tahrirlab Supervayzer = bo'sh qiling. Mijozlar ro'yxatini yangilang.
 **Kutilgan natija:**
-- 2-qadamda faqat **DEMO Anvar do'koni** (agent Jasur — jamoa a'zosi). DEMO Bunyodkor qurilish (agentsiz) ko'rinmaydi.
+- 2-qadamda **DEMO Anvar do'koni** (agent Jasur — jamoa a'zosi) va **DEMO Bunyodkor qurilish** (agent biriktirilmagan) ko'rinadi. Bazada boshqa jamoa agentining mijozlari bo'lsa — ular ko'rinmaydi.
 - 3-qadamdan keyin ikkala mijoz ko'rinadi (ofis xodimi — cheklovsiz).
-- Izohga yozing: supervayzer agentsiz mijozlarni umuman ko'rmaydi — bu kutilgan qoidami, biznes bilan aniqlashtiring.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-SET-24. Xodimlar va mijozni Telegram'ga ulash
@@ -383,7 +386,7 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
   - Rahbar: 📊 Bugungi yakun, 📦 Ombor, ⚠️ Muammo.
   - Omborchi: 📦 Ombor, ⚠️ Muammo + "📦 Ombor — inventarizatsiya va buyurtma yig'ish (skaner bilan)."
   - Agent: ▶️ Kunni boshlash, 🗺 Marshrut, 🔎 Mijoz, ➕ Yangi nuqta, 💵 Kassa, 📡 Jonli joylashuv, 🏁 Kunni yakunlash, ⚠️ Muammo.
-  - Ekspeditor: 🚚 Reys, 💵 Kassa, 📡 Jonli joylashuv, ⚠️ Muammo, 🏁 Reysni yopish.
+  - Ekspeditor: 🚚 Reys, 💵 Kassa, 📡 Jonli joylashuv, ⚠️ Muammo, 🏁 Reysni yakunlash.
   - Mijoz: 💳 Qarzim, 📄 Akt sverki + "Buyurtmalaringiz holati va to'lovlar haqida xabarlar shu yerga keladi…".
 - Bot tili — ERP profilidagi til (o'zbekcha).
 - Kodlarning chekka holatlari (eskirgan, takror ishlatilgan, qayta ulash) — T-DST-BOT-01 da.
@@ -403,8 +406,7 @@ Kutilgan xabarlar: saqlash muvaffaqiyatli bo'lsa o'ng yuqorida "Saqlandi" chiqad
 ---
 
 ## Ma'lum cheklovlar va kuzatish kerak bo'lgan joylar
-- "Inventarizatsiya" va "Xatolar jurnali" chap menyuda yo'q — faqat Bosh sahifa plitasi orqali (T-DST-SET-01).
-- Agent bo'lmagan xodim (omborchi) uchun ko'rinish doirasi sahifasiga UI havolasi yo'q — `/Distribution/DstTeams/Scopes/<ID>` (T-DST-SET-17).
-- Supervayzer agentsiz mijozlarni ko'rmaydi (T-DST-SET-23) — agentsiz mijozlar bilan ishlaydigan xodim supervayzer qilinmasin.
-- Import shablonlarining "Namuna" varag'idagi misol shtrix-kodlar (`4780000000017`, `4780000000024`) EAN-13 nazorat raqamidan o'tmaydi — misolni nusxa olgan foydalanuvchi xato oladi. Haqiqiy kodlar bilan ishlang.
+- Maxsus huquqlar (`DstSeeCost`, `DstOverrideCredit`, `DstDiscountUnlimited`, `DstWriteOffApprove`) Rollar → Huquqlar sahifasida **Change** ustuni bilan beriladi; View yetmaydi. Yangilangan bazada migratsiya 027 avval View belgilangan qatorlarga Change ham qo'ygan — admin bu to'rt qatorni ko'rib chiqsin.
+- Import "Namuna" varag'idagi misol shtrix-kodlar (`4780000000014`, `4780000000021`) DEMO Sement kodlari bilan bir xil — misol qatorni nusxa olib import qilmang (T-DST-SET-10 da "boshqa tovarga biriktirilgan" xatosi chiqadi).
+- Standart narx turi yangi bazada "Ulgurji" — ataylab (ulgurji distributor uchun fallback); Ma'lumotnomalar → Narx turlarida o'zgartiriladi (T-DST-SET-03).
 - Tovarning o'zi (artikul, asosiy birlik, kategoriya) ERP'ning Mahsulot modulida; distributsiya importi mavjud tovarning asosiy birligini o'zgartirmaydi ("Mavjud tovarning asosiy birligini import orqali o'zgartirib bo'lmaydi.").

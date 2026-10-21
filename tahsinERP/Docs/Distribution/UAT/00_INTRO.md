@@ -10,11 +10,11 @@ Bog'liq hujjatlar: `../01_PHASE1_MVP.md` (10–17-bo'limlar), `../03_PILOT.md` (
 
 - Har bir testdagi qadamlarni ketma-ket bajaring va "Kutilgan natija" bilan solishtiring.
 - Natija mos kelsa "☐ O'tdi", mos kelmasa "☐ O'tmadi" ni belgilang. Izohga nima ko'rganingizni yozing: raqam, xato matni, sahifa yoki bot xabari.
-- Xato topilsa, skrinshot oling (bot xabari bo'lsa — Telegram skrinshoti) va test kodini yozing (masalan `T-DST-ORD-13`). Xatoni **Distributsiya → Bosh sahifa → Xatolar jurnali** ga yoki botdagi **⚠️ Muammo** tugmasi bilan kiriting va darajasini qo'ying (pastdagi K1/K2/K3 shkalasi).
+- Xato topilsa, skrinshot oling (bot xabari bo'lsa — Telegram skrinshoti) va test kodini yozing (masalan `T-DST-ORD-13`). Xatoni **Distributsiya → Xatolar jurnali** ga yoki botdagi **⚠️ Muammo** tugmasi bilan kiriting va darajasini qo'ying (pastdagi K1/K2/K3 shkalasi).
 - "Oldin bajarilgan bo'lishi kerak" qatoridagi test hali o'tmagan bo'lsa, avval o'shani bajaring.
 - Kutilgan natijadagi raqam mos kelmasa, keyingi testga o'tishdan oldin sababini aniqlang: keyingi raqamlar shu testdan keyingi holatga tayanadi.
 - Hujjat raqamlari tizim tomonidan beriladi: buyurtma `D-2026-NNNNN`, jo'natish `DJ-…`, to'lov `DP-…`, kassaga topshirish `DK-…`, qaytarish `DQ-…`, hisobdan chiqarish `DW-…`, pereso'rtitsa `DR-…`, ko'chirma dalolatnomasi `DT-…`, inventarizatsiya `DI-…`, reys `R-2026-NNNNN`, xato `P-001`. Matnda "NNNNN" deb yozilgan joyga keyingi bo'sh tartib raqami chiqadi — uni Izohga yozib qo'ying, keyingi testlarda kerak bo'ladi.
-- Test bazasi ishchi bazaning nusxasi bo'lsa, unda boshqa mijoz, tovar va omborlar ham bor. Ro'yxat va hisobotlarda `DEMO` bo'yicha qidiring yoki filtrlang; jami raqamlar faqat DEMO qatorlari uchun berilgan. Inventarizatsiya varag'iga bazadagi barcha sotuvdagi distributsiya tovarlari tushadi — DEMO bo'lmaganlariga "Tizimda" ustunidagi qiymatni yozing (farq bermasin).
+- Test bazasi ishchi bazaning nusxasi bo'lsa, unda boshqa mijoz, tovar va omborlar ham bor. Ro'yxat va hisobotlarda `DEMO` bo'yicha qidiring yoki filtrlang; jami raqamlar faqat DEMO qatorlari uchun berilgan. Inventarizatsiya varag'iga bazadagi barcha sotuvdagi distributsiya tovarlari tushadi — DEMO bo'lmaganlariga **Qoldiqlar** sahifasidagi haqiqiy qoldiqni yozing (farq bermasin; sanoq davomida "Tizimda" ustuni ko'rinmaydi — "ko'r" sanoq).
 - Sanalar: "bugun" — testni bajarayotgan kun. Muddatli hisoblar (qarz muddati, aging) bugungi sanaga nisbatan yozilgan. Agar UAT bir necha kunga cho'zilsa, muddatlar shunga mos siljiydi — buni Izohda ko'rsating.
 
 ## Muhit (bir marta)
@@ -23,7 +23,7 @@ Bog'liq hujjatlar: `../01_PHASE1_MVP.md` (10–17-bo'limlar), `../03_PILOT.md` (
 
 | # | Talab | Izoh |
 |---|---|---|
-| 1 | **Test serveri** yoki lokal SQL Server'da ishchi bazaning **nusxasi** | Migratsiyalar 013–026 (DST) qo'llangan bo'lsin (`Database/Migrations/0xx_DST_*.sql`), ruxsat modullari `Seed/105` da |
+| 1 | **Test serveri** yoki lokal SQL Server'da ishchi bazaning **nusxasi** | Migratsiyalar 013–027 (DST) qo'llangan bo'lsin (`Database/Migrations/0xx_DST_*.sql`), ruxsat modullari `Seed/105` da |
 | 2 | **Amaldagi kompaniya litsenziyasi** (Edition KORP yoki TRIAL — Distribution moduli ichida) | Litsenziyasiz web sahifalar License sahifasiga yo'naltiradi, bot API 403 qaytaradi va bot "⛔ Tizim litsenziyasi faol emas" deydi |
 | 3 | ERP **HTTPS** orqali ochiladi (masalan `https://erp-test.<domen>`) | Bot ERP'ga shu manzil orqali murojaat qiladi |
 | 4 | `tahsinERP.Bot` servisi alohida **HTTPS domenda** (masalan `https://bot-test.<domen>`), `Bot__PublicBaseUrl` shu manzil | Telegram webhook va Mini App faqat HTTPS bilan ishlaydi |
@@ -46,13 +46,15 @@ Bog'liq hujjatlar: `../01_PHASE1_MVP.md` (10–17-bo'limlar), `../03_PILOT.md` (
    - Moliya hisoblari (**Moliya → Boshqaruv → Hisoblar**): `DEMO Kassa` (naqd, UZS, boshlang'ich qoldiq 0) va `DEMO Bank hisobi` (bank, UZS, qoldiq 0).
 4. **Rollar** (**Admin panel → Rollar → Yangi rol**, keyin **Huquqlar**: sahifa hajmi "Barchasi", avval "Barchasini bekor qilish", so'ng quyidagilarni belgilash):
 
-| Rol | View + Change | Faqat View | Maxsus (View) |
+| Rol | View + Change | Faqat View | Maxsus (View + **Change**) |
 |---|---|---|---|
-| `DEMO-Rahbar` | barcha `Dst*` modullari: DstHome, DstDashboard, DstReports, DstOrders, DstStock, DstTransfers, DstWriteOffs, DstRegrades, DstLandedCosts, DstReorder, DstPromotions, DstPayments, DstDebts, DstReturns, DstField, DstRoutes, DstTrips, DstVehicles, DstKpi, DstCustomers, DstProducts, DstPrices, DstTerritories, DstTeams, DstDictionaries, DstSettings, DstImport, DstInventory, DstIssues | SRM `POrder` (xarid buyurtmalarini ko'rish), Moliya tranzaksiyalari va hisoblar | `DstSeeCost`, `DstOverrideCredit`, `DstWriteOffApprove` (**`DstDiscountUnlimited` berilmaydi**) |
+| `DEMO-Rahbar` | barcha `Dst*` modullari: DstHome, DstDashboard, DstReports, DstOrders, DstStock, DstTransfers, DstWriteOffs, DstRegrades, DstLandedCosts, DstReorder, DstPromotions, DstPayments, DstDebts, DstReturns, DstField, DstRoutes, DstTrips, DstVehicles, DstKpi, DstCustomers, DstProducts, DstPrices, DstTerritories, DstTeams, DstDictionaries, DstSettings, DstImport, DstInventory, DstIssues, DstAudit (audit jurnali — faqat o'qish) | SRM `POrder` (xarid buyurtmalarini ko'rish), Moliya tranzaksiyalari va hisoblar | `DstSeeCost`, `DstOverrideCredit`, `DstWriteOffApprove` (**`DstDiscountUnlimited` berilmaydi**) |
 | `DEMO-Agent` | — | DstHome, DstCustomers, DstOrders, DstIssues | — |
 | `DEMO-Ekspeditor` | — | DstHome, DstIssues | — |
 | `DEMO-Omborchi` | DstOrders, DstInventory, DstTransfers, DstWriteOffs, DstRegrades, DstTrips; ERP ombor: `Incomes`, `Expenses` (kirim/chiqim/o'tkazma) | DstHome, DstStock, DstReturns, DstIssues | — (tannarx ko'rmaydi) |
 | `DEMO-Kassir` | DstPayments | DstHome, DstDebts, DstIssues, Moliya tranzaksiyalari | — |
+
+   Maxsus huquqlar (`DstSeeCost`, `DstOverrideCredit`, `DstDiscountUnlimited`, `DstWriteOffApprove`) **Change** ustuni bilan beriladi — faqat View belgilansa huquq ishlamaydi. Yangi rolga hamma modulda View avtomatik berilsa ham maxsus huquq berilmaydi.
 
 5. **Foydalanuvchilar** (**Admin panel → Foydalanuvchilar → Yangi**). Parolni o'zingiz tanlang va faqat o'zingiz biling. Profil tili — o'zbekcha.
 
@@ -145,10 +147,10 @@ DEMO Anvar do'koni qarzi: ORD oxirida 15 926 400 → BOT oxirida 19 160 000 → 
 |---|---|---|
 | T-DST-SET | Sozlash: sozlamalar, hududlar, narxlar, tovarlar, jamoalar, mijozlar, import, ruxsatlar, botga ulash | `01_SOZLASH.md` |
 | T-DST-ORD | Buyurtma: yaratish, chegirma va narx qoidalari, kredit, rezerv, yig'ish, jo'natish, qaytarish, aksiyalar | `02_BUYURTMA.md` |
-| T-DST-PAY | To'lovlar, kassaga topshirish, qarz muddatlari, akt sverki, avans | `03_PUL_OMBOR.md` |
-| T-DST-WH | Ombor: qoldiqlar, inventarizatsiya, ko'chirma, hisobdan chiqarish, pereso'rtitsa, landed cost, minimal qoldiq, buyurtma taklifi | `03_PUL_OMBOR.md` |
+| T-DST-PAY | To'lovlar, kassaga topshirish va uni bekor qilish, qarz muddatlari, akt sverki, avans, buyurtmani qayta ochish, kirish qoldig'ini bekor qilish | `03_PUL_OMBOR.md` |
+| T-DST-WH | Ombor: qoldiqlar, inventarizatsiya, ko'chirma (bo'lish, dalolatnomani bekor qilish), hisobdan chiqarish (foto), pereso'rtitsa, landed cost, minimal qoldiq, buyurtma taklifi, ERP chiqimida rezerv himoyasi | `03_PUL_OMBOR.md` |
 | T-DST-BOT | Telegram bot va Mini App: agent, rahbar, omborchi, mijoz, ekspeditor | `04_TELEGRAM.md` |
-| T-DST-DLV | Yetkazish: mashinalar, reyslar, xarita, yopish va dalolatnoma, KPI, tashrif rejasi | `05_YETKAZISH_HISOBOT.md` |
+| T-DST-DLV | Yetkazish: mashinalar, reyslar, xarita, yakunlash/yopish va dalolatnoma, qayta yetkazish, KPI, tashrif rejasi | `05_YETKAZISH_HISOBOT.md` |
 | T-DST-REP | Rahbar paneli, hisobotlar, dala nazorati, xatolar jurnali, audit, tannarx ko'rinishi | `05_YETKAZISH_HISOBOT.md` |
 | T-DST-E2E | Uchidan-uchiga ish kuni va yakuniy nazorat | `05_YETKAZISH_HISOBOT.md` |
 
@@ -161,14 +163,14 @@ Bot agent bloki pul/ombor blokidan **oldin** bajariladi (agent naqdi botda yig'i
 | 1 | Sozlash va botga ulash | T-DST-SET-01 … 25 | 2,5–3 soat |
 | 2 | Buyurtmalar | T-DST-ORD-01 … 27 | 3–4 soat |
 | 3 | Bot: agent, rahbar, omborchi, mijoz | T-DST-BOT-01 … 25 | 3 soat |
-| 4 | Pul va ombor | T-DST-PAY-01 … 08, T-DST-WH-01 … 12 | 3–3,5 soat |
+| 4 | Pul va ombor | T-DST-PAY-01 … 11, T-DST-WH-01 … 13 | 3,5–4 soat |
 | 5 | Mashina va reyslarni rejalash | T-DST-DLV-01 … 06 | 1,5 soat |
 | 6 | Bot: ekspeditor (1-reys) | T-DST-BOT-26 … 32 | 1 soat |
-| 7 | Reyslarni yopish, 2-reys, KPI, tashrif rejasi | T-DST-DLV-07 … 11, T-DST-BOT-33 … 34 | 1,5–2 soat |
+| 7 | Reyslarni yakunlash va yopish, 2-reys, KPI, tashrif rejasi, qayta yetkazish | T-DST-DLV-07 … 12, T-DST-BOT-33 … 34 | 2 soat |
 | 8 | Hisobotlar va nazorat | T-DST-REP-01 … 11 | 1,5 soat |
 | 9 | Uchidan-uchiga kun va yakuniy nazorat | T-DST-E2E-01 … 02 | 1,5–2 soat |
 
-Jami: taxminan 18–21 soat (2,5–3 ish kuni, 2 kishi: biri web'da, biri telefonlarda).
+Jami: 135 test, taxminan 19–22 soat (2,5–3 ish kuni, 2 kishi: biri web'da, biri telefonlarda).
 
 ## Xato darajalari (`../03_PILOT.md`, 7-bo'lim)
 

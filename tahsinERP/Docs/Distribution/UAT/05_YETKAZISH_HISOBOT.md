@@ -1,10 +1,10 @@
 # 5. Yetkazish, hisobotlar va uchidan-uchiga kun
 
-Bu bo'lim 2-bosqich yetkazishni (mashinalar, reys rejalash va sig'im, xarita va tartiblash, reysni yopish va farq dalolatnomasi, reys xarajatlari, agent/ekspeditor KPI, tashrif rejasi), rahbar paneli va hisobotlarni (savdo kesimlari, drill-down, Excel, tashriflar, agentlar puli, dala nazorati, xatolar jurnali, audit, tannarx ko'rinishi) va oxirida **uchidan-uchiga ish kuni** ni tekshiradi. Oxirida barcha testlar uchun **Yakuniy natijalar** jadvali.
+Bu bo'lim 2-bosqich yetkazishni (mashinalar, reys rejalash va sig'im, xarita va tartiblash, reysni yakunlash/yopish va farq dalolatnomasi, qayta yetkazish, reys xarajatlari, agent/ekspeditor KPI, tashrif rejasi), rahbar paneli va hisobotlarni (savdo kesimlari, drill-down, Excel, tashriflar, agentlar puli, dala nazorati, xatolar jurnali, audit, tannarx ko'rinishi) va oxirida **uchidan-uchiga ish kuni** ni tekshiradi. Oxirida barcha testlar uchun **Yakuniy natijalar** jadvali.
 
 Bajarish tartibi (00_INTRO):
 1. T-DST-DLV-01 … 06 (PAY/WH blokidan keyin) → 04_TELEGRAM: T-DST-BOT-26 … 32;
-2. T-DST-DLV-07, T-DST-DLV-08 → T-DST-BOT-33 → T-DST-DLV-09 → T-DST-BOT-34 → T-DST-DLV-10, 11;
+2. T-DST-DLV-07, T-DST-DLV-08 → T-DST-BOT-33 → T-DST-DLV-09 → T-DST-BOT-34 → T-DST-DLV-10, 11, 12;
 3. T-DST-REP-01 … 11;
 4. T-DST-E2E-01, 02.
 
@@ -111,35 +111,37 @@ Boshlang'ich holat (PAY/WH blokidan keyin): DEMO Asosiy ombor S 758/10/748, K 40
 - DEMO Kassa qoldig'i 7 536 400 − 150 000 = **7 386 400**.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
-### T-DST-DLV-08. 1-reysni yopish: omborga qaytgan miqdor, kamomad, farq dalolatnomasi
-**Nima tekshiriladi:** Yetkazilmagan tovar: qaytgani — qaytarish hujjati (ombor kirimi FIFO tannarxda, qarz kamayadi), qaytmagani — kamomad (mijozga tuzatish krediti, tannarxi reysda); rahbarga yakun xabari; dalolatnoma chop etiladi.
-**Kim:** demo_ombor (qabul qiluvchi omborchi), demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-30, T-DST-BOT-31, T-DST-DLV-07
+### T-DST-DLV-08. 1-reys: botda yakunlash, ofisda yopish — omborga qaytgan miqdor, kamomad, farq dalolatnomasi
+**Nima tekshiriladi:** Ekspeditor reysni botda yakunlaydi (reys "Yo'lda" qoladi, rahbar va omborchiga "omborda sanab, yoping" xabari); omborchi qaytgan tovarni sanab reysni yopadi. Yetkazilmagan tovar: qaytgani — qaytarish hujjati (ombor kirimi FIFO tannarxda, qarz kamayadi), qaytmagani — kamomad (mijozga tuzatish krediti, tannarxi reysda); rahbarga yakun xabari; dalolatnoma chop etiladi.
+**Kim:** ekspeditor telefoni, demo_ombor (qabul qiluvchi omborchi), demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-30, T-DST-BOT-31, T-DST-DLV-07
 **Qadamlar:**
-1. demo_ombor: 1-reys kartasi → "Reysni yopish" bloki. Sement qatorida "Omborga qaytdi" = `11` → **Reysni yopish**.
-2. "Omborga qaytdi" = `9`, Izoh = `DEMO: 1 qop yo'lda yorildi` → **Reysni yopish** → tasdiqlang.
-3. **Farq dalolatnomasi** ni oching va chop eting.
-4. demo_rahbar: **Qaytarishlar**, **Qoldiqlar**, **Qarzlar**, Anvar akt sverki, rahbar boti.
+1. Ekspeditor: **🚚 Reys** → **🏁 Reysni yakunlash** → **✅ Tasdiqlash**. Rahbar va omborchi botlarini, web'da 1-reys kartasini ko'ring.
+2. demo_ombor: 1-reys kartasi → "Reysni yopish" bloki. Sement qatorida "Omborga qaytdi" = `11` → **Reysni yopish**.
+3. "Omborga qaytdi" = `9`, Izoh = `DEMO: 1 qop yo'lda yorildi` → **Reysni yopish** → tasdiqlang.
+4. **Farq dalolatnomasi** ni oching va chop eting.
+5. demo_rahbar: **Qaytarishlar**, **Qoldiqlar**, **Qarzlar**, Anvar akt sverki, rahbar boti.
 **Kutilgan natija:**
-- 1-qadam: blokda: Sement — Jo'natilgan 80, Yetkazildi 70, Yetkazilmagan 10, "Omborga qaytdi" (standart 10). 11 kiritilganda "Qaytgan miqdor yetkazilmagandan (10) ko'p bo'lmasin."
-- 2-qadam: reys **Yopildi**. Yangi qaytarish DQ — DEMO Anvar do'koni, 9 qop × 62 000 = **558 000**, sabab "Mijoz rad etdi". Kamomad 1 qop: mijozga tuzatish krediti **62 000**, reysning "Kamomad tannarxi" **40 000**.
-- 3-qadam: dalolatnomada manzillar (Anvar — Qisman, 4 613 600; Bunyodkor — Yetkazildi, 1 812 500), Sement: Yetkazilmagan 10, Omborga qaytgan (qaytarish hujjati) 9, reys kamomadi 1; Kamomad tannarxi 40 000; Reys xarajatlari 150 000.
-- 4-qadam: Qoldiq S **757**. Anvar qarzi 13 613 600 − 4 000 000 − 558 000 − 62 000 = **8 993 600**; akt sverkida "Qaytarish 558 000" va "Tuzatish 62 000" (izoh "R-…: reys kamomadi"). M1 bo'yicha qarz = 5 233 600 − 558 000 − 62 000 = 4 613 600 = yetkazilgan summa.
+- 1-qadam: botda "🏁 Reys R-… yakunlandi. / Yetkazildi: 1, qisman: 1, rad: 0 / Yetkazilgan: 6 426 100 so'm, omborga topshiriladi: 620 000 so'm / Reysda yig'ilgan: 4 000 000 so'm, qo'lingizda: 4 000 000 so'm / Ombor tovarni sanab, reysni ofis yopadi." (10 qop × 62 000 = 620 000). Rahbar va omborchiga: "🏁 Reys R-… yakunlandi (DEMO Sherzod). Qaytadigan tovar: 620 000 so'm — omborda sanab, Reyslar sahifasida yoping (qaytgan miqdor va kamomad)." Web'da reys hali **Yo'lda**, qaytarish hujjati yo'q; Dala nazoratida Sherzodning ish kuni yopilgan.
+- 2-qadam: blokda: Sement — Jo'natilgan 80, Yetkazildi 70, Yetkazilmagan 10, "Omborga qaytdi" (standart 10). 11 kiritilganda "Qaytgan miqdor yetkazilmagandan (10) ko'p bo'lmasin."
+- 3-qadam: reys **Yopildi**. Yangi qaytarish DQ — DEMO Anvar do'koni, 9 qop × 62 000 = **558 000**, sabab "Mijoz rad etdi". Kamomad 1 qop: mijozga tuzatish krediti **62 000**, reysning "Kamomad tannarxi" **40 000**.
+- 4-qadam: dalolatnomada manzillar (Anvar — Qisman, 4 613 600; Bunyodkor — Yetkazildi, 1 812 500), Sement: Yetkazilmagan 10, Omborga qaytgan (qaytarish hujjati) 9, reys kamomadi 1; Kamomad tannarxi 40 000; Reys xarajatlari 150 000.
+- 5-qadam: Qoldiq S **757**. Anvar qarzi 13 613 600 − 4 000 000 − 558 000 − 62 000 = **8 993 600**; akt sverkida "Qaytarish 558 000" va "Tuzatish 62 000" (izoh "R-…: reys kamomadi"). M1 bo'yicha qarz = 5 233 600 − 558 000 − 62 000 = 4 613 600 = yetkazilgan summa.
 - Rahbarga: "🏁 Reys R-… yopildi: yetkazildi 2/2, 6 426 100 so'm; omborga qaytdi 558 000 so'm, kamomad 62 000 so'm; xarajat 150 000 so'm." (1 812 500 + 4 613 600 = 6 426 100).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 > Endi T-DST-BOT-33 (ekspeditor naqdini topshirish va kassir qabuli) ni bajaring.
 
 ### T-DST-DLV-09. 2-reys: web'dan yo'lga chiqarish, ofis natijasi va uni bekor qilish
-**Nima tekshiriladi:** Reys ofisdan boshlanadi (mijozga bitta umumlashgan xabar); ofis natija kiritadi (rasm/imzo talab qilinmaydi), qisman/radda sabab majburiy; natija reys yopilguncha bekor qilinadi.
+**Nima tekshiriladi:** Reys ofisdan boshlanadi (mijozga bitta umumlashgan xabar); reysdagi buyurtmani kartadan qo'lda "Yetkazildi" qilib bo'lmaydi; ofis natija kiritadi (rasm/imzo talab qilinmaydi), qisman/radda sabab majburiy; natija reys yopilguncha bekor qilinadi.
 **Kim:** demo_rahbar, mijoz telefoni   **Oldin bajarilgan bo'lishi kerak:** T-DST-DLV-08, T-DST-BOT-33
 **Qadamlar:**
 1. **Yangi reys**: 01 A 123 AA, DEMO Sherzod, DEMO Asosiy ombor; F va P1 jo'natishlari. **Saqlash**.
-2. **Yo'lga chiqarish** ni bosing.
+2. **Yo'lga chiqarish** ni bosing. So'ng F buyurtmasi kartasida **Yetkazildi** ni bosing.
 3. P1 manzilida natija kiritish: "Qisman" — sababsiz saqlashga urining; so'ng "Rad etildi", Sabab = `Noto'g'ri tovar` → **Saqlash**.
 4. P1 qatorida **Natijani bekor qilish** (↺).
 **Kutilgan natija:**
 - 1-qadam: og'irlik **3600 kg** (2 500 + 1 100, 72%), summa **8 040 000**, 2-reys `R-…` Rejalandi.
-- 2-qadam: "Yo'lda"; Anvarga bitta xabar: "🚚 Buyurtmangiz yo'lga chiqdi: D-… , D-… (8 040 000 so'm). Ekspeditor: DEMO Sherzod, +998904444444 Mashina: 01 A 123 AA".
+- 2-qadam: "Yo'lda"; Anvarga bitta xabar: "🚚 Buyurtmangiz yo'lga chiqdi: D-… , D-… (8 040 000 so'm). Ekspeditor: DEMO Sherzod, +998904444444 Mashina: 01 A 123 AA". F kartasida "Yetkazildi": "Buyurtma reysda (R-…) — yetkazish natijasi reys orqali kiritiladi (ekspeditor botda yoki Reyslar sahifasida)." F holati o'zgarmaydi. (Reys bekor qilinsa — qo'lda mumkin.)
 - 3-qadam: "Qisman yetkazish yoki rad uchun sababni tanlang."; "Rad etildi" rasmsiz saqlanadi (ofis — "Ofisdan kiritilganda rasm/imzo talab qilinmaydi"). Anvarga "🚫 Buyurtma D-… qabul qilinmadi. Sabab: Noto'g'ri tovar."
 - 4-qadam: P1 yana "Kutmoqda". (Endi T-DST-BOT-34 ni bajaring.)
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -175,6 +177,21 @@ Boshlang'ich holat (PAY/WH blokidan keyin): DEMO Asosiy ombor S 758/10/748, K 40
 - 3-qadam: "🗺 Bugungi marshrut: 2 ta mijoz, …" — tartib: DEMO Yangi nuqta, so'ng DEMO Anvar do'koni.
 - 4-qadam: reja yana faqat Anvar; botda 1 ta (bugun tashrif buyurilganlar ro'yxat oxirida qoladi).
 - 5-qadam: Rejada / Borildi / Rejadan tashqari / Borilmagan ustunlari; xaritada ko'k — kutilmoqda, yashil — borildi, binafsha — rejadan tashqari. Davr hisoboti Tashriflar hisobotini ochadi (T-DST-REP-05).
+**Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
+
+### T-DST-DLV-12. Qayta yetkazish (yopilgan reysda qaytgan tovar)
+**Nima tekshiriladi:** Yopilgan reysda qaytarish hujjati bor manzil qatorida "Qayta yetkazish" — qaytgan miqdorlar bilan yangi buyurtma qoralamasi (asosiy birlik, joriy narx); ikkinchi bosish o'sha qoralamani ochadi; asl jo'natish va buyurtma o'zgarmaydi.
+**Kim:** demo_rahbar   **Oldin bajarilgan bo'lishi kerak:** T-DST-BOT-34
+**Qadamlar:**
+1. **Reyslar** → 2-reys kartasi. Manzil qatorlaridagi tugmalarni ko'ring.
+2. P1 qatorida **Qayta yetkazish** ni bosing. Ochilgan buyurtmani ko'ring (buyurtma **R1**).
+3. 2-reys kartasiga qaytib P1 qatorida yana **Qayta yetkazish** ni bosing.
+4. P1 kartasi, **Qoldiqlar**, **Qarzlar**. So'ng R1 ni 🗑 bilan o'chiring.
+**Kutilgan natija:**
+- 1-qadam: "Qayta yetkazish" tugmasi faqat qaytarish hujjati bor qatorda — P1 da bor (1-reysda M1 qatorida ham — 9 qop), F da yo'q. Tugma izohi: "Qaytgan tovar bilan yangi buyurtma qoralamasi yaratiladi (joriy narxda) — tasdiqlab, keyingi reysga qo'shing."
+- 2-qadam: R1 — holat **Yangi**, DEMO Anvar do'koni, Agent DEMO Jasur, Ombor DEMO Asosiy ombor, DEMO-SEM-400 **22 qop** × 62 000 = **1 364 000** (sovg'a ham qaytgan miqdor sifatida, joriy narxda; aksiya to'xtatilgan), izoh "Qayta yetkazish: D-… (R-…)" (P1 va 2-reys raqami).
+- 3-qadam: yangi buyurtma yaratilmaydi — o'sha R1 ochiladi.
+- 4-qadam: P1, uning jo'natishi va DQ o'zgarmagan; rezerv/qoldiq o'zgarmagan (R1 tasdiqlanmagan); Anvar qarzi **7 753 600**. R1 o'chirilgach ro'yxatda yo'q (raqami keyingi buyurtmaga qayta berilmaydi).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ---
@@ -213,7 +230,7 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 - Pul: DEMO Kassa **11 386 400**, DEMO Bank hisobi **6 812 500** (va kompaniyaning boshqa hisoblari). Agentlar qo'lida 0; "Topshirilgan, tasdiq kutmoqda" 0.
 - Qoldiq qiymati (FIFO tannarxda, savdo omborlari) **87 303 600**: Asosiy — S 779 × 40 000 = 31 160 000, K 395,48 × 70 000 = 27 683 600, G 50 × 52 000 + 44 × 50 000 = 4 800 000; Filial — S 98 × 40 000 + 200 × 41 000 = 12 120 000, K 47 × 70 000 + 100 × 72 000 = 10 490 000, G 21 × 50 000 = 1 050 000. Brak ombori (savdoda emas) kirmaydi.
 - "Jo'natish kutmoqda" 0, "Tasdiq kutmoqda" 0. Agentlar reytingi (oy boshidan): DEMO Jasur — 19 362 000.
-- 2-qadam: "Bugun" kartalari o'sha kunning raqamlariga o'zgaradi; "… holatiga, yangilangan …" yozuvi.
+- 2-qadam: "Bugun" kartalari o'sha kunning raqamlariga o'zgaradi; "… holatiga, yangilangan …" yozuvi. Qarz va muddatlar — o'sha kun oxiridagi holat; "Tasdiq kutmoqda" / "Jo'natish kutmoqda", agentlar qo'lidagi naqd, kutilayotgan topshirishlar va qoldiq qiymati yonida **"hozirgi holat"** belgisi (o'tgan kun uchun tiklanmaydi).
 - 3-qadam: Excel faylida Bo'lim / Ko'rsatkich / Qiymat ro'yxati.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
@@ -224,6 +241,7 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 1. **Hisobotlar → Savdo**, Boshlanish = UAT 1-kuni, Tugash = bugun. Yorliqlarni ketma-ket oching: Agent, Mijoz, Tovar, Hudud, Kategoriya.
 **Kutilgan natija:**
 - Har kesimda Jami: Jo'natilgan **23 370 100**, Qaytarishlar **2 195 600**, Tushum **21 174 500**, Tannarx **14 984 000**, Yalpi foyda **6 190 500**, Marja **29.24%**.
+- Filtrsiz (tannarx huquqi bilan) jami ostida: "Qo'shimcha xarajat — sotilgan tovarga tushgan qismi (davr xarajati)" — **0** (T-DST-WH-10 dagi landed cost bekor qilingan) va "Foyda (qo'shimcha xarajatdan keyin)" — **6 190 500**. Bu qatorlar agent/mijoz bo'yicha taqsimlanmaydi.
 - Agent: DEMO Jasur — tushum 19 362 000, foyda 5 728 000, marja 29.58%; "(ko'rsatilmagan)" — 1 812 500, 462 500, 25.52% (Bunyodkor agentsiz).
 - Mijoz: DEMO Anvar do'koni 19 362 000; DEMO Bunyodkor qurilish 1 812 500.
 - Tovar: Sement — tushum 7 280 500 (9 202 500 − 1 922 000), sof miqdor 119 qop, foyda 2 520 500; Kafel — 5 054 000 (5 327 600 − 273 600), 53.2 m², foyda 1 330 000; Gipsokarton — 8 840 000, 130 list, foyda 2 340 000.
@@ -273,8 +291,8 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 1. **Hisobotlar → Agentlar topshirgan pul**, davr — UAT davri.
 2. Holat filtri: Qabul qilindi; Rad etildi; Kutmoqda.
 **Kutilgan natija:**
-- DEMO Jasur: Topshirishlar 2, To'lovlar bo'yicha **1 600 000**, Sanalgan **1 590 000**, Farq **−10 000**, Kutmoqda 0, Agentlar qo'lida 0. DEMO Sherzod: 1, 4 000 000, 4 000 000, 0, 0, 0. (Rad etilgan 100 000 lik topshirish agent yig'indisiga kirmaydi.)
-- Ro'yxat: Qabul qilindi — 3 ta (1 500 000→1 490 000, 100 000→100 000, 4 000 000→4 000 000); Rad etildi — 1 ta (100 000, sabab "DEMO: summa mos emas"); Kutmoqda — 0.
+- DEMO Jasur: Topshirishlar 2, To'lovlar bo'yicha **1 600 000**, Sanalgan **1 590 000**, Farq **−10 000**, Kutmoqda 0, Agentlar qo'lida 0. DEMO Sherzod: 1, 4 000 000, 4 000 000, 0, 0, 0. (Rad etilgan 100 000 lik va T-DST-PAY-09 da qabuldan keyin bekor qilingan 50 000 lik topshirish agent yig'indisiga kirmaydi.)
+- Ro'yxat: Qabul qilindi — 3 ta (1 500 000→1 490 000, 100 000→100 000, 4 000 000→4 000 000); rad etilgan/bekor qilingan — 2 ta (100 000, sabab "DEMO: summa mos emas"; 50 000, sabab "DEMO: xato to'lov"); Kutmoqda — 0.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-REP-07. Dala nazorati
@@ -285,7 +303,7 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 2. DEMO Jasur → **Batafsil**. **Iz xaritada** ni bosing.
 3. demo_agent bilan sahifani ochishga urining.
 **Kutilgan natija:**
-- 1-qadam: DEMO Jasur — selfi, Kun boshi, Kun yakuni, Tashriflar 2 (1 🚫), Buyurtmalar (M1 summasi bilan); DEMO Sherzod — ekspeditor, kun "boshlanmagan".
+- 1-qadam: DEMO Jasur — selfi, Kun boshi, Kun yakuni, Tashriflar 2 (1 🚫), Buyurtmalar (M1 summasi bilan); DEMO Sherzod — ekspeditor, kun "boshlanmagan" (o'sha kuni reys yo'lga chiqmagan bo'lsa; reys kunida — kun boshi = yo'lga chiqish, kun yakuni = reys yakunlangan vaqt, selfisiz).
 - 2-qadam: tashriflar jadvali (T-DST-BOT-12 dagidek) va joylashuv izi (kun boshi/yakuni, tashrif, jonli nuqtalar); xaritada 100 tagacha nuqta yoki Yandex havolasi.
 - 3-qadam: "Sizga ruxsat berilmagan!".
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -305,18 +323,22 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 - 4-qadam: "Ochiq" filtrida DEMO muammolar yo'q, "Hammasi" da bor.
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
-### T-DST-REP-09. Audit va o'tkazilgan hujjatlar
-**Nima tekshiriladi:** Har o'zgarish kim, qachon, eski → yangi qiymat bilan yoziladi; o'tkazilgan hujjat o'chirilmaydi — faqat sabab bilan bekor qilinadi (pilot N1, N2).
-**Kim:** demo_rahbar, administrator (SQL)   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-14
+### T-DST-REP-09. Audit jurnali va o'tkazilgan hujjatlar
+**Nima tekshiriladi:** Har o'zgarish kim, qachon, eski → yangi qiymat bilan yoziladi va **Distributsiya → Audit jurnali** sahifasida (faqat o'qish, `DstAudit` huquqi) filtrlab ko'riladi; o'tkazilgan hujjat o'chirilmaydi — faqat sabab bilan bekor qilinadi (pilot N1, N2).
+**Kim:** demo_rahbar (rolida DstAudit), demo_kassir   **Oldin bajarilgan bo'lishi kerak:** T-DST-SET-14, T-DST-SET-22
 **Qadamlar:**
 1. Mijozlar → DEMO Anvar do'koni: Kredit limiti = `25000000` → Saqlash; so'ng yana `20000000` → Saqlash.
-2. Administrator SSMS'da: `SELECT TOP 10 EntityName, EntityKey, Action, FieldName, OldValue, NewValue, UserID, Source, ChangedAt FROM dst.AUDIT_TRAIL WHERE FieldName = 'CreditLimit' ORDER BY ID DESC`.
-3. Narxlar → DEMO-SEM-400 → **Narx tarixi**.
-4. To'lovlar, Qaytarishlar, Hisobdan chiqarish ro'yxatlarida o'tkazilgan hujjatni o'chirish tugmasini qidiring.
+2. **Distributsiya → Audit jurnali**: sahifa izohini o'qing. Davr = bugun, Foydalanuvchi = DEMO Rahbar; Obyekt — mijoz profili, so'ng Kalit (ID) = Anvar ID bilan filtrlang.
+3. Filtr: Obyekt — maxsus narx, davr — UAT 1-kuni (T-DST-SET-22).
+4. Narxlar → DEMO-SEM-400 → **Narx tarixi**.
+5. To'lovlar, Qaytarishlar, Hisobdan chiqarish ro'yxatlarida o'tkazilgan hujjatni o'chirish tugmasini qidiring.
+6. demo_kassir bilan `/Distribution/DstAudit` ni oching.
 **Kutilgan natija:**
-- 2-qadam: ikki yozuv (Update): 20000000 → 25000000 va 25000000 → 20000000, UserID = demo_rahbar ID, Source = web, vaqt bilan.
-- 3-qadam: har narx o'zgarishi sana, narx turi, foydalanuvchi bilan.
-- 4-qadam: o'tkazilgan hujjatlarda faqat "Bekor qilish" (sabab bilan) — o'chirish yo'q. Izohga yozing: audit jurnali uchun web sahifa yo'q (faqat SQL / narx tarixi) — K3 taklifi.
+- 2-qadam: izoh "Distributsiya yozuvlaridagi har bir o'zgarish: yaratish (to'liq qiymat), tahrir (maydon bo'yicha eski → yangi), o'chirish. Faqat o'qish." Ustunlar: vaqt, Obyekt, Kalit (ID), Amal, Maydon, Eski qiymat, Yangi qiymat, foydalanuvchi, Manba. Ikki yozuv (o'zgartirildi, CreditLimit): 20000000 → 25000000 va 25000000 → 20000000, DEMO Rahbar, manba web. Tahrirlash/o'chirish tugmalari yo'q.
+- 3-qadam: Gipsokarton maxsus narxi — o'zgartirildi (tugash sanasi kecha); Kafel maxsus narxi — **o'chirildi** (eski qiymat bilan).
+- 4-qadam: har narx o'zgarishi sana, narx turi, foydalanuvchi bilan.
+- 5-qadam: o'tkazilgan hujjatlarda faqat "Bekor qilish" (sabab bilan) — o'chirish yo'q.
+- 6-qadam: "Sizga ruxsat berilmagan!" (DstAudit huquqi yo'q).
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
 
 ### T-DST-REP-10. Tannarx va foyda `DstSeeCost` huquqisiz ko'rinmaydi
@@ -361,7 +383,7 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 6. demo_rahbar: N kartasi → **Tahrirlash** → Ombor = DEMO Asosiy ombor → **Saqlash** → **Tasdiqlash**.
 7. demo_ombor: N → **Jo'natish** → **Jo'natish**.
 8. demo_rahbar: **Yangi reys** (01 A 123 AA, DEMO Sherzod) → N jo'natishi → **Saqlash**.
-9. Ekspeditor: **🚚 Reys** → **▶️ Yo'lga chiqish** → manzil → **✅ Yetkazildi (rasm)** → rasm → **🏁 Reysni yopish** → **✅ Tasdiqlash**.
+9. Ekspeditor: **🚚 Reys** → **▶️ Yo'lga chiqish** → manzil → **✅ Yetkazildi (rasm)** → rasm → **🏁 Reysni yakunlash** → **✅ Tasdiqlash**. demo_ombor: reys kartasi → **Reysni yopish** (qaytgan tovar yo'q) → tasdiqlang.
 10. Agent: **💵 Kassa** → **📤 Kassaga topshirish** → **✅ Tasdiqlash**. Kassir: Agentlar naqdi va kassa → DEMO Jasur → **Qabul qilish** (DEMO Kassa, Sanalgan `1000000`).
 11. Agent: **🏁 Kunni yakunlash** → joylashuv. Rahbar: **📊 Bugungi yakun**.
 12. demo_rahbar: aksiyani **To'xtatish**.
@@ -372,7 +394,7 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 - 6-qadam: Tasdiqlangan, rezerv: Sement 15 + 1, Kafel 10. Qoldiq S **779/16/763**, K **395.48/10/385.48**. Omborchiga "📦 Yig'ish kerak …".
 - 7-qadam: Jo'natildi, jo'natish **1 880 000**, tannarx 16 × 40 000 + 10 × 70 000 = **1 340 000** (yalpi foyda 540 000). Qoldiq S **763**, K **385.48**. Anvar qarzi **8 633 600**.
 - 8-qadam: reys 970 kg (16 × 50 + 10 × 17), 1 manzil.
-- 9-qadam: Anvarga "🚚 … yo'lga chiqdi …", so'ng "✅ Buyurtma D-… yetkazildi (DJ-…): 1 880 000 so'm. Nakladnoy ilova qilingan." + PDF; N **Yetkazildi**. Yopish: "🏁 Reys R-… yopildi. / Yetkazildi: 1, qisman: 0, rad: 0 / Yetkazilgan: 1 880 000 so'm, qaytdi: 0 so'm / Reysda yig'ilgan: 0 so'm, qo'lingizda: 0 so'm".
+- 9-qadam: Anvarga "🚚 … yo'lga chiqdi …", so'ng "✅ Buyurtma D-… yetkazildi (DJ-…): 1 880 000 so'm. Nakladnoy ilova qilingan." + PDF; N **Yetkazildi**. Yakunlash: "🏁 Reys R-… yakunlandi. / Yetkazildi: 1, qisman: 0, rad: 0 / Yetkazilgan: 1 880 000 so'm, omborga topshiriladi: 0 so'm / Reysda yig'ilgan: 0 so'm, qo'lingizda: 0 so'm / Ombor tovarni sanab, reysni ofis yopadi."; reys omborchi yopgach **Yopildi**, rahbarga "🏁 Reys R-… yopildi: …" xabari.
 - 10-qadam: farq 0; DEMO Kassa 11 386 400 + 1 000 000 = **12 386 400**; agentlar qo'lida 0.
 - 11-qadam: kun yakunida Yig'ilgan 1 000 000, Qo'lingizda naqd 0, Buyurtmalar 1 ta, 1 880 000 so'm; rahbar yakunida "Kun yetakchisi: DEMO Jasur — 1 880 000 so'm".
 **Natija:** ☐ O'tdi ☐ O'tmadi — Izoh: ____________
@@ -387,7 +409,7 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 4. demo_kassir: **Moliya → Hisobotlar → Hisoblardagi qoldiq**; **To'lovlar → Agentlar naqdi va kassa**.
 5. demo_rahbar: **Xatolar jurnali** sarlavhasi; **Rahbar paneli** (qoldiq qiymati).
 **Kutilgan natija:**
-- 1-qadam: "Tizimda" ustuni 763 / 385.48 / 94 / 0 — kiritilganga teng; yakunlangach **Farqlar: 0**.
+- 1-qadam: qoralamada "Tizimda" ustuni ko'rinmaydi ("ko'r" sanoq); yakunlangach **Farqlar: 0**, "Tizimda" 763 / 385.48 / 94 / 0 — kiritilganga teng.
 - 2-qadam: **Farqlar: 0**.
 - 3-qadam: Anvar qarzi **8 633 600** = akt sverki yakuniy qoldig'i 8 633 600 ("Mijozning qarzi"); Bunyodkor 0; DEMO Yangi nuqta 0.
 - 4-qadam: DEMO Kassa **12 386 400**, DEMO Bank hisobi **6 812 500**; agentlar qo'lida naqd jadvali bo'sh.
@@ -398,12 +420,14 @@ Bekor qilingan birinchi A jo'natishi, bekor qilingan Bunyodkor qaytarishi va kam
 ---
 
 ## Ma'lum cheklovlar va kuzatish kerak bo'lgan joylar
-- Reysda "Yetkazildi" natijasi bekor qilinsa (↺), buyurtmaning "Yetkazildi" holati avtomatik qaytmaydi — natijani bekor qilish faqat noto'g'ri belgilangan "Rad etildi" uchun xavfsiz.
-- Buyurtma kartasidagi qo'lda "Yetkazildi" reysdagi manzil holatini o'zgartirmaydi; reysga qo'yilgan buyurtmani faqat reys orqali yetkazing.
-- Avtomatik ombor tanlashda ikki savdo ombori teng bo'lsa, ID kichigi tanlanadi (zona yoki masofa hisobga olinmaydi) — kerak bo'lsa omborni tasdiqlashdan oldin qo'lda tanlang (T-DST-E2E-01, 6-qadam).
+- Reysda natija ↺ bilan bekor qilinsa, "Yetkazildi" buyurtma "Jo'natildi" ga qaytadi (yopilgan buyurtmada faqat yetkazish sanasi olinadi), foto/imzo/izoh tozalanadi, mijozga tuzatish xabari ketadi (T-DST-BOT-34).
+- Reysdagi (yopilmagan reys, natijasi kutilayotgan) buyurtmani kartadan qo'lda "Yetkazildi" qilib bo'lmaydi — natija reys orqali (T-DST-DLV-09).
+- Botdagi "🏁 Reysni yakunlash" reysni yopmaydi — reysni omborchi/ofis qaytgan miqdorni kiritib yopadi (T-DST-DLV-08, BOT-34).
+- Qayta yetkazish — yangi buyurtma qoralamasi; asl jo'natish/buyurtma o'zgarmaydi (T-DST-DLV-12).
+- Avtomatik ombor tanlashda ikki savdo ombori teng bo'lsa, ID kichigi tanlanadi (masofa hisobga olinmaydi) — kerak bo'lsa omborni tasdiqlashdan oldin qo'lda tanlang (T-DST-E2E-01, 6-qadam).
 - Marshrut uzunligi va tartiblash to'g'ri chiziq bo'yicha (eng yaqin qo'shni) — yo'l masofasi emas.
 - KPI va hisobotlar hujjat sanasi bo'yicha; UAT oy chegarasidan o'tsa raqamlar oylarga bo'linadi.
-- Audit jurnali (`dst.AUDIT_TRAIL`) uchun web sahifa yo'q.
+- KPI qarz jarimasi debet (jo'natish) yozilgan paytdagi agent bo'yicha (mijoz keyin boshqa agentga o'tsa ham); 30 kundan ortiq — rejadagi qoida; KPI bonusi soliqsiz (HR formulasi) — ataylab.
 
 ---
 
@@ -498,6 +522,9 @@ Har qatorga natijani belgilang. "O'tmadi" bo'lsa — daraja (K1/K2/K3) va Xatola
 | T-DST-PAY-06 | To'lov tekshiruvlari va bekor qilish | ☐ | ☐ | | | |
 | T-DST-PAY-07 | To'lov buyurtmani yopadi | ☐ | ☐ | | | |
 | T-DST-PAY-08 | Avans | ☐ | ☐ | | | |
+| T-DST-PAY-09 | Web'da agent naqdi, topshirishni bekor qilish | ☐ | ☐ | | | |
+| T-DST-PAY-10 | To'lov bekor — buyurtma qayta ochiladi | ☐ | ☐ | | | |
+| T-DST-PAY-11 | Kirish qoldig'ini bekor qilish | ☐ | ☐ | | | |
 | T-DST-WH-01 | Qoldiqlar sahifasi | ☐ | ☐ | | | |
 | T-DST-WH-02 | Boshlang'ich inventarizatsiya | ☐ | ☐ | | | |
 | T-DST-WH-03 | Nazorat sanog'i, oyiga bir marta | ☐ | ☐ | | | |
@@ -510,6 +537,7 @@ Har qatorga natijani belgilang. "O'tmadi" bo'lsa — daraja (K1/K2/K3) va Xatola
 | T-DST-WH-10 | Landed cost | ☐ | ☐ | | | |
 | T-DST-WH-11 | Minimal qoldiq ogohlantirishi | ☐ | ☐ | | | |
 | T-DST-WH-12 | Buyurtma taklifi → SRM | ☐ | ☐ | | | |
+| T-DST-WH-13 | ERP ko'chirmasi: rezerv, bo'lish, dalolatnomani bekor qilish | ☐ | ☐ | | | |
 | T-DST-DLV-01 | Mashina qo'shish | ☐ | ☐ | | | |
 | T-DST-DLV-02 | Yetkazish sozlamalari | ☐ | ☐ | | | |
 | T-DST-DLV-03 | Oldindan to'langan buyurtmani jo'natish | ☐ | ☐ | | | |
@@ -518,18 +546,19 @@ Har qatorga natijani belgilang. "O'tmadi" bo'lsa — daraja (K1/K2/K3) va Xatola
 | T-DST-DLV-06 | Rejalangan reysni bekor qilish | ☐ | ☐ | | | |
 | T-DST-BOT-26 | Ekspeditor: reys xabari va ko'rinishi | ☐ | ☐ | | | |
 | T-DST-BOT-27 | Yo'lga chiqish | ☐ | ☐ | | | |
-| T-DST-BOT-28 | Natijasiz reysni yopib bo'lmaydi | ☐ | ☐ | | | |
+| T-DST-BOT-28 | Natijasiz reysni yakunlab bo'lmaydi | ☐ | ☐ | | | |
 | T-DST-BOT-29 | Yetkazildi (rasm), oldindan to'langan | ☐ | ☐ | | | |
 | T-DST-BOT-30 | Imzo / qisman, nakladnoy PDF | ☐ | ☐ | | | |
 | T-DST-BOT-31 | Manzilda to'lov | ☐ | ☐ | | | |
 | T-DST-BOT-32 | Reys xarajati | ☐ | ☐ | | | |
 | T-DST-DLV-07 | Reys xarajatlari moliyaga | ☐ | ☐ | | | |
-| T-DST-DLV-08 | 1-reysni yopish, kamomad, dalolatnoma | ☐ | ☐ | | | |
+| T-DST-DLV-08 | 1-reys: botda yakunlash, ofisda yopish, kamomad | ☐ | ☐ | | | |
 | T-DST-BOT-33 | Ekspeditor naqdi va kassir qabuli | ☐ | ☐ | | | |
 | T-DST-DLV-09 | 2-reys, ofis natijasi | ☐ | ☐ | | | |
-| T-DST-BOT-34 | 2-reys: rad, yetkazildi, botdan yopish | ☐ | ☐ | | | |
+| T-DST-BOT-34 | 2-reys: ↺, rad, botda yakunlash, ofisda yopish | ☐ | ☐ | | | |
 | T-DST-DLV-10 | Agent va ekspeditor KPI | ☐ | ☐ | | | |
 | T-DST-DLV-11 | Tashrif rejasi | ☐ | ☐ | | | |
+| T-DST-DLV-12 | Qayta yetkazish | ☐ | ☐ | | | |
 | T-DST-REP-01 | Rahbar paneli | ☐ | ☐ | | | |
 | T-DST-REP-02 | Savdo hisoboti: kesimlar | ☐ | ☐ | | | |
 | T-DST-REP-03 | Drill-down va filtrlar | ☐ | ☐ | | | |
@@ -544,7 +573,7 @@ Har qatorga natijani belgilang. "O'tmadi" bo'lsa — daraja (K1/K2/K3) va Xatola
 | T-DST-E2E-01 | Uchidan-uchiga ish kuni | ☐ | ☐ | | | |
 | T-DST-E2E-02 | Yakuniy nazorat | ☐ | ☐ | | | |
 
-**Yig'indi:** jami testlar — 130; o'tdi — ____; o'tmadi — ____ (K1 — ____, K2 — ____, K3 — ____).
+**Yig'indi:** jami testlar — 135; o'tdi — ____; o'tmadi — ____ (K1 — ____, K2 — ____, K3 — ____).
 
 **Qaror:** ☐ Qabul qilindi (ochiq K1 yo'q, T-DST-E2E-02 o'tdi) ☐ Qabul qilinmadi — sabab: ____________
 
