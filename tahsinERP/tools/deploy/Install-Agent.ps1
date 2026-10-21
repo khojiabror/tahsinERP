@@ -22,7 +22,10 @@ param(
     [string] $DatabaseRoot = 'C:\tahsinERP\Database',
     [string] $DataDir = 'C:\ProgramData\tahsinERP',
     [string] $ServiceName = 'tahsinERP.ProvisioningAgent',
-    [switch] $KeepSecrets
+    [switch] $KeepSecrets,
+    # Sirlar fayli (brauzer RDP'da yashirin maydonga joylash ishlamaydi): 1-qator agent kaliti, 2-qator demo paroli (ixtiyoriy).
+    # O'qilgach fayl o'chiriladi.
+    [string] $SecretsFile
 )
 
 $ErrorActionPreference = 'Stop'
@@ -98,9 +101,16 @@ sc.exe failure $ServiceName reset= 86400 actions= restart/60000/restart/60000/re
 sc.exe description $ServiceName 'tahsinERP: firma bazalarini yaratish, demo tiklash, faollik (panel admin.<domen> bilan)' | Out-Null
 
 if (-not $KeepSecrets) {
-    $secret = Read-Secret 'Agent kaliti (panel: Serverlar -> Agent kalitini chiqarish)'
-    if (-not $secret) { throw 'Agent kaliti bo''sh.' }
-    $demo = Read-Secret 'Demo foydalanuvchi paroli (demo firma uchun; bo''sh - Enter)'
+    if ($SecretsFile) {
+        $lines = @(Get-Content $SecretsFile | ForEach-Object { $_.Trim() }) + @('', '')
+        Remove-Item $SecretsFile -Force
+        $secret = $lines[0]; $demo = $lines[1]
+    } else {
+        $secret = (Read-Secret 'Agent kaliti (panel: Serverlar -> Agent kalitini chiqarish)').Trim()
+        $demo = Read-Secret 'Demo foydalanuvchi paroli (demo firma uchun; bo''sh - Enter)'
+    }
+    # Yashirin maydonga joylash ishlamasa 1 belgi tushadi - shunday qiymatni yozmaymiz
+    if ($secret.Length -lt 20) { throw "Agent kaliti juda qisqa ($($secret.Length) belgi). Joylash ishlamagan bo'lsa: -SecretsFile." }
     $envList = @("TAHSIN_AGENT_Panel__Secret=$secret")
     if ($demo) { $envList += "TAHSIN_AGENT_Demo__UserPassword=$demo" }
     New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\$ServiceName" -Name Environment -PropertyType MultiString -Value $envList -Force | Out-Null

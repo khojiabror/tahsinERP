@@ -28,7 +28,10 @@ param(
     [string] $CertThumbprint,
     [string] $CertStore = 'WebHosting',   # win-acme sertifikatni WebHosting'ga qo'yadi
     [switch] $SkipPublish,
-    [switch] $KeepSecrets   # yangilashda: mavjud env sirlariga tegmaslik
+    [switch] $KeepSecrets,   # yangilashda: mavjud env sirlariga tegmaslik
+    # Sirlar fayli (brauzer RDP'da yashirin maydonga joylash ishlamaydi): 1-qator MasterKey, 2-qator imzo paroli,
+    # 3-qator Telegram token (ixtiyoriy), 4-qator webhook secret (ixtiyoriy). O'qilgach fayl o'chiriladi.
+    [string] $SecretsFile
 )
 
 $ErrorActionPreference = 'Stop'
@@ -89,12 +92,25 @@ Set-PoolEnv 'ControlPanel__Hosts__AdminHost' $HostName
 if ($PortalHostName) { Set-PoolEnv 'ControlPanel__Hosts__PortalHost' $PortalHostName; Set-PoolEnv 'ControlPanel__Hosts__PortalPublicUrl' "https://$PortalHostName" }
 Set-PoolEnv 'ControlPanel__Hosts__OtherHosts' 'None'
 if (-not $KeepSecrets) {
-    Write-Host 'MasterKey: `dotnet tahsinERP.ControlPanel.dll gen-master-key` bilan yaratilgan qiymat (zaxira nusxasi bazadan ALOHIDA saqlansin).'
-    Set-PoolEnv 'ControlPanel__Security__MasterKey' (Read-Secret 'MasterKey')
-    Set-PoolEnv 'ControlPanel__Signing__Passphrase' (Read-Secret 'Imzolash kaliti fayli paroli')
-    $tg = Read-Secret 'Telegram bot token (bo''sh - faqat log)'
+    if ($SecretsFile) {
+        $lines = @(Get-Content $SecretsFile | ForEach-Object { $_.Trim() }) + @('', '', '', '')
+        Remove-Item $SecretsFile -Force
+        $mk = $lines[0]; $pp = $lines[1]; $tg = $lines[2]; $hook = $lines[3]
+    } else {
+        Write-Host 'MasterKey: `dotnet tahsinERP.ControlPanel.dll gen-master-key` bilan yaratilgan qiymat (zaxira nusxasi bazadan ALOHIDA saqlansin).'
+        $mk = (Read-Secret 'MasterKey').Trim()
+        $pp = Read-Secret 'Imzolash kaliti fayli paroli'
+        $tg = Read-Secret 'Telegram bot token (bo''sh - faqat log)'
+        $hook = Read-Secret 'Telegram webhook secret_token (bo''sh - bot /start bog''lash o''chiq)'
+    }
+    # Yashirin maydonga joylash (paste) ishlamasa 1 belgi tushadi - shunday qiymatni yozmaymiz
+    $mkBytes = $null; try { $mkBytes = [Convert]::FromBase64String($mk) } catch { }
+    if (-not $mkBytes -or $mkBytes.Length -ne 32) { throw "MasterKey noto'g'ri (uzunligi $($mk.Length), 44 belgili Base64 kerak). Joylash ishlamagan bo'lsa: -SecretsFile." }
+    if ($pp.Length -lt 16) { throw "Imzo paroli juda qisqa ($($pp.Length) belgi). Joylash ishlamagan bo'lsa: -SecretsFile." }
+    if ($pp.Contains("'")) { throw "Imzo parolida apostrof (') bo'lmasin (appcmd sintaksisi)." }
+    Set-PoolEnv 'ControlPanel__Security__MasterKey' $mk
+    Set-PoolEnv 'ControlPanel__Signing__Passphrase' $pp
     if ($tg) { Set-PoolEnv 'ControlPanel__Telegram__BotToken' $tg }
-    $hook = Read-Secret 'Telegram webhook secret_token (bo''sh - bot /start bog''lash o''chiq)'
     if ($hook) { Set-PoolEnv 'ControlPanel__Telegram__WebhookSecret' $hook }
 }
 
