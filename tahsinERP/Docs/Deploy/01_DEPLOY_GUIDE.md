@@ -35,7 +35,7 @@ Domen — **`tahsinerp.uz`** (sotib olingan, 2026-10-21). SQL — `.\SQLEXPRESS`
 
 1. RDP faqat o'z IP'ingizdan (provayder firewall'ida). Windows Firewall: kirishga faqat **80, 443** (va RDP — cheklangan).
 2. Windows Update → hammasini o'rnating, qayta yuklang.
-3. **Hammasi bitta skript bilan** — `tools\deploy\Install-ServerPrereqs.ps1` ni serverga ko'chiring (RDP orqali) va administrator PowerShell'da:
+3. **Hammasi bitta skript bilan** — `tools\deploy\Install-ServerPrereqs.ps1` ni serverga ko'chiring: o'z RDP klientingiz (`mstsc`, Lightsail → Connect → "Connect using your own Remote Desktop client" — IP, `Administrator`, parol) Local Resources'da **Clipboard** va **Drives** yoqilgan holda fayl Ctrl+C/Ctrl+V bilan ko'chadi; brauzer RDP'da — matnni Notepad'ga qo'yib **UTF-8 with BOM** kodirovkasida saqlang. So'ng administrator PowerShell'da:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass -Force
@@ -58,7 +58,7 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 
 ### 2.0 Domenni Cloudflare'ga ulash (bir marta)
 
-1. Cloudflare → **Add a site** → `tahsinerp.uz` → Free tarif. Cloudflare ikki nameserver beradi (`xxx.ns.cloudflare.com`).
+1. Cloudflare → **Domains → Add domain** (eski interfeysda "Add a site") → `tahsinerp.uz` → DNS yozuvlari: quick scan yoki qo'lda → **Free** tarif. Cloudflare ikki nameserver beradi (`xxx.ns.cloudflare.com`).
 2. `.uz` registrator kabinetida (domen sotib olingan joy) domen NS yozuvlarini shu ikkitasiga almashtiring. Yangilanish bir necha soatdan 24 soatgacha.
 3. Cloudflare → My Profile → API Tokens → **Create token** → "Edit zone DNS" shabloni, Zone: `tahsinerp.uz` → token parol menejeriga (win-acme uchun).
 
