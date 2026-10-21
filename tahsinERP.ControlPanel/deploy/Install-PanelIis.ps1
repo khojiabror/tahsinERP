@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   tahsinERP boshqaruv panelini Windows serverda IIS saytiga joylaydi (bir martalik o'rnatish va yangilash).
 
@@ -6,20 +6,20 @@
   Talab: Windows Server + IIS, ASP.NET Core 10 Hosting Bundle, SQL Server. Administrator sifatida ishga tushiring.
   1) Ilovani publish qiladi (yoki -SkipPublish bilan tayyor papkani ishlatadi).
   2) App pool (No Managed Code, ApplicationPoolIdentity) va sayt (https binding, host: admin.<domen>) yaratadi/yangilaydi.
-  3) Sirlarni app pool'ning environmentVariables'iga yozadi (applicationHost.config — faqat administratorlar o'qiydi).
+  3) Sirlarni app pool'ning environmentVariables'iga yozadi (applicationHost.config - faqat administratorlar o'qiydi).
      Sirlar argument sifatida emas, yashirin so'rov orqali kiritiladi (shell tarixida qolmaydi).
   4) DataProtection kalitlari va loglar uchun papkalar, app pool identity'ga ruxsat.
   5) migrate buyrug'ini ishga tushiradi.
-  Birinchi Owner: o'rnatishdan keyin qo'lda —  dotnet <PhysicalPath>\tahsinERP.ControlPanel.dll create-owner --email ...
+  Birinchi Owner: o'rnatishdan keyin qo'lda -  dotnet <PhysicalPath>\tahsinERP.ControlPanel.dll create-owner --email ...
 
 .EXAMPLE
   .\Install-PanelIis.ps1 -HostName admin.example.uz -PortalHostName my.example.uz -CertThumbprint 0123ABCD...
-  (-PortalHostName — mijoz portali, o'sha ilova va sayt; ikkinchi https binding. Sertifikat ikkala nomni qamrasin, masalan wildcard.)
+  (-PortalHostName - mijoz portali, o'sha ilova va sayt; ikkinchi https binding. Sertifikat ikkala nomni qamrasin, masalan wildcard.)
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [string] $HostName,
-    [string] $PortalHostName,   # mijoz portali host'i (my.<domen>); bo'sh — portal ochilmaydi
+    [string] $PortalHostName,   # mijoz portali host'i (my.<domen>); bo'sh - portal ochilmaydi
     [string] $SiteName = 'tahsinERP.ControlPanel',
     [string] $PhysicalPath = 'C:\inetpub\tahsinERP.ControlPanel',
     [string] $DataDir = "$env:ProgramData\tahsinERP\ControlPanel",
@@ -63,7 +63,7 @@ Set-ItemProperty "IIS:\AppPools\$pool" -Name startMode -Value 'AlwaysRunning'   
 Set-ItemProperty "IIS:\AppPools\$pool" -Name processModel.idleTimeout -Value ([TimeSpan]::Zero)
 
 if (-not (Get-Website -Name $SiteName)) {
-    New-Website -Name $SiteName -PhysicalPath $PhysicalPath -ApplicationPool $pool -HostHeader $HostName -Port 443 -Ssl | Out-Null
+    New-Website -Name $SiteName -PhysicalPath $PhysicalPath -ApplicationPool $pool -HostHeader $HostName -Port 443 -Ssl -SslFlags 1 | Out-Null   # SNI (ERP wildcard bilan bir portda)
 } else {
     Set-ItemProperty "IIS:\Sites\$SiteName" -Name physicalPath -Value $PhysicalPath
 }
@@ -83,7 +83,7 @@ Set-PoolEnv 'ASPNETCORE_ENVIRONMENT' 'Production'
 Set-PoolEnv 'ConnectionStrings__Control' $ConnectionString
 Set-PoolEnv 'ControlPanel__Signing__KeyFile' $SigningKeyFile
 Set-PoolEnv 'ControlPanel__DataProtection__KeysDir' (Join-Path $DataDir 'keys')
-# Host zonalari (06_CUSTOMER_PORTAL.md): xodim sahifalari faqat $HostName, portal faqat $PortalHostName; boshqa host — 404.
+# Host zonalari (06_CUSTOMER_PORTAL.md): xodim sahifalari faqat $HostName, portal faqat $PortalHostName; boshqa host - 404.
 Set-PoolEnv 'ControlPanel__Hosts__AdminHost' $HostName
 if ($PortalHostName) { Set-PoolEnv 'ControlPanel__Hosts__PortalHost' $PortalHostName; Set-PoolEnv 'ControlPanel__Hosts__PortalPublicUrl' "https://$PortalHostName" }
 Set-PoolEnv 'ControlPanel__Hosts__OtherHosts' 'None'
@@ -91,9 +91,9 @@ if (-not $KeepSecrets) {
     Write-Host 'MasterKey: `dotnet tahsinERP.ControlPanel.dll gen-master-key` bilan yaratilgan qiymat (zaxira nusxasi bazadan ALOHIDA saqlansin).'
     Set-PoolEnv 'ControlPanel__Security__MasterKey' (Read-Secret 'MasterKey')
     Set-PoolEnv 'ControlPanel__Signing__Passphrase' (Read-Secret 'Imzolash kaliti fayli paroli')
-    $tg = Read-Secret 'Telegram bot token (bo''sh — faqat log)'
+    $tg = Read-Secret 'Telegram bot token (bo''sh - faqat log)'
     if ($tg) { Set-PoolEnv 'ControlPanel__Telegram__BotToken' $tg }
-    $hook = Read-Secret 'Telegram webhook secret_token (bo''sh — bot /start bog''lash o''chiq)'
+    $hook = Read-Secret 'Telegram webhook secret_token (bo''sh - bot /start bog''lash o''chiq)'
     if ($hook) { Set-PoolEnv 'ControlPanel__Telegram__WebhookSecret' $hook }
 }
 
@@ -102,12 +102,30 @@ New-Item -ItemType Directory -Force (Join-Path $DataDir 'keys') | Out-Null
 $identity = "IIS AppPool\$pool"
 icacls $DataDir /grant "${identity}:(OI)(CI)M" /T | Out-Null
 if (Test-Path $SigningKeyFile) { icacls $SigningKeyFile /grant "${identity}:R" | Out-Null }
-else { Write-Warning "Imzolash kaliti fayli yo'q: $SigningKeyFile — `keygen --out` bilan yarating (04_PANEL_MVP.md, 3-bo'lim)." }
+else { Write-Warning "Imzolash kaliti fayli yo'q: $SigningKeyFile - `keygen --out` bilan yarating (04_PANEL_MVP.md, 3-bo'lim)." }
 
 # 5. Migratsiya (shu sirlar bilan)
 $env:ConnectionStrings__Control = $ConnectionString
 dotnet (Join-Path $PhysicalPath 'tahsinERP.ControlPanel.dll') migrate
 if ($LASTEXITCODE -ne 0) { throw 'migrate xato bilan tugadi (SQL login/ruxsatni tekshiring).' }
 
+# 6. SQL: app pool identity'ga tahsin_control bazasida huquq (skriptni ishga tushirgan administrator SQL sysadmin bo'lishi kerak)
+$csb = New-Object System.Data.SqlClient.SqlConnectionStringBuilder $ConnectionString
+$dbName = $csb.InitialCatalog
+$csb.InitialCatalog = 'master'
+$csb.IntegratedSecurity = $true
+$login = "IIS APPPOOL\$pool"
+$sql = @"
+IF SUSER_ID(N'$login') IS NULL CREATE LOGIN [$login] FROM WINDOWS;
+EXEC(N'USE [$dbName]; IF USER_ID(N''$login'') IS NULL CREATE USER [$login] FOR LOGIN [$login]; ALTER ROLE db_owner ADD MEMBER [$login];');
+"@
+$cn = New-Object System.Data.SqlClient.SqlConnection $csb.ConnectionString
+try {
+    $cn.Open(); $cmd = $cn.CreateCommand(); $cmd.CommandText = $sql; [void]$cmd.ExecuteNonQuery()
+    Write-Host "SQL: [$login] -> $dbName db_owner"
+} catch {
+    Write-Warning "SQL huquqi berilmadi ($login): $($_.Exception.Message). SSMS'da qo'lda bering."
+} finally { $cn.Dispose() }
+
 Start-WebAppPool -Name $pool -ErrorAction SilentlyContinue
-Write-Host "Tayyor: https://$HostName/health → ok bo'lishi kerak. App pool identity ($identity) SQL'da tahsin_control bazasiga db_owner (migratsiya) yoki db_datareader+db_datawriter bo'lsin."
+Write-Host "Tayyor: https://$HostName/health -> ok bo'lishi kerak (sertifikat bog'langandan keyin)."
