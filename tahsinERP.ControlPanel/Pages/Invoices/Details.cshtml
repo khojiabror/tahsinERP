@@ -31,6 +31,37 @@
     }
 </table>
 
+<h2>Didox (e-hisob-faktura)</h2>
+<div class="card">
+    @if (inv.DidoxId is not null)
+    {
+        <dl class="props">
+            <dt>Didox ID</dt><dd class="mono">@inv.DidoxId</dd>
+            <dt>Holat</dt><dd>@(inv.DidoxStatus ?? "—") @if (inv.DidoxCheckedAtUtc != null) { <span class="hint">tekshirildi @inv.DidoxCheckedAtUtc.Value.ToString("dd.MM.yyyy HH:mm") UTC</span> }</dd>
+            <dt>Yuborilgan</dt><dd>@inv.DidoxSentAtUtc?.ToString("dd.MM.yyyy HH:mm") UTC</dd>
+            @if (inv.DidoxError != null) { <dt>Xato</dt><dd>@inv.DidoxError</dd> }
+        </dl>
+        @if (Model.DidoxEnabled)
+        {
+            <form method="post" asp-page-handler="DidoxRefresh" class="inline"><button type="submit" class="secondary">Holatni yangilash</button></form>
+        }
+    }
+    else if (!Model.DidoxEnabled)
+    {
+        <p class="hint">Didox integratsiyasi o'chiq — sozlanmagan: @string.Join(", ", Model.DidoxMissing) (<code>ControlPanel:Didox:*</code>, 08_STAGE4.md). Hisob-fakturani Didox kabinetida qo'lda yarating.</p>
+    }
+    else if (Model.CanSell && DidoxService.CanSend(inv))
+    {
+        @if (inv.DidoxError != null) { <p class="hint">Oxirgi urinish xatosi: @inv.DidoxError</p> }
+        <form method="post" asp-page-handler="DidoxSend" class="inline"><button type="submit">Didox'ga yuborish</button></form>
+        <span class="hint">Qoralama yaratiladi; imzo — Didox kabinetida E-IMZO bilan. Xaridor STIR bo'yicha topiladi.</span>
+    }
+    else
+    {
+        <p class="hint">Faqat chiqarilgan (raqamli), bekor qilinmagan hisob-faktura yuboriladi.</p>
+    }
+</div>
+
 <h2>To'lovlar</h2>
 <table>
     <tr><th>Sana</th><th>Usul</th><th class="num">Summa</th><th>Hujjat №</th><th>Izoh</th><th>Kim belgiladi</th><th>Storno</th></tr>

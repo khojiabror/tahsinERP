@@ -46,7 +46,7 @@ public sealed record ErpNamed(int Id, string Name);
 public sealed record ErpCatalogUnit(int? ProductUnitId, string Name, decimal Factor, decimal? Price, bool IsDefault);
 
 public sealed record ErpCatalogItem(int Id, string PNo, string Name, string? NameRu, string? Text, int? CategoryId, string? Category,
-    decimal Available, List<ErpCatalogUnit> Units);
+    decimal Available, List<ErpCatalogUnit> Units, string? Promo = null);
 
 public sealed record ErpOrderLine(int ProductId, int? ProductUnitId, decimal Qty, decimal DiscountPct = 0);
 
@@ -68,6 +68,8 @@ public sealed record ErpHandover(int Id, string DocNo, decimal AmountDeclared);
 public sealed record ErpPending(long Id, long ChatId, string Type, string Text, string? Payload);
 
 public sealed record ErpOverrideResult(int Id, string DocNo, string Status);
+
+public sealed record ErpWriteOffResult(int Id, string DocNo, string Status, decimal CostTotal);
 
 /// <summary>ERP xatosi: 400 — biznes qoidasi (matn foydalanuvchiga ko'rsatiladi), 409 — kredit, boshqalari — texnik.</summary>
 public sealed class ErpException(int status, string message, IReadOnlyList<string>? problems = null) : Exception(message)

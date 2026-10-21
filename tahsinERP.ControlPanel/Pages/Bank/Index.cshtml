@@ -1,0 +1,29 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Bank.IndexModel
+@{ ViewData["Title"] = "Bank ko'chirmasi"; }
+<h1>Bank ko'chirmasi</h1>
+<div asp-validation-summary="All"></div>
+<form method="post" enctype="multipart/form-data" class="card stack">
+    <div><label asp-for="Upload">Fayl</label><input asp-for="Upload" type="file" accept=".txt,.csv,.xlsx" /></div>
+    <div class="hint">
+        1C «Клиент-Банк» almashinuv fayli (<code>1CClientBankExchange</code>, .txt) yoki CSV / XLSX: ustunlar — sana, summa, to'lovchi STIR,
+        to'lov maqsadi (ixtiyoriy: hujjat №, to'lovchi, hisob). Kiruvchi to'lovlar ochiq hisob-fakturalarga moslanadi: avval maqsaddagi
+        <code>TE-YYYY-NNNNNN</code> raqami, keyin STIR + aniq qoldiq summa. Hech narsa avtomatik qo'llanmaydi — keyingi sahifada tasdiqlaysiz.
+        Bitta bank tranzaksiyasi (sana + summa + hujjat № + to'lovchi hisobi) ikki marta qo'llanmaydi.
+    </div>
+    <div><button type="submit">Yuklash va moslash</button></div>
+</form>
+<table>
+    <tr><th>#</th><th>Fayl</th><th>Format</th><th>Davr</th><th>Yuklangan (UTC)</th><th class="num">Qator</th><th class="num">Qo'llashga tayyor</th><th class="num">Qo'llangan</th><th class="num">Summa</th></tr>
+    @foreach (var r in Model.Rows)
+    {
+        <tr>
+            <td><a href="/Bank/Details/@r.Import.Id">#@r.Import.Id</a></td>
+            <td>@r.Import.FileName</td><td>@r.Import.Format</td>
+            <td>@r.Import.DateFrom?.ToString("dd.MM.yyyy") — @r.Import.DateTo?.ToString("dd.MM.yyyy")</td>
+            <td>@r.Import.UploadedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
+            <td class="num">@r.Lines</td><td class="num">@r.Matched</td><td class="num">@r.Applied</td><td class="num">@Money.Format(r.AppliedTiyin)</td>
+        </tr>
+    }
+</table>
+@if (Model.Rows.Count == 0) { <div class="empty">Hali ko'chirma yuklanmagan.</div> }

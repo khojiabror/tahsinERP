@@ -11,7 +11,8 @@ namespace tahsinERP.Areas.Distribution.Services
         None = 0,
         CustomerSpecial = 1,
         CustomerPriceType = 2,
-        DefaultPriceType = 3
+        DefaultPriceType = 3,
+        Promotion = 4      // aksiya sovg'asi (narxsiz qator)
     }
 
     /// <summary>Asosiy birlik uchun aniqlangan narx.</summary>

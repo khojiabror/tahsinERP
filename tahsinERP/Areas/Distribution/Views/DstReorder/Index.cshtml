@@ -1,0 +1,93 @@
+@using tahsinERP.Areas.Distribution.Services.Warehouse
+@{
+    ViewBag.Title = DstLocalization.T("Reorder");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool canSeeCost = ViewBag.DstCanSeeCost == true;
+    var rows = (List<ReorderService.Row>)ViewBag.Rows;
+    int? warehouseId = ViewBag.WarehouseId;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Reorder")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Reorder_Hint")</p>
+                    <form method="get" class="form-inline mb-1">
+                        <select name="warehouseId" class="form-control form-control-sm mr-50" onchange="this.form.submit()">
+                            <option value="">@DstLocalization.T("AllWarehouses")</option>
+                            @foreach (var w in (List<SelectListItem>)ViewBag.Warehouses)
+                            {
+                                <option value="@w.Value" @(warehouseId?.ToString() == w.Value ? "selected" : "")>@w.Text</option>
+                            }
+                        </select>
+                    </form>
+                    @using (Html.BeginForm("CreateOrders", "DstReorder", new { area = "Distribution", warehouseId }, FormMethod.Post, new { id = "roForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="data" id="roData" />
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered" id="roRows">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="roAll" /></th>
+                                        <th>@DstLocalization.T("Warehouse")</th><th>@DstLocalization.T("Product")</th>
+                                        <th class="text-right">@DstLocalization.T("Available")</th><th class="text-right">@DstLocalization.T("Reorder_Min")</th>
+                                        <th class="text-right">@DstLocalization.T("Reorder_Target")</th>
+                                        <th class="text-right" style="width:120px">@DstLocalization.T("Reorder_Qty")</th>
+                                        <th>@DstLocalization.T("Supplier")</th>
+                                        @if (canSeeCost) { <th class="text-right" style="width:130px">@DstLocalization.T("Price")</th> }
+                                        <th>@DstLocalization.T("Reorder_Recent")</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var r in rows)
+                                    {
+                                        <tr data-p="@r.ProductID" data-w="@r.WarehouseID" data-s="@r.SupplierID">
+                                            <td><input type="checkbox" data-f="on" @(r.RecentOrderNo == null ? "checked" : "") /></td>
+                                            <td>@r.Warehouse</td>
+                                            <td>@r.PNo — @r.Name</td>
+                                            <td class="text-right @(r.Available <= 0 ? "text-danger" : "")">@r.Available.ToString("#,0.##", inv) @r.Unit</td>
+                                            <td class="text-right">@r.MinQty.ToString("#,0.##", inv)</td>
+                                            <td class="text-right">@r.Target.ToString("#,0.##", inv)</td>
+                                            <td><input type="number" min="0" step="any" data-f="qty" value="@r.Suggested.ToString("0.##", inv)" class="form-control form-control-sm text-right" /></td>
+                                            <td>@(r.Supplier ?? "—") @if (r.LastPurchase.HasValue) { <div class="small text-muted">@r.LastPurchase.Value.ToString("dd.MM.yyyy")</div> }</td>
+                                            @if (canSeeCost) { <td><input type="number" min="0" step="any" data-f="price" value="@(r.LastPrice?.ToString("0.##", inv))" class="form-control form-control-sm text-right" /></td> }
+                                            <td class="small">@r.RecentOrderNo</td>
+                                        </tr>
+                                    }
+                                    @if (rows.Count == 0) { <tr><td colspan="10" class="text-success">@DstLocalization.T("Reorder_None")</td></tr> }
+                                </tbody>
+                            </table>
+                        </div>
+                        if (canChange && rows.Count > 0)
+                        {
+                            <button type="submit" class="btn btn-primary"><i class="bx bx-cart"></i> @DstLocalization.T("Reorder_CreateOrders")</button>
+                            <span class="small text-muted ml-1">@DstLocalization.T("Reorder_CreateHint")</span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $('#roAll').on('change', function () { $('#roRows [data-f=on]').prop('checked', this.checked); });
+        $('#roForm').on('submit', function () {
+            var rows = [];
+            $('#roRows tr[data-p]').each(function () {
+                var tr = $(this);
+                if (!tr.find('[data-f=on]').is(':checked')) return;
+                rows.push({ ProductID: tr.data('p'), WarehouseID: tr.data('w'), SupplierID: tr.data('s') || null, Qty: tr.find('[data-f=qty]').val(), Price: tr.find('[data-f=price]').val() || '0' });
+            });
+            if (rows.length === 0) return false;
+            $('#roData').val(JSON.stringify(rows));
+        });
+    </script>
+}

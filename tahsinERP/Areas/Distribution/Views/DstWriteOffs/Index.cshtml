@@ -1,0 +1,63 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("WriteOffs");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool canSeeCost = ViewBag.DstCanSeeCost == true;
+    var rows = (List<DstWriteOffsController.ListRow>)ViewBag.Rows;
+    string status = ViewBag.Status;
+    Func<string, string, string> Tab = (key, label) =>
+        "<a class=\"nav-link" + (status == key ? " active" : "") + "\" href=\"" + Url.Action("Index", new { status = key }) + "\">" + label + "</a>";
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@DstLocalization.T("WriteOffs")</h4>
+                    @if (canChange) { <a class="btn btn-primary btn-sm" href="@Url.Action("Edit")"><i class="bx bx-plus"></i> @DstLocalization.T("WriteOff_New")</a> }
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("WriteOff_Hint")</p>
+                    <ul class="nav nav-tabs mb-1">
+                        <li class="nav-item">@Html.Raw(Tab(null, DstLocalization.T("All")))</li>
+                        <li class="nav-item">@Html.Raw(Tab("waiting", DstLocalization.T("WriteOff_Waiting")))</li>
+                        <li class="nav-item">@Html.Raw(Tab("draft", DstLocalization.T("DocStatus_Draft")))</li>
+                        <li class="nav-item">@Html.Raw(Tab("posted", DstLocalization.T("WriteOff_Approved")))</li>
+                    </ul>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Report_DocNo")</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Warehouse")</th>
+                                    <th>@DstLocalization.T("Reason")</th><th>@DstLocalization.T("WriteOff_Author")</th><th>@DstLocalization.T("Status")</th>
+                                    <th class="text-right">@DstLocalization.T("Lines")</th>
+                                    @if (canSeeCost) { <th class="text-right">@DstLocalization.T("Cost")</th> }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in rows)
+                                {
+                                    <tr>
+                                        <td><a href="@Url.Action("Details", new { id = r.ID })">@r.DocNo</a></td>
+                                        <td>@r.DocDate.ToString("dd.MM.yyyy")</td>
+                                        <td>@r.Warehouse</td>
+                                        <td>@r.Reason</td>
+                                        <td>@r.Author</td>
+                                        <td>@Html.Partial("_WriteOffStatus", Tuple.Create(r.Status, r.SubmittedAt.HasValue))</td>
+                                        <td class="text-right">@r.Lines</td>
+                                        @if (canSeeCost) { <td class="text-right">@(r.Status == DocumentStatus.Posted ? r.CostTotal.ToString("N0") : "")</td> }
+                                    </tr>
+                                }
+                                @if (rows.Count == 0) { <tr><td colspan="8" class="text-muted">@DstLocalization.T("NoData")</td></tr> }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

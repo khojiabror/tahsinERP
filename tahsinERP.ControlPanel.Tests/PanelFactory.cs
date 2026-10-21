@@ -23,6 +23,9 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
     public TestClock Time { get; } = new(Start);
     /// <summary>Telegram o'rnini bosuvchi: yuborilgan xabarlarni yig'adi. Standart — sozlanmagan (eski testlar: faqat log).</summary>
     public FakeTelegram Telegram { get; } = new();
+    /// <summary>SMS (Eskiz) va email (SMTP) o'rnini bosuvchilar — standart sozlanmagan (4-bosqich testlari yoqadi).</summary>
+    public FakeSms Sms { get; } = new();
+    public FakeEmail Email { get; } = new();
     public const string WebhookSecret = "test-webhook-secret";
     public const string BotUsername = "tahsin_test_bot";
     public string PublicKeyXml { get; }
@@ -66,6 +69,10 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
             s.AddSingleton<ILicenseSigner>(new LocalRsaSigner("k2", _privateKeyXml));
             s.RemoveAll<ITelegramSender>();
             s.AddSingleton<ITelegramSender>(Telegram);
+            s.RemoveAll<tahsinERP.ControlPanel.Portal.ISmsSender>();
+            s.AddSingleton<tahsinERP.ControlPanel.Portal.ISmsSender>(Sms);
+            s.RemoveAll<tahsinERP.ControlPanel.Portal.IEmailSender>();
+            s.AddSingleton<tahsinERP.ControlPanel.Portal.IEmailSender>(Email);
         });
     }
 
@@ -145,4 +152,30 @@ public sealed class FakeTelegram : ITelegramSender
     }
 
     public IReadOnlyList<(string Chat, string Text)> To(string chat) => Sent.Where(m => m.Chat == chat).ToList();
+}
+
+public sealed class FakeSms : tahsinERP.ControlPanel.Portal.ISmsSender
+{
+    public bool Enabled { get; set; }
+    public bool IsConfigured => Enabled;
+    public System.Collections.Concurrent.ConcurrentQueue<(string Phone, string Text)> Sent { get; } = new();
+
+    public Task SendAsync(string phone, string text, CancellationToken ct = default)
+    {
+        Sent.Enqueue((phone, text));
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class FakeEmail : tahsinERP.ControlPanel.Portal.IEmailSender
+{
+    public bool Enabled { get; set; }
+    public bool IsConfigured => Enabled;
+    public System.Collections.Concurrent.ConcurrentQueue<(string To, string Subject, string Body)> Sent { get; } = new();
+
+    public Task SendAsync(string to, string subject, string body, CancellationToken ct = default)
+    {
+        Sent.Enqueue((to, subject, body));
+        return Task.CompletedTask;
+    }
 }

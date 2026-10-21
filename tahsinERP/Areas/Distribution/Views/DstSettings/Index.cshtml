@@ -156,8 +156,9 @@
                                 @if (canChange)
                                 {
                                     <div class="form-row mb-1">
-                                        <div class="col-md-8"><select id="slProduct" class="form-control" style="width:100%"></select></div>
-                                        <div class="col-md-3"><input id="slQty" type="number" min="0" step="0.0001" class="form-control" placeholder="@DstLocalization.T("MinStock")" /></div>
+                                        <div class="col-md-6"><select id="slProduct" class="form-control" style="width:100%"></select></div>
+                                        <div class="col-md-2"><input id="slQty" type="number" min="0" step="0.0001" class="form-control" placeholder="@DstLocalization.T("MinStock")" /></div>
+                                        <div class="col-md-3"><input id="slMax" type="number" min="0" step="0.0001" class="form-control" placeholder="@DstLocalization.T("MinStock_Max")" title="@DstLocalization.T("MinStock_MaxHint")" /></div>
                                         <div class="col-md-1"><button type="button" id="slAdd" class="btn btn-success btn-block"><i class="bx bx-plus"></i></button></div>
                                     </div>
                                 }
@@ -168,6 +169,7 @@
                                             <tr>
                                                 <td>@l.Product</td>
                                                 <td class="text-right">@l.MinQty.ToString("0.####") @l.Unit</td>
+                                                <td class="text-right text-muted">@(l.MaxQty.HasValue ? "→ " + l.MaxQty.Value.ToString("0.####") : "")</td>
                                                 <td class="text-right">
                                                     @if (canChange) { <button type="button" class="btn btn-sm btn-outline-danger" data-sl-remove="@l.ProductID"><i class="bx bx-trash"></i></button> }
                                                 </td>
@@ -222,7 +224,7 @@
                     ajax: { url: '@Url.Action("SearchProducts", "DstPrices")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } }
                 });
                 $('#slAdd').on('click', function () {
-                    dstPost('@Url.Action("SaveStockLimit")', { warehouseId: @warehouseId, productId: $('#slProduct').val(), minQty: $('#slQty').val() })
+                    dstPost('@Url.Action("SaveStockLimit")', { warehouseId: @warehouseId, productId: $('#slProduct').val(), minQty: $('#slQty').val(), maxQty: $('#slMax').val() })
                         .done(function () { location.reload(); });
                 });
                 $('[data-sl-remove]').on('click', function () {

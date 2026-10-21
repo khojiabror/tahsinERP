@@ -31,7 +31,7 @@ Javoblar:
 
 | Kod | Tana | Ma'nosi |
 |---|---|---|
-| 200 | `{ "tenant_secret": "<base64, ≥32 bayt>", "license_key": "<v2 kalit yoki null>", "poll_hours": 6 }` | Bog'landi. Token yopildi. |
+| 200 | `{ "tenant_secret": "<base64, ≥32 bayt>", "license_key": "<v2 kalit yoki null>", "poll_hours": 6, "online_check": "optional", "offline_grace_days": 30 }` | Bog'landi. Token yopildi. |
 | 400 | `{ "error": "bad_request", "message": "..." }` | Maydon yetishmaydi / installation_id GUID emas |
 | 404 | `{ "error": "token_not_found" }` | Token yo'q yoki muddati o'tgan |
 | 409 | `{ "error": "token_used" }` | Token boshqa installation_id bilan ishlatilgan |
@@ -68,7 +68,7 @@ Javoblar:
 
 | Kod | Tana | ERP nima qiladi |
 |---|---|---|
-| 200 | `{ "license_key": "<v2>", "etag": "<sha256 hex>", "poll_hours": 6 }` | Kalit faoldan farq qilsa `ActivateCompanyLicense`. Rad etilsa — sababini `LastSyncResult` ga yozadi. |
+| 200 | `{ "license_key": "<v2>", "etag": "<sha256 hex>", "poll_hours": 6, "online_check": "required", "offline_grace_days": 30 }` | Kalit faoldan farq qilsa `ActivateCompanyLicense`. Rad etilsa — sababini `LastSyncResult` ga yozadi. |
 | 304 | — | O'zgarish yo'q |
 | 401 | `{ "error": "bad_signature" }` / `"clock_skew"` / `"replay"` | Logga yozadi, keyingi urinishda qayta |
 | 404 | `{ "error": "unknown_installation" }` / `"no_license"` | Logga yozadi (tenant panelda o'chirilgan/arxivda yoki hali kalit chiqmagan — faol obuna yo'q) |
@@ -76,6 +76,9 @@ Javoblar:
 
 - `etag` = `lowercase(hex(SHA256(UTF8(license_key))))`. ERP ham shunday hisoblaydi.
 - `poll_hours` ixtiyoriy (1–24); berilmasa 6.
+- `online_check` / `offline_grace_days` (4-bosqich, ixtiyoriy; eski ERP e'tiborsiz qoldiradi): on-prem siyosati — `"required"` bo'lsa
+  panel kalitni ≤ `offline_grace_days` kunga chiqaradi va pull'da yangilaydi; ERP ularni `LICENSE_STATE` ga yozadi va uzoq aloqa
+  bo'lmasa (`required` — 3 kun, `optional` — grace kun) admin'ga banner ko'rsatadi. 304 javobida yo'q — oxirgi qiymat qoladi. 08_STAGE4.md 4.
 
 ## 3. ERP tomoni
 

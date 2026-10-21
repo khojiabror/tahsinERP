@@ -8,15 +8,22 @@ namespace tahsinERP.ControlPanel.Portal;
 public sealed record OtpTarget(string Channel, string Display, string? Address);
 
 /// <summary>
-/// Bir martalik kod yuborish kanali. Hozir faqat Telegram (+ lokal dev uchun log). 4-bosqichda SMS (Eskiz) yoki email
-/// qo'shish uchun shu interfeysni amalga oshirib DI'da ro'yxatdan o'tkazish kifoya — PortalAuthService ro'yxatdagi
-/// birinchi mos kanalni tanlaydi (tartib = ro'yxatdan o'tish tartibi).
+/// Bir martalik kod yuborish kanali: Telegram (standart, + lokal dev uchun log), SMS (Eskiz.uz), email (SMTP) — 4-bosqich,
+/// Portal/Channels.cs. PortalAuthService avval foydalanuvchi tanlagan kanalni (PortalUser.OtpChannel), u ishlamasa ro'yxatdagi
+/// birinchi mos kanalni oladi (tartib = DI'da ro'yxatdan o'tish tartibi).
 /// </summary>
 public interface IOtpSender
 {
+    /// <summary>Kanal nomi: telegram / sms / email (PortalUser.OtpChannel qiymati).</summary>
+    string Channel { get; }
     /// <summary>Shu foydalanuvchiga bu kanal orqali yuborish mumkinmi; mumkin bo'lmasa null.</summary>
     OtpTarget? Resolve(PortalUser user, Tenant tenant);
     Task SendAsync(OtpTarget target, PortalUser user, string code, CancellationToken ct = default);
+    /// <summary>
+    /// Parolni tiklash havolasi uchun manzil — faqat SHAXSIY kanal (tenant guruh chati emas: guruhdagi hamma ko'rardi). Null — yo'q.
+    /// </summary>
+    OtpTarget? ResolveReset(PortalUser user);
+    Task SendResetAsync(OtpTarget target, PortalUser user, string url, int minutes, CancellationToken ct = default);
 }
 
 public sealed class OtpDeliveryException(string message, Exception? inner = null) : Exception(message, inner);
@@ -27,6 +34,34 @@ public sealed class OtpDeliveryException(string message, Exception? inner = null
 /// </summary>
 public sealed class TelegramOtpSender(ITelegramSender telegram, IOptions<PortalOptions> options, ILogger<TelegramOtpSender> log) : IOtpSender
 {
+    public string Channel => "telegram";
+
+    public OtpTarget? ResolveReset(PortalUser user)
+    {
+        if (telegram.IsConfigured && !string.IsNullOrWhiteSpace(user.TelegramChatId))
+            return new OtpTarget("telegram", "Telegram (shaxsiy chat " + PortalIdentity.Mask(user.TelegramChatId) + ")", user.TelegramChatId);
+        if (options.Value.OtpLogFallback)
+            return new OtpTarget("log", "server log'i (lokal rejim)", null);
+        return null;
+    }
+
+    public async Task SendResetAsync(OtpTarget target, PortalUser user, string url, int minutes, CancellationToken ct = default)
+    {
+        if (target.Channel == "log")
+        {
+            log.LogWarning("PORTAL PAROL TIKLASH (OtpLogFallback, faqat lokal): foydalanuvchi #{User} havolasi {Url}", user.Id, url);
+            return;
+        }
+        try
+        {
+            await telegram.SendAsync(target.Address!, $"tahsinERP portal: parolni tiklash havolasi ({minutes} daqiqa, bir marta ishlaydi): {url} — siz so'ramagan bo'lsangiz, e'tibor bermang.", ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            throw new OtpDeliveryException("Telegram orqali yuborib bo'lmadi.", ex);
+        }
+    }
+
     public OtpTarget? Resolve(PortalUser user, Tenant tenant)
     {
         string? chat = !string.IsNullOrWhiteSpace(user.TelegramChatId) ? user.TelegramChatId

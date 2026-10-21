@@ -2404,6 +2404,484 @@
   <data name="IssueSeverity_3" xml:space="preserve">
     <value>K3 — неудобство</value>
   </data>
+  <data name="AllWarehouses" xml:space="preserve">
+    <value>Все склады</value>
+  </data>
+  <data name="Lines" xml:space="preserve">
+    <value>Строк</value>
+  </data>
+  <data name="NoData" xml:space="preserve">
+    <value>Нет данных.</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Ячейка</value>
+  </data>
+  <data name="Post" xml:space="preserve">
+    <value>Провести</value>
+  </data>
+  <data name="Supplier" xml:space="preserve">
+    <value>Поставщик</value>
+  </data>
+  <data name="UnitCost" xml:space="preserve">
+    <value>Себестоимость ед.</value>
+  </data>
+  <data name="Order_CancelReason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="Error_Required" xml:space="preserve">
+    <value>Не заполнено обязательное поле.</value>
+  </data>
+  <data name="Doc_NotDraft" xml:space="preserve">
+    <value>Документ не черновик — изменить нельзя.</value>
+  </data>
+  <data name="Doc_NotPosted" xml:space="preserve">
+    <value>Документ не проведён.</value>
+  </data>
+  <data name="Stock_NotAvailable" xml:space="preserve">
+    <value>{0}: доступно {1}, нужно {2} (резерв не учитывается).</value>
+  </data>
+  <data name="Stock_WriteError" xml:space="preserve">
+    <value>Ошибка складской записи:</value>
+  </data>
+  <data name="Stock_ReceiptConsumed" xml:space="preserve">
+    <value>Нельзя отменить приход — товар уже списан со склада.</value>
+  </data>
+  <data name="Notify_LowStock" xml:space="preserve">
+    <value>⚠️ Ниже минимального остатка — {0}:</value>
+  </data>
+  <data name="Tile_Transfers" xml:space="preserve">
+    <value>Приёмка перемещений по факту и акт расхождений</value>
+  </data>
+  <data name="Tile_WriteOffs" xml:space="preserve">
+    <value>Брак, бой, недостача — с утверждением руководителя</value>
+  </data>
+  <data name="Tile_Regrades" xml:space="preserve">
+    <value>Пересортица (себестоимость сохраняется)</value>
+  </data>
+  <data name="Tile_LandedCosts" xml:space="preserve">
+    <value>Распределение доставки и таможни на себестоимость</value>
+  </data>
+  <data name="Tile_Reorder" xml:space="preserve">
+    <value>Товары ниже минимума → заказ поставщику</value>
+  </data>
+  <data name="Tile_Promotions" xml:space="preserve">
+    <value>10+1, скидки от объёма и на период</value>
+  </data>
+  <data name="WriteOffs" xml:space="preserve">
+    <value>Списания</value>
+  </data>
+  <data name="WriteOff" xml:space="preserve">
+    <value>Списание</value>
+  </data>
+  <data name="WriteOff_New" xml:space="preserve">
+    <value>Новое списание</value>
+  </data>
+  <data name="WriteOff_Hint" xml:space="preserve">
+    <value>Брак, бой, недостача: документ отправляется руководителю на утверждение (также в Telegram). После утверждения товар списывается по FIFO; товар в резерве заказов не списывается.</value>
+  </data>
+  <data name="WriteOff_Waiting" xml:space="preserve">
+    <value>Ждёт утверждения</value>
+  </data>
+  <data name="WriteOff_Approved" xml:space="preserve">
+    <value>Утверждено</value>
+  </data>
+  <data name="WriteOff_Author" xml:space="preserve">
+    <value>Автор</value>
+  </data>
+  <data name="WriteOff_Submitted" xml:space="preserve">
+    <value>Отправлено</value>
+  </data>
+  <data name="WriteOff_ApprovedBy" xml:space="preserve">
+    <value>Утвердил</value>
+  </data>
+  <data name="WriteOff_Submit" xml:space="preserve">
+    <value>Отправить на утверждение</value>
+  </data>
+  <data name="WriteOff_Approve" xml:space="preserve">
+    <value>Утвердить и списать</value>
+  </data>
+  <data name="WriteOff_ApproveConfirm" xml:space="preserve">
+    <value>Товар будет списан со склада. Продолжить?</value>
+  </data>
+  <data name="WriteOff_Reject" xml:space="preserve">
+    <value>Отклонить</value>
+  </data>
+  <data name="WriteOff_CancelPosted" xml:space="preserve">
+    <value>Отменить (товар вернётся на склад)</value>
+  </data>
+  <data name="WriteOff_EditResubmit" xml:space="preserve">
+    <value>Документ отправлен на утверждение. После изменения его нужно отправить снова.</value>
+  </data>
+  <data name="WriteOff_AlreadySubmitted" xml:space="preserve">
+    <value>Документ уже отправлен на утверждение.</value>
+  </data>
+  <data name="WriteOff_NotSubmitted" xml:space="preserve">
+    <value>Документ ещё не отправлен на утверждение.</value>
+  </data>
+  <data name="WriteOff_NoRight" xml:space="preserve">
+    <value>Нет права утверждать списания.</value>
+  </data>
+  <data name="WriteOff_SelfApprove" xml:space="preserve">
+    <value>Свой документ должен утвердить другой руководитель.</value>
+  </data>
+  <data name="Notify_WriteOff" xml:space="preserve">
+    <value>🗑 Списание {0} ждёт утверждения
+Склад: {1}
+Причина: {2}
+Автор: {3}</value>
+  </data>
+  <data name="Notify_WriteOffApproved" xml:space="preserve">
+    <value>✅ Списание {0} утверждено.</value>
+  </data>
+  <data name="Notify_WriteOffRejected" xml:space="preserve">
+    <value>❌ Списание {0} отклонено: {1}</value>
+  </data>
+  <data name="Regrades" xml:space="preserve">
+    <value>Пересортица</value>
+  </data>
+  <data name="Regrade" xml:space="preserve">
+    <value>Пересортица</value>
+  </data>
+  <data name="Regrade_New" xml:space="preserve">
+    <value>Новая пересортица</value>
+  </data>
+  <data name="Regrade_Hint" xml:space="preserve">
+    <value>Один товар (например, пришёл не тем сортом) списывается, вместо него приходуется другой — себестоимость переходит на новый товар, стоимость склада не меняется.</value>
+  </data>
+  <data name="Regrade_From" xml:space="preserve">
+    <value>Списать (товар)</value>
+  </data>
+  <data name="Regrade_To" xml:space="preserve">
+    <value>Оприходовать (товар)</value>
+  </data>
+  <data name="Regrade_NewUnitCost" xml:space="preserve">
+    <value>Новая себестоимость ед.</value>
+  </data>
+  <data name="Regrade_PostConfirm" xml:space="preserve">
+    <value>Остатки склада изменятся. Продолжить?</value>
+  </data>
+  <data name="Regrade_SameProduct" xml:space="preserve">
+    <value>Товары списания и прихода должны различаться.</value>
+  </data>
+  <data name="Transfers" xml:space="preserve">
+    <value>Приёмка перемещений</value>
+  </data>
+  <data name="Transfer_Pending" xml:space="preserve">
+    <value>Перемещения к приёмке</value>
+  </data>
+  <data name="Transfer_Hint" xml:space="preserve">
+    <value>Товар с другого склада: введите фактически полученное количество. При расхождении составляется акт, руководители получают уведомление.</value>
+  </data>
+  <data name="Transfer_Acts" xml:space="preserve">
+    <value>Акты расхождений</value>
+  </data>
+  <data name="Transfer_Act" xml:space="preserve">
+    <value>Акт приёмки перемещения</value>
+  </data>
+  <data name="Transfer_From" xml:space="preserve">
+    <value>Отправитель</value>
+  </data>
+  <data name="Transfer_To" xml:space="preserve">
+    <value>Получатель</value>
+  </data>
+  <data name="Transfer_ReceiveBtn" xml:space="preserve">
+    <value>Принять</value>
+  </data>
+  <data name="Transfer_ReceiveHint" xml:space="preserve">
+    <value>Укажите полученное количество по каждой строке (по умолчанию — отправленное). При недостаче выберите: потеря (утеряно в пути) или возврат отправителю (не было отгружено). Излишек приходуется.</value>
+  </data>
+  <data name="Transfer_ReceiveConfirm" xml:space="preserve">
+    <value>Перемещение будет принято, остатки обновятся. Продолжить?</value>
+  </data>
+  <data name="Transfer_Received" xml:space="preserve">
+    <value>Перемещение принято.</value>
+  </data>
+  <data name="Transfer_Sent" xml:space="preserve">
+    <value>Отправлено</value>
+  </data>
+  <data name="Transfer_ReceivedQty" xml:space="preserve">
+    <value>Получено</value>
+  </data>
+  <data name="Transfer_Resolution" xml:space="preserve">
+    <value>Недостача</value>
+  </data>
+  <data name="Transfer_LOSS" xml:space="preserve">
+    <value>Потеря</value>
+  </data>
+  <data name="Transfer_RETURN" xml:space="preserve">
+    <value>Вернуть отправителю</value>
+  </data>
+  <data name="Transfer_ReturnLocation" xml:space="preserve">
+    <value>Ячейка возврата</value>
+  </data>
+  <data name="Transfer_Shortage" xml:space="preserve">
+    <value>Сумма недостачи</value>
+  </data>
+  <data name="Transfer_Loss" xml:space="preserve">
+    <value>В т.ч. потери</value>
+  </data>
+  <data name="Transfer_Surplus" xml:space="preserve">
+    <value>Сумма излишка</value>
+  </data>
+  <data name="Transfer_SignSender" xml:space="preserve">
+    <value>Сдал</value>
+  </data>
+  <data name="Transfer_SignReceiver" xml:space="preserve">
+    <value>Принял</value>
+  </data>
+  <data name="Transfer_NotPending" xml:space="preserve">
+    <value>Перемещение не ожидает приёмки (уже принято или удалено).</value>
+  </data>
+  <data name="Transfer_NotResponsible" xml:space="preserve">
+    <value>Принять может только ответственный за склад (или Admin).</value>
+  </data>
+  <data name="Transfer_AllLinesRequired" xml:space="preserve">
+    <value>Укажите полученное количество по каждой строке.</value>
+  </data>
+  <data name="Transfer_ResolutionRequired" xml:space="preserve">
+    <value>{0}: выберите, что делать с недостачей.</value>
+  </data>
+  <data name="Notify_TransferDiff" xml:space="preserve">
+    <value>📦 Расхождение по перемещению {0} ({1}): {2} → {3}
+Недостача: {4} (потери {5}), излишек: {6}</value>
+  </data>
+  <data name="LandedCosts" xml:space="preserve">
+    <value>Доп. расходы (landed cost)</value>
+  </data>
+  <data name="LandedCost" xml:space="preserve">
+    <value>Доп. расходы</value>
+  </data>
+  <data name="LandedCost_New" xml:space="preserve">
+    <value>Новый документ</value>
+  </data>
+  <data name="LandedCost_Hint" xml:space="preserve">
+    <value>Добавьте к приходу от поставщика доставку, таможню и прочие расходы — они распределятся по строкам и увеличат себестоимость. Уже проданная часть не переоценивается.</value>
+  </data>
+  <data name="LandedCost_Basis" xml:space="preserve">
+    <value>База распределения</value>
+  </data>
+  <data name="LandedCost_Basis_Value" xml:space="preserve">
+    <value>по стоимости</value>
+  </data>
+  <data name="LandedCost_Basis_Quantity" xml:space="preserve">
+    <value>по количеству</value>
+  </data>
+  <data name="LandedCost_Basis_Weight" xml:space="preserve">
+    <value>по весу</value>
+  </data>
+  <data name="LandedCost_Incomes" xml:space="preserve">
+    <value>Приходы</value>
+  </data>
+  <data name="LandedCost_Items" xml:space="preserve">
+    <value>Расходы</value>
+  </data>
+  <data name="LandedCost_Kind" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="LandedCost_Kind_FREIGHT" xml:space="preserve">
+    <value>Доставка</value>
+  </data>
+  <data name="LandedCost_Kind_CUSTOMS" xml:space="preserve">
+    <value>Таможня</value>
+  </data>
+  <data name="LandedCost_Kind_OTHER" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="LandedCost_ItemHint" xml:space="preserve">
+    <value>Сумма в основной валюте, без НДС.</value>
+  </data>
+  <data name="LandedCost_Value" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="LandedCost_SearchIncome" xml:space="preserve">
+    <value>Номер прихода или поставщик</value>
+  </data>
+  <data name="LandedCost_Preview" xml:space="preserve">
+    <value>Распределение (предпросмотр)</value>
+  </data>
+  <data name="LandedCost_Allocation" xml:space="preserve">
+    <value>Распределение</value>
+  </data>
+  <data name="LandedCost_Allocated" xml:space="preserve">
+    <value>Доля расходов</value>
+  </data>
+  <data name="LandedCost_UnitBefore" xml:space="preserve">
+    <value>Себест. (до)</value>
+  </data>
+  <data name="LandedCost_UnitAfter" xml:space="preserve">
+    <value>Себест. (после)</value>
+  </data>
+  <data name="LandedCost_Consumed" xml:space="preserve">
+    <value>Уже списано</value>
+  </data>
+  <data name="LandedCost_ConsumedWarning" xml:space="preserve">
+    <value>{0} сум расходов приходится на уже списанный товар — себестоимость прошлых продаж не изменится.</value>
+  </data>
+  <data name="LandedCost_Post" xml:space="preserve">
+    <value>Провести (добавить к себестоимости)</value>
+  </data>
+  <data name="LandedCost_PostConfirm" xml:space="preserve">
+    <value>Себестоимость строк прихода изменится. Продолжить?</value>
+  </data>
+  <data name="LandedCost_IncomeNotEligible" xml:space="preserve">
+    <value>К этому приходу нельзя добавить расходы (не принят, перемещение или производство).</value>
+  </data>
+  <data name="LandedCost_NoIncomes" xml:space="preserve">
+    <value>Выберите хотя бы один приход.</value>
+  </data>
+  <data name="LandedCost_NoItems" xml:space="preserve">
+    <value>Добавьте хотя бы один расход.</value>
+  </data>
+  <data name="LandedCost_NoWeight" xml:space="preserve">
+    <value>Нельзя распределить по весу — нет веса: {0}</value>
+  </data>
+  <data name="LandedCost_NothingToAllocate" xml:space="preserve">
+    <value>Нечего распределять (стоимость строк 0).</value>
+  </data>
+  <data name="Reorder" xml:space="preserve">
+    <value>Заказ поставщику</value>
+  </data>
+  <data name="Reorder_Hint" xml:space="preserve">
+    <value>Товары, у которых доступный остаток ниже минимума. Предложение = цель (максимум или минимум × 2) − доступно. Поставщик и цена — из последнего счёта закупки.</value>
+  </data>
+  <data name="Reorder_Min" xml:space="preserve">
+    <value>Минимум</value>
+  </data>
+  <data name="Reorder_Target" xml:space="preserve">
+    <value>Цель</value>
+  </data>
+  <data name="Reorder_Qty" xml:space="preserve">
+    <value>Заказать</value>
+  </data>
+  <data name="Reorder_Recent" xml:space="preserve">
+    <value>Заказ за 30 дней</value>
+  </data>
+  <data name="Reorder_None" xml:space="preserve">
+    <value>Все товары выше минимального остатка.</value>
+  </data>
+  <data name="Reorder_CreateOrders" xml:space="preserve">
+    <value>Создать заказы поставщикам</value>
+  </data>
+  <data name="Reorder_CreateHint" xml:space="preserve">
+    <value>По заказу на каждого поставщика (SRM → Заказы на закупку).</value>
+  </data>
+  <data name="Reorder_Created" xml:space="preserve">
+    <value>Созданы заказы на закупку: {0}</value>
+  </data>
+  <data name="MinStock_Max" xml:space="preserve">
+    <value>Максимум (необяз.)</value>
+  </data>
+  <data name="MinStock_MaxHint" xml:space="preserve">
+    <value>Заказ пополняет до этого уровня; пусто — минимум × 2.</value>
+  </data>
+  <data name="MinStock_MaxBelowMin" xml:space="preserve">
+    <value>Максимум не может быть меньше минимума.</value>
+  </data>
+  <data name="Promotions" xml:space="preserve">
+    <value>Акции</value>
+  </data>
+  <data name="Promo_New" xml:space="preserve">
+    <value>Новая акция</value>
+  </data>
+  <data name="Promo_Hint" xml:space="preserve">
+    <value>Акция применяется автоматически при сохранении заказа (веб, бот, Mini App). Скидка не ограничена лимитом роли и минимальной ценой; подарок добавляется отдельной строкой без цены.</value>
+  </data>
+  <data name="Promo_Kind" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Promo_Kind_DISCOUNT" xml:space="preserve">
+    <value>Скидка</value>
+  </data>
+  <data name="Promo_Kind_FREE" xml:space="preserve">
+    <value>Подарок (N+M)</value>
+  </data>
+  <data name="Promo_Applies" xml:space="preserve">
+    <value>На что</value>
+  </data>
+  <data name="Promo_Condition" xml:space="preserve">
+    <value>Условие</value>
+  </data>
+  <data name="Promo_Period" xml:space="preserve">
+    <value>Период</value>
+  </data>
+  <data name="Promo_Used" xml:space="preserve">
+    <value>В строках</value>
+  </data>
+  <data name="Promo_AllProducts" xml:space="preserve">
+    <value>Все товары</value>
+  </data>
+  <data name="Promo_AllCustomers" xml:space="preserve">
+    <value>Все клиенты</value>
+  </data>
+  <data name="Promo_ShowAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Promo_ShowCurrent" xml:space="preserve">
+    <value>Действующие</value>
+  </data>
+  <data name="Promo_Stop" xml:space="preserve">
+    <value>Остановить</value>
+  </data>
+  <data name="Promo_Resume" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="Promo_From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Promo_To" xml:space="preserve">
+    <value>По (пусто — бессрочно)</value>
+  </data>
+  <data name="Promo_PriceTypeHint" xml:space="preserve">
+    <value>только для клиентов этого типа цен</value>
+  </data>
+  <data name="Promo_CategoryHint" xml:space="preserve">
+    <value>если товар не выбран</value>
+  </data>
+  <data name="Promo_DiscountPct" xml:space="preserve">
+    <value>Скидка, %</value>
+  </data>
+  <data name="Promo_MinQty" xml:space="preserve">
+    <value>В строке не менее (баз. ед.)</value>
+  </data>
+  <data name="Promo_DiscountHint" xml:space="preserve">
+    <value>0 — скидка на период. Ступени от объёма — несколько акций с разным количеством (применяется наибольшая).</value>
+  </data>
+  <data name="Promo_Buy" xml:space="preserve">
+    <value>За каждые N</value>
+  </data>
+  <data name="Promo_Free" xml:space="preserve">
+    <value>M в подарок</value>
+  </data>
+  <data name="Promo_FreeProduct" xml:space="preserve">
+    <value>Товар-подарок</value>
+  </data>
+  <data name="Promo_FreeProductHint" xml:space="preserve">
+    <value>пусто — тот же товар</value>
+  </data>
+  <data name="Promo_Repeatable" xml:space="preserve">
+    <value>Повторяется (20 → 2 подарка)</value>
+  </data>
+  <data name="Promo_Gift" xml:space="preserve">
+    <value>подарок</value>
+  </data>
+  <data name="Promo_Badge" xml:space="preserve">
+    <value>акция −{0}%</value>
+  </data>
+  <data name="Promo_BadDates" xml:space="preserve">
+    <value>Дата окончания раньше начала.</value>
+  </data>
+  <data name="Promo_BadPercent" xml:space="preserve">
+    <value>Скидка должна быть больше 0 и не больше 100.</value>
+  </data>
+  <data name="Promo_ProductRequired" xml:space="preserve">
+    <value>Для акции-подарка выберите товар.</value>
+  </data>
+  <data name="Promo_BadFree" xml:space="preserve">
+    <value>N и M должны быть положительными.</value>
+  </data>
+  <data name="Store_CodeNotFound" xml:space="preserve">
+    <value>Код не найден: {0}</value>
+  </data>
   <data name="TripStatus_Planned" xml:space="preserve">
     <value>Запланирован</value>
   </data>

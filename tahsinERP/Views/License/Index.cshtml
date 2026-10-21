@@ -189,6 +189,18 @@
                                         Oxirgi tekshiruv: @Model.LastSyncUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />@Model.LastSyncResult
                                     </small>
                                 }
+                                @if (Model.PanelConnected)
+                                {
+                                    <small class="text-muted d-block mt-50">
+                                        Onlayn tekshiruv: @(Model.OnlineCheckRequired
+                                            ? "majburiy — kalit qisqa muddatli (" + (Model.OfflineGraceDays ?? 30) + " kun) va panel uni avtomatik yangilaydi"
+                                            : "ixtiyoriy — kalit shartnoma muddatigacha (ko'pi bilan 1 yil), internetsiz ham ishlaydi")
+                                    </small>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.OnlineWarning))
+                                {
+                                    <div class="alert alert-warning mt-50 mb-0">@Model.OnlineWarning</div>
+                                }
                             </div>
                         </div>
                     }

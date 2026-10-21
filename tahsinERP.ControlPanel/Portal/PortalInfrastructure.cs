@@ -18,6 +18,8 @@ public class PortalOptions
     public int OtpMinutes { get; set; } = 5;
     /// <summary>Telegram bog'lash kodi muddati, soat.</summary>
     public int TelegramLinkHours { get; set; } = 24;
+    /// <summary>O'z-o'ziga parol tiklash havolasi muddati, daqiqa (Login → «Parolni unutdingizmi?»).</summary>
+    public int ResetMinutes { get; set; } = 30;
     /// <summary>Portal sessiyasi (sliding), soat.</summary>
     public int SessionHours { get; set; } = 4;
     /// <summary>

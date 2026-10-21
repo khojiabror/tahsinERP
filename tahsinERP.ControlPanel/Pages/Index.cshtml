@@ -13,6 +13,21 @@
     <div class="stat"><div class="l">To'lanmagan jami</div><div class="v">@Money.Format(d.UnpaidTotalTiyin)</div><div class="hint">so'm, QQS bilan</div></div>
     <div class="stat"><div class="l">ERP'ga bog'lanmagan</div><div class="v">@Model.UnboundCount</div><div class="hint">reg_token kutilmoqda</div></div>
 </div>
+@if (d.OfflineOnPrem.Count > 0)
+{
+    <div class="card">
+        <h2>On-prem: panel bilan aloqa yo'q</h2>
+        <table>
+            <tr><th>Tashkilot</th><th>Onlayn tekshiruv</th><th>Oxirgi pull (UTC)</th><th class="num">Kun</th></tr>
+            @foreach (var r in d.OfflineOnPrem)
+            {
+                <tr><td><a href="/Tenants/Details/@r.TenantId">@r.LegalName</a> <span class="hint">@r.Slug</span></td>
+                    <td>@(r.Required ? $"majburiy (kalit ≤ {r.GraceDays} kun)" : "ixtiyoriy")</td>
+                    <td>@(r.LastSeenUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td><td class="num">@r.DaysSilent</td></tr>
+            }
+        </table>
+    </div>
+}
 @if (Model.FailedNotifications > 0)
 {
     <div class="flash bad">@Model.FailedNotifications ta eslatma yuborilmadi — <a href="/Notifications">Eslatmalar</a>.</div>

@@ -185,6 +185,12 @@ public sealed class DailyJobHostedService(IServiceScopeFactory scopes, TimeProvi
                     || (s.Plan!.IsAddOn && (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Expired)
                         && s.EndDate < today && s.EndDate >= from.AddDays(-1))))
             .Select(s => s.TenantId).Distinct().ToListAsync(ct);
+        // Onlayn tekshiruv majburiy on-prem: aylanma kalit (grace'ning yarmi o'tganda yangisi) — 08_STAGE4.md 4.
+        var rolling = await db.Tenants
+            .Where(t => t.Deployment == DeploymentKind.OnPrem && t.OnlineCheck == OnlineCheckMode.Required && t.InstallationId != null
+                && t.Status != TenantStatus.Archived && t.DeletedAtUtc == null)
+            .Select(t => t.Id).ToListAsync(ct);
+        tenantIds = tenantIds.Union(rolling).ToList();
         var issuer = sp.GetRequiredService<Licensing.LicenseIssuer>();
         int n = 0;
         foreach (int id in tenantIds)

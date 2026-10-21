@@ -34,6 +34,9 @@ services.Configure<ProvisioningOptions>(config.GetSection("ControlPanel:Provisio
 services.Configure<UsageOptions>(config.GetSection("ControlPanel:Usage"));
 services.Configure<PanelHostOptions>(config.GetSection("ControlPanel:Hosts"));
 services.Configure<PortalOptions>(config.GetSection("ControlPanel:Portal"));
+services.Configure<DidoxOptions>(config.GetSection("ControlPanel:Didox"));
+services.Configure<EskizOptions>(config.GetSection("ControlPanel:Eskiz"));
+services.Configure<SmtpOptions>(config.GetSection("ControlPanel:Smtp"));
 PanelFontResolver.ExtraFontsDir = config["ControlPanel:Pdf:FontsDir"];
 
 services.AddDbContext<ControlDbContext>(o => o.UseSqlServer(
@@ -62,8 +65,19 @@ services.AddScoped<ExpiryReminderService>();
 services.AddScoped<ProvisioningService>();
 services.AddScoped<UsageService>();
 services.AddScoped<TractionService>();
+services.AddScoped<tahsinERP.ControlPanel.Services.Bank.BankImportService>();
+// Didox e-hisob-faktura: PartnerToken/Password/MXIK berilmasa o'chiq (tugma ko'rinmaydi).
+services.AddSingleton<DidoxTokenCache>();
+services.AddHttpClient<IDidoxClient, DidoxHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
+services.AddScoped<DidoxService>();
 // Mijoz portali (my.<domen>): kirish, kod yuborish kanallari (IOtpSender — tartib bo'yicha birinchi mosi), so'rovlar.
 services.AddScoped<IOtpSender, TelegramOtpSender>();
+// 4-bosqich: SMS (Eskiz) va email (SMTP) — sozlanmagan bo'lsa Resolve null qaytaradi, kanal ko'rinmaydi.
+services.AddSingleton<EskizTokenCache>();
+services.AddHttpClient<ISmsSender, EskizSmsSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
+services.AddSingleton<IEmailSender, SmtpEmailSender>();
+services.AddScoped<IOtpSender, SmsOtpSender>();
+services.AddScoped<IOtpSender, EmailOtpSender>();
 services.AddScoped<PortalAuthService>();
 services.AddScoped<PortalNotifier>();
 services.AddScoped<PortalRequestService>();
@@ -72,7 +86,10 @@ services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ZoneMatcher
 services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
+{
     services.AddHostedService<DailyJobHostedService>();
+    services.AddHostedService<DidoxRefreshHostedService>();
+}
 
 // Cookie/antiforgery kalitlari: serverda doimiy papkada (aks holda IIS qayta ishga tushganda xodimlar qayta kiradi).
 // Windows'da DPAPI (LocalMachine) bilan shifrlanadi. Papka bo'sh bo'lsa — standart joy (dev).
@@ -174,6 +191,7 @@ services.AddRazorPages(o =>
     o.Conventions.AuthorizeFolder("/Staff", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Servers", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Audit", Policies.Owner);
+    o.Conventions.AuthorizeFolder("/Bank", Policies.Sales); // to'lov belgilash huquqi (00_PLAN.md 5.2)
 });
 
 var app = builder.Build();

@@ -1,0 +1,37 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    var act = (TransferAct)ViewBag.Act;
+    var lines = (List<DstTransfersController.ActLineRow>)ViewBag.Lines;
+    ViewBag.Title = act.DocNo;
+    ViewBag.DstParent = DstLocalization.T("Transfers");
+    bool canSeeCost = ViewBag.DstCanSeeCost == true;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@act.DocNo — @DstLocalization.T("Transfer_Act")</h4>
+                    <div>
+                        <a class="btn btn-outline-primary btn-sm" target="_blank" href="@Url.Action("Print", new { id = act.ID })"><i class="bx bx-printer"></i> @DstLocalization.T("Print")</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @DstLocalization.T("Transfer_From"): <b>@ViewBag.From</b> (@ViewBag.ExpenseDocNo) →
+                        @DstLocalization.T("Transfer_To"): <b>@ViewBag.To</b> (@ViewBag.IncomeDocNo) ·
+                        @DstLocalization.T("Date"): @act.DocDate.ToString("dd.MM.yyyy") · @ViewBag.Author
+                        @if (act.Note != null) { <br /><span class="text-muted">@act.Note</span> }
+                    </p>
+                    @Html.Partial("_ActTable", Tuple.Create(act, lines, canSeeCost))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

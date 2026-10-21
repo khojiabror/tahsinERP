@@ -28,6 +28,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         public int? UserId => Link?.UserId;
         public bool IsField => Link is { UserId: not null, Role: "AGENT" or "EXPEDITOR" };
         public bool IsManager => Link is { UserId: not null, Role: "MANAGER" };
+        public bool IsStorekeeper => Link is { UserId: not null, Role: "STOREKEEPER" };
     }
 
     public async Task HandleAsync(TenantRegistry.Tenant tenant, TgUpdate update, CancellationToken ct)
@@ -146,8 +147,13 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         }
 
         switch (Texts.KeyOf(text, "Btn_DayStart", "Btn_Route", "Btn_Search", "Btn_Cash", "Btn_DayEnd", "Btn_Summary",
-                    "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement"))
+                    "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement", "Btn_Store"))
         {
+            case "Btn_Store":
+                if (!ctx.IsStorekeeper && !ctx.IsManager) { outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("NotAllowed")); return; }
+                outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Store_Open"),
+                    Kb.Inline([Kb.WebApp(ctx.T("Btn_StoreApp"), StoreAppUrl(options.Value.PublicBaseUrl, ctx.Tenant.Slug))]));
+                return;
             case "Btn_NewPoint": await NewPointStartAsync(ctx, ct); return;
             case "Btn_Live":
                 if (RequireField(ctx)) outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Live_Howto"));
@@ -271,7 +277,12 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
                 [Kb.Text(ctx.T("Btn_DayEnd")), Kb.Text(ctx.T("Btn_Issue"))]
             ]);
         else if (ctx.IsManager)
-            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Summary")), Kb.Text(ctx.T("Btn_Issue"))]]);
+            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Summary")), Kb.Text(ctx.T("Btn_Store"))], [Kb.Text(ctx.T("Btn_Issue"))]]);
+        else if (ctx.IsStorekeeper)
+        {
+            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Store")), Kb.Text(ctx.T("Btn_Issue"))]]);
+            text += "\n" + ctx.T("Store_Menu");
+        }
         else if (ctx.Link?.CustomerId != null)
         {
             keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_MyDebt")), Kb.Text(ctx.T("Btn_Statement"))]]);
@@ -311,6 +322,10 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
     }
 
     /// <summary>Mini App havolasi: {PublicBaseUrl}/app/?t=slug&amp;c=mijoz&amp;v=tashrif.</summary>
+    /// <summary>Omborchi Mini App'i: inventarizatsiya va buyurtma yig'ish (shtrix-kod skaneri).</summary>
+    internal static string StoreAppUrl(string publicBaseUrl, string slug) =>
+        publicBaseUrl.TrimEnd('/') + "/app/store.html?t=" + Uri.EscapeDataString(slug);
+
     internal static string MiniAppUrl(string publicBaseUrl, string slug, int customerId, int? visitId) =>
         publicBaseUrl.TrimEnd('/') + "/app/?t=" + Uri.EscapeDataString(slug) + "&c=" + customerId + (visitId.HasValue ? "&v=" + visitId : "");
 }

@@ -1,0 +1,63 @@
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("LandedCosts");
+    bool canChange = ViewBag.DstCanChange == true;
+    var rows = (List<LandedCost>)ViewBag.Rows;
+    var counts = (Dictionary<int, int>)ViewBag.IncomeCounts;
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("LandedCosts")</h4></div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("LandedCost_Hint")</p>
+                    @if (canChange)
+                    {
+                        using (Html.BeginForm("Create", "DstLandedCosts", new { area = "Distribution" }, FormMethod.Post, new { @class = "form-inline mb-1" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <select name="basis" class="form-control mr-1 mb-50">
+                                @foreach (LandedCostBasis b in Enum.GetValues(typeof(LandedCostBasis)))
+                                {
+                                    <option value="@((byte)b)">@DstLocalization.T("LandedCost_Basis_" + b)</option>
+                                }
+                            </select>
+                            <input name="note" class="form-control mr-1 mb-50" maxlength="300" placeholder="@DstLocalization.T("Comment")" />
+                            <button type="submit" class="btn btn-primary mb-50"><i class="bx bx-plus"></i> @DstLocalization.T("LandedCost_New")</button>
+                        }
+                    }
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Report_DocNo")</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("LandedCost_Basis")</th>
+                                    <th>@DstLocalization.T("Status")</th><th class="text-right">@DstLocalization.T("LandedCost_Incomes")</th>
+                                    <th class="text-right">@DstLocalization.T("Amount")</th><th>@DstLocalization.T("Comment")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in rows)
+                                {
+                                    <tr>
+                                        <td><a href="@Url.Action("Details", new { id = r.ID })">@r.DocNo</a></td>
+                                        <td>@r.DocDate.ToString("dd.MM.yyyy")</td>
+                                        <td>@DstLocalization.T("LandedCost_Basis_" + r.Basis)</td>
+                                        <td>@DstLocalization.T("DocStatus_" + r.Status)</td>
+                                        <td class="text-right">@(counts.TryGetValue(r.ID, out var c) ? c : 0)</td>
+                                        <td class="text-right">@(r.Status == DocumentStatus.Draft ? "" : r.TotalAmount.ToString("N0"))</td>
+                                        <td>@r.Note</td>
+                                    </tr>
+                                }
+                                @if (rows.Count == 0) { <tr><td colspan="7" class="text-muted">@DstLocalization.T("NoData")</td></tr> }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

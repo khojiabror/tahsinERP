@@ -112,6 +112,7 @@ public class HelperTests
     {
         Assert.Equal("https://bot.uz/app/?t=firma1&c=5&v=9", UpdateRouter.MiniAppUrl("https://bot.uz/", "firma1", 5, 9));
         Assert.Equal("https://bot.uz/app/?t=firma1&c=5", UpdateRouter.MiniAppUrl("https://bot.uz", "firma1", 5, null));
+        Assert.Equal("https://bot.uz/app/store.html?t=firma%201", UpdateRouter.StoreAppUrl("https://bot.uz/", "firma 1"));
         var stop = new ErpRouteStop(1, "Do'kon", null, null, null, null, null, true, true, "ORDER", 150000, 1);
         Assert.Equal("✅ Do'kon · 150 000❗", UpdateRouter.StopLabel(stop));
         Assert.StartsWith("⏳", UpdateRouter.StopLabel(stop with { Visited = false }));

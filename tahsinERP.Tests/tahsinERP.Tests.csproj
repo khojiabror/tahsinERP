@@ -237,6 +237,7 @@
     <Compile Include="Distribution\DocumentLifecycleTests.cs" />
     <Compile Include="Distribution\ScopeFilterTests.cs" />
     <Compile Include="Distribution\DstLocalizationTests.cs" />
+    <Compile Include="Distribution\WarehouseTests.cs" />
     <Compile Include="Distribution\DistributionUnitOfWorkTests.cs" />
     <Compile Include="Distribution\PricingAndRulesTests.cs" />
     <Compile Include="Distribution\DirectoryIntegrationTests.cs" />

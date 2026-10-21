@@ -76,6 +76,9 @@ namespace tahsinERP.Services.LicenseSync
             /// <summary>Yangi kalit faollashtirildimi.</summary>
             public bool Activated { get; set; }
             public string Message { get; set; }
+            /// <summary>Panel bergan onlayn tekshiruv siyosati (register/pull 200 javobida; 304 da null).</summary>
+            public string OnlineCheck { get; set; }
+            public int? OfflineGraceDays { get; set; }
         }
 
         #region Taymer
@@ -161,16 +164,29 @@ namespace tahsinERP.Services.LicenseSync
             var tenant = TenantContext.Current;
             using (TenantContext.Use(tenant))
             {
-                var result = await SyncCoreAsync(host, ct).ConfigureAwait(false);
+                var policy = new SyncResult();
+                var result = await SyncCoreAsync(host, policy, ct).ConfigureAwait(false);
+                result.OnlineCheck = policy.OnlineCheck;
+                result.OfflineGraceDays = policy.OfflineGraceDays;
                 try
                 {
                     using (var db = new DBTHSNEntities())
                     {
-                        LicenseService.WriteSyncState(db, LicenseService.STATE_LAST_SYNC,
-                            DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture));
+                        string now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+                        LicenseService.WriteSyncState(db, LicenseService.STATE_LAST_SYNC, now);
                         LicenseService.WriteSyncState(db, LicenseService.STATE_LAST_SYNC_RESULT,
                             (result.Ok ? "OK: " : "XATO: ") + result.Message);
+                        if (result.Ok)
+                            LicenseService.WriteSyncState(db, LicenseService.STATE_LAST_SYNC_OK, now);
+                        // Siyosat faqat panel javob bergan bo'lsa yangilanadi (304 — o'zgarmagan, oxirgisi qoladi).
+                        if (!string.IsNullOrWhiteSpace(policy.OnlineCheck))
+                        {
+                            LicenseService.WriteSyncState(db, LicenseService.STATE_ONLINE_CHECK, policy.OnlineCheck.Trim().ToLowerInvariant());
+                            LicenseService.WriteSyncState(db, LicenseService.STATE_OFFLINE_GRACE_DAYS,
+                                policy.OfflineGraceDays.HasValue ? policy.OfflineGraceDays.Value.ToString(CultureInfo.InvariantCulture) : null);
+                        }
                     }
+                    LicenseService.InvalidateCache();
                 }
                 catch (Exception ex)
                 {
@@ -180,7 +196,7 @@ namespace tahsinERP.Services.LicenseSync
             }
         }
 
-        private static async Task<SyncResult> SyncCoreAsync(string host, CancellationToken ct)
+        private static async Task<SyncResult> SyncCoreAsync(string host, SyncResult policy, CancellationToken ct)
         {
             string installationId, secret, regToken, currentKey;
             int companyId = LicenseService.InstallationCompanyId;
@@ -211,11 +227,15 @@ namespace tahsinERP.Services.LicenseSync
                 }
                 secret = reg.TenantSecret;
                 offeredKey = reg.LicenseKey;
+                policy.OnlineCheck = reg.OnlineCheck;
+                policy.OfflineGraceDays = reg.OfflineGraceDays;
             }
 
             if (string.IsNullOrWhiteSpace(offeredKey))
             {
                 var pull = await Client.PullAsync(installationId, secret, currentKey, ct).ConfigureAwait(false);
+                policy.OnlineCheck = pull.OnlineCheck;
+                policy.OfflineGraceDays = pull.OfflineGraceDays;
                 switch (pull.Status)
                 {
                     case LicensePanelClient.PullStatus.NotModified:

@@ -29,6 +29,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             public decimal RemainingBase => QtyBase - QtyShippedBase;
             public decimal WaitingBase => Math.Max(0, RemainingBase - ReservedBase);   // "kirimni kutmoqda"
             public string Barcode { get; set; }
+            public decimal PromoPct { get; set; }
+            public bool IsFree { get; set; }
+            public string Promotion { get; set; }
         }
 
         public sealed class Shipment
@@ -80,7 +83,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                              BaseUnit = db.Units.Where(u => u.ID == p.UnitID).Select(u => u.ShortName).FirstOrDefault(),
                              Reserved = db.StockReservations.Where(r => r.OrderLineID == l.ID).Sum(r => (decimal?)r.QtyBase) ?? 0,
                              Barcode = db.ProductBarcodes.Where(b => b.ProductID == l.ProductID && b.ProductUnitID == l.ProductUnitID)
-                                 .Select(b => b.Barcode).FirstOrDefault()
+                                 .Select(b => b.Barcode).FirstOrDefault(),
+                             Promotion = db.Promotions.Where(pr => pr.ID == l.PromotionID).Select(pr => pr.Name).FirstOrDefault()
                          }).ToList();
 
             var shipments = db.Shipments.Where(s => s.OrderID == order.ID && s.Status != DocumentStatus.Cancelled)
@@ -111,7 +115,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                     Product = russian && !string.IsNullOrWhiteSpace(x.NameRu) ? x.NameRu : x.Name,
                     Unit = x.Unit, BaseUnit = x.BaseUnit, Factor = x.l.Factor, Qty = x.l.Qty, QtyBase = x.l.QtyBase,
                     UnitPrice = x.l.UnitPrice, DiscountPct = x.l.DiscountPct, Amount = x.l.Amount,
-                    QtyShippedBase = x.l.QtyShippedBase, ReservedBase = x.Reserved, Barcode = x.Barcode
+                    QtyShippedBase = x.l.QtyShippedBase, ReservedBase = x.Reserved, Barcode = x.Barcode,
+                    PromoPct = x.l.PromoPct, IsFree = x.l.IsFree, Promotion = x.Promotion
                 }).ToList(),
                 Shipments = shipments.Select(s => new Shipment
                 {

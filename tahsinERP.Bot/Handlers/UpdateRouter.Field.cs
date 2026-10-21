@@ -24,6 +24,11 @@ public sealed partial class UpdateRouter
             if (RequireManager(ctx) && cb.Int(0) is int orderId) await ConfirmOverrideAsync(ctx, orderId, cq.Message, ct);
             return;
         }
+        if (cb.Command == "wo")
+        {
+            if (RequireManager(ctx) && cb.Int(0) is int writeOffId) await WriteOffDecisionAsync(ctx, writeOffId, cb.Str(1) == "1", cq.Message, ct);
+            return;
+        }
         if (cb.Command == "ak")
         {
             await SendStatementAsync(ctx, cb.Str(0), ct);
@@ -286,6 +291,16 @@ public sealed partial class UpdateRouter
     }
 
     // ---------- rahbar ----------
+
+    /// <summary>Rahbar: hisobdan chiqarishni tasdiqlash (ombordan chiqariladi) yoki rad etish.</summary>
+    private async Task WriteOffDecisionAsync(Ctx ctx, int id, bool approve, TgMessage? source, CancellationToken ct)
+    {
+        var r = await ctx.Erp.PostAsync<ErpWriteOffResult>("WriteOffDecision", new { id, approve, reason = "Telegram" }, ctx.UserId, ct);
+        if (source != null)
+            outbox.Enqueue(ctx.Tenant.Id, ctx.ChatId, "editMessageReplyMarkup",
+                new { chat_id = ctx.ChatId, message_id = source.MessageId, reply_markup = new { inline_keyboard = Array.Empty<object>() } });
+        outbox.Send(ctx.Tenant.Id, ctx.ChatId, approve ? ctx.T("WriteOff_Done", r?.DocNo, Texts.Money(r?.CostTotal ?? 0)) : ctx.T("WriteOff_RejectedDone", r?.DocNo));
+    }
 
     private async Task ConfirmOverrideAsync(Ctx ctx, int orderId, TgMessage? source, CancellationToken ct)
     {

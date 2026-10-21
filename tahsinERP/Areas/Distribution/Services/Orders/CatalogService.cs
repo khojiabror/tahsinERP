@@ -25,6 +25,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         public string Category { get; set; }
         public decimal Available { get; set; }   // asosiy birlikda
         public List<CatalogUnit> Units { get; set; }
+        /// <summary>Amaldagi aksiyalar qisqa yozuvi ("−5% ≥100", "10+1"); bo'lmasa null.</summary>
+        public string Promo { get; set; }
     }
 
     /// <summary>
@@ -65,6 +67,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             var warehouses = warehouseId.HasValue ? new List<int> { warehouseId.Value } : StockService.SalesWarehouses(db);
             var stock = StockService.Levels(db, ids, warehouses).GroupBy(l => l.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Available));
             var units = new UnitService(db);
+            int? priceTypeId = customerId.HasValue ? db.CustomerProfiles.Where(c => c.CustomerID == customerId).Select(c => c.PriceTypeID).FirstOrDefault() : null;
+            var promoLabels = PromotionService.Labels(PromotionService.Active(db, priceTypeId, now),
+                products.Select(p => (p.ID, p.CategoryID)).ToList());
 
             return products.OrderBy(p => p.Name).Select(p =>
             {
@@ -74,6 +79,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 {
                     Id = p.ID, PNo = p.PNo, Name = p.Name, NameRu = p.NameRu, Text = p.PNo + " — " + p.Name,
                     CategoryId = p.CategoryID, Category = p.Category, Available = available,
+                    Promo = promoLabels.TryGetValue(p.ID, out var promo) ? string.Join(", ", promo) : null,
                     Units = units.UnitsOf(p.ID).Select(u => new CatalogUnit
                     {
                         ProductUnitId = u.ProductUnitID, Name = u.UnitName, Factor = u.Factor,
