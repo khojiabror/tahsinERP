@@ -1,0 +1,80 @@
+@model tahsinERP.Areas.Distribution.Services.Delivery.TripView
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    Layout = null;
+    var t = Model.Trip;
+    string Q(decimal v) => v.ToString("0.####");
+    var lines = Model.Stops.OrderBy(s => s.Seq).SelectMany(s => s.Lines.Select(l => new { s, l }))
+        .Where(x => x.l.QtyDelivered.HasValue && x.l.QtyDelivered.Value < x.l.QtyBase).ToList();
+    int n = 0;
+    decimal undeliveredSum = 0, returnedSum = 0, shortageSum = 0;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@DstLocalization.T("Trip_Act") @t.DocNo</title>
+    @Html.Partial("~/Areas/Distribution/Views/DstOrders/_PrintStyles.cshtml")
+</head>
+<body>
+    <div class="sheet">
+        <div class="noprint"><button onclick="window.print()">@DstLocalization.T("Print")</button></div>
+        <h1>@DstLocalization.T("Trip_Act") — @DstLocalization.T("Trip") № @t.DocNo</h1>
+        <div class="muted">@ViewBag.Company · @t.DocDate.ToString("dd.MM.yyyy") · @DstLocalization.T("Trip_ClosedAt"): @(t.PostedAt?.ToString("dd.MM.yyyy HH:mm"))</div>
+        <div class="meta">
+            <div>
+                <b>@DstLocalization.T("Vehicle"):</b> @Model.Vehicle?.PlateNo · <b>@DstLocalization.T("Expeditor"):</b> @Model.Expeditor<br />
+                <b>@DstLocalization.T("Warehouse"):</b> @Model.Warehouse
+            </div>
+            <div>
+                @DstLocalization.T("Trip_Stops"): @Model.Stops.Count(s => s.Status == (byte)StopStatus.Delivered) / @Model.Stops.Count(s => s.Status == (byte)StopStatus.Partial) / @Model.Stops.Count(s => s.Status == (byte)StopStatus.Refused)
+                (@DstLocalization.T("StopStatus_Delivered") / @DstLocalization.T("StopStatus_Partial") / @DstLocalization.T("StopStatus_Refused"))<br />
+                @DstLocalization.T("Amount"): @t.Total.ToString("N0") · @DstLocalization.T("Trip_Delivered"): @Model.Stops.Sum(s => s.DeliveredAmount ?? 0).ToString("N0")
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="c">#</th><th>@DstLocalization.T("Customer")</th><th>@DstLocalization.T("Product")</th><th>@DstLocalization.T("Reason")</th>
+                    <th class="r">@DstLocalization.T("Trip_Shipped")</th><th class="r">@DstLocalization.T("Trip_Delivered")</th>
+                    <th class="r">@DstLocalization.T("Trip_Returned")</th><th class="r">@DstLocalization.T("Trip_Shortage")</th><th class="r">@DstLocalization.T("Amount")</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var x in lines)
+                {
+                    decimal undelivered = x.l.QtyBase - x.l.QtyDelivered.Value;
+                    decimal returned = x.l.QtyReturned ?? 0;
+                    decimal shortage = undelivered - returned;
+                    decimal amount = x.l.QtyBase == 0 ? 0 : Math.Round(x.l.Amount * undelivered / x.l.QtyBase, 2);
+                    undeliveredSum += amount;
+                    returnedSum += x.l.QtyBase == 0 ? 0 : Math.Round(x.l.Amount * returned / x.l.QtyBase, 2);
+                    shortageSum += x.l.QtyBase == 0 ? 0 : Math.Round(x.l.Amount * shortage / x.l.QtyBase, 2);
+                    <tr>
+                        <td class="c">@(++n)</td>
+                        <td>@x.s.Customer<br /><span class="muted">@x.s.OrderNo @(x.s.ReturnNo == null ? "" : "→ " + x.s.ReturnNo)</span></td>
+                        <td>@x.l.PNo — @x.l.Product</td>
+                        <td>@x.s.Reason</td>
+                        <td class="r">@Q(x.l.QtyBase) @x.l.Unit</td>
+                        <td class="r">@Q(x.l.QtyDelivered.Value)</td>
+                        <td class="r">@Q(returned)</td>
+                        <td class="r">@(shortage > 0 ? Q(shortage) : "")</td>
+                        <td class="r">@amount.ToString("N2")</td>
+                    </tr>
+                }
+                @if (!lines.Any())
+                {
+                    <tr><td colspan="9" class="c muted">@DstLocalization.T("Trip_ActNoDiff")</td></tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr><th colspan="8" class="r">@DstLocalization.T("Trip_Undelivered")</th><th class="r">@undeliveredSum.ToString("N2")</th></tr>
+                <tr><th colspan="8" class="r">@DstLocalization.T("Trip_ReturnedToWarehouse")</th><th class="r">@returnedSum.ToString("N2")</th></tr>
+                <tr><th colspan="8" class="r">@DstLocalization.T("Trip_Shortage") (@DstLocalization.T("Trip_ShortageCost"): @t.ShortageCost.ToString("N0"))</th><th class="r">@shortageSum.ToString("N2")</th></tr>
+                <tr><th colspan="8" class="r">@DstLocalization.T("Trip_Expenses")</th><th class="r">@Model.ExpensesTotal.ToString("N2")</th></tr>
+            </tfoot>
+        </table>
+        <div class="sign"><div>@DstLocalization.T("Expeditor")</div><div>@DstLocalization.T("Print_Received") (@DstLocalization.T("Warehouse"))</div></div>
+    </div>
+</body>
+</html>

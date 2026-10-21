@@ -24,7 +24,7 @@ Brauzer ─► Caddy (TLS, on-demand) ─► tahsinERP.Site ─ pull (ETag, 60 s
 | `Site__MasterKey` | ≥ 32 belgi, ERP `TAHSINERP_BOT_KEY` bilan bir xil |
 | `Site__BaseDomain` | `tahsin.uz` → `{slug}.tahsin.uz` |
 | `ConnectionStrings__Site` | `tahsin_site` (ishga tushishda o'zi yaratiladi) |
-| `Site__DataRoot` | rasm keshi papkasi |
+| `Site__DataRoot` | rasm keshi papkasi (standart `cache`, nisbiy — ContentRoot ichida) |
 
 ## Buyruqlar
 

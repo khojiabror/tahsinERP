@@ -2404,4 +2404,970 @@ Yetkazish: {6}</value>
   <data name="IssueSeverity_3" xml:space="preserve">
     <value>K3 — noqulaylik</value>
   </data>
+  <data name="AllWarehouses" xml:space="preserve">
+    <value>Barcha omborlar</value>
+  </data>
+  <data name="Lines" xml:space="preserve">
+    <value>Qatorlar</value>
+  </data>
+  <data name="NoData" xml:space="preserve">
+    <value>Ma'lumot yo'q.</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Joylashuv</value>
+  </data>
+  <data name="Post" xml:space="preserve">
+    <value>O'tkazish</value>
+  </data>
+  <data name="Supplier" xml:space="preserve">
+    <value>Yetkazib beruvchi</value>
+  </data>
+  <data name="UnitCost" xml:space="preserve">
+    <value>Birlik tannarxi</value>
+  </data>
+  <data name="Order_CancelReason" xml:space="preserve">
+    <value>Sabab</value>
+  </data>
+  <data name="Error_Required" xml:space="preserve">
+    <value>Majburiy maydon to'ldirilmagan.</value>
+  </data>
+  <data name="Doc_NotDraft" xml:space="preserve">
+    <value>Hujjat qoralama emas — o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Doc_NotPosted" xml:space="preserve">
+    <value>Hujjat o'tkazilmagan.</value>
+  </data>
+  <data name="Stock_NotAvailable" xml:space="preserve">
+    <value>{0}: mavjud qoldiq {1}, kerak {2} (rezervdagi tovar hisobga olinmaydi).</value>
+  </data>
+  <data name="Stock_WriteError" xml:space="preserve">
+    <value>Ombor yozuvida xato:</value>
+  </data>
+  <data name="Stock_ReceiptConsumed" xml:space="preserve">
+    <value>Kirimni qaytarib bo'lmaydi — tovar allaqachon chiqarilgan.</value>
+  </data>
+  <data name="Notify_LowStock" xml:space="preserve">
+    <value>⚠️ Minimal qoldiqdan past — {0}:</value>
+  </data>
+  <data name="Tile_Transfers" xml:space="preserve">
+    <value>Ko'chirmani haqiqiy miqdor bilan qabul qilish va farq dalolatnomasi</value>
+  </data>
+  <data name="Tile_WriteOffs" xml:space="preserve">
+    <value>Brak, sinish, kamomad — rahbar tasdig'i bilan</value>
+  </data>
+  <data name="Tile_Regrades" xml:space="preserve">
+    <value>Bir tovar o'rniga boshqasi (tannarx saqlanadi)</value>
+  </data>
+  <data name="Tile_LandedCosts" xml:space="preserve">
+    <value>Yo'l haqi va bojxonani tannarxga taqsimlash</value>
+  </data>
+  <data name="Tile_Reorder" xml:space="preserve">
+    <value>Minimal qoldiqdan past tovarlar → xarid buyurtmasi</value>
+  </data>
+  <data name="Tile_Promotions" xml:space="preserve">
+    <value>10+1, hajmga qarab va muddatli chegirmalar</value>
+  </data>
+  <data name="WriteOffs" xml:space="preserve">
+    <value>Hisobdan chiqarish</value>
+  </data>
+  <data name="WriteOff" xml:space="preserve">
+    <value>Hisobdan chiqarish</value>
+  </data>
+  <data name="WriteOff_New" xml:space="preserve">
+    <value>Yangi hisobdan chiqarish</value>
+  </data>
+  <data name="WriteOff_Hint" xml:space="preserve">
+    <value>Brak, sinish, kamomad: hujjat tuziladi va rahbarga tasdiqqa yuboriladi (Telegram'da ham). Tasdiqlanganda tovar ombordan FIFO tannarxda chiqariladi; buyurtmalar rezervidagi tovar chiqarilmaydi.</value>
+  </data>
+  <data name="WriteOff_Waiting" xml:space="preserve">
+    <value>Tasdiq kutilmoqda</value>
+  </data>
+  <data name="WriteOff_Approved" xml:space="preserve">
+    <value>Tasdiqlangan</value>
+  </data>
+  <data name="WriteOff_Author" xml:space="preserve">
+    <value>Tuzgan</value>
+  </data>
+  <data name="WriteOff_Submitted" xml:space="preserve">
+    <value>Yuborilgan</value>
+  </data>
+  <data name="WriteOff_ApprovedBy" xml:space="preserve">
+    <value>Tasdiqlagan</value>
+  </data>
+  <data name="WriteOff_Submit" xml:space="preserve">
+    <value>Tasdiqqa yuborish</value>
+  </data>
+  <data name="WriteOff_Approve" xml:space="preserve">
+    <value>Tasdiqlash va chiqarish</value>
+  </data>
+  <data name="WriteOff_ApproveConfirm" xml:space="preserve">
+    <value>Tovar ombordan chiqariladi. Davom etasizmi?</value>
+  </data>
+  <data name="WriteOff_Reject" xml:space="preserve">
+    <value>Rad etish</value>
+  </data>
+  <data name="WriteOff_CancelPosted" xml:space="preserve">
+    <value>Bekor qilish (tovar omborga qaytadi)</value>
+  </data>
+  <data name="WriteOff_EditResubmit" xml:space="preserve">
+    <value>Hujjat tasdiqqa yuborilgan. O'zgartirsangiz, qayta yuborish kerak bo'ladi.</value>
+  </data>
+  <data name="WriteOff_AlreadySubmitted" xml:space="preserve">
+    <value>Hujjat allaqachon tasdiqqa yuborilgan.</value>
+  </data>
+  <data name="WriteOff_NotSubmitted" xml:space="preserve">
+    <value>Hujjat hali tasdiqqa yuborilmagan.</value>
+  </data>
+  <data name="WriteOff_NoRight" xml:space="preserve">
+    <value>Hisobdan chiqarishni tasdiqlash huquqi yo'q.</value>
+  </data>
+  <data name="WriteOff_SelfApprove" xml:space="preserve">
+    <value>O'zingiz tuzgan hujjatni boshqa rahbar tasdiqlashi kerak.</value>
+  </data>
+  <data name="Notify_WriteOff" xml:space="preserve">
+    <value>🗑 Hisobdan chiqarish {0} tasdiqni kutmoqda
+Ombor: {1}
+Sabab: {2}
+Tuzgan: {3}</value>
+  </data>
+  <data name="Notify_WriteOffApproved" xml:space="preserve">
+    <value>✅ Hisobdan chiqarish {0} tasdiqlandi.</value>
+  </data>
+  <data name="Notify_WriteOffRejected" xml:space="preserve">
+    <value>❌ Hisobdan chiqarish {0} rad etildi: {1}</value>
+  </data>
+  <data name="Regrades" xml:space="preserve">
+    <value>Pereso'rtitsa</value>
+  </data>
+  <data name="Regrade" xml:space="preserve">
+    <value>Pereso'rtitsa</value>
+  </data>
+  <data name="Regrade_New" xml:space="preserve">
+    <value>Yangi pereso'rtitsa</value>
+  </data>
+  <data name="Regrade_Hint" xml:space="preserve">
+    <value>Bir tovar (masalan, noto'g'ri navda kelgan) chiqim qilinadi, o'rniga boshqasi kirim qilinadi — chiqim tannarxi yangi tovarga o'tadi, ombor qiymati o'zgarmaydi.</value>
+  </data>
+  <data name="Regrade_From" xml:space="preserve">
+    <value>Chiqim (qaysi tovar)</value>
+  </data>
+  <data name="Regrade_To" xml:space="preserve">
+    <value>Kirim (qaysi tovarga)</value>
+  </data>
+  <data name="Regrade_NewUnitCost" xml:space="preserve">
+    <value>Yangi birlik tannarxi</value>
+  </data>
+  <data name="Regrade_PostConfirm" xml:space="preserve">
+    <value>Ombor qoldig'i o'zgaradi. Davom etasizmi?</value>
+  </data>
+  <data name="Regrade_SameProduct" xml:space="preserve">
+    <value>Chiqim va kirim tovari bir xil bo'lmasin.</value>
+  </data>
+  <data name="Transfers" xml:space="preserve">
+    <value>Ko'chirmalarni qabul qilish</value>
+  </data>
+  <data name="Transfer_Pending" xml:space="preserve">
+    <value>Qabul kutayotgan ko'chirmalar</value>
+  </data>
+  <data name="Transfer_Hint" xml:space="preserve">
+    <value>Boshqa ombordan yuborilgan tovar: haqiqatda kelgan miqdorni kiriting. Farq bo'lsa dalolatnoma tuziladi va rahbarlarga xabar boradi.</value>
+  </data>
+  <data name="Transfer_Acts" xml:space="preserve">
+    <value>Farq dalolatnomalari</value>
+  </data>
+  <data name="Transfer_Act" xml:space="preserve">
+    <value>Ko'chirma dalolatnomasi</value>
+  </data>
+  <data name="Transfer_From" xml:space="preserve">
+    <value>Jo'natuvchi</value>
+  </data>
+  <data name="Transfer_To" xml:space="preserve">
+    <value>Qabul qiluvchi</value>
+  </data>
+  <data name="Transfer_ReceiveBtn" xml:space="preserve">
+    <value>Qabul qilish</value>
+  </data>
+  <data name="Transfer_ReceiveHint" xml:space="preserve">
+    <value>Har qatorga kelgan miqdorni yozing (sukut — jo'natilgani). Kam kelgan bo'lsa — kamomadni nima qilishni tanlang: yo'qotish (yo'lda yo'qolgan) yoki jo'natuvchiga qaytarish (jo'natilmay qolgan). Ko'p kelgani kirimga qo'shiladi.</value>
+  </data>
+  <data name="Transfer_ReceiveConfirm" xml:space="preserve">
+    <value>Ko'chirma qabul qilinadi va qoldiq yangilanadi. Davom etasizmi?</value>
+  </data>
+  <data name="Transfer_Received" xml:space="preserve">
+    <value>Ko'chirma qabul qilindi.</value>
+  </data>
+  <data name="Transfer_Sent" xml:space="preserve">
+    <value>Jo'natilgan</value>
+  </data>
+  <data name="Transfer_ReceivedQty" xml:space="preserve">
+    <value>Kelgan</value>
+  </data>
+  <data name="Transfer_Resolution" xml:space="preserve">
+    <value>Kamomad</value>
+  </data>
+  <data name="Transfer_LOSS" xml:space="preserve">
+    <value>Yo'qotish</value>
+  </data>
+  <data name="Transfer_RETURN" xml:space="preserve">
+    <value>Jo'natuvchiga qaytarish</value>
+  </data>
+  <data name="Transfer_ReturnLocation" xml:space="preserve">
+    <value>Qaytarish joyi</value>
+  </data>
+  <data name="Transfer_Shortage" xml:space="preserve">
+    <value>Kamomad summasi</value>
+  </data>
+  <data name="Transfer_Loss" xml:space="preserve">
+    <value>Shundan yo'qotish</value>
+  </data>
+  <data name="Transfer_Surplus" xml:space="preserve">
+    <value>Ortiqcha summasi</value>
+  </data>
+  <data name="Transfer_SignSender" xml:space="preserve">
+    <value>Topshirdi</value>
+  </data>
+  <data name="Transfer_SignReceiver" xml:space="preserve">
+    <value>Qabul qildi</value>
+  </data>
+  <data name="Transfer_NotPending" xml:space="preserve">
+    <value>Ko'chirma qabul kutmayapti (allaqachon qabul qilingan yoki o'chirilgan).</value>
+  </data>
+  <data name="Transfer_NotResponsible" xml:space="preserve">
+    <value>Qabul qilishni faqat omborning mas'uli (yoki Admin) bajaradi.</value>
+  </data>
+  <data name="Transfer_AllLinesRequired" xml:space="preserve">
+    <value>Har qator uchun kelgan miqdorni kiriting.</value>
+  </data>
+  <data name="Transfer_ResolutionRequired" xml:space="preserve">
+    <value>{0}: kamomadni nima qilishni tanlang.</value>
+  </data>
+  <data name="Notify_TransferDiff" xml:space="preserve">
+    <value>📦 Ko'chirma farqi {0} ({1}): {2} → {3}
+Kamomad: {4} (yo'qotish {5}), ortiqcha: {6}</value>
+  </data>
+  <data name="LandedCosts" xml:space="preserve">
+    <value>Qo'shimcha xarajatlar (landed cost)</value>
+  </data>
+  <data name="LandedCost" xml:space="preserve">
+    <value>Qo'shimcha xarajat</value>
+  </data>
+  <data name="LandedCost_New" xml:space="preserve">
+    <value>Yangi hujjat</value>
+  </data>
+  <data name="LandedCost_Hint" xml:space="preserve">
+    <value>Yetkazib beruvchidan kelgan kirim(lar)ga yo'l haqi, bojxona va boshqa xarajatlarni qo'shing — ular kirim qatorlariga taqsimlanib tovar tannarxini oshiradi. Allaqachon sotilgan qism qayta baholanmaydi.</value>
+  </data>
+  <data name="LandedCost_Basis" xml:space="preserve">
+    <value>Taqsimlash</value>
+  </data>
+  <data name="LandedCost_Basis_Value" xml:space="preserve">
+    <value>qiymat bo'yicha</value>
+  </data>
+  <data name="LandedCost_Basis_Quantity" xml:space="preserve">
+    <value>miqdor bo'yicha</value>
+  </data>
+  <data name="LandedCost_Basis_Weight" xml:space="preserve">
+    <value>og'irlik bo'yicha</value>
+  </data>
+  <data name="LandedCost_Incomes" xml:space="preserve">
+    <value>Kirimlar</value>
+  </data>
+  <data name="LandedCost_Items" xml:space="preserve">
+    <value>Xarajatlar</value>
+  </data>
+  <data name="LandedCost_Kind" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="LandedCost_Kind_FREIGHT" xml:space="preserve">
+    <value>Yo'l haqi</value>
+  </data>
+  <data name="LandedCost_Kind_CUSTOMS" xml:space="preserve">
+    <value>Bojxona</value>
+  </data>
+  <data name="LandedCost_Kind_OTHER" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="LandedCost_ItemHint" xml:space="preserve">
+    <value>Summa asosiy valyutada, QQSsiz.</value>
+  </data>
+  <data name="LandedCost_Value" xml:space="preserve">
+    <value>Qiymat</value>
+  </data>
+  <data name="LandedCost_SearchIncome" xml:space="preserve">
+    <value>Kirim raqami yoki yetkazib beruvchi</value>
+  </data>
+  <data name="LandedCost_Preview" xml:space="preserve">
+    <value>Taqsimlash (oldindan ko'rish)</value>
+  </data>
+  <data name="LandedCost_Allocation" xml:space="preserve">
+    <value>Taqsimlash</value>
+  </data>
+  <data name="LandedCost_Allocated" xml:space="preserve">
+    <value>Xarajat ulushi</value>
+  </data>
+  <data name="LandedCost_UnitBefore" xml:space="preserve">
+    <value>Tannarx (oldin)</value>
+  </data>
+  <data name="LandedCost_UnitAfter" xml:space="preserve">
+    <value>Tannarx (keyin)</value>
+  </data>
+  <data name="LandedCost_Consumed" xml:space="preserve">
+    <value>Sotilgan</value>
+  </data>
+  <data name="LandedCost_ConsumedWarning" xml:space="preserve">
+    <value>Xarajatning {0} so'mi allaqachon chiqarilgan tovarga to'g'ri keladi — o'tgan sotuvlar tannarxi o'zgarmaydi.</value>
+  </data>
+  <data name="LandedCost_Post" xml:space="preserve">
+    <value>O'tkazish (tannarxga qo'shish)</value>
+  </data>
+  <data name="LandedCost_PostConfirm" xml:space="preserve">
+    <value>Kirim qatorlarining tannarxi o'zgaradi. Davom etasizmi?</value>
+  </data>
+  <data name="LandedCost_IncomeNotEligible" xml:space="preserve">
+    <value>Bu kirimga xarajat qo'shib bo'lmaydi (qabul qilinmagan, ko'chirma yoki ishlab chiqarish kirimi).</value>
+  </data>
+  <data name="LandedCost_NoIncomes" xml:space="preserve">
+    <value>Kamida bitta kirim tanlang.</value>
+  </data>
+  <data name="LandedCost_NoItems" xml:space="preserve">
+    <value>Kamida bitta xarajat qo'shing.</value>
+  </data>
+  <data name="LandedCost_NoWeight" xml:space="preserve">
+    <value>Og'irlik bo'yicha taqsimlab bo'lmaydi — og'irligi yo'q: {0}</value>
+  </data>
+  <data name="LandedCost_NothingToAllocate" xml:space="preserve">
+    <value>Taqsimlanadigan narsa yo'q (qatorlar qiymati 0).</value>
+  </data>
+  <data name="Reorder" xml:space="preserve">
+    <value>Buyurtma taklifi</value>
+  </data>
+  <data name="Reorder_Hint" xml:space="preserve">
+    <value>Mavjud (rezervdan tashqari) qoldiq minimaldan past tovarlar. Taklif = maqsad (maksimal, bo'lmasa minimal × 2) − mavjud. Yetkazib beruvchi va narx — oxirgi xarid hisob-fakturasidan.</value>
+  </data>
+  <data name="Reorder_Min" xml:space="preserve">
+    <value>Minimal</value>
+  </data>
+  <data name="Reorder_Target" xml:space="preserve">
+    <value>Maqsad</value>
+  </data>
+  <data name="Reorder_Qty" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="Reorder_Recent" xml:space="preserve">
+    <value>30 kunda buyurtma</value>
+  </data>
+  <data name="Reorder_None" xml:space="preserve">
+    <value>Hamma tovar minimal qoldiqdan yuqori.</value>
+  </data>
+  <data name="Reorder_CreateOrders" xml:space="preserve">
+    <value>Xarid buyurtmasi yaratish</value>
+  </data>
+  <data name="Reorder_CreateHint" xml:space="preserve">
+    <value>Yetkazib beruvchi bo'yicha alohida buyurtma (SRM → Xarid buyurtmalari).</value>
+  </data>
+  <data name="Reorder_Created" xml:space="preserve">
+    <value>Xarid buyurtmalari yaratildi: {0}</value>
+  </data>
+  <data name="MinStock_Max" xml:space="preserve">
+    <value>Maksimal (ixtiyoriy)</value>
+  </data>
+  <data name="MinStock_MaxHint" xml:space="preserve">
+    <value>Buyurtma taklifi shu darajagacha to'ldiradi; bo'sh — minimal × 2.</value>
+  </data>
+  <data name="MinStock_MaxBelowMin" xml:space="preserve">
+    <value>Maksimal minimaldan kam bo'lmasin.</value>
+  </data>
+  <data name="Promotions" xml:space="preserve">
+    <value>Aksiyalar</value>
+  </data>
+  <data name="Promo_New" xml:space="preserve">
+    <value>Yangi aksiya</value>
+  </data>
+  <data name="Promo_Hint" xml:space="preserve">
+    <value>Aksiya buyurtma saqlanganda avtomatik qo'llanadi (web, bot, Mini App). Chegirma rol limiti va minimal narxdan ozod; sovg'a narxsiz alohida qator bo'lib qo'shiladi.</value>
+  </data>
+  <data name="Promo_Kind" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="Promo_Kind_DISCOUNT" xml:space="preserve">
+    <value>Chegirma</value>
+  </data>
+  <data name="Promo_Kind_FREE" xml:space="preserve">
+    <value>Sovg'a (N+M)</value>
+  </data>
+  <data name="Promo_Applies" xml:space="preserve">
+    <value>Nimaga</value>
+  </data>
+  <data name="Promo_Condition" xml:space="preserve">
+    <value>Shart</value>
+  </data>
+  <data name="Promo_Period" xml:space="preserve">
+    <value>Muddat</value>
+  </data>
+  <data name="Promo_Used" xml:space="preserve">
+    <value>Qatorlarda</value>
+  </data>
+  <data name="Promo_AllProducts" xml:space="preserve">
+    <value>Hamma tovar</value>
+  </data>
+  <data name="Promo_AllCustomers" xml:space="preserve">
+    <value>Hamma mijoz</value>
+  </data>
+  <data name="Promo_ShowAll" xml:space="preserve">
+    <value>Hammasi</value>
+  </data>
+  <data name="Promo_ShowCurrent" xml:space="preserve">
+    <value>Amaldagilari</value>
+  </data>
+  <data name="Promo_Stop" xml:space="preserve">
+    <value>To'xtatish</value>
+  </data>
+  <data name="Promo_Resume" xml:space="preserve">
+    <value>Yoqish</value>
+  </data>
+  <data name="Promo_From" xml:space="preserve">
+    <value>Boshlanishi</value>
+  </data>
+  <data name="Promo_To" xml:space="preserve">
+    <value>Tugashi (bo'sh — muddatsiz)</value>
+  </data>
+  <data name="Promo_PriceTypeHint" xml:space="preserve">
+    <value>faqat shu narx turidagi mijozlarga</value>
+  </data>
+  <data name="Promo_CategoryHint" xml:space="preserve">
+    <value>tovar tanlanmasa</value>
+  </data>
+  <data name="Promo_DiscountPct" xml:space="preserve">
+    <value>Chegirma, %</value>
+  </data>
+  <data name="Promo_MinQty" xml:space="preserve">
+    <value>Qatorda kamida (asosiy birlikda)</value>
+  </data>
+  <data name="Promo_DiscountHint" xml:space="preserve">
+    <value>0 — muddatli chegirma. Hajmga qarab bosqichlar — bir nechta aksiya turli miqdor bilan (eng kattasi qo'llanadi).</value>
+  </data>
+  <data name="Promo_Buy" xml:space="preserve">
+    <value>Har N</value>
+  </data>
+  <data name="Promo_Free" xml:space="preserve">
+    <value>M sovg'a</value>
+  </data>
+  <data name="Promo_FreeProduct" xml:space="preserve">
+    <value>Sovg'a tovar</value>
+  </data>
+  <data name="Promo_FreeProductHint" xml:space="preserve">
+    <value>bo'sh — o'sha tovar</value>
+  </data>
+  <data name="Promo_Repeatable" xml:space="preserve">
+    <value>Takrorlanadi (20 → 2 sovg'a)</value>
+  </data>
+  <data name="Promo_Gift" xml:space="preserve">
+    <value>sovg'a</value>
+  </data>
+  <data name="Promo_Badge" xml:space="preserve">
+    <value>aksiya −{0}%</value>
+  </data>
+  <data name="Promo_BadDates" xml:space="preserve">
+    <value>Tugash sanasi boshlanishdan oldin.</value>
+  </data>
+  <data name="Promo_BadPercent" xml:space="preserve">
+    <value>Chegirma 0 dan katta va 100 dan oshmasin.</value>
+  </data>
+  <data name="Promo_ProductRequired" xml:space="preserve">
+    <value>Sovg'a aksiyasi uchun tovarni tanlang.</value>
+  </data>
+  <data name="Promo_BadFree" xml:space="preserve">
+    <value>N va M musbat bo'lsin.</value>
+  </data>
+  <data name="Store_CodeNotFound" xml:space="preserve">
+    <value>Kod topilmadi: {0}</value>
+  </data>
+  <data name="TripStatus_Planned" xml:space="preserve">
+    <value>Rejalandi</value>
+  </data>
+  <data name="TripStatus_InTransit" xml:space="preserve">
+    <value>Yo'lda</value>
+  </data>
+  <data name="TripStatus_Closed" xml:space="preserve">
+    <value>Yopildi</value>
+  </data>
+  <data name="TripStatus_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="StopStatus_Pending" xml:space="preserve">
+    <value>Kutmoqda</value>
+  </data>
+  <data name="StopStatus_Delivered" xml:space="preserve">
+    <value>Yetkazildi</value>
+  </data>
+  <data name="StopStatus_Partial" xml:space="preserve">
+    <value>Qisman</value>
+  </data>
+  <data name="StopStatus_Refused" xml:space="preserve">
+    <value>Rad etildi</value>
+  </data>
+  <data name="TripExpense_FUEL" xml:space="preserve">
+    <value>Yoqilg'i</value>
+  </data>
+  <data name="TripExpense_PARKING" xml:space="preserve">
+    <value>To'xtash joyi</value>
+  </data>
+  <data name="TripExpense_REPAIR" xml:space="preserve">
+    <value>Ta'mir</value>
+  </data>
+  <data name="TripExpense_MEAL" xml:space="preserve">
+    <value>Ovqat</value>
+  </data>
+  <data name="TripExpense_OTHER" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Trip_VehicleRequired" xml:space="preserve">
+    <value>Faol mashinani tanlang.</value>
+  </data>
+  <data name="Trip_ExpeditorRequired" xml:space="preserve">
+    <value>Ekspeditorni tanlang (Jamoalar sahifasida ekspeditor sifatida qo'shilgan xodim).</value>
+  </data>
+  <data name="Trip_OverWeight" xml:space="preserve">
+    <value>Og'irlik {0} kg mashina sig'imidan ({1} kg) oshdi.</value>
+  </data>
+  <data name="Trip_OverVolume" xml:space="preserve">
+    <value>Hajm {0} m³ mashina sig'imidan ({1} m³) oshdi.</value>
+  </data>
+  <data name="Trip_ShipmentNotDeliverable" xml:space="preserve">
+    <value>{0}: jo'natish yetkazishga yaroqsiz (o'zi olib ketish, bekor qilingan yoki allaqachon yetkazilgan).</value>
+  </data>
+  <data name="Trip_ShipmentOtherWarehouse" xml:space="preserve">
+    <value>{0}: jo'natish boshqa ombordan.</value>
+  </data>
+  <data name="Trip_ShipmentBusy" xml:space="preserve">
+    <value>{0}: jo'natish boshqa reysda.</value>
+  </data>
+  <data name="Trip_NotEditable" xml:space="preserve">
+    <value>Reysni bu holatda o'zgartirib bo'lmaydi.</value>
+  </data>
+  <data name="Trip_NoStops" xml:space="preserve">
+    <value>Reysda jo'natish yo'q.</value>
+  </data>
+  <data name="Trip_NotInTransit" xml:space="preserve">
+    <value>Reys yo'lda emas.</value>
+  </data>
+  <data name="Trip_StopAlreadyDone" xml:space="preserve">
+    <value>Bu manzil bo'yicha natija allaqachon kiritilgan.</value>
+  </data>
+  <data name="Trip_DeliveredOverShipped" xml:space="preserve">
+    <value>Yetkazilgan miqdor jo'natilgandan ({0}) ko'p bo'lmasin.</value>
+  </data>
+  <data name="Trip_ProofRequired" xml:space="preserve">
+    <value>Yetkazishni tasdiqlang: rasm yuboring yoki mijoz imzosini oling.</value>
+  </data>
+  <data name="Trip_ReasonRequired" xml:space="preserve">
+    <value>Qisman yetkazish yoki rad uchun sababni tanlang.</value>
+  </data>
+  <data name="Trip_PendingStops" xml:space="preserve">
+    <value>{0} ta manzil bo'yicha natija yo'q — avval yetkazildi/rad belgilang.</value>
+  </data>
+  <data name="Trip_ReturnedOverUndelivered" xml:space="preserve">
+    <value>Qaytgan miqdor yetkazilmagandan ({0}) ko'p bo'lmasin.</value>
+  </data>
+  <data name="Trip_Shortage" xml:space="preserve">
+    <value>reys kamomadi</value>
+  </data>
+  <data name="Trip_ExpenseCategoryRequired" xml:space="preserve">
+    <value>Chiqim moddasini tanlang.</value>
+  </data>
+  <data name="Trip_ExpenseNotPending" xml:space="preserve">
+    <value>Xarajat allaqachon o'tkazilgan yoki bekor qilingan.</value>
+  </data>
+  <data name="Plan_TooMany" xml:space="preserve">
+    <value>Bir kunlik rejada ko'pi bilan {0} ta mijoz.</value>
+  </data>
+  <data name="Kpi_AlreadyApplied" xml:space="preserve">
+    <value>KPI ish haqiga o'tkazilgan.</value>
+  </data>
+  <data name="Kpi_NoEmployee" xml:space="preserve">
+    <value>Agent HR xodimiga bog'lanmagan (KPI sxemasida xodimni tanlang).</value>
+  </data>
+  <data name="Kpi_NoPayroll" xml:space="preserve">
+    <value>{0} uchun xodim qatori bor qoralama ish haqi hisobi topilmadi — avval HR'da hisobni yarating.</value>
+  </data>
+  <data name="Kpi_PayrollLocked" xml:space="preserve">
+    <value>Ish haqi hisobi tasdiqlangan — qaytarib bo'lmaydi.</value>
+  </data>
+  <data name="Voice_Disabled" xml:space="preserve">
+    <value>Ovozli buyurtma o'chirilgan (Mashinalar → Sozlamalar).</value>
+  </data>
+  <data name="Notify_TripAssigned" xml:space="preserve">
+    <value>🚚 Sizga reys {0} ({1}) biriktirildi: mashina {2}, {3} ta manzil, {4} kg. Botda: 🚚 Reys.</value>
+  </data>
+  <data name="Notify_TripStarted" xml:space="preserve">
+    <value>🚚 Buyurtmangiz yo'lga chiqdi: {0} ({1} so'm).
+Ekspeditor: {2}, {3}
+Mashina: {4}</value>
+  </data>
+  <data name="Notify_StopDelivered" xml:space="preserve">
+    <value>✅ Buyurtma {0} yetkazildi ({1}): {2} so'm. Nakladnoy ilova qilingan.</value>
+  </data>
+  <data name="Notify_StopPartial" xml:space="preserve">
+    <value>✅ Buyurtma {0} qisman yetkazildi ({1}): {2} so'm ({3} so'mdan). Sabab: {4}. Nakladnoy ilova qilingan.</value>
+  </data>
+  <data name="Notify_StopRefused" xml:space="preserve">
+    <value>🚫 Buyurtma {0} qabul qilinmadi. Sabab: {1}.</value>
+  </data>
+  <data name="Notify_StopProblem" xml:space="preserve">
+    <value>⚠️ Reys {0}: {1}, buyurtma {2} — {3}. Sabab: {4}. Ekspeditor: {5}.</value>
+  </data>
+  <data name="Notify_TripClosed" xml:space="preserve">
+    <value>🏁 Reys {0} yopildi: yetkazildi {1}/{2}, {3} so'm; omborga qaytdi {4} so'm, kamomad {5} so'm; xarajat {6} so'm.</value>
+  </data>
+  <data name="Vehicles" xml:space="preserve">
+    <value>Mashinalar</value>
+  </data>
+  <data name="Vehicle" xml:space="preserve">
+    <value>Mashina</value>
+  </data>
+  <data name="Trips" xml:space="preserve">
+    <value>Reyslar</value>
+  </data>
+  <data name="Trip" xml:space="preserve">
+    <value>Reys</value>
+  </data>
+  <data name="Routes" xml:space="preserve">
+    <value>Tashrif rejasi</value>
+  </data>
+  <data name="Kpi" xml:space="preserve">
+    <value>Agent KPI</value>
+  </data>
+  <data name="Tile_Trips" xml:space="preserve">
+    <value>Reys rejalash, yetkazish, farq dalolatnomasi</value>
+  </data>
+  <data name="Tile_Routes" xml:space="preserve">
+    <value>Agentning kunlik marshruti va reja/fakt</value>
+  </data>
+  <data name="Tile_Vehicles" xml:space="preserve">
+    <value>Mashinalar, sig'im, xarita sozlamalari</value>
+  </data>
+  <data name="Tile_Kpi" xml:space="preserve">
+    <value>% savdo, bonus, jarima → ish haqi</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Dan</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>Gacha</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Ko'rsatish</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Bugun</value>
+  </data>
+  <data name="Prev_Day" xml:space="preserve">
+    <value>Oldingi kun</value>
+  </data>
+  <data name="Next_Day" xml:space="preserve">
+    <value>Keyingi kun</value>
+  </data>
+  <data name="Fin_Category" xml:space="preserve">
+    <value>Chiqim moddasi</value>
+  </data>
+  <data name="Vehicle_Plate" xml:space="preserve">
+    <value>Davlat raqami</value>
+  </data>
+  <data name="Vehicle_Model" xml:space="preserve">
+    <value>Rusumi</value>
+  </data>
+  <data name="Vehicle_CapacityKg" xml:space="preserve">
+    <value>Yuk ko'tarish, kg</value>
+  </data>
+  <data name="Vehicle_CapacityM3" xml:space="preserve">
+    <value>Hajm, m³</value>
+  </data>
+  <data name="Vehicle_Driver" xml:space="preserve">
+    <value>Haydovchi</value>
+  </data>
+  <data name="Vehicle_Empty" xml:space="preserve">
+    <value>Mashinalar hali qo'shilmagan.</value>
+  </data>
+  <data name="Vehicle_PlateRequired" xml:space="preserve">
+    <value>Davlat raqamini kiriting (4–20 belgi).</value>
+  </data>
+  <data name="Vehicle_CapacityPositive" xml:space="preserve">
+    <value>Yuk ko'tarish va hajm musbat bo'lsin.</value>
+  </data>
+  <data name="Delivery_Settings" xml:space="preserve">
+    <value>Yetkazish sozlamalari</value>
+  </data>
+  <data name="Map_Key" xml:space="preserve">
+    <value>Yandex Maps JavaScript API kaliti</value>
+  </data>
+  <data name="Map_KeyHint" xml:space="preserve">
+    <value>developer.tech.yandex.ru da olinadi. Bo'sh bo'lsa xarita o'rniga Yandex havolalari ko'rsatiladi.</value>
+  </data>
+  <data name="Map_BadKey" xml:space="preserve">
+    <value>Kalit formati noto'g'ri.</value>
+  </data>
+  <data name="Voice_Enable" xml:space="preserve">
+    <value>Botda ovozli buyurtma</value>
+  </data>
+  <data name="Voice_Hint" xml:space="preserve">
+    <value>Agent ovozli xabar yuboradi → matn → tovar va miqdor → qoralama → tasdiq. Nutqni matnga o'girish bot serveridagi Groq kaliti bilan (Bot__Voice__GroqApiKey); kalit bo'lmasa bot o'chiq deydi.</value>
+  </data>
+  <data name="Depot_Geo" xml:space="preserve">
+    <value>Omborlar koordinatasi (marshrut boshi)</value>
+  </data>
+  <data name="Depot_GeoHint" xml:space="preserve">
+    <value>Ko'rinishi: kenglik,uzunlik — masalan 41.311081,69.240562 (Yandex xaritadan nusxa).</value>
+  </data>
+  <data name="Map_NoKey" xml:space="preserve">
+    <value>Xarita uchun Yandex kaliti sozlanmagan (Mashinalar → Yetkazish sozlamalari).</value>
+  </data>
+  <data name="Map_OpenYandex" xml:space="preserve">
+    <value>Yandex xaritada ochish</value>
+  </data>
+  <data name="Map_NoPoints" xml:space="preserve">
+    <value>Xaritada ko'rsatish uchun koordinatali nuqta yo'q.</value>
+  </data>
+  <data name="Trip_New" xml:space="preserve">
+    <value>Yangi reys</value>
+  </data>
+  <data name="Trip_Available" xml:space="preserve">
+    <value>Jo'natishlar (reyssiz)</value>
+  </data>
+  <data name="Trip_AvailableHint" xml:space="preserve">
+    <value>O'tkazilgan, yetkazilmagan va o'zi olib ketish bo'lmagan jo'natishlar. ⚠ — mijozda koordinata yo'q.</value>
+  </data>
+  <data name="Trip_Route" xml:space="preserve">
+    <value>Marshrut</value>
+  </data>
+  <data name="Trip_Optimize" xml:space="preserve">
+    <value>Tartiblash</value>
+  </data>
+  <data name="Trip_OptimizeHint" xml:space="preserve">
+    <value>Ombordan eng yaqin manzil bo'yicha tartib</value>
+  </data>
+  <data name="Trip_LoadKg" xml:space="preserve">
+    <value>Og'irlik, kg</value>
+  </data>
+  <data name="Trip_LoadM3" xml:space="preserve">
+    <value>Hajm, m³</value>
+  </data>
+  <data name="Trip_NoGeo" xml:space="preserve">
+    <value>Mijoz koordinatasi yo'q</value>
+  </data>
+  <data name="Trip_Stops" xml:space="preserve">
+    <value>Manzillar</value>
+  </data>
+  <data name="Trip_Delivered" xml:space="preserve">
+    <value>Yetkazildi</value>
+  </data>
+  <data name="Trip_Expenses" xml:space="preserve">
+    <value>Reys xarajatlari</value>
+  </data>
+  <data name="Trip_ShortageCost" xml:space="preserve">
+    <value>Kamomad tannarxi</value>
+  </data>
+  <data name="Trip_StartedAt" xml:space="preserve">
+    <value>Yo'lga chiqdi</value>
+  </data>
+  <data name="Trip_ClosedAt" xml:space="preserve">
+    <value>Yopildi</value>
+  </data>
+  <data name="Trip_RouteSheet" xml:space="preserve">
+    <value>Marshrut varag'i</value>
+  </data>
+  <data name="Trip_Act" xml:space="preserve">
+    <value>Farq dalolatnomasi</value>
+  </data>
+  <data name="Trip_ActNoDiff" xml:space="preserve">
+    <value>Farq yo'q — hammasi yetkazildi.</value>
+  </data>
+  <data name="Trip_Start" xml:space="preserve">
+    <value>Yo'lga chiqarish</value>
+  </data>
+  <data name="Trip_Proof" xml:space="preserve">
+    <value>Tasdiq</value>
+  </data>
+  <data name="Trip_Lines" xml:space="preserve">
+    <value>Tovarlar</value>
+  </data>
+  <data name="Trip_Result" xml:space="preserve">
+    <value>Natija</value>
+  </data>
+  <data name="Trip_ResetHint" xml:space="preserve">
+    <value>Natijani bekor qilish (reys yopilguncha)</value>
+  </data>
+  <data name="Trip_Shipped" xml:space="preserve">
+    <value>Jo'natilgan</value>
+  </data>
+  <data name="Trip_Returned" xml:space="preserve">
+    <value>Omborga qaytdi</value>
+  </data>
+  <data name="Trip_ReturnedToWarehouse" xml:space="preserve">
+    <value>Omborga qaytgan (qaytarish hujjati)</value>
+  </data>
+  <data name="Trip_Undelivered" xml:space="preserve">
+    <value>Yetkazilmagan</value>
+  </data>
+  <data name="Trip_CloseTitle" xml:space="preserve">
+    <value>Reysni yopish</value>
+  </data>
+  <data name="Trip_CloseNeedResults" xml:space="preserve">
+    <value>Avval barcha manzillar bo'yicha natija kiriting (ekspeditor botda yoki shu yerda).</value>
+  </data>
+  <data name="Trip_CloseHint" xml:space="preserve">
+    <value>Yetkazilmagan tovarning omborga qaytgan miqdorini tekshiring: qaytgani qaytarish hujjati bilan kirim qilinadi, qolgani — kamomad (mijozdan undirilmaydi, tannarxi reysda).</value>
+  </data>
+  <data name="Trip_Close" xml:space="preserve">
+    <value>Reysni yopish</value>
+  </data>
+  <data name="Trip_ExpenseKind" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="Trip_OfficeResultHint" xml:space="preserve">
+    <value>Ofisdan kiritilganda rasm/imzo talab qilinmaydi (masalan telefon orqali tasdiq).</value>
+  </data>
+  <data name="TripExpense_Pending" xml:space="preserve">
+    <value>Kutmoqda</value>
+  </data>
+  <data name="TripExpense_Post" xml:space="preserve">
+    <value>Moliyaga</value>
+  </data>
+  <data name="TripExpense_AccountHint" xml:space="preserve">
+    <value>Kassa tanlansa — darhol moliyaga chiqim; bo'sh — keyin o'tkaziladi.</value>
+  </data>
+  <data name="Plan_Day" xml:space="preserve">
+    <value>Kun rejasi</value>
+  </data>
+  <data name="Plan_Saved" xml:space="preserve">
+    <value>Saqlangan reja</value>
+  </data>
+  <data name="Plan_Template" xml:space="preserve">
+    <value>Tashrif kunlaridan</value>
+  </data>
+  <data name="Plan_Hint" xml:space="preserve">
+    <value>Andoza — mijoz kartasidagi tashrif kunlari. Qo'shing, olib tashlang, tartiblang va saqlang — agent botdagi marshrutni shu tartibda ko'radi.</value>
+  </data>
+  <data name="Plan_OptimizeHint" xml:space="preserve">
+    <value>Saqlash va eng yaqin manzil bo'yicha tartiblash (kun boshi joyidan)</value>
+  </data>
+  <data name="Plan_Reset" xml:space="preserve">
+    <value>Andozaga qaytish</value>
+  </data>
+  <data name="Plan_AddCustomer" xml:space="preserve">
+    <value>Mijoz qo'shish…</value>
+  </data>
+  <data name="Plan_Fact" xml:space="preserve">
+    <value>Reja / fakt</value>
+  </data>
+  <data name="Plan_Planned" xml:space="preserve">
+    <value>Rejada</value>
+  </data>
+  <data name="Plan_Visited" xml:space="preserve">
+    <value>Borildi</value>
+  </data>
+  <data name="Plan_Unplanned" xml:space="preserve">
+    <value>Rejadan tashqari</value>
+  </data>
+  <data name="Plan_CheckIn" xml:space="preserve">
+    <value>Keldi</value>
+  </data>
+  <data name="Plan_NotVisited" xml:space="preserve">
+    <value>Borilmagan</value>
+  </data>
+  <data name="Plan_Report" xml:space="preserve">
+    <value>Davr bo'yicha hisobot</value>
+  </data>
+  <data name="Plan_NoAgents" xml:space="preserve">
+    <value>Ko'rinishingizda agent yo'q.</value>
+  </data>
+  <data name="VisitResult_ORDER" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="VisitResult_PAYMENT" xml:space="preserve">
+    <value>To'lov</value>
+  </data>
+  <data name="VisitResult_NO_ORDER" xml:space="preserve">
+    <value>Buyurtmasiz</value>
+  </data>
+  <data name="VisitResult_NONE" xml:space="preserve">
+    <value>Tashrif</value>
+  </data>
+  <data name="Kpi_Month" xml:space="preserve">
+    <value>Oy</value>
+  </data>
+  <data name="Kpi_Calculate" xml:space="preserve">
+    <value>Hisoblash</value>
+  </data>
+  <data name="Kpi_Hint" xml:space="preserve">
+    <value>Sof savdo = jo'natilgan − qaytarilgan (Hisobotlar bilan bir xil). Jarima: tashrif rejasi bajarilmasa, 30 kundan ortiq kechikkan qarzdan %, reys kamomadidan %. O'tkazish — shu oyning qoralama HR ish haqi hisobidagi xodim qatoriga mukofot va jarima.</value>
+  </data>
+  <data name="Kpi_Scheme" xml:space="preserve">
+    <value>Sxema</value>
+  </data>
+  <data name="Kpi_Employee" xml:space="preserve">
+    <value>HR xodimi (ish haqi qatori)</value>
+  </data>
+  <data name="Kpi_SalesPct" xml:space="preserve">
+    <value>% savdodan</value>
+  </data>
+  <data name="Kpi_Plan" xml:space="preserve">
+    <value>Oylik reja</value>
+  </data>
+  <data name="Kpi_PlanBonus" xml:space="preserve">
+    <value>Reja bajarilsa bonus</value>
+  </data>
+  <data name="Kpi_OverPlanPct" xml:space="preserve">
+    <value>Rejadan ortig'iga %</value>
+  </data>
+  <data name="Kpi_MinCoverage" xml:space="preserve">
+    <value>Tashrif rejasi min, %</value>
+  </data>
+  <data name="Kpi_CoveragePenalty" xml:space="preserve">
+    <value>Bajarilmasa jarima</value>
+  </data>
+  <data name="Kpi_OverduePct" xml:space="preserve">
+    <value>Muddati o'tgan qarzdan, %</value>
+  </data>
+  <data name="Kpi_ShortagePct" xml:space="preserve">
+    <value>Reys kamomadidan, %</value>
+  </data>
+  <data name="Kpi_NetSales" xml:space="preserve">
+    <value>Sof savdo</value>
+  </data>
+  <data name="Kpi_PlanPct" xml:space="preserve">
+    <value>Reja, %</value>
+  </data>
+  <data name="Kpi_Coverage" xml:space="preserve">
+    <value>Tashrif, %</value>
+  </data>
+  <data name="Kpi_Commission" xml:space="preserve">
+    <value>% savdo</value>
+  </data>
+  <data name="Kpi_Bonus" xml:space="preserve">
+    <value>Bonus</value>
+  </data>
+  <data name="Kpi_Penalty" xml:space="preserve">
+    <value>Jarima</value>
+  </data>
+  <data name="Kpi_Total" xml:space="preserve">
+    <value>Jami</value>
+  </data>
+  <data name="Kpi_Overdue" xml:space="preserve">
+    <value>Muddati o'tgan qarz</value>
+  </data>
+  <data name="Kpi_NotCalculated" xml:space="preserve">
+    <value>Hisoblanmagan</value>
+  </data>
+  <data name="Kpi_Applied" xml:space="preserve">
+    <value>Ish haqida</value>
+  </data>
+  <data name="Kpi_Apply" xml:space="preserve">
+    <value>Ish haqiga</value>
+  </data>
+  <data name="Kpi_ManualBonus" xml:space="preserve">
+    <value>Qo'shimcha bonus</value>
+  </data>
+  <data name="Kpi_ManualPenalty" xml:space="preserve">
+    <value>Qo'shimcha jarima</value>
+  </data>
 </root>

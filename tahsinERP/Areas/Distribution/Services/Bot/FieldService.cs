@@ -148,16 +148,19 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
 
         // ---------- marshrut va mijozlar ----------
 
-        /// <summary>Bugungi marshrut: tashrif kuni bugun bo'lgan o'z mijozlari + bugun tashrif buyurilgan boshqalari.</summary>
+        /// <summary>
+        /// Bugungi marshrut: kun rejasi (2-bosqich, dst.VISIT_PLANS — tartib bilan) yoki tashrif kuni bugun bo'lgan o'z mijozlari,
+        /// + bugun tashrif buyurilgan boshqalari (oxirida).
+        /// </summary>
         public static List<RouteStop> Route(DistributionDbContext db, int userId, DateTime date)
         {
-            byte bit = VisitDays.For(date.DayOfWeek);
+            var plan = Delivery.VisitPlanService.ForDay(db, userId, date).Select(s => s.CustomerID).ToList();
             var visits = db.Visits.Where(v => v.UserID == userId && v.VisitDate == date.Date)
                 .Select(v => new { v.CustomerID, v.Result }).ToList();
             var visitedIds = visits.Select(v => v.CustomerID).Distinct().ToList();
             var rows = (from p in db.CustomerProfiles
                         join c in db.Customers on p.CustomerID equals c.ID
-                        where c.IsDeleted != true && ((p.AgentUserID == userId && (p.VisitDays & bit) != 0) || visitedIds.Contains(p.CustomerID))
+                        where c.IsDeleted != true && (plan.Contains(p.CustomerID) || visitedIds.Contains(p.CustomerID))
                         orderby c.Name
                         select new { p, c.Name, c.Address, c.Telephone }).ToList();
             var debts = DebtService.Load(db, rows.Select(r => r.p.CustomerID).ToList());
@@ -168,11 +171,13 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
                 return new RouteStop
                 {
                     CustomerID = r.p.CustomerID, Name = r.Name, Address = r.Address, Landmark = r.p.Landmark, Phone = r.Telephone,
-                    Lat = r.p.Lat, Lng = r.p.Lng, Planned = r.p.AgentUserID == userId && (r.p.VisitDays & bit) != 0,
+                    Lat = r.p.Lat, Lng = r.p.Lng, Planned = plan.Contains(r.p.CustomerID),
                     Visited = v.Count > 0, Result = v.Select(x => x.Result).LastOrDefault(x => x != null),
                     Debt = aging.Total, Overdue = aging.Overdue
                 };
-            }).ToList();
+            })
+            .OrderBy(s => s.Planned ? plan.IndexOf(s.CustomerID) : int.MaxValue).ThenBy(s => s.Name)
+            .ToList();
         }
 
         public static CustomerCard Card(DistributionDbContext db, int customerId, int userId, DateTime now)
@@ -270,7 +275,7 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             var visit = new Visit
             {
                 UserID = userId, CustomerID = customerId, VisitDate = now.Date, CheckInAt = now, Lat = lat, Lng = lng, AccuracyM = accuracyM,
-                DistanceM = distance, IsLive = isLive, IsPlanned = p.AgentUserID == userId && (p.VisitDays & VisitDays.For(now.DayOfWeek)) != 0
+                DistanceM = distance, IsLive = isLive, IsPlanned = Delivery.VisitPlanService.PlannedCustomers(db, userId, now).Contains(customerId)
             };
             db.Visits.Add(visit);
             db.SaveChanges();

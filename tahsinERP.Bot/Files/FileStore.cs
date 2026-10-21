@@ -13,7 +13,7 @@ public interface IFileStore
 public sealed class LocalFileStore : IFileStore
 {
     public const int MaxBytes = 5 * 1024 * 1024;
-    private static readonly HashSet<string> Allowed = ["jpg", "png"];
+    private static readonly HashSet<string> Allowed = ["jpg", "png", "pdf"];
     private readonly string _root;
     private readonly TimeProvider _clock;
 

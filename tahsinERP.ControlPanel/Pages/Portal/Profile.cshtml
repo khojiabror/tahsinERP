@@ -11,6 +11,21 @@
         <dt>Telegram</dt><dd>@(me.TelegramChatId is null ? "bog'lanmagan (kodlar tashkilot chatiga keladi)" : "bog'langan")</dd>
     </dl>
 </div>
+<h2>Kirish kodi kanali</h2>
+<form method="post" asp-page-handler="Channel" class="card stack">
+    @{ string current = me.OtpChannel ?? "telegram"; }
+    <label class="check"><input type="radio" name="Channel" value="telegram" checked="@(current == "telegram")" /> Telegram (standart)</label>
+    @foreach (var c in Model.Channels.Where(c => c.Channel != "telegram"))
+    {
+        <label class="check"><input type="radio" name="Channel" value="@c.Channel" checked="@(current == c.Channel)" /> @c.Display</label>
+    }
+    @if (!Model.Channels.Any(c => c.Channel != "telegram"))
+    {
+        <p class="hint">SMS / email kanallari hozircha mavjud emas (sozlanmagan yoki telefon/email kiritilmagan).</p>
+    }
+    <p class="hint">Hozir kodlar keladi: @(Model.Channels.FirstOrDefault(c => c.Channel == Model.ActiveChannel)?.Display ?? Model.ActiveChannel ?? "kanal yo'q"). Tanlangan kanal ishlamasa — Telegram'ga. Parolni tiklash havolasi ham shu kanalga keladi (tashkilot guruh chatiga — yo'q).</p>
+    <div><button type="submit" class="secondary">Saqlash</button></div>
+</form>
 <h2>Telegram</h2>
 <div class="card">
     @if (Model.LinkToken is not null)

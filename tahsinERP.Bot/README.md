@@ -27,6 +27,9 @@ Mini App /app/?t=..&c=.. ─ initData ─► /app/api/{tenant}/* (BFF) ─► ER
 | `Bot__PublicBaseUrl` | `https://bot.example.uz` (webhook va Mini App havolalari) |
 | `ConnectionStrings__Bot` | `tahsin_bot` bazasi |
 | `Bot__FilesRoot` | foto va imzolar papkasi |
+| `Bot__Voice__GroqApiKey` | ixtiyoriy: ovozli buyurtma (Groq Whisper + JSON ajratish). Bo'sh — bot "sozlanmagan" deydi. ERP'da ham yoqiladi: Mashinalar → Yetkazish sozlamalari |
+| `Bot__Voice__ChatModel` | ixtiyoriy, standart `llama-3.3-70b-versatile`; bo'sh — faqat qoidaviy ajratgich |
+| `Bot__FontsDir` | ixtiyoriy: nakladnoy PDF shrifti (bo'sh — Arial / DejaVu / Liberation; Linux'da `fonts-dejavu-core` paketi) |
 
 ## Tenant ulash
 

@@ -1,0 +1,22 @@
+@page
+@model ForgotModel
+@{ ViewData["Title"] = "Parolni tiklash"; }
+<div class="card login">
+    <h1>Parolni tiklash</h1>
+    @if (Model.Sent)
+    {
+        <p>@PortalAuthService.ResetRequestedMessage</p>
+        <p><a class="btn secondary" href="/Login">Kirish sahifasiga</a></p>
+    }
+    else
+    {
+        <form method="post" class="stack">
+            <div asp-validation-summary="All"></div>
+            <div><label asp-for="Login">Email yoki telefon</label><input asp-for="Login" type="text" autocomplete="username" autofocus /></div>
+            <button type="submit">Havola yuborish</button>
+            <p class="hint">Havola shaxsiy kanalingizga (Telegram, SMS yoki email — profilda tanlangan) keladi va bir marta ishlaydi.
+                Kanal bog'lanmagan bo'lsa — xodimimizdan yangi havola so'rang.</p>
+        </form>
+    }
+    <p class="hint"><a href="/Login">← Kirish</a></p>
+</div>

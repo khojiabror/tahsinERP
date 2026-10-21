@@ -1,3 +1,4 @@
+using tahsinERP.Services.Editions;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Services;
@@ -98,9 +99,24 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
             return (PortalRequestKind.New, today);
         if (current.PlanId == plan.Id && current.Period == period)
             return (PortalRequestKind.Renew, current.EndDate >= today ? current.EndDate.AddDays(1) : today);
-        if (plan.SortOrder > current.Plan.SortOrder)
+        if (IsUpgrade(current.Plan, plan))
             return (PortalRequestKind.Upgrade, today);
         return (PortalRequestKind.ChangeAtPeriodEnd, current.EndDate >= today ? current.EndDate.AddDays(1) : today);
+    }
+
+    /// <summary>
+    /// Darhol o'tiladigan oshirishmi: yangi paket joriy paketning barcha modullarini saqlaydi va ko'proq beradi (modul yoki
+    /// foydalanuvchi). DIST (Distributsiya) zanjirdan tashqari: START → DIST va DIST → KORP — oshirish; BIZNES ↔ DIST — yon
+    /// o'tish (modul yo'qoladi), shuning uchun faqat davr oxiridan. Noma'lum kodlar — eski qoida (SortOrder).
+    /// </summary>
+    public static bool IsUpgrade(Plan current, Plan target)
+    {
+        if (!EditionModules.IsRestrictedEdition(current.Code) || !EditionModules.IsRestrictedEdition(target.Code))
+            return target.SortOrder > current.SortOrder;
+        if (!EditionModules.Covers(target.Code, current.Code))
+            return false;
+        bool moreModules = !EditionModules.Covers(current.Code, target.Code);
+        return moreModules || target.MaxUsers > current.MaxUsers;
     }
 
     public async Task<PortalRequest> CreateAsync(int tenantId, int portalUserId, int planId, BillingPeriod period, int periodCount, string? comment,

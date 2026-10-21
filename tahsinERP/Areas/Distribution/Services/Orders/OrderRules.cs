@@ -102,6 +102,14 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             };
         }
 
+        /// <summary>Qator chegirmasidan aksiya qismini ajratish: qo'lda berilgan foiz (DiscountPct = aksiya + qo'lda, ketma-ket).</summary>
+        public static decimal ManualPct(decimal totalPct, decimal promoPct)
+        {
+            if (promoPct <= 0) return totalPct;
+            if (promoPct >= 100) return 0;
+            return Math.Max(0, Math.Round(100m - (100m - totalPct) * 100m / (100m - promoPct), 2));
+        }
+
         /// <summary>Qator + buyurtma chegirmasi birgalikdagi samarali foizi (limit tekshiruvi uchun).</summary>
         public static decimal EffectiveDiscountPct(decimal linePct, decimal orderPct)
         {

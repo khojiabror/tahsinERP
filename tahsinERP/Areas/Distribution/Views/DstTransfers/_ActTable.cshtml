@@ -1,0 +1,47 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@model Tuple<TransferAct, List<DstTransfersController.ActLineRow>, bool>
+@{
+    var act = Model.Item1;
+    bool cost = Model.Item3;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+<table class="table table-sm table-bordered">
+    <thead>
+        <tr>
+            <th>#</th><th>@DstLocalization.T("Product")</th><th>@DstLocalization.T("Unit")</th>
+            <th class="text-right r">@DstLocalization.T("Transfer_Sent")</th><th class="text-right r">@DstLocalization.T("Transfer_ReceivedQty")</th>
+            <th class="text-right r">@DstLocalization.T("Inventory_Diff")</th>
+            @if (cost) { <th class="text-right r">@DstLocalization.T("UnitCost")</th><th class="text-right r">@DstLocalization.T("Amount")</th> }
+            <th>@DstLocalization.T("Transfer_Resolution")</th><th>@DstLocalization.T("Comment")</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ int i = 0; }
+        @foreach (var l in Model.Item2)
+        {
+            i++;
+            <tr class="@(l.Diff != 0 ? "table-warning" : "")">
+                <td>@i</td><td>@l.Product</td><td>@l.Unit</td>
+                <td class="text-right r">@l.SentQty.ToString("#,0.####", inv)</td>
+                <td class="text-right r">@l.ReceivedQty.ToString("#,0.####", inv)</td>
+                <td class="text-right r">@(l.Diff == 0 ? "" : (l.Diff > 0 ? "+" : "") + l.Diff.ToString("#,0.####", inv))</td>
+                @if (cost)
+                {
+                    <td class="text-right r">@l.UnitCost.ToString("N2")</td>
+                    <td class="text-right r">@(l.Diff == 0 ? "" : Math.Round(Math.Abs(l.Diff) * l.UnitCost, 2).ToString("N0"))</td>
+                }
+                <td>@(l.Resolution == null ? "" : DstLocalization.T("Transfer_" + l.Resolution))</td>
+                <td>@l.Note</td>
+            </tr>
+        }
+    </tbody>
+    @if (cost)
+    {
+        <tfoot>
+            <tr><th colspan="7" class="text-right r">@DstLocalization.T("Transfer_Shortage")</th><th class="text-right r">@act.ShortageCost.ToString("N0")</th><th colspan="2"></th></tr>
+            <tr><th colspan="7" class="text-right r">@DstLocalization.T("Transfer_Loss")</th><th class="text-right r">@act.LossCost.ToString("N0")</th><th colspan="2"></th></tr>
+            <tr><th colspan="7" class="text-right r">@DstLocalization.T("Transfer_Surplus")</th><th class="text-right r">@act.SurplusCost.ToString("N0")</th><th colspan="2"></th></tr>
+        </tfoot>
+    }
+</table>

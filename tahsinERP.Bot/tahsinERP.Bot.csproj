@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
+    <!-- nakladnoy PDF (2-bosqich). 6.2.x — MIT; 6.5.0 dan AGPL — oshirmang (ControlPanel bilan bir xil) -->
+    <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.4" />
     <!-- tranzitiv 9.0.11 zaif (GHSA-846f-f764-76mx) — ControlPanel kabi yangi versiya -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>

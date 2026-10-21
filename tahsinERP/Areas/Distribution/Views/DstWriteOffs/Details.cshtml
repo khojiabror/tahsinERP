@@ -1,0 +1,117 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    var doc = (WriteOff)ViewBag.Doc;
+    var lines = (List<DstWriteOffsController.LineRow>)ViewBag.Lines;
+    var users = (Dictionary<int, string>)ViewBag.Users;
+    ViewBag.Title = doc.DocNo;
+    ViewBag.DstParent = DstLocalization.T("WriteOffs");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool canApprove = ViewBag.CanApprove == true;
+    bool isAuthor = ViewBag.IsAuthor == true;
+    bool canSeeCost = ViewBag.DstCanSeeCost == true;
+    bool draft = doc.Status == DocumentStatus.Draft;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    Func<int?, string> U = id => id.HasValue && users.TryGetValue(id.Value, out var n) ? n : "";
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@doc.DocNo — @DstLocalization.T("WriteOff")</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @DstLocalization.T("Warehouse"): <b>@ViewBag.Warehouse</b> ·
+                        @DstLocalization.T("Date"): @doc.DocDate.ToString("dd.MM.yyyy") ·
+                        @DstLocalization.T("Reason"): <b>@(ViewBag.Reason ?? "—")</b> ·
+                        @DstLocalization.T("Status"): @Html.Partial("_WriteOffStatus", Tuple.Create(doc.Status, doc.SubmittedAt.HasValue))
+                        <br />
+                        <span class="small text-muted">
+                            @DstLocalization.T("WriteOff_Author"): @U(doc.CreatedBy) (@doc.CreatedAt.ToString("dd.MM.yyyy HH:mm"))
+                            @if (doc.SubmittedAt.HasValue) { <text> · @DstLocalization.T("WriteOff_Submitted"): @U(doc.SubmittedBy) (@doc.SubmittedAt.Value.ToString("dd.MM.yyyy HH:mm"))</text> }
+                            @if (doc.PostedAt.HasValue) { <text> · @DstLocalization.T("WriteOff_ApprovedBy"): @U(doc.PostedBy) (@doc.PostedAt.Value.ToString("dd.MM.yyyy HH:mm"))</text> }
+                            @if (doc.CancelledAt.HasValue) { <text> · @DstLocalization.T("DocStatus_Cancelled"): @U(doc.CancelledBy) — @doc.CancelReason</text> }
+                        </span>
+                        @if (doc.Note != null) { <br /><span>@doc.Note</span> }
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Qty")</th><th>@DstLocalization.T("Unit")</th>
+                                    @if (canSeeCost && doc.Status == DocumentStatus.Posted) { <th class="text-right">@DstLocalization.T("UnitCost")</th><th class="text-right">@DstLocalization.T("Cost")</th> }
+                                    <th>@DstLocalization.T("Comment")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var l in lines)
+                                {
+                                    <tr>
+                                        <td>@l.Product</td><td class="text-right">@l.QtyBase.ToString("#,0.####", inv)</td><td>@l.Unit</td>
+                                        @if (canSeeCost && doc.Status == DocumentStatus.Posted) { <td class="text-right">@(l.UnitCost?.ToString("N2"))</td><td class="text-right">@(l.CostAmount?.ToString("N0"))</td> }
+                                        <td>@l.Note</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            @if (canSeeCost && doc.Status == DocumentStatus.Posted)
+                            {
+                                <tfoot><tr><th colspan="4" class="text-right">@DstLocalization.T("Total")</th><th class="text-right">@doc.CostTotal.ToString("N0")</th><th></th></tr></tfoot>
+                            }
+                        </table>
+                    </div>
+
+                    @if (canChange)
+                    {
+                        <div class="d-flex flex-wrap">
+                            @if (draft && (isAuthor || canApprove))
+                            {
+                                <a class="btn btn-outline-primary btn-sm mr-1 mb-50" href="@Url.Action("Edit", new { id = doc.ID })"><i class="bx bx-edit"></i> @DstLocalization.T("Edit")</a>
+                            }
+                            @if (draft && !doc.SubmittedAt.HasValue)
+                            {
+                                using (Html.BeginForm("Submit", "DstWriteOffs", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "mr-1 mb-50" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="bx bx-send"></i> @DstLocalization.T("WriteOff_Submit")</button>
+                                }
+                            }
+                            @if (draft && doc.SubmittedAt.HasValue && canApprove)
+                            {
+                                using (Html.BeginForm("Approve", "DstWriteOffs", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "mr-1 mb-50", onsubmit = "return confirm('" + DstLocalization.T("WriteOff_ApproveConfirm").Replace("'", "\\'") + "')" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success btn-sm"><i class="bx bx-check"></i> @DstLocalization.T("WriteOff_Approve")</button>
+                                }
+                            }
+                            @if (draft && (isAuthor || canApprove))
+                            {
+                                using (Html.BeginForm("Reject", "DstWriteOffs", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "form-inline mb-50" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input name="reason" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Order_CancelReason")" required minlength="3" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">@DstLocalization.T(isAuthor && !canApprove ? "Cancel" : "WriteOff_Reject")</button>
+                                }
+                            }
+                            @if (doc.Status == DocumentStatus.Posted && canApprove)
+                            {
+                                using (Html.BeginForm("CancelPosted", "DstWriteOffs", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "form-inline mb-50" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input name="reason" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Order_CancelReason")" required minlength="3" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">@DstLocalization.T("WriteOff_CancelPosted")</button>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

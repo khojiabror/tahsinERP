@@ -1,1 +1,3 @@
-data/
+# Rasm keshi (Site:DataRoot standart qiymati). Avval "data/" edi — Windows katta-kichik harfni farqlamagani uchun
+# Data/ kod papkasini (SiteDbContext.cs, Schema.sql) ham yutib yuborgan; kesh endi alohida "cache/" da.
+/cache/

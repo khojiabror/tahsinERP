@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <title>Ombor</title>
+    <link rel="stylesheet" href="app.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<header class="top">
+    <div class="customer">
+        <div id="title" class="cust-name">…</div>
+        <div id="subtitle" class="cust-debt"></div>
+    </div>
+    <div class="tabs" id="tabs">
+        <button type="button" class="tab active" data-view="counts" id="tabCounts"></button>
+        <button type="button" class="tab" data-view="orders" id="tabOrders"></button>
+    </div>
+</header>
+
+<main>
+    <!-- ro'yxatlar -->
+    <section id="viewCounts"><div id="countList" class="list"></div><div id="countsEmpty" class="muted center hidden"></div></section>
+    <section id="viewOrders" class="hidden"><div id="orderList" class="list"></div><div id="ordersEmpty" class="muted center hidden"></div></section>
+
+    <!-- hujjat: sanoq yoki yig'ish -->
+    <section id="viewDoc" class="hidden">
+        <div class="search-row">
+            <input id="code" class="search" type="search" autocomplete="off" inputmode="search">
+            <input id="codeQty" class="search qty-input" type="number" min="0" step="any" value="1">
+            <button type="button" id="scanBtn" class="scan-btn" aria-label="Scan">
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 5h2v14H3zm4 0h1v14H7zm3 0h2v14h-2zm4 0h1v14h-1zm3 0h2v14h-2zm4 0h1v14h-1z"/></svg>
+            </button>
+        </div>
+        <div id="docProgress" class="muted"></div>
+        <div id="docLines" class="list"></div>
+        <div class="form"><button type="button" id="backBtn" class="link"></button></div>
+    </section>
+</main>
+
+<div id="scanner" class="scanner hidden">
+    <video id="scanVideo" playsinline muted></video>
+    <div class="scan-frame"></div>
+    <div class="scan-bar">
+        <div id="scanStatus" class="scan-status"></div>
+        <button type="button" id="scanClose" class="scan-close"></button>
+    </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="scan.js"></script>
+<script src="store.js"></script>
+</body>
+</html>

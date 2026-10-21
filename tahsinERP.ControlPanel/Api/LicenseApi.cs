@@ -49,6 +49,9 @@ public static class LicenseApi
 
     private static int PollHours(PanelOptions o) => Math.Clamp(o.PollHours, 1, 24);
 
+    /// <summary>On-prem onlayn tekshiruv siyosati (08_STAGE4.md 4): "required" faqat On-prem + Required; qolgani "optional".</summary>
+    internal static string OnlineCheck(Tenant t) => LicenseIssuer.IsRollingKey(t) ? "required" : "optional";
+
     internal static async Task<IResult> RegisterAsync(HttpRequest http, ControlDbContext db, ISecretProtector protector, LicenseIssuer issuer,
         AuditLogger audit, Clock clock, IOptions<PanelOptions> options, ILoggerFactory loggers, CancellationToken ct)
     {
@@ -128,11 +131,13 @@ public static class LicenseApi
             ["tenant_secret"] = secret,
             ["license_key"] = key,
             ["poll_hours"] = PollHours(options.Value),
+            ["online_check"] = OnlineCheck(tenant),
+            ["offline_grace_days"] = LicenseIssuer.OfflineGraceDays(tenant, options.Value),
         });
     }
 
     internal static async Task<IResult> PullAsync(string installationId, HttpRequest http, ControlDbContext db, ISecretProtector protector,
-        LicenseIssuer issuer, Clock clock, IOptions<PanelOptions> options, CancellationToken ct)
+        LicenseIssuer issuer, Clock clock, IOptions<PanelOptions> options, ILoggerFactory loggers, CancellationToken ct)
     {
         string? inst = ErpLicense.NormalizeInstallationId(installationId);
         if (inst is null)
@@ -181,6 +186,16 @@ public static class LicenseApi
             catch (DbUpdateConcurrencyException) { /* faqat statistika — muhim emas */ }
         }
 
+        // Aylanma kalit (on-prem, onlayn tekshiruv majburiy): yangilash vaqti kelgan bo'lsa shu pull'da yangisi chiqadi.
+        if (LicenseIssuer.IsRollingKey(tenant))
+        {
+            try { await issuer.EnsureForTenantAsync(tenant, ct); }
+            catch (Exception ex) when (ex is DomainException or CryptographicException or InvalidOperationException or NotSupportedException)
+            {
+                loggers.CreateLogger("LicenseApi").LogError(ex, "Pull: aylanma kalit chiqmadi (tenant {Tenant})", tenant.Slug);
+            }
+        }
+
         var license = await issuer.GetCurrentAsync(tenant, ct);
         if (license is null)
         {
@@ -198,6 +213,8 @@ public static class LicenseApi
             ["license_key"] = license.LicenseKey,
             ["etag"] = license.ETag,
             ["poll_hours"] = PollHours(options.Value),
+            ["online_check"] = OnlineCheck(tenant),
+            ["offline_grace_days"] = LicenseIssuer.OfflineGraceDays(tenant, options.Value),
         });
     }
 

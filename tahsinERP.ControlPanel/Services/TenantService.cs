@@ -21,7 +21,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
 
     /// <summary>ERP TenantRegistry.ReservedSlugs — panel subdomenlari.</summary>
     public static readonly string[] ReservedSlugs =
-        ["admin", "my", "pay", "www", "api", "app", "mail", "smtp", "static", "cdn", "assets", "status", "panel", "erp"];
+        ["admin", "my", "pay", "www", "api", "app", "mail", "smtp", "static", "cdn", "assets", "status", "panel", "erp", "bot", "sayt", "sites"];
 
     public static string? ValidateSlug(string? slug)
     {
@@ -44,7 +44,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     private static object Snapshot(Tenant t) => new
     {
         t.Slug, t.LegalName, t.Inn, t.ContactName, t.Phone, t.Email, t.TelegramChatId, t.Address,
-        t.Deployment, t.Status, t.CompanyId, t.DbName, t.ServerId, t.InstallationId, t.Notes
+        t.Deployment, t.Status, t.CompanyId, t.DbName, t.ServerId, t.InstallationId, t.Notes, t.OnlineCheck, t.OfflineGraceDays
     };
 
     private async Task ValidateAsync(Tenant t, CancellationToken ct)
@@ -56,6 +56,9 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
         string? error = ValidateSlug(t.Slug) ?? ValidateDbName(t.DbName) ?? ValidateInn(t.Inn);
         if (error is null && t.LegalName.Length == 0) error = "Yuridik nom majburiy.";
         if (error is null && t.CompanyId <= 0) error = "CompanyID musbat bo'lsin.";
+        if (error is null && t.OfflineGraceDays is int g && (g < Licensing.LicenseIssuer.MinOfflineGraceDays || g > Licensing.LicenseIssuer.MaxOfflineGraceDays))
+            error = $"Internetsiz ishlash muddati {Licensing.LicenseIssuer.MinOfflineGraceDays}–{Licensing.LicenseIssuer.MaxOfflineGraceDays} kun bo'lsin.";
+        if (t.Deployment == DeploymentKind.SaaS) t.OnlineCheck = OnlineCheckMode.Optional; // SaaS — siyosat ma'nosiz
         if (error is null && await db.Tenants.AnyAsync(x => x.Slug == t.Slug && x.Id != t.Id, ct)) error = $"'{t.Slug}' slug band.";
         if (error is null && t.DbName != null && await db.Tenants.AnyAsync(x => x.DbName == t.DbName && x.Id != t.Id, ct)) error = $"'{t.DbName}' baza nomi band.";
         if (error is null && t.ServerId != null)

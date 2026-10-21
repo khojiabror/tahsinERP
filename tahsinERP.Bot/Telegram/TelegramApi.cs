@@ -31,6 +31,27 @@ public sealed class TelegramApi(HttpClient http)
     /// <summary>Token "123:ABC" ko'rinishida — nisbiy URI sifatida qo'shib bo'lmaydi (":" sxema deb o'qiladi).</summary>
     internal static Uri MethodUri(string token, string method) => new(Root + "bot" + token + "/" + method);
 
+    /// <summary>Hujjat yuborish (multipart): Outbox'dagi "sendDocument" yozuvi fayl omboridagi kalit bilan keladi.</summary>
+    public async Task<TgResult> SendDocumentAsync(string token, long chatId, string? caption, string fileName, byte[] content, CancellationToken ct)
+    {
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(chatId.ToString(System.Globalization.CultureInfo.InvariantCulture)), "chat_id");
+        if (!string.IsNullOrEmpty(caption)) form.Add(new StringContent(caption.Length <= 1024 ? caption : caption[..1020] + "…"), "caption");
+        var file = new ByteArrayContent(content);
+        file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "application/pdf" : "application/octet-stream");
+        form.Add(file, "document", fileName);
+        using var res = await http.PostAsync(MethodUri(token, "sendDocument"), form, ct);
+        var text = await res.Content.ReadAsStringAsync(ct);
+        try
+        {
+            return JsonSerializer.Deserialize<TgResult>(text, TgJson.Options) ?? new TgResult(false, (int)res.StatusCode, "Bo'sh javob", null, null);
+        }
+        catch (JsonException)
+        {
+            return new TgResult(false, (int)res.StatusCode, text.Length > 200 ? text[..200] : text, null, null);
+        }
+    }
+
     /// <summary>Fayl (foto) yuklab olish: getFile -> https://api.telegram.org/file/bot&lt;token&gt;/&lt;path&gt;. 20 MB gacha.</summary>
     public async Task<byte[]?> DownloadFileAsync(string token, string fileId, CancellationToken ct)
     {

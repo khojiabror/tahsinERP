@@ -18,8 +18,10 @@ public sealed record TgWebAppData(string Data, string? ButtonText);
 
 public sealed record TgContact(string PhoneNumber, string? FirstName, long? UserId);
 
+public sealed record TgVoice(string FileId, int Duration, string? MimeType, long? FileSize);
+
 public sealed record TgMessage(long MessageId, TgUser? From, TgChat Chat, long Date, string? Text, string? Caption, TgLocation? Location,
-    List<TgPhotoSize>? Photo, TgWebAppData? WebAppData, TgContact? Contact = null);
+    List<TgPhotoSize>? Photo, TgWebAppData? WebAppData, TgContact? Contact = null, TgVoice? Voice = null);
 
 public sealed record TgCallbackQuery(string Id, TgUser From, TgMessage? Message, string? Data);
 

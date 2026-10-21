@@ -14,6 +14,7 @@
             catalog: 'Katalog', cart: 'Savat', search: 'Nomi, artikul yoki shtrix-kod', all: 'Hammasi', add: "Qo'shish",
             available: 'Qoldiq', noPrice: "narx yo'q", empty: 'Hech narsa topilmadi', cartEmpty: "Savat bo'sh",
             date: 'Yetkazish sanasi', comment: 'Izoh', sign: 'Mijoz imzosi (ixtiyoriy)', clear: 'Tozalash', total: 'Jami',
+            promoNote: "Aksiya chegirmasi va sovg'alar buyurtma qabul qilinganda hisoblanadi.",
             remove: "O'chirish", submit: 'Buyurtma berish', debt: 'Qarz', overdue: "muddati o'tgan", recommended: 'Tavsiya',
             sent: 'Buyurtma {0} qabul qilindi', error: 'Xatolik', sum: "so'm", notTelegram: "Bu sahifa Telegram ichida ochiladi.",
             scan: 'Shtrix-kodni kameraga tuting', scanDone: 'Tayyor', scanAdded: "Qo'shildi: {0}", scanNotFound: 'Topilmadi: {0}',
@@ -23,6 +24,7 @@
             catalog: 'Каталог', cart: 'Корзина', search: 'Название, артикул или штрих-код', all: 'Все', add: 'Добавить',
             available: 'Остаток', noPrice: 'нет цены', empty: 'Ничего не найдено', cartEmpty: 'Корзина пуста',
             date: 'Дата доставки', comment: 'Комментарий', sign: 'Подпись клиента (необязательно)', clear: 'Очистить', total: 'Итого',
+            promoNote: 'Скидки и подарки по акциям рассчитываются при приёме заказа.',
             remove: 'Удалить', submit: 'Оформить заказ', debt: 'Долг', overdue: 'просрочено', recommended: 'Рекомендация',
             sent: 'Заказ {0} принят', error: 'Ошибка', sum: 'сум', notTelegram: 'Эта страница открывается внутри Telegram.',
             scan: 'Наведите камеру на штрих-код', scanDone: 'Готово', scanAdded: 'Добавлено: {0}', scanNotFound: 'Не найдено: {0}',
@@ -125,6 +127,7 @@
             var row = el('div', 'item');
             var main = el('div', 'item-main');
             main.appendChild(el('div', 'item-name', it.name));
+            if (it.promo) main.appendChild(el('div', 'item-promo', '🏷 ' + it.promo));
             var meta = el('div', 'item-meta', it.pNo + ' · ' + t('available') + ': ');
             var avail = el('span', it.available > 0 ? '' : 'low', qty(it.available));
             meta.appendChild(avail);
@@ -283,6 +286,9 @@
             box.appendChild(row);
         });
         $('cartTotal').textContent = money(cartTotal()) + ' ' + t('sum');
+        var hasPromo = state.cart.some(function (l) { var it = state.items[l.productId]; return it && it.promo; });
+        $('promoNote').textContent = t('promoNote');
+        $('promoNote').classList.toggle('hidden', !hasPromo);
     }
 
     function show(view) {

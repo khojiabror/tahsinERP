@@ -19,4 +19,10 @@ public sealed class BotOptions
     public int GlobalPerSecond { get; set; } = 25;
 
     public int ErpTimeoutSeconds { get; set; } = 20;
+
+    /// <summary>Ovozli buyurtma (Groq Whisper). Kalit yo'q — o'chiq.</summary>
+    public tahsinERP.Bot.Voice.VoiceOptions Voice { get; set; } = new();
+
+    /// <summary>PDF shrifti papkasi (bo'sh — tizim shriftlari: Arial / DejaVu / Liberation).</summary>
+    public string? FontsDir { get; set; }
 }

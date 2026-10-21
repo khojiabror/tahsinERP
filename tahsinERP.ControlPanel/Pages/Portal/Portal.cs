@@ -189,6 +189,10 @@ public class LicensesModel(ControlDbContext db, AuditLogger audit, Clock clock) 
 public class ProfileModel(ControlDbContext db, PortalAuthService auth, IOptions<TelegramOptions> tg) : PortalPageModel
 {
     public PortalUser Me { get; private set; } = null!;
+    /// <summary>Hozir ishlaydigan kod kanallari va joriy tanlangan kanal (4-bosqich).</summary>
+    public IReadOnlyList<OtpTarget> Channels { get; private set; } = [];
+    public string? ActiveChannel { get; private set; }
+    [BindProperty] public string? Channel { get; set; }
     public string? LinkToken { get; private set; }
     public string LinkUrl => LinkToken is null ? "" : PortalFlow.TelegramLink(tg.Value, LinkToken);
     [BindProperty] public string? Current { get; set; }
@@ -197,10 +201,20 @@ public class ProfileModel(ControlDbContext db, PortalAuthService auth, IOptions<
 
     private async Task<bool> LoadAsync()
     {
-        var me = await db.PortalUsers.FirstOrDefaultAsync(u => u.Id == PortalUserId);
+        var me = await db.PortalUsers.Include(u => u.Tenant).FirstOrDefaultAsync(u => u.Id == PortalUserId);
         if (me is null) return false;
         Me = me;
+        Channels = auth.AvailableChannels(me, me.Tenant!);
+        ActiveChannel = auth.ResolveTarget(me, me.Tenant!, out _)?.Channel;
         return true;
+    }
+
+    public async Task<IActionResult> OnPostChannelAsync()
+    {
+        if (!await LoadAsync()) return RedirectToPage("/Portal/Login");
+        if (!await TryAsync(() => auth.SetOtpChannelAsync(Me, Me.Tenant!, Channel))) return Page();
+        FlashOk = "Kod kanali saqlandi.";
+        return RedirectToPage();
     }
 
     public async Task<IActionResult> OnGetAsync() => await LoadAsync() ? Page() : RedirectToPage("/Portal/Login");

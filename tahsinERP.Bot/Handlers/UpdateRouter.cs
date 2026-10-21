@@ -13,7 +13,8 @@ namespace tahsinERP.Bot.Handlers;
 /// ERP texnik xatosida update qayta ishlanmaydi (amal ikki marta bajarilmasin) — foydalanuvchiga "aloqa yo'q".
 /// </summary>
 public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, SessionStore sessions, ErpClientFactory erpFactory,
-    TelegramApi telegram, IFileStore files, IOptions<BotOptions> options, TimeProvider clock, LiveThrottle liveThrottle, ILogger<UpdateRouter> log)
+    TelegramApi telegram, IFileStore files, IOptions<BotOptions> options, TimeProvider clock, LiveThrottle liveThrottle, ILogger<UpdateRouter> log,
+    Voice.IVoiceRecognizer voice)
 {
     /// <summary>Bitta update konteksti.</summary>
     private sealed class Ctx
@@ -28,6 +29,8 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         public int? UserId => Link?.UserId;
         public bool IsField => Link is { UserId: not null, Role: "AGENT" or "EXPEDITOR" };
         public bool IsManager => Link is { UserId: not null, Role: "MANAGER" };
+        public bool IsStorekeeper => Link is { UserId: not null, Role: "STOREKEEPER" };
+        public bool IsExpeditor => Link is { UserId: not null, Role: "EXPEDITOR" };
     }
 
     public async Task HandleAsync(TenantRegistry.Tenant tenant, TgUpdate update, CancellationToken ct)
@@ -129,7 +132,13 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
                 case States.Photo when data.VisitId is int visitId: await SavePhotoAsync(ctx, visitId, photo, ct); break;
                 case States.DaySelfie: await SelfieAsync(ctx, data, photo, ct); break;
                 case States.NewPhoto: await NewPhotoAsync(ctx, data, photo, ct); break;
+                case States.TripPhoto: await DeliveredPhotoAsync(ctx, data, photo, ct); break;
             }
+            return;
+        }
+        if (msg.Voice is { } voiceMsg)
+        {
+            await OnVoiceAsync(ctx, voiceMsg, ct);
             return;
         }
         if (msg.Contact is { } contact)
@@ -146,8 +155,15 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         }
 
         switch (Texts.KeyOf(text, "Btn_DayStart", "Btn_Route", "Btn_Search", "Btn_Cash", "Btn_DayEnd", "Btn_Summary",
-                    "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement"))
+                    "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement", "Btn_Store", "Btn_Trip", "Btn_TripClose"))
         {
+            case "Btn_Trip": await SendTripAsync(ctx, null, ct); return;
+            case "Btn_TripClose": await AskTripCloseAsync(ctx, ct); return;
+            case "Btn_Store":
+                if (!ctx.IsStorekeeper && !ctx.IsManager) { outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("NotAllowed")); return; }
+                outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Store_Open"),
+                    Kb.Inline([Kb.WebApp(ctx.T("Btn_StoreApp"), StoreAppUrl(options.Value.PublicBaseUrl, ctx.Tenant.Slug))]));
+                return;
             case "Btn_NewPoint": await NewPointStartAsync(ctx, ct); return;
             case "Btn_Live":
                 if (RequireField(ctx)) outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Live_Howto"));
@@ -196,6 +212,12 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
                 return;
             case States.IssueText:
                 await SaveIssueAsync(ctx, text, null, ct);
+                return;
+            case States.TripExpense:
+                await ExpenseAmountAsync(ctx, data, text, ct);
+                return;
+            case States.VoiceCustomer:
+                await VoiceCustomerTextAsync(ctx, data, text, ct);
                 return;
             default:
                 await SendMenuAsync(ctx, ctx.T("Menu"), ct);
@@ -263,7 +285,13 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
     private Task SendMenuAsync(Ctx ctx, string text, CancellationToken ct)
     {
         object? keyboard;
-        if (ctx.IsField)
+        if (ctx.IsExpeditor)
+            keyboard = Kb.Reply([
+                [Kb.Text(ctx.T("Btn_Trip")), Kb.Text(ctx.T("Btn_Cash"))],
+                [Kb.Text(ctx.T("Btn_Live")), Kb.Text(ctx.T("Btn_Issue"))],
+                [Kb.Text(ctx.T("Btn_TripClose"))]
+            ]);
+        else if (ctx.IsField)
             keyboard = Kb.Reply([
                 [Kb.Text(ctx.T("Btn_DayStart")), Kb.Text(ctx.T("Btn_Route"))],
                 [Kb.Text(ctx.T("Btn_Search")), Kb.Text(ctx.T("Btn_NewPoint"))],
@@ -271,7 +299,12 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
                 [Kb.Text(ctx.T("Btn_DayEnd")), Kb.Text(ctx.T("Btn_Issue"))]
             ]);
         else if (ctx.IsManager)
-            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Summary")), Kb.Text(ctx.T("Btn_Issue"))]]);
+            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Summary")), Kb.Text(ctx.T("Btn_Store"))], [Kb.Text(ctx.T("Btn_Issue"))]]);
+        else if (ctx.IsStorekeeper)
+        {
+            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_Store")), Kb.Text(ctx.T("Btn_Issue"))]]);
+            text += "\n" + ctx.T("Store_Menu");
+        }
         else if (ctx.Link?.CustomerId != null)
         {
             keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_MyDebt")), Kb.Text(ctx.T("Btn_Statement"))]]);
@@ -311,6 +344,10 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
     }
 
     /// <summary>Mini App havolasi: {PublicBaseUrl}/app/?t=slug&amp;c=mijoz&amp;v=tashrif.</summary>
+    /// <summary>Omborchi Mini App'i: inventarizatsiya va buyurtma yig'ish (shtrix-kod skaneri).</summary>
+    internal static string StoreAppUrl(string publicBaseUrl, string slug) =>
+        publicBaseUrl.TrimEnd('/') + "/app/store.html?t=" + Uri.EscapeDataString(slug);
+
     internal static string MiniAppUrl(string publicBaseUrl, string slug, int customerId, int? visitId) =>
         publicBaseUrl.TrimEnd('/') + "/app/?t=" + Uri.EscapeDataString(slug) + "&c=" + customerId + (visitId.HasValue ? "&v=" + visitId : "");
 }

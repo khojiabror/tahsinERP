@@ -277,6 +277,8 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public int ProductID { get; set; }
 
         public decimal MinQty { get; set; }
+        /// <summary>Buyurtma taklifi shu darajagacha to'ldiradi (bo'sh — MinQty × 2).</summary>
+        public decimal? MaxQty { get; set; }
         [NotMapped] public string AuditKey => WarehouseID + ":" + ProductID;
     }
 }

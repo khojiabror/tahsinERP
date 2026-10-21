@@ -1,0 +1,209 @@
+@using tahsinERP.Areas.Distribution.Data.Entities
+@using tahsinERP.Areas.Distribution.Services.Warehouse
+@{
+    var doc = (LandedCost)ViewBag.Doc;
+    var incomes = (List<LandedCostService.IncomeRow>)ViewBag.Incomes;
+    var items = (List<LandedCostItem>)ViewBag.Items;
+    var alloc = (List<LandedCostService.Allocation>)ViewBag.Allocation;
+    var eligible = (List<LandedCostService.IncomeRow>)ViewBag.Eligible;
+    ViewBag.Title = doc.DocNo;
+    ViewBag.DstParent = DstLocalization.T("LandedCosts");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool draft = doc.Status == DocumentStatus.Draft;
+    bool edit = draft && canChange;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    decimal consumed = alloc.Sum(a => a.UnitAdd * a.ConsumedQty);
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@doc.DocNo — @DstLocalization.T("LandedCost")</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    <p>
+                        @DstLocalization.T("Date"): @doc.DocDate.ToString("dd.MM.yyyy") ·
+                        @DstLocalization.T("Status"): <b>@DstLocalization.T("DocStatus_" + doc.Status)</b>
+                        @if (doc.CancelReason != null) { <text> — @doc.CancelReason</text> }
+                    </p>
+                    @if (edit)
+                    {
+                        using (Html.BeginForm("SaveHeader", "DstLandedCosts", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "form-inline mb-1" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <label class="mr-50">@DstLocalization.T("LandedCost_Basis")</label>
+                            <select name="basis" class="form-control form-control-sm mr-1">
+                                @foreach (LandedCostBasis b in Enum.GetValues(typeof(LandedCostBasis)))
+                                {
+                                    <option value="@((byte)b)" @(doc.Basis == b ? "selected" : "")>@DstLocalization.T("LandedCost_Basis_" + b)</option>
+                                }
+                            </select>
+                            <input name="note" class="form-control form-control-sm mr-1" maxlength="300" value="@doc.Note" placeholder="@DstLocalization.T("Comment")" />
+                            <button type="submit" class="btn btn-sm btn-outline-primary">@DstLocalization.T("Save")</button>
+                        }
+                    }
+                    else
+                    {
+                        <p>@DstLocalization.T("LandedCost_Basis"): <b>@DstLocalization.T("LandedCost_Basis_" + doc.Basis)</b> @(doc.Note == null ? "" : " · " + doc.Note)</p>
+                    }
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h6>@DstLocalization.T("LandedCost_Incomes")</h6>
+                            <table class="table table-sm table-bordered">
+                                <thead><tr><th>@DstLocalization.T("Report_DocNo")</th><th>@DstLocalization.T("Date")</th><th>@DstLocalization.T("Warehouse")</th><th>@DstLocalization.T("Supplier")</th><th class="text-right">@DstLocalization.T("LandedCost_Value")</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach (var i in incomes)
+                                    {
+                                        <tr>
+                                            <td>@i.DocNo</td><td>@i.IssueDateTime.ToString("dd.MM.yyyy")</td><td>@i.Warehouse</td><td>@i.Supplier</td><td class="text-right">@i.Value.ToString("N0")</td>
+                                            <td>
+                                                @if (edit)
+                                                {
+                                                    using (Html.BeginForm("RemoveIncome", "DstLandedCosts", new { area = "Distribution", id = doc.ID, incomeId = i.ID }, FormMethod.Post))
+                                                    {
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0">×</button>
+                                                    }
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            @if (edit)
+                            {
+                                <form method="get" action="@Url.Action("Details", new { id = doc.ID })" class="form-inline mb-50">
+                                    <input name="q" value="@ViewBag.Q" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("LandedCost_SearchIncome")" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bx bx-search"></i></button>
+                                </form>
+                                <div style="max-height:260px;overflow:auto">
+                                    <table class="table table-sm">
+                                        @foreach (var i in eligible)
+                                        {
+                                            <tr>
+                                                <td>@i.DocNo</td><td>@i.IssueDateTime.ToString("dd.MM.yyyy")</td><td>@i.Warehouse</td><td>@i.Supplier</td><td class="text-right">@i.Value.ToString("N0")</td>
+                                                <td>
+                                                    @using (Html.BeginForm("AddIncome", "DstLandedCosts", new { area = "Distribution", id = doc.ID, incomeId = i.ID }, FormMethod.Post))
+                                                    {
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary py-0">+</button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-lg-6">
+                            <h6>@DstLocalization.T("LandedCost_Items")</h6>
+                            <table class="table table-sm table-bordered">
+                                <thead><tr><th>@DstLocalization.T("LandedCost_Kind")</th><th>@DstLocalization.T("Comment")</th><th class="text-right">@DstLocalization.T("Amount")</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach (var it in items)
+                                    {
+                                        <tr>
+                                            <td>@DstLocalization.T("LandedCost_Kind_" + it.Kind)</td><td>@it.Description</td><td class="text-right">@it.Amount.ToString("N0")</td>
+                                            <td>
+                                                @if (edit)
+                                                {
+                                                    using (Html.BeginForm("RemoveItem", "DstLandedCosts", new { area = "Distribution", id = doc.ID, itemId = it.ID }, FormMethod.Post))
+                                                    {
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0">×</button>
+                                                    }
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot><tr><th colspan="2" class="text-right">@DstLocalization.T("Total")</th><th class="text-right">@items.Sum(x => x.Amount).ToString("N0")</th><th></th></tr></tfoot>
+                            </table>
+                            @if (edit)
+                            {
+                                using (Html.BeginForm("AddItem", "DstLandedCosts", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "form-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <select name="kind" class="form-control form-control-sm mr-50 mb-50">
+                                        @foreach (var k in LandedCostKinds.All) { <option value="@k">@DstLocalization.T("LandedCost_Kind_" + k)</option> }
+                                    </select>
+                                    <input name="description" maxlength="200" class="form-control form-control-sm mr-50 mb-50" placeholder="@DstLocalization.T("Comment")" />
+                                    <input name="amount" type="number" min="0" step="any" class="form-control form-control-sm mr-50 mb-50" placeholder="@DstLocalization.T("Amount")" required />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary mb-50">+</button>
+                                }
+                                <p class="small text-muted">@DstLocalization.T("LandedCost_ItemHint")</p>
+                            }
+                        </div>
+                    </div>
+
+                    <h6 class="mt-1">@DstLocalization.T(draft ? "LandedCost_Preview" : "LandedCost_Allocation")</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Report_DocNo")</th><th>@DstLocalization.T("Product")</th>
+                                    <th class="text-right">@DstLocalization.T("Qty")</th>
+                                    @if (doc.Basis == LandedCostBasis.Weight) { <th class="text-right">kg</th> }
+                                    <th class="text-right">@DstLocalization.T("LandedCost_Value")</th>
+                                    <th class="text-right">@DstLocalization.T("LandedCost_Allocated")</th>
+                                    <th class="text-right">@DstLocalization.T("LandedCost_UnitBefore")</th>
+                                    <th class="text-right">@DstLocalization.T("LandedCost_UnitAfter")</th>
+                                    <th class="text-right">@DstLocalization.T("LandedCost_Consumed")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in alloc)
+                                {
+                                    <tr class="@(doc.Basis == LandedCostBasis.Weight && a.WeightKg == null ? "table-danger" : "")">
+                                        <td>@a.IncomeDocNo</td><td>@a.Product</td>
+                                        <td class="text-right">@a.Qty.ToString("#,0.####", inv) @a.Unit</td>
+                                        @if (doc.Basis == LandedCostBasis.Weight) { <td class="text-right">@(a.WeightKg?.ToString("#,0.##", inv) ?? "?")</td> }
+                                        <td class="text-right">@a.BaseValue.ToString("N0")</td>
+                                        <td class="text-right">@a.Allocated.ToString("N0")</td>
+                                        <td class="text-right">@a.PiecePrice.ToString("N2")</td>
+                                        <td class="text-right"><b>@a.NewPiecePrice.ToString("N2")</b></td>
+                                        <td class="text-right">@(a.ConsumedQty > 0 ? a.ConsumedQty.ToString("#,0.####", inv) : "")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr><th colspan="@(doc.Basis == LandedCostBasis.Weight ? 5 : 4)" class="text-right">@DstLocalization.T("Total")</th><th class="text-right">@alloc.Sum(a => a.Allocated).ToString("N0")</th><th colspan="3"></th></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    @if (consumed > 0)
+                    {
+                        <div class="alert alert-warning">@DstLocalization.T("LandedCost_ConsumedWarning", Math.Round(consumed, 0).ToString("N0"))</div>
+                    }
+
+                    @if (canChange && doc.Status != DocumentStatus.Cancelled)
+                    {
+                        <div class="d-flex flex-wrap">
+                            @if (draft)
+                            {
+                                using (Html.BeginForm("Post", "DstLandedCosts", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "mr-1 mb-50", onsubmit = "return confirm('" + DstLocalization.T("LandedCost_PostConfirm").Replace("'", "\\'") + "')" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success btn-sm"><i class="bx bx-check"></i> @DstLocalization.T("LandedCost_Post")</button>
+                                }
+                            }
+                            @using (Html.BeginForm("Cancel", "DstLandedCosts", new { area = "Distribution", id = doc.ID }, FormMethod.Post, new { @class = "form-inline mb-50" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input name="reason" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Order_CancelReason")" required minlength="3" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">@DstLocalization.T("Cancel")</button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

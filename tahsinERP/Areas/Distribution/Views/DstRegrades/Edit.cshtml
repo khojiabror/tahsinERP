@@ -1,0 +1,120 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    var doc = (Regrade)ViewBag.Doc;
+    var lines = (List<DstRegradesController.LineRow>)ViewBag.Lines ?? new List<DstRegradesController.LineRow>();
+    ViewBag.Title = doc == null ? DstLocalization.T("Regrade_New") : doc.DocNo;
+    ViewBag.DstParent = DstLocalization.T("Regrades");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var initial = Newtonsoft.Json.JsonConvert.SerializeObject(lines.Select(l => new
+    {
+        from = new { id = l.FromProductID, text = l.From, unit = l.FromUnit }, to = new { id = l.ToProductID, text = l.To, unit = l.ToUnit },
+        fromQty = l.FromQtyBase.ToString("0.####", inv), toQty = l.ToQtyBase.ToString("0.####", inv)
+    }));
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@ViewBag.Title</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@(doc == null ? Url.Action("Index") : Url.Action("Details", new { id = doc.ID }))">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Regrade_Hint")</p>
+                    @using (Html.BeginForm("Save", "DstRegrades", new { area = "Distribution", id = doc?.ID }, FormMethod.Post, new { id = "rgForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="data" id="rgData" />
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>@DstLocalization.T("Warehouse")</label>
+                                <select name="warehouseId" id="rgWarehouse" class="form-control" required>
+                                    @foreach (var w in (List<SelectListItem>)ViewBag.Warehouses)
+                                    {
+                                        <option value="@w.Value" @(doc != null && doc.WarehouseID.ToString() == w.Value ? "selected" : "")>@w.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>@DstLocalization.T("Reason")</label>
+                                <select name="reasonId" class="form-control">
+                                    <option value="">—</option>
+                                    @foreach (var r in (List<SelectListItem>)ViewBag.Reasons)
+                                    {
+                                        <option value="@r.Value" @(doc != null && doc.ReasonID.ToString() == r.Value ? "selected" : "")>@r.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>@DstLocalization.T("Comment")</label>
+                                <input name="note" class="form-control" maxlength="300" value="@doc?.Note" />
+                            </div>
+                        </div>
+                        <div class="form-row align-items-end mb-1">
+                            <div class="col-md-5"><label>@DstLocalization.T("Regrade_From")</label><select id="rgFrom" class="form-control"></select></div>
+                            <div class="col-md-5"><label>@DstLocalization.T("Regrade_To")</label><select id="rgTo" class="form-control"></select></div>
+                            <div class="col-md-2"><button type="button" class="btn btn-outline-primary btn-block" id="rgAdd"><i class="bx bx-plus"></i></button></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered" id="rgLines">
+                                <thead>
+                                    <tr>
+                                        <th>@DstLocalization.T("Regrade_From")</th><th class="text-right" style="width:130px">@DstLocalization.T("Qty")</th>
+                                        <th>@DstLocalization.T("Regrade_To")</th><th class="text-right" style="width:130px">@DstLocalization.T("Qty")</th><th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        (function () {
+            var lines = @Html.Raw(initial), from = null, to = null;
+            function esc(s) { return $('<div>').text(s == null ? '' : s).html(); }
+            function render() {
+                var tb = $('#rgLines tbody').empty();
+                lines.forEach(function (l, i) {
+                    tb.append('<tr data-i="' + i + '"><td>' + esc(l.from.text) + (l.from.available != null ? ' <span class="small text-muted">(' + l.from.available + ')</span>' : '') + '</td>' +
+                        '<td><div class="input-group input-group-sm"><input type="number" min="0" step="any" class="form-control text-right" data-f="fromQty" value="' + esc(l.fromQty) + '" required /><div class="input-group-append"><span class="input-group-text">' + esc(l.from.unit) + '</span></div></div></td>' +
+                        '<td>' + esc(l.to.text) + '</td>' +
+                        '<td><div class="input-group input-group-sm"><input type="number" min="0" step="any" class="form-control text-right" data-f="toQty" value="' + esc(l.toQty) + '" required /><div class="input-group-append"><span class="input-group-text">' + esc(l.to.unit) + '</span></div></div></td>' +
+                        '<td><button type="button" class="btn btn-sm btn-outline-danger" data-f="del">×</button></td></tr>');
+                });
+            }
+            function picker(sel, set) {
+                $(sel).select2({
+                    ajax: { url: '@Url.Action("SearchProducts")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term, warehouseId: $('#rgWarehouse').val() }; } }
+                }).on('select2:select', function (e) { set(e.params.data); });
+            }
+            picker('#rgFrom', function (p) { from = p; });
+            picker('#rgTo', function (p) { to = p; });
+            $('#rgAdd').on('click', function () {
+                if (!from || !to || from.id === to.id) return;
+                lines.push({ from: from, to: to, fromQty: '', toQty: '' });
+                from = to = null;
+                $('#rgFrom, #rgTo').val(null).trigger('change');
+                render();
+            });
+            $('#rgLines').on('change', '[data-f]', function () {
+                var l = lines[$(this).closest('tr').data('i')], f = $(this).data('f');
+                l[f] = $(this).val();
+                if (f === 'fromQty' && !l.toQty) { l.toQty = l.fromQty; render(); }
+            }).on('click', '[data-f=del]', function () { lines.splice($(this).closest('tr').data('i'), 1); render(); });
+            $('#rgForm').on('submit', function () {
+                $('#rgData').val(JSON.stringify(lines.map(function (l) { return { FromProductID: l.from.id, ToProductID: l.to.id, FromQtyBase: l.fromQty || 0, ToQtyBase: l.toQty || 0 }; })));
+            });
+            render();
+        })();
+    </script>
+}

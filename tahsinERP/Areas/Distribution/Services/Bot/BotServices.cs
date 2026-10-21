@@ -126,6 +126,16 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             });
         }
 
+        /// <summary>Mijozga qo'shimcha ma'lumot bilan (masalan nakladnoy PDF: {"action":"invoice","stopId":N} — bot hujjatni o'zi tayyorlaydi).</summary>
+        public static void ToCustomer(DistributionDbContext db, int customerId, string type, Func<string, string> text, string payload, DateTime now)
+        {
+            if (!db.TelegramAccounts.Any(a => a.CustomerID == customerId && a.IsActive)) return;
+            db.Notifications.Add(new DstNotification
+            {
+                Type = type, CustomerID = customerId, Text = Cut(text(DstLocalization.Uzbek)), Payload = payload, CreatedAt = now
+            });
+        }
+
         /// <summary>Rahbarlar: Telegram'da MANAGER roli bilan bog'langanlar.</summary>
         public static void ToManagers(DistributionDbContext db, string type, Func<string, string> text, string payload, DateTime now, int? exceptUserId = null)
         {

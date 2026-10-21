@@ -7,6 +7,7 @@ namespace tahsinERP.Bot.Handlers;
 /// c:{mijoz} karta · ci:{mijoz} keldim · pay:{mijoz}:{tashrif} to'lov · pm:{usul} to'lov usuli · no:{tashrif} sabablar ·
 /// nr:{tashrif}:{sabab} buyurtmasiz · ph:{tashrif} foto · map:{mijoz} xarita · rt marshrut · ho / ho! kassaga topshirish ·
 /// ov:{buyurtma} rahbar tasdig'i · nc! yangi nuqtani saqlash · ak:{m0|m1|q} mijoz akt sverki davri · x bekor.
+/// Ekspeditor va ovoz (2-bosqich) — UpdateRouter.Delivery.cs / UpdateRouter.Voice.cs izohlarida.
 /// </summary>
 public readonly record struct Callback(string Command, string[] Args)
 {

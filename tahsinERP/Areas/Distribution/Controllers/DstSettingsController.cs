@@ -36,6 +36,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
             public string Product { get; set; }
             public string Unit { get; set; }
             public decimal MinQty { get; set; }
+            public decimal? MaxQty { get; set; }
         }
 
         public ActionResult Index(int? warehouseId)
@@ -74,7 +75,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                        orderby p.Name
                        select new StockLimitRow
                        {
-                           WarehouseID = l.WarehouseID, ProductID = l.ProductID, Product = p.PNo + " — " + p.Name, MinQty = l.MinQty,
+                           WarehouseID = l.WarehouseID, ProductID = l.ProductID, Product = p.PNo + " — " + p.Name, MinQty = l.MinQty, MaxQty = l.MaxQty,
                            Unit = db.Units.Where(u => u.ID == p.UnitID).Select(u => u.ShortName).FirstOrDefault()
                        }).ToList();
                 return View();
@@ -194,7 +195,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
         /// <summary>Minimal qoldiq (asosiy birlikda); 0 yoki bo'sh — limit olib tashlanadi.</summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]
-        public JsonResult SaveStockLimit(int warehouseId, int productId, decimal? minQty)
+        public JsonResult SaveStockLimit(int warehouseId, int productId, decimal? minQty, decimal? maxQty)
         {
             return DstJson(() =>
             {
@@ -210,7 +211,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     else
                     {
                         if (row == null) db.ProductStockLimits.Add(row = new ProductStockLimit { WarehouseID = warehouseId, ProductID = productId });
+                        if (maxQty.HasValue && maxQty > 0 && maxQty < minQty) throw new DstValidationException(DstLocalization.T("MinStock_MaxBelowMin"));
                         row.MinQty = minQty.Value;
+                        row.MaxQty = maxQty > 0 ? maxQty : null;
                     }
                     db.SaveChanges();
                     return null;

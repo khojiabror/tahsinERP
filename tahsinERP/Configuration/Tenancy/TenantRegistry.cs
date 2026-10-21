@@ -80,7 +80,7 @@ namespace tahsinERP.Configuration.Tenancy
         /// </summary>
         public static readonly string[] ReservedSlugs =
         {
-            "admin", "my", "pay", "www", "api", "app", "mail", "smtp", "static", "cdn", "assets", "status", "panel", "erp"
+            "admin", "my", "pay", "www", "api", "app", "mail", "smtp", "static", "cdn", "assets", "status", "panel", "erp", "bot", "sayt", "sites"
         };
 
         private static readonly Regex DatabaseRegex = new Regex(@"^[A-Za-z0-9_\-\.]{1,128}$", RegexOptions.Compiled);

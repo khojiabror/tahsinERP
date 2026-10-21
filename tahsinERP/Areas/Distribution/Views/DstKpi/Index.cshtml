@@ -1,0 +1,190 @@
+@model List<tahsinERP.Areas.Distribution.Controllers.DstKpiController.AgentRow>
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    ViewBag.Title = DstLocalization.T("Kpi");
+    bool canChange = ViewBag.DstCanChange == true;
+    int year = ViewBag.Year, month = ViewBag.Month;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string P(decimal v) => v.ToString("0.##", inv);
+    string N(decimal? v) => v?.ToString("N0") ?? "";
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <form method="get" class="form-inline">
+                        <label class="mr-50">@DstLocalization.T("Kpi_Month")</label>
+                        <input type="number" name="year" class="form-control form-control-sm mr-50" style="width:90px" value="@year" min="2020" max="2100" />
+                        <select name="month" class="form-control form-control-sm mr-50">
+                            @for (int i = 1; i <= 12; i++) { <option value="@i" @(i == month ? "selected" : "")>@i.ToString("00")</option> }
+                        </select>
+                        <button class="btn btn-sm btn-outline-primary">@DstLocalization.T("Filter")</button>
+                    </form>
+                    @if (canChange)
+                    {
+                        <button type="button" class="btn btn-sm btn-primary" id="btnCalc"><i class="bx bx-calculator"></i> @DstLocalization.T("Kpi_Calculate")</button>
+                    }
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">@DstLocalization.T("Kpi_Hint")</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm small">
+                            <thead>
+                                <tr>
+                                    <th>@DstLocalization.T("Agent")</th><th>@DstLocalization.T("Kpi_Scheme")</th>
+                                    <th class="text-right">@DstLocalization.T("Kpi_NetSales")</th><th class="text-right">@DstLocalization.T("Kpi_PlanPct")</th>
+                                    <th class="text-right">@DstLocalization.T("Kpi_Coverage")</th><th class="text-right">@DstLocalization.T("Kpi_Commission")</th>
+                                    <th class="text-right">@DstLocalization.T("Kpi_Bonus")</th><th class="text-right">@DstLocalization.T("Kpi_Penalty")</th>
+                                    <th class="text-right">@DstLocalization.T("Kpi_Total")</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in Model)
+                                {
+                                    var s = a.Scheme;
+                                    var r = a.Result;
+                                    <tr>
+                                        <td><b>@a.Name</b> @if (a.IsExpeditor) { <span class="badge badge-light-info">@DstLocalization.T("Expeditor")</span> }<div class="text-muted">@a.Employee</div></td>
+                                        <td>
+                                            @if (s == null) { <span class="text-muted">—</span> }
+                                            else
+                                            {
+                                                <span class="@(s.IsActive ? "" : "text-muted")">@P(s.SalesPct)%@(s.MonthlyPlan > 0 ? " · " + DstLocalization.T("Kpi_Plan") + " " + s.MonthlyPlan.ToString("N0") : "")</span>
+                                            }
+                                            @if (canChange)
+                                            {
+                                                <a href="#" class="ml-25" data-scheme="@a.UserID" data-name="@a.Name" data-employee="@s?.EmployeeID" data-sales="@(s == null ? "0" : P(s.SalesPct))"
+                                                   data-plan="@(s == null ? "0" : P(s.MonthlyPlan))" data-planbonus="@(s == null ? "0" : P(s.PlanBonus))" data-overplan="@(s == null ? "0" : P(s.OverPlanPct))"
+                                                   data-mincov="@(s == null ? "0" : P(s.MinCoveragePct))" data-covpenalty="@(s == null ? "0" : P(s.CoveragePenalty))"
+                                                   data-overdue="@(s == null ? "0" : P(s.OverduePenaltyPct))" data-shortage="@(s == null ? "0" : P(s.ShortagePenaltyPct))"
+                                                   data-active="@(s == null || s.IsActive ? "1" : "0")"><i class="bx bx-edit"></i></a>
+                                            }
+                                        </td>
+                                        @if (r == null)
+                                        {
+                                            <td colspan="8" class="text-muted">@DstLocalization.T("Kpi_NotCalculated")</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-right">@N(r.NetSales)</td>
+                                            <td class="text-right">@(r.PlanPct?.ToString("0.#"))</td>
+                                            <td class="text-right">@(r.CoveragePct?.ToString("0.#"))</td>
+                                            <td class="text-right">@N(r.Commission)</td>
+                                            <td class="text-right">@N(r.Bonus + r.ManualBonus)</td>
+                                            <td class="text-right" title="@DstLocalization.T("Kpi_Overdue"): @N(r.OverdueDebt) · @DstLocalization.T("Trip_ShortageCost"): @N(r.ShortageCost)">@N(r.Penalty + r.ManualPenalty)</td>
+                                            <td class="text-right"><b>@N(r.TotalBonus - r.TotalPenalty)</b>@if (r.Note != null) { <div class="text-muted">@r.Note</div> }</td>
+                                            <td class="text-right text-nowrap">
+                                                @if (r.Status == KpiResult.Applied)
+                                                {
+                                                    <span class="badge badge-light-success">@DstLocalization.T("Kpi_Applied")</span>
+                                                    if (canChange) { <button type="button" class="btn btn-sm btn-light py-0" data-revert="@r.ID">↺</button> }
+                                                }
+                                                else if (canChange)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-light py-0" data-adjust="@r.ID" data-bonus="@P(r.ManualBonus)" data-penalty="@P(r.ManualPenalty)" data-note="@r.Note">±</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-success py-0" data-apply="@r.ID">@DstLocalization.T("Kpi_Apply")</button>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                                @if (!Model.Any()) { <tr><td colspan="10" class="text-muted">@DstLocalization.T("Table_Empty")</td></tr> }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="schemeModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Kpi_Scheme") — <span id="sName"></span></h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="sAgent" />
+                <div class="form-group">
+                    <label>@DstLocalization.T("Kpi_Employee")</label>
+                    @Html.DropDownList("sEmployee", (List<SelectListItem>)ViewBag.Employees, "—", new { @class = "form-control", id = "sEmployee" })
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_SalesPct")</label><input id="sSales" type="number" min="0" max="100" step="0.01" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_Plan")</label><input id="sPlan" type="number" min="0" step="1000" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_PlanBonus")</label><input id="sPlanBonus" type="number" min="0" step="1000" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_OverPlanPct")</label><input id="sOverPlan" type="number" min="0" max="100" step="0.01" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_MinCoverage")</label><input id="sMinCov" type="number" min="0" max="100" step="1" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_CoveragePenalty")</label><input id="sCovPenalty" type="number" min="0" step="1000" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_OverduePct")</label><input id="sOverdue" type="number" min="0" max="100" step="0.01" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Kpi_ShortagePct")</label><input id="sShortage" type="number" min="0" max="100" step="1" class="form-control" /></div>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="sActive" />
+                    <label class="custom-control-label" for="sActive">@DstLocalization.T("Active")</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="sSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="adjustModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <input type="hidden" id="aId" />
+                <div class="form-group"><label>@DstLocalization.T("Kpi_ManualBonus")</label><input id="aBonus" type="number" min="0" step="1000" class="form-control" /></div>
+                <div class="form-group"><label>@DstLocalization.T("Kpi_ManualPenalty")</label><input id="aPenalty" type="number" min="0" step="1000" class="form-control" /></div>
+                <div class="form-group mb-0"><label>@DstLocalization.T("Comment")</label><input id="aNote" class="form-control" maxlength="300" /></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="aSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            var reload = function () { location.reload(); };
+            $('#btnCalc').on('click', function () { dstPost('@Url.Action("Recalculate")', { year: @year, month: @month }).done(reload); });
+            $('[data-scheme]').on('click', function (e) {
+                e.preventDefault();
+                var d = $(this).data();
+                $('#sAgent').val(d.scheme); $('#sName').text(d.name); $('#sEmployee').val(d.employee ? String(d.employee) : '');
+                $('#sSales').val(d.sales); $('#sPlan').val(d.plan); $('#sPlanBonus').val(d.planbonus); $('#sOverPlan').val(d.overplan);
+                $('#sMinCov').val(d.mincov); $('#sCovPenalty').val(d.covpenalty); $('#sOverdue').val(d.overdue); $('#sShortage').val(d.shortage);
+                $('#sActive').prop('checked', String(d.active) === '1');
+                $('#schemeModal').modal('show');
+            });
+            $('#sSave').on('click', function () {
+                dstPost('@Url.Action("SaveScheme")', {
+                    AgentUserID: $('#sAgent').val(), EmployeeID: $('#sEmployee').val(), SalesPct: $('#sSales').val() || 0, MonthlyPlan: $('#sPlan').val() || 0,
+                    PlanBonus: $('#sPlanBonus').val() || 0, OverPlanPct: $('#sOverPlan').val() || 0, MinCoveragePct: $('#sMinCov').val() || 0,
+                    CoveragePenalty: $('#sCovPenalty').val() || 0, OverduePenaltyPct: $('#sOverdue').val() || 0, ShortagePenaltyPct: $('#sShortage').val() || 0,
+                    IsActive: $('#sActive').is(':checked')
+                }).done(reload);
+            });
+            $('[data-adjust]').on('click', function () {
+                var d = $(this).data();
+                $('#aId').val(d.adjust); $('#aBonus').val(d.bonus); $('#aPenalty').val(d.penalty); $('#aNote').val(d.note || '');
+                $('#adjustModal').modal('show');
+            });
+            $('#aSave').on('click', function () {
+                dstPost('@Url.Action("SaveAdjustment")', { id: $('#aId').val(), manualBonus: $('#aBonus').val() || 0, manualPenalty: $('#aPenalty').val() || 0, note: $('#aNote').val() }).done(reload);
+            });
+            $('[data-apply]').on('click', function () { dstPost('@Url.Action("ApplyPayroll")', { id: $(this).data('apply') }).done(reload); });
+            $('[data-revert]').on('click', function () { dstPost('@Url.Action("RevertPayroll")', { id: $(this).data('revert') }).done(reload); });
+        });
+    </script>
+}

@@ -118,9 +118,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             var units = new UnitService(db);
             var saleActive = db.ProductProfiles.Where(p => productIds.Contains(p.ProductID) && !p.IsSaleActive).Select(p => p.ProductID).ToList();
 
-            var calcs = new List<LineCalc>();
-            var entities = new List<DstOrderLine>();
-            int lineNo = 0;
+            var resolved = new List<(OrderLineInput Input, SaleUnit Unit, ResolvedPrice Price)>();
             foreach (var l in lines)
             {
                 if (!products.ContainsKey(l.ProductID)) throw new DstValidationException(DstLocalization.T("Error_NotFound"));
@@ -130,27 +128,69 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                            ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
                 var price = prices[l.ProductID];
                 if (!price.Found) throw new DstValidationException(DstLocalization.T("Order_NoPrice", names[l.ProductID]));
+                resolved.Add((l, unit, price));
+            }
 
-                var calc = new LineCalc
+            // aksiyalar (3-bosqich): qator chegirmasi va sovg'a qatorlari — har saqlashda qayta hisoblanadi
+            var promo = PromotionService.Apply(PromotionService.Active(db, profile.PriceTypeID, now),
+                resolved.Select((r, i) => new PromotionService.LineInfo
                 {
-                    Qty = l.Qty, Factor = unit.Factor, UnitPrice = UnitMath.UnitPrice(price.Price.Value, unit.Factor),
-                    DiscountPct = l.DiscountPct, UnitWeightKg = unit.WeightKg, UnitVolumeM3 = unit.VolumeM3
-                };
+                    Index = i, ProductID = r.Input.ProductID, CategoryID = products[r.Input.ProductID].CategoryID,
+                    QtyBase = UnitMath.ToBase(r.Input.Qty, r.Unit.Factor)
+                }).ToList());
+
+            var calcs = new List<LineCalc>();
+            var entities = new List<DstOrderLine>();
+            int lineNo = 0;
+            for (int i = 0; i < resolved.Count; i++)
+            {
+                var (l, unit, price) = resolved[i];
+                decimal unitPrice = UnitMath.UnitPrice(price.Price.Value, unit.Factor);
                 DirectoryRules.ValidateDiscountPercent(l.DiscountPct);
+                // limit va minimal narx — faqat qo'lda berilgan chegirma uchun (aksiya chegirmasi ozod)
                 OrderRules.CheckDiscount(OrderCalculator.EffectiveDiscountPct(l.DiscountPct, input.DiscountPct),
                     actor.MaxDiscountPct, actor.DiscountUnlimited);
-
                 decimal? minUnit = price.MinPrice.HasValue ? UnitMath.UnitPrice(price.MinPrice.Value, unit.Factor) : (decimal?)null;
-                decimal netAfterOrderDiscount = Math.Round(calc.NetUnitPrice * (100m - input.DiscountPct) / 100m, 2);
+                var manual = new LineCalc { Qty = l.Qty, Factor = unit.Factor, UnitPrice = unitPrice, DiscountPct = l.DiscountPct };
+                decimal netAfterOrderDiscount = Math.Round(manual.NetUnitPrice * (100m - input.DiscountPct) / 100m, 2);
                 OrderRules.CheckMinPrice(names[l.ProductID], netAfterOrderDiscount, minUnit, actor.DiscountUnlimited);
+
+                promo.Discounts.TryGetValue(i, out var pd);
+                decimal promoPct = pd?.Pct ?? 0;
+                var calc = new LineCalc
+                {
+                    Qty = l.Qty, Factor = unit.Factor, UnitPrice = unitPrice,
+                    DiscountPct = promoPct == 0 ? l.DiscountPct : Math.Round(OrderCalculator.EffectiveDiscountPct(promoPct, l.DiscountPct), 2),
+                    UnitWeightKg = unit.WeightKg, UnitVolumeM3 = unit.VolumeM3
+                };
 
                 calcs.Add(calc);
                 entities.Add(new DstOrderLine
                 {
                     LineNo = ++lineNo, ProductID = l.ProductID, ProductUnitID = unit.ProductUnitID, UnitID = unit.UnitID,
                     Factor = unit.Factor, Qty = calc.Qty, QtyBase = calc.QtyBase, UnitPrice = calc.UnitPrice, MinUnitPrice = minUnit,
-                    PriceSource = (byte)price.Source, DiscountPct = calc.DiscountPct, DiscountSum = calc.DiscountSum, Amount = calc.Amount
+                    PriceSource = (byte)price.Source, DiscountPct = calc.DiscountPct, DiscountSum = calc.DiscountSum, Amount = calc.Amount,
+                    PromotionID = pd?.PromotionID, PromoPct = promoPct
                 });
+            }
+
+            if (promo.Free.Count > 0)
+            {
+                var freeIds = promo.Free.Select(f => f.ProductID).Distinct().ToList();
+                var freeOk = new HashSet<int>(db.Products.Where(p => freeIds.Contains(p.ID) && !p.IsDeleted).Select(p => p.ID).ToList());
+                var freeOff = db.ProductProfiles.Where(p => freeIds.Contains(p.ProductID) && !p.IsSaleActive).Select(p => p.ProductID).ToList();
+                foreach (var f in promo.Free.Where(f => freeOk.Contains(f.ProductID) && !freeOff.Contains(f.ProductID)))
+                {
+                    var unit = units.UnitsOf(f.ProductID).First(u => u.IsBase);
+                    var calc = new LineCalc { Qty = f.QtyBase, Factor = 1m, UnitPrice = 0, UnitWeightKg = unit.WeightKg, UnitVolumeM3 = unit.VolumeM3 };
+                    calcs.Add(calc);
+                    entities.Add(new DstOrderLine
+                    {
+                        LineNo = ++lineNo, ProductID = f.ProductID, ProductUnitID = null, UnitID = unit.UnitID, Factor = 1m,
+                        Qty = calc.Qty, QtyBase = calc.QtyBase, UnitPrice = 0, PriceSource = (byte)PriceSource.Promotion,
+                        DiscountPct = 0, DiscountSum = 0, Amount = 0, PromotionID = f.PromotionID, IsFree = true
+                    });
+                }
             }
 
             DstOrder order;
@@ -497,6 +537,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderShipped,
                 l => DstLocalization.TFor(l, "Notify_Shipped", order.DocNo, total.ToString("N0"),
                     LedgerService.CreditState(db, order.CustomerID, now).Balance.ToString("N0")), now);
+            Warehouse.StockAlerts.AfterDecrease(db, warehouseId,
+                levels.Where(x => products.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value.OnHand), now, userId);
             db.SaveChanges();
             DebtService.SettleOrders(db, order.CustomerID, userId, now);   // oldindan to'langan bo'lsa — darhol yopiladi
             db.SaveChanges();
@@ -570,19 +612,29 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
 
         public static void MarkDelivered(DistributionUnitOfWork uow, int orderId, int userId, DateTime now)
         {
+            var order = MarkDeliveredSilently(uow, orderId, userId, now, null);
+            NotificationService.ToCustomer(uow.Dst, order.CustomerID, NotificationService.OrderDelivered,
+                l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);
+            uow.Dst.SaveChanges();
+        }
+
+        /// <summary>
+        /// "Yetkazildi" holati mijozga xabarsiz (reys: mijozga yetkazish xabari nakladnoy PDF bilan alohida ketadi, 2-bosqich).
+        /// </summary>
+        public static DstOrder MarkDeliveredSilently(DistributionUnitOfWork uow, int orderId, int userId, DateTime now, string note)
+        {
             var db = uow.Dst;
             var order = Load(db, orderId);
             if ((OrderStatus)order.OrderStatus == OrderStatus.Closed && order.DeliveredAt == null && order.ShippedTotal > 0)
             {
                 // oldindan to'langan: jo'natishda qarz yopilib buyurtma "Yopildi" bo'lgan — yetkazish baribir qayd qilinadi
-                Log(db, order, OrderStatus.Closed, OrderStatus.Closed, userId, now, DstLocalization.T("OrderStatus_Delivered"));
+                Log(db, order, OrderStatus.Closed, OrderStatus.Closed, userId, now, note ?? DstLocalization.T("OrderStatus_Delivered"));
             }
             else
-                Move(db, order, OrderStatus.Delivered, userId, now, null);
+                Move(db, order, OrderStatus.Delivered, userId, now, note);
             order.DeliveredAt = now;
-            NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderDelivered,
-                l => DstLocalization.TFor(l, "Notify_Delivered", order.DocNo, order.ShippedTotal.ToString("N0")), now);
             db.SaveChanges();
+            return order;
         }
 
         /// <summary>Bekor qilish — faqat jo'natilmagan buyurtma (jo'natilgani qaytarish hujjati bilan, S3).</summary>

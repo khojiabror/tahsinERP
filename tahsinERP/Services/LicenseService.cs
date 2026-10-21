@@ -1,6 +1,7 @@
 using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.Caching;
 using tahsinERP.Configuration.Tenancy;
@@ -60,6 +61,9 @@ namespace tahsinERP.Services
             public DateTime EffectiveNow { get; set; }
 
             public int DaysRemaining { get { return Info != null ? Info.DaysRemainingAt(EffectiveNow) : 0; } }
+            /// <summary>Panel bilan uzoq aloqa yo'q (onlayn tekshiruv siyosati, 08_STAGE4.md 4) — banner matni yoki null.</summary>
+            public string OnlineWarning { get; set; }
+
             /// <summary>Admin'ga banner ko'rsatish kerakmi (tugashiga oz qoldi yoki grace).</summary>
             public bool ShowWarning
             {
@@ -120,6 +124,8 @@ namespace tahsinERP.Services
                 using (var db = new DBTHSNEntities())
                 {
                     status = GetStatus(db);
+                    try { status.OnlineWarning = OnlineWarningFor(db); }
+                    catch (Exception ex) { Trace.TraceWarning("[License] onlayn tekshiruv holati o'qilmadi: " + ex.Message); }
                 }
             }
             catch (Exception ex)
@@ -131,6 +137,23 @@ namespace tahsinERP.Services
 
             MemoryCache.Default.Set(cacheKey, status, DateTimeOffset.Now.Add(ttl));
             return status;
+        }
+
+        /// <summary>
+        /// Onlayn tekshiruv ogohlantirishi: panelga ulangan o'rnatma uzoq vaqt muvaffaqiyatli sinxronlanmagan bo'lsa
+        /// (Optional — 30 kun, Required — 3 kun; LicenseSync.OnlineCheckPolicy). Panel o'chiq/ulanmagan — null.
+        /// </summary>
+        public static string OnlineWarningFor(DBTHSNEntities db)
+        {
+            if (!LicenseSync.LicenseSyncService.IsEnabled || string.IsNullOrEmpty(ReadSyncState(db, STATE_PANEL_SECRET)))
+                return null;
+            DateTime lastOk;
+            DateTime? last = DateTime.TryParse(ReadSyncState(db, STATE_LAST_SYNC_OK), CultureInfo.InvariantCulture,
+                DateTimeStyles.RoundtripKind, out lastOk) ? lastOk.ToUniversalTime() : (DateTime?)null;
+            int grace;
+            int? graceDays = int.TryParse(ReadSyncState(db, STATE_OFFLINE_GRACE_DAYS), NumberStyles.None, CultureInfo.InvariantCulture, out grace)
+                ? grace : (int?)null;
+            return LicenseSync.OnlineCheckPolicy.Warning(ReadSyncState(db, STATE_ONLINE_CHECK), graceDays, last, DateTime.UtcNow);
         }
 
         /// <summary>Kalit faollashtirilganda (yoki holat o'zgarganda) keshni tozalaydi.</summary>
@@ -178,7 +201,16 @@ namespace tahsinERP.Services
         public const string STATE_PANEL_SECRET = "PanelSecret";
         public const string STATE_LAST_SYNC = "LastSyncUtc";
         public const string STATE_LAST_SYNC_RESULT = "LastSyncResult";
-        private static readonly string[] SyncStateNames = { STATE_REG_TOKEN, STATE_PANEL_SECRET, STATE_LAST_SYNC, STATE_LAST_SYNC_RESULT };
+        /// <summary>Oxirgi MUVAFFAQIYATLI sinxronlash (UTC, "o") — onlayn tekshiruv ogohlantirishi shundan hisoblanadi.</summary>
+        public const string STATE_LAST_SYNC_OK = "LastSyncOkUtc";
+        /// <summary>Panel bergan siyosat: "required" / "optional" (08_STAGE4.md 4).</summary>
+        public const string STATE_ONLINE_CHECK = "OnlineCheck";
+        public const string STATE_OFFLINE_GRACE_DAYS = "OfflineGraceDays";
+        private static readonly string[] SyncStateNames =
+        {
+            STATE_REG_TOKEN, STATE_PANEL_SECRET, STATE_LAST_SYNC, STATE_LAST_SYNC_RESULT,
+            STATE_LAST_SYNC_OK, STATE_ONLINE_CHECK, STATE_OFFLINE_GRACE_DAYS
+        };
 
         private static void EnsureSyncStateName(string name)
         {

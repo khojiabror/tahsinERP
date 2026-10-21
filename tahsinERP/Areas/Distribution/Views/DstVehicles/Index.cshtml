@@ -1,0 +1,174 @@
+@model List<tahsinERP.Areas.Distribution.Controllers.DstVehiclesController.VehicleRow>
+@using tahsinERP.Areas.Distribution.Controllers
+@{
+    ViewBag.Title = DstLocalization.T("Vehicles");
+    bool canChange = ViewBag.DstCanChange == true;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var depots = (List<DstVehiclesController.DepotRow>)ViewBag.Depots;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title">@DstLocalization.T("Vehicles")</h4>
+                    <div>
+                        <a href="@Url.Action("Index", "DstTrips")" class="btn btn-sm btn-outline-primary"><i class="bx bx-trip"></i> @DstLocalization.T("Trips")</a>
+                        @if (canChange)
+                        {
+                            <button type="button" class="btn btn-sm btn-primary" id="addVehicle"><i class="bx bx-plus"></i> @DstLocalization.T("Add")</button>
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>@DstLocalization.T("Vehicle_Plate")</th><th>@DstLocalization.T("Vehicle_Model")</th>
+                                <th class="text-right">@DstLocalization.T("Vehicle_CapacityKg")</th><th class="text-right">@DstLocalization.T("Vehicle_CapacityM3")</th>
+                                <th>@DstLocalization.T("Vehicle_Driver")</th><th>@DstLocalization.T("Expeditor")</th><th>@DstLocalization.T("Warehouse")</th>
+                                <th class="text-right">@DstLocalization.T("Trips")</th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model)
+                            {
+                                var v = r.Vehicle;
+                                <tr class="@(v.IsActive ? "" : "text-muted")">
+                                    <td><b>@v.PlateNo</b> @if (!v.IsActive) { <span class="badge badge-light-secondary">@DstLocalization.T("Inactive")</span> }</td>
+                                    <td>@v.Model</td>
+                                    <td class="text-right">@v.CapacityKg.ToString("N0")</td>
+                                    <td class="text-right">@(v.CapacityM3?.ToString("0.###"))</td>
+                                    <td>@v.DriverName @if (v.DriverPhone != null) { <a href="tel:@v.DriverPhone" class="small">@v.DriverPhone</a> }</td>
+                                    <td>@r.Expeditor</td>
+                                    <td>@r.Warehouse</td>
+                                    <td class="text-right">@r.Trips</td>
+                                    <td class="text-right">
+                                        @if (canChange)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-edit
+                                                    data-id="@v.ID" data-plate="@v.PlateNo" data-model="@v.Model" data-kg="@v.CapacityKg.ToString(inv)"
+                                                    data-m3="@(v.CapacityM3?.ToString(inv))" data-driver="@v.DriverName" data-phone="@v.DriverPhone"
+                                                    data-expeditor="@v.ExpeditorUserID" data-warehouse="@v.WarehouseID" data-active="@(v.IsActive ? "1" : "0")" data-note="@v.Note">
+                                                <i class="bx bx-edit"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Any())
+                            {
+                                <tr><td colspan="9" class="text-muted">@DstLocalization.T("Vehicle_Empty")</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h4 class="card-title">@DstLocalization.T("Delivery_Settings")</h4></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>@DstLocalization.T("Map_Key")</label>
+                                <input id="mapsKey" class="form-control" maxlength="100" value="@ViewBag.MapsKey" autocomplete="off" @(canChange ? "" : "disabled") />
+                                <small class="text-muted">@DstLocalization.T("Map_KeyHint")</small>
+                            </div>
+                            <div class="custom-control custom-switch mb-1">
+                                <input type="checkbox" class="custom-control-input" id="voiceOrders" @(ViewBag.VoiceOrders == true ? "checked" : "") @(canChange ? "" : "disabled") />
+                                <label class="custom-control-label" for="voiceOrders">@DstLocalization.T("Voice_Enable")</label>
+                            </div>
+                            <small class="text-muted d-block">@DstLocalization.T("Voice_Hint")</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label>@DstLocalization.T("Depot_Geo")</label>
+                            <small class="text-muted d-block mb-50">@DstLocalization.T("Depot_GeoHint")</small>
+                            @foreach (var d in depots)
+                            {
+                                <div class="input-group input-group-sm mb-50">
+                                    <div class="input-group-prepend"><span class="input-group-text" style="min-width:140px">@d.Name</span></div>
+                                    <input class="form-control" data-depot="@d.WarehouseID" value="@d.Geo" placeholder="41.311081,69.240562" @(canChange ? "" : "disabled") />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    @if (canChange)
+                    {
+                        <button type="button" class="btn btn-primary" id="saveSettings">@DstLocalization.T("Save")</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="vehicleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">@DstLocalization.T("Vehicle")</h5></div>
+            <div class="modal-body">
+                <input type="hidden" id="vId" />
+                <div class="form-row">
+                    <div class="form-group col-6"><label>@DstLocalization.T("Vehicle_Plate") *</label><input id="vPlate" class="form-control" maxlength="20" placeholder="01 A 123 BC" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Vehicle_Model")</label><input id="vModel" class="form-control" maxlength="100" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Vehicle_CapacityKg") *</label><input id="vKg" type="number" min="1" step="1" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Vehicle_CapacityM3")</label><input id="vM3" type="number" min="0" step="0.1" class="form-control" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Vehicle_Driver")</label><input id="vDriver" class="form-control" maxlength="100" /></div>
+                    <div class="form-group col-6"><label>@DstLocalization.T("Phone")</label><input id="vPhone" class="form-control" maxlength="25" placeholder="+998" /></div>
+                    <div class="form-group col-6">
+                        <label>@DstLocalization.T("Expeditor")</label>
+                        @Html.DropDownList("vExpeditor", (List<SelectListItem>)ViewBag.Expeditors, "—", new { @class = "form-control", id = "vExpeditor" })
+                    </div>
+                    <div class="form-group col-6">
+                        <label>@DstLocalization.T("Warehouse")</label>
+                        @Html.DropDownList("vWarehouse", (List<SelectListItem>)ViewBag.Warehouses, "—", new { @class = "form-control", id = "vWarehouse" })
+                    </div>
+                    <div class="form-group col-12"><label>@DstLocalization.T("Comment")</label><input id="vNote" class="form-control" maxlength="300" /></div>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="vActive" checked />
+                    <label class="custom-control-label" for="vActive">@DstLocalization.T("Active")</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
+                <button type="button" class="btn btn-primary" id="vSave">@DstLocalization.T("Save")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            function open(d) {
+                d = d || {};
+                $('#vId').val(d.id || ''); $('#vPlate').val(d.plate || ''); $('#vModel').val(d.model || '');
+                $('#vKg').val(d.kg || ''); $('#vM3').val(d.m3 || ''); $('#vDriver').val(d.driver || ''); $('#vPhone').val(d.phone || '');
+                $('#vExpeditor').val(d.expeditor || ''); $('#vWarehouse').val(d.warehouse || ''); $('#vNote').val(d.note || '');
+                $('#vActive').prop('checked', d.active === undefined || String(d.active) === '1');
+                $('#vehicleModal').modal('show');
+            }
+            $('#addVehicle').on('click', function () { open(); });
+            $('[data-edit]').on('click', function () { open($(this).data()); });
+            $('#vSave').on('click', function () {
+                dstPost('@Url.Action("Save")', {
+                    ID: $('#vId').val(), PlateNo: $('#vPlate').val(), Model: $('#vModel').val(), CapacityKg: $('#vKg').val(), CapacityM3: $('#vM3').val(),
+                    DriverName: $('#vDriver').val(), DriverPhone: $('#vPhone').val(), ExpeditorUserID: $('#vExpeditor').val(),
+                    WarehouseID: $('#vWarehouse').val(), Note: $('#vNote').val(), IsActive: $('#vActive').is(':checked')
+                }).done(function () { location.reload(); });
+            });
+            $('#saveSettings').on('click', function () {
+                var ids = [], geos = [];
+                $('[data-depot]').each(function () { ids.push($(this).data('depot')); geos.push($(this).val()); });
+                dstPost('@Url.Action("SaveSettings")', { mapsKey: $('#mapsKey').val(), voiceOrders: $('#voiceOrders').is(':checked'), depotWarehouse: ids, depotGeo: geos })
+                    .done(function () { dstNotify(); });
+            });
+        });
+    </script>
+}

@@ -85,7 +85,7 @@
                                         {
                                             <tr>
                                                 <td>@l.LineNo</td>
-                                                <td>@l.PNo — @l.Product</td>
+                                                <td>@l.PNo — @l.Product @if (l.IsFree) { <span class="badge badge-success" title="@l.Promotion">@DstLocalization.T("Promo_Gift")</span> } else if (l.PromoPct > 0) { <span class="badge badge-info" title="@l.Promotion">@DstLocalization.T("Promo_Badge", l.PromoPct.ToString("0.##"))</span> }</td>
                                                 <td class="text-right">@Q(l.Qty) @l.Unit @if (l.Factor != 1) { <div class="small text-muted">= @Q(l.QtyBase) @l.BaseUnit</div> }</td>
                                                 <td class="text-right">@l.UnitPrice.ToString("N0")</td>
                                                 <td class="text-right">@(l.DiscountPct > 0 ? l.DiscountPct.ToString("0.##") : "")</td>

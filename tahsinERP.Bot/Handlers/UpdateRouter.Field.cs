@@ -24,6 +24,11 @@ public sealed partial class UpdateRouter
             if (RequireManager(ctx) && cb.Int(0) is int orderId) await ConfirmOverrideAsync(ctx, orderId, cq.Message, ct);
             return;
         }
+        if (cb.Command == "wo")
+        {
+            if (RequireManager(ctx) && cb.Int(0) is int writeOffId) await WriteOffDecisionAsync(ctx, writeOffId, cb.Str(1) == "1", cq.Message, ct);
+            return;
+        }
         if (cb.Command == "ak")
         {
             await SendStatementAsync(ctx, cb.Str(0), ct);
@@ -36,6 +41,9 @@ public sealed partial class UpdateRouter
             return;
         }
         if (!RequireField(ctx)) return;
+        if (await OnDeliveryCallbackAsync(ctx, cb, cq.Message, ct)) return;
+        if (cb.Command == "vo!") { await VoiceSubmitAsync(ctx, ct); return; }
+        if (cb.Command == "vc" && cb.Int(0) is int voiceCustomer) { await VoicePickCustomerAsync(ctx, voiceCustomer, ct); return; }
 
         switch (cb.Command)
         {
@@ -226,9 +234,11 @@ public sealed partial class UpdateRouter
             await SendMenuAsync(ctx, ctx.T("Menu"), ct);
             return;
         }
-        // ClientRequestId — takroriy bosishda ham bitta to'lov
-        var r = await ctx.Erp.PostAsync<ErpPaymentResult>("Payment",
-            new ErpPaymentInput(customerId, null, amount, method, null, rid, data.VisitId is > 0 ? data.VisitId : null), ctx.UserId, ct);
+        // ClientRequestId — takroriy bosishda ham bitta to'lov; ekspeditor manzilida — StopPayment (mijoz va buyurtma manzildan)
+        var r = data.StopId is int stopId
+            ? await ctx.Erp.PostAsync<ErpPaymentResult>("StopPayment", new { stopId, amount, method, clientRequestId = rid }, ctx.UserId, ct)
+            : await ctx.Erp.PostAsync<ErpPaymentResult>("Payment",
+                new ErpPaymentInput(customerId, null, amount, method, null, rid, data.VisitId is > 0 ? data.VisitId : null), ctx.UserId, ct);
         await sessions.ClearAsync(ctx.Tenant.Id, ctx.From.Id, ct);
         await SendMenuAsync(ctx, ctx.T("Pay_Done", r?.DocNo, Texts.Money(r?.Amount ?? amount), Texts.Money(r?.OnHand ?? 0)), ct);
     }
@@ -286,6 +296,16 @@ public sealed partial class UpdateRouter
     }
 
     // ---------- rahbar ----------
+
+    /// <summary>Rahbar: hisobdan chiqarishni tasdiqlash (ombordan chiqariladi) yoki rad etish.</summary>
+    private async Task WriteOffDecisionAsync(Ctx ctx, int id, bool approve, TgMessage? source, CancellationToken ct)
+    {
+        var r = await ctx.Erp.PostAsync<ErpWriteOffResult>("WriteOffDecision", new { id, approve, reason = "Telegram" }, ctx.UserId, ct);
+        if (source != null)
+            outbox.Enqueue(ctx.Tenant.Id, ctx.ChatId, "editMessageReplyMarkup",
+                new { chat_id = ctx.ChatId, message_id = source.MessageId, reply_markup = new { inline_keyboard = Array.Empty<object>() } });
+        outbox.Send(ctx.Tenant.Id, ctx.ChatId, approve ? ctx.T("WriteOff_Done", r?.DocNo, Texts.Money(r?.CostTotal ?? 0)) : ctx.T("WriteOff_RejectedDone", r?.DocNo));
+    }
 
     private async Task ConfirmOverrideAsync(Ctx ctx, int orderId, TgMessage? source, CancellationToken ct)
     {

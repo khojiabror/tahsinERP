@@ -28,6 +28,8 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<PortalInvite> PortalInvites => Set<PortalInvite>();
     public DbSet<PortalOtp> PortalOtps => Set<PortalOtp>();
     public DbSet<PortalRequest> PortalRequests => Set<PortalRequest>();
+    public DbSet<BankImport> BankImports => Set<BankImport>();
+    public DbSet<BankImportLine> BankImportLines => Set<BankImportLine>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -51,10 +53,13 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasData(
                 new Plan { Id = 1, Code = PlanCodes.Start, Name = "Start", MaxUsers = 5, Modules = "Srm,Crm,Tasks", VatRatePercent = 12m, SortOrder = 1 },
                 new Plan { Id = 2, Code = PlanCodes.Biznes, Name = "Biznes", MaxUsers = 20, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance", VatRatePercent = 12m, SortOrder = 2 },
-                new Plan { Id = 3, Code = PlanCodes.Korp, Name = "Korporativ", MaxUsers = 50, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs", VatRatePercent = 12m, SortOrder = 3 },
-                new Plan { Id = 4, Code = PlanCodes.Trial, Name = "Sinov (14 kun)", MaxUsers = 5, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs", VatRatePercent = 12m, TrialDays = 14, PriceMonthTiyin = 0, PriceYearTiyin = 0, SortOrder = 4 },
+                new Plan { Id = 3, Code = PlanCodes.Korp, Name = "Korporativ", MaxUsers = 50, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution", VatRatePercent = 12m, SortOrder = 3 },
+                new Plan { Id = 4, Code = PlanCodes.Trial, Name = "Sinov (14 kun)", MaxUsers = 5, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution", VatRatePercent = 12m, TrialDays = 14, PriceMonthTiyin = 0, PriceYearTiyin = 0, SortOrder = 4 },
                 // Qo'shimcha xizmat: narx ochiq savol (Tariflar sahifasida belgilanadi), 02_WEBSITE_CATALOG.md 9-bo'lim.
-                new Plan { Id = 5, Code = PlanCodes.Site, Name = "Sayt-katalog", MaxUsers = 0, Modules = "Website", VatRatePercent = 12m, IsAddOn = true, SortOrder = 10 });
+                new Plan { Id = 5, Code = PlanCodes.Site, Name = "Sayt-katalog", MaxUsers = 0, Modules = "Website", VatRatePercent = 12m, IsAddOn = true, SortOrder = 10 },
+                // Distributsiya paketi (Distribution/00_PLAN.md 1, 4-faza): BIZNES bilan bir pog'ona (20 foydalanuvchi), MES/BOM'siz.
+                // Narx ochiq. Asosiy zanjirdan tashqari — tarif so'rovi turi modul to'plami bo'yicha aniqlanadi (PortalRequestService.Classify).
+                new Plan { Id = 6, Code = PlanCodes.Dist, Name = "Distributsiya", MaxUsers = 20, Modules = "Srm,Crm,Tasks,Finance,Distribution", VatRatePercent = 12m, SortOrder = 5 });
         });
 
         b.Entity<Server>(e =>
@@ -91,6 +96,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.LastHost).HasMaxLength(253);
             e.Property(x => x.Notes).HasMaxLength(2000);
             e.Property(x => x.ArchiveLocation).HasMaxLength(500);
+            e.Property(x => x.OnlineCheck).HasDefaultValue(OnlineCheckMode.Optional).HasSentinel((OnlineCheckMode)0);
             e.Property(x => x.RowVersion).IsRowVersion();
             e.HasOne(x => x.Server).WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -110,6 +116,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Number).HasMaxLength(20);
             e.Property(x => x.Note).HasMaxLength(1000);
             e.Property(x => x.DidoxId).HasMaxLength(100);
+            e.Property(x => x.DidoxStatus).HasMaxLength(100);
+            e.Property(x => x.DidoxError).HasMaxLength(1000);
+            e.HasIndex(x => x.DidoxId).HasFilter("[DidoxId] IS NOT NULL");
             e.Property(x => x.RowVersion).IsRowVersion();
             e.Ignore(x => x.RemainingTiyin);
             e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
@@ -255,6 +264,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.PasswordHash).HasMaxLength(200);
             e.Property(x => x.TelegramChatId).HasMaxLength(50);
             e.Property(x => x.TelegramLinkHash).HasMaxLength(64);
+            e.Property(x => x.OtpChannel).HasMaxLength(20);
             e.Property(x => x.SecurityStamp).HasMaxLength(64);
             e.Property(x => x.RowVersion).IsRowVersion();
             e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
@@ -291,6 +301,34 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Subscription>().WithMany().HasForeignKey(x => x.SubscriptionId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Subscription>().WithMany().HasForeignKey(x => x.CurrentSubscriptionId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<BankImport>(e =>
+        {
+            e.HasIndex(x => x.UploadedAtUtc);
+            e.Property(x => x.FileName).HasMaxLength(260);
+            e.Property(x => x.FileHash).HasMaxLength(64);
+            e.Property(x => x.Account).HasMaxLength(200);
+            e.HasMany(x => x.Lines).WithOne().HasForeignKey(l => l.ImportId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<BankImportLine>(e =>
+        {
+            e.HasIndex(x => new { x.ImportId, x.LineNo }).IsUnique();
+            e.HasIndex(x => x.DedupKey);
+            // Idempotentlik: bitta bank tranzaksiyasi faqat bir marta qo'llanadi (parallel xodimlar ham).
+            e.HasIndex(x => x.AppliedKey).IsUnique().HasFilter("[AppliedKey] IS NOT NULL");
+            e.Property(x => x.DocNumber).HasMaxLength(50);
+            e.Property(x => x.PayerName).HasMaxLength(300);
+            e.Property(x => x.PayerInn).HasMaxLength(14);
+            e.Property(x => x.PayerAccount).HasMaxLength(34);
+            e.Property(x => x.Purpose).HasMaxLength(1000);
+            e.Property(x => x.DedupKey).HasMaxLength(64);
+            e.Property(x => x.AppliedKey).HasMaxLength(64);
+            e.Property(x => x.MatchNote).HasMaxLength(300);
+            e.Property(x => x.Error).HasMaxLength(1000);
+            e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Payment>().WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<InvoiceSequence>(e =>

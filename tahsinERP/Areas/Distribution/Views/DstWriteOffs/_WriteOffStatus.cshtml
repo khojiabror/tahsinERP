@@ -1,0 +1,18 @@
+@using tahsinERP.Areas.Distribution.Data.Entities
+@model Tuple<DocumentStatus, bool>
+@if (Model.Item1 == DocumentStatus.Posted)
+{
+    <span class="badge badge-light-success">@DstLocalization.T("WriteOff_Approved")</span>
+}
+else if (Model.Item1 == DocumentStatus.Cancelled)
+{
+    <span class="badge badge-light-danger">@DstLocalization.T("DocStatus_Cancelled")</span>
+}
+else if (Model.Item2)
+{
+    <span class="badge badge-light-warning">@DstLocalization.T("WriteOff_Waiting")</span>
+}
+else
+{
+    <span class="badge badge-light-secondary">@DstLocalization.T("DocStatus_Draft")</span>
+}

@@ -29,6 +29,7 @@ services.AddSingleton<InboxSignal>();
 services.AddSingleton<IFileStore, LocalFileStore>();
 services.AddSingleton<ErpClientFactory>();
 services.AddSingleton<LiveThrottle>();
+services.AddHttpClient<tahsinERP.Bot.Voice.IVoiceRecognizer, tahsinERP.Bot.Voice.GroqVoiceRecognizer>(c => c.Timeout = TimeSpan.FromSeconds(60));
 services.AddScoped<Outbox>();
 services.AddScoped<SessionStore>();
 services.AddScoped<UpdateRouter>();

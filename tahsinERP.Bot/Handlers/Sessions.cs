@@ -22,6 +22,10 @@ public static class States
     public const string NewPhoto = "new_photo";
     public const string NewConfirm = "new_confirm";
     public const string IssueText = "issue_text";
+    public const string TripPhoto = "trip_photo";
+    public const string TripExpense = "trip_expense";
+    public const string VoiceCustomer = "voice_customer";
+    public const string VoiceConfirm = "voice_confirm";
 }
 
 /// <summary>Holat ma'lumoti (barcha holatlar uchun bitta shakl — kerakli maydonlar to'ldiriladi).</summary>
@@ -38,6 +42,12 @@ public sealed class SessionData
     public string? Phone { get; set; }
     public string? Landmark { get; set; }
     public string? PhotoKey { get; set; }
+    public int? StopId { get; set; }
+    public int? TripId { get; set; }
+    public string? Kind { get; set; }
+    /// <summary>Ovozli buyurtma: matn va ajratilgan qatorlar (JSON).</summary>
+    public string? Transcript { get; set; }
+    public string? Json { get; set; }
 }
 
 public sealed class SessionStore(BotDbContext db, TimeProvider clock)

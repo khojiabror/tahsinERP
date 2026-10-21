@@ -8,7 +8,7 @@ namespace tahsinERP.Areas.Distribution.Services.Reports
 {
     /// <summary>
     /// Tashriflar: reja (mijoz kartasidagi tashrif kunlari × davrdagi hafta kunlari) va fakt (dst.VISITS), samaradorlik.
-    /// Reja — mijozlarning JORIY agenti va tashrif kunlari bo'yicha (tarix saqlanmaydi).
+    /// Reja — mijozlarning JORIY agenti va tashrif kunlari bo'yicha (tarix saqlanmaydi); kunlik reja saqlangan kunda (dst.VISIT_PLANS) — o'sha reja.
     /// </summary>
     public static class VisitReportService
     {
@@ -93,6 +93,18 @@ namespace tahsinERP.Areas.Distribution.Services.Reports
             }).ToList().ToDictionary(x => x.Agent, x => new[] { x.D0, x.D1, x.D2, x.D3, x.D4, x.D5, x.D6 });
             var occurrences = WeekdayOccurrences(from, to);
 
+            // kunlik reja saqlangan kunlar (2-bosqich, dst.VISIT_PLANS): o'sha kun andoza o'rniga reja soni olinadi
+            var saved = db.VisitPlans.Where(v => v.PlanDate >= from && v.PlanDate <= to && ids.Contains(v.AgentUserID));
+            saved = scope.Customers.Apply(saved, v => v.CustomerID);
+            if (filter.TerritoryId.HasValue)
+            {
+                var territories = TerritoryFilter.WithDescendants(db, filter.TerritoryId.Value).Select(t => (int?)t).ToList();
+                saved = saved.Where(v => db.CustomerProfiles.Any(p => p.CustomerID == v.CustomerID && territories.Contains(p.TerritoryID)));
+            }
+            var savedDays = saved.GroupBy(v => new { v.AgentUserID, v.PlanDate }).Select(g => new { g.Key.AgentUserID, g.Key.PlanDate, Count = g.Count() }).ToList();
+            var adjust = savedDays.GroupBy(x => x.AgentUserID).ToDictionary(g => g.Key, g => g.Sum(x =>
+                x.Count - (plan.TryGetValue(x.AgentUserID, out var days) ? days[((int)x.PlanDate.DayOfWeek + 6) % 7] : 0)));
+
             // fakt
             var visits = db.Visits.Where(v => v.VisitDate >= from && v.VisitDate <= to && ids.Contains(v.UserID));
             visits = scope.Customers.Apply(visits, v => v.CustomerID);
@@ -124,7 +136,7 @@ namespace tahsinERP.Areas.Distribution.Services.Reports
                 {
                     AgentUserID = a.UserID, Agent = a.Name,
                     WorkDays = workDays.TryGetValue(a.UserID, out var w) ? w : 0,
-                    Planned = plan.TryGetValue(a.UserID, out var p) ? Planned(p, occurrences) : 0,
+                    Planned = (plan.TryGetValue(a.UserID, out var p) ? Planned(p, occurrences) : 0) + (adjust.TryGetValue(a.UserID, out var adj) ? adj : 0),
                     Visits = f?.Visits ?? 0, PlannedVisited = f?.PlannedVisited ?? 0, WithOrder = f?.WithOrder ?? 0,
                     WithPayment = f?.WithPayment ?? 0, NoOrder = f?.NoOrder ?? 0, OrderTotal = f?.OrderTotal ?? 0
                 };

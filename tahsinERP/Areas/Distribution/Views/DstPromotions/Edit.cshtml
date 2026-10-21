@@ -1,0 +1,134 @@
+@using tahsinERP.Areas.Distribution.Data.Entities
+@{
+    var p = (Promotion)ViewBag.Promo;
+    ViewBag.Title = p.ID == 0 ? DstLocalization.T("Promo_New") : p.Name;
+    ViewBag.DstParent = DstLocalization.T("Promotions");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    Func<decimal?, string> N = v => v?.ToString("0.####", inv);
+}
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">@ViewBag.Title</h4>
+                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("Save", "DstPromotions", new { area = "Distribution", id = p.ID == 0 ? (int?)null : p.ID }, FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>@DstLocalization.T("Name")</label>
+                                <input name="name" class="form-control" maxlength="150" value="@p.Name" required />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>@DstLocalization.T("Promo_Kind")</label>
+                                <select name="kind" id="pKind" class="form-control">
+                                    @foreach (var k in PromotionKinds.All) { <option value="@k" @(p.Kind == k ? "selected" : "")>@DstLocalization.T("Promo_Kind_" + k)</option> }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3 d-flex align-items-end">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="pActive" name="isActive" value="true" @(p.IsActive ? "checked" : "") />
+                                    <input type="hidden" name="isActive" value="false" />
+                                    <label class="custom-control-label" for="pActive">@DstLocalization.T("Active")</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label>@DstLocalization.T("Promo_From")</label>
+                                <input type="date" name="dateFrom" class="form-control" value="@p.DateFrom.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>@DstLocalization.T("Promo_To")</label>
+                                <input type="date" name="dateTo" class="form-control" value="@(p.DateTo?.ToString("yyyy-MM-dd"))" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>@DstLocalization.T("PriceType") <span class="small text-muted">(@DstLocalization.T("Promo_PriceTypeHint"))</span></label>
+                                <select name="priceTypeId" class="form-control">
+                                    <option value="">@DstLocalization.T("Promo_AllCustomers")</option>
+                                    @foreach (var t in (List<SelectListItem>)ViewBag.PriceTypes) { <option value="@t.Value" @(t.Selected ? "selected" : "")>@t.Text</option> }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>@DstLocalization.T("Product")</label>
+                                <select name="productId" id="pProduct" class="form-control">
+                                    @if (p.ProductID.HasValue) { <option value="@p.ProductID" selected>@ViewBag.ProductText</option> }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6" data-kind="DISCOUNT">
+                                <label>@DstLocalization.T("Category") <span class="small text-muted">(@DstLocalization.T("Promo_CategoryHint"))</span></label>
+                                <select name="categoryId" class="form-control">
+                                    <option value="">@DstLocalization.T("Promo_AllProducts")</option>
+                                    @foreach (var c in (List<SelectListItem>)ViewBag.Categories) { <option value="@c.Value" @(c.Selected ? "selected" : "")>@c.Text</option> }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row" data-kind="DISCOUNT">
+                            <div class="form-group col-md-3">
+                                <label>@DstLocalization.T("Promo_DiscountPct")</label>
+                                <input type="number" name="discountPct" min="0" max="100" step="any" class="form-control" value="@N(p.DiscountPct)" />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>@DstLocalization.T("Promo_MinQty")</label>
+                                <input type="number" name="minQty" min="0" step="any" class="form-control" value="@N(p.MinQtyBase)" />
+                            </div>
+                            <div class="col-md-6 small text-muted d-flex align-items-center">@DstLocalization.T("Promo_DiscountHint")</div>
+                        </div>
+                        <div class="form-row" data-kind="FREE">
+                            <div class="form-group col-md-2">
+                                <label>@DstLocalization.T("Promo_Buy")</label>
+                                <input type="number" name="buyQty" min="0" step="any" class="form-control" value="@N(p.BuyQtyBase)" />
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>@DstLocalization.T("Promo_Free")</label>
+                                <input type="number" name="freeQty" min="0" step="any" class="form-control" value="@N(p.FreeQtyBase)" />
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label>@DstLocalization.T("Promo_FreeProduct") <span class="small text-muted">(@DstLocalization.T("Promo_FreeProductHint"))</span></label>
+                                <select name="freeProductId" id="pFree" class="form-control">
+                                    @if (p.FreeProductID.HasValue) { <option value="@p.FreeProductID" selected>@ViewBag.FreeText</option> }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3 d-flex align-items-end">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="pRepeat" name="repeatable" value="true" @(p.Repeatable ? "checked" : "") />
+                                    <input type="hidden" name="repeatable" value="false" />
+                                    <label class="custom-control-label" for="pRepeat">@DstLocalization.T("Promo_Repeatable")</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>@DstLocalization.T("Comment")</label>
+                            <input name="note" class="form-control" maxlength="300" value="@p.Note" />
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> @DstLocalization.T("Save")</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        (function () {
+            var opts = { allowClear: true, placeholder: '—', ajax: { url: '@Url.Action("SearchProducts")', dataType: 'json', delay: 300, data: function (p) { return { q: p.term }; } } };
+            $('#pProduct').select2(opts);
+            $('#pFree').select2(opts);
+            function kind() {
+                var k = $('#pKind').val();
+                $('[data-kind]').each(function () { $(this).toggle($(this).data('kind') === k); });
+            }
+            $('#pKind').on('change', kind);
+            kind();
+        })();
+    </script>
+}

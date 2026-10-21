@@ -17,6 +17,9 @@ namespace tahsinERP.Areas.Distribution.Services
         /// <summary>Rol chegirma limitidan yuqori chegirma berish.</summary>
         public const string DiscountUnlimited = "DstDiscountUnlimited";
 
+        /// <summary>Hisobdan chiqarishni tasdiqlash / rad etish (025).</summary>
+        public const string WriteOffApprove = "DstWriteOffApprove";
+
         public static bool Has(string userName, string permission)
         {
             if (string.IsNullOrEmpty(userName)) return false;

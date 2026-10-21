@@ -112,6 +112,7 @@ public class HelperTests
     {
         Assert.Equal("https://bot.uz/app/?t=firma1&c=5&v=9", UpdateRouter.MiniAppUrl("https://bot.uz/", "firma1", 5, 9));
         Assert.Equal("https://bot.uz/app/?t=firma1&c=5", UpdateRouter.MiniAppUrl("https://bot.uz", "firma1", 5, null));
+        Assert.Equal("https://bot.uz/app/store.html?t=firma%201", UpdateRouter.StoreAppUrl("https://bot.uz/", "firma 1"));
         var stop = new ErpRouteStop(1, "Do'kon", null, null, null, null, null, true, true, "ORDER", 150000, 1);
         Assert.Equal("✅ Do'kon · 150 000❗", UpdateRouter.StopLabel(stop));
         Assert.StartsWith("⏳", UpdateRouter.StopLabel(stop with { Visited = false }));
@@ -120,13 +121,14 @@ public class HelperTests
 }
 
 /// <summary>UpdateRouter oqimlari: in-memory bot bazasi + soxta ERP (imzo tekshiriladi).</summary>
-public class HandlerTests : IDisposable
+public partial class HandlerTests : IDisposable
 {
     private const string Master = "0123456789abcdef0123456789abcdef-bot";
     private readonly ServiceProvider _sp;
     private readonly FakeHandler _erp;
     private readonly TenantRegistry.Tenant _tenant;
     private readonly Dictionary<string, Func<FakeHandler.Captured, (HttpStatusCode, string)>> _routes = new();
+    private readonly FakeVoice _voice = new();
     private readonly FixedClock _clock = new(new DateTimeOffset(2026, 10, 19, 6, 0, 0, TimeSpan.Zero));
 
     public HandlerTests()
@@ -155,6 +157,7 @@ public class HandlerTests : IDisposable
                     ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([0xFF, 0xD8, 0xFF, 0xE0]) }
                     : FakeHandler.Json(HttpStatusCode.OK, "{\"ok\":true}")))));
         services.AddSingleton<LiveThrottle>();
+        services.AddSingleton<tahsinERP.Bot.Voice.IVoiceRecognizer>(_voice);
         services.AddSingleton<IFileStore>(sp => new LocalFileStore(Path.GetTempPath(), sp.GetRequiredService<TimeProvider>()));
         services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
         services.AddScoped<Outbox>();

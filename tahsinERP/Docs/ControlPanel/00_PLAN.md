@@ -64,7 +64,7 @@ Asosiy qarorlar:
 ### 3.3 Yangilash (pull)
 - ERP har 6 soatda (va License sahifasida "Tekshirish" tugmasi bilan): `GET /api/license/{installation_id}` + HMAC imzoli so'rov (tenant sirri ro'yxatdan o'tishda beriladi).
 - Javob: eng yangi imzoli kalit yoki `304 Not Modified`. ERP kalitni `ActivateCompanyLicense` orqali saqlaydi — barcha mavjud tekshiruvlar (imzo, InstallationId, muddat) o'z-o'zidan ishlaydi.
-- Internet yo'q bo'lsa — saqlangan kalit bilan ishlaydi (offline). Ixtiyoriy siyosat on-prem uchun: 30 kun pull bo'lmasa banner, kalit muddati baribir o'zi tugaydi.
+- Internet yo'q bo'lsa — saqlangan kalit bilan ishlaydi (offline). On-prem siyosati (4-bosqich, 08_STAGE4.md 4): tenant bo'yicha `Optional` — 30 kun pull bo'lmasa banner, kalit muddati baribir o'zi tugaydi; `Required` — kalit qisqa (standart 30 kun) va panel uni pull orqali yangilab turadi.
 - ERP tomonda kod: `Services/LicenseSyncService.cs` (+ `Application_Start` da timer yoki `HostingEnvironment.QueueBackgroundWorkItem`), ~200 qator.
 
 ### 3.4 Kalit muddati siyosati
@@ -80,7 +80,8 @@ Asosiy qarorlar:
 | `Tenants` | Id, Slug (subdomen), LegalName, Inn (STIR), ContactName, Phone, Email, TelegramChatId, Deployment (SaaS/OnPrem), Status (Trial/Active/Grace/Suspended/Archived), DbName, ServerId, InstallationId, RegToken (hash), RegTokenExpires, ApiSecret (shifrlangan), CreatedAt |
 | `Servers` | Id, Name, Host, Region, SqlInstance, MaxTenants, CurrentTenants — tenantlarni serverlarga taqsimlash uchun |
 | `Subscriptions` | Id, TenantId, PlanId, Users, Period (Month/Year), StartDate, EndDate, AutoRenew, Status |
-| `Invoices` | Id, Number (TE-2026-000123), TenantId, SubscriptionId, AmountUzs, Status (Draft/Issued/PartiallyPaid/Paid/Cancelled), PaidAmountTiyin, DueDate, Lines (JSON: nomi, miqdor, narx, QQS), DidoxId (e-hisob-faktura) |
+| `Invoices` | Id, Number (TE-2026-000123), TenantId, SubscriptionId, AmountUzs, Status (Draft/Issued/PartiallyPaid/Paid/Cancelled), PaidAmountTiyin, DueDate, Lines (JSON: nomi, miqdor, narx, QQS), DidoxId, DidoxStatus, DidoxSentAtUtc, DidoxCheckedAtUtc, DidoxError (e-hisob-faktura) |
+| `BankImports`, `BankImportLines` | Bank ko'chirmasi importi (4-bosqich): fayl, qatorlar, moslash, AppliedKey (noyob — bir tranzaksiya bir marta) — 08_STAGE4.md 2 |
 | `Payments` | Id, InvoiceId, Method (Bank/Cash/Card/Other), AmountTiyin, PaidAt, Reference (to'lov topshirig'i raqami), Note, RecordedBy (StaffUserId), RecordedAt, IsReversed, ReversedBy, ReversedAt, ReverseReason |
 | `Licenses` | Id, TenantId, InstallationId, KeyId (k1/k2), LicenseKey, MaxUsers, StartDate, ExpiryDate, Edition, IssuedBy (user/auto), IssuedAt, Reason, SupersededById |
 | `ProvisioningJobs` | Id, TenantId, Type (Create/Reset/Suspend/Resume/Archive/Delete), Status, Attempts, Lease, Payload, Secrets (shifrlangan), Log, Result, StartedAt, FinishedAt — 05_PROVISIONING.md |
@@ -171,7 +172,7 @@ Xavfsizlik:
 | 1 | Panel MVP | Loyiha skeleti, StaffUsers + 2FA, Plans, Tenants, Subscriptions, Invoices, bank to'lovini qo'lda belgilash, KMS bilan kalit chiqarish, License API (register/pull), Telegram eslatmalar | 2–3 hafta |
 | 2 | Provisioning | Shablon baza, agent, wildcard DNS/TLS, demo tenant kechki reset, trial | 1–1.5 hafta |
 | 3 | Mijoz portali ✅ | Hisob-fakturalar, rekvizitlar, tarifni oshirish so'rovi, Telegram OTP, on-prem kalit (06_CUSTOMER_PORTAL.md) | 1–2 hafta |
-| 4 | Qo'shimcha | Didox e-hisob-faktura, bank ko'chirmasi importi, on-prem online tekshiruv siyosati, hisobotlar (MRR, churn), portalga SMS/email kod va o'z-o'ziga parol tiklash | 1–2 hafta |
+| 4 | Qo'shimcha ✅ | Didox e-hisob-faktura (Didox API haqiqiy hisob bilan tekshirilmagan), bank ko'chirmasi importi (1C/CSV/XLSX), on-prem online tekshiruv siyosati, DISTRIBUTSIYA paketi, portalga SMS/email kod va o'z-o'ziga parol tiklash (08_STAGE4.md); hisobotlar (MRR, churn) — 07_TRACTION.md | 1–2 hafta |
 
 Jami: **~7–10 hafta** bitta dasturchi + AI yordamida. 0–2 bosqichdan keyin birinchi pullik SaaS mijozni ulash mumkin (to'lov qo'lda belgilanadi).
 
@@ -192,8 +193,9 @@ Jami: **~7–10 hafta** bitta dasturchi + AI yordamida. 0–2 bosqichdan keyin b
 |---|---|---|---|
 | `START` | SRM (xarid + ombor), CRM, Topshiriqlar | 5 | ochiq |
 | `BIZNES` | Start + MES, Muhandislik (BOM / Norma / Tannarx), Moliya | 20 | ochiq |
-| `KORP` | Biznes + HR (oylik, tabel), Logistika, Rasmiy hujjatlar, ustuvor qo'llab-quvvatlash | 50 | ochiq |
+| `KORP` | Biznes + HR (oylik, tabel), Logistika, Rasmiy hujjatlar, Distributsiya, ustuvor qo'llab-quvvatlash | 50 | ochiq |
 | `TRIAL` | = KORP | 5 | 0, 14 kun |
+| `DIST` | Distributsiya: SRM, CRM, Topshiriqlar, Moliya, Distributsiya (MES/BOM yo'q) — asosiy zanjirdan tashqari yon paket (08_STAGE4.md 1) | 20 | ochiq |
 
 Modul cheklovi ERP tomonda (0-bosqichga qo'shilgan, ~1 hafta): `Edition → PERMISSIONMODULE` xaritasi; global filtr paketga kirmagan modul controllerlarini "Paketingizda yo'q — tarifni oshiring" sahifasiga yo'naltiradi, menyu bandlari yashiriladi.
 

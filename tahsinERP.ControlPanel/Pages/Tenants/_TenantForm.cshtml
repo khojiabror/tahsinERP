@@ -48,4 +48,19 @@
         </select>
     </div>
 </div>
+<div class="row">
+    <div>
+        <label for="Input_OnlineCheck">Onlayn tekshiruv (faqat on-prem)</label>
+        <select id="Input_OnlineCheck" name="Input.OnlineCheck">
+            <option value="Optional" selected="@(i.OnlineCheck == OnlineCheckMode.Optional)">Ixtiyoriy — kalit shartnoma davriga (≤ 1 yil), internetsiz ham ishlaydi</option>
+            <option value="Required" selected="@(i.OnlineCheck == OnlineCheckMode.Required)">Majburiy — qisqa kalit, panel o'zi yangilaydi (ERP pull qilishi shart)</option>
+        </select>
+        <div class="hint">SaaS uchun e'tiborsiz. Majburiyda ERP <code>LicensePanelUrl</code> bilan panelga ulangan bo'lishi kerak, aks holda kalit grace muddatidan keyin tugaydi.</div>
+    </div>
+    <div>
+        <label for="Input_OfflineGraceDays">Internetsiz muddat, kun</label>
+        <input id="Input_OfflineGraceDays" name="Input.OfflineGraceDays" value="@i.OfflineGraceDays" type="number" min="7" max="90" placeholder="standart (30)" />
+        <div class="hint">Majburiy: kalit uzunligi (yarmi o'tganda yangilanadi). Ixtiyoriy: shuncha kun aloqa bo'lmasa ERP va panel ogohlantiradi. 7–90.</div>
+    </div>
+</div>
 <div><label for="Input_Notes">Izoh</label><textarea id="Input_Notes" name="Input.Notes">@i.Notes</textarea></div>

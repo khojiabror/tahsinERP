@@ -9,7 +9,7 @@ public sealed class SiteOptions
     public string BaseDomain { get; set; } = "";
 
     /// <summary>Rasm keshi va asl nusxalar papkasi (nisbiy bo'lsa — ContentRoot ichida).</summary>
-    public string DataRoot { get; set; } = "data";
+    public string DataRoot { get; set; } = "cache";
 
     /// <summary>ERP'dan katalog nusxasini so'rash oralig'i (ETag bilan — o'zgarmasa 304).</summary>
     public int SyncSeconds { get; set; } = 60;

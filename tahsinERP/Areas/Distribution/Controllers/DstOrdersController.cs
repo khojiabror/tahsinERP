@@ -106,16 +106,16 @@ namespace tahsinERP.Areas.Distribution.Controllers
                         return RedirectToAction("Details", new { id });
                     var customer = db.Customers.Where(c => c.ID == order.CustomerID).Select(c => c.Name).FirstOrDefault();
                     var lines = (from l in db.OrderLines
-                                 where l.OrderID == order.ID
+                                 where l.OrderID == order.ID && !l.IsFree   // aksiya sovg'asi saqlashda qayta hisoblanadi
                                  join p in db.Products on l.ProductID equals p.ID
                                  orderby l.LineNo
-                                 select new { l.ProductID, l.ProductUnitID, l.Qty, l.DiscountPct, p.PNo, p.Name }).ToList();
+                                 select new { l.ProductID, l.ProductUnitID, l.Qty, l.DiscountPct, l.PromoPct, p.PNo, p.Name }).ToList();
                     model = new
                     {
                         id = order.ID, docNo = order.DocNo, customerId = order.CustomerID, customer, agentUserId = order.AgentUserID,
                         warehouseId = order.WarehouseID, deliveryDate = order.DeliveryDate?.ToString("yyyy-MM-dd"), isPickup = order.IsPickup,
                         comment = order.Comment, discountPct = order.DiscountPct,
-                        lines = lines.Select(l => new { productId = l.ProductID, productUnitId = l.ProductUnitID, qty = l.Qty, discountPct = l.DiscountPct, text = l.PNo + " — " + l.Name })
+                        lines = lines.Select(l => new { productId = l.ProductID, productUnitId = l.ProductUnitID, qty = l.Qty, discountPct = OrderCalculator.ManualPct(l.DiscountPct, l.PromoPct), text = l.PNo + " — " + l.Name })
                     };
                 }
                 ViewBag.OrderJson = Newtonsoft.Json.JsonConvert.SerializeObject(model);

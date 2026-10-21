@@ -247,10 +247,14 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
         await db.SaveChangesAsync(ct);
     }
 
-    /// <summary>Kod yuborish kanali (bo'lmasa null — Telegram bog'lanmagan).</summary>
+    /// <summary>
+    /// Kod yuborish kanali: avval foydalanuvchi tanlagani (PortalUser.OtpChannel, standart telegram), u ishlamasa ro'yxatdagi
+    /// birinchi mosi. Bo'lmasa null.
+    /// </summary>
     public OtpTarget? ResolveTarget(PortalUser user, Tenant tenant, out IOtpSender? sender)
     {
-        foreach (var s in senders)
+        string preferred = string.IsNullOrWhiteSpace(user.OtpChannel) ? "telegram" : user.OtpChannel;
+        foreach (var s in senders.OrderBy(s => s.Channel == preferred ? 0 : 1))
         {
             if (s.Resolve(user, tenant) is OtpTarget t)
             {
@@ -328,6 +332,99 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
         audit.Add("portal.login", "PortalUser", user.Id, after: new { otp.Channel }, portalUserId: user.Id);
         await db.SaveChangesAsync(ct);
         return true;
+    }
+
+    // ── Kod kanali (4-bosqich) ───────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Profil sahifasida tanlash mumkin bo'lgan kanallar (shu foydalanuvchi uchun hozir ishlaydiganlari).</summary>
+    public IReadOnlyList<OtpTarget> AvailableChannels(PortalUser user, Tenant tenant) =>
+        senders.Select(s => s.Resolve(user, tenant)).Where(t => t is not null && t.Channel != "log").Select(t => t!)
+            .GroupBy(t => t.Channel).Select(g => g.First()).ToList();
+
+    public async Task SetOtpChannelAsync(PortalUser user, Tenant tenant, string? channel, CancellationToken ct = default)
+    {
+        string c = (channel ?? "").Trim().ToLowerInvariant();
+        if (c is not ("telegram" or "sms" or "email")) throw new DomainException("Kanal noto'g'ri.");
+        if (c != "telegram" && AvailableChannels(user, tenant).All(t => t.Channel != c))
+            throw new DomainException(c == "sms" ? "SMS kanali mavjud emas (telefon kiritilmagan yoki SMS sozlanmagan)." : "Email kanali mavjud emas (email kiritilmagan yoki pochta sozlanmagan).");
+        var before = new { Channel = user.OtpChannel ?? "telegram" };
+        user.OtpChannel = c == "telegram" ? null : c;
+        audit.Add("portal.otp-channel", "PortalUser", user.Id, before, new { Channel = c }, portalUserId: user.Id);
+        await db.SaveChangesAsync(ct);
+    }
+
+    // ── O'z-o'ziga parol tiklash (4-bosqich) ─────────────────────────────────────────────────────────────────────
+
+    public const string ResetRequestedMessage =
+        "Agar shu login bilan faol hisob bo'lsa, parolni tiklash havolasi uning shaxsiy kanaliga (Telegram, SMS yoki email) yuborildi. " +
+        "Havola bir marta ishlaydi. Xabar kelmasa — xodimimizdan yangi havola so'rang.";
+    public static readonly TimeSpan ResetInterval = TimeSpan.FromMinutes(2);
+    public const int MaxResetsPerHour = 3;
+
+    /// <summary>
+    /// «Parolni unutdingizmi?»: login (email/telefon) bo'yicha bir martalik havola (PortalInvite, faqat xeshi) — foydalanuvchining
+    /// shaxsiy kanaliga (tanlagani birinchi; tenant guruh chatiga emas). Hisob bor-yo'qligi oshkor qilinmaydi: chaqiruvchi har doim
+    /// <see cref="ResetRequestedMessage"/> ni ko'rsatadi; bu metod faqat yuborildi-yuborilmadi qaytaradi (test/audit uchun).
+    /// Cheklov: foydalanuvchiga 2 daqiqada bitta, soatiga 3 ta; IP bo'yicha — sahifaning «login» rate limiti.
+    /// </summary>
+    public async Task<bool> RequestPasswordResetAsync(string? login, string? ip, string portalBaseUrl, CancellationToken ct = default)
+    {
+        PortalUser? user = null;
+        if (PortalIdentity.LooksLikeEmail(login))
+        {
+            string? e = PortalIdentity.NormalizeEmail(login);
+            user = await db.PortalUsers.Include(u => u.Tenant).FirstOrDefaultAsync(u => u.Email == e, ct);
+        }
+        else if (PortalIdentity.NormalizePhone(login) is string p)
+            user = await db.PortalUsers.Include(u => u.Tenant).FirstOrDefaultAsync(u => u.Phone == p, ct);
+        // Taklifni hali qabul qilmagan (parolsiz) foydalanuvchi — xodim taklifi kerak; o'z-o'ziga tiklash yo'q.
+        if (user is null || !user.IsActive || user.PasswordHash is null || user.Tenant is null || TenantClosed(user.Tenant))
+            return false;
+
+        DateTime now = clock.UtcNow;
+        var recent = await db.PortalInvites.Where(i => i.PortalUserId == user.Id && i.CreatedByStaffId == null && i.CreatedAtUtc > now.AddHours(-1))
+            .Select(i => i.CreatedAtUtc).ToListAsync(ct);
+        if (recent.Count >= MaxResetsPerHour || recent.Any(t => now - t < ResetInterval))
+        {
+            audit.Add("portal.reset-throttled", "PortalUser", user.Id, after: new { Ip = ip }, portalUserId: user.Id);
+            await db.SaveChangesAsync(ct);
+            return false;
+        }
+
+        string preferred = string.IsNullOrWhiteSpace(user.OtpChannel) ? "telegram" : user.OtpChannel;
+        IOtpSender? sender = null;
+        OtpTarget? target = null;
+        foreach (var s in senders.OrderBy(s => s.Channel == preferred ? 0 : 1))
+            if (s.ResolveReset(user) is OtpTarget t) { sender = s; target = t; break; }
+        if (sender is null || target is null)
+        {
+            audit.Add("portal.reset-request", "PortalUser", user.Id, after: new { Delivered = false, Reason = "no-channel" }, portalUserId: user.Id);
+            await db.SaveChangesAsync(ct);
+            return false;
+        }
+
+        await RevokeInvitesAsync(user.Id, ct);
+        string token = PortalTokens.New("PR-");
+        var invite = new PortalInvite
+        {
+            PortalUserId = user.Id, TokenHash = PortalTokens.Hash(token), ExpiresUtc = now.AddMinutes(Math.Clamp(O.ResetMinutes, 5, 24 * 60)),
+            CreatedByStaffId = null, CreatedAtUtc = now,
+        };
+        db.PortalInvites.Add(invite);
+        audit.Add("portal.reset-request", "PortalUser", user.Id, after: new { Delivered = true, target.Channel, To = target.Display, invite.ExpiresUtc }, portalUserId: user.Id);
+        await db.SaveChangesAsync(ct);
+        try
+        {
+            await sender.SendResetAsync(target, user, InviteUrl(portalBaseUrl, token), Math.Clamp(O.ResetMinutes, 5, 24 * 60), ct);
+            return true;
+        }
+        catch (OtpDeliveryException ex)
+        {
+            log.LogWarning(ex, "Parol tiklash havolasi yuborilmadi (foydalanuvchi #{User})", user.Id);
+            invite.RevokedAtUtc = clock.UtcNow;
+            await db.SaveChangesAsync(ct);
+            return false;
+        }
     }
 
     public async Task ChangePasswordAsync(PortalUser user, string current, string next, string confirm, CancellationToken ct = default)

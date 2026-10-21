@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.Bot.Data;
 using tahsinERP.Bot.Erp;
@@ -13,7 +14,7 @@ namespace tahsinERP.Bot.MiniApp;
 /// Telegram foydalanuvchisi BotLinks orqali ERP foydalanuvchisiga aylanadi va ERP'ga uning nomidan imzolangan so'rov ketadi.
 /// Brauzer ERP kalitini hech qachon ko'rmaydi.
 /// </summary>
-public static class MiniAppEndpoints
+public static partial class MiniAppEndpoints
 {
     public const string InitDataHeader = "X-Telegram-Init-Data";
     private const int MaxSignatureBytes = 512 * 1024;
@@ -23,13 +24,26 @@ public static class MiniAppEndpoints
     public sealed record OrderRequest(int CustomerId, int? VisitId, DateTime? DeliveryDate, string? Comment, Guid ClientRequestId,
         string? Signature, List<OrderLineRequest> Lines);
 
+    public sealed record ScanRequest(string Code, decimal Qty = 1);
+
+    public sealed record CountSetRequest(int LineId, decimal? Counted);
+
+    public sealed record ShipLineRequest(int LineId, decimal QtyBase);
+
+    public sealed record ShipRequest(List<ShipLineRequest> Lines);
+
     private sealed record Caller(TenantRegistry.Tenant Tenant, BotLink Link, ErpClient Erp);
+
+    private static readonly string[] FieldRoles = ["AGENT", "EXPEDITOR", "MANAGER"];
+    private static readonly string[] StoreRoles = ["STOREKEEPER", "MANAGER"];
 
     public static void Map(IEndpointRouteBuilder app)
     {
         var g = app.MapGroup("/app/api/{slug}");
+        MapDelivery(g);
         g.MapGet("/me", async (string slug, HttpRequest req, Deps d, CancellationToken ct) =>
-            await Run(slug, req, d, ct, c => Task.FromResult<object?>(new { name = c.Link.Name, language = c.Link.Language, role = c.Link.Role })));
+            await Run(slug, req, d, ct, c => Task.FromResult<object?>(new { name = c.Link.Name, language = c.Link.Language, role = c.Link.Role }),
+                [.. FieldRoles, .. StoreRoles]));
         g.MapGet("/customer/{id:int}", async (string slug, int id, HttpRequest req, Deps d, CancellationToken ct) =>
             await Run(slug, req, d, ct, async c => await c.Erp.GetAsync<ErpCustomerCard>("Customer", c.Link.UserId, ct, ("id", id))));
         g.MapGet("/categories", async (string slug, HttpRequest req, Deps d, CancellationToken ct) =>
@@ -39,7 +53,36 @@ public static class MiniAppEndpoints
                 ("q", string.IsNullOrWhiteSpace(q) ? null : q.Trim()), ("customerId", customerId), ("categoryId", categoryId))));
         g.MapPost("/order", async (string slug, OrderRequest body, HttpRequest req, Deps d, CancellationToken ct) =>
             await Run(slug, req, d, ct, c => SubmitOrderAsync(c, body, d, ct)));
+
+        // omborchi: inventarizatsiya va buyurtma yig'ish (shtrix-kod skaneri) — ERP javobi o'zgarishsiz uzatiladi
+        var s = g.MapGroup("/store");
+        s.MapGet("/resolve", async (string slug, string code, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.GetAsync<JsonElement>("StoreResolve", c.Link.UserId, ct, ("code", code))));
+        s.MapGet("/counts", async (string slug, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.GetAsync<JsonElement>("StoreCounts", c.Link.UserId, ct)));
+        s.MapGet("/counts/{id:int}", async (string slug, int id, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.GetAsync<JsonElement>("StoreCount", c.Link.UserId, ct, ("id", id))));
+        s.MapPost("/counts/{id:int}/scan", async (string slug, int id, ScanRequest body, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.PostAsync<JsonElement>("StoreCountScan", new { id, code = Cut(body.Code, 60), qty = body.Qty }, c.Link.UserId, ct)));
+        s.MapPost("/counts/{id:int}/set", async (string slug, int id, CountSetRequest body, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.PostAsync<JsonElement>("StoreCountSet", new { id, lineId = body.LineId, counted = body.Counted }, c.Link.UserId, ct)));
+        s.MapGet("/orders", async (string slug, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.GetAsync<JsonElement>("StoreOrders", c.Link.UserId, ct)));
+        s.MapGet("/orders/{id:int}", async (string slug, int id, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.GetAsync<JsonElement>("StoreOrder", c.Link.UserId, ct, ("id", id))));
+        s.MapPost("/orders/{id:int}/start", async (string slug, int id, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c => c.Erp.PostAsync<JsonElement>("StorePickStart", new { id }, c.Link.UserId, ct)));
+        s.MapPost("/orders/{id:int}/ship", async (string slug, int id, ShipRequest body, HttpRequest req, Deps d, CancellationToken ct) =>
+            await Store(slug, req, d, ct, c =>
+            {
+                if (body.Lines is not { Count: > 0 } || body.Lines.Count > 500 || body.Lines.Any(l => l.QtyBase <= 0 || l.QtyBase > 10_000_000))
+                    throw new ErpException(400, "Miqdor noto'g'ri.");
+                return c.Erp.PostAsync<JsonElement>("StoreShip", new { id, lines = body.Lines }, c.Link.UserId, ct);
+            }));
     }
+
+    private static Task<IResult> Store(string slug, HttpRequest req, Deps d, CancellationToken ct, Func<Caller, Task<JsonElement>> body) =>
+        Run(slug, req, d, ct, async c => (object?)await body(c), StoreRoles);
 
     /// <summary>DI orqali kerakli servislar (endpoint imzolari qisqa bo'lsin).</summary>
     public sealed class Deps(TenantRegistry tenants, BotDbContext db, ErpClientFactory erp, IFileStore files, Outbox outbox, TimeProvider clock,
@@ -54,14 +97,15 @@ public static class MiniAppEndpoints
         public ILogger Log { get; } = logs.CreateLogger("MiniApp");
     }
 
-    private static async Task<IResult> Run(string slug, HttpRequest req, Deps d, CancellationToken ct, Func<Caller, Task<object?>> body)
+    private static async Task<IResult> Run(string slug, HttpRequest req, Deps d, CancellationToken ct, Func<Caller, Task<object?>> body, string[]? roles = null)
     {
+        roles ??= FieldRoles;
         var tenant = await d.Tenants.BySlugAsync(slug, ct);
         if (tenant == null) return Results.NotFound();
         var init = WebAppInitData.Validate(req.Headers[InitDataHeader].ToString(), tenant.Token, d.Clock.GetUtcNow());
         if (init == null) return Results.Json(new { error = "initData" }, statusCode: 401);
         var link = await d.Db.Links.AsNoTracking().FirstOrDefaultAsync(l => l.TenantId == tenant.Id && l.TelegramUserId == init.UserId, ct);
-        if (link?.UserId == null || link.Role is not ("AGENT" or "EXPEDITOR" or "MANAGER"))
+        if (link?.UserId == null || !roles.Contains(link.Role))
             return Results.Json(new { error = Texts.Get(link?.Language, "NotAllowed") }, statusCode: 403);
         try
         {
