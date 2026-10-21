@@ -3,7 +3,7 @@
 @{ ViewData["Title"] = "Xodim: " + Model.Staff.Email; }
 <h1>Xodim: @Model.Staff.Email</h1>
 <div asp-validation-summary="All"></div>
-<form method="post" class="stack card">
+<form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack card">
     <div><label asp-for="Role">Rol</label>
         <select asp-for="Role">@foreach (var r in Enum.GetValues<StaffRole>()) { <option value="@r">@Labels.Of(r)</option> }</select></div>
     <label class="check"><input asp-for="IsActive" /> Faol</label>

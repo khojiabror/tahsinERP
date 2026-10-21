@@ -2,7 +2,7 @@
 @model tahsinERP.ControlPanel.Pages.Servers.EditModel
 @{ ViewData["Title"] = Model.IsNew ? "Yangi server" : "Server"; }
 <h1>@ViewData["Title"]</h1>
-<form method="post" class="stack card">
+<form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack card">
     <div asp-validation-summary="ModelOnly"></div>
     <div class="row">
         <div><label asp-for="Name">Nomi</label><input asp-for="Name" /><span asp-validation-for="Name"></span></div>

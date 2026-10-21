@@ -6,7 +6,7 @@
     <h1>Tasdiqlash kodi</h1>
     <p class="hud-sub">Kod yuborildi: <strong>@Model.Destination</strong></p>
     <ol class="steps"><li class="done">Parol</li><li class="on">Kod</li><li>Kabinet</li></ol>
-    <form method="post" class="stack">
+    <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack">
         <div asp-validation-summary="All"></div>
         <div>
             <label asp-for="Code">6 xonali kod</label>

@@ -119,4 +119,36 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
             return 0;
         });
     }
+
+    [Fact]
+    public async Task InvoiceCreate_AfterRecalc_DefaultSubmitCreatesDraft()
+    {
+        // Recalc'dan keyin URL ?handler=Recalc bo'lib qoladi — «Qoralama yaratish» yana Recalc'ga ketmasligi kerak.
+        await f.EnsureStaffAsync("inv-owner@test.uz", StaffRole.Owner);
+        using var app = f.WithWebHostBuilder(b => b.UseSetting("ControlPanel:Security:RequireStaffTotp", "false"));
+        using var c = app.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        await PostAsync(c, "/Account/Login", new() { ["Email"] = "inv-owner@test.uz", ["Password"] = "TestParol-2026xx" });
+        var create = await PostAsync(c, "/Tenants/Create", new()
+        {
+            ["Input.Slug"] = "inv-firma", ["Input.LegalName"] = "Inv Firma MChJ", ["Input.Deployment"] = "SaaS",
+            ["Input.CompanyId"] = "1", ["Input.Inn"] = "323456789",
+        });
+        int tenantId = int.Parse(create.Headers.Location!.OriginalString.Split('/').Last());
+
+        var recalc = await PostAsync(c, $"/Invoices/Create?handler=Recalc", new() { ["TenantId"] = tenantId.ToString(), ["PeriodCount"] = "1" },
+            tokenFrom: $"/Invoices/Create?tenantId={tenantId}");
+        string html = await recalc.Content.ReadAsStringAsync();
+        var action = WebUtility.HtmlDecode(Regex.Match(html, "<form method=\"post\" action=\"([^\"]*)\"[^>]*class=\"stack card\"").Groups[1].Value);
+        Assert.True(action.StartsWith("/Invoices/Create"), "action=" + action + " status=" + (int)recalc.StatusCode + " loc=" + recalc.Headers.Location);
+        Assert.DoesNotContain("handler", action);
+        Assert.Matches("name=\"__RequestVerificationToken\"", html);
+
+        var draft = await c.PostAsync(action, new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = Token(html), ["TenantId"] = tenantId.ToString(), ["PeriodCount"] = "1",
+            ["Lines[0].Description"] = "Xizmat", ["Lines[0].Quantity"] = "1", ["Lines[0].UnitPrice"] = "100000", ["Lines[0].VatRate"] = "12",
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, draft.StatusCode);
+        Assert.Contains("/Invoices/Details/", draft.Headers.Location!.OriginalString);
+    }
 }

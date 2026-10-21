@@ -12,7 +12,7 @@
 </div>
 @if (Model.Sub.Period != BillingPeriod.Trial && Model.Sub.Status is SubscriptionStatus.Pending or SubscriptionStatus.Active)
 {
-    <form method="post" class="stack card">
+    <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack card">
         @if (Model.Sub.Plan!.IsAddOn)
         {
             <input type="hidden" asp-for="PlanId" /><input type="hidden" asp-for="Users" />

@@ -2,7 +2,7 @@
 @model tahsinERP.ControlPanel.Pages.Invoices.CreateModel
 @{ ViewData["Title"] = "Yangi hisob-faktura"; }
 <h1>Yangi hisob-faktura: @Model.Tenant.LegalName</h1>
-<form method="post" class="stack card">
+<form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack card">
     <div asp-validation-summary="All"></div>
     <input type="hidden" asp-for="TenantId" />
     <div class="row">
