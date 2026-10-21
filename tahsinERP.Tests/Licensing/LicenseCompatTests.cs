@@ -135,6 +135,11 @@ namespace tahsinERP.Tests.Licensing
             Assert.IsTrue(LicenseHelper.TrustedPublicKeys.Any(k => k.KeyId == "k1" && k.Xml == LicenseHelper.PublicKeyXml));
             if (string.IsNullOrWhiteSpace(LicenseHelper.K2PublicKeyXml))
                 Assert.IsFalse(LicenseHelper.TrustedPublicKeys.Any(k => k.KeyId == "k2"));
+            else
+            {
+                Assert.IsTrue(LicenseHelper.TrustedPublicKeys.Any(k => k.KeyId == "k2" && k.Xml == LicenseHelper.K2PublicKeyXml));
+                Assert.AreEqual(256, LicenseHelper.FromXml(LicenseHelper.K2PublicKeyXml, false).Modulus.Length, "k2 ham 2048 bit");
+            }
         }
 
         [TestMethod]

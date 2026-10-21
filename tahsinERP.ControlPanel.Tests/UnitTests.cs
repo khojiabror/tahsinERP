@@ -225,7 +225,7 @@ public class SigningTests
         Assert.Equal(ErpLicense.LicenseState.Valid, ErpLicense.GetState(info, new DateTime(2026, 10, 18)));
         Assert.Equal(ErpLicense.LicenseState.Grace, ErpLicense.GetState(info, new DateTime(2026, 11, 22)));
 
-        // Hozirgi ERP build'i faqat k1'ga ishonadi (K2PublicKeyXml bo'sh) — panel kaliti rad etiladi.
+        // ERP build'i ishonmaydigan (k1/prod k2 emas) kalit bilan imzolangan panel kaliti rad etiladi.
         Assert.False(ErpLicense.TryParseKey(key, ErpLicense.TrustedPublicKeys, out var rejected));
         Assert.False(rejected.SignatureValid);
 

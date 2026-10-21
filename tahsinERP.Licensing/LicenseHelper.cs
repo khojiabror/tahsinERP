@@ -48,11 +48,13 @@ namespace tahsinERP.Licensing
             "<RSAKeyValue><Modulus>1kFRSYc6W2dBKs8GB8YWZdJ21jCz8JNRWwwgpzT9iJKfCI8EW6YasrAhInBF0Isnr/ZOmxVeWa0ZnWEbd0yQlJL5+qEVK2C1ThrZqAcdP7numttaq9R+pJauG8rBSBUm5ugzVoNhBVpeUmlv0EpLO0wXZSeqCZaP/Lcwu6Kb9FFe6GY2bDXFTl6fPPybaG3oMQ489PLf3BroHs1cSmYaG4yyoAbbaOnvD8uYKfLGN9CL3o9UDELsoqCO3vwCI5RP+nrzWkWxeELZOat/me3MxHw6SXmSasQxCBVgcKw/OmjjmeOjNe5wBF+vNNrONEFdk7M3R3tzX60rmjNGx15RLQ==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
 
         /// <summary>
-        /// k2 — markaziy panel kaliti (AWS KMS, RSA_2048 SIGN_VERIFY; private qism KMS'dan chiqmaydi).
-        /// Hozircha bo'sh: KMS kaliti yaratilgach uning public qismini (GetPublicKey → RSAKeyValue XML)
-        /// shu yerga qo'ying va ERP'ni qayta yig'ing.
+        /// k2 — markaziy panel kaliti (RSA 2048, Local signer). Prod serverda 2026-10-21 da
+        /// `tahsinERP.ControlPanel.dll keygen --out %ProgramData%\tahsinERP\panel-signing-k2.json` bilan yaratilgan;
+        /// private qism faqat shu shifrlangan faylda (parol — egasida). Kalit almashtirilsa: yangi public XML'ni shu yerga
+        /// qo'ying va ERP'ni qayta yig'ing (eski kalit bilan berilgan litsenziyalar rad etiladi).
         /// </summary>
-        public const string K2PublicKeyXml = "";
+        public const string K2PublicKeyXml =
+            "<RSAKeyValue><Modulus>+Sb5SglfByIhiHkJELMNIswmgYgRcCfx5ZcZCt4bptcCIvDGWb/aaPs0K/CxQDQ9VVRoeTYZoK1Ejm+DcGXb1HVt1x8CVCyPBDsbczlIfKG7bdvXQklmpyz+PqOGM7bRVHj904olKXl9+zPlPMJ2Nzdo4YeDgLV8e8C8AC5EInPUjkaLRWTvMht38hH/U3N09ztwoXWDOOksWrlnioWAxB9H6HWfyQkuv6Gdi9sjZ+g8mLgE4uQDC89+/SwKveAXwTRInaZ7qRDQ04FMTYt3J1noFSi1Onx9TgWdPgfTLILKRt4BlqMwwmuR0V1b7vwBO+q3M40gHy/xXls2dJYEVQ==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
 
         /// <summary>Ishonchli public key'lar: tekshiruvda birortasi mos kelsa yetarli. Bo'sh qiymatlar tashlab ketiladi.</summary>
         public static readonly IReadOnlyList<TrustedPublicKey> TrustedPublicKeys = new[]
