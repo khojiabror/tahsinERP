@@ -32,7 +32,8 @@ public sealed class TenantMiddleware(RequestDelegate next, CatalogStore store, I
     public async Task InvokeAsync(HttpContext http, SiteContext site)
     {
         var path = http.Request.Path;
-        if (path.StartsWithSegments("/health") || path.StartsWithSegments("/_tls") || path.StartsWithSegments("/css") || path.StartsWithSegments("/js") || path.StartsWithSegments("/favicon.ico"))
+        if (path.StartsWithSegments("/health") || path.StartsWithSegments("/_tls") || path.StartsWithSegments("/css") || path.StartsWithSegments("/js") || path.StartsWithSegments("/favicon.ico")
+            || Admin.AdminEndpoints.IsAdminPath(path))
         {
             await next(http);
             return;

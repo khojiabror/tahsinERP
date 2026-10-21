@@ -158,8 +158,20 @@ public class EditModel(ControlDbContext db, TenantService tenants, LicenseIssuer
 }
 
 public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage,
-    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts) : PanelPageModel
+    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps) : PanelPageModel
 {
+    // ── Telegram bot va sayt-katalog ──
+    public bool AppsLoaded { get; private set; }
+    public bool BotConfigured => apps.BotConfigured;
+    public bool SiteConfigured => apps.SiteConfigured;
+    public BotAppStatus? Bot { get; private set; }
+    public string? BotError { get; private set; }
+    public SiteAppStatus? Site { get; private set; }
+    public string? SitePublicUrl => apps.SitePublicUrl(Tenant);
+    public string? SiteError { get; private set; }
+    /// <summary>BotFather tokeni — faqat shu so'rovda bot ilovasiga uzatiladi, panelda saqlanmaydi.</summary>
+    [BindProperty] public string? BotToken { get; set; }
+
     /// <summary>Faqat sinov tenanti (pullik obunasi bo'lmagan) — «Sinovni yakunlash» ko'rinadi.</summary>
     public bool IsTrialOnly { get; private set; }
     public UsageState? Usage { get; private set; }
@@ -233,7 +245,53 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         return true;
     }
 
-    public async Task<IActionResult> OnGetAsync(int id) => await LoadAsync(id) ? Page() : NotFound();
+    public async Task<IActionResult> OnGetAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        await LoadAppsAsync();
+        return Page();
+    }
+
+    private async Task LoadAppsAsync()
+    {
+        if (Tenant.Deployment != DeploymentKind.SaaS || (!apps.BotConfigured && !apps.SiteConfigured)) return;
+        (Bot, BotError, Site, SiteError) = await apps.StatusAsync(Tenant, HttpContext.RequestAborted);
+        AppsLoaded = true;
+    }
+
+    public async Task<IActionResult> OnPostBotConnectAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!CanSell) return Forbidden();
+        BotAppStatus? s = null;
+        if (await TryAsync(async () => s = await apps.ConnectBotAsync(Tenant, BotToken)))
+        {
+            FlashOk = $"Bot ulandi: @{s!.BotUsername}. ERP → Distributsiya → Sozlamalar: «Telegram bot nomi» = {s.BotUsername}.";
+            return RedirectToPage(new { id });
+        }
+        BotToken = null;
+        await LoadAppsAsync();
+        return Page();
+    }
+
+    public Task<IActionResult> OnPostBotDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableBotAsync(Tenant), "Bot o'chirildi.");
+
+    public Task<IActionResult> OnPostSiteEnableAsync(int id) => AppsActionAsync(id, () => apps.EnableSiteAsync(Tenant), "Sayt yoqildi — katalog 1 daqiqa ichida ERP'dan olinadi.");
+
+    public Task<IActionResult> OnPostSiteDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableSiteAsync(Tenant), "Sayt o'chirildi.");
+
+    private async Task<IActionResult> AppsActionAsync(int id, Func<Task> action, string ok)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!CanSell) return Forbidden();
+        if (await TryAsync(action))
+        {
+            FlashOk = ok;
+            return RedirectToPage(new { id });
+        }
+        await LoadAppsAsync();
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostRegTokenAsync(int id)
     {

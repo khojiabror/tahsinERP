@@ -287,8 +287,11 @@ Sertifikatlarni bog'lang (`*.tahsinerp.uz` → bot, `*.sayt.tahsinerp.uz` → sa
 
 ### Har firma uchun bot (distributsiya)
 
-1. @BotFather → `/newbot` → token; `/setdomain` → `bot.tahsinerp.uz` (Mini App uchun). Token faqat serverda kiritiladi.
-2. Serverda:
+1. @BotFather → `/newbot` → token; `/setdomain` → `bot.tahsinerp.uz` (Mini App uchun).
+2. **Panel** → Tashkilotlar → firma → **«Telegram bot va sayt-katalog»**: tokenni kiritib «Botni ulash» (token tekshiriladi,
+   bot bazasida shifrlanadi, webhook o'rnatiladi; panelda saqlanmaydi), «Saytni yoqish» — sayt-katalog. Bu uchun panel pool'ida
+   `ControlPanel__Apps__BotUrl/SiteUrl/AdminKey` bo'lishi kerak — `Install-BotSite.ps1` yozadi (AdminKey = master kalitning HMAC hosilasi).
+   Zaxira yo'l — serverda:
 
 ```powershell
 cd C:\inetpub\tahsinERP.Bot
