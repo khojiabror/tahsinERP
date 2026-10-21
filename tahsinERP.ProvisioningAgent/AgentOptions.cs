@@ -48,6 +48,13 @@ public sealed class AgentOptions
         /// <summary>Bo'sh — Windows auth (xizmat hisobi: dbcreator + bazalarda db_owner).</summary>
         public string? User { get; set; }
         public string? Password { get; set; }
+        /// <summary>
+        /// ERP ilovasining SQL login'i (masalan <c>IIS APPPOOL\tahsinERP</c>). Berilsa — har yaratilgan/tiklangan tenant bazasida
+        /// shu login uchun foydalanuvchi ochiladi va db_owner beriladi (ERP ish vaqtida DDL ham bajaradi). Login'ning o'zini
+        /// server administratori bir marta yaratadi (Install-Erp.ps1) — agent hisobida ALTER ANY LOGIN yo'q.
+        /// Bo'sh — huquq berilmaydi (ERP sysadmin bilan ishlasa yoki qo'lda beriladi).
+        /// </summary>
+        public string? AppLogin { get; set; }
     }
 
     public sealed class PathsSection

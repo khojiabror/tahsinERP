@@ -179,6 +179,25 @@ public sealed class SqlOps(AgentOptions options)
             ct, ("@p", hash), ("@s", salt), ("@u", sampleLogin)));
     }
 
+    /// <summary>
+    /// ERP login'iga (Sql:AppLogin) tenant bazasida foydalanuvchi + db_owner. Idempotent; shablondan tiklangan bazadagi
+    /// "yetim" foydalanuvchi login'ga qayta ulanadi. Login serverda bo'lmasa — xato (administrator Install-Erp.ps1 bilan yaratadi).
+    /// </summary>
+    public async Task<string> GrantAppLoginAsync(string db, string login, CancellationToken ct)
+    {
+        await using var c = await OpenAsync(db, ct);
+        await ScalarAsync(c, """
+            IF SUSER_ID(@l) IS NULL THROW 50003, 'ERP SQL login serverda yo''q (Sql:AppLogin) - Install-Erp.ps1 yaratadi.', 1;
+            DECLARE @q sysname = QUOTENAME(@l);
+            IF USER_ID(@l) IS NULL
+                EXEC(N'CREATE USER ' + @q + N' FOR LOGIN ' + @q);
+            ELSE
+                EXEC(N'ALTER USER ' + @q + N' WITH LOGIN = ' + @q);
+            EXEC(N'ALTER ROLE db_owner ADD MEMBER ' + @q);
+            """, ct, ("@l", login));
+        return $"ERP login '{login}' → {db}: db_owner";
+    }
+
     /// <summary>ERP ulanishini tekshirish: ERP qiladigan kabi bazaga ulanib, COMPANIES va USERS o'qiladi.</summary>
     public async Task<string> ProbeAsync(string db, CancellationToken ct)
     {
