@@ -112,9 +112,10 @@ if ($LASTEXITCODE -ne 0) { throw 'migrate xato bilan tugadi (SQL login/ruxsatni 
 
 # 6. SQL: app pool identity'ga tahsin_control bazasida huquq (skriptni ishga tushirgan administrator SQL sysadmin bo'lishi kerak)
 $csb = New-Object System.Data.SqlClient.SqlConnectionStringBuilder $ConnectionString
-$dbName = $csb.InitialCatalog
-$csb.InitialCatalog = 'master'
-$csb.IntegratedSecurity = $true
+# PowerShell builder'ni lug'at deb ko'radi - qiymatlar kalit nomi bilan ("Initial Catalog")
+$dbName = $csb['Initial Catalog']
+$csb['Initial Catalog'] = 'master'
+$csb['Integrated Security'] = $true
 $login = "IIS APPPOOL\$pool"
 $sql = @"
 IF SUSER_ID(N'$login') IS NULL CREATE LOGIN [$login] FROM WINDOWS;
