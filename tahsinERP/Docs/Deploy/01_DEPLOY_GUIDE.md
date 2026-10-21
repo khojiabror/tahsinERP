@@ -5,7 +5,7 @@ Holat: 2026-10-21 (distributsiya yakuniy relizi — migratsiya 027 bilan — his
 Manbalar: `00_SERVER_PLAN.md`, `Docs/ControlPanel/04–08`, `Docs/Distribution/02–03`, `tahsinERP.Bot/README.md`,
 `tahsinERP.Site/README.md`, `Database/README.md`, `tools/DEPLOY-SECURITY.md`. Ziddiyatlar shu qo'llanmada hal qilingan (oxirgi bo'lim).
 
-Domen — **`tahsinerp.uz`** (sotib olingan, 2026-10-21). SQL — `.\SQLEXPRESS`.
+Domen — **`tahsinerp.uz`** (sotib olingan, 2026-10-21). **Lightsail "SQL Server 2022 Express" blueprint'ida SQL standart nom bilan o'rnatilgan — ulanishda `.` ishlating** (qo'llanmadagi `.\SQLEXPRESS` o'rniga; xizmat `MSSQL$SQLEXPRESS` bo'lgan serverlarda — `.\SQLEXPRESS`). SQL — `.\SQLEXPRESS`.
 
 ---
 
