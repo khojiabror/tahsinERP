@@ -204,7 +204,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 using (var db = NewDb())
                 {
                     var order = Scoped(db).FirstOrDefault(o => o.ID == id) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
-                    var check = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, DateTime.Now), order.Total);
+                    var check = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, DateTime.Now, order.ID), order.Total);
                     return new { ok = check.Ok, problems = check.Problems, canOverride = DstPermissions.Has(CurrentUserName, DstPermissions.OverrideCredit) };
                 }
             });
@@ -302,7 +302,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 return Json(new
                 {
                     agentUserId = p.AgentUserID, approved = p.IsApproved, creditLimit = p.CreditLimit, paymentDays = p.PaymentDays,
-                    balance = credit.Balance, overdue = credit.Overdue,
+                    balance = credit.Balance, overdue = credit.Overdue, committed = credit.Committed,
                     priceType = db.PriceTypes.Where(t => t.ID == p.PriceTypeID).Select(t => t.Name).FirstOrDefault()
                 }, JsonRequestBehavior.AllowGet);
             }

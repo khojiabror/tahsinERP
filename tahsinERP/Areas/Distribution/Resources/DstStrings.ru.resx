@@ -136,7 +136,7 @@
     <value>Разница</value>
   </data>
   <data name="Cash_DifferenceHint" xml:space="preserve">
-    <value>Недостача остаётся за агентом и отражается в кассе расходом, излишек — приходом.</value>
+    <value>Недостача отражается в кассе расходом; если агент привязан к сотруднику HR в схеме KPI — как выдача сотруднику (удерживается из зарплаты). Излишек — приходом.</value>
   </data>
   <data name="Cash_Handovers" xml:space="preserve">
     <value>Сдачи в кассу</value>
@@ -196,7 +196,7 @@
     <value>Остаток лимита</value>
   </data>
   <data name="Credit_LimitExceeded" xml:space="preserve">
-    <value>Долг + заказ {0} — превышает лимит {1}.</value>
+    <value>Долг + неотгруженные заказы + этот заказ {0} — превышает лимит {1}.</value>
   </data>
   <data name="Credit_Overdue" xml:space="preserve">
     <value>Есть просроченный долг: {0}.</value>
@@ -826,7 +826,7 @@
     <value>Выберите кассу или счёт (безналичная оплата сразу поступает на счёт).</value>
   </data>
   <data name="Payment_AlreadyHandedOver" xml:space="preserve">
-    <value>Эта оплата уже сдана в кассу — отменить нельзя.</value>
+    <value>Эта оплата сдана в кассу. Сначала отмените сдачу на странице «Наличные агентов и касса».</value>
   </data>
   <data name="Payment_AmountPositive" xml:space="preserve">
     <value>Сумма должна быть больше 0.</value>
@@ -3369,5 +3369,33 @@
   </data>
   <data name="Kpi_ManualPenalty" xml:space="preserve">
     <value>Доп. штраф</value>
+  </data>
+  <data name="Credit_Committed" xml:space="preserve">
+    <value>(из них подтверждённые, ещё не отгруженные заказы: {0})</value>
+  </data>
+  <data name="Credit_CommittedShort" xml:space="preserve">
+    <value>Подтверждено, не отгружено</value>
+  </data>
+  <data name="Cash_AfterHandover" xml:space="preserve">
+    <value>получено после сдачи: {0} (в следующую сдачу)</value>
+  </data>
+  <data name="Cash_AfterHandoverHint" xml:space="preserve">
+    <value>После сдачи агент получил ещё {0} наличными — они не входят в этот документ и остаются у агента.</value>
+  </data>
+  <data name="Cash_CancelHandover" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Cash_CancelHandoverHint" xml:space="preserve">
+    <value>Приём отменяется: оплаты и разница удаляются из финансов, оплаты снова числятся у агента.</value>
+  </data>
+  <data name="Inventory_BlindHint" xml:space="preserve">
+    <value>«слепой» пересчёт: учётный остаток и расхождения показываются после проведения.</value>
+  </data>
+  <data name="Notify_TransferDiffQty" xml:space="preserve">
+    <value>📦 Расхождение перемещения {0} ({1}): {2} → {3}
+Недостача: {4} строк, излишек: {5} строк</value>
+  </data>
+  <data name="Inventory_CountingBlocks" xml:space="preserve">
+    <value>{0} уже посчитан в инвентаризации ({1}) — списание со склада невозможно до проведения или отмены пересчёта.</value>
   </data>
 </root>

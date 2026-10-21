@@ -67,6 +67,7 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
         {
             var erp = uow.Erp;
             var productIds = lines.Select(l => l.ProductID).Distinct().ToList();
+            InventoryCountService.EnsureNotCounting(uow.Dst, warehouseId, productIds);   // hisobdan chiqarish, pereso'rtitsa
             var baseUnits = uow.Dst.Products.Where(p => productIds.Contains(p.ID)).ToDictionary(p => p.ID, p => p.UnitID);
             var expense = new EXPENS
             {

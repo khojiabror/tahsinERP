@@ -94,7 +94,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
         {
             // qatorlar JSON'da (forma kalitlari cheklovi 1000 — katta ro'yxatda buzilmasin)
             var lines = string.IsNullOrWhiteSpace(data) ? new List<LineInput>() : Newtonsoft.Json.JsonConvert.DeserializeObject<List<LineInput>>(data);
-            return Draft(id, db => InventoryCountService.SaveCounts(db, id, lines.Select(l => (l.LineID, Num(l.Counted), Num(l.UnitCost), l.Note))));
+            bool seeCost = CanSeeCost;
+            return Draft(id, db => InventoryCountService.SaveCounts(db, id, lines.Select(l => (l.LineID, Num(l.Counted), Num(l.UnitCost), l.Note)), seeCost));
         }
 
         private static decimal? Num(string value)
@@ -122,7 +123,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
             {
                 var count = db.InventoryCounts.Find(id);
                 if (count == null) return HttpNotFound();
-                return File(InventoryCountService.Sheet(db, count, IsRussian), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", count.DocNo + ".xlsx");
+                return File(InventoryCountService.Sheet(db, count, IsRussian, CanSeeCost), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", count.DocNo + ".xlsx");
             }
         }
 
@@ -140,7 +141,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
             {
                 using (var db = NewDb())
                 {
-                    var r = InventoryCountService.ImportSheet(db, id, file.InputStream);
+                    var r = InventoryCountService.ImportSheet(db, id, file.InputStream, CanSeeCost);
                     if (r.Ok) TempData["DstSaved"] = DstLocalization.T("Import_Done") + ": " + (r.Created + r.Updated);
                     else TempData["DstError"] = string.Join("; ", r.Errors.Take(20).Select(e => DstLocalization.T("Row") + " " + e.Row + ": " + e.Message));
                 }

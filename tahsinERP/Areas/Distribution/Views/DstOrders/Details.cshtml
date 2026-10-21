@@ -160,6 +160,10 @@
                                 <dt class="col-6">@DstLocalization.T("DeliveryDate")</dt><dd class="col-6 text-right">@(o.IsPickup ? DstLocalization.T("Pickup") : o.DeliveryDate?.ToString("dd.MM.yyyy"))</dd>
                                 <dt class="col-6">@DstLocalization.T("Debt")</dt><dd class="col-6 text-right">@Model.Credit.Balance.ToString("N0")</dd>
                                 <dt class="col-6">@DstLocalization.T("Overdue")</dt><dd class="col-6 text-right @(Model.Credit.Overdue > 0 ? "text-danger" : "")">@Model.Credit.Overdue.ToString("N0")</dd>
+                                @if (Model.Credit.Committed > 0)
+                                {
+                                    <dt class="col-6">@DstLocalization.T("Credit_CommittedShort")</dt><dd class="col-6 text-right">@Model.Credit.Committed.ToString("N0")</dd>
+                                }
                                 <dt class="col-6">@DstLocalization.T("CreditLimit")</dt><dd class="col-6 text-right">@Model.Credit.CreditLimit.ToString("N0")</dd>
                             </dl>
                             @if (o.CreditOverrideBy.HasValue)

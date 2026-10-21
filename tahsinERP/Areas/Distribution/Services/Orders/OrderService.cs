@@ -274,7 +274,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                     throw new DstValidationException(DstLocalization.T("Order_BelowMinAmount", min.ToString("N0")));
             }
 
-            var credit = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, now), order.Total);
+            var credit = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, now, order.ID), order.Total);
             if (!credit.Ok)
             {
                 if (!actor.CanOverrideCredit || string.IsNullOrWhiteSpace(creditOverrideNote))
@@ -451,6 +451,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 plan.Add((line, qty));
             }
             if (plan.Count == 0) throw new DstValidationException(DstLocalization.T("Ship_Nothing"));
+            InventoryCountService.EnsureNotCounting(db, warehouseId, plan.Select(p => p.Line.ProductID).ToList());
 
             var docNo = DstNumbering.Next(db, "D_SHIPMENTS", ShipmentPrefix, now);
             var products = plan.Select(p => p.Line.ProductID).Distinct().ToList();
@@ -669,7 +670,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             if (large > 0 && order.Total >= large)
                 NotificationService.ToManagers(db, NotificationService.LargeOrder,
                     l => DstLocalization.TFor(l, "Notify_LargeOrder", order.DocNo, customer, order.Total.ToString("N0")), null, now, userId);
-            var credit = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, now), order.Total);
+            var credit = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, now, order.ID), order.Total);
             if (!credit.Ok)
                 NotificationService.ToManagers(db, NotificationService.CreditOverLimit,
                     l => DstLocalization.TFor(l, "Notify_CreditOverLimit", order.DocNo, customer, order.Total.ToString("N0")) + Environment.NewLine

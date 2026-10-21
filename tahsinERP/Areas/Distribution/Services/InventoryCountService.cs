@@ -64,6 +64,23 @@ namespace tahsinERP.Areas.Distribution.Services
             return count.ID;
         }
 
+        /// <summary>
+        /// Sanoq ochiqligida sanalgan tovar ombordan chiqmasin (05_FINDINGS K2-20): aks holda o'tkazishda tizim qoldig'i
+        /// sanoqdan keyin kamaygan bo'lib, soxta ortiqcha chiqadi. Hali sanalmagan tovar — bemalol (sanoq keyinroq ko'radi).
+        /// </summary>
+        public static void EnsureNotCounting(DistributionDbContext db, int warehouseId, IReadOnlyCollection<int> productIds)
+        {
+            if (productIds == null || productIds.Count == 0) return;
+            var ids = productIds.Distinct().ToList();
+            var hit = (from l in db.InventoryCountRows
+                       join c in db.InventoryCounts on l.CountID equals c.ID
+                       where c.WarehouseID == warehouseId && c.Status == DocumentStatus.Draft && l.CountedQty != null && ids.Contains(l.ProductID)
+                       join p in db.Products on l.ProductID equals p.ID
+                       select new { c.DocNo, p.PNo, p.Name }).FirstOrDefault();
+            if (hit != null)
+                throw new DstValidationException(DstLocalization.T("Inventory_CountingBlocks", hit.PNo + " " + hit.Name, hit.DocNo));
+        }
+
         public static InventoryCount RequireDraft(DistributionDbContext db, int countId)
         {
             var c = db.InventoryCounts.Find(countId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
@@ -81,7 +98,9 @@ namespace tahsinERP.Areas.Distribution.Services
         }
 
         /// <summary>Sanalgan miqdorlar (bo'sh — hali sanalmagan). Manfiy miqdor yoki tannarx — xato.</summary>
-        public static void SaveCounts(DistributionDbContext db, int countId, IEnumerable<(int LineId, decimal? Counted, decimal? UnitCost, string Note)> values)
+        /// <param name="canSeeCost">DstSeeCost yo'q — tannarx ustuni ko'rinmaydi va mavjud qiymati o'zgarmaydi (05_FINDINGS K1-5).</param>
+        public static void SaveCounts(DistributionDbContext db, int countId, IEnumerable<(int LineId, decimal? Counted, decimal? UnitCost, string Note)> values,
+            bool canSeeCost = true)
         {
             RequireDraft(db, countId);
             var lines = db.InventoryCountRows.Where(l => l.CountID == countId).ToList().ToDictionary(l => l.ID);
@@ -90,7 +109,7 @@ namespace tahsinERP.Areas.Distribution.Services
                 if (!lines.TryGetValue(v.LineId, out var line)) throw new DstValidationException(DstLocalization.T("Error_NotFound"));
                 if (v.Counted < 0 || v.UnitCost < 0) throw new DstValidationException(DstLocalization.T("Error_NumberFormat"));
                 line.CountedQty = v.Counted;
-                line.UnitCost = v.UnitCost;
+                if (canSeeCost) line.UnitCost = v.UnitCost;
                 line.Note = string.IsNullOrWhiteSpace(v.Note) ? null : v.Note.Trim();
             }
             db.SaveChanges();
@@ -148,7 +167,8 @@ namespace tahsinERP.Areas.Distribution.Services
                 db.SaveChanges();
                 try
                 {
-                    count.AdjustmentID = await InventoryAdjustmentService.ApplyAsync(uow.Erp, count.WarehouseID, userId, coreLines, costs);
+                    count.AdjustmentID = await InventoryAdjustmentService.ApplyAsync(uow.Erp, count.WarehouseID, userId, coreLines, costs,
+                        monthlyLock: count.Kind != InventoryKinds.Opening);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -179,13 +199,14 @@ namespace tahsinERP.Areas.Distribution.Services
         };
 
         /// <summary>Sanoq varag'i: tovarlar ro'yxati, qoldiq ko'rsatilmaydi ("ko'r" sanoq).</summary>
-        public static byte[] Sheet(DistributionDbContext db, InventoryCount count, bool russian)
+        public static byte[] Sheet(DistributionDbContext db, InventoryCount count, bool russian, bool canSeeCost = true)
         {
             var rows = Rows(db, count);
+            int columns = canSeeCost ? SheetColumns.Length : SheetColumns.Length - 1;   // tannarx — oxirgi ustun
             using (var wb = new XLWorkbook())
             {
                 var ws = wb.AddWorksheet(count.DocNo);
-                for (int c = 0; c < SheetColumns.Length; c++)
+                for (int c = 0; c < columns; c++)
                 {
                     ws.Cell(1, c + 1).Value = russian ? SheetColumns[c].Ru : SheetColumns[c].Uz;
                     ws.Cell(1, c + 1).Style.Font.Bold = true;
@@ -197,7 +218,7 @@ namespace tahsinERP.Areas.Distribution.Services
                     ws.Cell(r, 2).SetValue(row.Name);
                     ws.Cell(r, 3).SetValue(row.Unit);
                     if (row.Counted.HasValue) ws.Cell(r, 4).Value = row.Counted.Value;
-                    if (row.UnitCost.HasValue) ws.Cell(r, 5).Value = row.UnitCost.Value;
+                    if (canSeeCost && row.UnitCost.HasValue) ws.Cell(r, 5).Value = row.UnitCost.Value;
                     r++;
                 }
                 ws.SheetView.FreezeRows(1);
@@ -211,13 +232,13 @@ namespace tahsinERP.Areas.Distribution.Services
         }
 
         /// <summary>Sanalgan miqdorlarni Excel'dan: artikul bo'yicha, ro'yxatda yo'q tovar qo'shiladi. Xato bo'lsa hech narsa yozilmaydi.</summary>
-        public static ImportResult ImportSheet(DistributionDbContext db, int countId, Stream stream)
+        public static ImportResult ImportSheet(DistributionDbContext db, int countId, Stream stream, bool canSeeCost = true)
         {
             var result = new ImportResult();
             RequireDraft(db, countId);
             var sheet = ImportService.Read(stream);
             int pnoCol = Col(sheet, SheetColumns[0], result), countedCol = Col(sheet, SheetColumns[3], result);
-            int costCol = sheet.Headers.TryGetValue(SheetColumns[4].Uz, out var cc) || sheet.Headers.TryGetValue(SheetColumns[4].Ru, out cc) ? cc : 0;
+            int costCol = canSeeCost && (sheet.Headers.TryGetValue(SheetColumns[4].Uz, out var cc) || sheet.Headers.TryGetValue(SheetColumns[4].Ru, out cc)) ? cc : 0;
             if (!result.Ok) return result;
 
             var products = db.Products.Where(p => !p.IsDeleted).Select(p => new { p.ID, p.PNo }).ToList()

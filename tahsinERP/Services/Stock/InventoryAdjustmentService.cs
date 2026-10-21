@@ -44,30 +44,36 @@ namespace tahsinERP.Services.Stock
         }
 
         /// <param name="unitCosts">Ixtiyoriy: ortiqcha uchun tovar tannarxi (masalan, boshlang'ich sanoqda kirim tarixi yo'q tovar); bo'lmasa — oxirgi kirim narxi.</param>
-        /// <returns>INVENTORY_ADJUSTMENTS.ID</returns>
-        public static async Task<int> ApplyAsync(DBTHSNEntities db, int warehouseId, int? userId, IList<InventoryCountLine> lines,
-            IDictionary<int, decimal> unitCosts = null)
+        /// <param name="monthlyLock">false — oylik qulf olinmaydi (boshlang'ich qoldiq kiritish: davriy inventarizatsiya emas,
+        /// shu oyning nazorat sanog'ini to'smasin — distributsiya 05_FINDINGS K2-20).</param>
+        /// <returns>INVENTORY_ADJUSTMENTS.ID (qulfsiz — null)</returns>
+        public static async Task<int?> ApplyAsync(DBTHSNEntities db, int warehouseId, int? userId, IList<InventoryCountLine> lines,
+            IDictionary<int, decimal> unitCosts = null, bool monthlyLock = true)
         {
             var requireDloc = StockLedger.IsDlocWarehouse(db, warehouseId);
             var currencyId = WarehouseAccess.DefaultCurrencyId(db);
             var now = DateTime.Now;
 
             // Qulf tranzaksiya ichida birinchi yoziladi: parallel ikkinchi urinish unique indeksga uriladi
-            var adjustmentLock = new INVENTORY_ADJUSTMENTS
+            INVENTORY_ADJUSTMENTS adjustmentLock = null;
+            if (monthlyLock)
             {
-                WarehouseID = warehouseId,
-                Period = new DateTime(now.Year, now.Month, 1),
-                UserID = userId > 0 ? userId : null,
-                CreatedAt = now
-            };
-            db.INVENTORY_ADJUSTMENTS.Add(adjustmentLock);
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (System.Data.Entity.Infrastructure.DbUpdateException)
-            {
-                throw new InvalidOperationException(AlreadyAdjustedMessage);
+                adjustmentLock = new INVENTORY_ADJUSTMENTS
+                {
+                    WarehouseID = warehouseId,
+                    Period = new DateTime(now.Year, now.Month, 1),
+                    UserID = userId > 0 ? userId : null,
+                    CreatedAt = now
+                };
+                db.INVENTORY_ADJUSTMENTS.Add(adjustmentLock);
+                try
+                {
+                    await db.SaveChangesAsync();
+                }
+                catch (System.Data.Entity.Infrastructure.DbUpdateException)
+                {
+                    throw new InvalidOperationException(AlreadyAdjustedMessage);
+                }
             }
 
             var invToken = $"{now.Month:00}_{now.Day:00}_{{0}}_{warehouseId}_{now:HHmmssfff}";
@@ -176,7 +182,7 @@ namespace tahsinERP.Services.Stock
             }
 
             await db.SaveChangesAsync();
-            return adjustmentLock.ID;
+            return adjustmentLock?.ID;
         }
 
         /// <summary>Har mahsulotning eng so'nggi (o'chirilmagan) kirim narxi, QQSsiz — bitta so'rov.</summary>

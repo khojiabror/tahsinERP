@@ -146,6 +146,22 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
         }
 
         /// <summary>
+        /// Tannarx summasi bor xabar: DstSeeCost huquqi bor rahbarga <paramref name="withCost"/>, qolganlarga — summasiz
+        /// <paramref name="withoutCost"/> (05_FINDINGS K1-5). <paramref name="canSeeCost"/> — sinov uchun (null — huquq bo'yicha).
+        /// </summary>
+        public static void ToManagers(DistributionDbContext db, string type, Func<string, string> withCost, Func<string, string> withoutCost,
+            string payload, DateTime now, int? exceptUserId = null, Func<int, string, bool> canSeeCost = null)
+        {
+            var managers = (from a in db.TelegramAccounts
+                            join u in db.Users on a.UserID equals u.ID
+                            where a.IsActive && a.Role == BotRoles.Manager
+                            select new { u.ID, u.Uname }).Distinct().ToList();
+            canSeeCost = canSeeCost ?? ((id, uname) => DstPermissions.Has(uname, DstPermissions.SeeCost));
+            foreach (var m in managers.Where(m => m.ID != exceptUserId))
+                ToUser(db, m.ID, type, canSeeCost(m.ID, m.Uname) ? withCost : withoutCost, payload, now);
+        }
+
+        /// <summary>
         /// Omborchilar: Telegram'da STOREKEEPER roli bilan bog'langanlar, ombor scope'i shu omborni qamrasa
         /// (scope yozuvi yo'q yoki Admin — barcha omborlar).
         /// </summary>

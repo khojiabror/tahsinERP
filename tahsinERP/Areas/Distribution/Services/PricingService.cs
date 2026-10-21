@@ -40,7 +40,9 @@ namespace tahsinERP.Areas.Distribution.Services
     ///  1) mijozning maxsus narxi (sana oralig'ida, eng so'nggi ValidFrom);
     ///  2) mijoz narx turidagi narx varag'i (sanagacha eng so'nggi ValidFrom);
     ///  3) standart narx turi.
-    /// Minimal narx narx turi qatoridan olinadi. Maxsus narx — rahbar qarori, unga minimal narx qo'llanmaydi.
+    /// Minimal narx (05_FINDINGS K1-6) narx turidan qat'i nazar ishlaydi: o'z narx turi qatoridagi minimum, u yo'q bo'lsa —
+    /// standart narx turidagi minimum (o'z narxidan yuqori bo'lmaydi — aks holda chegirmasiz sotuv ham to'xtab qolardi).
+    /// Maxsus narxga ham shu minimum qo'llanadi; undan ozod qilish — faqat DstDiscountUnlimited (OrderRules.CheckMinPrice).
     /// </summary>
     public static class PriceResolver
     {
@@ -52,13 +54,6 @@ namespace tahsinERP.Areas.Distribution.Services
             DateTime at)
         {
             var day = at.Date;
-            var special = (customerPrices ?? Enumerable.Empty<CustomerPrice>())
-                .Where(c => c.ValidFrom <= day && (c.ValidTo == null || c.ValidTo >= day))
-                .OrderByDescending(c => c.ValidFrom).ThenByDescending(c => c.ID)
-                .FirstOrDefault();
-            if (special != null)
-                return new ResolvedPrice(special.Price, null, PriceSource.CustomerSpecial, null);
-
             var items = (priceList ?? Enumerable.Empty<PriceListItem>()).Where(p => p.ValidFrom <= at).ToList();
 
             PriceListItem Latest(int? typeId) => typeId == null
@@ -67,15 +62,23 @@ namespace tahsinERP.Areas.Distribution.Services
                     .OrderByDescending(p => p.ValidFrom).ThenByDescending(p => p.ID).FirstOrDefault();
 
             var own = Latest(customerPriceTypeId);
-            if (own != null)
-                return new ResolvedPrice(own.Price, own.MinPrice, PriceSource.CustomerPriceType, own.PriceTypeID);
+            var def = defaultPriceTypeId == customerPriceTypeId ? own : Latest(defaultPriceTypeId);
 
-            if (defaultPriceTypeId != customerPriceTypeId)
+            var special = (customerPrices ?? Enumerable.Empty<CustomerPrice>())
+                .Where(c => c.ValidFrom <= day && (c.ValidTo == null || c.ValidTo >= day))
+                .OrderByDescending(c => c.ValidFrom).ThenByDescending(c => c.ID)
+                .FirstOrDefault();
+            if (special != null)
+                return new ResolvedPrice(special.Price, own?.MinPrice ?? def?.MinPrice, PriceSource.CustomerSpecial, null);
+
+            if (own != null)
             {
-                var def = Latest(defaultPriceTypeId);
-                if (def != null)
-                    return new ResolvedPrice(def.Price, def.MinPrice, PriceSource.DefaultPriceType, def.PriceTypeID);
+                decimal? min = own.MinPrice ?? (def?.MinPrice.HasValue == true ? Math.Min(def.MinPrice.Value, own.Price) : (decimal?)null);
+                return new ResolvedPrice(own.Price, min, PriceSource.CustomerPriceType, own.PriceTypeID);
             }
+
+            if (def != null)
+                return new ResolvedPrice(def.Price, def.MinPrice, PriceSource.DefaultPriceType, def.PriceTypeID);
             return ResolvedPrice.None;
         }
 

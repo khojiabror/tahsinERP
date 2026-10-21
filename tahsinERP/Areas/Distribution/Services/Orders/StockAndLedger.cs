@@ -89,7 +89,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
     /// <summary>Mijoz qarzi (dst.CUSTOMER_LEDGER).</summary>
     public static class LedgerService
     {
-        public static CreditState CreditState(DistributionDbContext db, int customerId, DateTime today)
+        /// <param name="excludeOrderId">Tekshirilayotgan buyurtma — u "band" summaga qo'shilmaydi (summasi alohida beriladi).</param>
+        public static CreditState CreditState(DistributionDbContext db, int customerId, DateTime today, int? excludeOrderId = null)
         {
             var profile = db.CustomerProfiles.AsNoTracking().FirstOrDefault(p => p.CustomerID == customerId);
             var rows = db.CustomerLedger.AsNoTracking().Where(l => l.CustomerID == customerId).ToList();
@@ -100,8 +101,27 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 HasProfile = profile != null,
                 CreditLimit = profile?.CreditLimit ?? 0,
                 Balance = rows.Sum(l => l.Debit - l.Credit),
-                Overdue = aging.Overdue
+                Overdue = aging.Overdue,
+                Committed = Committed(db, customerId, excludeOrderId)
             };
+        }
+
+        /// <summary>
+        /// Tasdiqlangan / yig'ilayotgan / qisman jo'natilgan buyurtmalarning jo'natilmagan qismi (buyurtma chegirmasi bilan):
+        /// jo'natilganda qarzga aylanadi, shuning uchun limit tekshiruvida hozirdan hisobga olinadi (05_FINDINGS K1-2).
+        /// </summary>
+        public static decimal Committed(DistributionDbContext db, int customerId, int? excludeOrderId = null)
+        {
+            byte confirmed = (byte)OrderStatus.Confirmed, picking = (byte)OrderStatus.Picking, partial = (byte)OrderStatus.PartiallyShipped;
+            int exclude = excludeOrderId ?? 0;
+            var lines = (from l in db.OrderLines.AsNoTracking()
+                         join o in db.Orders.AsNoTracking() on l.OrderID equals o.ID
+                         where o.CustomerID == customerId && o.ID != exclude
+                               && (o.OrderStatus == confirmed || o.OrderStatus == picking || o.OrderStatus == partial)
+                               && l.QtyBase > l.QtyShippedBase && l.QtyBase > 0
+                         select new { l.Amount, l.QtyBase, l.QtyShippedBase, o.DiscountPct }).ToList();
+            return Math.Round(lines.Sum(l => l.Amount * (l.QtyBase - l.QtyShippedBase) / l.QtyBase * (100m - l.DiscountPct) / 100m),
+                2, MidpointRounding.AwayFromZero);
         }
 
         public static CustomerLedgerEntry Debit(DistributionDbContext db, int customerId, string docType, int docId, int? orderId,

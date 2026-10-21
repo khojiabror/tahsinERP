@@ -49,20 +49,39 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             return tx.ID;
         }
 
-        /// <summary>Kassadagi farq (kamomad — chiqim, ortiqcha — kirim) — kassa qoldig'i haqiqiy pulga teng bo'lishi uchun.</summary>
-        public static void PostHandoverDifference(DBTHSNEntities erp, CashHandover handover, FIN_ACCOUNTS account, string agentName, int userId, DateTime at)
+        /// <summary>FIN_TRANSACTIONS.CounterpartyType: xodim (HR_EMPLOYEES.ID) — Moliya uni ish haqi hisobida o'qiydi.</summary>
+        public const byte CounterpartyEmployee = 6;
+
+        /// <summary>
+        /// Kassadagi farq (kamomad — chiqim, ortiqcha — kirim) — kassa qoldig'i haqiqiy pulga teng bo'lishi uchun.
+        /// Kamomad agent HR xodimiga bog'langan bo'lsa (KPI sxemasidagi xodim) — kontragent = xodim (CounterpartyType 6):
+        /// Moliya uni xodimga berilgan pul deb o'qiydi, ish haqi qarzidan ayriladi — agentning qarzi (05_FINDINGS K2-15).
+        /// </summary>
+        public static void PostHandoverDifference(DBTHSNEntities erp, CashHandover handover, FIN_ACCOUNTS account, string agentName, int? employeeId,
+            int userId, DateTime at)
         {
             var diff = handover.Difference ?? 0;
             if (diff == 0) return;
             var category = FinancePostingService.EnsureSystemCategory(erp, CashShortageCode, "Agent kassa farqi", 2);
             if (category.ID == 0) erp.SaveChanges();
+            bool toEmployee = diff < 0 && employeeId.HasValue;
             erp.FIN_TRANSACTIONS.Add(new FIN_TRANSACTIONS
             {
                 TxnDate = at, AccountID = account.ID, CategoryID = category.ID, Direction = (byte)(diff > 0 ? 1 : 2), Amount = Math.Abs(diff),
                 CurrencyID = account.CurrencyID, CounterpartyName = agentName,
-                Purpose = (diff > 0 ? "Ortiqcha: " : "Kamomad: ") + handover.DocNo, SourceDocType = HandoverSource, SourceDocID = handover.ID,
+                CounterpartyType = toEmployee ? CounterpartyEmployee : (byte?)null, CounterpartyID = toEmployee ? employeeId : null,
+                Purpose = (diff > 0 ? "Ortiqcha: " : toEmployee ? "Kamomad (agent qarzi): " : "Kamomad: ") + handover.DocNo,
+                SourceDocType = HandoverSource, SourceDocID = handover.ID,
                 CreatedByUserID = userId, CreatedDT = at, IsDeleted = false
             });
+            erp.SaveChanges();
+        }
+
+        /// <summary>Topshirish farqi yozuvini bekor qilish (topshirish bekor qilinganda).</summary>
+        public static void RemoveHandoverDifference(DBTHSNEntities erp, int handoverId)
+        {
+            foreach (var tx in erp.FIN_TRANSACTIONS.Where(t => t.SourceDocType == HandoverSource && t.SourceDocID == handoverId && t.IsDeleted != true).ToList())
+                tx.IsDeleted = true;
             erp.SaveChanges();
         }
 
@@ -141,7 +160,10 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             return payment.ID;
         }
 
-        /// <summary>To'lovni bekor qilish (xato kiritilgan): kassaga topshirilgan agent puli bekor qilinmaydi.</summary>
+        /// <summary>
+        /// To'lovni bekor qilish (xato kiritilgan). Topshirish hujjatiga kirgan agent puli to'g'ridan-to'g'ri bekor qilinmaydi —
+        /// avval topshirish bekor qilinadi (<see cref="CancelHandover"/>), to'lov yana agent qo'lida bo'ladi.
+        /// </summary>
         public static void Cancel(DistributionUnitOfWork uow, int paymentId, int userId, string reason, DateTime now)
         {
             var db = uow.Dst;
@@ -188,12 +210,15 @@ namespace tahsinERP.Areas.Distribution.Services.Money
         /// <summary>
         /// Kassir qabul qiladi: sanalgan summa kiritiladi; har to'lov kassaga (FIN) yoziladi, farq alohida yozuv bilan.
         /// </summary>
-        public static void ConfirmHandover(DistributionUnitOfWork uow, int handoverId, decimal amountReceived, int cashierUserId, DateTime now)
+        /// <param name="finAccountId">Kassir tanlagan kassa (bo'sh — agent topshirishda ko'rsatgani).</param>
+        public static void ConfirmHandover(DistributionUnitOfWork uow, int handoverId, decimal amountReceived, int cashierUserId, DateTime now,
+            int? finAccountId = null)
         {
             var db = uow.Dst;
             var handover = db.CashHandovers.Find(handoverId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
             if (handover.Status != DocumentStatus.Draft) throw new DstValidationException(DstLocalization.T("Order_NotEditable"));
             if (amountReceived < 0) throw new DstValidationException(DstLocalization.T("Payment_AmountPositive"));
+            if (finAccountId.HasValue) handover.FinAccountID = finAccountId.Value;
             var account = DstFinancePosting.RequireAccount(uow.Erp, handover.FinAccountID);
 
             handover.AmountReceived = Math.Round(amountReceived, 2);
@@ -207,7 +232,34 @@ namespace tahsinERP.Areas.Distribution.Services.Money
                 p.FinTransactionID = DstFinancePosting.PostPayment(uow.Erp, p, account, names.TryGetValue(p.CustomerID, out var n) ? n : null, cashierUserId, now);
             }
             var agentName = db.Users.Where(u => u.ID == handover.AgentUserID).Select(u => u.FullName ?? u.Uname).FirstOrDefault();
-            DstFinancePosting.PostHandoverDifference(uow.Erp, handover, account, agentName, cashierUserId, now);
+            var employeeId = db.KpiSchemes.Where(k => k.AgentUserID == handover.AgentUserID).Select(k => k.EmployeeID).FirstOrDefault();
+            DstFinancePosting.PostHandoverDifference(uow.Erp, handover, account, agentName, employeeId, cashierUserId, now);
+            db.SaveChanges();
+        }
+
+        /// <summary>
+        /// Qabul qilingan topshirishni bekor qilish (kassir xato qildi yoki ichidagi to'lov xato): to'lovlarning moliya yozuvlari va
+        /// farq yozuvi bekor qilinadi, to'lovlar yana agent qo'lida. Keyin xato to'lovni oddiy tartibda bekor qilish mumkin (K1-4).
+        /// Kutilayotgan (qoralama) topshirish — rad etiladi.
+        /// </summary>
+        public static void CancelHandover(DistributionUnitOfWork uow, int handoverId, int userId, string reason, DateTime now)
+        {
+            var db = uow.Dst;
+            var handover = db.CashHandovers.Find(handoverId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+            if (handover.Status == DocumentStatus.Draft)
+            {
+                RejectHandover(uow, handoverId, userId, reason, now);
+                return;
+            }
+            DocumentLifecycle.Cancel(handover, userId, reason, now);
+            foreach (var p in db.Payments.Where(p => p.HandoverID == handoverId).ToList())
+            {
+                DstFinancePosting.RemovePosting(uow.Erp, p.FinTransactionID);
+                p.FinTransactionID = null;
+                p.FinAccountID = null;
+                p.HandoverID = null;
+            }
+            DstFinancePosting.RemoveHandoverDifference(uow.Erp, handoverId);
             db.SaveChanges();
         }
 

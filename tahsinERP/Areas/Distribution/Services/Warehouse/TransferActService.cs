@@ -34,6 +34,9 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
         public const string Prefix = "DT";
         public const string NotifyType = "TRANSFER_DIFF";
 
+        /// <summary>Sinov uchun: rahbar tannarxni ko'radimi (null — DstSeeCost huquqi bo'yicha).</summary>
+        internal static Func<int, string, bool> CanSeeCostOverride;
+
         public sealed class PendingRow
         {
             public int IncomeID { get; set; }
@@ -238,9 +241,12 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             {
                 var from = db.Warehouses.Where(w => w.ID == act.FromWarehouseID).Select(w => w.WHName).FirstOrDefault();
                 var to = db.Warehouses.Where(w => w.ID == act.ToWarehouseID).Select(w => w.WHName).FirstOrDefault();
+                int shortLines = act.Lines.Count(x => x.ReceivedQty < x.SentQty), surplusLines = act.Lines.Count(x => x.ReceivedQty > x.SentQty);
                 NotificationService.ToManagers(db, NotifyType,
                     l => DstLocalization.TFor(l, "Notify_TransferDiff", act.DocNo, income.DocNo, from, to,
-                        act.ShortageCost.ToString("N0"), act.LossCost.ToString("N0"), act.SurplusCost.ToString("N0")), null, now, userId);
+                        act.ShortageCost.ToString("N0"), act.LossCost.ToString("N0"), act.SurplusCost.ToString("N0")),
+                    l => DstLocalization.TFor(l, "Notify_TransferDiffQty", act.DocNo, income.DocNo, from, to, shortLines, surplusLines),
+                    null, now, userId, CanSeeCostOverride);
             }
             db.SaveChanges();
             return act.ID;

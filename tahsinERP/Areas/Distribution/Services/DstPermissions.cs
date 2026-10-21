@@ -4,7 +4,9 @@ namespace tahsinERP.Areas.Distribution.Services
 {
     /// <summary>
     /// Maxsus (maydon/amal darajasidagi) huquqlar — PERMISSIONMODULES.Module (Controller = 'Dst'), migratsiya 013.
-    /// Rol → Huquqlar sahifasida boshqa modullar kabi beriladi.
+    /// Rol → Huquqlar sahifasida boshqa modullar kabi beriladi, lekin <b>Change</b> ustuni bilan: yangi rolga barcha
+    /// modullarda View avtomatik beriladi (RoleController), shuning uchun View bilan tekshirilsa maxsus huquq ham
+    /// beixtiyor berilib qolardi (05_FINDINGS K1-1). Mavjud View egalariga 027 Change ham qo'ydi.
     /// </summary>
     public static class DstPermissions
     {
@@ -23,7 +25,13 @@ namespace tahsinERP.Areas.Distribution.Services
         public static bool Has(string userName, string permission)
         {
             if (string.IsNullOrEmpty(userName)) return false;
-            return RoleHelper.IsAdminOrDeveloper(userName) || RoleHelper.IsViewPermitted(userName, permission);
+            if (RoleHelper.IsAdminOrDeveloper(userName)) return true;
+            return Grants(false, tahsinERP.Services.Editions.EditionGate.IsControllerAllowed(permission),
+                RoleHelper.IsChangePermitted(userName, permission));
         }
+
+        /// <summary>Qaror qoidasi: Admin/Developer — doim; boshqalar — paketda bor va Change belgilangan (View yetmaydi).</summary>
+        public static bool Grants(bool adminOrDeveloper, bool inEdition, bool changePermit) =>
+            adminOrDeveloper || (inEdition && changePermit);
     }
 }

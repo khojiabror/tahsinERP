@@ -154,12 +154,13 @@
                 $.getJSON(urls.info, { id: id }, function (c) {
                     if (!c) { $('#creditPanel').html('<p class="text-danger mb-0">@DstLocalization.T("Order_CustomerNotDistribution")</p>'); return; }
                     if (!$('#oAgent').val() && c.agentUserId) $('#oAgent').val(String(c.agentUserId));
-                    var free = c.creditLimit - c.balance;
+                    var free = c.creditLimit - c.balance - (c.committed || 0);
                     $('#creditPanel').html(
                         (c.approved ? '' : '<div class="alert alert-warning p-50">@DstLocalization.T("Customer_Pending")</div>') +
                         '<dl class="row mb-0 small">' +
                         '<dt class="col-6">@DstLocalization.T("Debt")</dt><dd class="col-6 text-right">' + money.format(c.balance) + '</dd>' +
                         '<dt class="col-6">@DstLocalization.T("Overdue")</dt><dd class="col-6 text-right ' + (c.overdue > 0 ? 'text-danger' : '') + '">' + money.format(c.overdue) + '</dd>' +
+                        (c.committed > 0 ? '<dt class="col-6">@DstLocalization.T("Credit_CommittedShort")</dt><dd class="col-6 text-right">' + money.format(c.committed) + '</dd>' : '') +
                         '<dt class="col-6">@DstLocalization.T("CreditLimit")</dt><dd class="col-6 text-right">' + money.format(c.creditLimit) + '</dd>' +
                         '<dt class="col-6">@DstLocalization.T("Credit_Available")</dt><dd class="col-6 text-right ' + (free < 0 ? 'text-danger' : 'text-success') + '">' + money.format(free) + '</dd>' +
                         '<dt class="col-6">@DstLocalization.T("PriceType")</dt><dd class="col-6 text-right">' + dstEsc(c.priceType || '—') + '</dd>' +

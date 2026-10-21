@@ -123,6 +123,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         public decimal CreditLimit { get; set; }
         public decimal Balance { get; set; }       // > 0 — mijoz qarzdor
         public decimal Overdue { get; set; }       // muddati o'tgan qism
+        /// <summary>Tasdiqlangan, hali jo'natilmagan buyurtmalar qoldig'i (qarzga hali yozilmagan, lekin limitni band qiladi).</summary>
+        public decimal Committed { get; set; }
         public bool HasProfile { get; set; }
     }
 
@@ -136,17 +138,18 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
     public static class OrderRules
     {
         /// <summary>
-        /// Qarz limiti: qarz + buyurtma &gt; limit yoki muddati o'tgan qarz bo'lsa — tasdiqlab bo'lmaydi
-        /// (DstOverrideCredit huquqi bilan ruxsat beriladi). Limit 0 — faqat oldindan to'lov.
+        /// Qarz limiti: qarz + tasdiqlangan-jo'natilmagan buyurtmalar + shu buyurtma &gt; limit yoki muddati o'tgan qarz
+        /// bo'lsa — tasdiqlab bo'lmaydi (DstOverrideCredit huquqi bilan ruxsat beriladi). Limit 0 — faqat oldindan to'lov.
         /// </summary>
         public static CreditCheck CheckCredit(CreditState credit, decimal orderTotal)
         {
-            var result = new CreditCheck { Available = credit.CreditLimit - credit.Balance };
+            var result = new CreditCheck { Available = credit.CreditLimit - credit.Balance - credit.Committed };
             if (credit.Overdue > 0)
                 result.Problems.Add(DstLocalization.T("Credit_Overdue", credit.Overdue.ToString("N0")));
-            if (credit.Balance + orderTotal > credit.CreditLimit)
-                result.Problems.Add(DstLocalization.T("Credit_LimitExceeded",
-                    (credit.Balance + orderTotal).ToString("N0"), credit.CreditLimit.ToString("N0")));
+            decimal exposure = credit.Balance + credit.Committed + orderTotal;
+            if (exposure > credit.CreditLimit)
+                result.Problems.Add(DstLocalization.T("Credit_LimitExceeded", exposure.ToString("N0"), credit.CreditLimit.ToString("N0"))
+                    + (credit.Committed > 0 ? " " + DstLocalization.T("Credit_Committed", credit.Committed.ToString("N0")) : ""));
             return result;
         }
 

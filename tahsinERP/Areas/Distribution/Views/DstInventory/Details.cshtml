@@ -8,9 +8,11 @@
     bool canChange = ViewBag.DstCanChange == true;
     bool draft = count.Status == DocumentStatus.Draft;
     bool opening = count.Kind == InventoryKinds.Opening;
+    bool showCost = opening && ViewBag.DstCanSeeCost == true;
+    bool blind = draft;   // "ko'r" sanoq: qoralamada tizim qoldig'i va farq ko'rsatilmaydi (05_FINDINGS K2-20)
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     int counted = rows.Count(r => r.Counted.HasValue);
-    var diffs = rows.Where(r => r.Diff.HasValue && r.Diff.Value != 0).ToList();
+    var diffs = blind ? new List<InventoryCountService.Row>() : rows.Where(r => r.Diff.HasValue && r.Diff.Value != 0).ToList();
     Func<decimal?, string> Q = v => v.HasValue ? v.Value.ToString("#,0.####", inv) : "";
 }
 <div class="app-content content">
@@ -34,10 +36,17 @@
                     </p>
                     <p class="small text-muted">@DstLocalization.T(opening ? "Inventory_OpeningHint" : "Inventory_ControlHint")</p>
                     <div class="alert @(diffs.Count == 0 && counted == rows.Count ? "alert-success" : "alert-warning")">
-                        @DstLocalization.T("Inventory_Counted"): @counted / @rows.Count ·
-                        @DstLocalization.T("Inventory_Differences"): @diffs.Count
-                        (@DstLocalization.T("Inventory_Shortage"): @Q(-diffs.Where(d => d.Diff < 0).Sum(d => d.Diff.Value)),
-                        @DstLocalization.T("Inventory_Surplus"): @Q(diffs.Where(d => d.Diff > 0).Sum(d => d.Diff.Value)))
+                        @DstLocalization.T("Inventory_Counted"): @counted / @rows.Count
+                        @if (blind)
+                        {
+                            <span>· @DstLocalization.T("Inventory_BlindHint")</span>
+                        }
+                        else
+                        {
+                            <span>· @DstLocalization.T("Inventory_Differences"): @diffs.Count
+                            (@DstLocalization.T("Inventory_Shortage"): @Q(-diffs.Where(d => d.Diff < 0).Sum(d => d.Diff.Value)),
+                            @DstLocalization.T("Inventory_Surplus"): @Q(diffs.Where(d => d.Diff > 0).Sum(d => d.Diff.Value)))</span>
+                        }
                     </div>
 
                     @if (draft && canChange)
@@ -68,10 +77,10 @@
                                 <thead>
                                     <tr>
                                         <th>@DstLocalization.T("Product")</th><th>@DstLocalization.T("Unit")</th>
-                                        <th class="text-right">@DstLocalization.T("Inventory_System")</th>
+                                        @if (!blind) { <th class="text-right">@DstLocalization.T("Inventory_System")</th> }
                                         <th class="text-right" style="width:140px">@DstLocalization.T("Inventory_CountedQty")</th>
-                                        <th class="text-right">@DstLocalization.T("Inventory_Diff")</th>
-                                        @if (opening) { <th class="text-right" style="width:140px">@DstLocalization.T("Inventory_UnitCost")</th> }
+                                        @if (!blind) { <th class="text-right">@DstLocalization.T("Inventory_Diff")</th> }
+                                        @if (showCost) { <th class="text-right" style="width:140px">@DstLocalization.T("Inventory_UnitCost")</th> }
                                         <th>@DstLocalization.T("Comment")</th>
                                     </tr>
                                 </thead>
@@ -79,10 +88,10 @@
                                     @for (int i = 0; i < rows.Count; i++)
                                     {
                                         var r = rows[i];
-                                        <tr data-line="@r.LineID" class="@(r.Diff.HasValue && r.Diff != 0 ? "table-warning" : "")">
+                                        <tr data-line="@r.LineID" class="@(!blind && r.Diff.HasValue && r.Diff != 0 ? "table-warning" : "")">
                                             <td>@r.PNo — @r.Name</td>
                                             <td>@r.Unit</td>
-                                            <td class="text-right">@Q(r.System)</td>
+                                            @if (!blind) { <td class="text-right">@Q(r.System)</td> }
                                             <td class="text-right">
                                                 @if (draft && canChange)
                                                 {
@@ -90,8 +99,8 @@
                                                 }
                                                 else { @Q(r.Counted) }
                                             </td>
-                                            <td class="text-right">@(r.Diff.HasValue ? (r.Diff > 0 ? "+" : "") + Q(r.Diff) : "")</td>
-                                            @if (opening)
+                                            @if (!blind) { <td class="text-right">@(r.Diff.HasValue ? (r.Diff > 0 ? "+" : "") + Q(r.Diff) : "")</td> }
+                                            @if (showCost)
                                             {
                                                 <td class="text-right">
                                                     @if (draft && canChange)
