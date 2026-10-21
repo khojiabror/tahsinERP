@@ -26,6 +26,7 @@ param(
     [string] $SigningKeyFile = "$env:ProgramData\tahsinERP\panel-signing-k2.json",
     [string] $ConnectionString = 'Server=.;Database=tahsin_control;Trusted_Connection=True;TrustServerCertificate=True;Application Name=tahsinERP.ControlPanel',
     [string] $CertThumbprint,
+    [string] $CertStore = 'WebHosting',   # win-acme sertifikatni WebHosting'ga qo'yadi
     [switch] $SkipPublish,
     [switch] $KeepSecrets   # yangilashda: mavjud env sirlariga tegmaslik
 )
@@ -74,7 +75,7 @@ if ($PortalHostName -and -not (Get-WebBinding -Name $SiteName -Protocol https -H
 if ($CertThumbprint) {
     foreach ($h in @($HostName, $PortalHostName) | Where-Object { $_ }) {
         $binding = Get-WebBinding -Name $SiteName -Protocol https -HostHeader $h
-        $binding.AddSslCertificate($CertThumbprint, 'My')
+        $binding.AddSslCertificate($CertThumbprint, $CertStore)
     }
 }
 
