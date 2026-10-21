@@ -4,6 +4,8 @@ Holat: 2026-10-21. Kod tomoni tayyor (distributsiya 1–4-bosqichlar, sayt-katal
 muhit (pilot va birinchi SaaS mijozlar). Bog'liq: `Docs/ControlPanel/00_PLAN.md` (9-bo'lim, deploy), `tahsinERP.Bot/README.md`,
 `tahsinERP.Site/README.md`, `tahsinERP.ControlPanel/deploy/Install-PanelIis.ps1`.
 
+**Bosqichma-bosqich buyruqlar — `01_DEPLOY_GUIDE.md`** (ERP, panel, agent, bot, sayt, DNS/SSL, zaxira bitta qo'llanmada).
+
 ## 1. Avval hal qilinadigan uchta savol
 
 | # | Savol | Tavsiya |
