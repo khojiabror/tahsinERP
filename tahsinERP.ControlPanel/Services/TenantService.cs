@@ -21,7 +21,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
 
     /// <summary>ERP TenantRegistry.ReservedSlugs — panel subdomenlari.</summary>
     public static readonly string[] ReservedSlugs =
-        ["admin", "my", "pay", "www", "api", "app", "mail", "smtp", "static", "cdn", "assets", "status", "panel", "erp"];
+        ["admin", "my", "pay", "www", "api", "app", "mail", "smtp", "static", "cdn", "assets", "status", "panel", "erp", "bot", "sayt", "sites"];
 
     public static string? ValidateSlug(string? slug)
     {
