@@ -19,6 +19,8 @@ namespace tahsinERP.Areas.Distribution.Services.Reports
         public sealed class Model
         {
             public DateTime Date { get; set; }
+            /// <summary>O'tgan sana: tasdiq/jo'natish kutayotganlar, agent naqdi va ombor qiymati sanaga emas, joriy holatga — ko'rinishda belgilanadi (K2-28).</summary>
+            public bool IsPast { get; set; }
             public SalesTotals Day { get; set; }
             public SalesTotals Month { get; set; }
             public List<(DateTime Date, decimal Net, decimal Profit)> Trend { get; set; }
@@ -59,7 +61,7 @@ namespace tahsinERP.Areas.Distribution.Services.Reports
             var day = date.Date;
             var monthStart = new DateTime(day.Year, day.Month, 1);
             var next = day.AddDays(1);
-            var m = new Model { Date = day };
+            var m = new Model { Date = day, IsPast = day < DateTime.Today };
 
             // savdo
             var dayFilter = new ReportFilter { From = day, To = day };
@@ -107,7 +109,8 @@ namespace tahsinERP.Areas.Distribution.Services.Reports
             m.CollectedMonth = collected.Sum(c => c.Amount);
 
             // qarz: CUSTOMER_LEDGER → DebtService.Net → DebtMath.Aging (qarzlar sahifasi bilan bir xil)
-            var debts = scope.IsUnrestricted ? DebtService.Load(db) : DebtService.Load(db, scope.VisibleCustomers(db).ToList());
+            // qarz — tanlangan kun oxiridagi holat (keyingi yozuvlarsiz)
+            var debts = scope.IsUnrestricted ? DebtService.Load(db, null, next) : DebtService.Load(db, scope.VisibleCustomers(db).ToList(), next);
             var debt = new AgingBuckets();
             var overdue = new List<(int CustomerID, decimal Overdue, int Days)>();
             foreach (var pair in debts)

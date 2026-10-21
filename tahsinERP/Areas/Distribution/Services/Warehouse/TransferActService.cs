@@ -16,6 +16,8 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
         public int IncomeProductID { get; set; }
         public decimal ReceivedQty { get; set; }
         public string Resolution { get; set; }
+        /// <summary>SPLIT: kamomadning yo'qotilgan qismi (0 &lt; LossQty &lt; kamomad), qolgani qaytariladi.</summary>
+        public decimal? LossQty { get; set; }
         public string Note { get; set; }
     }
 
@@ -33,6 +35,58 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
     {
         public const string Prefix = "DT";
         public const string NotifyType = "TRANSFER_DIFF";
+
+        /// <summary>
+        /// Dalolatnomani bekor qilish (05_FINDINGS K2-21): jo'natuvchiga qaytarilgan kirim va qabul qiluvchidagi kirim teskari
+        /// (StockLedger.ReverseIncomeReceipt — tovar allaqachon chiqarilgan bo'lsa rad), kirim qatorlari jo'natilgan miqdorga qaytadi va
+        /// ko'chirma yana "qabul kutmoqda" — to'g'ri miqdor bilan qayta qabul qilinadi.
+        /// </summary>
+        public static void Cancel(DistributionUnitOfWork uow, int actId, int userId, bool isAdmin, string reason, DateTime now)
+        {
+            var db = uow.Dst;
+            var erp = uow.Erp;
+            var act = db.TransferActs.Find(actId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+            if (act.Status != DocumentStatus.Posted) throw new DstValidationException(DstLocalization.T("Order_NotEditable"));
+            if (!CanReceive(db, act.ToWarehouseID, userId, isAdmin)) throw new DstValidationException(DstLocalization.T("Transfer_NotResponsible"));
+            DocumentLifecycle.Cancel(act, userId, reason, now);
+            try
+            {
+                if (act.ReturnIncomeID.HasValue)
+                {
+                    StockLedger.ReverseIncomeReceipt(erp, act.ReturnIncomeID.Value, act.FromWarehouseID);
+                    var back = erp.INCOMES.Find(act.ReturnIncomeID.Value);
+                    if (back != null) back.IsDeleted = true;
+                }
+                StockLedger.ReverseIncomeReceipt(erp, act.IncomeID, act.ToWarehouseID);
+                // bekor qilingan lotlar nomi bo'shatiladi (UNIQUE IncomeProductID+LotNo) — ko'chirma qayta qabul qilinganda yangi lot ochiladi
+                erp.Database.ExecuteSqlCommand(
+                    "IF OBJECT_ID('dbo.INCOME_LOTS', 'U') IS NOT NULL " +
+                    "UPDATE dbo.INCOME_LOTS SET LotNo = LEFT(LotNo, 100) + '-X' + CAST(@p1 AS varchar(12)) WHERE IncomeID = @p0 AND IsDeleted = 1 AND LotNo NOT LIKE '%-X%'",
+                    act.IncomeID, act.ID);
+            }
+            catch (Exception ex) when (!(ex is DstValidationException))
+            {
+                throw new DstValidationException(DstLocalization.T("Transfer_CancelConsumed") + " " + ex.Message);
+            }
+            var lines = db.TransferActLines.Where(l => l.ActID == actId).ToList();
+            var ipIds = lines.Select(l => l.IncomeProductID).ToList();
+            var ips = erp.INCOME_PRODUCTS.Where(p => ipIds.Contains(p.ID)).ToList().ToDictionary(p => p.ID);
+            foreach (var l in lines)
+                if (ips.TryGetValue(l.IncomeProductID, out var ip)) ip.Amount = l.SentQty;
+            var income = erp.INCOMES.Find(act.IncomeID);
+            if (income != null)
+            {
+                income.RecieveStatus = false;
+                income.Amount = lines.Sum(l => l.SentQty);
+            }
+            if (act.ExpenseID.HasValue)
+            {
+                var expense = erp.EXPENSES.Find(act.ExpenseID.Value);
+                if (expense != null) expense.SendStatus = false;
+            }
+            erp.SaveChanges();
+            db.SaveChanges();
+        }
 
         /// <summary>Sinov uchun: rahbar tannarxni ko'radimi (null — DstSeeCost huquqi bo'yicha).</summary>
         internal static Func<int, string, bool> CanSeeCostOverride;
@@ -141,6 +195,9 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
                 if (x.ReceivedQty < 0) throw new DstValidationException(DstLocalization.T("Order_QtyPositive"));
                 if (x.ReceivedQty < l.SentQty && !TransferResolutions.All.Contains(x.Resolution ?? ""))
                     throw new DstValidationException(DstLocalization.T("Transfer_ResolutionRequired", l.PNo + " " + l.Product));
+                if (x.ReceivedQty < l.SentQty && x.Resolution == TransferResolutions.Split
+                    && (x.LossQty == null || x.LossQty <= 0 || x.LossQty >= l.SentQty - x.ReceivedQty))
+                    throw new DstValidationException(DstLocalization.T("Transfer_SplitQty", l.PNo + " " + l.Product, (l.SentQty - x.ReceivedQty).ToString("0.####")));
             }
 
             // atomik "band qilish" — ombor modulidagi qabul bilan bir xil (ikki marta qabul bo'lmasin)
@@ -179,18 +236,21 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
 
                 decimal diff = received - l.SentQty;
                 decimal value = Math.Round(Math.Abs(diff) * l.UnitCost, 2, MidpointRounding.AwayFromZero);
+                decimal? lossQty = null;
                 if (diff < 0)
                 {
+                    decimal shortage = -diff;
+                    lossQty = resolution == TransferResolutions.Loss ? shortage : resolution == TransferResolutions.Split ? x.LossQty.Value : 0;
                     act.ShortageCost += value;
-                    if (resolution == TransferResolutions.Loss) act.LossCost += value;
-                    else toReturn.Add((l, -diff));
+                    act.LossCost += Math.Round(lossQty.Value * l.UnitCost, 2, MidpointRounding.AwayFromZero);
+                    if (shortage - lossQty.Value > 0) toReturn.Add((l, shortage - lossQty.Value));
                 }
                 else if (diff > 0) act.SurplusCost += value;
 
                 act.Lines.Add(new TransferActLine
                 {
                     IncomeProductID = l.IncomeProductID, ProductID = l.ProductID, UnitID = l.UnitID, SentQty = l.SentQty, ReceivedQty = received,
-                    UnitCost = l.UnitCost, Resolution = resolution,
+                    UnitCost = l.UnitCost, Resolution = resolution, LossQty = lossQty,
                     Note = string.IsNullOrWhiteSpace(x.Note) ? null : x.Note.Trim().Length > 200 ? x.Note.Trim().Substring(0, 200) : x.Note.Trim()
                 });
             }
@@ -237,6 +297,9 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             }
 
             DocumentLifecycle.Post(act, userId, now);
+            db.SaveChanges();
+            OrderService.RereserveWaiting(db, act.ToWarehouseID, lines.Select(l => l.ProductID).ToList(), now);   // K2-12
+            if (toReturn.Count > 0) OrderService.RereserveWaiting(db, act.FromWarehouseID, toReturn.Select(r => r.Line.ProductID).ToList(), now);
             if (act.ShortageCost > 0 || act.SurplusCost > 0)
             {
                 var from = db.Warehouses.Where(w => w.ID == act.FromWarehouseID).Select(w => w.WHName).FirstOrDefault();

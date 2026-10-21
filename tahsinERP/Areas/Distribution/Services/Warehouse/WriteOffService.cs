@@ -147,6 +147,18 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
         }
 
         /// <summary>O'tkazilgan hisobdan chiqarishni bekor qilish (xato): tovar omborga qaytadi.</summary>
+        /// <summary>
+        /// Foto (dalil) — yuborilgunga qadar qo'shiladi/almashtiriladi: tasdiqlovchi ko'rgan holatdan keyin o'zgarmasin (05_FINDINGS K3-32).
+        /// </summary>
+        public static void SetPhoto(DistributionDbContext db, int id, string photoKey)
+        {
+            var doc = db.WriteOffs.Find(id) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+            if (doc.Status != DocumentStatus.Draft || doc.SubmittedAt.HasValue)
+                throw new DstValidationException(DstLocalization.T("WriteOff_AlreadySubmitted"));
+            doc.PhotoKey = Trim(photoKey, 200);
+            db.SaveChanges();
+        }
+
         public static void CancelPosted(DistributionUnitOfWork uow, int id, int userId, bool canApprove, string reason, DateTime now)
         {
             var db = uow.Dst;

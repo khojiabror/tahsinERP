@@ -33,6 +33,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
             public decimal ReceivedQty { get; set; }
             public decimal UnitCost { get; set; }
             public string Resolution { get; set; }
+            public decimal? LossQty { get; set; }
             public string Note { get; set; }
             public decimal Diff => ReceivedQty - SentQty;
         }
@@ -42,7 +43,31 @@ namespace tahsinERP.Areas.Distribution.Controllers
             public int IncomeProductID { get; set; }
             public string Received { get; set; }
             public string Resolution { get; set; }
+            public string LossQty { get; set; }
             public string Note { get; set; }
+        }
+
+        /// <summary>Dalolatnomani bekor qilish — ko'chirma yana qabul kutadi (K2-21).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Cancel(int id, string reason)
+        {
+            try
+            {
+                using (var uow = NewUnitOfWork())
+                {
+                    var act = uow.Dst.TransferActs.Find(id) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+                    EnsureWarehouse(uow.Dst, act.ToWarehouseID);
+                    TransferActService.Cancel(uow, id, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName), reason, DateTime.Now);
+                    uow.Commit();
+                }
+                TempData["DstSaved"] = DstLocalization.T("Transfer_Cancelled");
+            }
+            catch (DstValidationException ex)
+            {
+                TempData["DstError"] = ex.Message;
+            }
+            return RedirectToAction("Details", new { id });
         }
 
         public ActionResult Index()
@@ -98,6 +123,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     var lines = input.Select(l => new TransferReceiveLine
                     {
                         IncomeProductID = l.IncomeProductID, Resolution = string.IsNullOrWhiteSpace(l.Resolution) ? null : l.Resolution, Note = l.Note,
+                        LossQty = DstModelBinder.TryParseDecimal(l.LossQty ?? "", out var lq) ? lq : (decimal?)null,
                         ReceivedQty = DstModelBinder.TryParseDecimal(l.Received ?? "", out var q) ? q : throw new DstValidationException(DstLocalization.T("Error_NumberFormat") + ": " + l.Received)
                     }).ToList();
                     actId = TransferActService.Receive(uow, id, lines, locationId, returnLocationId, note, CurrentUserId,
@@ -131,7 +157,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                                  select new ActLineRow
                                  {
                                      Product = p.PNo + " — " + p.Name, Unit = db.Units.Where(u => u.ID == l.UnitID).Select(u => u.ShortName).FirstOrDefault(),
-                                     SentQty = l.SentQty, ReceivedQty = l.ReceivedQty, UnitCost = l.UnitCost, Resolution = l.Resolution, Note = l.Note
+                                     SentQty = l.SentQty, ReceivedQty = l.ReceivedQty, UnitCost = l.UnitCost, Resolution = l.Resolution, LossQty = l.LossQty, Note = l.Note
                                  }).ToList();
                 using (var erp = new DBTHSNEntities())
                 {

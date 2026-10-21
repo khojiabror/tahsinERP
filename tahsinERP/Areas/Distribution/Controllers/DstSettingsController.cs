@@ -86,7 +86,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
         [HttpPost]
         [ValidateAntiForgeryHeader]
         public JsonResult SaveGeneral(decimal? minOrderAmount, decimal? largeOrderAmount, int? visitRadiusM, int? agentCashAccountId, string botUsername,
-            bool requireSelfie = false, string botPublicUrl = null)
+            bool requireSelfie = false, string botPublicUrl = null, bool checkInLiveOnly = false, int? defectWarehouseId = null)
         {
             return DstJson(() =>
             {
@@ -107,6 +107,10 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     Services.Bot.DstSettings.Set(db, DstSetting.AgentCashAccountId, agentCashAccountId?.ToString(inv));
                     Services.Bot.DstSettings.Set(db, DstSetting.BotUsername, string.IsNullOrWhiteSpace(botUsername) ? null : botUsername.Trim().TrimStart('@'));
                     Services.Bot.DstSettings.Set(db, DstSetting.RequireSelfie, requireSelfie ? "1" : "0");
+                    Services.Bot.DstSettings.Set(db, DstSetting.CheckInLiveOnly, checkInLiveOnly ? "1" : "0");
+                    if (defectWarehouseId.HasValue && !db.Warehouses.Any(w => w.ID == defectWarehouseId && w.IsDeleted != true))
+                        throw new DstValidationException(DstLocalization.T("Order_NoWarehouse"));
+                    Services.Bot.DstSettings.Set(db, DstSetting.DefectWarehouseId, defectWarehouseId?.ToString(inv));
                     Services.Bot.DstSettings.Set(db, DstSetting.BotPublicUrl, botPublicUrl);
                     db.SaveChanges();
                     return null;
@@ -173,7 +177,11 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryHeader]
-        public JsonResult SaveWarehouse(int warehouseId, bool isSalesPoint, bool allowNegative, string deliveryZone)
+        /// <summary>
+        /// Ombor sozlamasi — faqat "savdo nuqtasi". "Minusga ruxsat" va "Yetkazish zonasi" hech qayerda ishlatilmasdi (FIFO minusga
+        /// ruxsat bermaydi, zona reyslarda yo'q) — UI'dan olib tashlandi, ustunlar bazada qoladi (05_FINDINGS K3-30).
+        /// </summary>
+        public JsonResult SaveWarehouse(int warehouseId, bool isSalesPoint)
         {
             return DstJson(() =>
             {
@@ -184,8 +192,6 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     var row = db.WarehouseSettings.Find(warehouseId);
                     if (row == null) db.WarehouseSettings.Add(row = new WarehouseSetting { WarehouseID = warehouseId });
                     row.IsSalesPoint = isSalesPoint;
-                    row.AllowNegative = allowNegative;
-                    row.DeliveryZone = string.IsNullOrWhiteSpace(deliveryZone) ? null : deliveryZone.Trim();
                     db.SaveChanges();
                     return null;
                 }

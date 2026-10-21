@@ -233,6 +233,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 Log(db, order, null, OrderStatus.New, actor.UserId, now, null);
                 NotifyNewOrder(db, order, customer.Name, actor.UserId, now);
             }
+            else
+                NotifyCredit(db, order, customer.Name, actor.UserId, now);   // tahrirdan keyin limitdan oshdi (K2-27)
             db.SaveChanges();
             return order.ID;
         }
@@ -293,7 +295,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                                     ?? throw new DstValidationException(DstLocalization.T("Order_NoStockAnywhere"));
             }
 
-            Reserve(db, order.WarehouseID.Value, lines, now);
+            var availableBefore = Reserve(db, order.WarehouseID.Value, lines, now);
 
             order.ConfirmedBy = actor.UserId;
             order.ConfirmedAt = now;
@@ -304,6 +306,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 NotificationService.ToUser(db, order.AgentUserID, NotificationService.OrderConfirmed,
                     l => DstLocalization.TFor(l, "Notify_OrderConfirmed", order.DocNo, CustomerName(db, order.CustomerID), order.Total.ToString("N0")), null, now);
             NotifyStorekeepers(db, order, lines.Count, actor.UserId, now);
+            db.SaveChanges();
+            Warehouse.StockAlerts.AfterDecrease(db, order.WarehouseID.Value, availableBefore, now, actor.UserId);   // rezerv — mavjud qoldiq kamaydi
             db.SaveChanges();
         }
 
@@ -324,13 +328,15 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         /// Qatorlar uchun rezerv: (ombor, tovar) bo'yicha eksklyuziv qulf ostida mavjud qoldiq hisoblanadi —
         /// ikki operator bir vaqtda oxirgi qoldiqni ikki marta rezerv qila olmaydi.
         /// </summary>
-        private static void Reserve(DistributionDbContext db, int warehouseId, List<DstOrderLine> lines, DateTime now)
+        private static Dictionary<int, decimal> Reserve(DistributionDbContext db, int warehouseId, List<DstOrderLine> lines, DateTime now)
         {
             foreach (var productId in lines.Select(l => l.ProductID).Distinct().OrderBy(x => x))
                 Lock(db, warehouseId, productId);
 
             var levels = StockService.Levels(db, lines.Select(l => l.ProductID).ToList(), new[] { warehouseId })
                 .ToDictionary(x => x.ProductID);
+            var availableBefore = lines.Select(l => l.ProductID).Distinct()
+                .ToDictionary(p => p, p => levels.TryGetValue(p, out var lv) ? lv.Available : 0);
             var lineIds = lines.Select(l => l.ID).ToList();
             var existing = db.StockReservations.Where(r => lineIds.Contains(r.OrderLineID)).ToList();
 
@@ -359,6 +365,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                     current.WarehouseID = warehouseId;
                 }
             }
+            return availableBefore;
         }
 
         private static void Lock(DistributionDbContext db, int warehouseId, int productId)
@@ -406,6 +413,57 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             db.SaveChanges();
         }
 
+        /// <summary>
+        /// Yangi kirimdan keyin "kirimni kutmoqda" qatorlarga rezerv (05_FINDINGS K2-12): shu ombordagi rezerv ushlab turadigan
+        /// buyurtmalar tasdiqlangan tartibida (birinchi tasdiqlangan — birinchi oladi). Qaytaradi: rezervi yangilangan buyurtmalar soni.
+        /// </summary>
+        public static int RereserveWaiting(DistributionDbContext db, int warehouseId, IReadOnlyCollection<int> productIds, DateTime now)
+        {
+            if (productIds == null || productIds.Count == 0) return 0;
+            var ids = productIds.Distinct().ToList();
+            byte confirmed = (byte)OrderStatus.Confirmed, picking = (byte)OrderStatus.Picking, partial = (byte)OrderStatus.PartiallyShipped;
+            var waiting = (from l in db.OrderLines
+                           join o in db.Orders on l.OrderID equals o.ID
+                           where o.WarehouseID == warehouseId && ids.Contains(l.ProductID) && l.QtyBase > l.QtyShippedBase
+                                 && (o.OrderStatus == confirmed || o.OrderStatus == picking || o.OrderStatus == partial)
+                                 && (l.QtyBase - l.QtyShippedBase) > (db.StockReservations.Where(r => r.OrderLineID == l.ID).Sum(r => (decimal?)r.QtyBase) ?? 0)
+                           select new { o.ID, o.ConfirmedAt }).Distinct().ToList()
+                .OrderBy(x => x.ConfirmedAt).ThenBy(x => x.ID).Select(x => x.ID).ToList();
+            foreach (var orderId in waiting)
+                Reserve(db, warehouseId, db.OrderLines.Where(l => l.OrderID == orderId).ToList(), now);
+            if (waiting.Count > 0) db.SaveChanges();
+            return waiting.Count;
+        }
+
+        /// <summary>
+        /// ERP (SRM) kirimi qabul qilingandan keyin — alohida tranzaksiyada, xato kirimni buzmaydi (distributsiya o'rnatilmagan bazada jim).
+        /// </summary>
+        public static void AfterExternalReceipt(int warehouseId, IReadOnlyCollection<int> productIds)
+        {
+            try
+            {
+                using (var uow = new DistributionUnitOfWork(new AuditActor(null, AuditActor.System)))
+                {
+                    RereserveWaiting(uow.Dst, warehouseId, productIds, DateTime.Now);
+                    uow.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceWarning("Dst rereserve after receipt: " + ex.Message);
+            }
+        }
+
+        /// <summary>Yig'ishni to'xtatish: "yig'ilmoqda" → "tasdiqlangan" (rezerv saqlanadi), K2-12.</summary>
+        public static void StopPicking(DistributionUnitOfWork uow, int orderId, int userId, DateTime now)
+        {
+            var db = uow.Dst;
+            var order = Load(db, orderId);
+            if ((OrderStatus)order.OrderStatus != OrderStatus.Picking) throw new DstValidationException(DstLocalization.T("Order_NotEditable"));
+            Move(db, order, OrderStatus.Confirmed, userId, now, null);
+            db.SaveChanges();
+        }
+
         public static void StartPicking(DistributionUnitOfWork uow, int orderId, int userId, DateTime now)
         {
             var db = uow.Dst;
@@ -437,6 +495,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             foreach (var productId in lines.Select(l => l.ProductID).Distinct().OrderBy(x => x))
                 Lock(db, warehouseId, productId);
             var levels = StockService.Levels(db, lines.Select(l => l.ProductID).ToList(), new[] { warehouseId }).ToDictionary(x => x.ProductID);
+            var availableBefore = levels.ToDictionary(x => x.Key, x => x.Value.Available);
 
             var plan = new List<(DstOrderLine Line, decimal Qty)>();
             foreach (var line in lines)
@@ -538,8 +597,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderShipped,
                 l => DstLocalization.TFor(l, "Notify_Shipped", order.DocNo, total.ToString("N0"),
                     LedgerService.CreditState(db, order.CustomerID, now).Balance.ToString("N0")), now);
+            db.SaveChanges();
             Warehouse.StockAlerts.AfterDecrease(db, warehouseId,
-                levels.Where(x => products.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value.OnHand), now, userId);
+                availableBefore.Where(x => products.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value), now, userId);
             db.SaveChanges();
             DebtService.SettleOrders(db, order.CustomerID, userId, now);   // oldindan to'langan bo'lsa — darhol yopiladi
             db.SaveChanges();
@@ -609,6 +669,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             ReleaseReservations(db, orderId);
             Move(db, order, OrderStatus.Shipped, userId, now, reason.Trim());
             db.SaveChanges();
+            DebtService.SettleOrders(db, order.CustomerID, userId, now);   // jo'natilgani to'langan bo'lsa — darhol yopiladi (K2-11)
+            db.SaveChanges();
         }
 
         public static void MarkDelivered(DistributionUnitOfWork uow, int orderId, int userId, DateTime now)
@@ -670,12 +732,49 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             if (large > 0 && order.Total >= large)
                 NotificationService.ToManagers(db, NotificationService.LargeOrder,
                     l => DstLocalization.TFor(l, "Notify_LargeOrder", order.DocNo, customer, order.Total.ToString("N0")), null, now, userId);
+            NotifyCredit(db, order, customer, userId, now);
+        }
+
+        /// <summary>
+        /// Qarz limiti / muddati o'tgan qarz sabab buyurtma tasdiqlanmaydi — rahbarlarga ruxsat tugmasi bilan xabar. Avval faqat yaratishda
+        /// yuborilardi; endi tahrirda va tasdiqlash rad etilganda ham (masalan, keyin qarz muddati o'tdi), kuniga bir buyurtmaga bir marta
+        /// (05_FINDINGS K2-27). Qaytaradi: xabar navbatga qo'shildimi.
+        /// </summary>
+        public static bool NotifyCredit(DistributionDbContext db, DstOrder order, string customer, int userId, DateTime now)
+        {
+            if (!OrderStateMachine.IsEditable((OrderStatus)order.OrderStatus)) return false;
             var credit = OrderRules.CheckCredit(LedgerService.CreditState(db, order.CustomerID, now, order.ID), order.Total);
-            if (!credit.Ok)
-                NotificationService.ToManagers(db, NotificationService.CreditOverLimit,
-                    l => DstLocalization.TFor(l, "Notify_CreditOverLimit", order.DocNo, customer, order.Total.ToString("N0")) + Environment.NewLine
-                         + string.Join(Environment.NewLine, credit.Problems),
-                    "{\"action\":\"override\",\"orderId\":" + order.ID + "}", now, userId);
+            if (credit.Ok) return false;
+            string payload = "{\"action\":\"override\",\"orderId\":" + order.ID + "}";
+            var today = now.Date;
+            if (db.Notifications.Any(n => n.Type == NotificationService.CreditOverLimit && n.Payload == payload && n.CreatedAt >= today)) return false;
+            NotificationService.ToManagers(db, NotificationService.CreditOverLimit,
+                l => DstLocalization.TFor(l, "Notify_CreditOverLimit", order.DocNo, customer, order.Total.ToString("N0")) + Environment.NewLine
+                     + string.Join(Environment.NewLine, credit.Problems),
+                payload, now, userId);
+            return true;
+        }
+
+        /// <summary>Tasdiqlash qarz sabab rad etildi (tranzaksiya qaytdi) — xabar alohida tranzaksiyada.</summary>
+        public static void NotifyCreditBlocked(int orderId, int userId)
+        {
+            try
+            {
+                using (var uow = new DistributionUnitOfWork(new AuditActor(userId, AuditActor.Web)))
+                {
+                    var order = uow.Dst.Orders.Find(orderId);
+                    if (order == null) return;
+                    if (NotifyCredit(uow.Dst, order, CustomerName(uow.Dst, order.CustomerID), userId, DateTime.Now))
+                    {
+                        uow.Dst.SaveChanges();
+                        uow.Commit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceWarning("Dst credit notify: " + ex.Message);
+            }
         }
 
         private static string CustomerName(DistributionDbContext db, int customerId) =>
@@ -685,6 +784,10 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         {
             return db.Orders.Find(orderId) ?? throw new DstValidationException(DstLocalization.T("Error_NotFound"));
         }
+
+        /// <summary>Boshqa servis uchun holatni qaytarish (masalan, yetkazish natijasi bekor qilinganda) — o'sha holat mashinasi orqali.</summary>
+        internal static void MoveBack(DistributionDbContext db, DstOrder order, OrderStatus to, int userId, DateTime now, string note) =>
+            Move(db, order, to, userId, now, note);
 
         private static void Move(DistributionDbContext db, DstOrder order, OrderStatus to, int userId, DateTime now, string note)
         {

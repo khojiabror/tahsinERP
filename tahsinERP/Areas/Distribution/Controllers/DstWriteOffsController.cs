@@ -145,6 +145,39 @@ namespace tahsinERP.Areas.Distribution.Controllers
         [HttpGet]
         public JsonResult SearchProducts(string q, int? warehouseId) => ProductSearch(q, warehouseId);
 
+        /// <summary>Foto biriktirish (yuborishdan oldin) — JPEG/PNG, 5 MB gacha, ERP serverida saqlanadi (K3-32).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UploadPhoto(int id, System.Web.HttpPostedFileBase file)
+        {
+            return Act(id, db =>
+            {
+                if (file == null || file.ContentLength == 0 || file.ContentLength > DstLocalFiles.MaxBytes)
+                    throw new DstValidationException(DstLocalization.T("File_ImageOnly"));
+                Services.Warehouse.WriteOffService.SetPhoto(db, id, DstLocalFiles.SaveImage(file.InputStream, "writeoffs"));
+            });
+        }
+
+        /// <summary>Foto: web'da yuklangani — ERP'dan, botdan kelgani — bot fayl havolasi orqali.</summary>
+        [HttpGet]
+        public ActionResult Photo(int id)
+        {
+            using (var db = NewDb())
+            {
+                var doc = db.WriteOffs.Find(id);
+                if (doc == null || doc.PhotoKey == null || !new ScopeService(db).For(CurrentUserName, ScopeTypes.Warehouse).Allows(doc.WarehouseID))
+                    return HttpNotFound();
+                if (!DstLocalFiles.IsLocal(doc.PhotoKey))
+                {
+                    var url = Services.Bot.FileLinks.For(db, DateTimeOffset.UtcNow).Url(doc.PhotoKey);
+                    return url == null ? (ActionResult)HttpNotFound() : Redirect(url);
+                }
+                var path = DstLocalFiles.PathOf(doc.PhotoKey);
+                if (!System.IO.File.Exists(path)) return HttpNotFound();
+                return File(path, DstLocalFiles.ContentType(doc.PhotoKey));
+            }
+        }
+
         // ---------- yordamchilar ----------
 
         private ActionResult Act(int id, Action<DistributionDbContext> action)

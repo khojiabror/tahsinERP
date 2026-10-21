@@ -46,6 +46,22 @@
                                 <label class="custom-control-label" for="gSelfie">@DstLocalization.T("Settings_RequireSelfie")</label>
                             </div>
                         </div>
+                        <div class="form-group col-md-4">
+                            <label>@DstLocalization.T("Settings_DefectWarehouse")</label>
+                            <select id="gDefect" class="form-control" title="@DstLocalization.T("Settings_DefectWarehouseHint")" @(canChange ? "" : "disabled")>
+                                <option value="">—</option>
+                                @foreach (var w in warehouses)
+                                {
+                                    <option value="@w.WarehouseID" @(w.WarehouseID.ToString() == G("DefectWarehouseId") ? "selected" : "")>@w.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4 d-flex align-items-end">
+                            <div class="custom-control custom-checkbox mb-50" title="@DstLocalization.T("Settings_CheckInLiveOnlyHint")">
+                                <input type="checkbox" class="custom-control-input" id="gLiveOnly" @(G("CheckInLiveOnly") == "1" ? "checked" : "") @(canChange ? "" : "disabled") />
+                                <label class="custom-control-label" for="gLiveOnly">@DstLocalization.T("Settings_CheckInLiveOnly")</label>
+                            </div>
+                        </div>
                     </div>
                     <p class="small text-muted">@DstLocalization.T("Settings_GeneralHint")</p>
                     @if (canChange) { <button type="button" class="btn btn-primary btn-sm" id="gSave">@DstLocalization.T("Save")</button> }
@@ -122,8 +138,6 @@
                                         <tr>
                                             <th>@DstLocalization.T("Warehouse")</th>
                                             <th>@DstLocalization.T("Warehouse_SalesPoint")</th>
-                                            <th>@DstLocalization.T("Warehouse_AllowNegative")</th>
-                                            <th>@DstLocalization.T("Warehouse_Zone")</th>
                                             <th class="text-right">@DstLocalization.T("MinStock")</th>
                                             <th></th>
                                         </tr>
@@ -134,8 +148,6 @@
                                             <tr data-wh="@w.WarehouseID" class="@(w.WarehouseID == warehouseId ? "table-active" : "")">
                                                 <td>@w.Name</td>
                                                 <td><input type="checkbox" data-f="sales" @(w.IsSalesPoint ? "checked" : "") @(canChange ? "" : "disabled") /></td>
-                                                <td><input type="checkbox" data-f="neg" @(w.AllowNegative ? "checked" : "") @(canChange ? "" : "disabled") /></td>
-                                                <td><input class="form-control form-control-sm" data-f="zone" value="@w.DeliveryZone" maxlength="200" @(canChange ? "" : "disabled") /></td>
                                                 <td class="text-right"><a href="@Url.Action("Index", new { warehouseId = w.WarehouseID })">@w.MinLimits</a></td>
                                                 <td class="text-right">
                                                     @if (canChange) { <button type="button" class="btn btn-sm btn-outline-primary" data-wh-save><i class="bx bx-save"></i></button> }
@@ -194,7 +206,7 @@
                 dstPost('@Url.Action("SaveGeneral")', {
                     minOrderAmount: $('#gMinOrder').val(), largeOrderAmount: $('#gLarge').val(), visitRadiusM: $('#gRadius').val(),
                     agentCashAccountId: $('#gAccount').val(), botUsername: $('#gBot').val(),
-                    requireSelfie: $('#gSelfie').is(':checked'), botPublicUrl: $('#gBotUrl').val()
+                    requireSelfie: $('#gSelfie').is(':checked'), botPublicUrl: $('#gBotUrl').val(), checkInLiveOnly: $('#gLiveOnly').is(':checked'), defectWarehouseId: $('#gDefect').val()
                 }).done(function () { dstNotify(); });
             });
             $('#paySave').on('click', function () {
@@ -213,8 +225,7 @@
             $('[data-wh-save]').on('click', function () {
                 var tr = $(this).closest('tr');
                 dstPost('@Url.Action("SaveWarehouse")', {
-                    warehouseId: tr.data('wh'), isSalesPoint: tr.find('[data-f=sales]').is(':checked'),
-                    allowNegative: tr.find('[data-f=neg]').is(':checked'), deliveryZone: tr.find('[data-f=zone]').val()
+                    warehouseId: tr.data('wh'), isSalesPoint: tr.find('[data-f=sales]').is(':checked')
                 }).done(function () { dstNotify(); });
             });
             @if (warehouseId.HasValue)

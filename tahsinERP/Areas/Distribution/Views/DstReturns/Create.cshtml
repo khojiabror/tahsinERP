@@ -112,6 +112,10 @@
                 if (k === 'price') f.price = $(this).val() === '' ? null : parseFloat($(this).val());
             }).on('click', '[data-f=del]', function () { free.splice($(this).closest('tr').data('i'), 1); renderFree(); });
 
+            var defectWarehouse = '@(ViewBag.DefectWarehouseId)';   // brak — brak omboriga (K3-31)
+            $('#rDefect').on('change', function () {
+                if ($(this).is(':checked') && defectWarehouse) $('#rWarehouse').val(defectWarehouse).trigger('change');
+            });
             $('#rWarehouse').on('change', function () {
                 var wh = $(this).val();
                 $('#rLocationGroup').hide(); $('#rLocation').empty();

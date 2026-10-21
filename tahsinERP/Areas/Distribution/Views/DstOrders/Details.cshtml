@@ -35,6 +35,10 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sm" data-act="Unconfirm" data-confirm="1">@DstLocalization.T("Order_Unconfirm")</button>
                                 <button type="button" class="btn btn-warning btn-sm" data-act="StartPicking">@DstLocalization.T("Order_StartPicking")</button>
                             }
+                            @if (st == OrderStatus.Picking)
+                            {
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-act="StopPicking" data-confirm="1">@DstLocalization.T("Order_StopPicking")</button>
+                            }
                             @if (OrderStateMachine.CanShip(st))
                             {
                                 <button type="button" class="btn btn-outline-secondary btn-sm" data-act="Rereserve">@DstLocalization.T("Order_Rereserve")</button>

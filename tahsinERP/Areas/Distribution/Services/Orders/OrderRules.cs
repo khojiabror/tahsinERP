@@ -30,7 +30,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             // jo'natish bekor qilinsa: qisman/to'liq -> qisman yoki tasdiqlangan
             { OrderStatus.PartiallyShipped, new[] { OrderStatus.PartiallyShipped, OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Confirmed, OrderStatus.Closed } },
             { OrderStatus.Shipped, new[] { OrderStatus.Delivered, OrderStatus.Closed, OrderStatus.PartiallyShipped, OrderStatus.Confirmed } },
-            { OrderStatus.Delivered, new[] { OrderStatus.Closed } },
+            // yetkazish natijasi bekor qilinsa (reys yopilguncha) — yana "jo'natildi" (05_FINDINGS K2-9)
+            { OrderStatus.Delivered, new[] { OrderStatus.Closed, OrderStatus.Shipped } },
             { OrderStatus.Closed, new OrderStatus[0] },
             { OrderStatus.Cancelled, new OrderStatus[0] },
         };

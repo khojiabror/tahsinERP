@@ -54,6 +54,10 @@ namespace tahsinERP.Areas.Distribution.Services.Money
                 throw new DstValidationException(DstLocalization.T("Order_NoWarehouse"));
             if (StockLedger.IsDlocWarehouse(erp, input.WarehouseID) && !input.LocationID.HasValue)
                 throw new DstValidationException(DstLocalization.T("Return_LocationRequired"));
+            var defectWarehouse = Bot.DstSettings.Int(db, DstSetting.DefectWarehouseId);
+            if (input.IsDefect && defectWarehouse.HasValue && input.WarehouseID != defectWarehouse.Value)
+                throw new DstValidationException(DstLocalization.T("Return_DefectWarehouse",
+                    db.Warehouses.Where(w => w.ID == defectWarehouse.Value).Select(w => w.WHName).FirstOrDefault()));
 
             // narx va tannarx
             var shipmentLineIds = lines.Where(l => l.ShipmentLineID.HasValue).Select(l => l.ShipmentLineID.Value).Distinct().ToList();
@@ -159,6 +163,7 @@ namespace tahsinERP.Areas.Distribution.Services.Money
             db.SaveChanges();
             DebtService.SettleOrders(db, input.CustomerID, userId, now);
             db.SaveChanges();
+            OrderService.RereserveWaiting(db, input.WarehouseID, entities.Select(e => e.ProductID).ToList(), now);   // K2-12
             return doc.ID;
         }
 

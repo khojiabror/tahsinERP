@@ -18,7 +18,7 @@ namespace tahsinERP.Areas.Distribution.Services.Money
     /// </summary>
     public static class DstFinancePosting
     {
-        public const string PaymentSource = "DstPayment";
+        public const string PaymentSource = tahsinERP.Services.Finance.FinQueries.DistributionPayment;
         public const string HandoverSource = "DstHandover";
         public const string CashShortageCode = "DST_CASH_DIFF";
 

@@ -145,8 +145,10 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public const string Loss = "LOSS";
         /// <summary>Kamomad jo'natuvchi omborga qaytariladi (jo'natilmay qolgan).</summary>
         public const string Return = "RETURN";
+        /// <summary>Kamomad bo'linadi: bir qismi yo'qotish (LossQty), qolgani qaytariladi (05_FINDINGS K2-21).</summary>
+        public const string Split = "SPLIT";
 
-        public static readonly string[] All = { Loss, Return };
+        public static readonly string[] All = { Loss, Return, Split };
     }
 
     /// <summary>dst.TRANSFER_ACTS — ombordan omborga ko'chirmani haqiqiy miqdor bilan qabul qilish va farq dalolatnomasi.</summary>
@@ -178,6 +180,8 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public decimal ReceivedQty { get; set; }
         public decimal UnitCost { get; set; }
         [StringLength(10)] public string Resolution { get; set; }
+        /// <summary>Kamomadning yo'qotilgan qismi (LOSS — hammasi, RETURN — 0, SPLIT — kiritilgani). 027.</summary>
+        public decimal? LossQty { get; set; }
         [StringLength(200)] public string Note { get; set; }
         [ForeignKey(nameof(ActID))] public virtual TransferAct Act { get; set; }
         [NotMapped] public decimal Diff => ReceivedQty - SentQty;

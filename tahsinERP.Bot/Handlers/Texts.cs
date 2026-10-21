@@ -168,7 +168,7 @@ public static class Texts
 
         // ekspeditor (2-bosqich)
         ["Btn_Trip"] = ("🚚 Reys", "🚚 Рейс"),
-        ["Btn_TripClose"] = ("🏁 Reysni yopish", "🏁 Закрыть рейс"),
+        ["Btn_TripClose"] = ("🏁 Reysni yakunlash", "🏁 Завершить рейс"),
         ["Btn_TripStart"] = ("▶️ Yo'lga chiqish", "▶️ Выехать"),
         ["Btn_TripRoute"] = ("🗺 Marshrut (Yandex)", "🗺 Маршрут (Яндекс)"),
         ["Btn_Expense"] = ("⛽ Xarajat", "⛽ Расход"),
@@ -188,9 +188,10 @@ public static class Texts
         ["Stop_AskReason"] = ("Rad etish sababini tanlang:", "Выберите причину отказа:"),
         ["Stop_Refused"] = ("🚫 Rad etildi qayd qilindi. Tovar reys yopilganda omborga qaytariladi.", "🚫 Отказ зарегистрирован. Товар вернётся на склад при закрытии рейса."),
         ["Stop_PayAsk"] = ("💵 {0}\nBuyurtma: {1} so'm, qarz: {2} so'm. Olingan summani yozing:", "💵 {0}\nЗаказ: {1} сум, долг: {2} сум. Введите полученную сумму:"),
-        ["Close_Confirm"] = ("Reys {0}ni yopasizmi? Yetkazilmagan tovar omborga qaytgan deb hisoblanadi.", "Закрыть рейс {0}? Недоставленный товар будет считаться возвращённым на склад."),
+        ["Close_Confirm"] = ("Reys {0}ni yakunlaysizmi? Yetkazilmagan tovarni omborga topshiring — ombor sanaydi, reysni ofis yopadi.", "Завершить рейс {0}? Сдайте недоставленный товар на склад — склад пересчитает, рейс закроет офис."),
         ["Close_Pending"] = ("Hali {0} ta manzil bo'yicha natija yo'q.", "Ещё нет результата по {0} адресам."),
-        ["Close_Done"] = ("🏁 Reys {0} yopildi.\nYetkazildi: {1}, qisman: {2}, rad: {3}\nYetkazilgan: {4} so'm, qaytdi: {5} so'm\nReysda yig'ilgan: {6} so'm, qo'lingizda: {7} so'm", "🏁 Рейс {0} закрыт.\nДоставлено: {1}, частично: {2}, отказ: {3}\nДоставлено на {4} сум, возврат {5} сум\nСобрано в рейсе: {6} сум, на руках: {7} сум"),
+        ["Close_Done"] = ("🏁 Reys {0} yakunlandi.\nYetkazildi: {1}, qisman: {2}, rad: {3}\nYetkazilgan: {4} so'm, omborga topshiriladi: {5} so'm\nReysda yig'ilgan: {6} so'm, qo'lingizda: {7} so'm\nOmbor tovarni sanab, reysni ofis yopadi.", "🏁 Рейс {0} завершён.\nДоставлено: {1}, частично: {2}, отказ: {3}\nДоставлено на {4} сум, сдать на склад: {5} сум\nСобрано в рейсе: {6} сум, на руках: {7} сум\nСклад пересчитает товар, рейс закроет офис."),
+        ["Voice_AgentOnly"] = ("🎙 Ovozli buyurtma faqat agentlar uchun.", "🎙 Голосовой заказ доступен только агентам."),
         ["Close_NotInTransit"] = ("Yo'ldagi reys yo'q.", "Нет рейса в пути."),
         ["Expense_AskKind"] = ("Xarajat turi:", "Вид расхода:"),
         ["Expense_AskAmount"] = ("{0}: summani yozing (izoh bilan bo'lishi mumkin, masalan «150000 AI-92»):", "{0}: введите сумму (можно с комментарием, например «150000 АИ-92»):"),

@@ -580,6 +580,7 @@ namespace tahsinERP.Services.Finance
                 .Where(t => t.TxnDate <= maxAsOf &&
                             t.Direction == 1 &&
                             t.SourceDocType != FinQueries.SalesInvoiceMirror &&
+                            (t.SourceDocType == null || t.SourceDocType != FinQueries.DistributionPayment) &&   // qarzi dst ledgerida
                             t.CounterpartyType == 1 &&
                             t.CounterpartyID != null);
             if (minFromExclusive.HasValue)

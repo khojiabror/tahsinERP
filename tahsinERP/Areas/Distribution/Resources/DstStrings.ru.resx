@@ -945,9 +945,6 @@
   <data name="Product" xml:space="preserve">
     <value>Товар</value>
   </data>
-  <data name="Product_Bulky" xml:space="preserve">
-    <value>Крупногабаритный</value>
-  </data>
   <data name="Product_Create" xml:space="preserve">
     <value>Новый товар</value>
   </data>
@@ -962,9 +959,6 @@
   </data>
   <data name="Product_Profile" xml:space="preserve">
     <value>Карточка дистрибуции</value>
-  </data>
-  <data name="Product_Weighted" xml:space="preserve">
-    <value>Весовой товар</value>
   </data>
   <data name="Products" xml:space="preserve">
     <value>Товары</value>
@@ -1064,9 +1058,6 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Настройки</value>
-  </data>
-  <data name="Settings_AgentAccount" xml:space="preserve">
-    <value>Счёт безналичных оплат агентов</value>
   </data>
   <data name="Settings_BotUsername" xml:space="preserve">
     <value>Имя Telegram-бота</value>
@@ -1186,7 +1177,7 @@
     <value>Итоги дня {0}
 Заказы: {1} шт., {2} сум
 Отгружено: {3} сум
-Поступления: {4} сум
+Собрано денег (оплаты): {4} сум
 Общий долг: {5} сум (просрочено: {6})
 Активные агенты: {7}/{8}</value>
   </data>
@@ -1331,17 +1322,11 @@
   <data name="Warehouse" xml:space="preserve">
     <value>Склад</value>
   </data>
-  <data name="Warehouse_AllowNegative" xml:space="preserve">
-    <value>Разрешить минус</value>
-  </data>
   <data name="Warehouse_Hint" xml:space="preserve">
     <value>«Для продаж» — заказы отгружаются с этого склада. Мин. остаток — для уведомления «заканчивается» (в базовой единице).</value>
   </data>
   <data name="Warehouse_SalesPoint" xml:space="preserve">
     <value>Для продаж</value>
-  </data>
-  <data name="Warehouse_Zone" xml:space="preserve">
-    <value>Зона доставки</value>
   </data>
   <data name="Warehouses" xml:space="preserve">
     <value>Склады</value>
@@ -3397,5 +3382,143 @@
   </data>
   <data name="Inventory_CountingBlocks" xml:space="preserve">
     <value>{0} уже посчитан в инвентаризации ({1}) — списание со склада невозможно до проведения или отмены пересчёта.</value>
+  </data>
+  <data name="Trip_ResetNote" xml:space="preserve">
+    <value>результат доставки отменён</value>
+  </data>
+  <data name="Notify_StopReset" xml:space="preserve">
+    <value>↺ Результат доставки по заказу {0} отменён и будет внесён заново. Предыдущее сообщение не учитывайте.</value>
+  </data>
+  <data name="Notify_TripFinished" xml:space="preserve">
+    <value>🏁 Рейс {0} завершён ({1}). Возврат товара на {2} сум — пересчитайте на складе и закройте рейс на странице «Рейсы» (возврат и недостача).</value>
+  </data>
+  <data name="Trip_Redeliver" xml:space="preserve">
+    <value>Доставить повторно</value>
+  </data>
+  <data name="Trip_RedeliverHint" xml:space="preserve">
+    <value>Будет создан черновик нового заказа с возвращённым товаром (по текущей цене) — подтвердите и добавьте в следующий рейс.</value>
+  </data>
+  <data name="Trip_RedeliverNothing" xml:space="preserve">
+    <value>Нет возвращённого товара для повторной доставки (рейс не закрыт или нет документа возврата).</value>
+  </data>
+  <data name="Trip_RedeliverComment" xml:space="preserve">
+    <value>Повторная доставка: {0} ({1})</value>
+  </data>
+  <data name="Order_StopPicking" xml:space="preserve">
+    <value>Остановить сборку</value>
+  </data>
+  <data name="Opening_Reverse" xml:space="preserve">
+    <value>Отменить входящий остаток</value>
+  </data>
+  <data name="Opening_ReverseConfirm" xml:space="preserve">
+    <value>Входящий остаток будет сторнирован. Затем внесите правильную сумму через Импорт → Входящий остаток. Продолжить?</value>
+  </data>
+  <data name="Opening_Reversed" xml:space="preserve">
+    <value>Входящий остаток отменён — можно импортировать правильную сумму.</value>
+  </data>
+  <data name="Opening_NothingToReverse" xml:space="preserve">
+    <value>У клиента нет входящего остатка для отмены.</value>
+  </data>
+  <data name="Dash_CurrentState" xml:space="preserve">
+    <value>текущее состояние</value>
+  </data>
+  <data name="Dash_CurrentStateHint" xml:space="preserve">
+    <value>Этот показатель отражает текущее состояние, а не выбранную дату.</value>
+  </data>
+  <data name="Transfer_SPLIT" xml:space="preserve">
+    <value>Разделить (потеря + возврат)</value>
+  </data>
+  <data name="Transfer_LossQty" xml:space="preserve">
+    <value>количество потери</value>
+  </data>
+  <data name="Transfer_SplitQty" xml:space="preserve">
+    <value>{0}: количество потери должно быть больше 0 и меньше недостачи ({1}) (остаток возвращается).</value>
+  </data>
+  <data name="Transfer_CancelAct" xml:space="preserve">
+    <value>Отменить акт</value>
+  </data>
+  <data name="Transfer_CancelHint" xml:space="preserve">
+    <value>Приёмка и приход возврата отменяются, перемещение снова ждёт приёмки (невозможно, если товар уже списан со склада-получателя).</value>
+  </data>
+  <data name="Transfer_Cancelled" xml:space="preserve">
+    <value>Акт отменён — примите перемещение заново.</value>
+  </data>
+  <data name="Transfer_CancelConsumed" xml:space="preserve">
+    <value>Нельзя отменить: по принятому товару уже был расход.</value>
+  </data>
+  <data name="Report_LandedOnSold" xml:space="preserve">
+    <value>Доп. расходы — часть, пришедшаяся на проданный товар (расход периода)</value>
+  </data>
+  <data name="Report_NetProfit" xml:space="preserve">
+    <value>Прибыль (после доп. расходов)</value>
+  </data>
+  <data name="Bot_LiveRequired" xml:space="preserve">
+    <value>Для «Я на месте» нужна трансляция геопозиции: 📎 → Геопозиция → «Транслировать геопозицию».</value>
+  </data>
+  <data name="Settings_CheckInLiveOnly" xml:space="preserve">
+    <value>«Я на месте» — только трансляция геопозиции</value>
+  </data>
+  <data name="Settings_CheckInLiveOnlyHint" xml:space="preserve">
+    <value>Если включено, статичная геопозиция отклоняется — агент должен транслировать геопозицию. Выключено — принимается и отмечается в отчёте.</value>
+  </data>
+  <data name="Audit" xml:space="preserve">
+    <value>Журнал аудита</value>
+  </data>
+  <data name="Tile_Audit" xml:space="preserve">
+    <value>Кто, когда и что изменил</value>
+  </data>
+  <data name="Audit_Hint" xml:space="preserve">
+    <value>Каждое изменение записей дистрибуции: создание (полное значение), правка (по полям: старое → новое), удаление. Только чтение.</value>
+  </data>
+  <data name="Audit_Entity" xml:space="preserve">
+    <value>Объект</value>
+  </data>
+  <data name="Audit_Key" xml:space="preserve">
+    <value>Ключ (ID)</value>
+  </data>
+  <data name="Audit_Action" xml:space="preserve">
+    <value>Действие</value>
+  </data>
+  <data name="Audit_Field" xml:space="preserve">
+    <value>Поле</value>
+  </data>
+  <data name="Audit_Old" xml:space="preserve">
+    <value>Старое значение</value>
+  </data>
+  <data name="Audit_New" xml:space="preserve">
+    <value>Новое значение</value>
+  </data>
+  <data name="Audit_Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="Audit_I" xml:space="preserve">
+    <value>создано</value>
+  </data>
+  <data name="Audit_U" xml:space="preserve">
+    <value>изменено</value>
+  </data>
+  <data name="Audit_D" xml:space="preserve">
+    <value>удалено</value>
+  </data>
+  <data name="Settings_DefectWarehouse" xml:space="preserve">
+    <value>Склад брака</value>
+  </data>
+  <data name="Settings_DefectWarehouseHint" xml:space="preserve">
+    <value>Возврат с отметкой «брак» принимается только на этот склад; склад не предлагается для заказов.</value>
+  </data>
+  <data name="Return_DefectWarehouse" xml:space="preserve">
+    <value>Бракованный товар возвращается на склад брака: {0}.</value>
+  </data>
+  <data name="File_ImageOnly" xml:space="preserve">
+    <value>Только изображение JPEG или PNG, до 5 МБ.</value>
+  </data>
+  <data name="WriteOff_AttachPhoto" xml:space="preserve">
+    <value>Прикрепить фото</value>
+  </data>
+  <data name="WriteOff_ReplacePhoto" xml:space="preserve">
+    <value>Заменить фото</value>
+  </data>
+  <data name="Voice_AgentOnly" xml:space="preserve">
+    <value>Голосовой заказ доступен только агентам.</value>
   </data>
 </root>

@@ -11,6 +11,9 @@
     var day = Model.Date.ToString("yyyy-MM-dd");
     decimal trendMax = Model.Trend.Count == 0 ? 0 : Model.Trend.Max(t => Math.Max(t.Net, 0));
     decimal debtTotal = Model.Debt.Total;
+    var live = Model.IsPast
+        ? Html.Raw(" <span class=\"badge badge-light-secondary\" title=\"" + HttpUtility.HtmlAttributeEncode(DstLocalization.T("Dash_CurrentStateHint")) + "\">" + DstLocalization.T("Dash_CurrentState") + "</span>")
+        : Html.Raw("");
     string Pct(decimal part) => debtTotal <= 0 ? "0" : Math.Round(part * 100m / debtTotal, 2).ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
 <style>
@@ -87,14 +90,14 @@
                         {
                             <h3>—</h3>
                         }
-                        <div class="sub">@DstLocalization.T("Dash_AgentsOnHand"): <b class="text-warning">@N(Model.AgentsOnHand)</b></div>
+                        <div class="sub">@DstLocalization.T("Dash_AgentsOnHand"): <b class="text-warning">@N(Model.AgentsOnHand)</b>@live</div>
                     </div></div>
                 </div>
                 @if (cost)
                 {
                     <div class="col-xl-2 col-md-4 col-6">
                         <div class="card dash-kpi"><div class="card-body p-1">
-                            <div class="text-muted small">@DstLocalization.T("Dash_StockValue")</div>
+                            <div class="text-muted small">@DstLocalization.T("Dash_StockValue")@live</div>
                             <h3>@N(Model.Stock.Sum(s => s.Value))</h3>
                             <div class="sub">@DstLocalization.T("Dash_FifoCost")</div>
                         </div></div>
@@ -144,9 +147,9 @@
                             <table class="table table-sm mb-0">
                                 <tbody>
                                     <tr><td>@DstLocalization.T("Dash_NewOrders")</td><td class="text-right">@Model.OrdersToday</td><td class="text-right"><b>@N(Model.OrdersTodayTotal)</b></td></tr>
-                                    <tr><td>@if (canOrders) { <a href="@Url.Action("Index", "DstOrders")">@DstLocalization.T("Dash_AwaitingConfirm")</a> } else { @DstLocalization.T("Dash_AwaitingConfirm") }</td>
+                                    <tr><td>@if (canOrders) { <a href="@Url.Action("Index", "DstOrders")">@DstLocalization.T("Dash_AwaitingConfirm")</a> } else { @DstLocalization.T("Dash_AwaitingConfirm") }@live</td>
                                         <td class="text-right">@Model.AwaitingConfirm</td><td class="text-right">@N(Model.AwaitingConfirmTotal)</td></tr>
-                                    <tr><td>@DstLocalization.T("Dash_AwaitingShipment")</td><td class="text-right">@Model.AwaitingShipment</td><td class="text-right">@N(Model.AwaitingShipmentTotal)</td></tr>
+                                    <tr><td>@DstLocalization.T("Dash_AwaitingShipment")@live</td><td class="text-right">@Model.AwaitingShipment</td><td class="text-right">@N(Model.AwaitingShipmentTotal)</td></tr>
                                     <tr><td>@DstLocalization.T("Returns")</td><td></td><td class="text-right">@N(Model.Day.ReturnAmount)</td></tr>
                                     <tr><td>@DstLocalization.T("Dash_AgentsActive")</td><td class="text-right" colspan="2">@Model.AgentsActive / @Model.AgentsTotal</td></tr>
                                     <tr><td>@if (canReports) { <a href="@Url.Action("Visits", "DstReports", new { from = day, to = day })">@DstLocalization.T("Dash_VisitsToday")</a> } else { @DstLocalization.T("Dash_VisitsToday") }</td>
@@ -223,11 +226,11 @@
                                         if (Model.Accounts.Count == 0) { <tr><td colspan="2" class="text-muted">@DstLocalization.T("Dash_NoAccounts")</td></tr> }
                                     }
                                     <tr class="table-warning">
-                                        <td><i class="bx bx-user text-muted"></i> @DstLocalization.T("Dash_AgentsOnHand") <span class="small text-muted">(@Model.AgentsOnHandCount)</span></td>
+                                        <td><i class="bx bx-user text-muted"></i> @DstLocalization.T("Dash_AgentsOnHand") <span class="small text-muted">(@Model.AgentsOnHandCount)</span>@live</td>
                                         <td class="text-right"><b>@N(Model.AgentsOnHand)</b></td>
                                     </tr>
                                     <tr>
-                                        <td><i class="bx bx-time text-muted"></i> @DstLocalization.T("Dash_PendingHandovers")</td>
+                                        <td><i class="bx bx-time text-muted"></i> @DstLocalization.T("Dash_PendingHandovers")@live</td>
                                         <td class="text-right">@N(Model.PendingHandovers)</td>
                                     </tr>
                                 </tbody>
@@ -273,7 +276,7 @@
                 {
                     <div class="col-lg-5">
                         <div class="card">
-                            <div class="card-header pb-0"><h5 class="card-title mb-0">@DstLocalization.T("Dash_StockValue")</h5></div>
+                            <div class="card-header pb-0"><h5 class="card-title mb-0">@DstLocalization.T("Dash_StockValue")@live</h5></div>
                             <div class="card-body">
                                 <table class="table table-sm mb-0">
                                     <thead><tr><th>@DstLocalization.T("Warehouse")</th><th class="text-right">@DstLocalization.T("Products")</th><th class="text-right">@DstLocalization.T("Dash_Value")</th></tr></thead>

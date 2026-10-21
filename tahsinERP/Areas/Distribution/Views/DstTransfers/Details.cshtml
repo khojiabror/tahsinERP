@@ -14,6 +14,8 @@
         @Html.Partial("_DstHeader", (string)ViewBag.Title)
         <div class="content-body">
             @if (TempData["DstSaved"] != null) { <div class="alert alert-success">@TempData["DstSaved"]</div> }
+            @if (TempData["DstError"] != null) { <div class="alert alert-danger">@TempData["DstError"]</div> }
+            @if (act.Status == DocumentStatus.Cancelled) { <div class="alert alert-secondary">@DstLocalization.T("Order_Cancelled"): @act.CancelReason</div> }
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title">@act.DocNo — @DstLocalization.T("Transfer_Act")</h4>
@@ -30,6 +32,16 @@
                         @if (act.Note != null) { <br /><span class="text-muted">@act.Note</span> }
                     </p>
                     @Html.Partial("_ActTable", Tuple.Create(act, lines, canSeeCost))
+                    @if (act.Status == DocumentStatus.Posted && ViewBag.DstCanChange == true)
+                    {
+                        using (Html.BeginForm("Cancel", "DstTransfers", new { area = "Distribution", id = act.ID }, FormMethod.Post,
+                            new { @class = "form-inline mt-1", onsubmit = "return confirm('" + DstLocalization.T("Transfer_CancelHint").Replace("'", "\\'") + "')" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input name="reason" class="form-control form-control-sm mr-50" placeholder="@DstLocalization.T("Reason")" required minlength="3" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="@DstLocalization.T("Transfer_CancelHint")">@DstLocalization.T("Transfer_CancelAct")</button>
+                        }
+                    }
                 </div>
             </div>
         </div>

@@ -700,7 +700,7 @@ namespace tahsinERP.Areas.Distribution.Services
                                  join c in db.Customers on p.CustomerID equals c.ID
                                  where c.IsDeleted != true
                                  select new { c.ID, c.Name, p.INN, p.AgentUserID, p.PaymentDays }).ToList();
-                var already = new HashSet<int>(db.CustomerLedger.Where(l => l.DocType == LedgerDocTypes.Opening).Select(l => l.CustomerID).Distinct().ToList());
+                var already = new HashSet<int>(Services.Money.DebtService.LiveOpening(db).Select(l => l.CustomerID));   // bekor qilingani — qayta import mumkin
                 var seen = new HashSet<int>();
                 var entries = new List<CustomerLedgerEntry>();
                 var now = DateTime.Now;

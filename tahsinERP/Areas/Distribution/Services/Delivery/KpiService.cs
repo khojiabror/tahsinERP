@@ -97,14 +97,12 @@ namespace tahsinERP.Areas.Distribution.Services.Delivery
             var visits = VisitReportService.ByAgent(db, new ReportFilter { From = from, To = end < from ? from : end, AgentId = agentUserId }, ReportScope.Unrestricted)
                 .FirstOrDefault(r => r.AgentUserID == agentUserId);
 
-            var customers = db.CustomerProfiles.Where(p => p.AgentUserID == agentUserId).Select(p => p.CustomerID).ToList();
+            // muddati 30 kundan ortiq o'tgan qarz (01_PHASE1_MVP qoidasi) — debet yozilgan paytdagi agent bo'yicha, mijozning hozirgi agenti emas
+            var customers = db.CustomerLedger.Where(l => l.AgentUserID == agentUserId && l.Debit > 0).Select(l => l.CustomerID).Distinct().ToList();
             var debts = DebtService.Load(db, customers);
             decimal overdue = 0;
             foreach (var d in debts.Values)
-            {
-                var a = DebtMath.Aging(d.Debits, d.Credits, end < from ? from : end);
-                overdue += a.Days31To60 + a.Over60;
-            }
+                overdue += DebtMath.OverdueFor(d.Debits, d.Credits, end < from ? from : end, 30, agentUserId);
             var next = from.AddMonths(1);
             var shortage = db.Trips.Where(t => t.ExpeditorUserID == agentUserId && t.Status == DocumentStatus.Posted && t.PostedAt >= from && t.PostedAt < next)
                 .Select(t => (decimal?)t.ShortageCost).Sum() ?? 0;

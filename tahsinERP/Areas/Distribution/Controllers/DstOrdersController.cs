@@ -38,6 +38,12 @@ namespace tahsinERP.Areas.Distribution.Controllers
             q = scopes.AgentsFor(CurrentUserName).Apply(q, o => o.AgentUserID);
             q = scopes.For(CurrentUserName, ScopeTypes.Customer).Apply(q, o => o.CustomerID);
             q = scopes.For(CurrentUserName, ScopeTypes.Warehouse).Apply(q, o => o.WarehouseID);
+            var territories = scopes.For(CurrentUserName, ScopeTypes.Territory);   // mijoz hududi bo'yicha (K2-13)
+            if (!territories.IsUnrestricted)
+            {
+                var ids = territories.Ids.Select(i => (int?)i).ToList();
+                q = q.Where(o => db.CustomerProfiles.Any(p => p.CustomerID == o.CustomerID && ids.Contains(p.TerritoryID)));
+            }
             return q;
         }
 
@@ -192,7 +198,18 @@ namespace tahsinERP.Areas.Distribution.Controllers
         [HttpPost]
         [ValidateAntiForgeryHeader]
         public JsonResult Confirm(int id, string overrideNote) =>
-            Act(id, (uow, actor) => OrderService.Confirm(uow, id, actor, overrideNote, DateTime.Now));
+            Act(id, (uow, actor) =>
+            {
+                try
+                {
+                    OrderService.Confirm(uow, id, actor, overrideNote, DateTime.Now);
+                }
+                catch (CreditBlockedException)
+                {
+                    OrderService.NotifyCreditBlocked(id, actor.UserId);   // rahbar bilsin (K2-27)
+                    throw;
+                }
+            });
 
         /// <summary>Qarz limiti sabab rad etilgan bo'lsa — UI ruxsat so'rash oynasini ko'rsatishi uchun.</summary>
         [HttpPost]
@@ -218,6 +235,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
         [HttpPost, ValidateAntiForgeryHeader]
         public JsonResult StartPicking(int id) => Act(id, (uow, a) => OrderService.StartPicking(uow, id, a.UserId, DateTime.Now));
+
+        [HttpPost, ValidateAntiForgeryHeader]
+        public JsonResult StopPicking(int id) => Act(id, (uow, a) => OrderService.StopPicking(uow, id, a.UserId, DateTime.Now));
 
         public sealed class ShipLine
         {

@@ -18,6 +18,11 @@ public sealed partial class UpdateRouter
     private async Task OnVoiceAsync(Ctx ctx, TgVoice v, CancellationToken ct)
     {
         if (!RequireField(ctx)) return;
+        if (ctx.IsExpeditor)   // ovozli buyurtma — agent ishi (01_PHASE1_MVP 17-bo'lim), K3-35
+        {
+            outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("Voice_AgentOnly"));
+            return;
+        }
         var me = await ctx.Erp.GetAsync<ErpDeliveryMe>("DeliveryMe", ctx.UserId, ct);
         if (me?.VoiceOrders != true)
         {

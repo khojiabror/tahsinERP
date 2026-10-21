@@ -104,6 +104,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
             }
         }
 
+        [Permission(ViewOnGet = true)]   // karta faqat ko'rish huquqi bilan ham ochiladi (o'qish rejimi), K2-14
         public ActionResult Edit(int id)
         {
             using (var db = NewDb())
@@ -182,8 +183,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     profile.ManufacturerID = input.ManufacturerID;
                     profile.SubCategoryID = input.SubCategoryID;
                     profile.IsSaleActive = input.IsSaleActive;
-                    profile.IsBulky = input.IsBulky;
-                    profile.IsWeighted = input.IsWeighted;
+                    // IsBulky / IsWeighted — ishlatilmasdi, UI'dan olib tashlandi (K3-30); mavjud qiymat o'zgarmaydi
                     profile.BaseWeightKg = input.BaseWeightKg;
                     profile.BaseVolumeM3 = input.BaseVolumeM3;
                     db.SaveChanges();

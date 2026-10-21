@@ -64,14 +64,7 @@
                                     @Html.CheckBoxFor(m => m.IsSaleActive, new { @class = "custom-control-input", id = "pSale" })
                                     <label class="custom-control-label" for="pSale">@DstLocalization.T("Product_OnSale")</label>
                                 </div>
-                                <div class="custom-control custom-switch mb-50">
-                                    @Html.CheckBoxFor(m => m.IsBulky, new { @class = "custom-control-input", id = "pBulky" })
-                                    <label class="custom-control-label" for="pBulky">@DstLocalization.T("Product_Bulky")</label>
-                                </div>
-                                <div class="custom-control custom-switch mb-1">
-                                    @Html.CheckBoxFor(m => m.IsWeighted, new { @class = "custom-control-input", id = "pWeighted" })
-                                    <label class="custom-control-label" for="pWeighted">@DstLocalization.T("Product_Weighted")</label>
-                                </div>
+
                                 if (canChange)
                                 {
                                     <button type="submit" class="btn btn-primary">@DstLocalization.T("Save")</button>

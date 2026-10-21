@@ -226,6 +226,19 @@ namespace tahsinERP.Areas.Distribution.Services.Reports
             };
         }
 
+        /// <summary>
+        /// Qo'shimcha xarajatning (landed cost) allaqachon sotilgan tovarga tushgan qismi (LandedCost.ConsumedAmount): FIFO tannarx
+        /// qayta baholanmaydi (04_PHASE3 qarori), shuning uchun davr xarajati sifatida — hujjat o'tkazilgan kun bo'yicha (05_FINDINGS K2-22).
+        /// Agent/mijoz/tovarga taqsimlanmaydi — faqat umumiy jamida.
+        /// </summary>
+        public static decimal LandedCostOnSold(DistributionDbContext db, DateTime from, DateTime to)
+        {
+            var start = from.Date;
+            var end = to.Date.AddDays(1);
+            return db.LandedCosts.Where(l => l.Status == DocumentStatus.Posted && l.PostedAt >= start && l.PostedAt < end)
+                .Sum(l => (decimal?)l.ConsumedAmount) ?? 0;
+        }
+
         /// <summary>Kunlar bo'yicha tushum va foyda (rahbar paneli grafigi uchun).</summary>
         public static List<(DateTime Date, decimal Net, decimal Profit)> Daily(IQueryable<SalesFact> facts)
         {

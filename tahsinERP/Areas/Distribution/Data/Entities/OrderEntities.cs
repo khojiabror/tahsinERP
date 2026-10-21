@@ -168,6 +168,10 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         public const string BotUsername = "BotUsername";
         public const string LargeOrderAmount = "LargeOrderAmount";
         public const string RequireSelfie = "RequireSelfie";
+        /// <summary>"Keldim" faqat jonli joylashuv bilan ("1"); bo'sh/"0" — statik ham qabul qilinadi, belgilanadi (05_FINDINGS K2-25).</summary>
+        public const string CheckInLiveOnly = "CheckInLiveOnly";
+        /// <summary>Brak ombori (WAREHOUSES.ID): "brak" qaytarish faqat shu omborga, u savdo omborlari ro'yxatiga kirmaydi (05_FINDINGS K3-31).</summary>
+        public const string DefectWarehouseId = "DefectWarehouseId";
         public const string BotPublicUrl = "BotPublicUrl";
         /// <summary>Agent qabul qiladigan to'lov usullari ("CASH,CARD,CLICK"); har naqdsiz usul hisobi — AgentAccount_&lt;usul&gt;.</summary>
         public const string AgentPayMethods = "AgentPayMethods";

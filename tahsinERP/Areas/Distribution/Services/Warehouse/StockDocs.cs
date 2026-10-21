@@ -59,7 +59,7 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
                     throw new DstValidationException(DstLocalization.T("Stock_NotAvailable", names.TryGetValue(kv.Key, out var n) ? n : "#" + kv.Key,
                         Math.Max(0, available).ToString("0.####"), kv.Value.ToString("0.####")));
             }
-            return byProduct.Keys.ToDictionary(k => k, k => levels.TryGetValue(k, out var l) ? l.OnHand : 0);
+            return byProduct.Keys.ToDictionary(k => k, k => levels.TryGetValue(k, out var l) ? l.Available : 0);   // StockAlerts uchun — mavjud
         }
 
         /// <summary>Ombor chiqimi (EXPENSES, SendStatus = true) FIFO bo'yicha; har qatorga tannarx yoziladi. Qaytaradi: EXPENSES.ID.</summary>
@@ -110,6 +110,13 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
 
         /// <summary>Ombor kirimi (INCOMES, qabul qilingan) berilgan tannarxda. DLOC omborda <paramref name="locationId"/> majburiy. Qaytaradi: INCOMES.ID.</summary>
         public static int Receive(DistributionUnitOfWork uow, int warehouseId, string docNo, string description, IList<ReceiptLine> lines, int? locationId, DateTime now)
+        {
+            var id = ReceiveCore(uow, warehouseId, docNo, description, lines, locationId, now);
+            OrderService.RereserveWaiting(uow.Dst, warehouseId, lines.Select(l => l.ProductID).ToList(), now);   // K2-12
+            return id;
+        }
+
+        private static int ReceiveCore(DistributionUnitOfWork uow, int warehouseId, string docNo, string description, IList<ReceiptLine> lines, int? locationId, DateTime now)
         {
             var erp = uow.Erp;
             var productIds = lines.Select(l => l.ProductID).Distinct().ToList();
@@ -182,23 +189,25 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
     }
 
     /// <summary>
-    /// Minimal qoldiq ogohlantirishi: amaldan keyin qoldiq minimaldan (dst.PRODUCT_STOCK_LIMITS) pastga TUSHSA —
-    /// rahbarlar va o'sha ombor omborchilariga bir marta xabar (allaqachon past bo'lsa takrorlanmaydi).
+    /// Minimal qoldiq ogohlantirishi: amaldan keyin MAVJUD qoldiq (haqiqiy − rezerv) minimaldan (dst.PRODUCT_STOCK_LIMITS) pastga
+    /// TUSHSA — rahbarlar va o'sha ombor omborchilariga bir marta xabar (allaqachon past bo'lsa takrorlanmaydi). Buyurtma taklifi
+    /// (ReorderService) ham mavjud qoldiqdan — ikkisi bir xil asosda (05_FINDINGS K2-19). Shuning uchun rezerv (tasdiqlash) ham
+    /// chaqiradi; rezervdagi tovarni jo'natish mavjud qoldiqni o'zgartirmaydi.
     /// </summary>
     public static class StockAlerts
     {
         public const string LowStock = "LOW_STOCK";
 
-        /// <param name="onHandBefore">tovar → amaldan oldingi haqiqiy qoldiq (asosiy birlikda).</param>
-        public static void AfterDecrease(DistributionDbContext db, int warehouseId, IReadOnlyDictionary<int, decimal> onHandBefore, DateTime now, int? exceptUserId = null)
+        /// <param name="availableBefore">tovar → amaldan oldingi mavjud qoldiq (asosiy birlikda). Chaqiruvchi o'zgarishni saqlagan bo'lsin.</param>
+        public static void AfterDecrease(DistributionDbContext db, int warehouseId, IReadOnlyDictionary<int, decimal> availableBefore, DateTime now, int? exceptUserId = null)
         {
-            if (onHandBefore == null || onHandBefore.Count == 0) return;
-            var ids = onHandBefore.Keys.ToList();
+            if (availableBefore == null || availableBefore.Count == 0) return;
+            var ids = availableBefore.Keys.ToList();
             var limits = db.ProductStockLimits.AsNoTracking().Where(l => l.WarehouseID == warehouseId && ids.Contains(l.ProductID))
                 .ToDictionary(l => l.ProductID, l => l.MinQty);
             if (limits.Count == 0) return;
-            var after = StockService.Levels(db, limits.Keys.ToList(), new[] { warehouseId }).ToDictionary(l => l.ProductID, l => l.OnHand);
-            var crossed = limits.Where(l => onHandBefore[l.Key] >= l.Value && (after.TryGetValue(l.Key, out var q) ? q : 0) < l.Value).ToList();
+            var after = StockService.Levels(db, limits.Keys.ToList(), new[] { warehouseId }).ToDictionary(l => l.ProductID, l => l.Available);
+            var crossed = limits.Where(l => availableBefore[l.Key] >= l.Value && (after.TryGetValue(l.Key, out var q) ? q : 0) < l.Value).ToList();
             if (crossed.Count == 0) return;
 
             var warehouse = db.Warehouses.Where(w => w.ID == warehouseId).Select(w => w.WHName).FirstOrDefault();

@@ -158,7 +158,7 @@ public partial class HandlerTests
         LinkAs("EXPEDITOR");
         var menu = Buttons(Out().Last());
         Assert.Contains("🚚 Reys", menu);
-        Assert.Contains("🏁 Reysni yopish", menu);
+        Assert.Contains("🏁 Reysni yakunlash", menu);
         Assert.DoesNotContain("➕ Yangi nuqta", menu);
 
         _routes["MyTrip"] = _ => (HttpStatusCode.OK, TripJson);
@@ -232,15 +232,15 @@ public partial class HandlerTests
         Assert.Equal("AI-92", exp.GetProperty("note").GetString());
 
         // yopish: kutilayotgan manzil bor — rad; hammasi hal — tasdiq → TripClose
-        await Handle(Text(10, "🏁 Reysni yopish"));
+        await Handle(Text(10, "🏁 Reysni yakunlash"));
         Assert.Contains(Out().Select(TextOf), t => t.Contains("1 ta manzil"));
         Assert.DoesNotContain(_erp.Requests, r => r.Uri.AbsolutePath.EndsWith("/TripClose"));
         _routes["MyTrip"] = _ => (HttpStatusCode.OK, TripJson.Replace("\"status\":0", "\"status\":3"));
-        await Handle(Text(11, "🏁 Reysni yopish"));
+        await Handle(Text(11, "🏁 Reysni yakunlash"));
         Assert.Contains("tc!:4", Out().Last().Payload);
         _routes["TripClose"] = _ => (HttpStatusCode.OK, "{\"docNo\":\"R-2026-00004\",\"delivered\":1,\"partial\":0,\"refused\":1,\"deliveredAmount\":1100000,\"returnedAmount\":550000,\"collected\":200000,\"onHand\":200000}");
         await Handle(Click(12, "tc!:4"));
-        Assert.Contains(Out().Select(TextOf), t => t.Contains("R-2026-00004 yopildi") && t.Contains("200 000"));
+        Assert.Contains(Out().Select(TextOf), t => t.Contains("R-2026-00004 yakunlandi") && t.Contains("200 000") && t.Contains("ofis yopadi"));
         Assert.Contains("\"callback_data\":\"ho\"", Out().Last().Payload);
     }
 

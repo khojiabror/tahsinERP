@@ -965,6 +965,9 @@ namespace tahsinERP.Controllers.SRM
 
                         await db.SaveChangesAsync();
                         transaction.Commit();
+                        // distributsiya: kirimni kutayotgan buyurtmalarga rezerv (alohida tranzaksiya, xato kirimni buzmaydi)
+                        tahsinERP.Areas.Distribution.Services.Orders.OrderService.AfterExternalReceipt(income.ReceivingWHID,
+                            db.INCOME_PRODUCTS.Where(p => p.IncomeID == income.ID).Select(p => p.ProductID).Distinct().ToList());
 
                         TempData["Success"] = $"Kirim «{income.DocNo}» qabul qilindi. Ombor qoldig'i yangilandi.";
 

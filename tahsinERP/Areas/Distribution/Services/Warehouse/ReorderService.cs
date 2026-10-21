@@ -142,6 +142,13 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             }
         }
 
+        /// <summary>Narxi kiritilmagan (tannarx huquqisiz) qatorlarga oxirgi xarid narxi; xaridi yo'q tovar — 0 (SRM'da to'ldiriladi).</summary>
+        internal static void FillMissingPrices(IEnumerable<Selection> rows, IReadOnlyDictionary<int, decimal?> lastPrices)
+        {
+            foreach (var r in rows.Where(r => r.Price == null))
+                r.Price = lastPrices.TryGetValue(r.ProductID, out var p) ? p ?? 0 : 0;
+        }
+
         /// <summary>
         /// Xarid buyurtmalari: yetkazib beruvchi bo'yicha bittadan (yetkazib beruvchisiz tovarlar — alohida bitta).
         /// <paramref name="erp"/> — tranzaksiyasiz yangi kontekst (POrderService o'z tranzaksiyasini ochadi). Qaytaradi: buyurtma raqamlari.
@@ -153,11 +160,7 @@ namespace tahsinERP.Areas.Distribution.Services.Warehouse
             if (rows.Any(r => r.Price < 0)) throw new DstValidationException(DstLocalization.T("Error_NumberFormat"));
             var ids = rows.Select(r => r.ProductID).Distinct().ToList();
             if (rows.Any(r => r.Price == null))
-            {
-                var last = LastPurchases(erp, ids);
-                foreach (var r in rows.Where(r => r.Price == null))
-                    r.Price = last.TryGetValue(r.ProductID, out var x) ? x.Price ?? 0 : 0;
-            }
+                FillMissingPrices(rows, LastPurchases(erp, ids).ToDictionary(x => x.Key, x => x.Value.Price));
             var units = erp.PRODUCTS.Where(p => ids.Contains(p.ID) && p.IsDeleted != true).ToDictionary(p => p.ID, p => p.UnitID);
             if (units.Count != ids.Count) throw new DstValidationException(DstLocalization.T("Error_NotFound"));
             var supplierIds = rows.Where(r => r.SupplierID.HasValue).Select(r => r.SupplierID.Value).Distinct().ToList();

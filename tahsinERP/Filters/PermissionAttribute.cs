@@ -49,6 +49,12 @@ namespace tahsinERP.Filters
         /// <summary>Har doim o'zgartirish huquqini talab qilish.</summary>
         public bool Change { get; set; }
 
+        /// <summary>
+        /// GET so'rovida "Edit..." kabi nom bo'lsa ham ko'rish huquqi yetarli (karta sahifasi faqat o'qish rejimida ochiladi;
+        /// saqlash — POST, o'zgartirish huquqi bilan). Distributsiya mijoz/tovar kartalari (05_FINDINGS K2-14).
+        /// </summary>
+        public bool ViewOnGet { get; set; }
+
         public void OnAuthorization(AuthorizationContext filterContext)
         {
             if (filterContext.ActionDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true) ||
@@ -67,7 +73,7 @@ namespace tahsinERP.Filters
             string username = user.Identity.Name;
             string action = filterContext.ActionDescriptor.ActionName;
             string controller = Controller ?? filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
-            bool needChange = Change || RequiresChange(filterContext.HttpContext.Request.HttpMethod, action);
+            bool needChange = NeedsChange(filterContext.HttpContext.Request.HttpMethod, action, Change, ViewOnGet);
 
             bool allowed;
             if (!string.IsNullOrEmpty(Module))
@@ -99,6 +105,15 @@ namespace tahsinERP.Filters
                     { "action", "Index" }
                 });
             }
+        }
+
+        /// <summary>O'zgartirish huquqi kerakmi (sof qoida — testlanadi).</summary>
+        internal static bool NeedsChange(string httpMethod, string action, bool change, bool viewOnGet)
+        {
+            if (change) return true;
+            bool isGet = string.Equals(httpMethod, "GET", StringComparison.OrdinalIgnoreCase) || string.Equals(httpMethod, "HEAD", StringComparison.OrdinalIgnoreCase);
+            if (viewOnGet && isGet) return false;
+            return RequiresChange(httpMethod, action);
         }
 
         private static bool RequiresChange(string httpMethod, string action)

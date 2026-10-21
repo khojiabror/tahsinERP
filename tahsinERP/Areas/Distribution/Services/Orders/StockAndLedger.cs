@@ -80,7 +80,8 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
         public static List<int> SalesWarehouses(DistributionDbContext db)
         {
             var configured = db.WarehouseSettings.AsNoTracking().ToList();
-            var all = db.Warehouses.Where(w => w.IsDeleted != true).Select(w => w.ID).ToList();
+            var defect = Bot.DstSettings.Int(db, DstSetting.DefectWarehouseId);   // brak ombori savdoga taklif qilinmaydi (K3-31)
+            var all = db.Warehouses.Where(w => w.IsDeleted != true && w.ID != (defect ?? 0)).Select(w => w.ID).ToList();
             if (configured.Count == 0) return all;
             return all.Where(id => configured.Any(c => c.WarehouseID == id && c.IsSalesPoint)).ToList();
         }

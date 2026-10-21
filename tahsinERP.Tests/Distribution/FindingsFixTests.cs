@@ -31,6 +31,21 @@ namespace tahsinERP.Tests.Distribution
         }
 
         [TestMethod]
+        public void K1_5_Reorder_PriceFromServer_WhenHidden()
+        {
+            var rows = new List<ReorderService.Selection>
+            {
+                new ReorderService.Selection { ProductID = 1, Qty = 5, Price = null },     // huquqsiz — ko'rinmagan
+                new ReorderService.Selection { ProductID = 2, Qty = 5, Price = 700 },      // kiritilgan
+                new ReorderService.Selection { ProductID = 3, Qty = 5, Price = null }      // xaridi yo'q
+            };
+            ReorderService.FillMissingPrices(rows, new Dictionary<int, decimal?> { { 1, 1500m }, { 2, 900m } });
+            Assert.AreEqual(1500m, rows[0].Price, "0 emas — oxirgi xarid narxi");
+            Assert.AreEqual(700m, rows[1].Price);
+            Assert.AreEqual(0m, rows[2].Price);
+        }
+
+        [TestMethod]
         public void K1_2_Credit_CountsConfirmedNotShipped()
         {
             var credit = new CreditState { CreditLimit = 1000, Balance = 200, Committed = 500, HasProfile = true };

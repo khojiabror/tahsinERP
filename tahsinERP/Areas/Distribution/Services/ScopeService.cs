@@ -94,6 +94,9 @@ namespace tahsinERP.Areas.Distribution.Services
                 .Where(s => s.UserID == userId && s.ScopeType == scopeType)
                 .Select(s => s.ScopeID)
                 .ToList();
+            // hudud — quyi hududlari bilan (viloyat berilsa, uning tumanlari ham), 05_FINDINGS K2-13
+            if (scopeType == ScopeTypes.Territory && ids.Count > 0)
+                ids = ids.SelectMany(id => Reports.TerritoryFilter.WithDescendants(_db, id)).Distinct().ToList();
             return ScopeFilter.FromRows(ids, false);
         }
 

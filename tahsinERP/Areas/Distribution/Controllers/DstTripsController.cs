@@ -230,6 +230,23 @@ namespace tahsinERP.Areas.Distribution.Controllers
             });
         }
 
+        /// <summary>Yopilgan reysda qaytgan tovarni qayta yetkazish — yangi buyurtma qoralamasi (K2-10).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public JsonResult Redeliver(int stopId)
+        {
+            return DstJson(() =>
+            {
+                using (var uow = NewUnitOfWork())
+                {
+                    EnsureTrip(uow.Dst, uow.Dst.TripStops.Where(s => s.ID == stopId).Select(s => (int?)s.TripID).FirstOrDefault());
+                    var orderId = TripService.Redeliver(uow, stopId, Services.Orders.OrderActor.ForUser(uow.Dst, CurrentUserName), DateTime.Now);
+                    uow.Commit();
+                    return new { url = Url.Action("Edit", "DstOrders", new { id = orderId }) };
+                }
+            });
+        }
+
         /// <summary>Reysni yopish: har qator bo'yicha omborga qaytgan miqdor (berilmasa — yetkazilmaganning hammasi).</summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]
