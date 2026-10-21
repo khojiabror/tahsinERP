@@ -2,8 +2,10 @@
 @model tahsinERP.ControlPanel.Pages.Account.EnrollTotpModel
 @{ ViewData["Title"] = "2FA ulash"; }
 <div class="card login">
-    <h1>Ikki bosqichli tasdiqlash (2FA)</h1>
-    <p>Panelga kirish uchun 2FA majburiy. Telefoningizdagi autentifikator ilovasi (Google Authenticator, Microsoft Authenticator, Aegis…) bilan QR kodni skanerlang.</p>
+    <div class="hud-head"><span>// 2FA ULASH</span><span>AUTH-02</span></div>
+    <h1>Ikki bosqichli tasdiqlash</h1>
+    <p class="hud-sub">Panelga kirish uchun 2FA majburiy. Autentifikator ilovasi (Google Authenticator, Microsoft Authenticator, Aegis…) bilan QR kodni skanerlang.</p>
+    <ol class="steps"><li class="done">Parol</li><li class="on">2FA ulash</li><li>Kirish</li></ol>
     <p><img class="qr" src="@Model.QrDataUri" alt="QR kod" /></p>
     <p class="hint">Skanerlab bo'lmasa, kalitni qo'lda kiriting:</p>
     <p class="secret mono">@Model.SecretText</p>
@@ -11,7 +13,7 @@
         <div asp-validation-summary="All"></div>
         <input type="hidden" asp-for="ProtectedSecret" />
         <input type="hidden" asp-for="ReturnUrl" />
-        <div><label asp-for="Code">Ilovadagi 6 xonali kod</label><input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" /></div>
-        <button type="submit">Tasdiqlash va kirish</button>
+        <div><label asp-for="Code">Ilovadagi 6 xonali kod</label><input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" /></div>
+        <button type="submit">Tasdiqlash va kirish <svg class="i"><use href="#i-arrow" /></svg></button>
     </form>
 </div>

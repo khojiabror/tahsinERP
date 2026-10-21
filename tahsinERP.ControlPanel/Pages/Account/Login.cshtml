@@ -2,16 +2,27 @@
 @model tahsinERP.ControlPanel.Pages.Account.LoginModel
 @{ ViewData["Title"] = "Kirish"; }
 <div class="card login">
+    <div class="hud-head"><span>// IDENTIFIKATSIYA</span><span>AUTH-01</span></div>
     <h1>Panelga kirish</h1>
+    <p class="hud-sub">Xodim hisob ma'lumotlarini kiriting.</p>
+    @if (Model.TotpRequired) { <ol class="steps"><li class="on">Parol</li><li>2FA kod</li><li>Kirish</li></ol> }
+    else { <ol class="steps"><li class="on">Parol</li><li>Kirish</li></ol> }
     <form method="post" class="stack">
         <div asp-validation-summary="All"></div>
-        <div><label asp-for="Email">Email</label><input asp-for="Email" type="email" autocomplete="username" autofocus /></div>
-        <div><label asp-for="Password">Parol</label><input asp-for="Password" autocomplete="current-password" /></div>
+        <div>
+            <label asp-for="Email">Email</label>
+            <div class="field-ic"><svg class="i"><use href="#i-mail" /></svg><input asp-for="Email" type="email" autocomplete="username" placeholder="siz@tahsinerp.uz" autofocus /></div>
+        </div>
+        <div>
+            <label asp-for="Password">Parol</label>
+            <div class="field-ic"><svg class="i"><use href="#i-lock" /></svg><input asp-for="Password" autocomplete="current-password" placeholder="••••••••••••" /></div>
+        </div>
         <input type="hidden" asp-for="ReturnUrl" />
-        <button type="submit">Davom etish</button>
+        <button type="submit">Davom etish <svg class="i"><use href="#i-arrow" /></svg></button>
         @if (Model.TotpRequired)
         {
             <p class="hint">Keyingi qadam — autentifikator ilovasidagi 6 xonali kod (2FA majburiy).</p>
         }
     </form>
+    <div class="auth-meta"><span>SEANS: SHIFRLANGAN</span><span>AUDIT: YOQILGAN</span></div>
 </div>
