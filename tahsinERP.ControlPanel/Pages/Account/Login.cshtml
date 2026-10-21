@@ -9,6 +9,9 @@
         <div><label asp-for="Password">Parol</label><input asp-for="Password" autocomplete="current-password" /></div>
         <input type="hidden" asp-for="ReturnUrl" />
         <button type="submit">Davom etish</button>
-        <p class="hint">Keyingi qadam — autentifikator ilovasidagi 6 xonali kod (2FA majburiy).</p>
+        @if (Model.TotpRequired)
+        {
+            <p class="hint">Keyingi qadam — autentifikator ilovasidagi 6 xonali kod (2FA majburiy).</p>
+        }
     </form>
 </div>

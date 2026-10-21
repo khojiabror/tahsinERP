@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using QRCoder;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
@@ -34,11 +35,12 @@ internal static class AccountFlow
 
 [AllowAnonymous]
 [EnableRateLimiting("login")]
-public class LoginModel(StaffAuthService auth) : PageModel
+public class LoginModel(StaffAuthService auth, IOptions<SecurityOptions> security) : PageModel
 {
     [BindProperty, Required(ErrorMessage = "Email kiriting"), EmailAddress(ErrorMessage = "Email noto'g'ri")] public string Email { get; set; } = "";
     [BindProperty, Required(ErrorMessage = "Parol kiriting"), DataType(DataType.Password)] public string Password { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
+    public bool TotpRequired => security.Value.RequireStaffTotp;
 
     public void OnGet() { }
 
@@ -52,8 +54,15 @@ public class LoginModel(StaffAuthService auth) : PageModel
             return Page();
         }
         await HttpContext.SignOutAsync(AuthSchemes.Staff);
-        await HttpContext.SignInAsync(AuthSchemes.TwoFactor, StaffAuthService.BuildPrincipal(user, AuthSchemes.TwoFactor));
         string next = AccountFlow.SafeReturn(this, ReturnUrl);
+        if (!security.Value.RequireStaffTotp)
+        {
+            // 2FA egasi qarori bilan o'chirilgan - parol yetarli
+            await auth.CompletePasswordOnlyLoginAsync(user);
+            await HttpContext.SignInAsync(AuthSchemes.Staff, StaffAuthService.BuildPrincipal(user, AuthSchemes.Staff));
+            return LocalRedirect(next);
+        }
+        await HttpContext.SignInAsync(AuthSchemes.TwoFactor, StaffAuthService.BuildPrincipal(user, AuthSchemes.TwoFactor));
         return user.TotpSecretProtected is null
             ? RedirectToPage("/Account/EnrollTotp", new { returnUrl = next })
             : RedirectToPage("/Account/Totp", new { returnUrl = next });
