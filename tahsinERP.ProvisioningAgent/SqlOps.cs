@@ -198,6 +198,20 @@ public sealed class SqlOps(AgentOptions options)
         return $"ERP login '{login}' → {db}: db_owner";
     }
 
+    /// <summary>Bazaning oxirgi qo'llangan migratsiyasi (SCHEMA_VERSIONS). Ruxsat/baza yo'q — null.</summary>
+    public async Task<string?> SchemaVersionAsync(string db, CancellationToken ct)
+    {
+        try
+        {
+            await using var c = await OpenAsync(db, ct);
+            return await ScalarAsync(c, """
+                IF OBJECT_ID(N'dbo.SCHEMA_VERSIONS', N'U') IS NOT NULL
+                SELECT TOP 1 ScriptName FROM dbo.SCHEMA_VERSIONS WHERE Kind IN ('baseline','migration') ORDER BY Version DESC, AppliedAt DESC
+                """, ct) as string;
+        }
+        catch (Exception ex) when (ex is TransientJobException or SqlException) { return null; }
+    }
+
     /// <summary>ERP ulanishini tekshirish: ERP qiladigan kabi bazaga ulanib, COMPANIES va USERS o'qiladi.</summary>
     public async Task<string> ProbeAsync(string db, CancellationToken ct)
     {

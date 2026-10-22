@@ -12,6 +12,21 @@ public sealed class AgentOptions
     public DemoSection Demo { get; set; } = new();
     public PowerShellSection PowerShell { get; set; } = new();
     public UsageSection Usage { get; set; } = new();
+    public UpdatesSection Updates { get; set; } = new();
+
+    /// <summary>Avto-yangilash (Docs/Deploy/03_AUTO_UPDATE.md): paketni paneldan yuklab Updater inbox'iga qo'yish, inventar.</summary>
+    public sealed class UpdatesSection
+    {
+        public bool Enabled { get; set; } = true;
+        /// <summary>Updater bilan almashuv papkasi (Inbox\ — agent yozadi, Status\ — Updater).</summary>
+        public string UpdatesDir { get; set; } = @"C:\ProgramData\tahsinERP\Updates";
+        public string UpdaterStateFile { get; set; } = @"C:\ProgramData\tahsinERP\Updater\state.json";
+        /// <summary>Inventar (o'rnatilgan versiyalar) panelga shuncha daqiqada bir yuboriladi.</summary>
+        public int InventoryMinutes { get; set; } = 5;
+        /// <summary>Updater shuncha vaqtda status yozmasa — o'rnatilmagan/ishlamayapti deb hisoblanadi.</summary>
+        public int UpdaterStartTimeoutSeconds { get; set; } = 120;
+        public int JobTimeoutMinutes { get; set; } = 90;
+    }
 
     /// <summary>Foydalanuvchi faolligini yig'ish (05_PROVISIONING.md, 10). Qaysi tenant va qachon — panel hal qiladi.</summary>
     public sealed class UsageSection

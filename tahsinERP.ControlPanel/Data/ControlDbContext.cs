@@ -30,6 +30,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<PortalRequest> PortalRequests => Set<PortalRequest>();
     public DbSet<BankImport> BankImports => Set<BankImport>();
     public DbSet<BankImportLine> BankImportLines => Set<BankImportLine>();
+    public DbSet<AppRelease> AppReleases => Set<AppRelease>();
+    public DbSet<UpdateJob> UpdateJobs => Set<UpdateJob>();
+    public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -183,6 +186,44 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasIndex(x => x.ExpiresUtc);
             e.Property(x => x.InstallationId).HasMaxLength(36);
             e.Property(x => x.Nonce).HasMaxLength(32);
+        });
+
+        b.Entity<AppRelease>(e =>
+        {
+            e.HasIndex(x => x.Version).IsUnique();
+            e.Property(x => x.Version).HasMaxLength(32);
+            e.Property(x => x.Tag).HasMaxLength(64);
+            e.Property(x => x.Commit).HasMaxLength(64);
+            e.Property(x => x.Signature).HasMaxLength(1000);
+            e.Property(x => x.VerifyError).HasMaxLength(500);
+            e.Property(x => x.AssetsJson).HasMaxLength(2000);
+            e.Property(x => x.Apps).HasMaxLength(200);
+        });
+
+        b.Entity<UpdateJob>(e =>
+        {
+            e.HasIndex(x => new { x.ServerId, x.Status });
+            e.Property(x => x.App).HasMaxLength(20);
+            e.Property(x => x.Slug).HasMaxLength(63);
+            e.Property(x => x.DbName).HasMaxLength(128);
+            e.Property(x => x.Version).HasMaxLength(32);
+            e.Property(x => x.FromVersion).HasMaxLength(32);
+            e.Property(x => x.InstalledVersion).HasMaxLength(32);
+            e.Property(x => x.LeaseToken).HasMaxLength(64);
+            e.Property(x => x.Stage).HasMaxLength(200);
+            e.Property(x => x.Error).HasMaxLength(2000);
+            e.Property(x => x.RowVersion).IsRowVersion();
+            e.Ignore(x => x.IsActive);
+            e.HasOne(x => x.Server).WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<ServerInventory>(e =>
+        {
+            e.HasKey(x => x.ServerId);
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.HasOne<Server>().WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(x => x.UpdaterVersion).HasMaxLength(32);
         });
 
         b.Entity<ProvisioningJob>(e =>

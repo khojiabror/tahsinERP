@@ -93,6 +93,8 @@ public sealed class AgentWorker(IServiceProvider services, AgentOptions options,
         var lease = await panel.LeaseAsync(ct);
         if (lease is null)
         {
+            // Avto-yangilash: provisioning navbati bo'sh bo'lganda (bir vaqtda bitta ish)
+            if (scope.ServiceProvider.GetService<UpdateRunner>() is { } updates && await updates.RunOnceAsync(panel, ct)) return true;
             if (options.Usage.Enabled && DateTime.UtcNow >= _nextUsageUtc)
             {
                 _nextUsageUtc = DateTime.UtcNow.AddMinutes(Math.Max(1, options.Usage.CheckMinutes));

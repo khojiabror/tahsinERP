@@ -663,3 +663,74 @@ public class BankImportLine
     public DateTime? AppliedAtUtc { get; set; }
     public string? Error { get; set; }
 }
+
+// ---------------- Avto-yangilash (Docs/Deploy/03_AUTO_UPDATE.md) ----------------
+
+/// <summary>GitHub relizi (UpdatesService keshlaydi). Imzosi tekshirilmaganlari o'rnatishga berilmaydi.</summary>
+public class AppRelease
+{
+    public int Id { get; set; }
+    /// <summary>yyyy.M.d.N</summary>
+    public string Version { get; set; } = "";
+    public string Tag { get; set; } = "";
+    public string? Commit { get; set; }
+    public DateTime PublishedAtUtc { get; set; }
+    /// <summary>O'zgarishlar ro'yxati (CI commit xabarlaridan yig'adi).</summary>
+    public string? Notes { get; set; }
+    /// <summary>manifest.json baytlari (Base64) — imzo aynan shularga; agentga o'zgarishsiz uzatiladi.</summary>
+    public string ManifestBase64 { get; set; } = "";
+    public string Signature { get; set; } = "";
+    public bool SignatureValid { get; set; }
+    public string? VerifyError { get; set; }
+    /// <summary>JSON: { "erp.zip": assetId, ... }</summary>
+    public string AssetsJson { get; set; } = "{}";
+    /// <summary>Manifestdagi ilovalar va o'zgarganlari: "erp*,panel,bot*" (* — o'zgargan).</summary>
+    public string Apps { get; set; } = "";
+    public bool Prerelease { get; set; }
+    public DateTime FetchedAtUtc { get; set; }
+}
+
+public enum UpdateJobStatus { Pending = 1, Running = 2, Succeeded = 3, Failed = 4, RolledBack = 5, Cancelled = 6 }
+
+/// <summary>Yangilash navbati: panel yozadi, agent /api/agent/updates orqali oladi, Updater bajaradi.</summary>
+public class UpdateJob
+{
+    public long Id { get; set; }
+    public int ServerId { get; set; }
+    public Server? Server { get; set; }
+    public tahsinERP.Provisioning.Contracts.UpdateAction Action { get; set; }
+    /// <summary>erp, panel, bot, site, agent.</summary>
+    public string App { get; set; } = "";
+    public int? TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    public string? Slug { get; set; }
+    public string? DbName { get; set; }
+    public string? Version { get; set; }
+    /// <summary>Navbatga qo'yilgan paytdagi o'rnatilgan versiya (audit va ko'rsatish uchun).</summary>
+    public string? FromVersion { get; set; }
+    public bool RestoreDatabase { get; set; }
+    public UpdateJobStatus Status { get; set; }
+    public string? LeaseToken { get; set; }
+    public DateTime? LeaseUntilUtc { get; set; }
+    public string? Stage { get; set; }
+    public string Log { get; set; } = "";
+    public string? Error { get; set; }
+    public string? InstalledVersion { get; set; }
+    public int? CreatedByStaffId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime? StartedAtUtc { get; set; }
+    public DateTime? FinishedAtUtc { get; set; }
+    public byte[] RowVersion { get; set; } = [];
+
+    public bool IsActive => Status is UpdateJobStatus.Pending or UpdateJobStatus.Running;
+}
+
+/// <summary>Server inventari (agent har necha daqiqada yuboradi): o'rnatilgan versiyalar va ERP instance'lari.</summary>
+public class ServerInventory
+{
+    public int ServerId { get; set; }
+    /// <summary>UpdateInventory JSON.</summary>
+    public string Json { get; set; } = "{}";
+    public string? UpdaterVersion { get; set; }
+    public DateTime ReportedAtUtc { get; set; }
+}

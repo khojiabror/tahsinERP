@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Reliz vositasi (CI): manifest.json (SHA-256), ECDSA P-256 imzo, tekshiruv, kalit yaratish. Docs/Deploy/03_AUTO_UPDATE.md -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>tahsinERP.ReleaseTool</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\tahsinERP.Provisioning.Contracts\tahsinERP.Provisioning.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
