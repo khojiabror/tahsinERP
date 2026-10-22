@@ -561,11 +561,17 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
         var demo = await f.WithScopeAsync(async sp =>
         {
             var t = await sp.GetRequiredService<TenantService>().CreateAsync(
-                new Tenant { Slug = PanelFactory.DemoSlug, LegalName = "Demo", Deployment = DeploymentKind.SaaS, ServerId = sid, DbName = dbName }, true);
+                new Tenant { Slug = PanelFactory.DemoSlug, LegalName = "Demo", Deployment = DeploymentKind.SaaS, ServerId = sid, DbName = dbName, SampleData = true }, true);
             var job = (await sp.GetRequiredService<ProvisioningService>().EnqueueAsync(t, ProvisioningJobType.Create)).Job;
             return (t, job);
         });
         await RunAsync(worker, demo.job.Id);
+        // Demo tenantda namuna foydalanuvchisi o'chirilmaydi — birinchi kechagacha ham demo kirishi ishlaydi
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT CAST(IsActive AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
+        Assert.Equal("0", await ScalarAsync(dbName, "SELECT CAST(MustChangePassword AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
+        Assert.True(tahsinERP.Helpers.PasswordHasher.Verify("DemoParol-2026",
+            (await ScalarAsync(dbName, "SELECT Password FROM dbo.USERS WHERE Uname = 'demo'"))!,
+            (await ScalarAsync(dbName, "SELECT HashCode FROM dbo.USERS WHERE Uname = 'demo'"))!, out _));
         // Mehmon ma'lumot qo'shdi — reset'dan keyin yo'qolishi kerak
         await ScalarAsync(dbName, "INSERT INTO dbo.CUSTOMERS (Name, IsDeleted) VALUES ('Mehmon yozuvi', 0)");
 
