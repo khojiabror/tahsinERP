@@ -432,6 +432,23 @@ public sealed class ReleaseTests
         Assert.Equal("- erp", IndexModel.NotesFor(valid[0], "erp"));
     }
 
+    /// <summary>
+    /// ERP Web.config'dagi umumiy &lt;deny users="?"/&gt; /health'ni login'ga (302) yo'naltirib, Updater yangilashni
+    /// "health o'tmadi" deb qaytarardi (prod, 2026-10-22). /health anonim ochiq bo'lishi shart.
+    /// </summary>
+    [Fact]
+    public void ErpWebConfig_AllowsAnonymousHealth()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "tahsinERP", "Web.config"))) dir = dir.Parent;
+        Assert.NotNull(dir);
+        var doc = System.Xml.Linq.XDocument.Load(Path.Combine(dir!.FullName, "tahsinERP", "Web.config"));
+        var loc = doc.Root!.Elements("location").FirstOrDefault(l => string.Equals((string?)l.Attribute("path"), "health", StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(loc);
+        Assert.Equal("*", (string?)loc!.Element("system.web")?.Element("authorization")?.Element("allow")?.Attribute("users"));
+        Assert.True(File.Exists(Path.Combine(dir.FullName, "tahsinERP", "Controllers", "HealthController.cs")));
+    }
+
     [Fact]
     public void WebConfigMerger_PreservesServerValues_OrGeneratesNewKey()
     {
