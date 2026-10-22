@@ -14,8 +14,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>@L.T("Login") · tahsinERP</title>
-    <link rel="icon" href="~/app-assets/images/ico/favicon.ico" sizes="any">
-    <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
+    <link rel="icon" href="@tahsinERP.Helpers.AssetVersion.Url("~/app-assets/images/ico/favicon.ico")" sizes="any">
+    <link rel="apple-touch-icon" href="@tahsinERP.Helpers.AssetVersion.Url("~/app-assets/images/ico/apple-touch-icon.png")">
     <meta name="theme-color" content="#060c1d">
     <link rel="stylesheet" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/fonts/fonts.css")">
     <link rel="stylesheet" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/login.css")">
@@ -112,7 +112,7 @@
     </div>
 
     <footer class="lg-foot">
-        <span>© @DateTime.Now.Year tahsinERP · SCHAIN</span>
+        <span>© @DateTime.Now.Year tahsinERP · <a href="https://schain.uz" target="_blank" rel="noopener">"Taminot tizimi" MChJ</a></span>
         <a href="https://tahsinerp.uz" target="_blank" rel="noopener">tahsinerp.uz</a>
     </footer>
     <script>

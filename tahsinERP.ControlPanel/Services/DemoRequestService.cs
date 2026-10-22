@@ -4,8 +4,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Hosting;
+using tahsinERP.ControlPanel.Portal;
 
 namespace tahsinERP.ControlPanel.Services;
+
+/// <summary>Demo so'rovi xabarnomalari (<c>ControlPanel:Leads</c>).</summary>
+public class LeadsOptions
+{
+    /// <summary>Yangi so'rov nusxasi shu manzil(lar)ga emailda (vergul bilan). SMTP (ControlPanel:Smtp) sozlanmagan bo'lsa yuborilmaydi.</summary>
+    public string? NotifyEmail { get; set; }
+}
 
 /// <summary>Ommaviy sahifadagi demo formasi maydonlari (tahsinerp.uz).</summary>
 public class DemoRequestInput
@@ -28,7 +36,7 @@ public class DemoRequestInput
 /// bazaga yozadi va xodimlar Telegram guruhiga xabar yuboradi. Sinovni xodim panelda ochadi (Leads → "Sinov ochish").
 /// </summary>
 public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSender telegram, IOptions<TelegramOptions> tgOptions,
-    IOptions<PanelHostOptions> hosts, Clock clock, ILogger<DemoRequestService> log)
+    IOptions<PanelHostOptions> hosts, IEmailSender email, IOptions<LeadsOptions> leads, Clock clock, ILogger<DemoRequestService> log)
 {
     public const int PerIpPerHour = 5;
 
@@ -80,6 +88,7 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
     private async Task NotifyStaffAsync(DemoRequest r, CancellationToken ct)
     {
         string text = BuildStaffText(r, "https://" + hosts.Value.EffectiveAdminHost);
+        await EmailStaffAsync(r, text, ct);
         string? chat = tgOptions.Value.StaffChatId;
         if (string.IsNullOrWhiteSpace(chat) || !telegram.IsConfigured)
         {
@@ -94,6 +103,30 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
         {
             // So'rov bazada saqlangan — panelda ko'rinadi; xabar yuborilmagani mijozga ta'sir qilmaydi.
             log.LogWarning(ex, "Demo so'rovi #{Id} Telegram xabari yuborilmadi", r.Id);
+        }
+    }
+
+    private async Task EmailStaffAsync(DemoRequest r, string text, CancellationToken ct)
+    {
+        var to = (leads.Value.NotifyEmail ?? "").Split(',', ';').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+        if (to.Count == 0)
+            return;
+        if (!email.IsConfigured)
+        {
+            log.LogInformation("Demo so'rovi #{Id}: email yuborilmadi — SMTP (ControlPanel:Smtp) sozlanmagan", r.Id);
+            return;
+        }
+        foreach (var addr in to)
+        {
+            try
+            {
+                await email.SendAsync(addr, $"tahsinERP: demo so'rovi #{r.Id} — {r.Company}", text, ct);
+            }
+            catch (Exception ex)
+            {
+                // Bazada saqlangan, panelda ko'rinadi — email xatosi mijozga ta'sir qilmaydi.
+                log.LogWarning(ex, "Demo so'rovi #{Id} emaili {To} ga yuborilmadi", r.Id, addr);
+            }
         }
     }
 

@@ -84,6 +84,25 @@ public class LandingTests : IClassFixture<PanelFactory>
     }
 
     [Fact]
+    public async Task DemoForm_EmailsStaff_WhenSmtpConfigured()
+    {
+        f.Email.Enabled = true;
+        try
+        {
+            var (web, _) = Client(f, PublicBase);
+            var r = await PostDemoAsync(web, "/", new()
+            {
+                ["Input.FullName"] = "Email Test", ["Input.Company"] = "Mail Co", ["Input.Phone"] = "+998 93 " + Random.Shared.Next(100, 999) + " 33 44",
+            });
+            Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+            var mail = Assert.Single(f.Email.Sent, m => m.Subject.Contains("Mail Co"));
+            Assert.Equal("khojiabror@schain.uz", mail.To); // appsettings.json -> ControlPanel:Leads:NotifyEmail
+            Assert.Contains("Email Test", mail.Body);
+        }
+        finally { f.Email.Enabled = false; }
+    }
+
+    [Fact]
     public void PublicHosts_DefaultToApexAndWww()
     {
         Assert.Equal(["tahsinerp.uz", "www.tahsinerp.uz"], new PanelHostOptions { Domain = "tahsinerp.uz" }.EffectivePublicHosts);

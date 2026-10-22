@@ -82,6 +82,7 @@ body.lg {
 .lg-meta span:last-child { text-align: right; }
 
 .lg-foot { display: flex; justify-content: space-between; gap: 16px; padding: 20px 24px; border-top: 1px solid rgba(148, 163, 184, .14); color: rgba(203, 213, 225, .6); font-size: 13px; }
+.lg-foot a { text-decoration: underline; text-decoration-color: rgba(148, 163, 184, .4); text-underline-offset: 3px; }
 .lg-foot a:hover { color: #fff; }
 
 @media (max-width: 960px) {

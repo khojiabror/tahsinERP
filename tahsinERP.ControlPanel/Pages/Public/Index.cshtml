@@ -26,9 +26,9 @@
     <meta property="og:image" content="https://@Model.Request.Host.Host/landing/img/finance.webp" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#070d1f" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href="~/favicon.ico" sizes="any" asp-append-version="true" />
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" asp-append-version="true" />
+    <link rel="apple-touch-icon" href="~/apple-touch-icon.png" asp-append-version="true" />
     <link rel="stylesheet" href="~/fonts/fonts.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/landing/landing.css" asp-append-version="true" />
 </head>
@@ -559,7 +559,6 @@
         <div class="ftr-about">
             <a class="brand" href="@self"><img src="/img/logo.png" alt="" width="36" height="36" /><span>tahsin<b>ERP</b></span></a>
             <p>@C["footer.about"]</p>
-            <a class="schain" href="@IndexModel.SchainUrl" target="_blank" rel="noopener"><img src="/landing/img/schain-logo.webp" alt="SCHAIN" width="132" height="28" /></a>
         </div>
         <div>
             <h4>@C["footer.product"]</h4>
@@ -570,9 +569,9 @@
         </div>
         <div>
             <h4>@C["footer.company"]</h4>
-            <a href="@IndexModel.SchainUrl" target="_blank" rel="noopener">@C["footer.schain"]</a>
+            <a href="@IndexModel.VendorUrl" target="_blank" rel="noopener">@C["footer.vendor"]</a>
             <a href="@Model.PortalUrl">@C["footer.portal"]</a>
-            <a href="@IndexModel.TelegramChannel" target="_blank" rel="noopener">Telegram: @@schainuz</a>
+            <a href="@IndexModel.TelegramChannel" target="_blank" rel="noopener">Telegram</a>
         </div>
         <div>
             <h4>@C["footer.contacts"]</h4>
@@ -582,7 +581,7 @@
         </div>
     </div>
     <div class="wrap ftr-bot">
-        <span>© @DateTime.UtcNow.Year tahsinERP · SCHAIN. @C["footer.rights"]</span>
+        <span>© @DateTime.UtcNow.Year tahsinERP · <a href="@IndexModel.VendorUrl" target="_blank" rel="noopener">@C["footer.vendor"]</a>. @C["footer.rights"]</span>
         <div class="langs langs-ftr">
             @foreach (var l in LandingContent.Languages)
             {

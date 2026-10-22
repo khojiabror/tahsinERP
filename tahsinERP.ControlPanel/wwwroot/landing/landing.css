@@ -454,8 +454,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ftr { background: var(--navy); color: rgba(203, 213, 225, .75); padding: 70px 0 0; border-top: 1px solid rgba(148, 163, 184, .1); }
 .ftr-in { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 50px; }
 .ftr-about p { margin: 18px 0 22px; font-size: 14.5px; max-width: 360px; }
-.schain img { height: 28px; width: auto; opacity: .85; filter: brightness(0) invert(1); }
-.schain:hover img { opacity: 1; }
+.ftr-bot a { color: rgba(226, 232, 245, .85); text-decoration: underline; text-decoration-color: rgba(148, 163, 184, .4); text-underline-offset: 3px; }
+.ftr-bot a:hover { color: #fff; }
 .ftr h4 { font-size: 14px; color: #fff; margin-bottom: 16px; letter-spacing: 0; }
 .ftr-in > div:not(.ftr-about) { display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; }
 .ftr-in a { display: inline-flex; align-items: center; gap: 8px; transition: color .2s; }
