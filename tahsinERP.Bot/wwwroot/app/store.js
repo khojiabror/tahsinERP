@@ -29,7 +29,7 @@
         }
     };
     var lang = 'uz';
-    function t(k) { return (L[lang] && L[lang][k]) || L.uz[k] || k; }
+    function t(k) { return lang === 'oz' ? window.uzCyrl(L.uz[k] || k) : (L[lang] && L[lang][k]) || L.uz[k] || k; }
     function f(k) { var a = arguments; return t(k).replace(/\{(\d)\}/g, function (m, i) { return a[+i + 1]; }); }
 
     var $ = function (id) { return document.getElementById(id); };
@@ -326,7 +326,7 @@
     // ---------- ishga tushirish ----------
 
     function applyTexts() {
-        document.documentElement.lang = lang;
+        document.documentElement.lang = lang === 'oz' ? 'uz-Cyrl' : lang;
         $('tabCounts').textContent = t('counts');
         $('tabOrders').textContent = t('orders');
         $('countsEmpty').textContent = t('noCounts');
@@ -382,7 +382,7 @@
 
         fetch('/app/api/' + encodeURIComponent(tenant) + '/me', { headers: { 'X-Telegram-Init-Data': tg.initData } })
             .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (me) { if (me && (me.language === 'ru' || me.language === 'uz')) { lang = me.language; applyTexts(); $('title').textContent = t('counts'); } })
+            .then(function (me) { if (me && (me.language === 'ru' || me.language === 'uz' || me.language === 'oz')) { lang = me.language; applyTexts(); $('title').textContent = t('counts'); } })
             .catch(function () { })
             .then(function () { show('counts'); loadCounts(); });
     }

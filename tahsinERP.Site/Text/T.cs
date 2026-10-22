@@ -1,8 +1,12 @@
 using System.Globalization;
+using tahsinERP.Localization;
 
 namespace tahsinERP.Site.Text;
 
-/// <summary>Sayt interfeysi matnlari (uz/ru). Katalog ma'lumoti (nomlar, tavsiflar) — ERP'dan.</summary>
+/// <summary>
+/// Sayt interfeysi matnlari (uz/ru; "oz" — o'zbekchaning kirill transliteratsiyasi). Katalog ma'lumoti (nomlar,
+/// tavsiflar) — ERP'dan, <see cref="Pick"/> orqali.
+/// </summary>
 public static class T
 {
     private static readonly Dictionary<string, (string Uz, string Ru)> Map = new()
@@ -100,9 +104,26 @@ public static class T
     public static string Get(string lang, string key, params object?[] args)
     {
         if (!Map.TryGetValue(key, out var t)) return key;
-        var s = lang == "ru" ? t.Ru : t.Uz;
+        var s = lang == "ru" ? t.Ru : lang == "oz" ? UzTransliterator.ToCyrillicCached(t.Uz) : t.Uz;
         return args.Length == 0 ? s : string.Format(CultureInfo.InvariantCulture, s, args);
     }
 
     internal static IEnumerable<string> Keys => Map.Keys;
+
+    /// <summary>Saytda qo'llab-quvvatlanadigan til kodlari (URL'ning birinchi qismi: /uz/, /oz/, /ru/).</summary>
+    public static bool IsLanguage(string? lang) => lang is "uz" or "oz" or "ru";
+
+    /// <summary>Ikki tilli ERP ma'lumoti: ru — ruschasi (bo'lmasa o'zbekcha), oz — o'zbekchaning kirillchasi.</summary>
+    public static string? Pick(string lang, string? uz, string? ru) => lang switch
+    {
+        "ru" => string.IsNullOrWhiteSpace(ru) ? uz : ru,
+        "oz" => uz == null ? null : UzTransliterator.ToCyrillicCached(uz),
+        _ => uz
+    };
+
+    /// <summary>hreflang / html lang qiymati.</summary>
+    public static string HrefLang(string lang) => lang == "oz" ? "uz-Cyrl" : lang;
+
+    /// <summary>Til tanlagichidagi yozuv.</summary>
+    public static string LangLabel(string lang) => lang switch { "oz" => "ЎЗ", "ru" => "RU", _ => "UZ" };
 }

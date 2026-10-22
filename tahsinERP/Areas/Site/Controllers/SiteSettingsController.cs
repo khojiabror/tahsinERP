@@ -43,7 +43,7 @@ namespace tahsinERP.Areas.Site.Controllers
                 if (!string.IsNullOrWhiteSpace(color) && !SiteText.IsColor(color)) throw new DstValidationException(DstLocalization.T("Site_ColorFormat"));
                 if (!PriceModes.All.Contains(V(SiteSettingKeys.PriceMode)) || !StockModes.All.Contains(V(SiteSettingKeys.StockMode)))
                     throw new DstValidationException(DstLocalization.T("Error_NotFound"));
-                var langs = (V(SiteSettingKeys.Languages) ?? "").Split(',').Select(l => l.Trim()).Where(l => l == "uz" || l == "ru").Distinct().ToList();
+                var langs = (V(SiteSettingKeys.Languages) ?? "").Split(',').Select(l => l.Trim()).Where(l => l == "uz" || l == "oz" || l == "ru").Distinct().ToList();
                 if (langs.Count == 0) throw new DstValidationException(DstLocalization.T("Site_LanguageRequired"));
                 if (!Fonts.Contains(V(SiteSettingKeys.Font) ?? "Inter")) throw new DstValidationException(DstLocalization.T("Error_NotFound"));
                 if (!string.IsNullOrWhiteSpace(V(SiteSettingKeys.Phone))) DirectoryRules.NormalizePhone(V(SiteSettingKeys.Phone));

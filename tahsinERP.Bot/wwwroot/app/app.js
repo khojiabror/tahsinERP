@@ -32,7 +32,7 @@
         }
     };
     var lang = 'uz';
-    function t(k) { return (L[lang] && L[lang][k]) || L.uz[k] || k; }
+    function t(k) { return lang === 'oz' ? window.uzCyrl(L.uz[k] || k) : (L[lang] && L[lang][k]) || L.uz[k] || k; }
 
     var $ = function (id) { return document.getElementById(id); };
     var state = { items: {}, cart: [], category: null, query: '', signed: false, sending: false };
@@ -417,7 +417,7 @@
     // ---------- ishga tushirish ----------
 
     function applyTexts() {
-        document.documentElement.lang = lang;
+        document.documentElement.lang = lang === 'oz' ? 'uz-Cyrl' : lang;
         $('tabCatalog').textContent = t('catalog');
         $('search').placeholder = t('search');
         $('empty').textContent = t('empty');
@@ -462,7 +462,7 @@
         document.addEventListener('visibilitychange', function () { if (document.hidden) closeScanner(); });
 
         request('GET', '/me').then(function (me) {
-            if (me && (me.language === 'ru' || me.language === 'uz')) { lang = me.language; applyTexts(); }
+            if (me && (me.language === 'ru' || me.language === 'uz' || me.language === 'oz')) { lang = me.language; applyTexts(); }
         }).catch(function (e) { toast(e.message, true); }).then(function () {
             loadCustomer();
             loadCategories();

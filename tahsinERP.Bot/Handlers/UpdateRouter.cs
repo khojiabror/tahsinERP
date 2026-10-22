@@ -285,7 +285,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         link.CustomerId = a.CustomerId;
         link.Role = a.Role;
         link.Name = a.Name;
-        link.Language = a.UserId.HasValue || a.Language != null ? (a.Language == Texts.Ru ? Texts.Ru : Texts.Uz) : LangOf(ctx.From);
+        link.Language = a.UserId.HasValue || a.Language != null ? (a.Language is Texts.Ru or Texts.Oz ? a.Language : Texts.Uz) : LangOf(ctx.From);
         link.LinkedAt = clock.GetUtcNow().UtcDateTime;
         ctx.Link = link;
     }

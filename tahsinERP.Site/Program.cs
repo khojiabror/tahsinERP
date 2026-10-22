@@ -117,7 +117,7 @@ app.MapGet("/sitemap.xml", (HttpRequest req, SiteContext site) =>
         {
             sb.Append("<url><loc>").Append(System.Security.SecurityElement.Escape(origin + "/" + lang + path)).Append("</loc>");
             foreach (var alt in c.Languages)
-                sb.Append("<xhtml:link rel=\"alternate\" hreflang=\"").Append(alt).Append("\" href=\"")
+                sb.Append("<xhtml:link rel=\"alternate\" hreflang=\"").Append(tahsinERP.Site.Text.T.HrefLang(alt)).Append("\" href=\"")
                   .Append(System.Security.SecurityElement.Escape(origin + "/" + alt + path)).Append("\"/>");
             if (modified.HasValue) sb.Append("<lastmod>").Append(modified.Value.ToString("yyyy-MM-dd")).Append("</lastmod>");
             sb.Append("</url>\n");

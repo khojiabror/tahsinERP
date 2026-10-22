@@ -36,7 +36,7 @@
                 }
                 @for (int i = 0; i < media.Count; i++)
                 {
-                    var alt = (lang == "ru" ? media[i].AltRu ?? media[i].AltUz : media[i].AltUz) ?? name;
+                    var alt = T.Pick(lang, media[i].AltUz, media[i].AltRu) ?? name;
                     <figure class="gallery-item" id="m@(i)">@Ui.Image(Site, media[i].Id, alt, "(min-width:1024px) 55vw, 100vw", [600, 900, 1200, 1600], i == 0, "gallery-img")</figure>
                 }
             </div>

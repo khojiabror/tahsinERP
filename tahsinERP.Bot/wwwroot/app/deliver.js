@@ -24,7 +24,7 @@
         }
     };
     var lang = 'uz';
-    function t(k) { return (L[lang] && L[lang][k]) || L.uz[k] || k; }
+    function t(k) { return lang === 'oz' ? window.uzCyrl(L.uz[k] || k) : (L[lang] && L[lang][k]) || L.uz[k] || k; }
     var $ = function (id) { return document.getElementById(id); };
     var state = { signed: false, sending: false };
 
@@ -147,7 +147,7 @@
         lang = user && /^ru/.test(user.language_code || '') ? 'ru' : 'uz';
         labels();
         setupSignature();
-        request('GET', '/me').then(function (me) { if (me && me.language) { lang = me.language === 'ru' ? 'ru' : 'uz'; labels(); totals(); } }).catch(function () { });
+        request('GET', '/me').then(function (me) { if (me && me.language) { lang = me.language === 'ru' || me.language === 'oz' ? me.language : 'uz'; labels(); totals(); } }).catch(function () { });
         request('GET', '/reasons').then(function (list) {
             var sel = $('reason');
             var none = el('option', null, '—'); none.value = ''; sel.appendChild(none);

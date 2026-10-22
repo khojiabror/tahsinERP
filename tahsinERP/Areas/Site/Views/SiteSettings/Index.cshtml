@@ -64,11 +64,11 @@
                                 <div class="form-group mb-0">
                                     <label>@DstLocalization.T("Language")</label>
                                     <div>
-                                        @foreach (var l in new[] { "uz", "ru" })
+                                        @foreach (var l in tahsinERP.Localization.Languages.All)
                                         {
                                             <div class="custom-control custom-checkbox custom-control-inline">
                                                 <input type="checkbox" class="custom-control-input lang" id="lang_@l" value="@l" @(langs.Contains(l) ? "checked" : "") @dis />
-                                                <label class="custom-control-label" for="lang_@l">@(l == "uz" ? "O'zbekcha" : "Русский")</label>
+                                                <label class="custom-control-label" for="lang_@l">@tahsinERP.Localization.Languages.NativeName(l)</label>
                                             </div>
                                         }
                                     </div>

@@ -16,9 +16,9 @@ public sealed class InfoModel(SiteContext site) : SitePageModel(site)
         var page = Catalog.Snapshot.Pages?.FirstOrDefault(p => p.Slug == slug);
         if (page == null) return NotFound();
         PageContent = page;
-        Heading = Lang == "ru" ? page.TitleRu ?? page.TitleUz : page.TitleUz;
+        Heading = Text.T.Pick(Lang, page.TitleUz, page.TitleRu)!;
         Title = FullTitle(Heading);
-        var plain = SafeText.Plain(Lang == "ru" ? page.BodyRu ?? page.BodyUz : page.BodyUz);
+        var plain = SafeText.Plain(Text.T.Pick(Lang, page.BodyUz, page.BodyRu));
         MetaDescription = plain.Length > 0 ? plain : null;
         CanonicalPath = "/page/" + page.Slug;
         return Page();

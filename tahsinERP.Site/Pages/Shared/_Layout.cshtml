@@ -15,11 +15,11 @@
     var menuCats = c.Categories.Take(6).ToList();
     var pages = (c.Snapshot.Pages ?? []).Where(p => p.ShowInMenu).ToList();
     SnapshotMedia? logo = s.LogoMediaId is int lid && c.Media.TryGetValue(lid, out var lm) ? lm : null;
-    var other = Site.OtherLang;
-    string switchUrl = "/" + other + (P?.CanonicalPath ?? "/");
+    var others = c.Languages.Where(l => l != Site.Lang).ToList();
+    string canonicalPath = P?.CanonicalPath ?? "/";
 }
 <!DOCTYPE html>
-<html lang="@Site.Lang" style="--primary:@color;--radius:@(radius)px;--font:'@font'" data-ga="@s.AnalyticsId" data-metrika="@s.MetrikaId">
+<html lang="@T.HrefLang(Site.Lang)" style="--primary:@color;--radius:@(radius)px;--font:'@font'" data-ga="@s.AnalyticsId" data-metrika="@s.MetrikaId">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -29,7 +29,7 @@
     @if (P?.CanonicalPath != null)
     {
         <link rel="canonical" href="@(origin + "/" + Site.Lang + P.CanonicalPath)">
-        foreach (var l in c.Languages) { <link rel="alternate" hreflang="@l" href="@(origin + "/" + l + P.CanonicalPath)"> }
+        foreach (var l in c.Languages) { <link rel="alternate" hreflang="@T.HrefLang(l)" href="@(origin + "/" + l + P.CanonicalPath)"> }
         <link rel="alternate" hreflang="x-default" href="@(origin + "/" + c.DefaultLanguage + P.CanonicalPath)">
     }
     <meta property="og:type" content="website">
@@ -77,9 +77,9 @@
                 <a class="icon-btn mobile-only" href="@Site.Url("/search")" aria-label="@Site.T("Search")">
                     <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                 </a>
-                @if (c.Languages.Count > 1)
+                @foreach (var other in others)
                 {
-                    <a class="lang-switch" href="@switchUrl" hreflang="@other" lang="@other">@other.ToUpperInvariant()</a>
+                    <a class="lang-switch" href="@("/" + other + canonicalPath)" hreflang="@T.HrefLang(other)" lang="@T.HrefLang(other)">@T.LangLabel(other)</a>
                 }
                 <a class="icon-btn cart-link" href="@Site.Url("/cart")" aria-label="@Site.T("Cart")">
                     <svg viewBox="0 0 24 24" class="icon"><path d="M6 7h12l-1 13H7L6 7Z" /><path d="M9 7a3 3 0 0 1 6 0" /></svg>
@@ -103,7 +103,7 @@
             <nav class="drawer-links">
                 <a href="@Site.Url("/catalog")"><b>@Site.T("AllProducts")</b></a>
                 @foreach (var cat in c.Categories) { <a href="@Site.Url("/c/" + cat.Slug)">@CatalogIndex.Name(cat, Site.Lang)</a> }
-                @foreach (var p in pages) { <a class="muted" href="@Site.Url("/page/" + p.Slug)">@(Site.Lang == "ru" ? p.TitleRu ?? p.TitleUz : p.TitleUz)</a> }
+                @foreach (var p in pages) { <a class="muted" href="@Site.Url("/page/" + p.Slug)">@T.Pick(Site.Lang, p.TitleUz, p.TitleRu)</a> }
             </nav>
         </aside>
     </div>
@@ -136,7 +136,7 @@
                 {
                     <div>
                         <h3>@Site.T("Info")</h3>
-                        <ul>@foreach (var p in pages) { <li><a href="@Site.Url("/page/" + p.Slug)">@(Site.Lang == "ru" ? p.TitleRu ?? p.TitleUz : p.TitleUz)</a></li> }</ul>
+                        <ul>@foreach (var p in pages) { <li><a href="@Site.Url("/page/" + p.Slug)">@T.Pick(Site.Lang, p.TitleUz, p.TitleRu)</a></li> }</ul>
                     </div>
                 }
                 <div>

@@ -57,6 +57,11 @@ public class HelperTests
         }
         Assert.Equal("Btn_Route", Texts.KeyOf("🗺 Маршрут", "Btn_DayStart", "Btn_Route"));
         Assert.Equal("Btn_Route", Texts.KeyOf("🗺 Marshrut", "Btn_DayStart", "Btn_Route"));
+        // o'zbek kirill: o'zbekcha matnning transliteratsiyasi, tugma ham taniladi
+        Assert.Equal("🗺 Маршрут", Texts.Get(Texts.Oz, "Btn_Route"));
+        Assert.Equal("▶️ Кунни бошлаш", Texts.Get(Texts.Oz, "Btn_DayStart"));
+        Assert.Equal("Btn_DayStart", Texts.KeyOf("▶️ Кунни бошлаш", "Btn_DayStart", "Btn_Route"));
+        Assert.Equal("✅ Иван, сиз уландингиз. Рол: агент.", Texts.Get(Texts.Oz, "Linked", "Иван", "агент"));
         Assert.Null(Texts.KeyOf("salom", "Btn_Route"));
         Assert.All(Texts.PayMethods, m => Assert.NotEqual("PayMethod_" + m, Texts.Get(Texts.Uz, "PayMethod_" + m)));
         Assert.Equal("1 250 000", Texts.Money(1250000.4m));

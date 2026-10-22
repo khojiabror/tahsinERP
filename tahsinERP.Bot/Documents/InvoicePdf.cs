@@ -38,7 +38,7 @@ public static class InvoicePdf
 
     private static string T(string lang, string key, params object?[] args)
     {
-        var s = lang == "ru" ? L[key].Ru : L[key].Uz;
+        var s = lang == "ru" ? L[key].Ru : lang == "oz" ? tahsinERP.Localization.UzTransliterator.ToCyrillicCached(L[key].Uz) : L[key].Uz;
         return args.Length == 0 ? s : string.Format(CultureInfo.InvariantCulture, s, args);
     }
 

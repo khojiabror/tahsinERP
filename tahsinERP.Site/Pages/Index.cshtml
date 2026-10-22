@@ -17,8 +17,8 @@
             @for (int i = 0; i < banners.Count; i++)
             {
                 var b = banners[i];
-                var title = Model.Lang == "ru" ? b.TitleRu ?? b.TitleUz : b.TitleUz;
-                var sub = Model.Lang == "ru" ? b.SubtitleRu ?? b.SubtitleUz : b.SubtitleUz;
+                var title = T.Pick(Model.Lang, b.TitleUz, b.TitleRu);
+                var sub = T.Pick(Model.Lang, b.SubtitleUz, b.SubtitleRu);
                 var link = b.Link == null ? null : b.Link.StartsWith("/") && !b.Link.StartsWith("/uz/") && !b.Link.StartsWith("/ru/") ? Site.Url(b.Link) : b.Link;
                 <div class="slide">
                     @Ui.Image(Site, b.MediaId, title ?? Site.SiteName, "100vw", [600, 900, 1200, 1600], i == 0, "slide-img")

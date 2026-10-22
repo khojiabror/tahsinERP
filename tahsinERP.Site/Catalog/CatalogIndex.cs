@@ -36,14 +36,14 @@ public sealed class CatalogIndex
         Categories = (snapshot.Categories ?? []).OrderBy(c => c.SortOrder).ThenBy(c => c.NameUz).ToList();
         Brands = (snapshot.Brands ?? []).ToDictionary(b => b.Id);
         Media = (snapshot.Media ?? []).ToDictionary(m => m.Id);
-        var langs = (snapshot.Settings.Languages ?? []).Where(l => l is "uz" or "ru").Distinct().ToList();
+        var langs = (snapshot.Settings.Languages ?? []).Where(Text.T.IsLanguage).Distinct().ToList();
         Languages = langs.Count > 0 ? langs : ["uz"];
         _bySlug = Products.GroupBy(p => p.Slug).ToDictionary(g => g.Key, g => g.First());
         _byId = Products.ToDictionary(p => p.Id);
         _categoryBySlug = Categories.GroupBy(c => c.Slug).ToDictionary(g => g.Key, g => g.First());
         _categoryById = Categories.ToDictionary(c => c.Id);
         _searchText = Products.ToDictionary(p => p.Id, p =>
-            Normalize(p.NameUz + " " + p.NameRu + " " + p.Sku + " " + string.Join(" ", p.Barcodes ?? [])));
+            Normalize(p.NameUz + " " + p.NameRu + " " + (Languages.Contains("oz") ? Text.T.Pick("oz", p.NameUz, null) : "") + " " + p.Sku + " " + string.Join(" ", p.Barcodes ?? [])));
     }
 
     public SnapshotProduct? ProductBySlug(string slug) => _bySlug.GetValueOrDefault(slug);
@@ -125,12 +125,12 @@ public sealed class CatalogIndex
 
     // ---------- til ----------
 
-    public static string Name(SnapshotProduct p, string lang) => lang == "ru" && !string.IsNullOrWhiteSpace(p.NameRu) ? p.NameRu! : p.NameUz;
-    public static string? Description(SnapshotProduct p, string lang) => lang == "ru" && !string.IsNullOrWhiteSpace(p.DescriptionRu) ? p.DescriptionRu : p.DescriptionUz;
-    public static string Name(SnapshotCategory c, string lang) => lang == "ru" && !string.IsNullOrWhiteSpace(c.NameRu) ? c.NameRu! : c.NameUz;
-    public static string? Description(SnapshotCategory c, string lang) => lang == "ru" && !string.IsNullOrWhiteSpace(c.DescriptionRu) ? c.DescriptionRu : c.DescriptionUz;
-    public static string AttrName(SnapshotAttribute a, string lang) => lang == "ru" && !string.IsNullOrWhiteSpace(a.NameRu) ? a.NameRu! : a.NameUz;
-    public static string AttrValue(SnapshotAttribute a, string lang) => lang == "ru" && !string.IsNullOrWhiteSpace(a.ValueRu) ? a.ValueRu! : a.ValueUz;
+    public static string Name(SnapshotProduct p, string lang) => Text.T.Pick(lang, p.NameUz, p.NameRu)!;
+    public static string? Description(SnapshotProduct p, string lang) => Text.T.Pick(lang, p.DescriptionUz, p.DescriptionRu);
+    public static string Name(SnapshotCategory c, string lang) => Text.T.Pick(lang, c.NameUz, c.NameRu)!;
+    public static string? Description(SnapshotCategory c, string lang) => Text.T.Pick(lang, c.DescriptionUz, c.DescriptionRu);
+    public static string AttrName(SnapshotAttribute a, string lang) => Text.T.Pick(lang, a.NameUz, a.NameRu)!;
+    public static string AttrValue(SnapshotAttribute a, string lang) => Text.T.Pick(lang, a.ValueUz, a.ValueRu)!;
 
     // ---------- matnni normallashtirish ----------
 

@@ -58,6 +58,7 @@ public class CatalogIndexTests
         Assert.Null(idx.ProductBySlug("yoq"));
         Assert.Equal("Цемент", CatalogIndex.Name(idx.CategoryBySlug("sement")!, "ru"));
         Assert.Equal("G'isht", CatalogIndex.Name(idx.CategoryBySlug("gisht")!, "ru"));   // ruscha bo'lmasa — o'zbekcha
+        Assert.Equal("Ғишт", CatalogIndex.Name(idx.CategoryBySlug("gisht")!, "oz"));     // kirill — o'zbekchaning transliteratsiyasi
         Assert.Equal(75000m, Ui.DefaultUnit(idx.ProductById(10)!)!.Price);
     }
 
@@ -156,7 +157,11 @@ public class SafeTextTests
         {
             Assert.NotEqual(k, T.Get("uz", k));
             Assert.False(string.IsNullOrWhiteSpace(T.Get("ru", k)), k);
+            Assert.False(string.IsNullOrWhiteSpace(T.Get("oz", k)), k);
         }
+        Assert.Equal("Каталог", T.Get("oz", "Catalog"));
+        Assert.Equal("uz-Cyrl", T.HrefLang("oz"));
+        Assert.True(T.IsLanguage("oz") && !T.IsLanguage("en"));
     }
 }
 

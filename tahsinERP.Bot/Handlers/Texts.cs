@@ -1,4 +1,5 @@
 using System.Globalization;
+using tahsinERP.Localization;
 
 namespace tahsinERP.Bot.Handlers;
 
@@ -7,6 +8,8 @@ public static class Texts
 {
     public const string Uz = "uz";
     public const string Ru = "ru";
+    /// <summary>O'zbek kirill: o'zbekcha matnning transliteratsiyasi (tahsinERP.Localization).</summary>
+    public const string Oz = "oz";
 
     private static readonly Dictionary<string, (string Uz, string Ru)> Map = new()
     {
@@ -223,13 +226,13 @@ public static class Texts
     public static string Get(string? lang, string key, params object?[] args)
     {
         if (!Map.TryGetValue(key, out var t)) return key;
-        var s = lang == Ru ? t.Ru : t.Uz;
+        var s = lang == Ru ? t.Ru : lang == Oz ? UzTransliterator.ToCyrillicCached(t.Uz) : t.Uz;
         return args.Length == 0 ? s : string.Format(CultureInfo.InvariantCulture, s, args);
     }
 
-    /// <summary>Tugma matni qaysi kalitga tegishli (ikkala tilda ham taniladi).</summary>
+    /// <summary>Tugma matni qaysi kalitga tegishli (uchala tilda ham taniladi).</summary>
     public static string? KeyOf(string text, params string[] keys) =>
-        keys.FirstOrDefault(k => Map.TryGetValue(k, out var t) && (t.Uz == text || t.Ru == text));
+        keys.FirstOrDefault(k => Map.TryGetValue(k, out var t) && (t.Uz == text || t.Ru == text || UzTransliterator.ToCyrillicCached(t.Uz) == text));
 
     public static string Money(decimal v) => v.ToString("#,0", CultureInfo.InvariantCulture).Replace(",", " ");
 

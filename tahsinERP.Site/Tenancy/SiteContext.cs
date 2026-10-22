@@ -66,7 +66,7 @@ public sealed class TenantMiddleware(RequestDelegate next, CatalogStore store, I
             return;
         }
         var first = path.Value?.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-        site.Lang = first is "uz" or "ru" && site.Index.SupportsLanguage(first) ? first : site.Index.DefaultLanguage;
+        site.Lang = Text.T.IsLanguage(first) && site.Index.SupportsLanguage(first!) ? first! : site.Index.DefaultLanguage;
         await next(http);
     }
 }

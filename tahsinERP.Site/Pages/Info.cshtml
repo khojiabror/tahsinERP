@@ -8,7 +8,7 @@
 <div class="container page narrow">
     <nav class="crumbs" aria-label="breadcrumb"><a href="@Site.Url("/")">@Model.T("Home")</a><span>/</span><span aria-current="page">@Model.Heading</span></nav>
     <h1>@Model.Heading</h1>
-    <div class="prose">@SafeText.Render(Model.Lang == "ru" ? pg.BodyRu ?? pg.BodyUz : pg.BodyUz)</div>
+    <div class="prose">@SafeText.Render(T.Pick(Model.Lang, pg.BodyUz, pg.BodyRu))</div>
     @if (s.Phone != null || s.Address != null)
     {
         <div class="card-panel contact-card">

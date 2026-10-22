@@ -219,7 +219,7 @@ namespace tahsinERP.Areas.Site.Services
                 PrimaryColor = SiteText.IsColor(SiteSettingsStore.Get(s, SiteSettingKeys.PrimaryColor)) ? s[SiteSettingKeys.PrimaryColor] : "#111827",
                 Font = SiteSettingsStore.Get(s, SiteSettingKeys.Font, "Inter"),
                 Radius = ParseInt(SiteSettingsStore.Get(s, SiteSettingKeys.Radius)) ?? 10,
-                Languages = (SiteSettingsStore.Get(s, SiteSettingKeys.Languages, "uz,ru")).Split(',').Select(l => l.Trim()).Where(l => l == "uz" || l == "ru").Distinct().ToList(),
+                Languages = (SiteSettingsStore.Get(s, SiteSettingKeys.Languages, "uz,ru")).Split(',').Select(l => l.Trim()).Where(l => l == "uz" || l == "oz" || l == "ru").Distinct().ToList(),
                 Phone = SiteSettingsStore.Get(s, SiteSettingKeys.Phone),
                 Phone2 = SiteSettingsStore.Get(s, SiteSettingKeys.Phone2),
                 Email = SiteSettingsStore.Get(s, SiteSettingKeys.Email),
