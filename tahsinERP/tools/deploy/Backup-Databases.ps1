@@ -268,11 +268,18 @@ try {
     $errors += $_.Exception.Message; Log "[!] $($_.Exception.Message)"
 }
 
+$total = 0L; foreach ($f in $files) { if (Test-Path $f) { $total += (Get-Item $f).Length } }
 $status = [ordered]@{
     Ok = ($errors.Count -eq 0); StartedAt = $started.ToString('s'); FinishedAt = (Get-Date).ToString('s')
-    Bucket = $cfg.Bucket; Folder = $(if ($useS3) { "$prefix/$stamp" } else { $work }); Files = @($files | ForEach-Object { [IO.Path]::GetFileName($_) }); Uploaded = $uploaded; Errors = $errors
+    StartedAtUtc = $started.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'); FinishedAtUtc = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    Bucket = $cfg.Bucket; Folder = $(if ($useS3) { "$prefix/$stamp" } else { $work }); Files = @($files | ForEach-Object { [IO.Path]::GetFileName($_) })
+    TotalBytes = $total; Uploaded = $uploaded; Errors = $errors
 }
-$status | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $ConfigDir 'last.json') -Encoding ASCII
+$json = $status | ConvertTo-Json -Depth 4
+$json | Set-Content -Path (Join-Path $ConfigDir 'last.json') -Encoding ASCII
+# Panelga: agent (NETWORK SERVICE) Updates\Status dan o'qib inventar bilan yuboradi (sirsiz nusxa)
+$statusFile = if ($cfg.StatusFile) { [string]$cfg.StatusFile } else { Join-Path ([string]$cfg.DataDir) 'Updates\Status\backup.json' }
+if (Test-Path (Split-Path $statusFile)) { try { $json | Set-Content -Path $statusFile -Encoding ASCII } catch { Log "[!] status fayli yozilmadi: $($_.Exception.Message)" } }
 if ($errors.Count -gt 0) {
     try {
         if (-not [Diagnostics.EventLog]::SourceExists('tahsinERP.Backup')) { New-EventLog -LogName Application -Source 'tahsinERP.Backup' }

@@ -1,0 +1,12 @@
+@model tahsinERP.ControlPanel.Services.BackupMonitor.Row?
+@{ var r = Model?.Report; var h = Model?.Health ?? BackupHealth.Unknown; }
+@if (r is null)
+{
+    <span class="hint">ma'lumot yo'q</span>
+}
+else
+{
+    <span class="badge @(h == BackupHealth.Ok ? "ok" : h == BackupHealth.Stale ? "warn" : "bad")">@(h == BackupHealth.Ok ? "bajarildi" : h == BackupHealth.Stale ? "eskirgan" : "xato")</span>
+    <div class="hint">@(r.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC · @r.Files.Count fayl@(r.TotalBytes is long n ? $" · {n / 1048576.0:0.#} MB" : "") · @(string.IsNullOrEmpty(r.Bucket) ? "faqat serverda" : r.Bucket)</div>
+    @foreach (var e in r.Errors.Take(3)) { <div class="hint mono">@e</div> }
+}

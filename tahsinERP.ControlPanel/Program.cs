@@ -94,6 +94,7 @@ services.AddScoped<TenantAppsService>();
 services.AddSingleton<ReleaseTrust>();
 services.AddHttpClient<IReleaseSource, GitHubReleaseSource>(c => c.Timeout = TimeSpan.FromMinutes(30));
 services.AddScoped<UpdatesService>();
+services.AddScoped<BackupMonitor>();
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
 {
     services.AddHostedService<DailyJobHostedService>();

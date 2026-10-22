@@ -53,6 +53,9 @@ Qayta ishga tushirish xavfsiz; kalitni almashtirish — yangi `-SecretsFile` bil
 
 ## 4.3 Kuzatish
 
+- **Panel → Serverlar → "Oxirgi zaxira"**: bajarildi / eskirgan / xato, vaqt, fayllar soni, hajm, xato matnlari.
+  Skript natijani `C:\ProgramData\tahsinERP\Updates\Status\backup.json` ga ham yozadi, agent uni inventar bilan
+  (5 daqiqada bir) panelga yuboradi. Xato bo'lsa yoki 26 soatdan beri yangi zaxira yo'q bo'lsa — **Bosh sahifada** qizil ogohlantirish.
 - Oxirgi natija: `Get-Content C:\ProgramData\tahsinERP\Backup\last.json` (`Ok: true`, yuklangan fayllar).
 - Batafsil log: `C:\ProgramData\tahsinERP\Backup\logs\backup-<sana>.log` (60 kun).
 - Xato bo'lsa: Windows **Event Viewer → Application**, manba `tahsinERP.Backup`; task "Last Run Result" ≠ 0.

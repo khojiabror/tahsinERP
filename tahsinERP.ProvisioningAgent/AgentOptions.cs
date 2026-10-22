@@ -21,6 +21,8 @@ public sealed class AgentOptions
         /// <summary>Updater bilan almashuv papkasi (Inbox\ — agent yozadi, Status\ — Updater).</summary>
         public string UpdatesDir { get; set; } = @"C:\ProgramData\tahsinERP\Updates";
         public string UpdaterStateFile { get; set; } = @"C:\ProgramData\tahsinERP\Updater\state.json";
+        /// <summary>Kunlik zaxira natijasi (Backup-Databases.ps1 yozadi) — inventar bilan panelga yuboriladi.</summary>
+        public string BackupStatusFile { get; set; } = @"C:\ProgramData\tahsinERP\Updates\Status\backup.json";
         /// <summary>Inventar (o'rnatilgan versiyalar) panelga shuncha daqiqada bir yuboriladi.</summary>
         public int InventoryMinutes { get; set; } = 5;
         /// <summary>Updater shuncha vaqtda status yozmasa — o'rnatilmagan/ishlamayapti deb hisoblanadi.</summary>
