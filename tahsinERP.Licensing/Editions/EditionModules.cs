@@ -80,7 +80,7 @@ namespace tahsinERP.Services.Editions
         {
             { ProductModule.Core, new[]
                 {
-                    "Home", "Account", "License", "Error", "ViewNotAuthorized", "ComingSoon", "HelpDocs", "UserManual",
+                    "Home", "Account", "Language", "License", "Error", "ViewNotAuthorized", "ComingSoon", "HelpDocs", "UserManual",
                     "AdminPanel", "DeletedRecords", "Log", "PModule", "Role", "User", "UserEntries",
                     "Company", "Currency", "CurrencyRates", "Unit", "Warehouse", "WarehouseLocations",
                     "Product", "ProductCategory", "ProductImage", "ProductLookup", "Shop", "Branding",

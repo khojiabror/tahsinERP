@@ -1,6 +1,6 @@
 @{
     ViewBag.Title = DstLocalization.T("Module_Title");
-    string current = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
+    string current = L.Lang;
     string user = User.Identity.Name;
     var tiles = new[]
     {
@@ -53,8 +53,10 @@
                 {
                     @Html.AntiForgeryToken()
                     <div class="btn-group btn-group-sm" role="group" aria-label="@DstLocalization.T("Language")">
-                        <button type="submit" name="language" value="uz" class="btn @(current == "ru" ? "btn-outline-primary" : "btn-primary")">O'zbekcha</button>
-                        <button type="submit" name="language" value="ru" class="btn @(current == "ru" ? "btn-primary" : "btn-outline-primary")">Русский</button>
+                        @foreach (var lang in tahsinERP.Localization.Languages.All)
+                        {
+                            <button type="submit" name="language" value="@lang" class="btn @(current == lang ? "btn-primary" : "btn-outline-primary")">@tahsinERP.Localization.Languages.NativeName(lang)</button>
+                        }
                     </div>
                 }
             </div>

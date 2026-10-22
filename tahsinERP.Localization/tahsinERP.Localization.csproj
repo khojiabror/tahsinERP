@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Ko'p tillilik — umumiy kutubxona: tillar (uz, oz = o'zbek kirill, ru), zaxira zanjiri, lotin -> kirill
+    transliteratsiya, tilga mos sana/son madaniyati va umumiy atamalar (Resources/Common.resx).
+    ERP (.NET Framework 4.8), panel, bot va sayt (.NET 10) shu bitta manbadan foydalanadi.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ProjectGuid>{B7D3E9A1-5C42-4F8E-9B16-3A0C7E2D4F51}</ProjectGuid>
+    <RootNamespace>tahsinERP.Localization</RootNamespace>
+    <AssemblyName>tahsinERP.Localization</AssemblyName>
+    <LangVersion>7.3</LangVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <Nullable>disable</Nullable>
+    <!-- Resurslar asosiy assembly'da (o'zbek lotin); ruscha — satellite (ru/tahsinERP.Localization.resources.dll) -->
+    <NeutralLanguage>uz</NeutralLanguage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="tahsinERP.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -4,7 +4,7 @@
     var brand = tahsinERP.Services.Common.BrandingService.Current();
 }
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="@tahsinERP.Localization.Languages.HtmlLang(L.Lang)">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
@@ -893,15 +893,7 @@
                             </ul>
                         </div>
                         <ul class="nav navbar-nav float-right">
-                            <li class="dropdown dropdown-language nav-item">
-                                <a class="dropdown-toggle nav-link" id="dropdown-flag" href="#" data-toggle="dropdown">
-                                    <i class="flag-icon flag-icon-uz mr-50"></i><span class="selected-language">O'zbekcha</span>
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="dropdown-flag">
-                                    <a class="dropdown-item" href="#" data-language="uz"><i class="flag-icon flag-icon-uz mr-50"></i>O'zbekcha</a>
-                                    <a class="dropdown-item" href="#" data-language="ru"><i class="flag-icon flag-icon-ru mr-50"></i>Русский</a>
-                                </div>
-                            </li>
+                            @Html.Partial("_LanguageSwitch")
                             <li class="nav-item d-none d-lg-block">
                                 <a class="nav-link nav-link-expand"><i class="ficon bx bx-fullscreen"></i></a>
                             </li>

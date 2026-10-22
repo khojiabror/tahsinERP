@@ -19,17 +19,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
         [Filters.SkipPermission]
         public ActionResult SetLanguage(string language)
         {
-            int userId = CurrentUserId;
-            using (var db = new DistributionDbContext())
-            {
-                var setting = db.UserSettings.Find(userId);
-                if (setting == null)
-                    db.UserSettings.Add(new UserSetting { UserID = userId, Language = DstLocalization.Normalize(language) });
-                else
-                    setting.Language = DstLocalization.Normalize(language);
-                db.SaveChanges();
-            }
-            DstLocalization.ForgetLanguage(userId);
+            tahsinERP.I18n.UiLanguage.SaveForUser(CurrentUserId, language);
+            Response.Cookies.Add(tahsinERP.I18n.UiLanguage.Cookie(language));
             return RedirectToAction("Index");
         }
     }

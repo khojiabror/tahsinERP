@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Web.Mvc;
 using System.Web.Routing;
 
@@ -25,7 +25,8 @@ namespace tahsinERP.Filters
             string controller = filterContext.RouteData.Values["controller"] as string ?? "";
             if (string.Equals(controller, "Account", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(controller, "Error", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(controller, "Branding", StringComparison.OrdinalIgnoreCase))
+                string.Equals(controller, "Branding", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(controller, "Language", StringComparison.OrdinalIgnoreCase))
                 return;
 
             if (http.Request.IsAjaxRequest())

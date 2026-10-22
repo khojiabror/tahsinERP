@@ -5,24 +5,27 @@ using System.Resources;
 using System.Runtime.Caching;
 using tahsinERP.Areas.Distribution.Data;
 using tahsinERP.Configuration.Tenancy;
+using tahsinERP.Localization;
 
 namespace tahsinERP.Areas.Distribution.Services
 {
     /// <summary>
     /// Distributsiya modulining matnlari: Areas/Distribution/Resources/DstStrings.resx (o'zbek, asosiy)
-    /// va DstStrings.ru.resx. Faqat UI tili (CurrentUICulture) almashadi — son/sana formati (CurrentCulture)
-    /// ilovaning umumiy sozlamasida qoladi, model binding buzilmasligi uchun.
+    /// va DstStrings.ru.resx; kirill — tahsinERP.Localization transliteratsiyasi. Til so'rov boshida
+    /// tahsinERP.I18n.UiLanguage tomonidan qo'yiladi (butun ERP uchun bitta mexanizm).
     /// </summary>
     public static class DstLocalization
     {
-        public const string Uzbek = "uz";
-        public const string Russian = "ru";
+        public const string Uzbek = Languages.Uzbek;
+        public const string UzbekCyrillic = Languages.UzbekCyrillic;
+        public const string Russian = Languages.Russian;
 
         private static readonly ResourceManager Resources = new ResourceManager(
             "tahsinERP.Areas.Distribution.Resources.DstStrings", typeof(DstLocalization).Assembly);
 
-        private static readonly CultureInfo UzCulture = CultureInfo.GetCultureInfo("uz-Latn-UZ");
-        private static readonly CultureInfo RuCulture = CultureInfo.GetCultureInfo("ru-RU");
+        // Distributsiya kalitlari birinchi, keyin ERP va umumiy atamalar (tahsinERP.I18n.L — teskari tartibda)
+        private static readonly Translator Translator = new Translator(Resources,
+            new ResourceManager("tahsinERP.Resources.ErpStrings", typeof(DstLocalization).Assembly), Translator.Common);
 
         private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
 
@@ -44,48 +47,40 @@ namespace tahsinERP.Areas.Distribution.Services
 
         public static ResourceManager ResourceManager => Resources;
 
-        /// <summary>Kalit bo'yicha matn (joriy UI tilida); topilmasa — kalitning o'zi (xato ko'rinib tursin).</summary>
-        public static string T(string key)
-        {
-            return Resources.GetString(key, CultureInfo.CurrentUICulture) ?? key;
-        }
+        /// <summary>Kalit bo'yicha matn (joriy UI tilida); topilmasa — zaxira til, u ham bo'lmasa — kalitning o'zi.</summary>
+        public static string T(string key) => Translator.T(key);
 
-        public static string T(string key, params object[] args)
-        {
-            return string.Format(CultureInfo.CurrentCulture, T(key), args);
-        }
+        public static string T(string key, params object[] args) => Translator.T(key, args);
 
         /// <summary>Berilgan tilda (masalan, bildirishnoma qabul qiluvchining tilida).</summary>
-        public static string TFor(string language, string key, params object[] args)
-        {
-            var culture = CultureFor(language);
-            var text = Resources.GetString(key, culture) ?? key;
-            return args == null || args.Length == 0 ? text : string.Format(culture, text, args);
-        }
+        public static string TFor(string language, string key, params object[] args) => Translator.TFor(language, key, args);
 
-        public static CultureInfo CultureFor(string language)
-        {
-            return string.Equals(language, Russian, StringComparison.OrdinalIgnoreCase) ? RuCulture : UzCulture;
-        }
+        public static CultureInfo CultureFor(string language) => Languages.CultureFor(language);
 
-        public static string Normalize(string language)
-        {
-            return string.Equals(language, Russian, StringComparison.OrdinalIgnoreCase) ? Russian : Uzbek;
-        }
+        public static string Normalize(string language) => Languages.Normalize(language);
 
-        /// <summary>Foydalanuvchi tili (dst.USER_SETTINGS, 10 daqiqa kesh). Yozuv bo'lmasa — o'zbek.</summary>
+        /// <summary>Ruscha (ikki tilli nomlar uchun: NameRu to'ldirilgan bo'lsa).</summary>
+        public static bool IsRussian(string language) => Languages.Normalize(language) == Russian;
+
+        /// <summary>Foydalanuvchi tili: o'zi tanlagan, aks holda firma standart tili.</summary>
         public static string LanguageOf(int userId)
+        {
+            return StoredLanguageOf(userId) ?? tahsinERP.I18n.UiLanguage.FirmDefault();
+        }
+
+        /// <summary>Foydalanuvchi tanlagan til (dst.USER_SETTINGS, 10 daqiqa kesh); tanlamagan bo'lsa — null.</summary>
+        public static string StoredLanguageOf(int userId)
         {
             string key = "dst.lang:" + (TenantContext.CurrentOrNull?.Slug ?? "") + ":" + userId;
             if (MemoryCache.Default.Get(key) is string cached)
-                return cached;
+                return cached.Length == 0 ? null : cached;
 
             string language;
             using (var db = new DistributionDbContext())
             {
-                language = Normalize(db.UserSettings.Where(s => s.UserID == userId).Select(s => s.Language).FirstOrDefault());
+                language = Languages.TryNormalize(db.UserSettings.Where(s => s.UserID == userId).Select(s => s.Language).FirstOrDefault());
             }
-            MemoryCache.Default.Set(key, language, DateTimeOffset.Now.Add(CacheTtl));
+            MemoryCache.Default.Set(key, language ?? "", DateTimeOffset.Now.Add(CacheTtl));
             return language;
         }
 

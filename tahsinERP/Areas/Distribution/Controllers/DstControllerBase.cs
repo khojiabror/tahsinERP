@@ -22,6 +22,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
         // Model binding OnActionExecuting'dan OLDIN bo'ladi — madaniyat shu yerda qo'yiladi
         protected override IAsyncResult BeginExecuteCore(AsyncCallback callback, object state)
         {
+            // keyin UiLanguageFilter shu asosga til bo'yicha oy/kun nomlarini qo'yadi
             Thread.CurrentThread.CurrentCulture = DstLocalization.FormCulture;
             return base.BeginExecuteCore(callback, state);
         }
@@ -34,10 +35,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var userId = RoleHelper.GetUserId(CurrentUserName);
-            if (userId.HasValue)
-                Thread.CurrentThread.CurrentUICulture = DstLocalization.CultureFor(DstLocalization.LanguageOf(userId.Value));
-
+            // UI tili — global tahsinERP.I18n.UiLanguageFilter (butun ERP uchun)
             ViewBag.DstCanSeeCost = DstPermissions.Has(CurrentUserName, DstPermissions.SeeCost);
             ViewBag.DstCanChange = RoleHelper.IsPermittedForAction(CurrentUserName,
                 filterContext.ActionDescriptor.ControllerDescriptor.ControllerName, "Index", true);
@@ -46,7 +44,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
         protected bool CanSeeCost => DstPermissions.Has(CurrentUserName, DstPermissions.SeeCost);
 
-        protected bool IsRussian => Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName == "ru";
+        protected bool IsRussian => tahsinERP.Localization.Languages.Current == tahsinERP.Localization.Languages.Russian;
 
         /// <summary>Joriy foydalanuvchi nomidan yozadigan distributsiya konteksti.</summary>
         protected DistributionDbContext NewDb()

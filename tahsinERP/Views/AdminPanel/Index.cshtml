@@ -288,6 +288,41 @@
                 </div>
             </div>
 
+            @if (tahsinERP.Models.RoleHelper.IsAdminOrDeveloper(User.Identity.Name))
+            {
+                string firmLang = tahsinERP.I18n.UiLanguage.FirmDefault();
+                <!-- Firma standart tili -->
+                <section id="ui-language">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title"><i class="bx bx-globe mr-1"></i>@L.T("DefaultLanguage")</h4>
+                                </div>
+                                <div class="card-body">
+                                    @if (TempData["LangSaved"] != null)
+                                    {
+                                        <div class="alert alert-success mb-1">@L.T("Saved")</div>
+                                    }
+                                    @using (Html.BeginForm("SetDefaultLanguage", "AdminPanel", FormMethod.Post, new { @class = "form-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <select name="language" class="form-control mr-1 mb-1" aria-label="@L.T("DefaultLanguage")">
+                                            @foreach (var lang in tahsinERP.Localization.Languages.All)
+                                            {
+                                                <option value="@lang" @(lang == firmLang ? "selected" : null)>@tahsinERP.Localization.Languages.NativeName(lang)</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-primary mb-1">@L.T("Save")</button>
+                                    }
+                                    <small class="text-muted d-block">@L.T("DefaultLanguage_Hint")</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            }
+
             <!-- Tezkor amallar -->
             <section id="quick-actions">
                 <div class="row">

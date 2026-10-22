@@ -1,0 +1,20 @@
+@using tahsinERP.Localization
+@* Interfeys tili tanlagichi (sarlavha va login sahifasi). Tanlov — /Language/Set (cookie + foydalanuvchi sozlamasi). *@
+@{
+    string current = L.Lang;
+    string returnUrl = Request.RawUrl;
+    string menuClass = ViewData["MenuClass"] as string ?? "dropdown-menu dropdown-menu-right";
+}
+<li class="dropdown dropdown-ui-language nav-item">
+    <a class="dropdown-toggle nav-link" id="dropdown-ui-language" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+       title="@L.T("Lang_Choose")" aria-label="@L.T("Lang_Choose")">
+        <i class="bx bx-globe mr-25"></i><span class="selected-language">@Languages.ShortName(current)</span>
+    </a>
+    <div class="@menuClass" aria-labelledby="dropdown-ui-language">
+        @foreach (var lang in Languages.All)
+        {
+            <a class="dropdown-item@(lang == current ? " active" : "")" lang="@Languages.HtmlLang(lang)"
+               href="@Url.Action("Set", "Language", new { area = "", lang, returnUrl })">@Languages.NativeName(lang)</a>
+        }
+    </div>
+</li>

@@ -926,6 +926,10 @@
     <Compile Include="Services\TransportLoadCalculator.cs" />
     <Compile Include="Services\UnitConversionService.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\LanguageController.cs" />
+    <Compile Include="I18n\L.cs" />
+    <Compile Include="I18n\UiLanguage.cs" />
+    <Compile Include="I18n\UiLanguageFilter.cs" />
     <Compile Include="Models\DBTHSNModel.Context.Cache.cs" />
     <Compile Include="Models\DBTHSNModel.Context.SharedConnection.cs" />
     <Compile Include="Areas\Distribution\DistributionAreaRegistration.cs" />
@@ -3092,6 +3096,7 @@
     <Content Include="Views\Account\Settings.cshtml" />
     <Content Include="Views\Shared\_UserProfile.cshtml" />
     <Content Include="Views\Shared\_HeaderUserName.cshtml" />
+    <Content Include="Views\Shared\_LanguageSwitch.cshtml" />
     <Content Include="Views\User\Delete.cshtml" />
     <Content Include="Views\PModule\Index.cshtml" />
     <Content Include="Views\PModule\Create.cshtml" />
@@ -3551,6 +3556,10 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\tahsinERP.Localization\tahsinERP.Localization.csproj">
+      <Project>{B7D3E9A1-5C42-4F8E-9B16-3A0C7E2D4F51}</Project>
+      <Name>tahsinERP.Localization</Name>
+    </ProjectReference>
     <ProjectReference Include="..\tahsinERP.Licensing\tahsinERP.Licensing.csproj">
       <Project>{6F1C2A4E-3B8D-4E59-9A7C-2D5E8F1B0C34}</Project>
       <Name>tahsinERP.Licensing</Name>
@@ -3601,6 +3610,8 @@
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
   <ItemGroup>
     <EmbeddedResource Include="Areas\Distribution\Resources\DstStrings.resx" />
+    <EmbeddedResource Include="Resources\ErpStrings.resx" />
+    <EmbeddedResource Include="Resources\ErpStrings.ru.resx" />
     <EmbeddedResource Include="Areas\Distribution\Resources\DstStrings.ru.resx" />
   </ItemGroup>
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />

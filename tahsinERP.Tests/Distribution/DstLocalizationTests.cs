@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -42,7 +42,7 @@ namespace tahsinERP.Tests.Distribution
         [TestMethod]
         public void EveryKeyUsedInCode_ExistsInResx()
         {
-            var keys = new System.Collections.Generic.HashSet<string>(Keys("DstStrings.resx"));
+            var keys = tahsinERP.Tests.Localization.LocalizationTests.AllErpKeys();   // DstStrings + ErpStrings + umumiy
             var root = Path.GetFullPath(Path.Combine(ResourcesDir(), "..", "..", ".."));   // tahsinERP loyiha papkasi
             var files = Directory.GetFiles(Path.Combine(root, "Areas", "Distribution"), "*.*", SearchOption.AllDirectories)
                 .Concat(Directory.GetFiles(Path.Combine(root, "Areas", "Site"), "*.*", SearchOption.AllDirectories))
@@ -104,6 +104,7 @@ namespace tahsinERP.Tests.Distribution
             Assert.AreEqual("ru", DstLocalization.Normalize("RU"));
             Assert.AreEqual("uz", DstLocalization.Normalize(null));
             Assert.AreEqual("uz", DstLocalization.Normalize("en"));
+            Assert.AreEqual("oz", DstLocalization.Normalize("oz"));
         }
 
         [TestMethod]

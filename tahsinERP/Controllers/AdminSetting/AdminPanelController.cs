@@ -80,6 +80,21 @@ namespace tahsinERP.Controllers
             return View(model);
         }
 
+        /// <summary>Firma standart interfeys tili (foydalanuvchi o'zi tanlamagan bo'lsa).</summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SetDefaultLanguage(string language)
+        {
+            if (!RoleHelper.IsAdminOrDeveloper(User.Identity.Name))
+                return RedirectToAction("Index", "ViewNotAuthorized");
+            if (tahsinERP.Localization.Languages.IsSupported(language))
+            {
+                tahsinERP.I18n.UiLanguage.SetFirmDefault(language);
+                TempData["LangSaved"] = true;
+            }
+            return RedirectToAction("Index");
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
