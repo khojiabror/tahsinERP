@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Shtat jadvali</a></li>
-                                    <li class="breadcrumb-item active">@(isEdit ? "Tahrirlash" : "Qo'shish")</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_StaffingPlan")</a></li>
+                                    <li class="breadcrumb-item active">@(isEdit ? L.T("Edit") : L.T("Add"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -42,20 +42,20 @@
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.OrgUnitID, new { @class = "control-label" })
                                             <span class="text-danger">*</span>
-                                            @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control select2", @required = "required" })
+                                            @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, L.T("Hr_SelectOrgUnit"), new { @class = "form-control select2", @required = "required" })
                                             @Html.ValidationMessageFor(model => model.OrgUnitID, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.PositionID, new { @class = "control-label" })
                                             <span class="text-danger">*</span>
-                                            @Html.DropDownListFor(model => model.PositionID, ViewBag.PositionID as SelectList, "Lavozimni tanlang", new { @class = "form-control select2", @required = "required" })
+                                            @Html.DropDownListFor(model => model.PositionID, ViewBag.PositionID as SelectList, L.T("Hr_SelectPosition"), new { @class = "form-control select2", @required = "required" })
                                             @Html.ValidationMessageFor(model => model.PositionID, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.SalaryGradeID, new { @class = "control-label" })
-                                            @Html.DropDownListFor(model => model.SalaryGradeID, ViewBag.SalaryGradeID as SelectList, "Tarif tarmog'ini tanlang", new { @class = "form-control select2" })
+                                            @Html.DropDownListFor(model => model.SalaryGradeID, ViewBag.SalaryGradeID as SelectList, L.T("Hr_SelectSalaryGrade"), new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.SalaryGradeID, "", new { @class = "text-danger" })
                                         </div>
 
@@ -69,18 +69,18 @@
 
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>To'lov turi</label>
+                                            <label>@L.T("Hr_PayType")</label>
                                             <div class="checkbox checkbox-secondary">
                                                 @Html.CheckBoxFor(model => model.IsFixedSalary, new { @id = "checkboxFixed" })
-                                                <label for="checkboxFixed">Belgilangan maosh</label>
+                                                <label for="checkboxFixed">@L.T("Hr_PayFixedSalary")</label>
                                             </div>
                                             <div class="checkbox checkbox-secondary">
                                                 @Html.CheckBoxFor(model => model.IsHourly, new { @id = "checkboxHourly" })
-                                                <label for="checkboxHourly">Soatbay to'lov</label>
+                                                <label for="checkboxHourly">@L.T("Hr_PayHourlyFull")</label>
                                             </div>
                                             <div class="checkbox checkbox-secondary">
                                                 @Html.CheckBoxFor(model => model.IsPieceRate, new { @id = "checkboxPiece" })
-                                                <label for="checkboxPiece">Ishbay to'lov</label>
+                                                <label for="checkboxPiece">@L.T("Hr_PayPieceFull")</label>
                                             </div>
                                         </div>
 
@@ -107,7 +107,7 @@
                                                 {
                                                     @Html.CheckBoxFor(model => model.IsActive, new { @id = "checkboxActive", @checked = "checked" })
                                                 }
-                                                <label for="checkboxActive">Faol</label>
+                                                <label for="checkboxActive">@L.T("Active")</label>
                                             </div>
                                         </div>
                                     </div>
@@ -115,9 +115,9 @@
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             </div>
                         </div>

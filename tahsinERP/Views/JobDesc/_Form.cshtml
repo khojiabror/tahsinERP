@@ -13,8 +13,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="@(isEdit ? Url.Content("~/AdminPanel") : Url.Content("~/Home"))"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/JobDesc">Job Descriptions</a></li>
-                                    <li class="breadcrumb-item active">@(isEdit ? "Tahrirlash" : "Yangi yo'riqnoma")</li>
+                                    <li class="breadcrumb-item"><a href="~/JobDesc">@L.T("Hr_JdTitle")</a></li>
+                                    <li class="breadcrumb-item active">@(isEdit ? L.T("Edit") : L.T("Hr_JdNew"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,11 +29,11 @@
                             <div class="card-header">
                                 @if (isEdit)
                                 {
-                                    <h4 class="card-title"><i class="bx bx-edit mr-1"></i>Lavozim yo'riqnomasi ma'lumotlarini tahrirlash</h4>
+                                    <h4 class="card-title"><i class="bx bx-edit mr-1"></i>@L.T("Hr_JdEditInfo")</h4>
                                 }
                                 else
                                 {
-                                    <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>Yangi lavozim yo'riqnomasi ma'lumotlari</h4>
+                                    <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>@L.T("Hr_JdNewInfo")</h4>
                                 }
                             </div>
                             <div class="card-content">
@@ -51,25 +51,25 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="JobDescriptionCode">Lavozim kodi <span class="text-danger">*</span></label>
+                                                    <label for="JobDescriptionCode">@L.T("Hr_JdCode") <span class="text-danger">*</span></label>
                                                     @Html.TextBoxFor(model => model.JobDescriptionCode, new {
                                                         @class = "form-control",
-                                                        @placeholder = "Masalan: JD-001",
+                                                        @placeholder = L.T("Hr_JdCodePh"),
                                                         @required = "required"
                                                     })
                                                     @Html.ValidationMessageFor(model => model.JobDescriptionCode, "", new { @class = "text-danger" })
                                                     @if (!isEdit)
                                                     {
-                                                        <small class="form-text text-muted">Lavozim kodi takrorlanmasligi kerak</small>
+                                                        <small class="form-text text-muted">@L.T("Hr_JdCodeUnique")</small>
                                                     }
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="JobTitle">Lavozim nomi</label>
+                                                    <label for="JobTitle">@L.T("Hr_JdName")</label>
                                                     @Html.TextBoxFor(model => model.JobTitle, new {
                                                         @class = "form-control",
-                                                        @placeholder = "Masalan: Ishlab chiqarish boshlig'i"
+                                                        @placeholder = L.T("Hr_JdNamePh")
                                                     })
                                                     @Html.ValidationMessageFor(model => model.JobTitle, "", new { @class = "text-danger" })
                                                 </div>
@@ -81,24 +81,24 @@
                                             {
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Joriy versiya</label>
+                                                        <label>@L.T("Hr_CurrentVersion")</label>
                                                         <input type="text" class="form-control" value="v@(Model.CurrentVersionNo.ToString("F2"))" disabled />
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Yangi versiya <span class="text-danger">*</span></label>
+                                                        <label>@L.T("Hr_NewVersion") <span class="text-danger">*</span></label>
                                                         <input type="text" class="form-control" value="v@(Model.NewVersionNo.ToString("F2"))" disabled />
-                                                        <small class="form-text text-muted">Har safar tahrirlashda versiya avtomatik oshadi (v@(Model.CurrentVersionNo.ToString("F2")) + 0.01 = v@(Model.NewVersionNo.ToString("F2")))</small>
+                                                        <small class="form-text text-muted">@L.T("Hr_JdVersionHint", Model.CurrentVersionNo.ToString("F2"), Model.NewVersionNo.ToString("F2"))</small>
                                                     </div>
                                                 </div>
                                             }
                                             <div class="@(isEdit ? "col-md-4" : "col-md-6")">
                                                 <div class="form-group">
-                                                    <label for="Department">Bo'lim</label>
+                                                    <label for="Department">@L.T("Hr_OrgUnit")</label>
                                                     @Html.TextBoxFor(model => model.Department, new {
                                                         @class = "form-control",
-                                                        @placeholder = "Masalan: Ishlab chiqarish"
+                                                        @placeholder = L.T("Hr_JdDeptPh")
                                                     })
                                                     @Html.ValidationMessageFor(model => model.Department, "", new { @class = "text-danger" })
                                                 </div>
@@ -108,28 +108,28 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="HRJobDescriptionID">HR Lavozimga bog'lash</label>
-                                                    @Html.DropDownListFor(model => model.HRJobDescriptionID, ViewBag.HRJobDescriptions as SelectList, "-- Tanlash --", new { @class = "form-control" })
+                                                    <label for="HRJobDescriptionID">@L.T("Hr_JdLinkHrPosition")</label>
+                                                    @Html.DropDownListFor(model => model.HRJobDescriptionID, ViewBag.HRJobDescriptions as SelectList, L.T("SelectPlaceholder"), new { @class = "form-control" })
                                                     @Html.ValidationMessageFor(model => model.HRJobDescriptionID, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="Notes">Eslatma</label>
+                                            <label for="Notes">@L.T("Note")</label>
                                             @Html.TextAreaFor(model => model.Notes, new {
                                                 @class = "form-control",
                                                 @rows = "3",
-                                                @placeholder = "Qo'shimcha ma'lumotlar..."
+                                                @placeholder = L.T("Hr_AdditionalInfoPh")
                                             })
                                             @Html.ValidationMessageFor(model => model.Notes, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="form-group">
-                                            <label>Hujjat kontenti <span class="text-danger">*</span></label>
+                                            <label>@L.T("Hr_JdContent") <span class="text-danger">*</span></label>
                                             <div class="alert alert-info">
                                                 <i class="bx bx-info-circle"></i>
-                                                <strong>Eslatma:</strong> @(isEdit ? "Quyida Word hujjatini tahrirlashingiz mumkin. Matn orasiga rasmlar qo'shishingiz mumkin." : "Quyida hujjatni tahrirlashingiz mumkin. Template yuklash tugmasini bosing.")
+                                                <strong>@L.T("Note"):</strong> @(isEdit ? L.T("Hr_JdEditHintEdit") : L.T("Hr_JdEditHintNew"))
                                             </div>
                                             
                                             <!-- Quill Editor -->
@@ -138,11 +138,11 @@
                                                 <div id="quill-toolbar">
                                                     @Html.Partial("~/Views/DocTemplates/_QuillToolbar.cshtml")
                                                     <span class="ql-formats">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadCurrentDocxBtn" title="@(isEdit ? "Joriy versiyani yuklash" : "Template yuklash")">
-                                                            <i class="bx bx-file"></i> @(isEdit ? "Joriy versiya" : "Template")
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="loadCurrentDocxBtn" title="@(isEdit ? L.T("Hr_JdLoadCurrent") : L.T("Hr_JdLoadTemplate"))">
+                                                            <i class="bx bx-file"></i> @(isEdit ? L.T("Hr_CurrentVersion") : L.T("Hr_Template"))
                                                         </button>
-                                                        <button type="button" class="btn btn-sm btn-outline-success" id="loadDocxBtn" title="Word fayl yuklash">
-                                                            <i class="bx bx-upload"></i> Word yuklash
+                                                        <button type="button" class="btn btn-sm btn-outline-success" id="loadDocxBtn" title="@L.T("Hr_JdUploadWordFile")">
+                                                            <i class="bx bx-upload"></i> @L.T("Hr_JdUploadWord")
                                                         </button>
                                                     </span>
                                                 </div>
@@ -156,10 +156,10 @@
 
                                         <div class="form-group" style="margin-top: 20px;">
                                             <button type="submit" class="btn btn-primary" id="saveBtn">
-                                                <i class="bx bx-save"></i> @(isEdit ? "Saqlash (Yangi versiya yaratish)" : "Saqlash")
+                                                <i class="bx bx-save"></i> @(isEdit ? L.T("Hr_JdSaveNewVersion") : L.T("Save"))
                                             </button>
                                             <a href="@(isEdit ? Url.Action("Details", "JobDesc", new { id = Model.DocumentID }) : Url.Action("Index", "JobDesc"))" class="btn btn-outline-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }

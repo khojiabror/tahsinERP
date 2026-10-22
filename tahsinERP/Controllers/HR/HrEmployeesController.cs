@@ -9,6 +9,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -171,13 +172,13 @@ namespace tahsinERP.Controllers.HR
             var employee = await db.HR_EMPLOYEES.FindAsync(employeeId);
             if (employee == null)
             {
-                TempData["Error"] = "Xodim topilmadi";
+                TempData["Error"] = L.T("Hr_EmployeeNotFound");
                 return RedirectToAction("Index");
             }
 
             if (effectiveDateTo.HasValue && effectiveDateTo.Value.Date < effectiveDateFrom.Date)
             {
-                TempData["Error"] = "Tugash sanasi boshlanish sanasidan oldin bo'lmasligi kerak";
+                TempData["Error"] = L.T("Hr_EndBeforeStart");
                 return RedirectToAction("Details", new { id = employeeId });
             }
 
@@ -214,7 +215,7 @@ namespace tahsinERP.Controllers.HR
             await db.SaveChangesAsync();
 
             logger.Log("HrEmployees", "AddTenure", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), Bo'lim: {OrgUnitLabel(fromOrgUnitId)}, Lavozim: {PositionLabel(fromPositionId)}");
-            TempData["Success"] = "Staj davri muvaffaqiyatli qo'shildi";
+            TempData["Success"] = L.T("Hr_EmpTenureAdded");
             return RedirectToAction("Details", new { id = employeeId });
         }
 
@@ -265,7 +266,7 @@ namespace tahsinERP.Controllers.HR
                 if (await db.HR_EMPLOYEES.AnyAsync(e => e.TabNo == tabNo))
                 {
                     tx.Rollback();
-                    ModelState.AddModelError("TabNo", "Табельный номер уже существует");
+                    ModelState.AddModelError("TabNo", L.T("Hr_EmpTabNoExists"));
                     PopulateViewBags(viewModel);
                     return View(viewModel);
                 }
@@ -371,7 +372,7 @@ namespace tahsinERP.Controllers.HR
                     .AnyAsync(e => e.TabNo == viewModel.TabNo && e.ID != viewModel.ID && e.IsActive);
                 if (duplicate)
                 {
-                    ModelState.AddModelError("TabNo", "Табельный номер уже существует");
+                    ModelState.AddModelError("TabNo", L.T("Hr_EmpTabNoExists"));
                     PopulateViewBags(viewModel);
                     return View(viewModel);
                 }
@@ -526,7 +527,7 @@ namespace tahsinERP.Controllers.HR
 
             if (employee.DismissalDate != null)
             {
-                TempData["Error"] = "Bu xodim allaqachon ishdan bo'shatilgan";
+                TempData["Error"] = L.T("Hr_EmpAlreadyDismissed");
                 return RedirectToAction("Index");
             }
 
@@ -552,13 +553,13 @@ namespace tahsinERP.Controllers.HR
 
             if (employee.DismissalDate != null)
             {
-                TempData["Error"] = "Bu xodim allaqachon ishdan bo'shatilgan";
+                TempData["Error"] = L.T("Hr_EmpAlreadyDismissed");
                 return RedirectToAction("Index");
             }
 
             if (employee.EmploymentDate.HasValue && dismissalDate.Date < employee.EmploymentDate.Value.Date)
             {
-                TempData["Error"] = "Bo'shatish sanasi ishga qabul sanasidan oldin bo'lishi mumkin emas";
+                TempData["Error"] = L.T("Hr_EmpDismissBeforeHire");
                 return RedirectToAction("Dismiss", new { id });
             }
 
@@ -578,12 +579,12 @@ namespace tahsinERP.Controllers.HR
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrEmployees.Dismiss] " + ex);
-                TempData["Error"] = "Saqlashda xatolik yuz berdi";
+                TempData["Error"] = L.T("Hr_SaveError");
                 return RedirectToAction("Dismiss", new { id });
             }
 
             logger.Log("HrEmployees", "Dismiss", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), Bo'lim: {OrgUnitLabel(employee.OrgUnitID)}, Lavozim: {PositionLabel(employee.PositionID)}, Sana: {dismissalDate:dd.MM.yyyy}, Sabab: {reason}");
-            TempData["Success"] = "Xodim muvaffaqiyatli ishdan bo'shatildi";
+            TempData["Success"] = L.T("Hr_EmpDismissed");
             return RedirectToAction("Index");
         }
 
@@ -612,7 +613,7 @@ namespace tahsinERP.Controllers.HR
 
             if (employee.DismissalDate != null)
             {
-                TempData["Error"] = "Ishdan bo'shatilgan xodimni transfer qilib bo'lmaydi";
+                TempData["Error"] = L.T("Hr_EmpDismissedNoTransfer");
                 return RedirectToAction("Index");
             }
 
@@ -666,13 +667,13 @@ namespace tahsinERP.Controllers.HR
 
             if (employee.DismissalDate != null)
             {
-                TempData["Error"] = "Ishdan bo'shatilgan xodimni transfer qilib bo'lmaydi";
+                TempData["Error"] = L.T("Hr_EmpDismissedNoTransfer");
                 return RedirectToAction("Index");
             }
 
             if (employee.OrgUnitID == toOrgUnitId && employee.PositionID == toPositionId)
             {
-                TempData["Error"] = "Xodim allaqachon ushbu bo'lim va lavozimda";
+                TempData["Error"] = L.T("Hr_EmpAlreadyInPosition");
                 return RedirectToAction("Transfer", new { id });
             }
 
@@ -684,7 +685,7 @@ namespace tahsinERP.Controllers.HR
                     && (sp.EffectiveTo == null || sp.EffectiveTo >= today));
             if (!positionInOrg)
             {
-                TempData["Error"] = "Tanlangan lavozim ushbu bo'lim uchun reja qilinmagan. Iltimos, faqat tanlangan bo'limdagi lavozimlardan birini tanlang.";
+                TempData["Error"] = L.T("Hr_EmpPositionNotPlanned");
                 return RedirectToAction("Transfer", new { id });
             }
 
@@ -722,12 +723,12 @@ namespace tahsinERP.Controllers.HR
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrEmployees.Transfer] " + ex);
-                TempData["Error"] = "Saqlashda xatolik yuz berdi";
+                TempData["Error"] = L.T("Hr_SaveError");
                 return RedirectToAction("Transfer", new { id });
             }
 
             logger.Log("HrEmployees", "Transfer", $"Xodim: {employee.FullName} ({employee.TabNo ?? "-"}), YangiBo'lim: {OrgUnitLabel(toOrgUnitId)}, YangiLavozim: {PositionLabel(toPositionId)}, Sana: {effectiveDate:dd.MM.yyyy}");
-            TempData["Success"] = "Xodim muvaffaqiyatli transfer qilindi";
+            TempData["Success"] = L.T("Hr_EmpTransferred");
             return RedirectToAction("Index");
         }
 

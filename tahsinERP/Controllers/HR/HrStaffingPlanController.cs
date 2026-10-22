@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.I18n;
 using System.Collections.Generic;
 using ClosedXML.Excel;
 using System.IO;
@@ -433,7 +434,7 @@ namespace tahsinERP.Controllers.HR
 
             if (file == null || file.ContentLength == 0)
             {
-                TempData["Error"] = "Файл не выбран";
+                TempData["Error"] = L.T("Hr_FileNotSelected");
                 return View();
             }
 
@@ -469,7 +470,7 @@ namespace tahsinERP.Controllers.HR
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Import xatosi: {ex.Message}";
+                TempData["Error"] = L.T("Hr_ImportError", ex.Message);
                 return View();
             }
         }
@@ -488,7 +489,7 @@ namespace tahsinERP.Controllers.HR
             
             if (importedData == null || !importedData.Any())
             {
-                TempData["Error"] = "Ma'lumotlar topilmadi";
+                TempData["Error"] = L.T("Hr_DataNotFound");
                 return RedirectToAction("Import");
             }
 
@@ -569,11 +570,11 @@ namespace tahsinERP.Controllers.HR
 
                 if (successCount > 0)
                 {
-                    TempData["Success"] = $"{successCount} ta pozitsiya muvaffaqiyatli qo'shildi";
+                    TempData["Success"] = L.T("Hr_SpImportedCount", successCount);
                 }
                 if (errorCount > 0)
                 {
-                    TempData["Warning"] = $"{errorCount} ta qatorda xatolik yuz berdi";
+                    TempData["Warning"] = L.T("Hr_RowsWithErrors", errorCount);
                 }
 
                 return RedirectToAction("Index");
@@ -581,7 +582,7 @@ namespace tahsinERP.Controllers.HR
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrStaffingPlan.ImportConfirm] " + ex);
-                TempData["Error"] = "Saqlashda xatolik yuz berdi";
+                TempData["Error"] = L.T("Hr_SaveError");
                 return RedirectToAction("Import");
             }
         }

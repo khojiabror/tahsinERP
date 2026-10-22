@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.HR.HrDashboardViewModel
 @{
-    ViewBag.Title = "HR Boshqaruv paneli";
+    ViewBag.Title = L.T("Hr_DashTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,7 +15,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">HR Boshqaruv paneli</li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_DashTitle")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,11 +31,11 @@
                             <div class="card-body">
                                 <form method="get" action="@Url.Action("Index")" class="row">
                                     <div class="col-md-3">
-                                        <label>Yil</label>
+                                        <label>@L.T("Hr_Year")</label>
                                         <input type="number" name="year" class="form-control" value="@ViewBag.Year" min="2000" max="2100" />
                                     </div>
                                     <div class="col-md-3">
-                                        <label>Oy</label>
+                                        <label>@L.T("Hr_Month")</label>
                                         <select name="month" class="form-control">
                                             @for (int i = 1; i <= 12; i++)
                                             {
@@ -44,12 +44,12 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label>Bo'lim</label>
-                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                        <label>@L.T("Hr_OrgUnit")</label>
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, L.T("Hr_AllOrgUnits"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
                                         <label>&nbsp;</label>
-                                        <button type="submit" class="btn btn-primary btn-block">Qo'llash</button>
+                                        <button type="submit" class="btn btn-primary btn-block">@L.T("Apply")</button>
                                     </div>
                                 </form>
                             </div>
@@ -69,7 +69,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalHeadcount</h3>
-                                            <span>Jami xodimlar</span>
+                                            <span>@L.T("Hr_DashTotalEmployees")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -86,7 +86,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.PlannedHeadcount</h3>
-                                            <span>Rejalashtirilgan soni</span>
+                                            <span>@L.T("Hr_PlannedCount")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -103,7 +103,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalMonthlyPayroll.ToString("N2")</h3>
-                                            <span>Oylik ish haqi fondi</span>
+                                            <span>@L.T("Hr_DashMonthlyPayrollFund")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalOvertimeHours.ToString("N1")</h3>
-                                            <span>Qo'shimcha ish soatlari</span>
+                                            <span>@L.T("Hr_DashOvertimeHours")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -140,7 +140,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalWorkedHours.ToString("N1")</h3>
-                                            <span>Jami ishlangan soat</span>
+                                            <span>@L.T("Hr_DashTotalWorkedHours")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -157,7 +157,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalHourlyCalculated.ToString("N2")</h3>
-                                            <span>Soatbay hisoblangan</span>
+                                            <span>@L.T("Hr_DashHourlyAccrued")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -174,7 +174,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalPieceCalculated.ToString("N2")</h3>
-                                            <span>Ishbay hisoblangan</span>
+                                            <span>@L.T("Hr_DashPieceAccrued")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -191,7 +191,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalSalaryPaidFromFin.ToString("N2")</h3>
-                                            <span>To'langan oylik (Fin)</span>
+                                            <span>@L.T("Hr_DashSalaryPaidFin")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -211,7 +211,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalPieceQuantity.ToString("N2")</h3>
-                                            <span>Jami ishbay miqdor</span>
+                                            <span>@L.T("Hr_DashPieceQty")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -228,7 +228,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.TotalSalaryBalance.ToString("N2")</h3>
-                                            <span>Oylik bo'yicha qoldiq (hisoblangan - to'langan)</span>
+                                            <span>@L.T("Hr_DashSalaryBalance")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -242,7 +242,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Bo'limlar bo'yicha shtat soni</h4>
+                                <h4 class="card-title">@L.T("Hr_DashHeadcountByOrg")</h4>
                             </div>
                             <div class="card-body">
                                 <canvas id="headcountChart" height="300"></canvas>
@@ -252,7 +252,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Ish haqi fondi dinamikasi</h4>
+                                <h4 class="card-title">@L.T("Hr_DashPayrollTrend")</h4>
                             </div>
                             <div class="card-body">
                                 <canvas id="payrollTrendChart" height="300"></canvas>
@@ -266,17 +266,17 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Bo'limlar bo'yicha shtat soni</h4>
+                                <h4 class="card-title">@L.T("Hr_DashHeadcountByOrg")</h4>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-striped table-bordered" id="headcountTable">
                                         <thead>
                                             <tr>
-                                                <th>Bo'lim</th>
-                                                <th>Rejalashtirilgan</th>
-                                                <th>Faktik</th>
-                                                <th>Og'ishish</th>
+                                                <th>@L.T("Hr_OrgUnit")</th>
+                                                <th>@L.T("Hr_Planned")</th>
+                                                <th>@L.T("Hr_Actual")</th>
+                                                <th>@L.T("Hr_Deviation")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -331,11 +331,11 @@
                     data: {
                         labels: headcountLabels,
                         datasets: [{
-                            label: 'Rejalashtirilgan',
+                            label: '@L.Js("Hr_Planned")',
                             data: plannedData,
                             backgroundColor: 'rgba(54, 162, 235, 0.5)'
                         }, {
-                            label: 'Faktik',
+                            label: '@L.Js("Hr_Actual")',
                             data: actualData,
                             backgroundColor: 'rgba(255, 99, 132, 0.5)'
                         }]
@@ -364,7 +364,7 @@
                     data: {
                         labels: payrollLabels,
                         datasets: [{
-                            label: 'Ish haqi fondi',
+                            label: '@L.Js("Hr_PayrollFund")',
                             data: payrollData,
                             borderColor: 'rgb(75, 192, 192)',
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -385,9 +385,6 @@
 
             // DataTable
             $('#headcountTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
-                },
                 "pageLength": 25
             });
                 });

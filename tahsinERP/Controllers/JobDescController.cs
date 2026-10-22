@@ -11,6 +11,7 @@ using tahsinERP.ViewModels;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Documents;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -104,12 +105,12 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrWhiteSpace(model.JobDescriptionCode))
             {
-                ModelState.AddModelError("JobDescriptionCode", "Lavozim kodi kiritilishi shart");
+                ModelState.AddModelError("JobDescriptionCode", L.T("Hr_JdCodeRequired"));
             }
 
             if (string.IsNullOrWhiteSpace(model.DocumentContent))
             {
-                ModelState.AddModelError("DocumentContent", "Hujjat kontenti bo'sh bo'lishi mumkin emas");
+                ModelState.AddModelError("DocumentContent", L.T("Hr_JdContentEmpty"));
             }
 
             if (!ModelState.IsValid)
@@ -177,14 +178,14 @@ namespace tahsinERP.Controllers
 
                     tx.Commit();
                     LogHelper.LogToDatabase(User.Identity.Name, "JobDesc", $"Yangi lavozim yo'riqnomasi yaratildi: {model.JobDescriptionCode}");
-                    TempData["Success"] = "Lavozim yo'riqnomasi muvaffaqiyatli yaratildi";
+                    TempData["Success"] = L.T("Hr_JdCreated");
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                ModelState.AddModelError("", L.T("Hr_ErrorOccurred", ex.Message));
                 var templatePath = Server.MapPath("~/App_Data/Templates/JobDescriptionTemplate.docx");
                 ViewBag.HasTemplate = System.IO.File.Exists(templatePath);
                 ViewBag.TemplatePath = templatePath;
@@ -274,7 +275,7 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrWhiteSpace(model.JobDescriptionCode))
             {
-                ModelState.AddModelError("JobDescriptionCode", "Lavozim kodi kiritilishi shart");
+                ModelState.AddModelError("JobDescriptionCode", L.T("Hr_JdCodeRequired"));
             }
 
             if (!ModelState.IsValid)
@@ -341,14 +342,14 @@ namespace tahsinERP.Controllers
 
                     tx.Commit();
                     LogHelper.LogToDatabase(User.Identity.Name, "JobDesc", $"Lavozim yo'riqnomasi yangilandi: {model.JobDescriptionCode} (v{model.NewVersionNo:F2})");
-                    TempData["Success"] = "Lavozim yo'riqnomasi muvaffaqiyatli yangilandi";
+                    TempData["Success"] = L.T("Hr_JdUpdated");
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                ModelState.AddModelError("", L.T("Hr_ErrorOccurred", ex.Message));
                 LoadHRJobDescriptions();
                 return View(model);
             }
@@ -488,14 +489,14 @@ namespace tahsinERP.Controllers
                     await db.SaveChangesAsync();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "JobDesc", $"Lavozim yo'riqnomasi o'chirildi: {jobDescriptionCode}");
-                    TempData["Success"] = "Lavozim yo'riqnomasi muvaffaqiyatli o'chirildi";
+                    TempData["Success"] = L.T("Hr_JdDeleted");
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Hr_ErrorOccurred", ex.Message);
                 return RedirectToAction("Index");
             }
         }
@@ -514,7 +515,7 @@ namespace tahsinERP.Controllers
                         .Select(h => new SelectListItem
                         {
                             Value = h.DocumentID.ToString(),
-                            Text = h.PositionName ?? $"Lavozim #{h.DocumentID}"
+                            Text = h.PositionName ?? L.T("Hr_Position") + " #" + h.DocumentID
                         })
                         .OrderBy(h => h.Text)
                         .ToList();

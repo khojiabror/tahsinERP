@@ -17,14 +17,14 @@
 
             <div class="card mb-1">
                 <div class="card-body">
-                    <h4 class="mb-1">@(isEdit ? "Ishbay grid tahrirlash" : "Ishbay grid kiritish")</h4>
+                    <h4 class="mb-1">@(isEdit ? L.T("Hr_PrGridEdit") : L.T("Hr_PrGridCreate"))</h4>
                     <div class="form-row">
                         <div class="col-md-2">
-                            <label>Yil</label>
+                            <label>@L.T("Hr_Year")</label>
                             <input id="yearPick" type="number" class="form-control" value="@Model.Year" min="2000" max="2100" />
                         </div>
                         <div class="col-md-2">
-                            <label>Oy</label>
+                            <label>@L.T("Hr_Month")</label>
                             <select id="monthPick" class="form-control">
                                 @for (int m = 1; m <= 12; m++)
                                 {
@@ -33,7 +33,7 @@
                             </select>
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
-                            <button type="button" class="btn btn-outline-primary" id="reloadMonthBtn"><i class="bx bx-refresh"></i> Oyni qo'llash</button>
+                            <button type="button" class="btn btn-outline-primary" id="reloadMonthBtn"><i class="bx bx-refresh"></i> @L.T("Hr_PrApplyMonth")</button>
                         </div>
                     </div>
                 </div>
@@ -50,8 +50,8 @@
                     <table class="table table-bordered" id="gridTable">
                         <thead>
                             <tr class="thead-light">
-                                <th>Xodim</th><th>Mahsulot</th><th>Operatsiya</th><th>Sana</th><th>Miqdor</th><th>Tarif</th><th>Summa</th>
-                                <th class="text-center" style="min-width:100px;">Amallar</th>
+                                <th>@L.T("Hr_Employee")</th><th>@L.T("Hr_Product")</th><th>@L.T("Hr_Operation")</th><th>@L.T("Date")</th><th>@L.T("Quantity")</th><th>@L.T("Hr_Tariff")</th><th>@L.T("Amount")</th>
+                                <th class="text-center" style="min-width:100px;">@L.T("Actions")</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -59,11 +59,11 @@
                 </div>
 
                 <div class="mt-1">
-                    <button type="button" class="btn btn-outline-success" id="addRowBtn"><i class="bx bx-plus"></i> Yangi qator qo'shish</button>
+                    <button type="button" class="btn btn-outline-success" id="addRowBtn"><i class="bx bx-plus"></i> @L.T("Hr_AddRow")</button>
                 </div>
                 <div class="mt-2">
-                    <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> Saqlash</button>
-                    <a href="@Url.Action("Index")" class="btn btn-secondary">Orqaga</a>
+                    <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> @L.T("Save")</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Back")</a>
                 </div>
             }
         </div>
@@ -87,9 +87,9 @@
         var orgUnitId = @(Model.OrgUnitID.HasValue ? Model.OrgUnitID.Value.ToString() : "null");
 
         function deleteGridEntry(id) {
-            if (!confirm("O'chirilsinmi?")) return;
+            if (!confirm('@L.Js("Hr_DeleteQ")')) return;
             var token = document.querySelector('#pieceRateGridForm input[name="__RequestVerificationToken"]');
-            if (!token) { alert('Token topilmadi'); return; }
+            if (!token) { alert('@L.Js("Hr_TokenNotFound")'); return; }
             var body = new URLSearchParams();
             body.append('id', id);
             body.append('year', year);
@@ -103,8 +103,8 @@
                 credentials: 'same-origin'
             }).then(function (r) {
                 if (r.ok || r.status === 302) window.location.reload();
-                else alert("O'chirishda xatolik");
-            }).catch(function () { alert('Tarmoq xatosi'); });
+                else alert('@L.Js("Hr_DeleteError")');
+            }).catch(function () { alert('@L.Js("Hr_NetworkError")'); });
         }
 
         var grid = new PieceRateGrid({
@@ -115,13 +115,13 @@
                 var a = document.createElement('a');
                 a.href = editUrl + qs;
                 a.className = 'btn btn-sm btn-outline-primary mb-0';
-                a.title = 'Tahrirlash';
+                a.title = '@L.Js("Edit")';
                 a.innerHTML = '<i class="bx bx-edit"></i>';
                 td.appendChild(a);
                 var b = document.createElement('button');
                 b.type = 'button';
                 b.className = 'btn btn-sm btn-outline-danger mb-0 ml-1';
-                b.title = "O'chirish";
+                b.title = '@L.Js("Delete")';
                 b.innerHTML = '<i class="bx bx-trash"></i>';
                 b.addEventListener('click', function () { deleteGridEntry(row.entryId); });
                 td.appendChild(b);

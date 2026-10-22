@@ -16,6 +16,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -107,7 +108,7 @@ namespace tahsinERP.Controllers.HR
             var existing = await FindActiveHeader(year.Value, month.Value, orgUnitId);
             if (existing != null)
             {
-                TempData["Info"] = "Bu oy uchun tabel allaqachon mavjud";
+                TempData["Info"] = L.T("Hr_TsExistsForMonth");
                 ViewBag.ExistingTimesheetId = existing.ID;
             }
 
@@ -136,12 +137,12 @@ namespace tahsinERP.Controllers.HR
 
             if (ModelState.IsValid && new DateTime(model.Year, model.Month, 1) > new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1))
             {
-                ModelState.AddModelError("", "Kelajak oyiga tabel yaratib bo'lmaydi");
+                ModelState.AddModelError("", L.T("Hr_TsNoFuture"));
             }
 
             if (ModelState.IsValid && await FindActiveHeader(model.Year, model.Month, model.OrgUnitID) != null)
             {
-                ModelState.AddModelError("", "Ushbu davr uchun tabel allaqachon mavjud");
+                ModelState.AddModelError("", L.T("Hr_TsExistsForPeriod"));
             }
 
             if (!ModelState.IsValid)
@@ -181,7 +182,7 @@ namespace tahsinERP.Controllers.HR
             }
             if (addResult.AddedCount > 0)
             {
-                TempData["Success"] = $"{addResult.AddedCount} ta xodim qo'shildi";
+                TempData["Success"] = L.T("Hr_TsEmployeesAdded", addResult.AddedCount);
             }
             logger.Log("HrTimesheets", "Create", $"ID={header.ID}");
             return RedirectToAction("Edit", new { id = header.ID });
@@ -212,7 +213,7 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
             {
-                TempData["Error"] = "Ruxsat yo'q";
+                TempData["Error"] = L.T("Hr_NoAccess");
                 return RedirectToAction("Index");
             }
 
@@ -220,14 +221,14 @@ namespace tahsinERP.Controllers.HR
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
-                TempData["Error"] = "Faqat qoralama tabelga xodim qo'shish mumkin";
+                TempData["Error"] = L.T("Hr_TsOnlyDraftAddEmployees");
                 return RedirectToAction("Edit", new { id = timesheetId });
             }
 
             var result = await AddEmployeesToTimesheet(header, employeeIds);
             if (result.AddedCount > 0)
             {
-                TempData["Success"] = $"{result.AddedCount} ta xodim qo'shildi";
+                TempData["Success"] = L.T("Hr_TsEmployeesAdded", result.AddedCount);
             }
             if (result.Errors.Any())
             {
@@ -235,7 +236,7 @@ namespace tahsinERP.Controllers.HR
             }
             if (result.AddedCount == 0 && !result.Errors.Any())
             {
-                TempData["Info"] = "Yangi xodim qo'shilmadi: tanlanganlar allaqachon tabelda bor";
+                TempData["Info"] = L.T("Hr_TsNoNewEmployees");
             }
             return RedirectToAction("Edit", new { id = timesheetId });
         }
@@ -251,7 +252,7 @@ namespace tahsinERP.Controllers.HR
 
             if (string.IsNullOrWhiteSpace(gridJson))
             {
-                TempData["Error"] = "Saqlash uchun ma'lumot yuborilmadi";
+                TempData["Error"] = L.T("Hr_TsNoDataToSave");
                 return RedirectToAction("Edit", new { id = timesheetId });
             }
 
@@ -262,7 +263,7 @@ namespace tahsinERP.Controllers.HR
             }
             catch
             {
-                TempData["Error"] = "Ma'lumot formati noto'g'ri";
+                TempData["Error"] = L.T("Hr_TsBadDataFormat");
                 return RedirectToAction("Edit", new { id = timesheetId });
             }
 
@@ -270,7 +271,7 @@ namespace tahsinERP.Controllers.HR
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
-                TempData["Error"] = "Faqat qoralama holatidagi tabelni saqlash mumkin";
+                TempData["Error"] = L.T("Hr_TsOnlyDraftSave");
                 return RedirectToAction("Edit", new { id = timesheetId });
             }
 
@@ -302,7 +303,7 @@ namespace tahsinERP.Controllers.HR
             }
 
             await db.SaveChangesAsync();
-            TempData["Success"] = "Tabel ma'lumotlari bazaga saqlandi";
+            TempData["Success"] = L.T("Hr_TsSaved");
             logger.Log("HrTimesheets", "SaveTimesheet", $"TabelID={timesheetId}");
             return RedirectToAction("Edit", new { id = timesheetId });
         }
@@ -312,20 +313,20 @@ namespace tahsinERP.Controllers.HR
         public async Task<JsonResult> UpdateLine(int lineId, int day, decimal? hours)
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
-                return Json(new { success = false, message = "Ruxsat yo'q" });
+                return Json(new { success = false, message = L.T("Hr_NoAccess") });
 
             var line = await db.HR_TIMESHEET_LINES
                 .Include(l => l.HR_TIMESHEET_HEADERS)
                 .FirstOrDefaultAsync(l => l.ID == lineId && (l.IsDeleted == null || l.IsDeleted == false));
-            if (line == null) return Json(new { success = false, message = "Qator topilmadi" });
+            if (line == null) return Json(new { success = false, message = L.T("Hr_RowNotFound") });
 
             // Tasdiqlangan/yopilgan (ish haqi hisoblangan bo'lishi mumkin) tabel o'zgarmaydi (HRM-B05)
             var header = line.HR_TIMESHEET_HEADERS;
             if (header == null || header.IsDeleted == true || header.Status != Draft)
-                return Json(new { success = false, message = "Faqat qoralama holatidagi tabelni tahrirlash mumkin" });
+                return Json(new { success = false, message = L.T("Hr_TsOnlyDraftEdit") });
 
             var daysInMonth = DateTime.DaysInMonth(header.Year, header.Month);
-            if (day < 1 || day > daysInMonth) return Json(new { success = false, message = "Kun noto'g'ri" });
+            if (day < 1 || day > daysInMonth) return Json(new { success = false, message = L.T("Hr_TsBadDay") });
 
             TimesheetLineAccessor.SetHours(line, day, ClampHours(hours));
             TimesheetLineAccessor.RecalculateTotals(line, header.Year, header.Month);
@@ -344,7 +345,7 @@ namespace tahsinERP.Controllers.HR
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
-                TempData["Error"] = "Faqat qoralama tabel tasdiqlanadi";
+                TempData["Error"] = L.T("Hr_TsOnlyDraftApprove");
                 return RedirectToAction("Index");
             }
             header.Status = Approved;
@@ -366,7 +367,7 @@ namespace tahsinERP.Controllers.HR
             if (header == null) return HttpNotFound();
             if (header.Status != Approved)
             {
-                TempData["Error"] = "Faqat tasdiqlangan tabel yopiladi";
+                TempData["Error"] = L.T("Hr_TsOnlyApprovedClose");
                 return RedirectToAction("Index");
             }
             header.Status = Closed;
@@ -400,7 +401,7 @@ namespace tahsinERP.Controllers.HR
             if (header == null) return HttpNotFound();
             if (header.Status != Draft)
             {
-                TempData["Error"] = "Faqat qoralama tabel o'chiriladi";
+                TempData["Error"] = L.T("Hr_TsOnlyDraftDelete");
                 return RedirectToAction("Index");
             }
 
@@ -408,7 +409,7 @@ namespace tahsinERP.Controllers.HR
             var hasPayroll = await db.HR_PAYROLL_HEADERS.AnyAsync(p => p.TimesheetID == id && p.IsDeleted != true);
             if (hasPayroll)
             {
-                TempData["Error"] = "Bu tabelga bog'langan ish haqi bor";
+                TempData["Error"] = L.T("Hr_TsHasPayroll");
                 return RedirectToAction("Index");
             }
 
@@ -426,7 +427,7 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrTimesheets"))
             {
-                TempData["Error"] = "Ruxsat yo'q";
+                TempData["Error"] = L.T("Hr_NoAccess");
                 return RedirectToAction("Index");
             }
 
@@ -435,7 +436,7 @@ namespace tahsinERP.Controllers.HR
                 .FirstOrDefaultAsync(l => l.ID == lineId && (l.IsDeleted == null || l.IsDeleted == false));
             if (line == null)
             {
-                TempData["Error"] = "Qator topilmadi";
+                TempData["Error"] = L.T("Hr_RowNotFound");
                 return RedirectToAction("Index");
             }
 
@@ -443,13 +444,13 @@ namespace tahsinERP.Controllers.HR
             if (header == null || header.IsDeleted == true) return RedirectToAction("Index");
             if (header.Status != Draft)
             {
-                TempData["Error"] = "Faqat qoralama tabel satri o'chiriladi";
+                TempData["Error"] = L.T("Hr_TsOnlyDraftLineDelete");
                 return RedirectToAction("Edit", new { id = header.ID });
             }
 
             line.IsDeleted = true;
             await db.SaveChangesAsync();
-            TempData["Success"] = "Qator o'chirildi";
+            TempData["Success"] = L.T("Hr_RowDeleted");
             return RedirectToAction("Edit", new { id = header.ID });
         }
 
@@ -483,19 +484,19 @@ namespace tahsinERP.Controllers.HR
 
             using (var workbook = new XLWorkbook())
             {
-                var ws = workbook.Worksheets.Add($"Tabel {vm.Year}-{vm.Month:D2}");
+                var ws = workbook.Worksheets.Add(L.T("Hr_Timesheet") + $" {vm.Year}-{vm.Month:D2}");
                 ws.Cell(1, 1).Value = "№";
-                ws.Cell(1, 2).Value = "Tab.№";
-                ws.Cell(1, 3).Value = "F.I.Sh.";
-                ws.Cell(1, 4).Value = "Lavozim";
+                ws.Cell(1, 2).Value = L.T("Hr_TabNoShort");
+                ws.Cell(1, 3).Value = L.T("Hr_FullName");
+                ws.Cell(1, 4).Value = L.T("Hr_Position");
 
                 var daysInMonth = DateTime.DaysInMonth(vm.Year, vm.Month);
                 int col = 5;
                 for (int d = 1; d <= daysInMonth; d++) ws.Cell(1, col++).Value = d;
-                ws.Cell(1, col++).Value = "Ishlangan kun";
-                ws.Cell(1, col++).Value = "Ishlangan soat";
-                ws.Cell(1, col++).Value = "Qo'shimcha soat";
-                ws.Cell(1, col++).Value = "Kelmagan kun";
+                ws.Cell(1, col++).Value = L.T("Hr_WorkedDays");
+                ws.Cell(1, col++).Value = L.T("Hr_WorkedHours");
+                ws.Cell(1, col++).Value = L.T("Hr_OvertimeHours");
+                ws.Cell(1, col++).Value = L.T("Hr_AbsentDays");
 
                 int row = 2; int n = 1;
                 foreach (var line in vm.Lines)
@@ -516,15 +517,15 @@ namespace tahsinERP.Controllers.HR
                     row++;
                 }
 
-                ws.Cell(row + 1, 1).Value = "Oylik fond soati";
+                ws.Cell(row + 1, 1).Value = L.T("Hr_FundHours");
                 ws.Cell(row + 1, 2).Value = vm.FundHours;
-                ws.Cell(row + 2, 1).Value = "Jami qo'shimcha soat";
+                ws.Cell(row + 2, 1).Value = L.T("Hr_TotalOvertimeHours");
                 ws.Cell(row + 2, 2).Value = vm.Lines.Sum(l => l.OvertimeHours);
 
                 ws.Columns().AdjustToContents();
                 return File(workbook.ToByteArray(),
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"Tabel_{vm.Year}_{vm.Month:D2}.xlsx");
+                    L.T("Hr_Timesheet") + $"_{vm.Year}_{vm.Month:D2}.xlsx");
             }
         }
 
@@ -544,7 +545,7 @@ namespace tahsinERP.Controllers.HR
                 return RedirectToAction("Index", "ViewNotAuthorized");
             if (file == null || file.ContentLength == 0)
             {
-                TempData["Error"] = "Fayl tanlanmagan";
+                TempData["Error"] = L.T("Hr_FileNotSelected");
                 PopulateOrgUnits(orgUnitId);
                 return View("Import");
             }
@@ -580,7 +581,7 @@ namespace tahsinERP.Controllers.HR
             var bytes = string.IsNullOrEmpty(fileToken) ? null : UploadCache.Get(UploadKey(fileToken)) as byte[];
             if (bytes == null)
             {
-                TempData["Error"] = "Fayl topilmadi, qayta yuklang";
+                TempData["Error"] = L.T("Hr_TsFileGoneReupload");
                 return RedirectToAction("Import");
             }
 
@@ -591,7 +592,7 @@ namespace tahsinERP.Controllers.HR
                     workbook.Worksheets.TryGetWorksheet(sheetName, out ws);
                 if (ws == null)
                 {
-                    TempData["Error"] = "Tanlangan varaq topilmadi";
+                    TempData["Error"] = L.T("Hr_TsSheetNotFound");
                     return RedirectToAction("Import");
                 }
 
@@ -604,7 +605,7 @@ namespace tahsinERP.Controllers.HR
                 // Tasdiqlangan/yopilgan tabelga import qilib bo'lmaydi — ish haqi bilan farq paydo bo'lardi (HRM-B05)
                 if (header != null && header.Status != Draft)
                 {
-                    TempData["Error"] = $"{sheetYear}-{month:D2} uchun tabel qoralama holatida emas — import qilib bo'lmaydi";
+                    TempData["Error"] = L.T("Hr_TsNotDraftNoImport", $"{sheetYear}-{month:D2}");
                     return RedirectToAction("Import");
                 }
 
@@ -668,7 +669,7 @@ namespace tahsinERP.Controllers.HR
                 }
 
                 UploadCache.Remove(UploadKey(fileToken));
-                TempData["Success"] = "Import yakunlandi";
+                TempData["Success"] = L.T("Hr_ImportDone");
                 logger.Log("HrTimesheets", "ImportFromSheet", $"TabelID={header.ID}, Varaq={sheetName}");
                 return RedirectToAction("Edit", new { id = header.ID });
             }
@@ -779,7 +780,7 @@ namespace tahsinERP.Controllers.HR
                 var label = $"{(emp.TabNo ?? "-")} - {emp.FullName}";
                 if (!activeIds.Contains(emp.ID))
                 {
-                    result.Errors.Add($"{label}: tanlangan oyda ish davri topilmadi");
+                    result.Errors.Add(label + ": " + L.T("Hr_TsNoWorkPeriodInMonth"));
                     continue;
                 }
 
@@ -800,7 +801,7 @@ namespace tahsinERP.Controllers.HR
                 }
                 else
                 {
-                    result.Errors.Add($"{label}: allaqachon tabelda mavjud");
+                    result.Errors.Add(label + ": " + L.T("Hr_TsAlreadyInTimesheet"));
                 }
             }
 

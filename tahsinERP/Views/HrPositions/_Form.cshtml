@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Lavozimlar</a></li>
-                                    <li class="breadcrumb-item active">@(isEdit ? "Tahrirlash" : "Qo'shish")</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Positions")</a></li>
+                                    <li class="breadcrumb-item active">@(isEdit ? L.T("Edit") : L.T("Add"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                                         <div class="form-group">
                                             <div class="checkbox checkbox-secondary">
                                                 @Html.CheckBoxFor(model => model.IsManager, new { @id = "checkboxManager" })
-                                                <label for="checkboxManager">Rahbariyat lavozimi</label>
+                                                <label for="checkboxManager">@L.T("Hr_ManagerPosition")</label>
                                             </div>
                                         </div>
 
@@ -73,7 +73,7 @@
                                                 {
                                                     @Html.CheckBoxFor(model => model.IsActive, new { @id = "checkboxActive", @checked = "checked" })
                                                 }
-                                                <label for="checkboxActive">Faol</label>
+                                                <label for="checkboxActive">@L.T("Active")</label>
                                             </div>
                                         </div>
                                     </div>
@@ -81,9 +81,9 @@
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             </div>
                         </div>

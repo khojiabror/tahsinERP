@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Xodimlar</a></li>
-                                    <li class="breadcrumb-item active">@(isEdit ? "Tahrirlash" : "Qo'shish")</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Employees")</a></li>
+                                    <li class="breadcrumb-item active">@(isEdit ? L.T("Edit") : L.T("Add"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -50,7 +50,7 @@
                                             {
                                                 string nextTabNo = ViewBag.NextTabNo != null ? ViewBag.NextTabNo.ToString() : "0001";
                                                 @Html.TextBoxFor(model => model.TabNo, new { @class = "form-control", @readonly = "readonly", @Value = nextTabNo })
-                                                <small class="form-text text-muted">Tabel raqami avtomatik generatsiya qilinadi</small>
+                                                <small class="form-text text-muted">@L.T("Hr_EmpTabNoAuto")</small>
                                             }
                                             @Html.ValidationMessageFor(model => model.TabNo, "", new { @class = "text-danger" })
                                         </div>
@@ -64,13 +64,13 @@
 
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.OrgUnitID, new { @class = "control-label" })
-                                            @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control select2" })
+                                            @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, L.T("Hr_SelectOrgUnit"), new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.OrgUnitID, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.PositionID, new { @class = "control-label" })
-                                            @Html.DropDownListFor(model => model.PositionID, ViewBag.PositionID as SelectList, "Lavozimni tanlang", new { @class = "form-control select2" })
+                                            @Html.DropDownListFor(model => model.PositionID, ViewBag.PositionID as SelectList, L.T("Hr_SelectPosition"), new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.PositionID, "", new { @class = "text-danger" })
                                         </div>
                                     </div>
@@ -96,7 +96,7 @@
 
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.SalaryGradeID, new { @class = "control-label" })
-                                            @Html.DropDownListFor(model => model.SalaryGradeID, ViewBag.SalaryGradeID as SelectList, "Tarif tarmog'ini tanlang", new { @class = "form-control select2" })
+                                            @Html.DropDownListFor(model => model.SalaryGradeID, ViewBag.SalaryGradeID as SelectList, L.T("Hr_SelectSalaryGrade"), new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.SalaryGradeID, "", new { @class = "text-danger" })
                                         </div>
 
@@ -122,7 +122,7 @@
                                                 {
                                                     @Html.CheckBoxFor(model => model.IsActive, new { @id = "checkboxActive", @checked = "checked" })
                                                 }
-                                                <label for="checkboxActive">Faol</label>
+                                                <label for="checkboxActive">@L.T("Active")</label>
                                             </div>
                                         </div>
                                     </div>
@@ -130,9 +130,9 @@
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             </div>
                         </div>

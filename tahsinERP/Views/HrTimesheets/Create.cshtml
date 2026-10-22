@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
 @{
-    ViewBag.Title = "Tabel yaratish";
+    ViewBag.Title = L.T("Hr_TsCreate");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tabel</a></li>
-                                    <li class="breadcrumb-item active">Yaratish</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Timesheet")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Create")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,7 +31,7 @@
                         @TempData["Info"]
                         @if (ViewBag.ExistingTimesheetId != null)
                         {
-                            <a href="@Url.Action("Edit", new { id = ViewBag.ExistingTimesheetId })" class="btn btn-sm btn-primary ml-2">Mavjud tabelni ochish</a>
+                            <a href="@Url.Action("Edit", new { id = ViewBag.ExistingTimesheetId })" class="btn btn-sm btn-primary ml-2">@L.T("Hr_TsOpenExisting")</a>
                         }
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
@@ -78,7 +78,7 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             @Html.LabelFor(model => model.OrgUnitID, new { @class = "control-label" })
-                                            @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, "Butun kompaniya", new { @class = "form-control select2" })
+                                            @Html.DropDownListFor(model => model.OrgUnitID, ViewBag.OrgUnitID as SelectList, L.T("Hr_WholeCompany"), new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.OrgUnitID, "", new { @class = "text-danger" })
                                         </div>
                                     </div>
@@ -95,18 +95,18 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label class="control-label">Qo'lda xodim qo'shish (ixtiyoriy)</label>
+                                            <label class="control-label">@L.T("Hr_TsAddEmployeesManually")</label>
                                             @Html.ListBox("selectedEmployeeIds", ViewBag.EmployeeOptions as MultiSelectList, new { @class = "form-control select2-multi", @style = "min-height: 180px;" })
-                                            <small class="text-muted">Bir yoki bir nechta xodimni tanlab yuborsangiz, tabel ochilganda darrov qo'shiladi.</small>
+                                            <small class="text-muted">@L.T("Hr_TsAddEmployeesHint")</small>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-save"></i> Tabel yaratish
+                                        <i class="bx bx-save"></i> @L.T("Hr_TsCreate")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             </div>
                         </div>
@@ -121,7 +121,7 @@
             $('.select2').select2({ width: '100%' });
             $('.select2-multi').select2({
                 width: '100%',
-                placeholder: "Xodimlarni tanlang",
+                placeholder: '@L.Js("Hr_SelectEmployees")',
                 allowClear: true
             });
 
@@ -137,7 +137,7 @@
 
                     if (timesheetMonth > currentMonth) {
                         e.preventDefault();
-                        alert('Kelajakka tabel kirita olmaysiz');
+                        alert('@L.Js("Hr_TsNoFuture")');
                         return false;
                     }
                 }

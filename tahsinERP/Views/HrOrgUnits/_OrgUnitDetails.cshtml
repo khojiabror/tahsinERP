@@ -3,41 +3,41 @@
 <div class="org-unit-details">
     <h5>@Model.Name</h5>
     <dl class="row">
-        <dt class="col-sm-4">Kod:</dt>
+        <dt class="col-sm-4">@L.T("Code"):</dt>
         <dd class="col-sm-8">@Model.Code</dd>
 
-        <dt class="col-sm-4">Ota bo'lim:</dt>
-        <dd class="col-sm-8">@(Model.ParentName ?? "Asosiy")</dd>
+        <dt class="col-sm-4">@L.T("Hr_ParentOrgUnit"):</dt>
+        <dd class="col-sm-8">@(Model.ParentName ?? L.T("Hr_OrgRoot"))</dd>
 
-        <dt class="col-sm-4">Daraja:</dt>
+        <dt class="col-sm-4">@L.T("Hr_OrgLevel"):</dt>
         <dd class="col-sm-8">@Model.LevelNo</dd>
 
-        <dt class="col-sm-4">Rejalashtirilgan soni:</dt>
+        <dt class="col-sm-4">@L.T("Hr_PlannedCount"):</dt>
         <dd class="col-sm-8">@Model.PlannedHeadcount</dd>
 
-        <dt class="col-sm-4">Faktik soni:</dt>
+        <dt class="col-sm-4">@L.T("Hr_ActualCount"):</dt>
         <dd class="col-sm-8">
             <span class="badge badge-@(Model.ActualHeadcount >= Model.PlannedHeadcount ? "success" : "warning")">
                 @Model.ActualHeadcount
             </span>
         </dd>
 
-        <dt class="col-sm-4">Holat:</dt>
+        <dt class="col-sm-4">@L.T("Status"):</dt>
         <dd class="col-sm-8">
             <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
-                @(Model.IsActive ? "Faol" : "Nofaol")
+                @(Model.IsActive ? L.T("Active") : L.T("Inactive"))
             </span>
         </dd>
     </dl>
 
     <div class="mt-3">
         <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-sm btn-info">
-            <i class="bx bx-show"></i> Batafsil
+            <i class="bx bx-show"></i> @L.T("Details")
         </a>
         @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
         {
             <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                <i class="bx bx-edit"></i> Tahrirlash
+                <i class="bx bx-edit"></i> @L.T("Edit")
             </a>
         }
     </div>

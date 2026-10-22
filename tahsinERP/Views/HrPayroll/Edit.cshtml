@@ -3,7 +3,7 @@
 @using tahsinERP.Models
 @using tahsinERP.Services.Common
 @{
-    ViewBag.Title = "Ish haqi hisobini tahrirlash";
+    ViewBag.Title = L.T("Hr_PayEdit");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var currencyItems = ViewBag.CurrencyItems as IReadOnlyList<RefItem> ?? new List<RefItem>();
 }
@@ -19,9 +19,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ish haqi hisobi</a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = Model.ID })">Batafsil</a></li>
-                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_PayTitle")</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = Model.ID })">@L.T("Details")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Edit")</li>
                                 </ol>
                             </div>
                         </div>
@@ -50,17 +50,17 @@
                     <div class="col-12">
                         <div class="btn-group" role="group">
                             <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-sm btn-outline-secondary">
-                                <i class="bx bx-show"></i> Batafsil
+                                <i class="bx bx-show"></i> @L.T("Details")
                             </a>
                             <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-sm btn-success">
-                                <i class="bx bx-export"></i> Excelga eksport
+                                <i class="bx bx-export"></i> @L.T("ExportExcel")
                             </a>
                             <a href="@Url.Action("Report", new { id = Model.ID })" class="btn btn-sm btn-info" target="_blank">
-                                <i class="bx bx-printer"></i> Chop etish
+                                <i class="bx bx-printer"></i> @L.T("Print")
                             </a>
                         </div>
                         <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Posted" ? "info" : "warning") ml-2">
-                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan (moliyaga yozilmagan)" : "Tasdiqlangan, moliyaga yozilgan")
+                            @L.T("Status"): @(Model.Status == "Draft" ? L.T("Hr_PayStatus_Draft") : Model.Status == "Approved" ? L.T("Hr_PayApprovedNotPosted") : L.T("Hr_PayApprovedPosted"))
                         </span>
                     </div>
                 </div>
@@ -69,23 +69,23 @@
                 {
                     bool isDraft = Model.Status == "Draft";
                     @* Tasdiqlash bilan birga to'lovga summa Finance'ga chiqim sifatida yoziladi (har valyuta uchun alohida) *@
-                    using (Html.BeginForm(isDraft ? "Approve" : "Post", "HrPayroll", new { id = Model.ID }, FormMethod.Post, new { @class = "card mb-2", onsubmit = "return confirm(this.getAttribute('data-msg'));", data_msg = isDraft ? "Hisobni tasdiqlab, moliya moduliga chiqim sifatida yozilsinmi?" : "Hisob moliya moduliga chiqim sifatida yozilsinmi?" }))
+                    using (Html.BeginForm(isDraft ? "Approve" : "Post", "HrPayroll", new { id = Model.ID }, FormMethod.Post, new { @class = "card mb-2", onsubmit = "return confirm(this.getAttribute('data-msg'));", data_msg = isDraft ? L.T("Hr_PayApproveConfirm") : L.T("Hr_PayPostConfirm") }))
                     {
                         @Html.AntiForgeryToken()
                         <div class="card-body py-1">
                             <div class="form-row align-items-end">
                                 <div class="col-md-4">
-                                    <label class="mb-0">Moliya hisobi (kassa/bank)</label>
+                                    <label class="mb-0">@L.T("Hr_PayFinAccount")</label>
                                     @Html.DropDownList("accountId", ViewBag.FinAccountID as SelectList, new { @class = "form-control form-control-sm" })
-                                    <small class="text-muted">Boshqa valyutadagi satrlar shu valyutaning birinchi faol hisobiga yoziladi</small>
+                                    <small class="text-muted">@L.T("Hr_PayOtherCurrencyHint")</small>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="mb-0">Chiqim toifasi</label>
-                                    @Html.DropDownList("categoryId", ViewBag.FinCategoryID as SelectList, "Avtomatik (oylik)", new { @class = "form-control form-control-sm" })
+                                    <label class="mb-0">@L.T("Hr_PayExpenseCategory")</label>
+                                    @Html.DropDownList("categoryId", ViewBag.FinCategoryID as SelectList, L.T("Hr_PayAutoCategory"), new { @class = "form-control form-control-sm" })
                                 </div>
                                 <div class="col-md-4">
                                     <button type="submit" class="btn btn-sm btn-warning">
-                                        <i class="bx bx-check"></i> @(isDraft ? "Tasdiqlash va moliyaga yozish" : "Moliyaga yozish")
+                                        <i class="bx bx-check"></i> @(isDraft ? L.T("Hr_PayApproveAndPost") : L.T("Hr_PayPostToFin"))
                                     </button>
                                 </div>
                             </div>
@@ -95,14 +95,14 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">Xulosa</h4>
+                        <h4 class="card-title">@L.T("Hr_Summary")</h4>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             @if (Model.ApplyIncomeTax)
                             {
                                 <div class="col-md-3 mb-1">
-                                    <label class="mb-0"><strong>Daromad solig'i (%)</strong></label>
+                                    <label class="mb-0"><strong>@L.T("Hr_IncomeTaxPct")</strong></label>
                                     <input type="number"
                                            id="incomeTaxPercent"
                                            class="form-control form-control-sm"
@@ -114,22 +114,22 @@
                                 </div>
                             }
                             <div class="col-md-3">
-                                <strong>Jami hisoblangan:</strong> @Model.TotalGrossSalary.ToString("N2")
+                                <strong>@L.T("Hr_TotalAccrued"):</strong> @Model.TotalGrossSalary.ToString("N2")
                             </div>
                             @if (Model.ApplyIncomeTax)
                             {
                                 <div class="col-md-3">
-                                    <strong>Jami daromad solig'i:</strong> <span id="summaryIncomeTax">@Model.TotalIncomeTax.ToString("N2")</span>
+                                    <strong>@L.T("Hr_TotalIncomeTax"):</strong> <span id="summaryIncomeTax">@Model.TotalIncomeTax.ToString("N2")</span>
                                 </div>
                             }
                             <div class="col-md-3">
-                                <strong>Mukofotlar:</strong> <span id="summaryBonuses">@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</span>
+                                <strong>@L.T("Hr_Bonuses"):</strong> <span id="summaryBonuses">@Model.Lines.Sum(l => l.Bonuses).ToString("N2")</span>
                             </div>
                             <div class="col-md-3">
-                                <strong>Jarimalar:</strong> <span id="summaryPenalties">@Model.Lines.Sum(l => l.Penalties).ToString("N2")</span>
+                                <strong>@L.T("Hr_Penalties"):</strong> <span id="summaryPenalties">@Model.Lines.Sum(l => l.Penalties).ToString("N2")</span>
                             </div>
                             <div class="col-md-3">
-                                <strong>To'lovga:</strong> <span id="summaryNet" class="text-success font-weight-bold">@Model.TotalNetSalary.ToString("N2")</span>
+                                <strong>@L.T("Hr_NetPay"):</strong> <span id="summaryNet" class="text-success font-weight-bold">@Model.TotalNetSalary.ToString("N2")</span>
                             </div>
                         </div>
                     </div>
@@ -143,20 +143,20 @@
                                     <thead>
                                         <tr>
                                             <th>№</th>
-                                            <th>Tab.№</th>
-                                            <th>F.I.O.</th>
-                                            <th>Lavozim</th>
-                                            <th>Asosiy maosh</th>
-                                            <th>Ishlangan soatlar</th>
-                                            <th>Hisoblangan</th>
+                                            <th>@L.T("Hr_TabNoShort")</th>
+                                            <th>@L.T("Hr_FullName")</th>
+                                            <th>@L.T("Hr_Position")</th>
+                                            <th>@L.T("Hr_BaseSalary")</th>
+                                            <th>@L.T("Hr_HoursWorked")</th>
+                                            <th>@L.T("Hr_Accrued")</th>
                                             @if (Model.ApplyIncomeTax)
                                             {
-                                                <th>Daromad solig'i</th>
+                                                <th>@L.T("Hr_IncomeTax")</th>
                                             }
-                                            <th>Mukofotlar</th>
-                                            <th>Jarimalar</th>
-                                            <th>To'lovga</th>
-                                            <th>Valyuta</th>
+                                            <th>@L.T("Hr_Bonuses")</th>
+                                            <th>@L.T("Hr_Penalties")</th>
+                                            <th>@L.T("Hr_NetPay")</th>
+                                            <th>@L.T("Currency")</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -219,7 +219,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr class="font-weight-bold">
-                                            <td colspan="6" class="text-right">JAMI:</td>
+                                            <td colspan="6" class="text-right">@L.T("Hr_TotalUpper"):</td>
                                             <td>@Model.TotalGrossSalary.ToString("N2")</td>
                                             @if (Model.ApplyIncomeTax)
                                             {
@@ -253,22 +253,9 @@
                         if (taxPercent > 100) taxPercent = 100;
                         return taxPercent;
                     }
-                    var dtUz = {
-                        decimal: "",
-                        emptyTable: "Jadvalda ma'lumot yo'q",
-                        info: "_TOTAL_ yozuvdan _START_ - _END_ gacha ko'rsatilmoqda",
-                        infoEmpty: "0 yozuvdan 0 - 0 gacha ko'rsatilmoqda",
-                        infoFiltered: "(_MAX_ yozuvdan filtrlangan)",
-                        lengthMenu: "Ko'rsatish _MENU_ ta yozuv",
-                        loadingRecords: "Yuklanmoqda...",
-                        processing: "Qayta ishlanmoqda...",
-                        search: "Qidirish:",
-                        zeroRecords: "Mos yozuv topilmadi",
-                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" }
-                    };
                     if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#payrollGrid')) {
                         $('#payrollGrid').DataTable({
-                            language: dtUz,
+                            language: erpDataTable.language,
                             pageLength: 25,
                             order: [[1, "asc"]],
                             autoWidth: false,
@@ -309,7 +296,7 @@
                                 }
                                 applyTotals(result.totals);
                             } else {
-                                alert('Xatolik: ' + result.message);
+                                alert('@L.Js("Error"): ' + result.message);
                             }
                         });
                     });
@@ -324,7 +311,7 @@
                             if (result.success) {
                                 location.reload();
                             } else {
-                                alert('Xatolik: ' + result.message);
+                                alert('@L.Js("Error"): ' + result.message);
                             }
                         });
                     });
@@ -339,7 +326,7 @@
                             currencyId: currencyId
                         }, function (result) {
                             if (!result.success) {
-                                alert('Xatolik: ' + result.message);
+                                alert('@L.Js("Error"): ' + result.message);
                                 location.reload();
                             }
                         });

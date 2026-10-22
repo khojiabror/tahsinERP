@@ -7,32 +7,32 @@ namespace tahsinERP.ViewModels.HR
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Код тарифной сетки обязателен")]
-        [Display(Name = "Код")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Code")]
         public string GradeCode { get; set; }
         
-        [Required(ErrorMessage = "Название обязательно")]
-        [Display(Name = "Название")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Name")]
         public string Name { get; set; }
         
-        [Required(ErrorMessage = "Минимальная зарплата обязательна")]
-        [Display(Name = "Мин. зарплата")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_MinSalary")]
         public decimal MinSalary { get; set; }
         
-        [Required(ErrorMessage = "Максимальная зарплата обязательна")]
-        [Display(Name = "Макс. зарплата")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_MaxSalary")]
         public decimal MaxSalary { get; set; }
         
-        [Required(ErrorMessage = "Валюта обязательна")]
-        [Display(Name = "Валюта")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Currency")]
         public string CurrencyCode { get; set; }
         
-        [Required(ErrorMessage = "Дата начала действия обязательна")]
-        [Display(Name = "Действует с")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_EffectiveFrom")]
         [DataType(DataType.Date)]
         public DateTime EffectiveFrom { get; set; }
         
-        [Display(Name = "Действует до")]
+        [Display(Name = "Hr_EffectiveTo")]
         [DataType(DataType.Date)]
         public DateTime? EffectiveTo { get; set; }
     }

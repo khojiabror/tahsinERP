@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.HR.HrEmployeeViewModel
 @{
-    ViewBag.Title = "Xodim tafsilotlari";
+    ViewBag.Title = L.T("Hr_EmpDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Xodimlar</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Employees")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_DetailsCrumb")</li>
                                 </ol>
                             </div>
                         </div>
@@ -45,52 +45,52 @@
                     <div class="card-content">
                         <div class="card-body">
                             <dl class="row">
-                                <dt class="col-sm-3">Tabelliy raqam:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_TabNumber"):</dt>
                                 <dd class="col-sm-9">@Model.TabNo</dd>
 
-                                <dt class="col-sm-3">F.I.O.:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_FullName"):</dt>
                                 <dd class="col-sm-9">@Model.FullName</dd>
 
-                                <dt class="col-sm-3">Bo'lim:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_OrgUnit"):</dt>
                                 <dd class="col-sm-9">@(Model.OrgUnitName ?? "-")</dd>
 
-                                <dt class="col-sm-3">Lavozim:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_Position"):</dt>
                                 <dd class="col-sm-9">@(Model.PositionName ?? "-")</dd>
 
-                                <dt class="col-sm-3">Asosiy maosh:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_BaseSalary"):</dt>
                                 <dd class="col-sm-9">@(Model.BaseSalary?.ToString("N2") ?? "-")</dd>
 
-                                <dt class="col-sm-3">Moddiy javobgarlik ustamasi:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_MaterialRespAllowance"):</dt>
                                 <dd class="col-sm-9">@((Model.MaterialResponsibilityPercent ?? 0).ToString("N2")) %</dd>
 
-                                <dt class="col-sm-3">Maxsus ustama:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_SpecialAllowance"):</dt>
                                 <dd class="col-sm-9">@((Model.SpecialAllowancePercent ?? 0).ToString("N2")) %</dd>
 
-                                <dt class="col-sm-3">Tarif tarmog'i:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_SalaryGrade"):</dt>
                                 <dd class="col-sm-9">@(Model.SalaryGradeName ?? "-")</dd>
 
-                                <dt class="col-sm-3">Ushbu lavozimda ish boshlagan sana:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_EmpStartInPosition"):</dt>
                                 <dd class="col-sm-9">@(Model.EmploymentDate?.ToString("dd.MM.yyyy") ?? "-")</dd>
 
-                                <dt class="col-sm-3">Lavozimdan bo'shatilgan sana:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_EmpDismissedFromPosition"):</dt>
                                 <dd class="col-sm-9">@(Model.DismissalDate?.ToString("dd.MM.yyyy") ?? "-")</dd>
 
-                                <dt class="col-sm-3">Hozirdagi status:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_EmpCurrentStatus"):</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
-                                        @(Model.IsActive ? "Ishlaydi" : "Ishdan ketgan")
+                                        @(Model.IsActive ? L.T("Hr_EmpWorking") : L.T("Hr_EmpLeft"))
                                     </span>
                                 </dd>
                             </dl>
 
                             <hr />
 
-                            <h5 class="mb-2">Xodim tarixi</h5>
+                            <h5 class="mb-2">@L.T("Hr_EmpHistory")</h5>
                             @if (changePermit)
                             {
                                 <div class="mb-1">
                                     <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTenureModal">
-                                        <i class="bx bx-plus"></i> Staj qo'shish
+                                        <i class="bx bx-plus"></i> @L.T("Hr_EmpAddTenure")
                                     </button>
                                 </div>
                             }
@@ -103,11 +103,11 @@
                                         <table id="historyTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Bo'lim</th>
-                                                    <th>Lavozim</th>
-                                                    <th>Ishga kirgan sana</th>
-                                                    <th>Ishdan chiqqan sana</th>
-                                                    <th>Sabab</th>
+                                                    <th>@L.T("Hr_OrgUnit")</th>
+                                                    <th>@L.T("Hr_Position")</th>
+                                                    <th>@L.T("Hr_EmpHiredDate")</th>
+                                                    <th>@L.T("Hr_EmpLeftDate")</th>
+                                                    <th>@L.T("Hr_Reason")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -117,7 +117,7 @@
                                                         <td>@(item.FromOrgUnitName ?? "-")</td>
                                                         <td>@(item.FromPositionName ?? "-")</td>
                                                         <td>@(item.EffectiveDate?.ToString("dd.MM.yyyy") ?? "-")</td>
-                                                        <td>@(item.IsCurrentRow ? "shu kungacha" : (item.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-"))</td>
+                                                        <td>@(item.IsCurrentRow ? L.T("Hr_UntilToday") : (item.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-"))</td>
                                                         <td>@(item.Reason ?? "-")</td>
                                                     </tr>
                                                 }
@@ -127,22 +127,22 @@
                                 }
                                 else
                                 {
-                                    <p class="text-muted">Xodim tarixi bo'yicha ma'lumotlar mavjud emas.</p>
+                                    <p class="text-muted">@L.T("Hr_EmpNoHistory")</p>
                                 }
                             }
                             else
                             {
-                                <p class="text-muted">Xodim tarixi bo'yicha ma'lumotlar mavjud emas.</p>
+                                <p class="text-muted">@L.T("Hr_EmpNoHistory")</p>
                             }
 
                             <div class="form-actions mt-3">
                                 @if (changePermit)
                                 {
                                     <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
-                                        <i class="bx bx-edit"></i> Tahrirlash
+                                        <i class="bx bx-edit"></i> @L.T("Edit")
                                     </a>
                                 }
-                                <a href="@Url.Action("Index")" class="btn btn-secondary">Ro'yxatga qaytish</a>
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("BackToList")</a>
                             </div>
                         </div>
                     </div>
@@ -161,35 +161,35 @@
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="employeeId" value="@Model.ID" />
                         <div class="modal-header">
-                            <h5 class="modal-title">Ko'rsatilmayotgan staj davrini qo'shish</h5>
+                            <h5 class="modal-title">@L.T("Hr_EmpAddTenureTitle")</h5>
                             <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                         </div>
                         <div class="modal-body">
                             <div class="form-group">
-                                <label>Bo'lim <span class="text-danger">*</span></label>
-                                @Html.DropDownList("fromOrgUnitId", ViewBag.HistoryOrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control", required = "required" })
+                                <label>@L.T("Hr_OrgUnit") <span class="text-danger">*</span></label>
+                                @Html.DropDownList("fromOrgUnitId", ViewBag.HistoryOrgUnitID as SelectList, L.T("Hr_SelectOrgUnit"), new { @class = "form-control", required = "required" })
                             </div>
                             <div class="form-group">
-                                <label>Lavozim <span class="text-danger">*</span></label>
-                                @Html.DropDownList("fromPositionId", ViewBag.HistoryPositionID as SelectList, "Lavozimni tanlang", new { @class = "form-control", required = "required" })
+                                <label>@L.T("Hr_Position") <span class="text-danger">*</span></label>
+                                @Html.DropDownList("fromPositionId", ViewBag.HistoryPositionID as SelectList, L.T("Hr_SelectPosition"), new { @class = "form-control", required = "required" })
                             </div>
                             <div class="form-group">
-                                <label>Boshlanish sanasi <span class="text-danger">*</span></label>
+                                <label>@L.T("Hr_StartDate") <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" name="effectiveDateFrom" required />
                             </div>
                             <div class="form-group">
-                                <label>Tugash sanasi (ixtiyoriy)</label>
+                                <label>@L.T("Hr_EndDateOptional")</label>
                                 <input type="date" class="form-control" name="effectiveDateTo" />
-                                <small class="text-muted">Bo'sh qoldirilsa "shu kungacha" deb olinadi.</small>
+                                <small class="text-muted">@L.T("Hr_EmpEndDateHint")</small>
                             </div>
                             <div class="form-group">
-                                <label>Sabab</label>
-                                <textarea class="form-control" name="reason" rows="2" placeholder="Masalan: arxivdagi davrni tiklash"></textarea>
+                                <label>@L.T("Hr_Reason")</label>
+                                <textarea class="form-control" name="reason" rows="2" placeholder="@L.T("Hr_EmpTenureReasonPh")"></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor qilish</button>
-                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">@L.T("Cancel")</button>
+                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
                         </div>
                     }
                 </div>
@@ -201,20 +201,6 @@
         $(document).ready(function() {
             if ($('#historyTable').length) {
                 $('#historyTable').DataTable({
-                    "language": {
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "zeroRecords": "Yozuvlar topilmadi",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "search": "Qidirish:",
-                        "paginate": {
-                            "first": "Birinchi",
-                            "last": "Oxirgi",
-                            "next": "Keyingi",
-                            "previous": "Oldingi"
-                        }
-                    },
                     "pageLength": 10,
                     "order": [[2, "asc"], [3, "asc"]]
                 });

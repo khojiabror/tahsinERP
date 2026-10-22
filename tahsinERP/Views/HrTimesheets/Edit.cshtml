@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.HR.HrTimesheetHeaderViewModel
 @{
-    ViewBag.Title = "Tabelni tahrirlash";
+    ViewBag.Title = L.T("Hr_TsEdit");
     Layout = "~/Views/Shared/_Layout.cshtml";
     int daysInMonth = DateTime.DaysInMonth(Model.Year, Model.Month);
 }
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tabel</a></li>
-                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Timesheet")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Edit")</li>
                                 </ol>
                             </div>
                         </div>
@@ -50,7 +50,7 @@
                 @if (Model.Status != "Draft")
                 {
                     <div class="alert alert-warning" role="alert">
-                        Bu tabel holati <strong>@(Model.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")</strong>. Faqat <strong>Qoralama</strong> holatidagi tabelni tahrirlash mumkin.
+                        @L.T("Hr_TsStatusIs") <strong>@(Model.Status == "Approved" ? L.T("Hr_PayStatus_Approved") : L.T("Hr_TsStatus_Closed"))</strong>. @Html.Raw(L.T("Hr_TsOnlyDraftEditable"))
                     </div>
                 }
 
@@ -72,21 +72,21 @@
                             {
                                 
                                 <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#addEmployeesModal">
-                                    <i class="bx bx-user-plus"></i> Xodim qo'shish
+                                    <i class="bx bx-user-plus"></i> @L.T("Hr_EmpAdd")
                                 </button>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="saveTimesheetGrid(); return false;" title="Barcha katakchalarni bazaga yozish">
-                                    <i class="bx bx-save"></i> Saqlash
+                                <button type="button" class="btn btn-sm btn-primary" onclick="saveTimesheetGrid(); return false;" title="@L.T("Hr_TsSaveAllCells")">
+                                    <i class="bx bx-save"></i> @L.T("Save")
                                 </button>
                             }
                             <a href="@Url.Action("Export", new { id = Model.ID })" class="btn btn-sm btn-success">
-                                <i class="bx bx-export"></i> Excelga eksport
+                                <i class="bx bx-export"></i> @L.T("ExportExcel")
                             </a>
                             <a href="@Url.Action("Preview", new { id = Model.ID })" class="btn btn-sm btn-info" target="_blank">
-                                <i class="bx bx-show"></i> Ko'rib chiqish
+                                <i class="bx bx-show"></i> @L.T("Hr_Preview")
                             </a>
                         </div>
                         <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Closed" ? "info" : "warning") ml-2">
-                            Holat: @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")
+                            @L.T("Status"): @(Model.Status == "Draft" ? L.T("Hr_PayStatus_Draft") : Model.Status == "Approved" ? L.T("Hr_PayStatus_Approved") : L.T("Hr_TsStatus_Closed"))
                         </span>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                         <div class="card-body">
                             <div class="row mb-1">
                                 <div class="col-md-3">
-                                    <label>Oylik fond soati</label>
+                                    <label>@L.T("Hr_FundHours")</label>
                                     <input type="number"
                                            id="timesheetFundHours"
                                            class="form-control form-control-sm"
@@ -112,20 +112,20 @@
                                     <thead class="thead-light" style="position: sticky; top: 0; z-index: 10; background: white;">
                                         <tr>
                                             <th rowspan="2" class="freeze-col freeze-col-1" style="min-width: 30px;">
-                                                <input type="checkbox" id="selectAll" title="Barchasini tanlash" />
+                                                <input type="checkbox" id="selectAll" title="@L.T("Hr_SelectAll")" />
                                             </th>
                                             <th rowspan="2" class="freeze-col freeze-col-2" style="min-width: 50px;">№</th>
-                                            <th rowspan="2" class="freeze-col freeze-col-3" style="min-width: 80px;">Tab.№</th>
-                                            <th rowspan="2" class="freeze-col freeze-col-4" style="min-width: 200px;">F.I.O.</th>
-                                            <th rowspan="2" class="freeze-col freeze-col-5" style="min-width: 150px;">Lavozim</th>
-                                            <th colspan="@daysInMonth" style="text-align: center;">Oy kunlari</th>
-                                            <th rowspan="2" style="min-width: 80px;">Ish kunlari</th>
-                                            <th rowspan="2" style="min-width: 80px;">Ish soatlari</th>
-                                            <th rowspan="2" style="min-width: 80px;">Qo'shimcha</th>
-                                            <th rowspan="2" style="min-width: 80px;">Qatnashmagan</th>
+                                            <th rowspan="2" class="freeze-col freeze-col-3" style="min-width: 80px;">@L.T("Hr_TabNoShort")</th>
+                                            <th rowspan="2" class="freeze-col freeze-col-4" style="min-width: 200px;">@L.T("Hr_FullName")</th>
+                                            <th rowspan="2" class="freeze-col freeze-col-5" style="min-width: 150px;">@L.T("Hr_Position")</th>
+                                            <th colspan="@daysInMonth" style="text-align: center;">@L.T("Hr_MonthDays")</th>
+                                            <th rowspan="2" style="min-width: 80px;">@L.T("Hr_WorkDays")</th>
+                                            <th rowspan="2" style="min-width: 80px;">@L.T("Hr_WorkHours")</th>
+                                            <th rowspan="2" style="min-width: 80px;">@L.T("Hr_Overtime")</th>
+                                            <th rowspan="2" style="min-width: 80px;">@L.T("Hr_Absent")</th>
                                             @if (Model.Status == "Draft")
                                             {
-                                                <th rowspan="2" style="min-width: 60px;">Amallar</th>
+                                                <th rowspan="2" style="min-width: 60px;">@L.T("Actions")</th>
                                             }
                                         </tr>
                                         <tr>
@@ -176,9 +176,9 @@
                                                             @Html.AntiForgeryToken()
                                                             @Html.Hidden("lineId", line.ID)
                                                             <button type="submit" class="btn btn-sm btn-danger" 
-                                                                    data-msg="@line.EmployeeFullName qatorini o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi."
+                                                                    data-msg="@L.T("Hr_TsDeleteLineConfirm", line.EmployeeFullName)"
                                                                     onclick="return confirm(this.getAttribute('data-msg'));"
-                                                                    title="O'chirish">
+                                                                    title="@L.T("Delete")">
                                                                 <i class="bx bx-trash"></i>
                                                             </button>
                                                         }
@@ -190,7 +190,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr class="font-weight-bold table-light">
-                                            <td colspan="@(5 + daysInMonth)" class="text-right">Jami qo'shimcha soat:</td>
+                                            <td colspan="@(5 + daysInMonth)" class="text-right">@L.T("Hr_TotalOvertimeHours"):</td>
                                             <td></td>
                                             <td></td>
                                             <td id="totalOvertimeHours">@Model.Lines.Sum(l => l.OvertimeHours).ToString("F2")</td>
@@ -220,16 +220,16 @@
                         @Html.AntiForgeryToken()
                         @Html.Hidden("timesheetId", Model.ID)
                         <div class="modal-header">
-                            <h5 class="modal-title">Tabelga xodim qo'shish</h5>
+                            <h5 class="modal-title">@L.T("Hr_TsAddEmployees")</h5>
                             <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                         </div>
                         <div class="modal-body">
-                            <label>Xodimlar (bir nechta tanlash mumkin)</label>
+                            <label>@L.T("Hr_EmployeesMulti")</label>
                             @Html.ListBox("employeeIds", ViewBag.AvailableEmployees as MultiSelectList, new { @class = "form-control employee-multi-select", @style = "min-height: 280px;" })
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor qilish</button>
-                            <button type="submit" class="btn btn-success"><i class="bx bx-user-plus"></i> Qo'shish</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">@L.T("Cancel")</button>
+                            <button type="submit" class="btn btn-success"><i class="bx bx-user-plus"></i> @L.T("Add")</button>
                         </div>
                     }
                 </div>
@@ -301,7 +301,7 @@
             // Handle hour input changes
             $('.employee-multi-select').select2({
                 width: '100%',
-                placeholder: "Xodimlarni tanlang",
+                placeholder: '@L.Js("Hr_SelectEmployees")',
                 allowClear: true,
                 dropdownParent: $('#addEmployeesModal')
             });
@@ -327,7 +327,7 @@
                         // Recalculate row totals
                         recalculateRow($input.closest('tr'));
                     } else {
-                        alert('Xatolik: ' + result.message);
+                        alert('@L.Js("Error"): ' + result.message);
                     }
                 });
             });

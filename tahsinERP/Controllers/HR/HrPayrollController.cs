@@ -12,6 +12,7 @@ using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using ClosedXML.Excel;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -62,13 +63,13 @@ namespace tahsinERP.Controllers.HR
                 if (SkippedAlreadyPaid.Count > 0)
                 {
                     var names = string.Join(", ", SkippedAlreadyPaid.Take(10));
-                    if (SkippedAlreadyPaid.Count > 10) names += $" va yana {SkippedAlreadyPaid.Count - 10} ta";
-                    parts.Add($"{SkippedAlreadyPaid.Count} ta xodim shu oy uchun boshqa (bo'lim yoki butun kompaniya) hisobida allaqachon bor va qo'shilmadi: {names}");
+                    if (SkippedAlreadyPaid.Count > 10) names += " " + L.T("Hr_PayAndMore", SkippedAlreadyPaid.Count - 10);
+                    parts.Add(L.T("Hr_PaySkippedAlreadyPaid", SkippedAlreadyPaid.Count, names));
                 }
                 if (UnapprovedEntries > 0)
-                    parts.Add($"{UnapprovedEntries} ta ishbay yozuv tasdiqlanmagan bo'lim tabeliga tegishli va hisobga olinmadi");
+                    parts.Add(L.T("Hr_PayUnapprovedEntries", UnapprovedEntries));
                 if (EntriesWithoutTariff > 0)
-                    parts.Add($"{EntriesWithoutTariff} ta ishbay yozuv uchun amaldagi tarif topilmadi (0 deb olindi)");
+                    parts.Add(L.T("Hr_PayEntriesWithoutTariff", EntriesWithoutTariff));
                 return parts.Count == 0 ? null : string.Join(". ", parts) + ".";
             }
         }
@@ -188,14 +189,14 @@ namespace tahsinERP.Controllers.HR
 
             if (timesheet == null || timesheet.Status != Approved)
             {
-                TempData["Error"] = "Tabel topilmadi yoki tasdiqlanmagan";
+                TempData["Error"] = L.T("Hr_PayTsNotFoundOrNotApproved");
                 return RedirectToAction("GenerateHourly", new { year, month, orgUnitId });
             }
 
             if (timesheet.Year != year || timesheet.Month != month ||
                 (orgUnitId.HasValue && timesheet.OrgUnitID != orgUnitId.Value))
             {
-                TempData["Error"] = "Tabel ma'lumotlari tanlangan davr yoki bo'limga mos kelmaydi";
+                TempData["Error"] = L.T("Hr_PayTsMismatchPeriod");
                 return RedirectToAction("GenerateHourly", new { year, month, orgUnitId });
             }
 
@@ -206,7 +207,7 @@ namespace tahsinERP.Controllers.HR
             var activeExisting = existing.FirstOrDefault(IsPayrollHeaderActive);
             if (activeExisting != null && activeExisting.Status != Draft)
             {
-                TempData["Error"] = "Mavjud soatbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.";
+                TempData["Error"] = L.T("Hr_PayHourlyExistsLocked");
                 return RedirectToAction("Edit", new { id = activeExisting.ID });
             }
 
@@ -245,7 +246,7 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = L.T("Hr_NoAccess") }, JsonRequestBehavior.AllowGet);
             }
 
             try
@@ -259,7 +260,7 @@ namespace tahsinERP.Controllers.HR
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrPayroll.GetTimesheets] " + ex);
-                return Json(new { success = false, message = "Tabellarni yuklashda xatolik" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = L.T("Hr_PayTsLoadError") }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -298,7 +299,7 @@ namespace tahsinERP.Controllers.HR
             // timesheetId formati: "Yil-Oy-OrgUnitID" yoki "ALL"
             if (string.IsNullOrEmpty(timesheetId))
             {
-                TempData["Error"] = "Tabel tanlanmagan";
+                TempData["Error"] = L.T("Hr_PayTsNotSelected");
                 return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
             }
 
@@ -316,7 +317,7 @@ namespace tahsinERP.Controllers.HR
                 if (parts.Length != 3 || !int.TryParse(parts[0], out parsedYear) || !int.TryParse(parts[1], out parsedMonth) ||
                     (!string.IsNullOrEmpty(parts[2]) && !int.TryParse(parts[2], out parsedOrg)))
                 {
-                    TempData["Error"] = "Noto'g'ri tabel formati";
+                    TempData["Error"] = L.T("Hr_PayTsBadFormat");
                     return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
                 }
                 int? parsedOrgUnitId = string.IsNullOrEmpty(parts[2]) ? (int?)null : parsedOrg;
@@ -324,7 +325,7 @@ namespace tahsinERP.Controllers.HR
                 // Forma bo'lim filtri: bo'lim tanlangan bo'lsa, tabel ham shu bo'limga tegishli bo'lishi kerak
                 if (parsedYear != year || parsedMonth != month || (orgUnitId.HasValue && parsedOrgUnitId != orgUnitId.Value))
                 {
-                    TempData["Error"] = "Tabel ma'lumotlari mos kelmaydi";
+                    TempData["Error"] = L.T("Hr_PayTsMismatch");
                     return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
                 }
                 payrollOrgUnitId = parsedOrgUnitId;
@@ -336,7 +337,7 @@ namespace tahsinERP.Controllers.HR
                 : approvals.Any(a => a.OrgUnitID == null || a.OrgUnitID == payrollOrgUnitId);
             if (!anyApplicable)
             {
-                TempData["Error"] = "Ushbu oy (bo'lim) uchun tasdiqlangan ishbay tabel topilmadi";
+                TempData["Error"] = L.T("Hr_PayNoApprovedPieceTs");
                 return RedirectToAction("GeneratePieceRate", new { year, month, orgUnitId });
             }
 
@@ -344,7 +345,7 @@ namespace tahsinERP.Controllers.HR
             var activeExisting = existing.FirstOrDefault(IsPayrollHeaderActive);
             if (activeExisting != null && activeExisting.Status != Draft)
             {
-                TempData["Error"] = "Mavjud ishbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.";
+                TempData["Error"] = L.T("Hr_PayPieceExistsLocked");
                 return RedirectToAction("Edit", new { id = activeExisting.ID });
             }
 
@@ -372,7 +373,7 @@ namespace tahsinERP.Controllers.HR
 
             var orgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, payrollOrgUnitId) ?? "Butun kompaniya";
             logger.Log("HrPayroll", "GeneratePieceRate", $"Tabel: {year}-{month:D2}, Bo'lim: {orgUnitName}, Tur: Ishbay, BarchaTabel: {(allMode ? "ha" : "yo'q")}, Satrlar: {result.Created}");
-            SetGenerationMessages(result, $"Ishbay ish haqi hisobi yaratildi: {result.Created} ta xodim");
+            SetGenerationMessages(result, L.T("Hr_PayPieceCreated", result.Created));
             return RedirectToAction("Edit", new { id = payroll.ID });
         }
 
@@ -551,7 +552,7 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" });
+                return Json(new { success = false, message = L.T("Hr_NoAccess") });
             }
 
             try
@@ -559,7 +560,7 @@ namespace tahsinERP.Controllers.HR
                 var line = await LoadEditableLineAsync(lineId);
                 if (line == null)
                 {
-                    return Json(new { success = false, message = "Faqat qoralama, o'chirilmagan hisob bo'yicha satrlarni tahrirlash mumkin" });
+                    return Json(new { success = false, message = L.T("Hr_PayOnlyDraftLinesEditable") });
                 }
 
                 if (bonuses.HasValue)
@@ -581,7 +582,7 @@ namespace tahsinERP.Controllers.HR
                 {
                     if (ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, currencyId) == null)
                     {
-                        return Json(new { success = false, message = "Valyuta topilmadi" });
+                        return Json(new { success = false, message = L.T("Hr_CurrencyNotFound") });
                     }
                     line.CurrencyID = currencyId.Value;
                 }
@@ -614,7 +615,7 @@ namespace tahsinERP.Controllers.HR
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrPayroll.UpdateLine] " + ex);
-                return Json(new { success = false, message = "Saqlashda xatolik yuz berdi" });
+                return Json(new { success = false, message = L.T("Hr_SaveError") });
             }
         }
 
@@ -628,13 +629,13 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPayroll"))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" });
+                return Json(new { success = false, message = L.T("Hr_NoAccess") });
             }
 
             var payroll = await db.HR_PAYROLL_HEADERS.FirstOrDefaultAsync(p => p.ID == payrollId);
             if (!IsPayrollHeaderActive(payroll) || payroll.Status != Draft)
             {
-                return Json(new { success = false, message = "Faqat qoralama hisobda soliqni o'zgartirish mumkin" });
+                return Json(new { success = false, message = L.T("Hr_PayOnlyDraftTax") });
             }
             var taxPercent = HrPayrollCalculator.NormalizeTaxPercent(incomeTaxPercent);
             var lines = await db.HR_PAYROLL_LINES
@@ -669,12 +670,12 @@ namespace tahsinERP.Controllers.HR
 
             if (payroll.Status != Draft)
             {
-                TempData["Error"] = "Faqat 'Qoralama' holatidagi hisoblarni tasdiqlash mumkin";
+                TempData["Error"] = L.T("Hr_PayOnlyDraftApprove");
                 return RedirectToAction("Edit", new { id });
             }
 
             return await PostToFinanceAsync(payroll, Draft, accountId, categoryId, "Approve",
-                "Hisob tasdiqlandi va moliya moduliga chiqim sifatida yozildi");
+                L.T("Hr_PayApprovedAndPosted"));
         }
 
         // POST so'rovi: HR/Payroll/Post/5 — avvaldan "Tasdiqlangan" holatda qolgan (Finance'ga yozilmagan) hisoblar uchun
@@ -695,12 +696,12 @@ namespace tahsinERP.Controllers.HR
 
             if (payroll.Status != Approved)
             {
-                TempData["Error"] = "Faqat tasdiqlangan (moliyaga yozilmagan) hisoblarni o'tkazish mumkin";
+                TempData["Error"] = L.T("Hr_PayOnlyApprovedPost");
                 return RedirectToAction("Edit", new { id });
             }
 
             return await PostToFinanceAsync(payroll, Approved, accountId, categoryId, "Post",
-                "Hisob moliya moduliga muvaffaqiyatli o'tkazildi");
+                L.T("Hr_PayPostedToFin"));
         }
 
         /// <summary>
@@ -716,7 +717,7 @@ namespace tahsinERP.Controllers.HR
             var resolvedCategoryId = categoryId ?? await FindDefaultSalaryCategoryIdAsync();
             if (!resolvedCategoryId.HasValue)
             {
-                TempData["Error"] = "Ish haqi uchun moliya toifasi topilmadi. Tasdiqlashda chiqim toifasini tanlang (yoki nomida 'oylik' bo'lgan toifa yarating).";
+                TempData["Error"] = L.T("Hr_PayNoFinCategory");
                 return RedirectToAction("Edit", new { id });
             }
 
@@ -725,7 +726,7 @@ namespace tahsinERP.Controllers.HR
                 .ToListAsync();
             if (activeLines.Count == 0)
             {
-                TempData["Error"] = "Hisobda satr yo'q";
+                TempData["Error"] = L.T("Hr_PayNoLines");
                 return RedirectToAction("Edit", new { id });
             }
 
@@ -750,7 +751,7 @@ namespace tahsinERP.Controllers.HR
                               ?? accounts.FirstOrDefault(a => a.CurrencyID == g.CurrencyID);
                 if (account == null)
                 {
-                    TempData["Error"] = $"{ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, g.CurrencyID) ?? "Valyuta"} uchun faol moliya hisobi topilmadi";
+                    TempData["Error"] = L.T("Hr_PayNoFinAccountForCurrency", ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, g.CurrencyID) ?? L.T("Currency"));
                     return RedirectToAction("Edit", new { id });
                 }
                 accountByCurrency[g.CurrencyID] = account.ID;
@@ -770,7 +771,7 @@ namespace tahsinERP.Controllers.HR
                     if (locked != 1)
                     {
                         tx.Rollback();
-                        TempData["Error"] = "Hisob holati o'zgargan (allaqachon tasdiqlangan yoki o'tkazilgan)";
+                        TempData["Error"] = L.T("Hr_PayStatusChanged");
                         return RedirectToAction("Edit", new { id });
                     }
 
@@ -810,7 +811,7 @@ namespace tahsinERP.Controllers.HR
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrPayroll." + logAction + "] " + ex);
-                TempData["Error"] = "Moliyaga yozishda xatolik yuz berdi — hisob o'zgarmadi";
+                TempData["Error"] = L.T("Hr_PayFinPostError");
             }
 
             return RedirectToAction("Edit", new { id });
@@ -878,9 +879,9 @@ namespace tahsinERP.Controllers.HR
 
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add($"Hisob {vm.Year}-{vm.Month:D2}");
+                var worksheet = workbook.Worksheets.Add(L.T("Hr_PaySheetName", vm.Year, vm.Month.ToString("D2")));
 
-                string[] headers = { "№", "Tab.№", "F.I.O.", "Lavozim", "Asosiy maosh", "Ishlangan soatlar", "Hisoblangan", "Mukofotlar", "Jarimalar", "To'lovga", "Valyuta" };
+                string[] headers = { "№", L.T("Hr_TabNoShort"), L.T("Hr_FullName"), L.T("Hr_Position"), L.T("Hr_BaseSalary"), L.T("Hr_HoursWorked"), L.T("Hr_Accrued"), L.T("Hr_Bonuses"), L.T("Hr_Penalties"), L.T("Hr_NetPay"), L.T("Currency") };
                 for (int c = 0; c < headers.Length; c++) worksheet.Cell(1, c + 1).Value = headers[c];
 
                 int row = 2;
@@ -901,7 +902,7 @@ namespace tahsinERP.Controllers.HR
                     row++;
                 }
 
-                worksheet.Cell(row, 5).Value = "JAMI:";
+                worksheet.Cell(row, 5).Value = L.T("Hr_TotalUpper") + ":";
                 worksheet.Cell(row, 7).Value = vm.TotalGrossSalary;
                 worksheet.Cell(row, 8).Value = vm.Lines.Sum(l => l.Bonuses);
                 worksheet.Cell(row, 9).Value = vm.Lines.Sum(l => l.Penalties);
@@ -909,7 +910,7 @@ namespace tahsinERP.Controllers.HR
 
                 worksheet.Columns().AdjustToContents();
 
-                var fileName = $"Hisob_{vm.Year}_{vm.Month:D2}.xlsx";
+                var fileName = L.T("Hr_PayFileName", vm.Year, vm.Month.ToString("D2")) + ".xlsx";
                 logger.Log("HrPayroll", "Export", $"Hisob: {vm.Year}-{vm.Month:D2}, Bo'lim: {vm.OrgUnitName ?? "Butun kompaniya"}, Tur: {TypeLabel(vm.PayrollType)}");
                 return File(workbook.ToByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
@@ -953,13 +954,13 @@ namespace tahsinERP.Controllers.HR
             var payroll = await db.HR_PAYROLL_HEADERS.Include(p => p.HR_ORG_UNITS).FirstOrDefaultAsync(p => p.ID == id);
             if (!IsPayrollHeaderActive(payroll))
             {
-                TempData["Error"] = "Hisob topilmadi yoki allaqachon o'chirilgan";
+                TempData["Error"] = L.T("Hr_PayNotFoundOrDeleted");
                 return RedirectToAction("Index");
             }
 
             if (payroll.Status == Approved || payroll.Status == Posted)
             {
-                TempData["Error"] = "Tasdiqlangan yoki o'tkazilgan hisobni o'chirib bo'lmaydi";
+                TempData["Error"] = L.T("Hr_PayCannotDeleteApproved");
                 return RedirectToAction("Index");
             }
 
@@ -1106,7 +1107,7 @@ namespace tahsinERP.Controllers.HR
                 .FirstOrDefaultAsync();
             if (!id.HasValue)
             {
-                throw new InvalidOperationException("Valyuta jadvalida hech qanday valyuta topilmadi. Iltimos, avval valyuta qo'shing.");
+                throw new InvalidOperationException(L.T("Hr_PayNoCurrencies"));
             }
             return id.Value;
         }
@@ -1318,7 +1319,7 @@ namespace tahsinERP.Controllers.HR
                 .Select(t => new TimesheetDropdownItem
                 {
                     ID = t.ID.ToString(),
-                    Name = $"{t.OrgUnitName ?? "Butun kompaniya"} - {t.Year}-{t.Month:D2}"
+                    Name = $"{t.OrgUnitName ?? L.T("Hr_WholeCompany")} - {t.Year}-{t.Month:D2}"
                 }).ToList();
         }
 
@@ -1358,7 +1359,7 @@ namespace tahsinERP.Controllers.HR
             bool companyWide = approvedTimesheets.Any(a => a.OrgUnitID == null);
             var groupedData = countsByOrg
                 .Where(g => companyWide || approvedTimesheets.Any(a => a.OrgUnitID == g.OrgUnitID))
-                .Select(g => new PieceGroupRow { OrgUnitID = g.OrgUnitID, OrgUnitName = g.OrgUnitName ?? "Butun kompaniya", EntryCount = g.Count })
+                .Select(g => new PieceGroupRow { OrgUnitID = g.OrgUnitID, OrgUnitName = g.OrgUnitName ?? L.T("Hr_WholeCompany"), EntryCount = g.Count })
                 .ToList();
 
             foreach (var a in approvedTimesheets)
@@ -1366,14 +1367,14 @@ namespace tahsinERP.Controllers.HR
                 if (a.OrgUnitID == null)
                 {
                     if (groupedData.Count == 0)
-                        groupedData.Add(new PieceGroupRow { OrgUnitID = null, OrgUnitName = "Butun kompaniya", EntryCount = 0 });
+                        groupedData.Add(new PieceGroupRow { OrgUnitID = null, OrgUnitName = L.T("Hr_WholeCompany"), EntryCount = 0 });
                 }
                 else if (!groupedData.Any(g => g.OrgUnitID == a.OrgUnitID))
                 {
                     groupedData.Add(new PieceGroupRow
                     {
                         OrgUnitID = a.OrgUnitID,
-                        OrgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, a.OrgUnitID) ?? "Butun kompaniya",
+                        OrgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, a.OrgUnitID) ?? L.T("Hr_WholeCompany"),
                         EntryCount = 0
                     });
                 }
@@ -1384,7 +1385,7 @@ namespace tahsinERP.Controllers.HR
             var timesheetList = groupedData.Select(g => new TimesheetDropdownItem
             {
                 ID = $"{year}-{month}-{(g.OrgUnitID.HasValue ? g.OrgUnitID.Value.ToString() : "")}",
-                Name = $"{g.OrgUnitName} - {year}-{month:D2} ({g.EntryCount} ta yozuv)"
+                Name = $"{g.OrgUnitName} - {year}-{month:D2} (" + L.T("Hr_EntriesCount", g.EntryCount) + ")"
             }).ToList();
 
             if (groupedData.Count > 1)
@@ -1392,7 +1393,7 @@ namespace tahsinERP.Controllers.HR
                 timesheetList.Insert(0, new TimesheetDropdownItem
                 {
                     ID = "ALL",
-                    Name = $"Ushbu oydagi barcha tabellar ({groupedData.Count} ta tabel, {groupedData.Sum(g => g.EntryCount)} ta yozuv)"
+                    Name = L.T("Hr_PayAllTsThisMonth", groupedData.Count, groupedData.Sum(g => g.EntryCount))
                 });
             }
 

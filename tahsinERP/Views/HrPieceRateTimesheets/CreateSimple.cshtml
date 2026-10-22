@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = ViewBag.PageTitle as string ?? "Ishbay tabel kiritish";
+    ViewBag.Title = ViewBag.PageTitle as string ?? L.T("Hr_PrEntryCreate");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var prefillDate = ViewBag.PrefillWorkDate as string;
     var prefillQty = ViewBag.PrefillQuantity as decimal?;
@@ -18,8 +18,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ishbay tabel</a></li>
-                                    <li class="breadcrumb-item active">@(editingEntryId.HasValue ? "Tahrirlash" : "Kiritish")</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_PrTimesheet")</a></li>
+                                    <li class="breadcrumb-item active">@(editingEntryId.HasValue ? L.T("Edit") : L.T("Hr_Enter"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -76,16 +76,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="EmployeeID">Xodim <span class="text-danger">*</span></label>
-                                            @Html.DropDownList("EmployeeID", ViewBag.EmployeeID as SelectList, "Xodimni tanlang", new { @class = "form-control", required = "required", id = "EmployeeID" })
+                                            <label for="EmployeeID">@L.T("Hr_Employee") <span class="text-danger">*</span></label>
+                                            @Html.DropDownList("EmployeeID", ViewBag.EmployeeID as SelectList, L.T("Hr_SelectEmployee"), new { @class = "form-control", required = "required", id = "EmployeeID" })
                                             @Html.ValidationMessage("EmployeeID", "", new { @class = "text-danger" })
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="ProductID">Maxsulot <span class="text-danger">*</span></label>
-                                            @Html.DropDownList("ProductID", ViewBag.ProductID as SelectList, "Maxsulotni tanlang", new { @class = "form-control", required = "required", id = "ProductID" })
+                                            <label for="ProductID">@L.T("Hr_Product") <span class="text-danger">*</span></label>
+                                            @Html.DropDownList("ProductID", ViewBag.ProductID as SelectList, L.T("Hr_SelectProduct"), new { @class = "form-control", required = "required", id = "ProductID" })
                                             @Html.ValidationMessage("ProductID", "", new { @class = "text-danger" })
                                         </div>
                                     </div>
@@ -94,17 +94,17 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="OperationID">Ishbay operatsiyasi <span class="text-danger">*</span></label>
-                                            @Html.DropDownList("OperationID", ViewBag.OperationID as SelectList, "Operatsiyani tanlang", new { @class = "form-control", required = "required", id = "OperationID" })
+                                            <label for="OperationID">@L.T("Hr_PrOperation") <span class="text-danger">*</span></label>
+                                            @Html.DropDownList("OperationID", ViewBag.OperationID as SelectList, L.T("Hr_SelectOperation"), new { @class = "form-control", required = "required", id = "OperationID" })
                                             @Html.ValidationMessage("OperationID", "", new { @class = "text-danger" })
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="TariffRate">Tarif (birlik uchun) <span class="text-danger">*</span></label>
+                                            <label for="TariffRate">@L.T("Hr_PrRatePerUnit") <span class="text-danger">*</span></label>
                                             <input type="text" name="TariffRate" id="TariffRate" class="form-control" readonly />
-                                            <small class="text-muted">Tarif maxsulot va operatsiyaga qarab avtomatik tortiladi</small>
+                                            <small class="text-muted">@L.T("Hr_PrTariffAutoHint")</small>
                                         </div>
                                     </div>
                                 </div>
@@ -112,7 +112,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="WorkDate">Sana <span class="text-danger">*</span></label>
+                                            <label for="WorkDate">@L.T("Date") <span class="text-danger">*</span></label>
                                             <input type="date" name="WorkDate" id="WorkDate" class="form-control" value="@(prefillDate ?? DateTime.Now.ToString("yyyy-MM-dd"))" required />
                                             @Html.ValidationMessage("WorkDate", "", new { @class = "text-danger" })
                                         </div>
@@ -120,7 +120,7 @@
 
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="Quantity">Miqdor (operatsiya miqdori) <span class="text-danger">*</span></label>
+                                            <label for="Quantity">@L.T("Hr_PrQuantityLabel") <span class="text-danger">*</span></label>
                                             <input type="number" name="Quantity" id="Quantity" class="form-control" step="0.0001" min="0" value="@(prefillQty.HasValue ? prefillQty.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" required />
                                             @Html.ValidationMessage("Quantity", "", new { @class = "text-danger" })
                                         </div>
@@ -129,10 +129,10 @@
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
                                     <a href="@(string.IsNullOrEmpty(returnUrl) ? Url.Action("Index") : returnUrl)" class="btn btn-secondary">
-                                        <i class="bx bx-x"></i> Bekor qilish
+                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                     </a>
                                 </div>
                             }
@@ -183,7 +183,7 @@
                     var currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
                     if (workDateMonth > currentMonth) {
-                        alert('Kelajakka tabel kirita olmaysiz');
+                        alert('@L.Js("Hr_TsNoFuture")');
                         $('#WorkDate').focus();
                         return false;
                     }
@@ -207,12 +207,12 @@
                                     var currency = result.tariff.currencyShortname || '';
                                     $('#TariffRate').val(rate + (currency ? ' ' + currency : ''));
                                 } else {
-                                    $('#TariffRate').val('Tarif topilmadi');
+                                    $('#TariffRate').val('@L.Js("Hr_PrTariffNotFound")');
                                 }
                             },
                             error: function(xhr, status, error) {
                                 console.error('Tarif yuklashda xatolik:', error);
-                                $('#TariffRate').val('Xatolik yuz berdi');
+                                $('#TariffRate').val(erpT('Js_ErrorGeneric'));
                             }
                         });
                     } else {

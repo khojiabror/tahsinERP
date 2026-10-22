@@ -3,7 +3,7 @@
     var groupedViewModels = ViewBag.GroupedViewModels as List<tahsinERP.ViewModels.HR.HrEmployeeHistoryGroupedViewModel>;
 }
 @{
-    ViewBag.Title = "Xodimlar staji";
+    ViewBag.Title = L.T("Hr_HistTitle");
     // Controller "HrEmployees" modulini tekshiradi — view ham shu modul bo'yicha (HRM-B21)
     bool canChange = tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "HrEmployees");
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -23,7 +23,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Xodimlar staji
+                                        @L.T("Hr_HistTitle")
                                     </li>
                                 </ol>
                             </div>
@@ -40,33 +40,33 @@
                             {
                                 <div class="mb-2">
                                     <a href="@Url.Action("Create")" class="btn btn-primary">
-                                        <i class="bx bx-plus"></i> Qo'shish
+                                        <i class="bx bx-plus"></i> @L.T("Add")
                                     </a>
                                 </div>
                             }
                             <form method="get" action="@Url.Action("Index")" class="mb-2">
                                 <div class="row">
                                     <div class="col-md-2">
-                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, L.T("Hr_AllOrgUnits"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
-                                        @Html.DropDownList("positionId", ViewBag.PositionID as SelectList, "Barcha lavozimlar", new { @class = "form-control" })
+                                        @Html.DropDownList("positionId", ViewBag.PositionID as SelectList, L.T("Hr_AllPositions"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
                                         <select name="status" class="form-control">
-                                            <option value="">Barcha xodimlar</option>
-                                            <option value="active" @(ViewBag.Status == "active" ? "selected" : "")>Faol xodimlar</option>
-                                            <option value="inactive" @(ViewBag.Status == "inactive" ? "selected" : "")>Chiqib ketganlar</option>
+                                            <option value="">@L.T("Hr_AllEmployees")</option>
+                                            <option value="active" @(ViewBag.Status == "active" ? "selected" : "")>@L.T("Hr_ActiveEmployees")</option>
+                                            <option value="inactive" @(ViewBag.Status == "inactive" ? "selected" : "")>@L.T("Hr_LeftEmployees")</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" placeholder="Dan" />
+                                        <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" placeholder="@L.T("Hr_From")" />
                                     </div>
                                     <div class="col-md-2">
-                                        <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" placeholder="Gacha" />
+                                        <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" placeholder="@L.T("Hr_To")" />
                                     </div>
                                     <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary btn-block">Filtr</button>
+                                        <button type="submit" class="btn btn-primary btn-block">@L.T("Filter")</button>
                                     </div>
                                 </div>
                             </form>
@@ -75,16 +75,16 @@
                                 <table id="historyTable" class="table table-striped table-bordered" style="width:100%">
                                     <thead>
                                         <tr>
-                                            <th>Tab.№</th>
-                                            <th>F.I.O.</th>
-                                            <th>Bo'lim</th>
-                                            <th>Lavozim</th>
-                                            <th>Ishga kirgan sana</th>
-                                            <th>Ishdan chiqqan sana</th>
-                                            <th>Staj</th>
+                                            <th>@L.T("Hr_TabNoShort")</th>
+                                            <th>@L.T("Hr_FullName")</th>
+                                            <th>@L.T("Hr_OrgUnit")</th>
+                                            <th>@L.T("Hr_Position")</th>
+                                            <th>@L.T("Hr_EmpHiredDate")</th>
+                                            <th>@L.T("Hr_EmpLeftDate")</th>
+                                            <th>@L.T("Hr_Tenure")</th>
                                             @if (canChange)
                                             {
-                                                <th>Amallar</th>
+                                                <th>@L.T("Actions")</th>
                                             }
                                         </tr>
                                     </thead>
@@ -104,15 +104,15 @@
                                                     <td>@(latest.EffectiveDateTo?.ToString("dd.MM.yyyy") ?? "-")</td>
                                                     <td>
                                                         <strong>
-                                                            @(employeeGroup.TotalTenureYears > 0 ? $"{employeeGroup.TotalTenureYears} yil " : "")
-                                                            @(employeeGroup.TotalTenureMonths > 0 ? $"{employeeGroup.TotalTenureMonths} oy " : "")
-                                                            @(employeeGroup.TotalTenureDays > 0 ? $"{employeeGroup.TotalTenureDays} kun" : "")
+                                                            @(employeeGroup.TotalTenureYears > 0 ? L.T("Hr_TenureYears", employeeGroup.TotalTenureYears) + " " : "")
+                                                            @(employeeGroup.TotalTenureMonths > 0 ? L.T("Hr_TenureMonths", employeeGroup.TotalTenureMonths) + " " : "")
+                                                            @(employeeGroup.TotalTenureDays > 0 ? L.T("Hr_TenureDays", employeeGroup.TotalTenureDays) : "")
                                                         </strong>
                                                         @if (employeeGroup.Positions.Count > 1)
                                                         {
                                                             <br />
                                                             <small class="text-muted">
-                                                                (Oxirgi: @(latest.TenureMonths > 0 ? $"{latest.TenureMonths} oy " : "")@(latest.TenureDays > 0 ? $"{latest.TenureDays} kun" : ""))
+                                                                (@L.T("Hr_Last"): @(latest.TenureMonths > 0 ? L.T("Hr_TenureMonths", latest.TenureMonths) + " " : "")@(latest.TenureDays > 0 ? L.T("Hr_TenureDays", latest.TenureDays) : ""))
                                                             </small>
                                                         }
                                                     </td>
@@ -122,7 +122,7 @@
                                                             @if (latest.ID > 0)
                                                             {
                                                                 <a href="@Url.Action("Edit", new { id = latest.ID })" class="btn btn-sm btn-warning">
-                                                                    <i class="bx bx-edit"></i> Tahrirlash
+                                                                    <i class="bx bx-edit"></i> @L.T("Edit")
                                                                 </a>
                                                             }
                                                         </td>
@@ -135,16 +135,16 @@
                                                     <tr class="child-rows-data" data-employee-id="@employeeGroup.EmployeeID" style="display: none;">
                                                         <td colspan="@(canChange ? 9 : 8)" style="padding: 0;">
                                                             <div class="child-rows-wrapper" style="padding: 10px; background-color: #f8f9fa;">
-                                                                <h6>Barcha lavozimlar:</h6>
+                                                                <h6>@L.T("Hr_AllPositions"):</h6>
                                                                 <table class="table table-sm table-bordered mb-0" style="margin: 0;">
                                                                     <thead>
                                                                         <tr style="background-color: #e9ecef;">
-                                                                            <th>Bo'lim</th>
-                                                                            <th>Lavozim</th>
-                                                                            <th>Ishga kirgan sana</th>
-                                                                            <th>Ishdan chiqqan sana</th>
-                                                                            <th>Staj</th>
-                                                                            <th>Sabab</th>
+                                                                            <th>@L.T("Hr_OrgUnit")</th>
+                                                                            <th>@L.T("Hr_Position")</th>
+                                                                            <th>@L.T("Hr_EmpHiredDate")</th>
+                                                                            <th>@L.T("Hr_EmpLeftDate")</th>
+                                                                            <th>@L.T("Hr_Tenure")</th>
+                                                                            <th>@L.T("Hr_Reason")</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -159,9 +159,9 @@
                                                                                     @if (position.TenureYears > 0 || position.TenureMonths > 0 || position.TenureDays > 0)
                                                                                     {
                                                                                         <text>
-                                                                                            @(position.TenureYears > 0 ? $"{position.TenureYears} yil " : "")
-                                                                                            @(position.TenureMonths > 0 ? $"{position.TenureMonths} oy " : "")
-                                                                                            @(position.TenureDays > 0 ? $"{position.TenureDays} kun" : "")
+                                                                                            @(position.TenureYears > 0 ? L.T("Hr_TenureYears", position.TenureYears) + " " : "")
+                                                                                            @(position.TenureMonths > 0 ? L.T("Hr_TenureMonths", position.TenureMonths) + " " : "")
+                                                                                            @(position.TenureDays > 0 ? L.T("Hr_TenureDays", position.TenureDays) : "")
                                                                                         </text>
                                                                                     }
                                                                                     else
@@ -206,26 +206,12 @@
 
             // Initialize DataTables (doimiy: Excel va PDF eksport tugmalari)
             var table = $('#historyTable').DataTable({
-                "language": {
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "zeroRecords": "Yozuvlar topilmadi",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "search": "Qidirish:",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    }
-                },
                 "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, '@L.Js("All")']],
                 "searching": true,
                 "order": [[1, "asc"]],
                 "dom": "lBfrtip",
-                "buttons": erpDataTable.buttons({ title: 'Xodimlar_staji', small: true, pdfOptions: { title: 'Xodimlar staji' } })
+                "buttons": erpDataTable.buttons({ title: '@L.Js("Hr_HistTitle")', small: true, pdfOptions: { title: '@L.Js("Hr_HistTitle")' } })
             });
 
             // Handle click on parent row to show/hide child rows

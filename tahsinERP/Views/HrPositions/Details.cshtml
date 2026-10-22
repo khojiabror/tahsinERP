@@ -1,6 +1,6 @@
 @model tahsinERP.Models.HR_POSITIONS
 @{
-    ViewBag.Title = "Lavozim tafsilotlari";
+    ViewBag.Title = L.T("Hr_PositionDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Lavozimlar</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Positions")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_DetailsCrumb")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,33 +31,33 @@
                     <div class="card-content">
                         <div class="card-body">
                             <dl class="row">
-                                <dt class="col-sm-3">Kod:</dt>
+                                <dt class="col-sm-3">@L.T("Code"):</dt>
                                 <dd class="col-sm-9">@Model.Code</dd>
 
-                                <dt class="col-sm-3">Nomi:</dt>
+                                <dt class="col-sm-3">@L.T("Name"):</dt>
                                 <dd class="col-sm-9">@Model.Name</dd>
 
-                                <dt class="col-sm-3">Rahbariyat lavozimi:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_ManagerPosition"):</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.IsManager ? "info" : "secondary")">
-                                        @(Model.IsManager ? "Ha" : "Yo'q")
+                                        @(Model.IsManager ? L.T("Yes") : L.T("No"))
                                     </span>
                                 </dd>
 
-                                <dt class="col-sm-3">Holat:</dt>
+                                <dt class="col-sm-3">@L.T("Status"):</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
-                                        @(Model.IsActive ? "Faol" : "Nofaol")
+                                        @(Model.IsActive ? L.T("Active") : L.T("Inactive"))
                                     </span>
                                 </dd>
 
-                                <dt class="col-sm-3">Xodimlar soni:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_EmployeeCount"):</dt>
                                 <dd class="col-sm-9">@ViewBag.EmployeeCount</dd>
 
-                                <dt class="col-sm-3">Shtat jadvalida:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_InStaffingPlan"):</dt>
                                 <dd class="col-sm-9">@ViewBag.StaffingPlanCount</dd>
 
-                                <dt class="col-sm-3">Yaratilgan:</dt>
+                                <dt class="col-sm-3">@L.T("CreatedAt"):</dt>
                                 <dd class="col-sm-9">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
                             </dl>
 
@@ -65,10 +65,10 @@
                                 @if (changePermit)
                                 {
                                     <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
-                                        <i class="bx bx-edit"></i> Tahrirlash
+                                        <i class="bx bx-edit"></i> @L.T("Edit")
                                     </a>
                                 }
-                                <a href="@Url.Action("Index")" class="btn btn-secondary">Ro'yxatga qaytish</a>
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("BackToList")</a>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 @model List<tahsinERP.ViewModels.HR.OrgChartNodeViewModel>
 @{
-    ViewBag.Title = "Tashkiliy tuzilma - Tashkiliy sxema";
+    ViewBag.Title = L.T("Hr_OrgStructure") + " - " + L.T("Hr_OrgChart");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -18,8 +18,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/HrOrgUnits">Tashkiliy tuzilma</a></li>
-                                    <li class="breadcrumb-item active">Tashkiliy sxema</li>
+                                    <li class="breadcrumb-item"><a href="~/HrOrgUnits">@L.T("Hr_OrgStructure")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_OrgChart")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,12 +31,12 @@
                 <div class="row mb-2">
                     <div class="col-12">
                         <a href="@Url.Action("Index")" class="btn btn-secondary">
-                            <i class="bx bx-list-ul"></i> Bo'limlar daraxti
+                            <i class="bx bx-list-ul"></i> @L.T("Hr_OrgTree")
                         </a>
                         @if (changePermit)
                         {
                             <a href="@Url.Action("Create")" class="btn btn-success">
-                                <i class="bx bx-plus"></i> Bo'lim qo'shish
+                                <i class="bx bx-plus"></i> @L.T("Hr_OrgUnitAdd")
                             </a>
                         }
                     </div>
@@ -65,7 +65,7 @@
                     @if (node.Positions.Any())
                     {
                         <div class="org-positions">
-                            <small class="text-muted">Lavozimlar:</small>
+                            <small class="text-muted">@L.T("Hr_Positions"):</small>
                             @foreach (var pos in node.Positions)
                             {
                                 <div class="org-position-item">
@@ -78,7 +78,7 @@
                     @if (node.Employees.Any())
                     {
                         <div class="org-employees mt-2">
-                            <small class="text-muted">Xodimlar:</small>
+                            <small class="text-muted">@L.T("Hr_Employees"):</small>
                             @foreach (var emp in node.Employees)
                             {
                                 <div class="org-employee-item">
@@ -95,10 +95,10 @@
                 @if (canEdit)
                 {
                     <div class="org-card-actions">
-                        <a href="@Url.Action("Edit", new { id = node.ID })" class="btn btn-sm btn-warning" title="Tahrirlash">
+                        <a href="@Url.Action("Edit", new { id = node.ID })" class="btn btn-sm btn-warning" title="@L.T("Edit")">
                             <i class="bx bx-edit"></i>
                         </a>
-                        <button class="btn btn-sm btn-primary" onclick="addChild(@node.ID)" title="Qo'shish">
+                        <button class="btn btn-sm btn-primary" onclick="addChild(@node.ID)" title="@L.T("Add")">
                             <i class="bx bx-plus"></i>
                         </button>
                     </div>

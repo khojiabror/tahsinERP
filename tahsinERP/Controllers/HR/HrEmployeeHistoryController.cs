@@ -8,6 +8,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -99,7 +100,7 @@ namespace tahsinERP.Controllers.HR
                         FromPositionName = employee.HR_POSITIONS?.Name,
                         EffectiveDate = employee.EmploymentDate.Value,
                         EffectiveDateTo = null,
-                        Reason = "Hozirgi lavozim",
+                        Reason = L.T("Hr_HistCurrentPosition"),
                         TenureYears = currentTenure.Years,
                         TenureMonths = currentTenure.Months,
                         TenureDays = currentTenure.Days
@@ -211,7 +212,7 @@ namespace tahsinERP.Controllers.HR
             var effectiveDateTo = ParseFormDate(Request.Form["EffectiveDateTo"]);
             if (effectiveDateTo.HasValue && effectiveDateTo.Value < history.EffectiveDateFrom)
             {
-                ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.");
+                ModelState.AddModelError("", L.T("Hr_EndBeforeStart"));
                 await PopulateViewBags(history);
                 return View(history);
             }
@@ -246,7 +247,7 @@ namespace tahsinERP.Controllers.HR
             await db.SaveChangesAsync();
 
             logger.Log("HrEmployeeHistory", "Create", $"Xodim: {employee?.FullName ?? "-"} ({employee?.TabNo ?? "-"}), Bo'lim: {HrLookups.NameOf(HrLookups.OrgUnits, history.FromOrgUnitID) ?? "-"}, Lavozim: {HrLookups.NameOf(HrLookups.Positions, history.FromPositionID) ?? "-"}, Sabab: {history.Reason ?? "-"}");
-            TempData["Success"] = "Xodim tarixi muvaffaqiyatli qo'shildi.";
+            TempData["Success"] = L.T("Hr_HistAdded");
             return RedirectToAction("Index");
         }
 
@@ -304,7 +305,7 @@ namespace tahsinERP.Controllers.HR
             var effectiveDateTo = ParseFormDate(Request.Form["EffectiveDateTo"]);
             if (effectiveDateTo.HasValue && effectiveDateTo.Value < history.EffectiveDateFrom)
             {
-                ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.");
+                ModelState.AddModelError("", L.T("Hr_EndBeforeStart"));
                 await PopulateViewBags(history);
                 ViewBag.EffectiveDateTo = effectiveDateTo?.ToString("yyyy-MM-dd");
                 ViewBag.EffectiveDateFrom = history.EffectiveDateFrom.ToString("yyyy-MM-dd");
@@ -328,7 +329,7 @@ namespace tahsinERP.Controllers.HR
             var employee = await db.HR_EMPLOYEES.AsNoTracking().Where(e => e.ID == history.EmployeeID)
                 .Select(e => new { e.FullName, e.TabNo }).FirstOrDefaultAsync();
             logger.Log("HrEmployeeHistory", "Edit", $"Xodim: {employee?.FullName ?? "-"} ({employee?.TabNo ?? "-"}), Sana: {history.EffectiveDateFrom:dd.MM.yyyy}");
-            TempData["Success"] = "Xodim tarixi muvaffaqiyatli yangilandi.";
+            TempData["Success"] = L.T("Hr_HistUpdated");
             return RedirectToAction("Index");
         }
 

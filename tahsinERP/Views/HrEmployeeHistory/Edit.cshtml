@@ -1,6 +1,6 @@
 @model tahsinERP.Models.HR_EMPLOYEE_HISTORY
 @{
-    ViewBag.Title = "Xodimlar staji tahrirlash";
+    ViewBag.Title = L.T("Hr_HistEdit");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Xodimlar staji</a></li>
-                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_HistTitle")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Edit")</li>
                                 </ol>
                             </div>
                         </div>
@@ -34,79 +34,79 @@
                                 @Html.HiddenFor(model => model.ID)
 
                                 <div class="form-group">
-                                    @Html.LabelFor(model => model.EmployeeID, "Xodim", new { @class = "control-label" })
+                                    @Html.LabelFor(model => model.EmployeeID, L.T("Hr_Employee"), new { @class = "control-label" })
                                     <span class="text-danger">*</span>
-                                    @Html.DropDownListFor(model => model.EmployeeID, ViewBag.EmployeeID as SelectList, "Xodimni tanlang", new { @class = "form-control select2", required = "required" })
+                                    @Html.DropDownListFor(model => model.EmployeeID, ViewBag.EmployeeID as SelectList, L.T("Hr_SelectEmployee"), new { @class = "form-control select2", required = "required" })
                                     @Html.ValidationMessageFor(model => model.EmployeeID, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div class="form-group">
-                                    @Html.LabelFor(model => model.ActionType, "Ishlaganini qayd etish", new { @class = "control-label" })
+                                    @Html.LabelFor(model => model.ActionType, L.T("Hr_HistActionHistory"), new { @class = "control-label" })
                                     <span class="text-danger">*</span>
                                     @{
                                         var actionTypeList = new SelectList(
                                             new[] { 
-                                                new { Value = "History", Text = "Ishlaganini qayd etish" },
-                                                new { Value = "Transfer", Text = "Boshqa lavozimga o'tkazish" }, 
-                                                new { Value = "Dismissal", Text = "Ishdan bo'shatish" } 
+                                                new { Value = "History", Text = L.T("Hr_HistActionHistory") },
+                                                new { Value = "Transfer", Text = L.T("Hr_EmpTransfer") }, 
+                                                new { Value = "Dismissal", Text = L.T("Hr_HistActionDismissal") } 
                                             }, 
                                             "Value", 
                                             "Text", 
                                             Model?.ActionType ?? "History");
                                     }
-                                    @Html.DropDownListFor(model => model.ActionType, actionTypeList, "Tanlang", new { @class = "form-control", id = "ActionType", required = "required" })
+                                    @Html.DropDownListFor(model => model.ActionType, actionTypeList, L.T("Select"), new { @class = "form-control", id = "ActionType", required = "required" })
                                     @Html.ValidationMessageFor(model => model.ActionType, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div class="form-group">
-                                    @Html.LabelFor(model => model.FromOrgUnitID, "Bo'lim", new { @class = "control-label" })
-                                    @Html.DropDownListFor(model => model.FromOrgUnitID, ViewBag.FromOrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control select2" })
+                                    @Html.LabelFor(model => model.FromOrgUnitID, L.T("Hr_OrgUnit"), new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.FromOrgUnitID, ViewBag.FromOrgUnitID as SelectList, L.T("Hr_SelectOrgUnit"), new { @class = "form-control select2" })
                                     @Html.ValidationMessageFor(model => model.FromOrgUnitID, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div class="form-group">
-                                    @Html.LabelFor(model => model.FromPositionID, "Lavozim", new { @class = "control-label" })
-                                    @Html.DropDownListFor(model => model.FromPositionID, ViewBag.FromPositionID as SelectList, "Lavozimni tanlang", new { @class = "form-control select2" })
+                                    @Html.LabelFor(model => model.FromPositionID, L.T("Hr_Position"), new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.FromPositionID, ViewBag.FromPositionID as SelectList, L.T("Hr_SelectPosition"), new { @class = "form-control select2" })
                                     @Html.ValidationMessageFor(model => model.FromPositionID, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div id="toOrgUnitGroup" class="form-group" style="@(Model.ActionType == "Transfer" ? "display:block;" : "display:none;")">
-                                    @Html.LabelFor(model => model.ToOrgUnitID, "Yangi bo'lim", new { @class = "control-label" })
-                                    @Html.DropDownListFor(model => model.ToOrgUnitID, ViewBag.ToOrgUnitID as SelectList, "Yangi bo'limni tanlang", new { @class = "form-control select2" })
+                                    @Html.LabelFor(model => model.ToOrgUnitID, L.T("Hr_NewOrgUnit"), new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.ToOrgUnitID, ViewBag.ToOrgUnitID as SelectList, L.T("Hr_SelectNewOrgUnit"), new { @class = "form-control select2" })
                                     @Html.ValidationMessageFor(model => model.ToOrgUnitID, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div id="toPositionGroup" class="form-group" style="@(Model.ActionType == "Transfer" ? "display:block;" : "display:none;")">
-                                    @Html.LabelFor(model => model.ToPositionID, "Yangi lavozim", new { @class = "control-label" })
-                                    @Html.DropDownListFor(model => model.ToPositionID, ViewBag.ToPositionID as SelectList, "Yangi lavozimni tanlang", new { @class = "form-control select2" })
+                                    @Html.LabelFor(model => model.ToPositionID, L.T("Hr_NewPosition"), new { @class = "control-label" })
+                                    @Html.DropDownListFor(model => model.ToPositionID, ViewBag.ToPositionID as SelectList, L.T("Hr_SelectNewPosition"), new { @class = "form-control select2" })
                                     @Html.ValidationMessageFor(model => model.ToPositionID, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="control-label">Boshlanish sanasi</label>
+                                    <label class="control-label">@L.T("Hr_StartDate")</label>
                                     <span class="text-danger">*</span>
                                     <input type="date" name="EffectiveDateFrom" class="form-control" value="@(ViewBag.EffectiveDateFrom ?? Model.EffectiveDateFrom.ToString("yyyy-MM-dd"))" required />
                                     @Html.ValidationMessageFor(model => model.EffectiveDateFrom, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="control-label">Tugash sanasi</label>
+                                    <label class="control-label">@L.T("Hr_EndDate")</label>
                                     <span class="text-danger">*</span>
                                     <input type="date" name="EffectiveDateTo" id="EffectiveDateTo" class="form-control" value="@(ViewBag.EffectiveDateTo ?? (Model.EffectiveDateTo?.ToString("yyyy-MM-dd")))" required />
-                                    <small class="text-muted">Bu xodimning shu lavozimda ishlagan muddati</small>
+                                    <small class="text-muted">@L.T("Hr_HistPeriodHint")</small>
                                 </div>
 
                                 <div class="form-group">
-                                    @Html.LabelFor(model => model.Reason, "Sabab", new { @class = "control-label" })
+                                    @Html.LabelFor(model => model.Reason, L.T("Hr_Reason"), new { @class = "control-label" })
                                     @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3" })
                                     @Html.ValidationMessageFor(model => model.Reason, "", new { @class = "text-danger" })
                                 </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             }
                         </div>

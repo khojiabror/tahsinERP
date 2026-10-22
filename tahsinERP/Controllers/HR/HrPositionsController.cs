@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.HR;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -197,7 +198,7 @@ namespace tahsinERP.Controllers.HR
 
             if (employeeCount > 0 || staffingPlanCount > 0)
             {
-                TempData["Error"] = $"Bu lavozim {employeeCount} ta xodim va {staffingPlanCount} ta shtat jadvalida ishlatilmoqda. O'chirish mumkin emas.";
+                TempData["Error"] = L.T("Hr_PositionInUse", employeeCount, staffingPlanCount);
                 return RedirectToAction("Index");
             }
 
@@ -223,7 +224,7 @@ namespace tahsinERP.Controllers.HR
 
                 if (employeeCount > 0 || staffingPlanCount > 0)
                 {
-                    TempData["Error"] = $"Bu lavozim {employeeCount} ta xodim va {staffingPlanCount} ta shtat jadvalida ishlatilmoqda. O'chirish mumkin emas.";
+                    TempData["Error"] = L.T("Hr_PositionInUse", employeeCount, staffingPlanCount);
                     return RedirectToAction("Index");
                 }
 

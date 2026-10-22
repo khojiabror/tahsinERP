@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.HR.KoreshokFilterViewModel
 @{
     Layout = null;
-    ViewBag.Title = "Koreshok hisoblash";
+    ViewBag.Title = L.T("Hr_KorCalcTitle");
 }
 <!DOCTYPE html>
 <html>
@@ -26,7 +26,7 @@
             if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
                 $('.select2').select2({
                     width: '100%',
-                    placeholder: 'Xodimni tanlang',
+                    placeholder: '@L.Js("Hr_SelectEmployee")',
                     allowClear: true
                 });
             }
@@ -35,27 +35,27 @@
 </head>
 <body>
     <div class="cardx">
-        <div class="head">Koreshok hisoblash</div>
+        <div class="head">@L.T("Hr_KorCalcTitle")</div>
         <div class="bodyx">
             @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
             @using (Html.BeginForm("Calculate", "Koreshok", FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
                 <div class="form-group">
-                    <label>Xodim</label>
-                    @Html.DropDownListFor(m => m.EmployeeID, ViewBag.EmployeeID as SelectList, "Xodimni tanlang", new { @class = "form-control select2", required = "required" })
+                    <label>@L.T("Hr_Employee")</label>
+                    @Html.DropDownListFor(m => m.EmployeeID, ViewBag.EmployeeID as SelectList, L.T("Hr_SelectEmployee"), new { @class = "form-control select2", required = "required" })
                 </div>
                 <div class="form-row">
                     <div class="form-group col-md-6">
-                        <label>Dan</label>
+                        <label>@L.T("Hr_From")</label>
                         @Html.TextBoxFor(m => m.DateFrom, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", required = "required" })
                     </div>
                     <div class="form-group col-md-6">
-                        <label>Gacha</label>
+                        <label>@L.T("Hr_To")</label>
                         @Html.TextBoxFor(m => m.DateTo, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", required = "required" })
                     </div>
                 </div>
-                <button class="btn btn-success btn-block"><i class="bx bx-calculator"></i> Oylikni hisobla</button>
+                <button class="btn btn-success btn-block"><i class="bx bx-calculator"></i> @L.T("Hr_KorCalcButton")</button>
             }
         </div>
     </div>

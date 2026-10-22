@@ -1,6 +1,6 @@
 @model List<tahsinERP.ViewModels.HR.HrOrgUnitViewModel>
 @{
-    ViewBag.Title = "Tashkiliy tuzilma";
+    ViewBag.Title = L.T("Hr_OrgStructure");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,7 +17,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">Tashkiliy tuzilma</li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_OrgStructure")</li>
                                 </ol>
                             </div>
                         </div>
@@ -37,12 +37,12 @@
                 <div class="row mb-2">
                     <div class="col-12">
                         <a href="@Url.Action("OrgChart")" class="btn btn-info">
-                            <i class="bx bx-sitemap"></i> Tashkiliy sxema
+                            <i class="bx bx-sitemap"></i> @L.T("Hr_OrgChart")
                         </a>
                         @if (changePermit)
                         {
                             <a href="@Url.Action("Create")" class="btn btn-success">
-                                <i class="bx bx-plus"></i> Bo'lim qo'shish
+                                <i class="bx bx-plus"></i> @L.T("Hr_OrgUnitAdd")
                             </a>
                         }
                     </div>
@@ -52,7 +52,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Bo'limlar daraxti</h4>
+                                <h4 class="card-title">@L.T("Hr_OrgTree")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="orgTree" class="org-tree-container">
@@ -67,10 +67,10 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Bo'lim tafsilotlari</h4>
+                                <h4 class="card-title">@L.T("Hr_OrgUnitDetails")</h4>
                             </div>
                             <div class="card-body" id="orgUnitDetails">
-                                <p class="text-muted">Tafsilotlarni ko'rish uchun daraxtdan bo'limni tanlang</p>
+                                <p class="text-muted">@L.T("Hr_OrgSelectHint")</p>
                             </div>
                         </div>
                     </div>
@@ -91,18 +91,18 @@
                         </span>
                         <span class="org-tree-content">
                             <strong>@node.Code</strong> - @node.Name
-                            <small class="text-muted">(Reja: @node.PlannedHeadcount, Fakt: @node.ActualHeadcount)</small>
+                            <small class="text-muted">(@L.T("Hr_PlanFact", node.PlannedHeadcount, node.ActualHeadcount))</small>
                         </span>
                         @if (changePermit)
                         {
                             <span class="org-tree-actions">
-                                <button class="btn btn-sm btn-primary" onclick="addChild(@node.ID)" title="Qo'shish">
+                                <button class="btn btn-sm btn-primary" onclick="addChild(@node.ID)" title="@L.T("Add")">
                                     <i class="bx bx-plus"></i>
                                 </button>
-                                <a href="@Url.Action("Edit", new { id = node.ID })" class="btn btn-sm btn-warning" title="Tahrirlash">
+                                <a href="@Url.Action("Edit", new { id = node.ID })" class="btn btn-sm btn-warning" title="@L.T("Edit")">
                                     <i class="bx bx-edit"></i>
                                 </a>
-                                <a href="@Url.Action("Delete", new { id = node.ID })" class="btn btn-sm btn-danger" title="O'chirish" onclick="return confirm('Bu bo\'limni o\'chirishni tasdiqlaysizmi?');">
+                                <a href="@Url.Action("Delete", new { id = node.ID })" class="btn btn-sm btn-danger" title="@L.T("Delete")" onclick="return confirm('@L.Js("Hr_OrgUnitDeleteConfirm")');">
                                     <i class="bx bx-trash"></i>
                                 </a>
                             </span>
@@ -198,7 +198,7 @@
             $.get('@Url.Action("Details")', { id: id }, function(data) {
                 $('#orgUnitDetails').html(data);
             }).fail(function() {
-                $('#orgUnitDetails').html('<p class="text-danger">Ma\'lumotlarni yuklashda xatolik</p>');
+                $('#orgUnitDetails').html('<p class="text-danger">@L.Js("Hr_LoadError")</p>');
             });
         }
 
@@ -250,7 +250,7 @@
                 var newParentId = $(this).data('id');
                 
                 if (draggedId != newParentId) {
-                    if (confirm('Bo\'limni ko\'chirish?')) {
+                    if (confirm('@L.Js("Hr_OrgMoveQ")')) {
                         $.post('@Url.Action("UpdateParent")', {
                             id: draggedId,
                             newParentId: newParentId
@@ -258,7 +258,7 @@
                             if (result.success) {
                                 location.reload();
                             } else {
-                                alert('Xatolik: ' + result.message);
+                                alert('@L.Js("Error"): ' + result.message);
                             }
                         });
                     }

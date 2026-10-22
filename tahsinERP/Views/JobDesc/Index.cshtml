@@ -1,6 +1,6 @@
 @model List<tahsinERP.ViewModels.JobDescIndexViewModel>
 @{
-    ViewBag.Title = "Job Descriptions";
+    ViewBag.Title = L.T("Hr_JdTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,7 +17,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">Job Descriptions</li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_JdTitle")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,7 +31,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "JobDesc")" class="btn btn-success">
-                                <i class="bx bx-plus"></i> Yangi lavozim yo'riqnomasi qo'shish
+                                <i class="bx bx-plus"></i> @L.T("Hr_JdAdd")
                             </a>
                         </div>
                     }
@@ -64,15 +64,15 @@
                                         <table id="jobDescriptionsDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Lavozim kodi</th>
-                                                    <th>Lavozim nomi</th>
-                                                    <th>Bo'lim</th>
-                                                    <th>Versiya</th>
-                                                    <th>Eslatma</th>
-                                                    <th>Yaratilgan sana</th>
+                                                    <th>@L.T("Hr_JdCode")</th>
+                                                    <th>@L.T("Hr_JdName")</th>
+                                                    <th>@L.T("Hr_OrgUnit")</th>
+                                                    <th>@L.T("Hr_Version")</th>
+                                                    <th>@L.T("Note")</th>
+                                                    <th>@L.T("Hr_CreatedDate")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th class="text-center">Amallar</th>
+                                                        <th class="text-center">@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -98,15 +98,15 @@
                                                         {
                                                             <td class="text-center">
                                                                 <a href="@Url.Action("Details", "JobDesc", new { id = item.DocumentID })" 
-                                                                   class="btn btn-sm btn-outline-info" title="Batafsil">
+                                                                   class="btn btn-sm btn-outline-info" title="@L.T("Details")">
                                                                     <i class="bx bx-show"></i>
                                                                 </a>
                                                                 <a href="@Url.Action("Edit", "JobDesc", new { id = item.DocumentID })" 
-                                                                   class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                   class="btn btn-sm btn-outline-primary" title="@L.T("Edit")">
                                                                     <i class="bx bx-edit"></i>
                                                                 </a>
                                                                 <a href="@Url.Action("Delete", "JobDesc", new { id = item.DocumentID })" 
-                                                                   class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                   class="btn btn-sm btn-outline-danger" title="@L.T("Delete")">
                                                                     <i class="bx bx-trash"></i>
                                                                 </a>
                                                             </td>
@@ -136,25 +136,11 @@
             }
             
             $('#jobDescriptionsDataTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
                 "pageLength": 25,
                 "order": [[5, "desc"]],
                 "columnDefs": columnDefs,
                 dom: 'lBfrtip',
-                buttons: erpDataTable.buttons({ fileName: 'Job_Desc', pdfTitle: "Lavozim yo'riqnomalari ro'yxati", columns: changePermit ? ':not(:last-child)' : ':visible' }),
+                buttons: erpDataTable.buttons({ fileName: 'Job_Desc', pdfTitle: '@L.Js("Hr_JdListTitle")', columns: changePermit ? ':not(:last-child)' : ':visible' }),
                 "scrollX": true
             });
         });

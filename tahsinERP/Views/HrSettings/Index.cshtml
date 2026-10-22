@@ -1,9 +1,9 @@
 @model tahsinERP.Controllers.HR.HrSettingsController.HrSettingsViewModel
 @{
-    ViewBag.Title = "HR sozlamalari";
+    ViewBag.Title = L.T("Hr_SetTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool canChange = ViewBag.CanChange == true;
-    var dayNames = new[] { "Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba" };
+    var dayNames = Enumerable.Range(0, 7).Select(i => L.T("Hr_Day_" + i)).ToArray();
     var dayOrder = new[] { 1, 2, 3, 4, 5, 6, 0 };
 }
 
@@ -15,8 +15,8 @@
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                         <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "HrPayroll")">Ish haqi</a></li>
-                        <li class="breadcrumb-item active">HR sozlamalari</li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "HrPayroll")">@L.T("Hr_Salary2")</a></li>
+                        <li class="breadcrumb-item active">@L.T("Hr_SetTitle")</li>
                     </ol>
                 </div>
             </div>
@@ -36,10 +36,10 @@
             {
                 @Html.AntiForgeryToken()
                 <div class="card">
-                    <div class="card-header"><h4 class="card-title">Ish kalendari</h4></div>
+                    <div class="card-header"><h4 class="card-title">@L.T("Hr_SetWorkCalendar")</h4></div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label class="d-block"><strong>Ish kunlari</strong></label>
+                            <label class="d-block"><strong>@L.T("Hr_WorkDays")</strong></label>
                             @foreach (var d in dayOrder)
                             {
                                 <div class="custom-control custom-checkbox custom-control-inline">
@@ -49,44 +49,43 @@
                                 </div>
                             }
                             <small class="form-text text-muted">
-                                Belgilanmagan kunlar dam olish kuni: tabelda "kelmagan kun" sanalmaydi, ishlangan soat to'liq qo'shimcha soat hisoblanadi.
+                                @L.T("Hr_SetWorkDaysHint")
                             </small>
                         </div>
 
                         <div class="form-group">
-                            <label for="Holidays"><strong>Bayram va qo'shimcha dam olish kunlari</strong></label>
+                            <label for="Holidays"><strong>@L.T("Hr_SetHolidays")</strong></label>
                             <textarea id="Holidays" name="Holidays" rows="6" class="form-control" placeholder="2026-01-01&#10;2026-03-08&#10;2026-03-21" @(canChange ? "" : "readonly")>@Model.Holidays</textarea>
-                            <small class="form-text text-muted">Har qatorda bitta sana: 2026-03-21 yoki 21.03.2026.</small>
+                            <small class="form-text text-muted">@L.T("Hr_SetHolidaysHint")</small>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label for="DailyNormHours"><strong>Kunlik me'yor (soat)</strong></label>
+                                <label for="DailyNormHours"><strong>@L.T("Hr_SetDailyNorm")</strong></label>
                                 <input type="number" id="DailyNormHours" name="DailyNormHours" class="form-control" min="1" max="24" step="0.25"
                                        value="@Model.DailyNormHours.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" @(canChange ? "" : "readonly") />
-                                <small class="form-text text-muted">Ish kunida shundan oshgan soat — qo'shimcha soat.</small>
+                                <small class="form-text text-muted">@L.T("Hr_SetDailyNormHint")</small>
                             </div>
                             <div class="form-group col-md-4">
-                                <label for="OvertimeMultiplier"><strong>Qo'shimcha soat koeffitsienti</strong></label>
+                                <label for="OvertimeMultiplier"><strong>@L.T("Hr_SetOvertimeCoef")</strong></label>
                                 <input type="number" id="OvertimeMultiplier" name="OvertimeMultiplier" class="form-control" min="1" max="10" step="0.05"
                                        value="@Model.OvertimeMultiplier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" @(canChange ? "" : "readonly") />
                             </div>
                             <div class="form-group col-md-4">
-                                <label for="DefaultIncomeTaxPercent"><strong>Standart daromad solig'i (%)</strong></label>
+                                <label for="DefaultIncomeTaxPercent"><strong>@L.T("Hr_SetDefaultTax")</strong></label>
                                 <input type="number" id="DefaultIncomeTaxPercent" name="DefaultIncomeTaxPercent" class="form-control" min="0" max="100" step="0.01"
                                        value="@Model.DefaultIncomeTaxPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" @(canChange ? "" : "readonly") />
-                                <small class="form-text text-muted">Soatbay va ishbay hisoblarga qo'llanadi; hisobda o'zgartirish mumkin.</small>
+                                <small class="form-text text-muted">@L.T("Hr_SetDefaultTaxHint")</small>
                             </div>
                         </div>
 
                         <div class="alert alert-light mb-1">
-                            @ViewBag.ExampleMonth: @ViewBag.ExampleWorkingDays ta ish kuni, oylik fond — @(((decimal)ViewBag.ExampleFundHours).ToString("0.##")) soat
-                            (yangi tabel yaratishda standart fond soati shu tarzda hisoblanadi).
+                            @ViewBag.ExampleMonth: @L.T("Hr_SetExample", ViewBag.ExampleWorkingDays, ((decimal)ViewBag.ExampleFundHours).ToString("0.##"))
                         </div>
 
                         @if (canChange)
                         {
-                            <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> Saqlash</button>
+                            <button type="submit" class="btn btn-primary"><i class="bx bx-save"></i> @L.T("Save")</button>
                         }
                     </div>
                 </div>

@@ -8,6 +8,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -116,7 +117,7 @@ namespace tahsinERP.Controllers.HR
                 // Tekshirish Min <= Max
                 if (viewModel.MinSalary > viewModel.MaxSalary)
                 {
-                    ModelState.AddModelError("MaxSalary", "Максимальная зарплата должна быть больше или равна минимальной");
+                    ModelState.AddModelError("MaxSalary", L.T("Hr_GradeMaxLessThanMin"));
                     PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
@@ -131,7 +132,7 @@ namespace tahsinERP.Controllers.HR
 
                 if (overlapping != null)
                 {
-                    ModelState.AddModelError("EffectiveFrom", "Пересекающиеся периоды действия для этого кода тарифной сетки не допускаются");
+                    ModelState.AddModelError("EffectiveFrom", L.T("Hr_GradePeriodOverlap"));
                     PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
@@ -210,7 +211,7 @@ namespace tahsinERP.Controllers.HR
                 // Tekshirish Min <= Max
                 if (viewModel.MinSalary > viewModel.MaxSalary)
                 {
-                    ModelState.AddModelError("MaxSalary", "Максимальная зарплата должна быть больше или равна минимальной");
+                    ModelState.AddModelError("MaxSalary", L.T("Hr_GradeMaxLessThanMin"));
                     PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
@@ -226,7 +227,7 @@ namespace tahsinERP.Controllers.HR
 
                 if (overlapping != null)
                 {
-                    ModelState.AddModelError("EffectiveFrom", "Пересекающиеся периоды действия для этого кода тарифной сетки не допускаются");
+                    ModelState.AddModelError("EffectiveFrom", L.T("Hr_GradePeriodOverlap"));
                     PopulateCurrencies(viewModel.CurrencyCode);
                     return View(viewModel);
                 }
@@ -276,7 +277,7 @@ namespace tahsinERP.Controllers.HR
             var usedInStaffing = await db.HR_STAFFING_PLAN.AnyAsync(sp => sp.SalaryGradeID == id && sp.IsDeleted != true);
             if (usedInStaffing)
             {
-                TempData["Error"] = "Нельзя удалить тарифную сетку, которая используется в штатном расписании";
+                TempData["Error"] = L.T("Hr_GradeInUse");
                 return RedirectToAction("Index");
             }
 

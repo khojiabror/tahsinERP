@@ -10,6 +10,7 @@ using tahsinERP.Services.Finance;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -52,12 +53,12 @@ namespace tahsinERP.Controllers.HR
         {
             if (vm.EmployeeID <= 0)
             {
-                TempData["Error"] = "Xodim tanlanmagan";
+                TempData["Error"] = L.T("Hr_EmployeeNotSelected");
                 return RedirectToAction("Index");
             }
             if (vm.DateTo < vm.DateFrom)
             {
-                TempData["Error"] = "Sana oralig'i noto'g'ri";
+                TempData["Error"] = L.T("Hr_InvalidDateRange");
                 return RedirectToAction("Index");
             }
             return RedirectToAction("Result", new
@@ -202,9 +203,9 @@ namespace tahsinERP.Controllers.HR
             result.HourlyBalance = result.HourlyCalculated - result.HourlyPaid;
             result.PieceBalance = result.PieceCalculated - result.PiecePaid;
 
-            result.Notes.Add("Hisoblangan: avvalo ish haqi (payroll) bo'yicha (to'lovga summa); payroll bo'lmasa soatbay tabel + shtat rejasi va ishbay yozuvlar + tariflar bo'yicha HrPayroll bilan bir xil formulada taxminiy (soliqdan oldingi) summa.");
-            result.Notes.Add("Eslatma: to'langan summa FinTransactions'dagi xodimga bog'langan chiqimlar + HR_PAYROLL postlari bo'yicha xodim net summasidan olinadi.");
-            result.Notes.Add("Agar oyliklar umumiy provodka bilan (xodim IDsiz) o'tkazilgan bo'lsa, to'lovlar to'liq chiqmasligi mumkin.");
+            result.Notes.Add(L.T("Hr_KorNote1"));
+            result.Notes.Add(L.T("Hr_KorNote2"));
+            result.Notes.Add(L.T("Hr_KorNote3"));
 
             return View(result);
         }

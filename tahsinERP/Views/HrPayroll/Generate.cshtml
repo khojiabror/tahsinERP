@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Ish haqi hisobini yaratish";
+    ViewBag.Title = L.T("Hr_PayGenerate");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,8 +14,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ish haqi hisobi</a></li>
-                                    <li class="breadcrumb-item active">Yaratish</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_PayTitle")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Create")</li>
                                 </ol>
                             </div>
                         </div>
@@ -34,7 +34,7 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label>Yil <span class="text-danger">*</span></label>
+                                            <label>@L.T("Hr_Year") <span class="text-danger">*</span></label>
                                             <select name="year" id="year" class="form-control" required>
                                                 @{
                                                     int currentYear = ViewBag.Year ?? DateTime.Now.Year;
@@ -49,14 +49,13 @@
 
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label>Oy <span class="text-danger">*</span></label>
+                                            <label>@L.T("Hr_Month") <span class="text-danger">*</span></label>
                                             <select name="month" id="month" class="form-control" required>
                                                 @{
                                                     int currentMonth = ViewBag.Month ?? DateTime.Now.Month;
-                                                    string[] uzbekMonths = { "", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr" };
-                                                    for (int i = 1; i <= 12; i++)
+                                                                                                        for (int i = 1; i <= 12; i++)
                                                     {
-                                                        <option value="@i" @(i == currentMonth ? "selected" : "")>@uzbekMonths[i]</option>
+                                                        <option value="@i" @(i == currentMonth ? "selected" : "")>@L.T("Month_" + i)</option>
                                                     }
                                                 }
                                             </select>
@@ -65,25 +64,25 @@
 
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label>Bo'lim</label>
-                                            @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Butun kompaniya", new { @class = "form-control select2", @id = "orgUnitId" })
+                                            <label>@L.T("Hr_OrgUnit")</label>
+                                            @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, L.T("Hr_WholeCompany"), new { @class = "form-control select2", @id = "orgUnitId" })
                                         </div>
                                     </div>
 
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>Tabel (ma'lumot manbai) <span class="text-danger">*</span></label>
-                                            @Html.DropDownList("timesheetId", ViewBag.TimesheetID as SelectList, "Tasdiqlangan tabelni tanlang", new { @class = "form-control select2", @id = "timesheetId", @required = "required" })
-                                            <small class="text-muted">Ish haqi hisobi uchun tasdiqlangan tabelni tanlang</small>
+                                            <label>@L.T("Hr_PayTimesheetSource") <span class="text-danger">*</span></label>
+                                            @Html.DropDownList("timesheetId", ViewBag.TimesheetID as SelectList, L.T("Hr_PaySelectApprovedTs"), new { @class = "form-control select2", @id = "timesheetId", @required = "required" })
+                                            <small class="text-muted">@L.T("Hr_PaySelectApprovedTsHint")</small>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-calculator"></i> Hisob yaratish
+                                        <i class="bx bx-calculator"></i> @L.T("Hr_PayCreate")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             </div>
                         </div>
@@ -144,7 +143,7 @@
                                 timesheetDropdown.select2('destroy');
                             }
                             timesheetDropdown.empty();
-                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
+                            timesheetDropdown.append(new Option('@L.Js("Hr_PaySelectApprovedTs")', '', true, true));
                             if (response.success && response.data && response.data.length) {
                                 $.each(response.data, function (index, item) {
                                     timesheetDropdown.append(new Option(item.Name, item.ID));
@@ -161,7 +160,7 @@
                                 timesheetDropdown.select2('destroy');
                             }
                             timesheetDropdown.empty();
-                            timesheetDropdown.append(new Option('Tasdiqlangan tabelni tanlang', '', true, true));
+                            timesheetDropdown.append(new Option('@L.Js("Hr_PaySelectApprovedTs")', '', true, true));
                             refreshTimesheetSelect2(timesheetDropdown);
                         }
                     });

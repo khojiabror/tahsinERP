@@ -8,23 +8,23 @@ namespace tahsinERP.ViewModels.HR
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Yil majburiy")]
-        [Display(Name = "Yil")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_Year")]
         public int Year { get; set; }
         
-        [Required(ErrorMessage = "Oy majburiy")]
-        [Display(Name = "Oy")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_Month")]
         public int Month { get; set; }
         
-        [Display(Name = "Bo'lim")]
+        [Display(Name = "Hr_OrgUnit")]
         public int? OrgUnitID { get; set; }
         public string OrgUnitName { get; set; }
 
-        [Display(Name = "Oylik fond soati")]
-        [Range(1, 744, ErrorMessage = "Fond soati 1 dan 744 gacha bo'lishi kerak")]
+        [Display(Name = "Hr_FundHours")]
+        [Range(1, 744, ErrorMessage = "Val_Range")]
         public decimal FundHours { get; set; } = 160m;
         
-        [Display(Name = "Holat")]
+        [Display(Name = "Status")]
         public string Status { get; set; }
         
         public int? CreatedByUserID { get; set; }

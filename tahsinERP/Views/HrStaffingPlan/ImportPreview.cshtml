@@ -1,6 +1,6 @@
 @model List<Dictionary<string, object>>
 @{
-    ViewBag.Title = "Import ko'rib chiqish";
+    ViewBag.Title = L.T("Hr_ImportPreview");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,9 +15,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Shtat jadvali</a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Import")">Import</a></li>
-                                    <li class="breadcrumb-item active">Ko'rib chiqish</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_StaffingPlan")</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Import")">@L.T("Import")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_Preview")</li>
                                 </ol>
                             </div>
                         </div>
@@ -28,7 +28,7 @@
             <div class="content-body">
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">Import qilingan ma'lumotlar (@Model.Count ta qator)</h4>
+                        <h4 class="card-title">@L.T("Hr_ImportedRows", Model.Count)</h4>
                     </div>
                     <div class="card-content">
                         <div class="card-body">
@@ -41,10 +41,10 @@
                                         <thead>
                                             <tr>
                                                 <th>№</th>
-                                                <th>Tab.№</th>
-                                                <th>F.I.O.</th>
-                                                <th>Lavozim</th>
-                                                <th>Maosh</th>
+                                                <th>@L.T("Hr_TabNoShort")</th>
+                                                <th>@L.T("Hr_FullName")</th>
+                                                <th>@L.T("Hr_Position")</th>
+                                                <th>@L.T("Hr_Salary")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -65,10 +65,10 @@
 
                                 <div class="form-actions mt-3">
                                     <button type="submit" class="btn btn-success">
-                                        <i class="bx bx-check"></i> Tasdiqlash va saqlash
+                                        <i class="bx bx-check"></i> @L.T("Hr_ConfirmAndSave")
                                     </button>
                                     <a href="@Url.Action("Import")" class="btn btn-secondary">
-                                        <i class="bx bx-x"></i> Bekor qilish
+                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                     </a>
                                 </div>
                             }

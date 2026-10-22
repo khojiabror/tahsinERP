@@ -1,6 +1,6 @@
 @model tahsinERP.Models.JOB_DESC
 @{
-    ViewBag.Title = "Lavozim yo'riqnomasini o'chirish";
+    ViewBag.Title = L.T("Hr_JdDelete");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/JobDesc">Job Descriptions</a></li>
-                                    <li class="breadcrumb-item active">O'chirish</li>
+                                    <li class="breadcrumb-item"><a href="~/JobDesc">@L.T("Hr_JdTitle")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Delete")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,33 +29,33 @@
                     <div class="col-md-8 offset-md-2">
                         <div class="card">
                             <div class="card-header bg-danger">
-                                <h4 class="card-title text-white"><i class="bx bx-trash mr-1"></i>O'chirishni tasdiqlash</h4>
+                                <h4 class="card-title text-white"><i class="bx bx-trash mr-1"></i>@L.T("Hr_ConfirmDeletion")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="alert alert-warning">
                                         <i class="bx bx-error-circle"></i>
-                                        <strong>Diqqat!</strong> Siz quyidagi lavozim yo'riqnomasini o'chirmoqchisiz. Bu amalni qaytarib bo'lmaydi.
+                                        <strong>@L.T("Hr_Attention")</strong> @L.T("Hr_JdDeleteWarn")
                                     </div>
 
                                     <dl class="row">
-                                        <dt class="col-sm-4">Lavozim kodi:</dt>
+                                        <dt class="col-sm-4">@L.T("Hr_JdCode"):</dt>
                                         <dd class="col-sm-8"><strong>@Model.JobDescriptionCode</strong></dd>
 
-                                        <dt class="col-sm-4">Lavozim nomi:</dt>
+                                        <dt class="col-sm-4">@L.T("Hr_JdName"):</dt>
                                         <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.JobTitle) ? "-" : Model.JobTitle)</dd>
 
-                                        <dt class="col-sm-4">Bo'lim:</dt>
+                                        <dt class="col-sm-4">@L.T("Hr_OrgUnit"):</dt>
                                         <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Department) ? "-" : Model.Department)</dd>
 
-                                        <dt class="col-sm-4">Versiya:</dt>
+                                        <dt class="col-sm-4">@L.T("Hr_Version"):</dt>
                                         <dd class="col-sm-8">
                                             <span class="badge badge-light-info">v@(Model.VersionNo.ToString("F2"))</span>
                                         </dd>
 
                                         @if (!string.IsNullOrEmpty(Model.Notes))
                                         {
-                                            <dt class="col-sm-4">Eslatma:</dt>
+                                            <dt class="col-sm-4">@L.T("Note"):</dt>
                                             <dd class="col-sm-8">@Model.Notes</dd>
                                         }
                                     </dl>
@@ -67,10 +67,10 @@
 
                                         <div class="form-group mt-3">
                                             <button type="submit" class="btn btn-danger" id="deleteBtn">
-                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                                <i class="bx bx-trash"></i> @L.T("Hr_YesDelete")
                                             </button>
                                             <a href="@Url.Action("Details", "JobDesc", new { id = Model.DocumentID })" class="btn btn-outline-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }
@@ -88,7 +88,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             $('#deleteForm').on('submit', function(e) {
                 // O'chirish tugmasini o'chirish (double submit oldini olish)
-                $('#deleteBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> O\'chirilmoqda...');
+                $('#deleteBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> @L.Js("Hr_Deleting")');
             });
         });
     </script>

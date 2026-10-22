@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.HR.KoreshokResultViewModel
 @{
     Layout = null;
-    ViewBag.Title = "Koreshok";
+    ViewBag.Title = L.T("Hr_KorTitle");
 }
 <!DOCTYPE html>
 <html>
@@ -22,28 +22,28 @@
 <body>
     <div class="shell" id="printArea">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="title h4 mb-0">Xodim koreshogi</div>
+            <div class="title h4 mb-0">@L.T("Hr_KorEmployeeTitle")</div>
             <div>
-                <a class="btn btn-secondary btn-sm" href="@Url.Action("Index","Koreshok")">Qaytish</a>
-                <button class="btn btn-success btn-sm" onclick="window.print()">Chop etish</button>
+                <a class="btn btn-secondary btn-sm" href="@Url.Action("Index","Koreshok")">@L.T("Back")</a>
+                <button class="btn btn-success btn-sm" onclick="window.print()">@L.T("Print")</button>
             </div>
         </div>
         <div class="meta mb-3">
             <div class="row">
-                <div class="col-md-4"><b>Xodim:</b> @Model.EmployeeName</div>
-                <div class="col-md-2"><b>Tabel:</b> @Model.TabNo</div>
-                <div class="col-md-3"><b>Dan:</b> @Model.DateFrom.ToString("dd.MM.yyyy")</div>
-                <div class="col-md-3"><b>Gacha:</b> @Model.DateTo.ToString("dd.MM.yyyy")</div>
+                <div class="col-md-4"><b>@L.T("Hr_Employee"):</b> @Model.EmployeeName</div>
+                <div class="col-md-2"><b>@L.T("Hr_Timesheet"):</b> @Model.TabNo</div>
+                <div class="col-md-3"><b>@L.T("Hr_From"):</b> @Model.DateFrom.ToString("dd.MM.yyyy")</div>
+                <div class="col-md-3"><b>@L.T("Hr_To"):</b> @Model.DateTo.ToString("dd.MM.yyyy")</div>
             </div>
         </div>
 
         <table class="table table-bordered tbl">
             <thead>
-                <tr><th>Bo'lim</th><th>Hisoblangan</th><th>Ishlagan kun</th><th>Ishlagan soat</th><th>To'langan</th><th>Qoldiq</th></tr>
+                <tr><th>@L.T("Hr_KorSection")</th><th>@L.T("Hr_Accrued")</th><th>@L.T("Hr_WorkedDays")</th><th>@L.T("Hr_WorkedHours")</th><th>@L.T("Hr_Paid")</th><th>@L.T("Hr_Balance")</th></tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Soatbay maoshi</td>
+                    <td>@L.T("Hr_KorHourlyPay")</td>
                     <td>@Model.HourlyCalculated.ToString("N2")</td>
                     <td>@Model.HourlyWorkedDays.ToString("N1")</td>
                     <td>@Model.HourlyWorkedHours.ToString("N2")</td>
@@ -51,7 +51,7 @@
                     <td>@Model.HourlyBalance.ToString("N2")</td>
                 </tr>
                 <tr>
-                    <td>Ishbay maoshi</td>
+                    <td>@L.T("Hr_KorPiecePay")</td>
                     <td>@Model.PieceCalculated.ToString("N2")</td>
                     <td>-</td>
                     <td>-</td>
@@ -61,7 +61,7 @@
             </tbody>
             <tfoot>
                 <tr class="table-success">
-                    <td><b>Jami</b></td>
+                    <td><b>@L.T("Total")</b></td>
                     <td class="kpi">@Model.TotalCalculated.ToString("N2")</td>
                     <td>-</td>
                     <td>-</td>

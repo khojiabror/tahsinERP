@@ -11,6 +11,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -91,7 +92,7 @@ namespace tahsinERP.Controllers.HR
                         Month = g.Key.Month,
                         MonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
                         OrgUnitID = g.Key.OrgUnitID,
-                        OrgUnitName = g.Key.OrgUnitID.HasValue && orgNames.TryGetValue(g.Key.OrgUnitID.Value, out var name) ? name : "Butun kompaniya",
+                        OrgUnitName = g.Key.OrgUnitID.HasValue && orgNames.TryGetValue(g.Key.OrgUnitID.Value, out var name) ? name : L.T("Hr_WholeCompany"),
                         CalculatedAmount = g.Sum(e => resolver.Amount(e.ProductID, e.OperationID, e.PositionID, e.WorkDate, e.Quantity)),
                         CreatedDT = g.Min(e => e.CreatedDT),
                         EntryCount = g.Count(),
@@ -183,7 +184,7 @@ namespace tahsinERP.Controllers.HR
             ViewBag.MonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
             ViewBag.OrgUnitName = orgUnitId.HasValue
                 ? (await db.HR_ORG_UNITS.AsNoTracking().Where(o => o.ID == orgUnitId.Value).Select(o => o.Name).FirstOrDefaultAsync())
-                : "Butun kompaniya";
+                : L.T("Hr_WholeCompany");
 
             return View(viewModel);
         }
@@ -195,13 +196,13 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrPieceRateTimesheets", "Approve"))
             {
-                TempData["Error"] = "Sizda tasdiqlash huquqi yo'q";
+                TempData["Error"] = L.T("Hr_NoApproveRight");
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
             if (!month.HasValue || month.Value < 1 || month.Value > 12)
             {
-                TempData["Error"] = "Noto'g'ri oy parametri";
+                TempData["Error"] = L.T("Hr_BadMonthParam");
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
@@ -218,7 +219,7 @@ namespace tahsinERP.Controllers.HR
 
             if (!await query.AnyAsync())
             {
-                TempData["Error"] = "Bu oy uchun ishbay ma'lumotlari topilmadi";
+                TempData["Error"] = L.T("Hr_PrNoDataForMonth");
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
@@ -241,7 +242,7 @@ namespace tahsinERP.Controllers.HR
             }
             else if (approval.Status == Approved)
             {
-                TempData["Error"] = "Bu tabel allaqachon tasdiqlangan";
+                TempData["Error"] = L.T("Hr_TsAlreadyApproved");
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
@@ -255,7 +256,7 @@ namespace tahsinERP.Controllers.HR
 
             var orgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, orgUnitId) ?? "Butun kompaniya";
             logger.Log("HrPieceRateTimesheets", "Approve", $"Tabel: {year}-{month.Value:D2}, Bo'lim: {orgUnitName}");
-            TempData["Success"] = "Tabel muvaffaqiyatli tasdiqlandi";
+            TempData["Success"] = L.T("Hr_TsApproved");
             return RedirectToAction("Index", new { year, month = month.Value, orgUnitId });
         }
 
@@ -294,7 +295,7 @@ namespace tahsinERP.Controllers.HR
                 var validRows = (model.Rows ?? new List<HrPieceRateGridRowViewModel>()).Where(IsCompleteRow).ToList();
                 if (!validRows.Any())
                 {
-                    TempData["Error"] = "Saqlash uchun qator yo'q";
+                    TempData["Error"] = L.T("Hr_NoRowsToSave");
                     await PopulateGridClientDataAsync(model);
                     return View(model);
                 }
@@ -360,15 +361,15 @@ namespace tahsinERP.Controllers.HR
                 await db.SaveChangesAsync();
                 if (created > 0)
                     await EnsurePieceRateDraftApprovalsAsync(touched);
-                TempData["Success"] = $"{created} ta yozuv saqlandi";
-                if (duplicates > 0) TempData["Error"] = $"{duplicates} ta qator o'tkazildi: xodim/mahsulot/operatsiya/sana bo'yicha dublikat";
+                TempData["Success"] = L.T("Hr_PrEntriesSaved", created);
+                if (duplicates > 0) TempData["Error"] = L.T("Hr_PrDuplicatesSkipped", duplicates);
                 logger.Log("HrPieceRateTimesheets", "GridCreate", $"Davr: {model.Year}-{model.Month:D2}, Yangi: {created}, Dublikat: {duplicates}");
                 return RedirectToAction("GridCreate", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrPieceRateTimesheets.GridCreate] " + ex);
-                TempData["Error"] = "Saqlashda xatolik yuz berdi";
+                TempData["Error"] = L.T("Hr_SaveError");
                 await PopulateGridClientDataAsync(model);
                 return View(model);
             }
@@ -428,7 +429,7 @@ namespace tahsinERP.Controllers.HR
             {
                 if (model.Rows == null)
                 {
-                    TempData["Error"] = "Saqlash uchun ma'lumot yo'q";
+                    TempData["Error"] = L.T("Hr_TsNoDataToSave");
                     return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
                 }
 
@@ -512,14 +513,14 @@ namespace tahsinERP.Controllers.HR
                 await db.SaveChangesAsync();
                 if (updated + inserted > 0)
                     await EnsurePieceRateDraftApprovalsAsync(touched);
-                TempData["Success"] = $"Yangilandi: {updated}, qo'shildi: {inserted}";
+                TempData["Success"] = L.T("Hr_PrUpdatedInserted", updated, inserted);
                 logger.Log("HrPieceRateTimesheets", "GridEdit", $"Davr: {model.Year}-{model.Month:D2}, Yangilandi: {updated}, Qo'shildi: {inserted}");
                 return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month, orgUnitId = model.OrgUnitID });
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrPieceRateTimesheets.GridEdit] " + ex);
-                TempData["Error"] = "Saqlashda xatolik yuz berdi";
+                TempData["Error"] = L.T("Hr_SaveError");
                 await PopulateGridClientDataAsync(model);
                 return View(model);
             }
@@ -537,7 +538,7 @@ namespace tahsinERP.Controllers.HR
         private static string FutureMonthError(IEnumerable<DateTime> dates)
         {
             var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            return dates.Any(d => new DateTime(d.Year, d.Month, 1) > currentMonth) ? "Kelajakka tabel kirita olmaysiz" : null;
+            return dates.Any(d => new DateTime(d.Year, d.Month, 1) > currentMonth) ? L.T("Hr_TsNoFuture") : null;
         }
 
         private static HR_PIECE_RATE_WORK_ENTRIES NewEntry(HrPieceRateGridRowViewModel row, int? userId)
@@ -598,12 +599,12 @@ namespace tahsinERP.Controllers.HR
             {
                 int y = p.Item1.Year, m = p.Item1.Month;
                 if (approved.Any(a => a.Year == y && a.Month == m && a.OrgUnitID == null))
-                    return $"{y}-{m:D2} uchun tabel (butun kompaniya) allaqachon tasdiqlangan. O'zgartirish mumkin emas.";
+                    return L.T("Hr_PrCompanyTsApproved", $"{y}-{m:D2}");
 
                 int? org;
                 orgByEmployee.TryGetValue(p.Item2, out org);
                 if (org.HasValue && approved.Any(a => a.Year == y && a.Month == m && a.OrgUnitID == org))
-                    return $"{y}-{m:D2} uchun tegishli bo'lim tabeli allaqachon tasdiqlangan. O'zgartirish mumkin emas.";
+                    return L.T("Hr_PrOrgTsApproved", $"{y}-{m:D2}");
             }
             return null;
         }
@@ -792,7 +793,7 @@ namespace tahsinERP.Controllers.HR
             ViewBag.PrefillWorkDate = workDate.ToString("yyyy-MM-dd");
             ViewBag.PrefillQuantity = quantity;
             ViewBag.ReturnUrl = returnUrl;
-            ViewBag.PageTitle = "Ishbay yozuvni tahrirlash";
+            ViewBag.PageTitle = L.T("Hr_PrEntryEdit");
         }
 
         // POST so'rovi: HR/PieceRateTimesheets/CreateSimple
@@ -816,7 +817,7 @@ namespace tahsinERP.Controllers.HR
                         .FirstOrDefaultAsync(e => e.ID == entryId.Value && e.IsDeleted != true);
                     if (entry == null)
                     {
-                        TempData["Error"] = "Yozuv topilmadi";
+                        TempData["Error"] = L.T("Hr_EntryNotFound");
                         await PopulateCreateSimpleViewBags();
                         return View();
                     }
@@ -845,7 +846,7 @@ namespace tahsinERP.Controllers.HR
                     await db.SaveChangesAsync();
                     await EnsurePieceRateDraftApprovalsAsync(new[] { Tuple.Create(WorkDate, EmployeeID) });
                     logger.Log("HrPieceRateTimesheets", "EditWorkEntry", $"YozuvID: {entry.ID}, Sana: {WorkDate:dd.MM.yyyy}, Miqdor: {Quantity}");
-                    TempData["Success"] = "Yozuv yangilandi";
+                    TempData["Success"] = L.T("Hr_EntryUpdated");
                     if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
                         return Redirect(returnUrl);
@@ -900,13 +901,13 @@ namespace tahsinERP.Controllers.HR
                         Operation = db.HR_PIECE_RATE_OPERATIONS.Where(o => o.ID == OperationID).Select(o => o.Name).FirstOrDefault()
                     }).FirstOrDefaultAsync();
                 logger.Log("HrPieceRateTimesheets", "CreateSimple", $"Xodim: {labels?.Employee ?? "-"}, Mahsulot: {labels?.Product ?? "-"}, Operatsiya: {labels?.Operation ?? "-"}, Sana: {WorkDate:dd.MM.yyyy}, Miqdor: {Quantity}");
-                TempData["Success"] = "Ishbay ma'lumot muvaffaqiyatli saqlandi";
+                TempData["Success"] = L.T("Hr_PrEntrySaved");
                 return RedirectToAction("CreateSimple");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrPieceRateTimesheets.CreateSimple] " + ex);
-                TempData["Error"] = "Saqlashda xatolik yuz berdi";
+                TempData["Error"] = L.T("Hr_SaveError");
                 await PopulateCreateSimpleViewBags();
                 return View();
             }
@@ -927,7 +928,7 @@ namespace tahsinERP.Controllers.HR
             var entry = await db.HR_PIECE_RATE_WORK_ENTRIES.FirstOrDefaultAsync(e => e.ID == id && e.IsDeleted != true);
             if (entry == null)
             {
-                TempData["Error"] = "Yozuv topilmadi";
+                TempData["Error"] = L.T("Hr_EntryNotFound");
                 return RedirectToAction("GridEdit", new { year, month, orgUnitId });
             }
 
@@ -943,7 +944,7 @@ namespace tahsinERP.Controllers.HR
             entry.ModifiedDT = DateTime.Now;
             await db.SaveChangesAsync();
             logger.Log("HrPieceRateTimesheets", "DeleteGridEntry", $"YozuvID: {id}");
-            TempData["Success"] = "Yozuv o'chirildi";
+            TempData["Success"] = L.T("Hr_EntryDeleted");
             return RedirectToAction("GridEdit", new { year, month, orgUnitId });
         }
 
@@ -979,12 +980,12 @@ namespace tahsinERP.Controllers.HR
                     }, JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(new { success = false, message = "Tarif topilmadi" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = L.T("Hr_PrTariffNotFound") }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrPieceRateTimesheets.GetTariff] " + ex);
-                return Json(new { success = false, message = "Tarifni olishda xatolik" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = L.T("Hr_PrTariffLoadError") }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -1040,8 +1041,8 @@ namespace tahsinERP.Controllers.HR
             ViewBag.EntryCount = await query.CountAsync();
             ViewBag.MonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
             ViewBag.OrgUnitName = orgUnitId.HasValue
-                ? (await db.HR_ORG_UNITS.AsNoTracking().Where(o => o.ID == orgUnitId.Value).Select(o => o.Name).FirstOrDefaultAsync()) ?? "Butun kompaniya"
-                : "Butun kompaniya";
+                ? (await db.HR_ORG_UNITS.AsNoTracking().Where(o => o.ID == orgUnitId.Value).Select(o => o.Name).FirstOrDefaultAsync()) ?? L.T("Hr_WholeCompany")
+                : L.T("Hr_WholeCompany");
 
             return View();
         }
@@ -1078,7 +1079,7 @@ namespace tahsinERP.Controllers.HR
 
             if (hasPayrolls)
             {
-                TempData["Error"] = "Bu oy uchun ish haqi hisobotlari mavjud. Avval ish haqi hisobotlarini o'chiring.";
+                TempData["Error"] = L.T("Hr_PrPayrollExists");
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
@@ -1086,7 +1087,7 @@ namespace tahsinERP.Controllers.HR
             var blockMsg = await GetPieceRateEditBlockedMessageAsync(workEntries.Select(e => Tuple.Create(e.WorkDate, e.EmployeeID)));
             if (blockMsg != null)
             {
-                TempData["Error"] = "Tasdiqlangan tabelni o'chirib bo'lmaydi. Avval tasdiqlashni bekor qiling. " + blockMsg;
+                TempData["Error"] = L.T("Hr_PrCannotDeleteApproved") + " " + blockMsg;
                 return RedirectToAction("Index", new { year, month, orgUnitId });
             }
 
@@ -1112,7 +1113,7 @@ namespace tahsinERP.Controllers.HR
 
             var orgUnitName = HrLookups.NameOf(HrLookups.OrgUnits, orgUnitId) ?? "Butun kompaniya";
             logger.Log("HrPieceRateTimesheets", "DeleteEntries", $"Tabel: {year}-{month:D2}, Bo'lim: {orgUnitName}, YozuvlarSoni: {workEntries.Count}");
-            TempData["Success"] = $"{workEntries.Count} ta yozuv muvaffaqiyatli o'chirildi";
+            TempData["Success"] = L.T("Hr_PrEntriesDeleted", workEntries.Count);
             return RedirectToAction("Index", new { year, month, orgUnitId });
         }
 

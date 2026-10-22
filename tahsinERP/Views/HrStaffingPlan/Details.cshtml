@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.HR.HrStaffingPlanViewModel
 @{
-    ViewBag.Title = "Shtat jadvali tafsilotlari";
+    ViewBag.Title = L.T("Hr_SpDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Shtat jadvali</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_StaffingPlan")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_DetailsCrumb")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,51 +31,51 @@
                     <div class="card-content">
                         <div class="card-body">
                             <dl class="row">
-                                <dt class="col-sm-3">Bo'lim:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_OrgUnit"):</dt>
                                 <dd class="col-sm-9">@Model.OrgUnitName</dd>
 
-                                <dt class="col-sm-3">Lavozim:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_Position"):</dt>
                                 <dd class="col-sm-9">@Model.PositionName</dd>
 
-                                <dt class="col-sm-3">Tarif tarmog'i:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_SalaryGrade"):</dt>
                                 <dd class="col-sm-9">@(Model.SalaryGradeName ?? "-")</dd>
 
-                                <dt class="col-sm-3">Rejalashtirilgan soni:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_PlannedCount"):</dt>
                                 <dd class="col-sm-9">@Model.PlannedHeadcount</dd>
 
-                                <dt class="col-sm-3">Faktik soni:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_ActualCount"):</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.ActualHeadcount >= Model.PlannedHeadcount ? "success" : "warning")">
                                         @Model.ActualHeadcount
                                     </span>
                                 </dd>
 
-                                <dt class="col-sm-3">To'lov turi:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_PayType"):</dt>
                                 <dd class="col-sm-9">
                                     @if (Model.IsFixedSalary)
                                     {
-                                        <span class="badge badge-info">Belgilangan</span>
+                                        <span class="badge badge-info">@L.T("Hr_PayFixed")</span>
                                     }
                                     @if (Model.IsHourly)
                                     {
-                                        <span class="badge badge-primary">Soatbay</span>
+                                        <span class="badge badge-primary">@L.T("Hr_PayHourly")</span>
                                     }
                                     @if (Model.IsPieceRate)
                                     {
-                                        <span class="badge badge-secondary">Parcha</span>
+                                        <span class="badge badge-secondary">@L.T("Hr_PayPiece")</span>
                                     }
                                 </dd>
 
-                                <dt class="col-sm-3">Amal qiladi:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_EffectiveFrom"):</dt>
                                 <dd class="col-sm-9">@Model.EffectiveFrom.ToString("dd.MM.yyyy")</dd>
 
-                                <dt class="col-sm-3">Amal qiladi (to):</dt>
+                                <dt class="col-sm-3">@L.T("Hr_EffectiveTo"):</dt>
                                 <dd class="col-sm-9">@(Model.EffectiveTo?.ToString("dd.MM.yyyy") ?? "-")</dd>
 
-                                <dt class="col-sm-3">Holat:</dt>
+                                <dt class="col-sm-3">@L.T("Status"):</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
-                                        @(Model.IsActive ? "Faol" : "Nofaol")
+                                        @(Model.IsActive ? L.T("Active") : L.T("Inactive"))
                                     </span>
                                 </dd>
                             </dl>
@@ -84,10 +84,10 @@
                                 @if (changePermit)
                                 {
                                     <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
-                                        <i class="bx bx-edit"></i> Tahrirlash
+                                        <i class="bx bx-edit"></i> @L.T("Edit")
                                     </a>
                                 }
-                                <a href="@Url.Action("Index")" class="btn btn-secondary">Ro'yxatga qaytish</a>
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("BackToList")</a>
                             </div>
                         </div>
                     </div>

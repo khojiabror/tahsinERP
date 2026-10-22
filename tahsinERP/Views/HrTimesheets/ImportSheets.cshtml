@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Excel listni tanlash";
+    ViewBag.Title = L.T("Hr_TsSelectSheetTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,9 +14,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tabel</a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Import")">Import</a></li>
-                                    <li class="breadcrumb-item active">Listni tanlash</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Timesheet")</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Import")">@L.T("Import")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_TsSelectSheetCrumb")</li>
                                 </ol>
                             </div>
                         </div>
@@ -41,24 +41,24 @@
                                 @Html.AntiForgeryToken()
 
                                 <div class="form-group">
-                                    <label>Listni tanlang <span class="text-danger">*</span></label>
+                                    <label>@L.T("Hr_TsSelectSheet") <span class="text-danger">*</span></label>
                                     @{
                                         var sheetNamesList = ViewBag.SheetNames as System.Web.Mvc.SelectList;
                                     }
                                     @if (sheetNamesList != null)
                                     {
-                                        @Html.DropDownList("sheetName", sheetNamesList, "Listni tanlang", new { @class = "form-control", required = "required" })
+                                        @Html.DropDownList("sheetName", sheetNamesList, L.T("Hr_TsSelectSheet"), new { @class = "form-control", required = "required" })
                                     }
                                     else
                                     {
                                         <select name="sheetName" class="form-control" required>
-                                            <option value="">Listni tanlang</option>
+                                            <option value="">@L.T("Hr_TsSelectSheet")</option>
                                         </select>
                                         <div class="alert alert-warning mt-2">
-                                            <i class="bx bx-error"></i> Excel fayl yuklanmagan yoki listlar topilmadi.
+                                            <i class="bx bx-error"></i> @L.T("Hr_TsNoSheets")
                                         </div>
                                     }
-                                    <small class="text-muted">Excel fayldagi list nomini tanlang</small>
+                                    <small class="text-muted">@L.T("Hr_TsSelectSheetHint")</small>
                                 </div>
 
                                 <input type="hidden" name="year" value="@ViewBag.Year" />
@@ -67,9 +67,9 @@
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-import"></i> Import qilish
+                                        <i class="bx bx-import"></i> @L.T("Hr_DoImport")
                                     </button>
-                                    <a href="@Url.Action("Import")" class="btn btn-secondary">Orqaga</a>
+                                    <a href="@Url.Action("Import")" class="btn btn-secondary">@L.T("Back")</a>
                                 </div>
                             }
                         </div>

@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.HR.HrEmployeeViewModel
 @{
-    ViewBag.Title = "Boshqa lavozimga o'tkazish";
+    ViewBag.Title = L.T("Hr_EmpTransfer");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Xodimlar</a></li>
-                                    <li class="breadcrumb-item active">Boshqa lavozimga o'tkazish</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Employees")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_EmpTransfer")</li>
                                 </ol>
                             </div>
                         </div>
@@ -32,18 +32,18 @@
                         <div class="card-body">
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <strong>Xodim:</strong> @employee.FullName
+                                    <strong>@L.T("Hr_Employee"):</strong> @employee.FullName
                                 </div>
                                 <div class="col-md-6">
-                                    <strong>Tab.№:</strong> @employee.TabNo
+                                    <strong>@L.T("Hr_TabNoShort"):</strong> @employee.TabNo
                                 </div>
                             </div>
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <strong>Joriy bo'lim:</strong> @(employee.HR_ORG_UNITS?.Name ?? "-")
+                                    <strong>@L.T("Hr_CurrentOrgUnit"):</strong> @(employee.HR_ORG_UNITS?.Name ?? "-")
                                 </div>
                                 <div class="col-md-6">
-                                    <strong>Joriy lavozim:</strong> @(employee.HR_POSITIONS?.Name ?? "-")
+                                    <strong>@L.T("Hr_CurrentPosition"):</strong> @(employee.HR_POSITIONS?.Name ?? "-")
                                 </div>
                             </div>
 
@@ -55,34 +55,34 @@
                                 <hr />
 
                                 <div class="form-group">
-                                    <label for="toOrgUnitId">Yangi bo'lim <span class="text-danger">*</span></label>
-                                    @Html.DropDownList("toOrgUnitId", ViewBag.ToOrgUnitID as SelectList, "Bo'limni tanlang", new { @class = "form-control", id = "toOrgUnitId", required = "required" })
+                                    <label for="toOrgUnitId">@L.T("Hr_NewOrgUnit") <span class="text-danger">*</span></label>
+                                    @Html.DropDownList("toOrgUnitId", ViewBag.ToOrgUnitID as SelectList, L.T("Hr_SelectOrgUnit"), new { @class = "form-control", id = "toOrgUnitId", required = "required" })
                                 </div>
 
                                 <div class="form-group" id="positionGroup">
-                                    <label for="toPositionId">Yangi lavozim <span class="text-danger">*</span></label>
+                                    <label for="toPositionId">@L.T("Hr_NewPosition") <span class="text-danger">*</span></label>
                                     <select name="toPositionId" id="toPositionId" class="form-control" required disabled>
-                                        <option value="">Avval bo'limni tanlang</option>
+                                        <option value="">@L.T("Hr_SelectOrgUnitFirst")</option>
                                     </select>
-                                    <span class="text-muted small" id="positionHint">Bo'lim tanlangandan so'ng faqat shu bo'limdagi lavozimlar ko'rsatiladi.</span>
+                                    <span class="text-muted small" id="positionHint">@L.T("Hr_EmpPositionHint")</span>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="effectiveDate">O'tkazish sanasi <span class="text-danger">*</span></label>
+                                    <label for="effectiveDate">@L.T("Hr_TransferDate") <span class="text-danger">*</span></label>
                                     <input type="date" name="effectiveDate" id="effectiveDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="reason">Sabab</label>
+                                    <label for="reason">@L.T("Hr_Reason")</label>
                                     <textarea name="reason" id="reason" class="form-control" rows="3"></textarea>
                                 </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-check"></i> Tasdiqlash
+                                        <i class="bx bx-check"></i> @L.T("Confirm")
                                     </button>
                                     <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                        <i class="bx bx-x"></i> Bekor qilish
+                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                     </a>
                                 </div>
                             }
@@ -102,13 +102,13 @@
 
             toOrgUnitId.addEventListener('change', function() {
                 var orgId = parseInt(this.value, 10);
-                toPositionId.innerHTML = '<option value="">Lavozimni tanlang</option>';
+                toPositionId.innerHTML = '<option value="">@L.Js("Hr_SelectPosition")</option>';
                 toPositionId.disabled = true;
                 if (!orgId) {
-                    positionHint.textContent = 'Bo\'lim tanlangandan so\'ng faqat shu bo\'limdagi lavozimlar ko\'rsatiladi.';
+                    positionHint.textContent = '@L.Js("Hr_EmpPositionHint")';
                     return;
                 }
-                positionHint.textContent = 'Yuklanmoqda...';
+                positionHint.textContent = erpT('Js_Loading');
                 fetch(url + '?orgUnitId=' + orgId)
                     .then(function(r) { return r.json(); })
                     .then(function(list) {
@@ -119,10 +119,10 @@
                             toPositionId.appendChild(opt);
                         });
                         toPositionId.disabled = false;
-                        positionHint.textContent = list.length ? 'Faqat tanlangan bo\'limdagi lavozimlar.' : 'Ushbu bo\'limda reja qilingan lavozimlar topilmadi.';
+                        positionHint.textContent = list.length ? '@L.Js("Hr_EmpOnlySelectedOrgPositions")' : '@L.Js("Hr_EmpNoPlannedPositions")';
                     })
                     .catch(function() {
-                        positionHint.textContent = 'Lavozimlarni yuklashda xatolik.';
+                        positionHint.textContent = '@L.Js("Hr_EmpPositionsLoadError")';
                     });
             });
         })();

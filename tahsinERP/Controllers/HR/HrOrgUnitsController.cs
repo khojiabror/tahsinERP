@@ -9,6 +9,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.HR;
 using tahsinERP.ViewModels.HR;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -161,7 +162,7 @@ namespace tahsinERP.Controllers.HR
                 // Tekshirish no circular reference
                 if (orgUnit.ParentID.HasValue && await HasCircularReference(orgUnit.ParentID.Value, null))
                 {
-                    ModelState.AddModelError("ParentID", "Циклическая ссылка не допускается");
+                    ModelState.AddModelError("ParentID", L.T("Hr_OrgCycle"));
                     PopulateParents(orgUnit.ParentID, null);
                     return View(orgUnit);
                 }
@@ -239,7 +240,7 @@ namespace tahsinERP.Controllers.HR
                 // Tekshirish no circular reference
                 if (orgUnit.ParentID.HasValue && await HasCircularReference(orgUnit.ParentID.Value, orgUnit.ID))
                 {
-                    ModelState.AddModelError("ParentID", "Циклическая ссылка не допускается");
+                    ModelState.AddModelError("ParentID", L.T("Hr_OrgCycle"));
                     PopulateParents(orgUnit.ParentID, orgUnit.ID);
                     return View(orgUnit);
                 }
@@ -309,7 +310,7 @@ namespace tahsinERP.Controllers.HR
             var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id && o.IsDeleted != true);
             if (hasChildren)
             {
-                TempData["Error"] = "Bo'limda quyi bo'limlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
+                TempData["Error"] = L.T("Hr_OrgHasChildren");
                 return RedirectToAction("Index");
             }
 
@@ -317,7 +318,7 @@ namespace tahsinERP.Controllers.HR
             var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive && e.IsDeleted != true);
             if (hasEmployees)
             {
-                TempData["Error"] = "Bo'limda xodimlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
+                TempData["Error"] = L.T("Hr_OrgHasEmployees");
                 return RedirectToAction("Index");
             }
 
@@ -345,7 +346,7 @@ namespace tahsinERP.Controllers.HR
             var hasChildren = await db.HR_ORG_UNITS.AnyAsync(o => o.ParentID == id && o.IsDeleted != true);
             if (hasChildren)
             {
-                TempData["Error"] = "Bo'limda quyi bo'limlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
+                TempData["Error"] = L.T("Hr_OrgHasChildren");
                 return RedirectToAction("Index");
             }
 
@@ -353,7 +354,7 @@ namespace tahsinERP.Controllers.HR
             var hasEmployees = await db.HR_EMPLOYEES.AnyAsync(e => e.OrgUnitID == id && e.IsActive && e.IsDeleted != true);
             if (hasEmployees)
             {
-                TempData["Error"] = "Bo'limda xodimlar mavjud bo'lsa, uni o'chirib bo'lmaydi";
+                TempData["Error"] = L.T("Hr_OrgHasEmployees");
                 return RedirectToAction("Index");
             }
 
@@ -374,7 +375,7 @@ namespace tahsinERP.Controllers.HR
         {
             if (!RoleHelper.IsChangePermitted(User.Identity.Name, "HrOrgUnits"))
             {
-                return Json(new { success = false, message = "Нет прав доступа" });
+                return Json(new { success = false, message = L.T("Hr_NoAccess") });
             }
 
             try
@@ -382,13 +383,13 @@ namespace tahsinERP.Controllers.HR
                 var orgUnit = await db.HR_ORG_UNITS.FindAsync(id);
                 if (orgUnit == null)
                 {
-                    return Json(new { success = false, message = "Подразделение не найдено" });
+                    return Json(new { success = false, message = L.T("Hr_OrgNotFound") });
                 }
 
                 // Tekshirish no circular reference
                 if (newParentId.HasValue && await HasCircularReference(newParentId.Value, id))
                 {
-                    return Json(new { success = false, message = "Циклическая ссылка не допускается" });
+                    return Json(new { success = false, message = L.T("Hr_OrgCycle") });
                 }
 
                 orgUnit.ParentID = newParentId;
@@ -414,7 +415,7 @@ namespace tahsinERP.Controllers.HR
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("[HrOrgUnits.UpdateParent] " + ex);
-                return Json(new { success = false, message = "Saqlashda xatolik yuz berdi" });
+                return Json(new { success = false, message = L.T("Hr_SaveError") });
             }
         }
 

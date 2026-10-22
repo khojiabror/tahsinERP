@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.HR_PIECE_RATE_TARIFFS>
 @{
-    ViewBag.Title = "Ishbay tariflari";
+    ViewBag.Title = L.T("Hr_PrTariffs");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "HrPieceRateTimesheets")">Ishbay tabel</a></li>
-                                    <li class="breadcrumb-item active">Ishbay tariflari</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "HrPieceRateTimesheets")">@L.T("Hr_PrTimesheet")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_PrTariffs")</li>
                                 </ol>
                             </div>
                         </div>
@@ -47,7 +47,7 @@
                 {
                     <div class="invoice-create-btn mb-1">
                         <a href="@Url.Action("Create")" class="btn btn-success">
-                            <i class="bx bx-plus"></i> Tarif qo'shish
+                            <i class="bx bx-plus"></i> @L.T("Hr_PrTariffAddShort")
                         </a>
                     </div>
                 }
@@ -58,20 +58,20 @@
                             <form method="get" action="@Url.Action("Index")" class="mb-2">
                                 <div class="row">
                                     <div class="col-md-3">
-                                        @Html.DropDownList("productId", ViewBag.ProductID as SelectList, "Barcha maxsulotlar", new { @class = "form-control" })
+                                        @Html.DropDownList("productId", ViewBag.ProductID as SelectList, L.T("Hr_AllProducts"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-3">
-                                        @Html.DropDownList("positionId", ViewBag.PositionID as SelectList, "Barcha lavozimlar", new { @class = "form-control" })
+                                        @Html.DropDownList("positionId", ViewBag.PositionID as SelectList, L.T("Hr_AllPositions"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
                                         <select name="isActive" class="form-control">
-                                            <option value="">Hammasi</option>
-                                            <option value="true" @(ViewBag.IsActive == true ? "selected" : "")>Faol</option>
-                                            <option value="false" @(ViewBag.IsActive == false ? "selected" : "")>Nofaol</option>
+                                            <option value="">@L.T("All")</option>
+                                            <option value="true" @(ViewBag.IsActive == true ? "selected" : "")>@L.T("Active")</option>
+                                            <option value="false" @(ViewBag.IsActive == false ? "selected" : "")>@L.T("Inactive")</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary btn-block">Filtr</button>
+                                        <button type="submit" class="btn btn-primary btn-block">@L.T("Filter")</button>
                                     </div>
                                 </div>
                             </form>
@@ -80,15 +80,15 @@
                                 <table id="tariffsTable" class="table table-striped table-bordered" style="width:100%">
                                     <thead>
                                         <tr>
-                                            <th>Maxsulot</th>
-                                            <th>Lavozim</th>
-                                            <th>Operatsiya</th>
-                                            <th>Tarif (birlik uchun)</th>
-                                            <th>Amal qilishdan</th>
-                                            <th>Amal qilishgacha</th>
-                                            <th>Holat</th>
-                                            <th>Yaratilgan</th>
-                                            <th>Amallar</th>
+                                            <th>@L.T("Hr_Product")</th>
+                                            <th>@L.T("Hr_Position")</th>
+                                            <th>@L.T("Hr_Operation")</th>
+                                            <th>@L.T("Hr_PrRatePerUnit")</th>
+                                            <th>@L.T("Hr_PrValidFrom")</th>
+                                            <th>@L.T("Hr_PrValidTo")</th>
+                                            <th>@L.T("Status")</th>
+                                            <th>@L.T("CreatedAt")</th>
+                                            <th>@L.T("Actions")</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -96,14 +96,14 @@
                                         {
                                             <tr>
                                                 <td>@(item.PRODUCT?.PNo ?? "-")</td>
-                                                <td>@(item.HR_POSITIONS?.Name ?? "Barcha lavozimlar")</td>
+                                                <td>@(item.HR_POSITIONS?.Name ?? L.T("Hr_AllPositions"))</td>
                                                 <td>@(item.HR_PIECE_RATE_OPERATIONS?.Name ?? "-")</td>
                                                 <td>@item.RatePerUnit.ToString("N4") @(item.CURRENCy?.Shortname ?? "")</td>
                                                 <td>@item.EffectiveFrom.ToString("dd.MM.yyyy")</td>
-                                                <td>@(item.EffectiveTo?.ToString("dd.MM.yyyy") ?? "Cheksiz")</td>
+                                                <td>@(item.EffectiveTo?.ToString("dd.MM.yyyy") ?? L.T("Hr_Unlimited"))</td>
                                                 <td>
                                                     <span class="badge badge-@(item.IsActive ? "success" : "secondary")">
-                                                        @(item.IsActive ? "Faol" : "Nofaol")
+                                                        @(item.IsActive ? L.T("Active") : L.T("Inactive"))
                                                     </span>
                                                 </td>
                                                 <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
@@ -116,7 +116,7 @@
                                                         <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-warning">
                                                             <i class="bx bx-edit"></i>
                                                         </a>
-                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Tarifni o\'chirish?');">
+                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('@L.Js("Hr_PrTariffDeleteQ")');">
                                                             <i class="bx bx-trash"></i>
                                                         </a>
                                                     }
@@ -136,9 +136,6 @@
     <script>
         $(document).ready(function() {
             $('#tariffsTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
-                },
                 "pageLength": 25,
                 "order": [[6, "desc"]]
             });

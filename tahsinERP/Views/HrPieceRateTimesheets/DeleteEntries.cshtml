@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Ishbay ma'lumotlarni o'chirish";
+    ViewBag.Title = L.T("Hr_PrDeleteEntries");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,8 +14,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ishbay tabel</a></li>
-                                    <li class="breadcrumb-item active">O'chirish</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_PrTimesheet")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Delete")</li>
                                 </ol>
                             </div>
                         </div>
@@ -28,20 +28,20 @@
                     <div class="card-content">
                         <div class="card-body">
                             <div class="alert alert-warning">
-                                <strong>Diqqat!</strong> Bu amalni bekor qilib bo'lmaydi. Barcha ishbay ma'lumotlar o'chib ketadi.
+                                <strong>@L.T("Hr_Attention")</strong> @L.T("Hr_PrDeleteEntriesWarn")
                             </div>
 
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <strong>Oy:</strong> @ViewBag.MonthName @ViewBag.Year
+                                    <strong>@L.T("Hr_Month"):</strong> @ViewBag.MonthName @ViewBag.Year
                                 </div>
                                 <div class="col-md-6">
-                                    <strong>Bo'lim:</strong> @ViewBag.OrgUnitName
+                                    <strong>@L.T("Hr_OrgUnit"):</strong> @ViewBag.OrgUnitName
                                 </div>
                             </div>
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <strong>Yozuvlar soni:</strong> @ViewBag.EntryCount ta
+                                    <strong>@L.T("Hr_PrEntryCount"):</strong> @ViewBag.EntryCount
                                 </div>
                             </div>
 
@@ -53,11 +53,11 @@
                                 <input type="hidden" name="orgUnitId" value="@ViewBag.OrgUnitId" />
 
                                 <div class="form-actions">
-                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Bu oy uchun barcha ishbay ma\'lumotlarni o\'chirishni tasdiqlaysizmi?');">
-                                        <i class="bx bx-check"></i> Tasdiqlash
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('@L.Js("Hr_PrDeleteEntriesConfirm")');">
+                                        <i class="bx bx-check"></i> @L.T("Confirm")
                                     </button>
                                     <a href="@Url.Action("Index", new { year = ViewBag.Year, month = ViewBag.Month, orgUnitId = ViewBag.OrgUnitId })" class="btn btn-secondary">
-                                        <i class="bx bx-x"></i> Bekor qilish
+                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                     </a>
                                 </div>
                             }

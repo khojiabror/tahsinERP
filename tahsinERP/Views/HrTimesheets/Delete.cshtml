@@ -1,6 +1,6 @@
 @model tahsinERP.Models.HR_TIMESHEET_HEADERS
 @{
-    ViewBag.Title = "Soatbay tabelni o'chirish";
+    ViewBag.Title = L.T("Hr_TsDelete");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Soatbay tabel</a></li>
-                                    <li class="breadcrumb-item active">O'chirish</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_TsHourly")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Delete")</li>
                                 </ol>
                             </div>
                         </div>
@@ -26,30 +26,30 @@
 
             <div class="content-body">
                 <div class="alert alert-warning">
-                    <strong>Diqqat!</strong> Bu tabelni o'chirishni tasdiqlaysizmi?
+                    <strong>@L.T("Hr_Attention")</strong> @L.T("Hr_TsDeleteConfirm")
                 </div>
 
                 <div class="card">
                     <div class="card-content">
                         <div class="card-body">
                             <dl class="row">
-                                <dt class="col-sm-3">Yil:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_Year"):</dt>
                                 <dd class="col-sm-9">@Model.Year</dd>
 
-                                <dt class="col-sm-3">Oy:</dt>
+                                <dt class="col-sm-3">@L.T("Hr_Month"):</dt>
                                 <dd class="col-sm-9">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month)</dd>
 
-                                <dt class="col-sm-3">Tashkilot bo'limi:</dt>
-                                <dd class="col-sm-9">@(Model.HR_ORG_UNITS?.Name ?? "Butun kompaniya")</dd>
+                                <dt class="col-sm-3">@L.T("Hr_OrgUnit"):</dt>
+                                <dd class="col-sm-9">@(Model.HR_ORG_UNITS?.Name ?? L.T("Hr_WholeCompany"))</dd>
 
-                                <dt class="col-sm-3">Holat:</dt>
+                                <dt class="col-sm-3">@L.T("Status"):</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.Status == "Approved" ? "success" : Model.Status == "Closed" ? "info" : "warning")">
-                                        @(Model.Status == "Draft" ? "Qoralama" : Model.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")
+                                        @(Model.Status == "Draft" ? L.T("Hr_PayStatus_Draft") : Model.Status == "Approved" ? L.T("Hr_PayStatus_Approved") : L.T("Hr_TsStatus_Closed"))
                                     </span>
                                 </dd>
 
-                                <dt class="col-sm-3">Yaratilgan:</dt>
+                                <dt class="col-sm-3">@L.T("CreatedAt"):</dt>
                                 <dd class="col-sm-9">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
                             </dl>
 
@@ -60,9 +60,9 @@
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-danger">
-                                        <i class="bx bx-trash"></i> O'chirish
+                                        <i class="bx bx-trash"></i> @L.T("Delete")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             }
                         </div>

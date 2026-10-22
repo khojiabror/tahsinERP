@@ -8,22 +8,22 @@ namespace tahsinERP.ViewModels.HR
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Год обязателен")]
-        [Display(Name = "Год")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_Year")]
         public int Year { get; set; }
         
-        [Required(ErrorMessage = "Месяц обязателен")]
-        [Display(Name = "Месяц")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_Month")]
         public int Month { get; set; }
         
-        [Display(Name = "Подразделение")]
+        [Display(Name = "Hr_OrgUnit")]
         public int? OrgUnitID { get; set; }
         public string OrgUnitName { get; set; }
         
-        [Display(Name = "Статус")]
+        [Display(Name = "Status")]
         public string Status { get; set; }
         
-        [Display(Name = "Тип расчета")]
+        [Display(Name = "Hr_PayCalcType")]
         public string PayrollType { get; set; }
         
         public int? TimesheetID { get; set; }

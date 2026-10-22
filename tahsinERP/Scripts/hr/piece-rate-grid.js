@@ -24,7 +24,7 @@
 
     function buildSelectTemplate(items) {
         var sel = el('select');
-        sel.appendChild(el('option', { value: '' }, 'Tanlang'));
+        sel.appendChild(el('option', { value: '' }, window.erpT ? erpT('Js_Select') : 'Tanlang'));
         items.forEach(function (it) {
             sel.appendChild(el('option', { value: String(it.id) }, it.name));
         });
@@ -155,7 +155,7 @@
             if (row.entryId) {
                 this.renderExistingActions(tdActions, row);
             } else {
-                var btn = el('button', { type: 'button', 'class': 'btn btn-sm btn-outline-danger row-remove', title: "Qatorni olib tashlash" });
+                var btn = el('button', { type: 'button', 'class': 'btn btn-sm btn-outline-danger row-remove', title: window.erpT ? erpT('Js_Hr_RemoveRow') : 'Qatorni olib tashlash' });
                 btn.appendChild(el('i', { 'class': 'bx bx-trash' }));
                 tdActions.appendChild(btn);
             }

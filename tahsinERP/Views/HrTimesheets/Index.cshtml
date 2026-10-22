@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.HR_TIMESHEET_HEADERS>
 @{
-    ViewBag.Title = "Tabel";
+    ViewBag.Title = L.T("Hr_Timesheet");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,7 +17,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">Soatbay tabel</li>
+                                    <li class="breadcrumb-item active">@L.T("Hr_TsHourly")</li>
                                 </ol>
                             </div>
                         </div>
@@ -30,13 +30,13 @@
                 {
                     <div class="invoice-create-btn mb-1">
                         <a href="@Url.Action("Create")" class="btn btn-success">
-                            <i class="bx bx-plus"></i> Tabel yaratish
+                            <i class="bx bx-plus"></i> @L.T("Hr_TsCreate")
                         </a>
                         <a href="@Url.Action("Import")" class="btn btn-info">
-                            <i class="bx bx-import"></i> Exceldan import
+                            <i class="bx bx-import"></i> @L.T("Hr_ImportFromExcel")
                         </a>
-                        <a href="@Url.Action("Index", "HrSettings")" class="btn btn-outline-secondary" title="Ish kalendari va koeffitsientlar">
-                            <i class="bx bx-cog"></i> Sozlamalar
+                        <a href="@Url.Action("Index", "HrSettings")" class="btn btn-outline-secondary" title="@L.T("Hr_SetCalendarCoefs")">
+                            <i class="bx bx-cog"></i> @L.T("Settings")
                         </a>
                     </div>
                 }
@@ -47,11 +47,11 @@
                             <form method="get" action="@Url.Action("Index")" class="mb-2">
                                 <div class="row">
                                     <div class="col-md-2">
-                                        <input type="number" name="year" class="form-control" value="@ViewBag.Year" placeholder="Yil" min="2000" max="2100" />
+                                        <input type="number" name="year" class="form-control" value="@ViewBag.Year" placeholder="@L.T("Hr_Year")" min="2000" max="2100" />
                                     </div>
                                     <div class="col-md-2">
                                         <select name="month" class="form-control">
-                                            <option value="">Barcha oylar</option>
+                                            <option value="">@L.T("Hr_AllMonths")</option>
                                             @for (int i = 1; i <= 12; i++)
                                             {
                                                 <option value="@i" @(ViewBag.Month == i ? "selected" : "")>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
@@ -59,18 +59,18 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Barcha bo'limlar", new { @class = "form-control" })
+                                        @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, L.T("Hr_AllOrgUnits"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2">
                                         <select name="status" class="form-control">
-                                            <option value="">Barcha holatlar</option>
-                                            <option value="Draft" @(ViewBag.Status == "Draft" ? "selected" : "")>Qoralama</option>
-                                            <option value="Approved" @(ViewBag.Status == "Approved" ? "selected" : "")>Tasdiqlangan</option>
-                                            <option value="Closed" @(ViewBag.Status == "Closed" ? "selected" : "")>Yopilgan</option>
+                                            <option value="">@L.T("Hr_AllStatuses")</option>
+                                            <option value="Draft" @(ViewBag.Status == "Draft" ? "selected" : "")>@L.T("Hr_PayStatus_Draft")</option>
+                                            <option value="Approved" @(ViewBag.Status == "Approved" ? "selected" : "")>@L.T("Hr_PayStatus_Approved")</option>
+                                            <option value="Closed" @(ViewBag.Status == "Closed" ? "selected" : "")>@L.T("Hr_TsStatus_Closed")</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <button type="submit" class="btn btn-primary">Filtr</button>
+                                        <button type="submit" class="btn btn-primary">@L.T("Filter")</button>
                                     </div>
                                 </div>
                             </form>
@@ -79,13 +79,13 @@
                                 <table id="timesheetsTable" class="table table-striped table-bordered" style="width:100%">
                                     <thead>
                                         <tr>
-                                            <th>Yil</th>
-                                            <th>Oy</th>
-                                            <th>Bo'lim</th>
-                                            <th>Holat</th>
-                                            <th>Yaratilgan</th>
-                                            <th>Tasdiqlangan</th>
-                                            <th>Amallar</th>
+                                            <th>@L.T("Hr_Year")</th>
+                                            <th>@L.T("Hr_Month")</th>
+                                            <th>@L.T("Hr_OrgUnit")</th>
+                                            <th>@L.T("Status")</th>
+                                            <th>@L.T("CreatedAt")</th>
+                                            <th>@L.T("Hr_PayStatus_Approved")</th>
+                                            <th>@L.T("Actions")</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -94,39 +94,39 @@
                                             <tr>
                                                 <td>@item.Year</td>
                                                 <td>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month)</td>
-                                                <td>@(item.HR_ORG_UNITS?.Name ?? "Butun kompaniya")</td>
+                                                <td>@(item.HR_ORG_UNITS?.Name ?? L.T("Hr_WholeCompany"))</td>
                                                 <td>
                                                     <span class="badge badge-@(item.Status == "Approved" ? "success" : item.Status == "Closed" ? "info" : "warning")">
-                                                        @(item.Status == "Draft" ? "Qoralama" : item.Status == "Approved" ? "Tasdiqlangan" : "Yopilgan")
+                                                        @(item.Status == "Draft" ? L.T("Hr_PayStatus_Draft") : item.Status == "Approved" ? L.T("Hr_PayStatus_Approved") : L.T("Hr_TsStatus_Closed"))
                                                     </span>
                                                 </td>
                                                 <td>@item.CreatedDT.ToString("dd.MM.yyyy")</td>
                                                 <td>@(item.ApprovedDT?.ToString("dd.MM.yyyy") ?? "-")</td>
                                                 <td>
-                                                    <a href="@Url.Action("Preview", new { id = item.ID })" class="btn btn-sm btn-outline-info" target="_blank" title="Ko'rib chiqish">
+                                                    <a href="@Url.Action("Preview", new { id = item.ID })" class="btn btn-sm btn-outline-info" target="_blank" title="@L.T("Hr_Preview")">
                                                         <i class="bx bx-show"></i>
                                                     </a>
                                                     @if (item.Status == "Draft")
                                                     {
-                                                        <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info" title="Tahrirlash">
+                                                        <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-info" title="@L.T("Edit")">
                                                             <i class="bx bx-edit"></i>
                                                         </a>
                                                     }
                                                     @if (changePermit && item.Status == "Draft")
                                                     {
-                                                        <a href="#" data-post-url="@Url.Action("Approve", new { id = item.ID })" data-confirm="Tabelni tasdiqlash?" class="btn btn-sm btn-primary" title="Tasdiqlash">
+                                                        <a href="#" data-post-url="@Url.Action("Approve", new { id = item.ID })" data-confirm="@L.T("Hr_TsApproveQ")" class="btn btn-sm btn-primary" title="@L.T("Approve")">
                                                             <i class="bx bx-check"></i>
                                                         </a>
                                                     }
                                                     @if (changePermit && item.Status == "Approved")
                                                     {
-                                                        <a href="#" data-post-url="@Url.Action("Close", new { id = item.ID })" data-confirm="Tabelni yopish?" class="btn btn-sm btn-secondary" title="Yopish">
+                                                        <a href="#" data-post-url="@Url.Action("Close", new { id = item.ID })" data-confirm="@L.T("Hr_TsCloseQ")" class="btn btn-sm btn-secondary" title="@L.T("Close")">
                                                             <i class="bx bx-lock"></i>
                                                         </a>
                                                     }
                                                     @if (changePermit && item.Status == "Draft")
                                                     {
-                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('Tabelni o\'chirish?');">
+                                                        <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-danger" onclick="return confirm('@L.Js("Hr_TsDeleteQ")');">
                                                             <i class="bx bx-trash"></i>
                                                         </a>
                                                     }
@@ -146,22 +146,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             $('#timesheetsTable').DataTable({
-                "language": {
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "zeroRecords": "Yozuvlar topilmadi",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "search": "Qidirish:",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    }
-                },
                 "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, '@L.Js("All")']],
                 "order": [[0, "desc"], [1, "desc"]],
                 dom: 'lBfrtip',
                 buttons: erpDataTable.buttons({ small: true })

@@ -1,6 +1,6 @@
 @model tahsinERP.Models.HR_ORG_UNITS
 @{
-    ViewBag.Title = "Bo'limni o'chirish";
+    ViewBag.Title = L.T("Hr_OrgUnitDelete");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,8 +15,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tashkiliy tuzilma</a></li>
-                                    <li class="breadcrumb-item active">O'chirish</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_OrgStructure")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Delete")</li>
                                 </ol>
                             </div>
                         </div>
@@ -26,30 +26,30 @@
 
             <div class="content-body">
                 <div class="alert alert-warning">
-                    <strong>Diqqat!</strong> Bu bo'limni o'chirishni tasdiqlaysizmi?
+                    <strong>@L.T("Hr_Attention")</strong> @L.T("Hr_OrgUnitDeleteConfirm")
                 </div>
 
                 <div class="card">
                     <div class="card-content">
                         <div class="card-body">
                             <dl class="row">
-                                <dt class="col-sm-3">Kod:</dt>
+                                <dt class="col-sm-3">@L.T("Code"):</dt>
                                 <dd class="col-sm-9">@Model.Code</dd>
 
-                                <dt class="col-sm-3">Nomi:</dt>
+                                <dt class="col-sm-3">@L.T("Name"):</dt>
                                 <dd class="col-sm-9">@Model.Name</dd>
 
-                                <dt class="col-sm-3">Ota bo'lim:</dt>
-                                <dd class="col-sm-9">@(Model.HR_ORG_UNITS2?.Name ?? "Asosiy")</dd>
+                                <dt class="col-sm-3">@L.T("Hr_ParentOrgUnit"):</dt>
+                                <dd class="col-sm-9">@(Model.HR_ORG_UNITS2?.Name ?? L.T("Hr_OrgRoot"))</dd>
 
-                                <dt class="col-sm-3">Holat:</dt>
+                                <dt class="col-sm-3">@L.T("Status"):</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge badge-@(Model.IsActive ? "success" : "danger")">
-                                        @(Model.IsActive ? "Faol" : "Nofaol")
+                                        @(Model.IsActive ? L.T("Active") : L.T("Inactive"))
                                     </span>
                                 </dd>
 
-                                <dt class="col-sm-3">Yaratilgan:</dt>
+                                <dt class="col-sm-3">@L.T("CreatedAt"):</dt>
                                 <dd class="col-sm-9">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
                             </dl>
 
@@ -60,9 +60,9 @@
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-danger">
-                                        <i class="bx bx-trash"></i> O'chirish
+                                        <i class="bx bx-trash"></i> @L.T("Delete")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             }
                         </div>

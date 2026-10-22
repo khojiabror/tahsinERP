@@ -7,43 +7,43 @@ namespace tahsinERP.ViewModels.HR
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Bo'lim tanlanishi shart")]
-        [Display(Name = "Bo'lim")]
+        [Required(ErrorMessage = "Hr_Val_SelectRequired")]
+        [Display(Name = "Hr_OrgUnit")]
         public int OrgUnitID { get; set; }
         public string OrgUnitName { get; set; }
         
-        [Required(ErrorMessage = "Lavozim tanlanishi shart")]
-        [Display(Name = "Lavozim")]
+        [Required(ErrorMessage = "Hr_Val_SelectRequired")]
+        [Display(Name = "Hr_Position")]
         public int PositionID { get; set; }
         public string PositionName { get; set; }
         
-        [Display(Name = "Tarif tarmog'i")]
+        [Display(Name = "Hr_SalaryGrade")]
         public int? SalaryGradeID { get; set; }
         public string SalaryGradeName { get; set; }
         
-        [Required(ErrorMessage = "Rejalashtirilgan shtat soni kiritilishi shart")]
-        [Display(Name = "Rejalashtirilgan soni")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_PlannedCount")]
         public decimal PlannedHeadcount { get; set; }
         
-        [Display(Name = "Ishbay")]
+        [Display(Name = "Hr_PayPiece")]
         public bool IsPieceRate { get; set; }
         
-        [Display(Name = "Soatbay to'lov")]
+        [Display(Name = "Hr_PayHourlyFull")]
         public bool IsHourly { get; set; }
         
-        [Display(Name = "Belgilangan oylik")]
+        [Display(Name = "Hr_PayFixedMonthly")]
         public bool IsFixedSalary { get; set; }
         
-        [Required(ErrorMessage = "Amal qilish sanasi kiritilishi shart")]
-        [Display(Name = "Amal qiladi")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Hr_EffectiveFrom")]
         [DataType(DataType.Date)]
         public DateTime EffectiveFrom { get; set; }
         
-        [Display(Name = "Amal qiladi to")]
+        [Display(Name = "Hr_EffectiveTo")]
         [DataType(DataType.Date)]
         public DateTime? EffectiveTo { get; set; }
         
-        [Display(Name = "Faol")]
+        [Display(Name = "Active")]
         public bool IsActive { get; set; }
         
         public int ActualHeadcount { get; set; }

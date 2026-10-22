@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Exceldan tabel import qilish";
+    ViewBag.Title = L.T("Hr_TsImportTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,8 +14,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tabel</a></li>
-                                    <li class="breadcrumb-item active">Import</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Hr_Timesheet")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Import")</li>
                                 </ol>
                             </div>
                         </div>
@@ -40,27 +40,27 @@
                                 @Html.AntiForgeryToken()
 
                                 <div class="form-group">
-                                    <label>Yil</label>
+                                    <label>@L.T("Hr_Year")</label>
                                     <input type="number" name="year" class="form-control" value="@DateTime.Now.Year" min="2000" max="2100" required />
-                                    <small class="text-muted">List nomidan yil aniqlanmasa, bu yil ishlatiladi</small>
+                                    <small class="text-muted">@L.T("Hr_TsImportYearHint")</small>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Bo'lim (ixtiyoriy)</label>
-                                    @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, "Butun kompaniya", new { @class = "form-control select2" })
+                                    <label>@L.T("Hr_OrgUnitOptional")</label>
+                                    @Html.DropDownList("orgUnitId", ViewBag.OrgUnitID as SelectList, L.T("Hr_WholeCompany"), new { @class = "form-control select2" })
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Excel fayli <span class="text-danger">*</span></label>
+                                    <label>@L.T("Hr_ExcelFile") <span class="text-danger">*</span></label>
                                     <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required />
-                                    <small class="text-muted">Format: Excel fayl bilan tabel (iPack - TABEL.xlsx). Fayl yuklangandan keyin listlarni tanlash oynasi ochiladi.</small>
+                                    <small class="text-muted">@L.T("Hr_TsImportFormat")</small>
                                 </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-upload"></i> Faylni yuklash
+                                        <i class="bx bx-upload"></i> @L.T("Hr_UploadFile")
                                     </button>
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                 </div>
                             }
                         </div>

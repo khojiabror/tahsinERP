@@ -9846,4 +9846,1549 @@
   <data name="Mes_TanA_N_SkippedForeign" xml:space="preserve">
     <value>Не учтённые транзакции в другой валюте: {0} ({1}) — не конвертируются.</value>
   </data>
+  <data name="Hr_Attention" xml:space="preserve">
+    <value>Внимание!</value>
+  </data>
+  <data name="Hr_DetailsCrumb" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="Hr_Positions" xml:space="preserve">
+    <value>Должности</value>
+  </data>
+  <data name="Hr_PositionAdd" xml:space="preserve">
+    <value>Добавить должность</value>
+  </data>
+  <data name="Hr_PositionEdit" xml:space="preserve">
+    <value>Редактирование должности</value>
+  </data>
+  <data name="Hr_PositionDelete" xml:space="preserve">
+    <value>Удаление должности</value>
+  </data>
+  <data name="Hr_PositionDetails" xml:space="preserve">
+    <value>Сведения о должности</value>
+  </data>
+  <data name="Hr_PositionDeleteConfirm" xml:space="preserve">
+    <value>Подтвердите удаление этой должности.</value>
+  </data>
+  <data name="Hr_ManagerPosition" xml:space="preserve">
+    <value>Руководящая должность</value>
+  </data>
+  <data name="Hr_Management" xml:space="preserve">
+    <value>Руководство</value>
+  </data>
+  <data name="Hr_Regular" xml:space="preserve">
+    <value>Обычная</value>
+  </data>
+  <data name="Hr_EmployeeCount" xml:space="preserve">
+    <value>Количество сотрудников</value>
+  </data>
+  <data name="Hr_InStaffingPlan" xml:space="preserve">
+    <value>В штатном расписании</value>
+  </data>
+  <data name="Hr_PositionInUse" xml:space="preserve">
+    <value>Должность используется (сотрудников: {0}, позиций штатного расписания: {1}). Удаление невозможно.</value>
+  </data>
+  <data name="Hr_SalaryGrade" xml:space="preserve">
+    <value>Тарифная сетка</value>
+  </data>
+  <data name="Hr_SalaryGrades" xml:space="preserve">
+    <value>Тарифные сетки</value>
+  </data>
+  <data name="Hr_GradeAdd" xml:space="preserve">
+    <value>Добавить тарифную сетку</value>
+  </data>
+  <data name="Hr_GradeEdit" xml:space="preserve">
+    <value>Редактирование тарифной сетки</value>
+  </data>
+  <data name="Hr_GradeDetails" xml:space="preserve">
+    <value>Сведения о тарифной сетке</value>
+  </data>
+  <data name="Hr_GradeDeleteQ" xml:space="preserve">
+    <value>Удалить тарифную сетку?</value>
+  </data>
+  <data name="Hr_MinSalary" xml:space="preserve">
+    <value>Минимальная зарплата</value>
+  </data>
+  <data name="Hr_MaxSalary" xml:space="preserve">
+    <value>Максимальная зарплата</value>
+  </data>
+  <data name="Hr_MinSalaryShort" xml:space="preserve">
+    <value>Мин. зарплата</value>
+  </data>
+  <data name="Hr_MaxSalaryShort" xml:space="preserve">
+    <value>Макс. зарплата</value>
+  </data>
+  <data name="Hr_EffectiveFrom" xml:space="preserve">
+    <value>Действует с</value>
+  </data>
+  <data name="Hr_EffectiveTo" xml:space="preserve">
+    <value>Действует до</value>
+  </data>
+  <data name="Hr_SelectCurrency" xml:space="preserve">
+    <value>Выберите валюту</value>
+  </data>
+  <data name="Hr_GradeMaxLessThanMin" xml:space="preserve">
+    <value>Максимальная зарплата должна быть больше или равна минимальной</value>
+  </data>
+  <data name="Hr_GradePeriodOverlap" xml:space="preserve">
+    <value>Пересекающиеся периоды действия для этого кода тарифной сетки не допускаются</value>
+  </data>
+  <data name="Hr_GradeInUse" xml:space="preserve">
+    <value>Нельзя удалить тарифную сетку, которая используется в штатном расписании</value>
+  </data>
+  <data name="Hr_Employee" xml:space="preserve">
+    <value>Сотрудник</value>
+  </data>
+  <data name="Hr_Employees" xml:space="preserve">
+    <value>Сотрудники</value>
+  </data>
+  <data name="Hr_Position" xml:space="preserve">
+    <value>Должность</value>
+  </data>
+  <data name="Hr_OrgUnit" xml:space="preserve">
+    <value>Подразделение</value>
+  </data>
+  <data name="Hr_CountTa" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="Hr_NoAccess" xml:space="preserve">
+    <value>Нет прав доступа</value>
+  </data>
+  <data name="Hr_SaveError" xml:space="preserve">
+    <value>Ошибка при сохранении</value>
+  </data>
+  <data name="Hr_LoadError" xml:space="preserve">
+    <value>Ошибка загрузки данных</value>
+  </data>
+  <data name="Hr_OrgStructure" xml:space="preserve">
+    <value>Организационная структура</value>
+  </data>
+  <data name="Hr_OrgChart" xml:space="preserve">
+    <value>Организационная схема</value>
+  </data>
+  <data name="Hr_OrgTree" xml:space="preserve">
+    <value>Дерево подразделений</value>
+  </data>
+  <data name="Hr_OrgUnitAdd" xml:space="preserve">
+    <value>Добавить подразделение</value>
+  </data>
+  <data name="Hr_OrgUnitEdit" xml:space="preserve">
+    <value>Редактирование подразделения</value>
+  </data>
+  <data name="Hr_OrgUnitDelete" xml:space="preserve">
+    <value>Удаление подразделения</value>
+  </data>
+  <data name="Hr_OrgUnitDetails" xml:space="preserve">
+    <value>Сведения о подразделении</value>
+  </data>
+  <data name="Hr_OrgUnitDeleteConfirm" xml:space="preserve">
+    <value>Подтвердите удаление этого подразделения.</value>
+  </data>
+  <data name="Hr_ParentOrgUnit" xml:space="preserve">
+    <value>Вышестоящее подразделение</value>
+  </data>
+  <data name="Hr_OrgRoot" xml:space="preserve">
+    <value>Корневое</value>
+  </data>
+  <data name="Hr_OrgRootUnit" xml:space="preserve">
+    <value>Корневое подразделение</value>
+  </data>
+  <data name="Hr_OrgLevel" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="Hr_PlannedCount" xml:space="preserve">
+    <value>Плановая численность</value>
+  </data>
+  <data name="Hr_ActualCount" xml:space="preserve">
+    <value>Фактическая численность</value>
+  </data>
+  <data name="Hr_OrgStaffPositions" xml:space="preserve">
+    <value>Штатные единицы</value>
+  </data>
+  <data name="Hr_OrgTotalStaffPositions" xml:space="preserve">
+    <value>Всего штатных единиц</value>
+  </data>
+  <data name="Hr_Occupied" xml:space="preserve">
+    <value>Занято</value>
+  </data>
+  <data name="Hr_Vacant" xml:space="preserve">
+    <value>Вакансия</value>
+  </data>
+  <data name="Hr_StaffPositionName" xml:space="preserve">
+    <value>Штатная единица</value>
+  </data>
+  <data name="Hr_ActiveEmployee" xml:space="preserve">
+    <value>Активные сотрудники</value>
+  </data>
+  <data name="Hr_OrgSelectHint" xml:space="preserve">
+    <value>Выберите подразделение в дереве, чтобы увидеть сведения</value>
+  </data>
+  <data name="Hr_PlanFact" xml:space="preserve">
+    <value>План: {0}, Факт: {1}</value>
+  </data>
+  <data name="Hr_OrgMoveQ" xml:space="preserve">
+    <value>Переместить подразделение?</value>
+  </data>
+  <data name="Hr_OrgCycle" xml:space="preserve">
+    <value>Циклическая ссылка не допускается</value>
+  </data>
+  <data name="Hr_OrgHasChildren" xml:space="preserve">
+    <value>Нельзя удалить подразделение, у которого есть дочерние подразделения</value>
+  </data>
+  <data name="Hr_OrgHasEmployees" xml:space="preserve">
+    <value>Нельзя удалить подразделение, в котором есть сотрудники</value>
+  </data>
+  <data name="Hr_OrgNotFound" xml:space="preserve">
+    <value>Подразделение не найдено</value>
+  </data>
+  <data name="Hr_StaffingPlan" xml:space="preserve">
+    <value>Штатное расписание</value>
+  </data>
+  <data name="Hr_SpAdd" xml:space="preserve">
+    <value>Добавление позиции в штатное расписание</value>
+  </data>
+  <data name="Hr_SpAddPosition" xml:space="preserve">
+    <value>Добавить позицию</value>
+  </data>
+  <data name="Hr_SpEdit" xml:space="preserve">
+    <value>Редактирование штатного расписания</value>
+  </data>
+  <data name="Hr_SpDetails" xml:space="preserve">
+    <value>Сведения о штатной позиции</value>
+  </data>
+  <data name="Hr_SpGenerateTitle" xml:space="preserve">
+    <value>Создание штатного расписания по сотрудникам</value>
+  </data>
+  <data name="Hr_SpFromEmployees" xml:space="preserve">
+    <value>Создать по сотрудникам</value>
+  </data>
+  <data name="Hr_SpProposals" xml:space="preserve">
+    <value>Предлагаемые позиции для добавления в штатное расписание</value>
+  </data>
+  <data name="Hr_SpCreateSelected" xml:space="preserve">
+    <value>Создать выбранные позиции</value>
+  </data>
+  <data name="Hr_SpImportTitle" xml:space="preserve">
+    <value>Импорт штатного расписания из Excel</value>
+  </data>
+  <data name="Hr_SpExcelFile" xml:space="preserve">
+    <value>Файл Excel (shtat-jadvali.xlsx)</value>
+  </data>
+  <data name="Hr_SpImportFormat" xml:space="preserve">
+    <value>Формат: файл Excel со столбцами №, Ф.И.О., Таб.№, Должность, Начисление</value>
+  </data>
+  <data name="Hr_SpImportedCount" xml:space="preserve">
+    <value>Успешно добавлено позиций: {0}</value>
+  </data>
+  <data name="Hr_ImportFromExcel" xml:space="preserve">
+    <value>Импорт из Excel</value>
+  </data>
+  <data name="Hr_DoImport" xml:space="preserve">
+    <value>Импортировать</value>
+  </data>
+  <data name="Hr_ImportPreview" xml:space="preserve">
+    <value>Предпросмотр импорта</value>
+  </data>
+  <data name="Hr_Preview" xml:space="preserve">
+    <value>Предпросмотр</value>
+  </data>
+  <data name="Hr_ImportedRows" xml:space="preserve">
+    <value>Импортированные данные (строк: {0})</value>
+  </data>
+  <data name="Hr_ConfirmAndSave" xml:space="preserve">
+    <value>Подтвердить и сохранить</value>
+  </data>
+  <data name="Hr_FileNotSelected" xml:space="preserve">
+    <value>Файл не выбран</value>
+  </data>
+  <data name="Hr_ImportError" xml:space="preserve">
+    <value>Ошибка импорта: {0}</value>
+  </data>
+  <data name="Hr_DataNotFound" xml:space="preserve">
+    <value>Данные не найдены</value>
+  </data>
+  <data name="Hr_RowsWithErrors" xml:space="preserve">
+    <value>Строк с ошибками: {0}</value>
+  </data>
+  <data name="Hr_TabNoShort" xml:space="preserve">
+    <value>Таб.№</value>
+  </data>
+  <data name="Hr_FullName" xml:space="preserve">
+    <value>Ф.И.О.</value>
+  </data>
+  <data name="Hr_Salary" xml:space="preserve">
+    <value>Оклад</value>
+  </data>
+  <data name="Hr_Actual" xml:space="preserve">
+    <value>Факт</value>
+  </data>
+  <data name="Hr_PayType" xml:space="preserve">
+    <value>Вид оплаты</value>
+  </data>
+  <data name="Hr_PayFixed" xml:space="preserve">
+    <value>Оклад</value>
+  </data>
+  <data name="Hr_PayHourly" xml:space="preserve">
+    <value>Почасовая</value>
+  </data>
+  <data name="Hr_PayPiece" xml:space="preserve">
+    <value>Сдельная</value>
+  </data>
+  <data name="Hr_PayFixedSalary" xml:space="preserve">
+    <value>Фиксированный оклад</value>
+  </data>
+  <data name="Hr_PayFixedMonthly" xml:space="preserve">
+    <value>Фиксированный оклад</value>
+  </data>
+  <data name="Hr_PayHourlyFull" xml:space="preserve">
+    <value>Почасовая оплата</value>
+  </data>
+  <data name="Hr_PayPieceFull" xml:space="preserve">
+    <value>Сдельная оплата</value>
+  </data>
+  <data name="Hr_AllOrgUnits" xml:space="preserve">
+    <value>Все подразделения</value>
+  </data>
+  <data name="Hr_AllPositions" xml:space="preserve">
+    <value>Все должности</value>
+  </data>
+  <data name="Hr_SelectOrgUnit" xml:space="preserve">
+    <value>Выберите подразделение</value>
+  </data>
+  <data name="Hr_SelectPosition" xml:space="preserve">
+    <value>Выберите должность</value>
+  </data>
+  <data name="Hr_SelectSalaryGrade" xml:space="preserve">
+    <value>Выберите тарифную сетку</value>
+  </data>
+  <data name="Hr_Val_SelectRequired" xml:space="preserve">
+    <value>Необходимо выбрать «{0}»</value>
+  </data>
+  <data name="Hr_ConfirmDeletion" xml:space="preserve">
+    <value>Подтверждение удаления</value>
+  </data>
+  <data name="Hr_YesDelete" xml:space="preserve">
+    <value>Да, удалить</value>
+  </data>
+  <data name="Hr_Deleting" xml:space="preserve">
+    <value>Удаление...</value>
+  </data>
+  <data name="Hr_ErrorOccurred" xml:space="preserve">
+    <value>Произошла ошибка: {0}</value>
+  </data>
+  <data name="Hr_Version" xml:space="preserve">
+    <value>Версия</value>
+  </data>
+  <data name="Hr_VersionHistory" xml:space="preserve">
+    <value>История версий</value>
+  </data>
+  <data name="Hr_CurrentVersion" xml:space="preserve">
+    <value>Текущая версия</value>
+  </data>
+  <data name="Hr_NewVersion" xml:space="preserve">
+    <value>Новая версия</value>
+  </data>
+  <data name="Hr_FileName" xml:space="preserve">
+    <value>Имя файла</value>
+  </data>
+  <data name="Hr_CreatedDate" xml:space="preserve">
+    <value>Дата создания</value>
+  </data>
+  <data name="Hr_UpdatedDate" xml:space="preserve">
+    <value>Дата изменения</value>
+  </data>
+  <data name="Hr_Template" xml:space="preserve">
+    <value>Шаблон</value>
+  </data>
+  <data name="Hr_AdditionalInfoPh" xml:space="preserve">
+    <value>Дополнительная информация...</value>
+  </data>
+  <data name="Hr_JdTitle" xml:space="preserve">
+    <value>Должностные инструкции</value>
+  </data>
+  <data name="Hr_JdListTitle" xml:space="preserve">
+    <value>Список должностных инструкций</value>
+  </data>
+  <data name="Hr_JdAdd" xml:space="preserve">
+    <value>Добавить должностную инструкцию</value>
+  </data>
+  <data name="Hr_JdEdit" xml:space="preserve">
+    <value>Редактирование должностной инструкции</value>
+  </data>
+  <data name="Hr_JdDelete" xml:space="preserve">
+    <value>Удаление должностной инструкции</value>
+  </data>
+  <data name="Hr_JdDetails" xml:space="preserve">
+    <value>Должностная инструкция — подробно</value>
+  </data>
+  <data name="Hr_JdNew" xml:space="preserve">
+    <value>Новая инструкция</value>
+  </data>
+  <data name="Hr_JdInfo" xml:space="preserve">
+    <value>Сведения о должностной инструкции</value>
+  </data>
+  <data name="Hr_JdEditInfo" xml:space="preserve">
+    <value>Редактирование сведений должностной инструкции</value>
+  </data>
+  <data name="Hr_JdNewInfo" xml:space="preserve">
+    <value>Сведения новой должностной инструкции</value>
+  </data>
+  <data name="Hr_JdDeleteWarn" xml:space="preserve">
+    <value>Вы собираетесь удалить следующую должностную инструкцию. Это действие необратимо.</value>
+  </data>
+  <data name="Hr_JdCode" xml:space="preserve">
+    <value>Код должности</value>
+  </data>
+  <data name="Hr_JdName" xml:space="preserve">
+    <value>Наименование должности</value>
+  </data>
+  <data name="Hr_JdHrPosition" xml:space="preserve">
+    <value>Должность (HR)</value>
+  </data>
+  <data name="Hr_JdDownloadWord" xml:space="preserve">
+    <value>Скачать документ Word (.docx)</value>
+  </data>
+  <data name="Hr_JdCodePh" xml:space="preserve">
+    <value>Например: JD-001</value>
+  </data>
+  <data name="Hr_JdCodeUnique" xml:space="preserve">
+    <value>Код должности должен быть уникальным</value>
+  </data>
+  <data name="Hr_JdNamePh" xml:space="preserve">
+    <value>Например: Начальник производства</value>
+  </data>
+  <data name="Hr_JdDeptPh" xml:space="preserve">
+    <value>Например: Производство</value>
+  </data>
+  <data name="Hr_JdVersionHint" xml:space="preserve">
+    <value>При каждом редактировании версия увеличивается автоматически (v{0} + 0.01 = v{1})</value>
+  </data>
+  <data name="Hr_JdLinkHrPosition" xml:space="preserve">
+    <value>Привязать к должности HR</value>
+  </data>
+  <data name="Hr_JdContent" xml:space="preserve">
+    <value>Содержимое документа</value>
+  </data>
+  <data name="Hr_JdEditHintEdit" xml:space="preserve">
+    <value>Ниже можно редактировать документ Word. В текст можно вставлять изображения.</value>
+  </data>
+  <data name="Hr_JdEditHintNew" xml:space="preserve">
+    <value>Ниже можно редактировать документ. Нажмите кнопку загрузки шаблона.</value>
+  </data>
+  <data name="Hr_JdLoadCurrent" xml:space="preserve">
+    <value>Загрузить текущую версию</value>
+  </data>
+  <data name="Hr_JdLoadTemplate" xml:space="preserve">
+    <value>Загрузить шаблон</value>
+  </data>
+  <data name="Hr_JdUploadWordFile" xml:space="preserve">
+    <value>Загрузить файл Word</value>
+  </data>
+  <data name="Hr_JdUploadWord" xml:space="preserve">
+    <value>Загрузить Word</value>
+  </data>
+  <data name="Hr_JdSaveNewVersion" xml:space="preserve">
+    <value>Сохранить (создать новую версию)</value>
+  </data>
+  <data name="Hr_JdCurrentFileMissing" xml:space="preserve">
+    <value>Файл текущей версии не найден</value>
+  </data>
+  <data name="Hr_JdCodeRequired" xml:space="preserve">
+    <value>Укажите код должности</value>
+  </data>
+  <data name="Hr_JdContentEmpty" xml:space="preserve">
+    <value>Содержимое документа не может быть пустым</value>
+  </data>
+  <data name="Hr_JdCreated" xml:space="preserve">
+    <value>Должностная инструкция успешно создана</value>
+  </data>
+  <data name="Hr_JdUpdated" xml:space="preserve">
+    <value>Должностная инструкция успешно обновлена</value>
+  </data>
+  <data name="Hr_JdDeleted" xml:space="preserve">
+    <value>Должностная инструкция успешно удалена</value>
+  </data>
+  <data name="Hr_SelectEmployee" xml:space="preserve">
+    <value>Выберите сотрудника</value>
+  </data>
+  <data name="Hr_From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Hr_To" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Hr_Timesheet" xml:space="preserve">
+    <value>Табель</value>
+  </data>
+  <data name="Hr_Accrued" xml:space="preserve">
+    <value>Начислено</value>
+  </data>
+  <data name="Hr_Paid" xml:space="preserve">
+    <value>Выплачено</value>
+  </data>
+  <data name="Hr_Balance" xml:space="preserve">
+    <value>Остаток</value>
+  </data>
+  <data name="Hr_WorkedDays" xml:space="preserve">
+    <value>Отработано дней</value>
+  </data>
+  <data name="Hr_WorkedHours" xml:space="preserve">
+    <value>Отработано часов</value>
+  </data>
+  <data name="Hr_EmployeeNotSelected" xml:space="preserve">
+    <value>Сотрудник не выбран</value>
+  </data>
+  <data name="Hr_InvalidDateRange" xml:space="preserve">
+    <value>Неверный диапазон дат</value>
+  </data>
+  <data name="Hr_KorTitle" xml:space="preserve">
+    <value>Корешок</value>
+  </data>
+  <data name="Hr_KorCalcTitle" xml:space="preserve">
+    <value>Расчёт корешка</value>
+  </data>
+  <data name="Hr_KorCalcButton" xml:space="preserve">
+    <value>Рассчитать зарплату</value>
+  </data>
+  <data name="Hr_KorEmployeeTitle" xml:space="preserve">
+    <value>Корешок сотрудника</value>
+  </data>
+  <data name="Hr_KorSection" xml:space="preserve">
+    <value>Раздел</value>
+  </data>
+  <data name="Hr_KorHourlyPay" xml:space="preserve">
+    <value>Почасовая оплата</value>
+  </data>
+  <data name="Hr_KorPiecePay" xml:space="preserve">
+    <value>Сдельная оплата</value>
+  </data>
+  <data name="Hr_KorNote1" xml:space="preserve">
+    <value>Начислено: в первую очередь по расчёту зарплаты (сумма к выплате); если расчёта нет — ориентировочная сумма (до налогов) по той же формуле, что и в HrPayroll: почасовой табель + штатное расписание и сдельные записи + тарифы.</value>
+  </data>
+  <data name="Hr_KorNote2" xml:space="preserve">
+    <value>Примечание: выплаченная сумма берётся из расходов FinTransactions, привязанных к сотруднику, + сумм «на руки» по проводкам HR_PAYROLL.</value>
+  </data>
+  <data name="Hr_KorNote3" xml:space="preserve">
+    <value>Если зарплата проведена общей проводкой (без ID сотрудника), выплаты могут отображаться не полностью.</value>
+  </data>
+  <data name="Hr_TabNumber" xml:space="preserve">
+    <value>Табельный номер</value>
+  </data>
+  <data name="Hr_BaseSalary" xml:space="preserve">
+    <value>Базовый оклад</value>
+  </data>
+  <data name="Hr_HireDate" xml:space="preserve">
+    <value>Дата приёма</value>
+  </data>
+  <data name="Hr_DismissalDate" xml:space="preserve">
+    <value>Дата увольнения</value>
+  </data>
+  <data name="Hr_Reason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="Hr_UntilToday" xml:space="preserve">
+    <value>по настоящее время</value>
+  </data>
+  <data name="Hr_StartDate" xml:space="preserve">
+    <value>Дата начала</value>
+  </data>
+  <data name="Hr_EndDateOptional" xml:space="preserve">
+    <value>Дата окончания (необязательно)</value>
+  </data>
+  <data name="Hr_EndBeforeStart" xml:space="preserve">
+    <value>Дата окончания не может быть раньше даты начала</value>
+  </data>
+  <data name="Hr_CurrentOrgUnit" xml:space="preserve">
+    <value>Текущее подразделение</value>
+  </data>
+  <data name="Hr_CurrentPosition" xml:space="preserve">
+    <value>Текущая должность</value>
+  </data>
+  <data name="Hr_NewOrgUnit" xml:space="preserve">
+    <value>Новое подразделение</value>
+  </data>
+  <data name="Hr_NewPosition" xml:space="preserve">
+    <value>Новая должность</value>
+  </data>
+  <data name="Hr_SelectOrgUnitFirst" xml:space="preserve">
+    <value>Сначала выберите подразделение</value>
+  </data>
+  <data name="Hr_TransferDate" xml:space="preserve">
+    <value>Дата перевода</value>
+  </data>
+  <data name="Hr_MaterialRespAllowance" xml:space="preserve">
+    <value>Надбавка за материальную ответственность</value>
+  </data>
+  <data name="Hr_MaterialRespPct" xml:space="preserve">
+    <value>Материальная ответственность, %</value>
+  </data>
+  <data name="Hr_SpecialAllowance" xml:space="preserve">
+    <value>Специальная надбавка</value>
+  </data>
+  <data name="Hr_SpecialAllowancePct" xml:space="preserve">
+    <value>Специальная надбавка, %</value>
+  </data>
+  <data name="Hr_EmpAdd" xml:space="preserve">
+    <value>Добавить сотрудника</value>
+  </data>
+  <data name="Hr_EmpEdit" xml:space="preserve">
+    <value>Редактирование сотрудника</value>
+  </data>
+  <data name="Hr_EmpDetails" xml:space="preserve">
+    <value>Сведения о сотруднике</value>
+  </data>
+  <data name="Hr_EmpStartInPosition" xml:space="preserve">
+    <value>Дата начала работы в этой должности</value>
+  </data>
+  <data name="Hr_EmpDismissedFromPosition" xml:space="preserve">
+    <value>Дата освобождения от должности</value>
+  </data>
+  <data name="Hr_EmpCurrentStatus" xml:space="preserve">
+    <value>Текущий статус</value>
+  </data>
+  <data name="Hr_EmpWorking" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="Hr_EmpLeft" xml:space="preserve">
+    <value>Уволен</value>
+  </data>
+  <data name="Hr_EmpHistory" xml:space="preserve">
+    <value>История сотрудника</value>
+  </data>
+  <data name="Hr_EmpNoHistory" xml:space="preserve">
+    <value>Нет данных по истории сотрудника.</value>
+  </data>
+  <data name="Hr_EmpAddTenure" xml:space="preserve">
+    <value>Добавить стаж</value>
+  </data>
+  <data name="Hr_EmpAddTenureTitle" xml:space="preserve">
+    <value>Добавление неотражённого периода стажа</value>
+  </data>
+  <data name="Hr_EmpEndDateHint" xml:space="preserve">
+    <value>Если не заполнено, считается «по настоящее время».</value>
+  </data>
+  <data name="Hr_EmpTenureReasonPh" xml:space="preserve">
+    <value>Например: восстановление архивного периода</value>
+  </data>
+  <data name="Hr_EmpHiredDate" xml:space="preserve">
+    <value>Дата приёма на работу</value>
+  </data>
+  <data name="Hr_EmpLeftDate" xml:space="preserve">
+    <value>Дата увольнения</value>
+  </data>
+  <data name="Hr_EmpDismiss" xml:space="preserve">
+    <value>Расторжение трудового договора</value>
+  </data>
+  <data name="Hr_EmpDismissWarn" xml:space="preserve">
+    <value>Это действие необратимо. Сотрудник будет отмечен как уволенный.</value>
+  </data>
+  <data name="Hr_EmpDismissConfirm" xml:space="preserve">
+    <value>Подтвердить увольнение сотрудника?</value>
+  </data>
+  <data name="Hr_EmpTransfer" xml:space="preserve">
+    <value>Перевод на другую должность</value>
+  </data>
+  <data name="Hr_EmpPositionHint" xml:space="preserve">
+    <value>После выбора подразделения будут показаны только его должности.</value>
+  </data>
+  <data name="Hr_EmpOnlySelectedOrgPositions" xml:space="preserve">
+    <value>Только должности выбранного подразделения.</value>
+  </data>
+  <data name="Hr_EmpNoPlannedPositions" xml:space="preserve">
+    <value>В этом подразделении нет запланированных должностей.</value>
+  </data>
+  <data name="Hr_EmpPositionsLoadError" xml:space="preserve">
+    <value>Ошибка загрузки должностей.</value>
+  </data>
+  <data name="Hr_EmpTabNoAuto" xml:space="preserve">
+    <value>Табельный номер формируется автоматически</value>
+  </data>
+  <data name="Hr_EmpTenureAdded" xml:space="preserve">
+    <value>Период стажа успешно добавлен</value>
+  </data>
+  <data name="Hr_EmpTabNoExists" xml:space="preserve">
+    <value>Табельный номер уже существует</value>
+  </data>
+  <data name="Hr_EmpAlreadyDismissed" xml:space="preserve">
+    <value>Этот сотрудник уже уволен</value>
+  </data>
+  <data name="Hr_EmpDismissBeforeHire" xml:space="preserve">
+    <value>Дата увольнения не может быть раньше даты приёма</value>
+  </data>
+  <data name="Hr_EmpDismissed" xml:space="preserve">
+    <value>Сотрудник успешно уволен</value>
+  </data>
+  <data name="Hr_EmpDismissedNoTransfer" xml:space="preserve">
+    <value>Нельзя перевести уволенного сотрудника</value>
+  </data>
+  <data name="Hr_EmpAlreadyInPosition" xml:space="preserve">
+    <value>Сотрудник уже работает в этом подразделении и должности</value>
+  </data>
+  <data name="Hr_EmpPositionNotPlanned" xml:space="preserve">
+    <value>Выбранная должность не запланирована для этого подразделения. Выберите одну из должностей выбранного подразделения.</value>
+  </data>
+  <data name="Hr_EmpTransferred" xml:space="preserve">
+    <value>Сотрудник успешно переведён</value>
+  </data>
+  <data name="Hr_EndDate" xml:space="preserve">
+    <value>Дата окончания</value>
+  </data>
+  <data name="Hr_ReasonPh" xml:space="preserve">
+    <value>Укажите причину (необязательно)</value>
+  </data>
+  <data name="Hr_SelectNewOrgUnit" xml:space="preserve">
+    <value>Выберите новое подразделение</value>
+  </data>
+  <data name="Hr_SelectNewPosition" xml:space="preserve">
+    <value>Выберите новую должность</value>
+  </data>
+  <data name="Hr_AllEmployees" xml:space="preserve">
+    <value>Все сотрудники</value>
+  </data>
+  <data name="Hr_ActiveEmployees" xml:space="preserve">
+    <value>Работающие сотрудники</value>
+  </data>
+  <data name="Hr_LeftEmployees" xml:space="preserve">
+    <value>Уволенные</value>
+  </data>
+  <data name="Hr_Tenure" xml:space="preserve">
+    <value>Стаж</value>
+  </data>
+  <data name="Hr_TenureYears" xml:space="preserve">
+    <value>{0} г.</value>
+  </data>
+  <data name="Hr_TenureMonths" xml:space="preserve">
+    <value>{0} мес.</value>
+  </data>
+  <data name="Hr_TenureDays" xml:space="preserve">
+    <value>{0} дн.</value>
+  </data>
+  <data name="Hr_Last" xml:space="preserve">
+    <value>Последняя</value>
+  </data>
+  <data name="Hr_HistTitle" xml:space="preserve">
+    <value>Стаж сотрудников</value>
+  </data>
+  <data name="Hr_HistAdd" xml:space="preserve">
+    <value>Добавление истории сотрудника</value>
+  </data>
+  <data name="Hr_HistEdit" xml:space="preserve">
+    <value>Редактирование стажа сотрудника</value>
+  </data>
+  <data name="Hr_HistOnlyInactiveHint" xml:space="preserve">
+    <value>Можно выбрать только уволенных или неактивных сотрудников</value>
+  </data>
+  <data name="Hr_HistStartHint" xml:space="preserve">
+    <value>Дата начала работы сотрудника в этой должности</value>
+  </data>
+  <data name="Hr_HistEndHint" xml:space="preserve">
+    <value>Дата окончания работы сотрудника в этой должности</value>
+  </data>
+  <data name="Hr_HistPeriodHint" xml:space="preserve">
+    <value>Период работы сотрудника в этой должности</value>
+  </data>
+  <data name="Hr_HistActionHistory" xml:space="preserve">
+    <value>Запись о работе</value>
+  </data>
+  <data name="Hr_HistActionDismissal" xml:space="preserve">
+    <value>Увольнение</value>
+  </data>
+  <data name="Hr_HistCurrentPosition" xml:space="preserve">
+    <value>Текущая должность</value>
+  </data>
+  <data name="Hr_HistAdded" xml:space="preserve">
+    <value>История сотрудника успешно добавлена.</value>
+  </data>
+  <data name="Hr_HistUpdated" xml:space="preserve">
+    <value>История сотрудника успешно обновлена.</value>
+  </data>
+  <data name="Hr_Year" xml:space="preserve">
+    <value>Год</value>
+  </data>
+  <data name="Hr_Month" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="Hr_Planned" xml:space="preserve">
+    <value>План</value>
+  </data>
+  <data name="Hr_Deviation" xml:space="preserve">
+    <value>Отклонение</value>
+  </data>
+  <data name="Hr_PayrollFund" xml:space="preserve">
+    <value>Фонд оплаты труда</value>
+  </data>
+  <data name="Hr_DashTitle" xml:space="preserve">
+    <value>Панель управления HR</value>
+  </data>
+  <data name="Hr_DashTotalEmployees" xml:space="preserve">
+    <value>Всего сотрудников</value>
+  </data>
+  <data name="Hr_DashMonthlyPayrollFund" xml:space="preserve">
+    <value>Месячный фонд оплаты труда</value>
+  </data>
+  <data name="Hr_DashOvertimeHours" xml:space="preserve">
+    <value>Сверхурочные часы</value>
+  </data>
+  <data name="Hr_DashTotalWorkedHours" xml:space="preserve">
+    <value>Всего отработано часов</value>
+  </data>
+  <data name="Hr_DashHourlyAccrued" xml:space="preserve">
+    <value>Начислено (почасовая)</value>
+  </data>
+  <data name="Hr_DashPieceAccrued" xml:space="preserve">
+    <value>Начислено (сдельная)</value>
+  </data>
+  <data name="Hr_DashSalaryPaidFin" xml:space="preserve">
+    <value>Выплачено зарплаты (Фин)</value>
+  </data>
+  <data name="Hr_DashPieceQty" xml:space="preserve">
+    <value>Всего сдельный объём</value>
+  </data>
+  <data name="Hr_DashSalaryBalance" xml:space="preserve">
+    <value>Остаток по зарплате (начислено − выплачено)</value>
+  </data>
+  <data name="Hr_DashHeadcountByOrg" xml:space="preserve">
+    <value>Штатная численность по подразделениям</value>
+  </data>
+  <data name="Hr_DashPayrollTrend" xml:space="preserve">
+    <value>Динамика фонда оплаты труда</value>
+  </data>
+  <data name="Hr_PayTitle" xml:space="preserve">
+    <value>Расчёт заработной платы</value>
+  </data>
+  <data name="Hr_PayCreateHourly" xml:space="preserve">
+    <value>Создать почасовой расчёт</value>
+  </data>
+  <data name="Hr_PayCreatePiece" xml:space="preserve">
+    <value>Создать сдельный расчёт</value>
+  </data>
+  <data name="Hr_SetCalendarCoefs" xml:space="preserve">
+    <value>Рабочий календарь и коэффициенты</value>
+  </data>
+  <data name="Hr_AllMonths" xml:space="preserve">
+    <value>Все месяцы</value>
+  </data>
+  <data name="Hr_AllStatuses" xml:space="preserve">
+    <value>Все статусы</value>
+  </data>
+  <data name="Hr_AllTypes" xml:space="preserve">
+    <value>Все типы</value>
+  </data>
+  <data name="Hr_PayStatus_Draft" xml:space="preserve">
+    <value>Черновик</value>
+  </data>
+  <data name="Hr_PayStatus_Approved" xml:space="preserve">
+    <value>Утверждён</value>
+  </data>
+  <data name="Hr_PayStatus_Posted" xml:space="preserve">
+    <value>Проведён</value>
+  </data>
+  <data name="Hr_PayAmount" xml:space="preserve">
+    <value>Сумма к выплате</value>
+  </data>
+  <data name="Hr_WholeCompany" xml:space="preserve">
+    <value>Вся компания</value>
+  </data>
+  <data name="Hr_PayApproveConfirmDefault" xml:space="preserve">
+    <value>Утвердить расчёт и провести расходом в финансовый модуль (счёт по умолчанию и статья «Зарплата»)?</value>
+  </data>
+  <data name="Hr_PayApproveAndPost" xml:space="preserve">
+    <value>Утвердить и провести в финансы</value>
+  </data>
+  <data name="Hr_PayDeleteQ" xml:space="preserve">
+    <value>Удалить расчёт?</value>
+  </data>
+  <data name="Hr_PayDelete" xml:space="preserve">
+    <value>Удаление расчёта заработной платы</value>
+  </data>
+  <data name="Hr_PayDeleteConfirm" xml:space="preserve">
+    <value>Подтвердите удаление этого расчёта заработной платы.</value>
+  </data>
+  <data name="Hr_PayGenerate" xml:space="preserve">
+    <value>Создание расчёта заработной платы</value>
+  </data>
+  <data name="Hr_PayTimesheetSource" xml:space="preserve">
+    <value>Табель (источник данных)</value>
+  </data>
+  <data name="Hr_PaySelectApprovedTs" xml:space="preserve">
+    <value>Выберите утверждённый табель</value>
+  </data>
+  <data name="Hr_PaySelectApprovedTsHint" xml:space="preserve">
+    <value>Выберите утверждённый табель для расчёта заработной платы</value>
+  </data>
+  <data name="Hr_PayCreate" xml:space="preserve">
+    <value>Создать расчёт</value>
+  </data>
+  <data name="Hr_PayDetails" xml:space="preserve">
+    <value>Расчёт заработной платы — подробно</value>
+  </data>
+  <data name="Hr_PayEdit" xml:space="preserve">
+    <value>Редактирование расчёта заработной платы</value>
+  </data>
+  <data name="Hr_ToList" xml:space="preserve">
+    <value>К списку</value>
+  </data>
+  <data name="Hr_YearN" xml:space="preserve">
+    <value>{0} г.</value>
+  </data>
+  <data name="Hr_TotalUpper" xml:space="preserve">
+    <value>ИТОГО</value>
+  </data>
+  <data name="Hr_TotalAccrued" xml:space="preserve">
+    <value>Итого начислено</value>
+  </data>
+  <data name="Hr_TotalIncomeTax" xml:space="preserve">
+    <value>Итого НДФЛ</value>
+  </data>
+  <data name="Hr_IncomeTax" xml:space="preserve">
+    <value>НДФЛ</value>
+  </data>
+  <data name="Hr_IncomeTaxPct" xml:space="preserve">
+    <value>НДФЛ (%)</value>
+  </data>
+  <data name="Hr_Bonuses" xml:space="preserve">
+    <value>Премии</value>
+  </data>
+  <data name="Hr_Penalties" xml:space="preserve">
+    <value>Штрафы</value>
+  </data>
+  <data name="Hr_NetPay" xml:space="preserve">
+    <value>К выплате</value>
+  </data>
+  <data name="Hr_HoursWorked" xml:space="preserve">
+    <value>Отработано часов</value>
+  </data>
+  <data name="Hr_Summary" xml:space="preserve">
+    <value>Итоги</value>
+  </data>
+  <data name="Hr_PayApprovedNotPosted" xml:space="preserve">
+    <value>Утверждён (не проведён в финансы)</value>
+  </data>
+  <data name="Hr_PayApprovedPosted" xml:space="preserve">
+    <value>Утверждён, проведён в финансы</value>
+  </data>
+  <data name="Hr_PayApproveConfirm" xml:space="preserve">
+    <value>Утвердить расчёт и провести расходом в финансовый модуль?</value>
+  </data>
+  <data name="Hr_PayPostConfirm" xml:space="preserve">
+    <value>Провести расчёт расходом в финансовый модуль?</value>
+  </data>
+  <data name="Hr_PayFinAccount" xml:space="preserve">
+    <value>Финансовый счёт (касса/банк)</value>
+  </data>
+  <data name="Hr_PayOtherCurrencyHint" xml:space="preserve">
+    <value>Строки в другой валюте проводятся на первый активный счёт этой валюты</value>
+  </data>
+  <data name="Hr_PayExpenseCategory" xml:space="preserve">
+    <value>Статья расхода</value>
+  </data>
+  <data name="Hr_PayAutoCategory" xml:space="preserve">
+    <value>Автоматически (зарплата)</value>
+  </data>
+  <data name="Hr_PayPostToFin" xml:space="preserve">
+    <value>Провести в финансы</value>
+  </data>
+  <data name="Hr_CurrencyNotFound" xml:space="preserve">
+    <value>Валюта не найдена</value>
+  </data>
+  <data name="Hr_EntriesCount" xml:space="preserve">
+    <value>записей: {0}</value>
+  </data>
+  <data name="Hr_PayAndMore" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
+  <data name="Hr_PaySkippedAlreadyPaid" xml:space="preserve">
+    <value>Сотрудники уже есть в другом расчёте за этот месяц (подразделения или всей компании) и не добавлены ({0}): {1}</value>
+  </data>
+  <data name="Hr_PayUnapprovedEntries" xml:space="preserve">
+    <value>Сдельные записи из неутверждённого табеля подразделения не учтены (записей: {0})</value>
+  </data>
+  <data name="Hr_PayEntriesWithoutTariff" xml:space="preserve">
+    <value>Для сдельных записей не найден действующий тариф, принят 0 (записей: {0})</value>
+  </data>
+  <data name="Hr_PayTsNotFoundOrNotApproved" xml:space="preserve">
+    <value>Табель не найден или не утверждён</value>
+  </data>
+  <data name="Hr_PayTsMismatchPeriod" xml:space="preserve">
+    <value>Данные табеля не соответствуют выбранному периоду или подразделению</value>
+  </data>
+  <data name="Hr_PayHourlyExistsLocked" xml:space="preserve">
+    <value>Существующий почасовой расчёт утверждён или проведён. Для пересчёта создайте его в статусе черновика.</value>
+  </data>
+  <data name="Hr_PayPieceExistsLocked" xml:space="preserve">
+    <value>Существующий сдельный расчёт утверждён или проведён. Для пересчёта создайте его в статусе черновика.</value>
+  </data>
+  <data name="Hr_PayTsLoadError" xml:space="preserve">
+    <value>Ошибка загрузки табелей</value>
+  </data>
+  <data name="Hr_PayTsNotSelected" xml:space="preserve">
+    <value>Табель не выбран</value>
+  </data>
+  <data name="Hr_PayTsBadFormat" xml:space="preserve">
+    <value>Неверный формат табеля</value>
+  </data>
+  <data name="Hr_PayTsMismatch" xml:space="preserve">
+    <value>Данные табеля не совпадают</value>
+  </data>
+  <data name="Hr_PayNoApprovedPieceTs" xml:space="preserve">
+    <value>Не найден утверждённый сдельный табель за этот месяц (подразделение)</value>
+  </data>
+  <data name="Hr_PayPieceCreated" xml:space="preserve">
+    <value>Создан сдельный расчёт заработной платы, сотрудников: {0}</value>
+  </data>
+  <data name="Hr_PayOnlyDraftLinesEditable" xml:space="preserve">
+    <value>Редактировать строки можно только в неудалённом расчёте в статусе черновика</value>
+  </data>
+  <data name="Hr_PayOnlyDraftTax" xml:space="preserve">
+    <value>Изменять налог можно только в черновике расчёта</value>
+  </data>
+  <data name="Hr_PayOnlyDraftApprove" xml:space="preserve">
+    <value>Утвердить можно только расчёты в статусе «Черновик»</value>
+  </data>
+  <data name="Hr_PayApprovedAndPosted" xml:space="preserve">
+    <value>Расчёт утверждён и проведён расходом в финансовый модуль</value>
+  </data>
+  <data name="Hr_PayOnlyApprovedPost" xml:space="preserve">
+    <value>Провести можно только утверждённые (не проведённые в финансы) расчёты</value>
+  </data>
+  <data name="Hr_PayPostedToFin" xml:space="preserve">
+    <value>Расчёт успешно проведён в финансовый модуль</value>
+  </data>
+  <data name="Hr_PayNoFinCategory" xml:space="preserve">
+    <value>Не найдена финансовая статья для зарплаты. Выберите статью расхода при утверждении (или создайте статью со словом «oylik» в названии).</value>
+  </data>
+  <data name="Hr_PayNoLines" xml:space="preserve">
+    <value>В расчёте нет строк</value>
+  </data>
+  <data name="Hr_PayNoFinAccountForCurrency" xml:space="preserve">
+    <value>Не найден активный финансовый счёт для валюты {0}</value>
+  </data>
+  <data name="Hr_PayStatusChanged" xml:space="preserve">
+    <value>Статус расчёта изменился (уже утверждён или проведён)</value>
+  </data>
+  <data name="Hr_PayFinPostError" xml:space="preserve">
+    <value>Ошибка при проведении в финансы — расчёт не изменён</value>
+  </data>
+  <data name="Hr_PaySheetName" xml:space="preserve">
+    <value>Расчёт {0}-{1}</value>
+  </data>
+  <data name="Hr_PayFileName" xml:space="preserve">
+    <value>Raschet_{0}_{1}</value>
+  </data>
+  <data name="Hr_PayNotFoundOrDeleted" xml:space="preserve">
+    <value>Расчёт не найден или уже удалён</value>
+  </data>
+  <data name="Hr_PayCannotDeleteApproved" xml:space="preserve">
+    <value>Нельзя удалить утверждённый или проведённый расчёт</value>
+  </data>
+  <data name="Hr_PayNoCurrencies" xml:space="preserve">
+    <value>В справочнике валют нет ни одной валюты. Сначала добавьте валюту.</value>
+  </data>
+  <data name="Hr_PayAllTsThisMonth" xml:space="preserve">
+    <value>Все табели этого месяца (табелей: {0}, записей: {1})</value>
+  </data>
+  <data name="Hr_PayCalcType" xml:space="preserve">
+    <value>Тип расчёта</value>
+  </data>
+  <data name="Hr_CompiledBy" xml:space="preserve">
+    <value>Составил</value>
+  </data>
+  <data name="Hr_ApprovedBy" xml:space="preserve">
+    <value>Утвердил</value>
+  </data>
+  <data name="Hr_RepPayrollTitle" xml:space="preserve">
+    <value>ВЕДОМОСТЬ ЗАРАБОТНОЙ ПЛАТЫ</value>
+  </data>
+  <data name="Hr_RepTimesheetTitle" xml:space="preserve">
+    <value>ТАБЕЛЬ УЧЁТА РАБОЧЕГО ВРЕМЕНИ</value>
+  </data>
+  <data name="Hr_FundHours" xml:space="preserve">
+    <value>Месячный фонд часов</value>
+  </data>
+  <data name="Hr_MonthDays" xml:space="preserve">
+    <value>Дни месяца</value>
+  </data>
+  <data name="Hr_WorkDays" xml:space="preserve">
+    <value>Рабочие дни</value>
+  </data>
+  <data name="Hr_WorkHours" xml:space="preserve">
+    <value>Рабочие часы</value>
+  </data>
+  <data name="Hr_Overtime" xml:space="preserve">
+    <value>Сверхурочные</value>
+  </data>
+  <data name="Hr_Absent" xml:space="preserve">
+    <value>Неявки</value>
+  </data>
+  <data name="Hr_TotalOvertimeHours" xml:space="preserve">
+    <value>Итого сверхурочных часов</value>
+  </data>
+  <data name="Hr_TsStatus_Closed" xml:space="preserve">
+    <value>Закрыт</value>
+  </data>
+  <data name="Hr_TsHourly" xml:space="preserve">
+    <value>Почасовой табель</value>
+  </data>
+  <data name="Hr_TsCreate" xml:space="preserve">
+    <value>Создать табель</value>
+  </data>
+  <data name="Hr_TsApproveQ" xml:space="preserve">
+    <value>Утвердить табель?</value>
+  </data>
+  <data name="Hr_TsCloseQ" xml:space="preserve">
+    <value>Закрыть табель?</value>
+  </data>
+  <data name="Hr_TsDeleteQ" xml:space="preserve">
+    <value>Удалить табель?</value>
+  </data>
+  <data name="Hr_TsOpenExisting" xml:space="preserve">
+    <value>Открыть существующий табель</value>
+  </data>
+  <data name="Hr_TsAddEmployeesManually" xml:space="preserve">
+    <value>Добавить сотрудников вручную (необязательно)</value>
+  </data>
+  <data name="Hr_TsAddEmployeesHint" xml:space="preserve">
+    <value>Выбранные сотрудники будут сразу добавлены при открытии табеля.</value>
+  </data>
+  <data name="Hr_SelectEmployees" xml:space="preserve">
+    <value>Выберите сотрудников</value>
+  </data>
+  <data name="Hr_TsNoFuture" xml:space="preserve">
+    <value>Нельзя создать табель на будущий период</value>
+  </data>
+  <data name="Hr_TsDelete" xml:space="preserve">
+    <value>Удаление почасового табеля</value>
+  </data>
+  <data name="Hr_TsDeleteConfirm" xml:space="preserve">
+    <value>Подтвердите удаление этого табеля.</value>
+  </data>
+  <data name="Hr_TsPreview" xml:space="preserve">
+    <value>Просмотр табеля</value>
+  </data>
+  <data name="Hr_GetPdf" xml:space="preserve">
+    <value>Скачать PDF</value>
+  </data>
+  <data name="Hr_OvertimeHours" xml:space="preserve">
+    <value>Сверхурочные часы</value>
+  </data>
+  <data name="Hr_TsPrintTitle" xml:space="preserve">
+    <value>Печать табеля</value>
+  </data>
+  <data name="Hr_TsPdfFile" xml:space="preserve">
+    <value>pochasovoy-tabel</value>
+  </data>
+  <data name="Hr_TsEdit" xml:space="preserve">
+    <value>Редактирование табеля</value>
+  </data>
+  <data name="Hr_TsStatusIs" xml:space="preserve">
+    <value>Статус табеля:</value>
+  </data>
+  <data name="Hr_TsOnlyDraftEditable" xml:space="preserve">
+    <value>Редактировать можно только табель в статусе &lt;strong&gt;Черновик&lt;/strong&gt;.</value>
+  </data>
+  <data name="Hr_TsSaveAllCells" xml:space="preserve">
+    <value>Записать все ячейки в базу</value>
+  </data>
+  <data name="Hr_SelectAll" xml:space="preserve">
+    <value>Выбрать все</value>
+  </data>
+  <data name="Hr_TsDeleteLineConfirm" xml:space="preserve">
+    <value>Удалить строку «{0}»? Это действие необратимо.</value>
+  </data>
+  <data name="Hr_TsAddEmployees" xml:space="preserve">
+    <value>Добавление сотрудников в табель</value>
+  </data>
+  <data name="Hr_EmployeesMulti" xml:space="preserve">
+    <value>Сотрудники (можно выбрать несколько)</value>
+  </data>
+  <data name="Hr_TsImportTitle" xml:space="preserve">
+    <value>Импорт табеля из Excel</value>
+  </data>
+  <data name="Hr_TsImportYearHint" xml:space="preserve">
+    <value>Если год не определён по имени листа, используется этот год</value>
+  </data>
+  <data name="Hr_OrgUnitOptional" xml:space="preserve">
+    <value>Подразделение (необязательно)</value>
+  </data>
+  <data name="Hr_ExcelFile" xml:space="preserve">
+    <value>Файл Excel</value>
+  </data>
+  <data name="Hr_TsImportFormat" xml:space="preserve">
+    <value>Формат: табель в файле Excel (iPack - TABEL.xlsx). После загрузки файла откроется окно выбора листа.</value>
+  </data>
+  <data name="Hr_UploadFile" xml:space="preserve">
+    <value>Загрузить файл</value>
+  </data>
+  <data name="Hr_TsSelectSheetTitle" xml:space="preserve">
+    <value>Выбор листа Excel</value>
+  </data>
+  <data name="Hr_TsSelectSheetCrumb" xml:space="preserve">
+    <value>Выбор листа</value>
+  </data>
+  <data name="Hr_TsSelectSheet" xml:space="preserve">
+    <value>Выберите лист</value>
+  </data>
+  <data name="Hr_TsNoSheets" xml:space="preserve">
+    <value>Файл Excel не загружен или листы не найдены.</value>
+  </data>
+  <data name="Hr_TsSelectSheetHint" xml:space="preserve">
+    <value>Выберите имя листа в файле Excel</value>
+  </data>
+  <data name="Hr_RowNotFound" xml:space="preserve">
+    <value>Строка не найдена</value>
+  </data>
+  <data name="Hr_RowDeleted" xml:space="preserve">
+    <value>Строка удалена</value>
+  </data>
+  <data name="Hr_AbsentDays" xml:space="preserve">
+    <value>Дни неявки</value>
+  </data>
+  <data name="Hr_ImportDone" xml:space="preserve">
+    <value>Импорт завершён</value>
+  </data>
+  <data name="Hr_TsExistsForMonth" xml:space="preserve">
+    <value>Табель за этот месяц уже существует</value>
+  </data>
+  <data name="Hr_TsExistsForPeriod" xml:space="preserve">
+    <value>Табель за этот период уже существует</value>
+  </data>
+  <data name="Hr_TsEmployeesAdded" xml:space="preserve">
+    <value>Добавлено сотрудников: {0}</value>
+  </data>
+  <data name="Hr_TsOnlyDraftAddEmployees" xml:space="preserve">
+    <value>Добавлять сотрудников можно только в черновик табеля</value>
+  </data>
+  <data name="Hr_TsNoNewEmployees" xml:space="preserve">
+    <value>Новые сотрудники не добавлены: выбранные уже есть в табеле</value>
+  </data>
+  <data name="Hr_TsNoDataToSave" xml:space="preserve">
+    <value>Нет данных для сохранения</value>
+  </data>
+  <data name="Hr_TsBadDataFormat" xml:space="preserve">
+    <value>Неверный формат данных</value>
+  </data>
+  <data name="Hr_TsOnlyDraftSave" xml:space="preserve">
+    <value>Сохранять можно только табель в статусе черновика</value>
+  </data>
+  <data name="Hr_TsSaved" xml:space="preserve">
+    <value>Данные табеля сохранены</value>
+  </data>
+  <data name="Hr_TsOnlyDraftEdit" xml:space="preserve">
+    <value>Редактировать можно только табель в статусе черновика</value>
+  </data>
+  <data name="Hr_TsBadDay" xml:space="preserve">
+    <value>Неверный день</value>
+  </data>
+  <data name="Hr_TsOnlyDraftApprove" xml:space="preserve">
+    <value>Утвердить можно только черновик табеля</value>
+  </data>
+  <data name="Hr_TsOnlyApprovedClose" xml:space="preserve">
+    <value>Закрыть можно только утверждённый табель</value>
+  </data>
+  <data name="Hr_TsOnlyDraftDelete" xml:space="preserve">
+    <value>Удалить можно только черновик табеля</value>
+  </data>
+  <data name="Hr_TsHasPayroll" xml:space="preserve">
+    <value>С этим табелем связан расчёт заработной платы</value>
+  </data>
+  <data name="Hr_TsOnlyDraftLineDelete" xml:space="preserve">
+    <value>Удалять строки можно только в черновике табеля</value>
+  </data>
+  <data name="Hr_TsFileGoneReupload" xml:space="preserve">
+    <value>Файл не найден, загрузите заново</value>
+  </data>
+  <data name="Hr_TsSheetNotFound" xml:space="preserve">
+    <value>Выбранный лист не найден</value>
+  </data>
+  <data name="Hr_TsNotDraftNoImport" xml:space="preserve">
+    <value>Табель за {0} не в статусе черновика — импорт невозможен</value>
+  </data>
+  <data name="Hr_TsNoWorkPeriodInMonth" xml:space="preserve">
+    <value>в выбранном месяце нет периода работы</value>
+  </data>
+  <data name="Hr_TsAlreadyInTimesheet" xml:space="preserve">
+    <value>уже есть в табеле</value>
+  </data>
+  <data name="Hr_Salary2" xml:space="preserve">
+    <value>Заработная плата</value>
+  </data>
+  <data name="Hr_SetTitle" xml:space="preserve">
+    <value>Настройки HR</value>
+  </data>
+  <data name="Hr_SetWorkCalendar" xml:space="preserve">
+    <value>Рабочий календарь</value>
+  </data>
+  <data name="Hr_SetWorkDaysHint" xml:space="preserve">
+    <value>Неотмеченные дни — выходные: в табеле не считаются неявкой, отработанные часы полностью считаются сверхурочными.</value>
+  </data>
+  <data name="Hr_SetHolidays" xml:space="preserve">
+    <value>Праздничные и дополнительные выходные дни</value>
+  </data>
+  <data name="Hr_SetHolidaysHint" xml:space="preserve">
+    <value>По одной дате в строке: 2026-03-21 или 21.03.2026.</value>
+  </data>
+  <data name="Hr_SetDailyNorm" xml:space="preserve">
+    <value>Дневная норма (часы)</value>
+  </data>
+  <data name="Hr_SetDailyNormHint" xml:space="preserve">
+    <value>Часы сверх нормы в рабочий день — сверхурочные.</value>
+  </data>
+  <data name="Hr_SetOvertimeCoef" xml:space="preserve">
+    <value>Коэффициент сверхурочных</value>
+  </data>
+  <data name="Hr_SetDefaultTax" xml:space="preserve">
+    <value>НДФЛ по умолчанию (%)</value>
+  </data>
+  <data name="Hr_SetDefaultTaxHint" xml:space="preserve">
+    <value>Применяется к почасовым и сдельным расчётам; в расчёте можно изменить.</value>
+  </data>
+  <data name="Hr_SetExample" xml:space="preserve">
+    <value>рабочих дней: {0}, месячный фонд — {1} ч (так рассчитывается фонд часов по умолчанию при создании табеля).</value>
+  </data>
+  <data name="Hr_SetInvalidDates" xml:space="preserve">
+    <value>Неверная дата: {0} (формат: 2026-01-01 или 01.01.2026)</value>
+  </data>
+  <data name="Hr_SetSaved" xml:space="preserve">
+    <value>Настройки сохранены. Новые/изменённые строки табеля и новые расчёты будут считаться по этим правилам.</value>
+  </data>
+  <data name="Hr_Day_0" xml:space="preserve">
+    <value>Воскресенье</value>
+  </data>
+  <data name="Hr_Day_1" xml:space="preserve">
+    <value>Понедельник</value>
+  </data>
+  <data name="Hr_Day_2" xml:space="preserve">
+    <value>Вторник</value>
+  </data>
+  <data name="Hr_Day_3" xml:space="preserve">
+    <value>Среда</value>
+  </data>
+  <data name="Hr_Day_4" xml:space="preserve">
+    <value>Четверг</value>
+  </data>
+  <data name="Hr_Day_5" xml:space="preserve">
+    <value>Пятница</value>
+  </data>
+  <data name="Hr_Day_6" xml:space="preserve">
+    <value>Суббота</value>
+  </data>
+  <data name="Hr_Product" xml:space="preserve">
+    <value>Изделие</value>
+  </data>
+  <data name="Hr_AllProducts" xml:space="preserve">
+    <value>Все изделия</value>
+  </data>
+  <data name="Hr_SelectProduct" xml:space="preserve">
+    <value>Выберите изделие</value>
+  </data>
+  <data name="Hr_Operation" xml:space="preserve">
+    <value>Операция</value>
+  </data>
+  <data name="Hr_SelectOperation" xml:space="preserve">
+    <value>Выберите операцию</value>
+  </data>
+  <data name="Hr_Unlimited" xml:space="preserve">
+    <value>Бессрочно</value>
+  </data>
+  <data name="Hr_ModifiedBy" xml:space="preserve">
+    <value>Кем изменено</value>
+  </data>
+  <data name="Hr_ModifiedAt" xml:space="preserve">
+    <value>Изменено</value>
+  </data>
+  <data name="Hr_PrTimesheet" xml:space="preserve">
+    <value>Сдельный табель</value>
+  </data>
+  <data name="Hr_PrTariffs" xml:space="preserve">
+    <value>Сдельные тарифы</value>
+  </data>
+  <data name="Hr_PrTariffAdd" xml:space="preserve">
+    <value>Добавить сдельный тариф</value>
+  </data>
+  <data name="Hr_PrTariffAddShort" xml:space="preserve">
+    <value>Добавить тариф</value>
+  </data>
+  <data name="Hr_PrTariffEdit" xml:space="preserve">
+    <value>Редактирование сдельного тарифа</value>
+  </data>
+  <data name="Hr_PrTariffDelete" xml:space="preserve">
+    <value>Удаление сдельного тарифа</value>
+  </data>
+  <data name="Hr_PrTariffDetails" xml:space="preserve">
+    <value>Сведения о сдельном тарифе</value>
+  </data>
+  <data name="Hr_PrTariffDeleteConfirm" xml:space="preserve">
+    <value>Подтвердите удаление этого тарифа.</value>
+  </data>
+  <data name="Hr_PrTariffDeleteQ" xml:space="preserve">
+    <value>Удалить тариф?</value>
+  </data>
+  <data name="Hr_PrRatePerUnit" xml:space="preserve">
+    <value>Тариф (за единицу)</value>
+  </data>
+  <data name="Hr_PrValidFrom" xml:space="preserve">
+    <value>Действует с</value>
+  </data>
+  <data name="Hr_PrValidTo" xml:space="preserve">
+    <value>Действует по</value>
+  </data>
+  <data name="Hr_PrEmptyAllPositions" xml:space="preserve">
+    <value>Если не заполнено — для всех должностей</value>
+  </data>
+  <data name="Hr_PrEmptyUnlimited" xml:space="preserve">
+    <value>Если не заполнено — бессрочно</value>
+  </data>
+  <data name="Hr_Enter" xml:space="preserve">
+    <value>Ввод</value>
+  </data>
+  <data name="Hr_Tariff" xml:space="preserve">
+    <value>Тариф</value>
+  </data>
+  <data name="Hr_NotApproved" xml:space="preserve">
+    <value>Не утверждён</value>
+  </data>
+  <data name="Hr_AddRow" xml:space="preserve">
+    <value>Добавить строку</value>
+  </data>
+  <data name="Hr_DeleteQ" xml:space="preserve">
+    <value>Удалить?</value>
+  </data>
+  <data name="Hr_TokenNotFound" xml:space="preserve">
+    <value>Токен не найден</value>
+  </data>
+  <data name="Hr_DeleteError" xml:space="preserve">
+    <value>Ошибка при удалении</value>
+  </data>
+  <data name="Hr_NetworkError" xml:space="preserve">
+    <value>Ошибка сети</value>
+  </data>
+  <data name="Hr_PrEntryCreate" xml:space="preserve">
+    <value>Ввод сдельного табеля</value>
+  </data>
+  <data name="Hr_PrOperation" xml:space="preserve">
+    <value>Сдельная операция</value>
+  </data>
+  <data name="Hr_PrTariffAutoHint" xml:space="preserve">
+    <value>Тариф подставляется автоматически по изделию и операции</value>
+  </data>
+  <data name="Hr_PrQuantityLabel" xml:space="preserve">
+    <value>Количество (объём операции)</value>
+  </data>
+  <data name="Hr_PrTariffNotFound" xml:space="preserve">
+    <value>Тариф не найден</value>
+  </data>
+  <data name="Hr_PrDeleteEntries" xml:space="preserve">
+    <value>Удаление сдельных данных</value>
+  </data>
+  <data name="Hr_PrDeleteEntriesWarn" xml:space="preserve">
+    <value>Это действие необратимо. Все сдельные данные будут удалены.</value>
+  </data>
+  <data name="Hr_PrEntryCount" xml:space="preserve">
+    <value>Количество записей</value>
+  </data>
+  <data name="Hr_PrDeleteEntriesConfirm" xml:space="preserve">
+    <value>Подтвердить удаление всех сдельных данных за этот месяц?</value>
+  </data>
+  <data name="Hr_PrDeleteEntriesQ" xml:space="preserve">
+    <value>Удалить все сдельные данные за этот месяц?</value>
+  </data>
+  <data name="Hr_PrDetails" xml:space="preserve">
+    <value>Сведения о сдельном табеле</value>
+  </data>
+  <data name="Hr_PrPrintTitle" xml:space="preserve">
+    <value>Печать сдельного табеля</value>
+  </data>
+  <data name="Hr_PrPdfFile" xml:space="preserve">
+    <value>sdelny-tabel</value>
+  </data>
+  <data name="Hr_PrGridCreate" xml:space="preserve">
+    <value>Ввод сдельной таблицы</value>
+  </data>
+  <data name="Hr_PrGridEdit" xml:space="preserve">
+    <value>Редактирование сдельной таблицы</value>
+  </data>
+  <data name="Hr_PrGridEditShort" xml:space="preserve">
+    <value>Редактировать таблицу</value>
+  </data>
+  <data name="Hr_PrEnterData" xml:space="preserve">
+    <value>Ввести сдельные данные</value>
+  </data>
+  <data name="Hr_PrEnterViaGrid" xml:space="preserve">
+    <value>Ввод через таблицу</value>
+  </data>
+  <data name="Hr_PrAccruedPay" xml:space="preserve">
+    <value>Начислено к оплате</value>
+  </data>
+  <data name="Hr_PrApproveConfirm" xml:space="preserve">
+    <value>Утвердить этот табель?</value>
+  </data>
+  <data name="Hr_PrApplyMonth" xml:space="preserve">
+    <value>Применить месяц</value>
+  </data>
+  <data name="Hr_NoApproveRight" xml:space="preserve">
+    <value>У вас нет права утверждения</value>
+  </data>
+  <data name="Hr_BadMonthParam" xml:space="preserve">
+    <value>Неверный параметр месяца</value>
+  </data>
+  <data name="Hr_PrNoDataForMonth" xml:space="preserve">
+    <value>Сдельные данные за этот месяц не найдены</value>
+  </data>
+  <data name="Hr_TsAlreadyApproved" xml:space="preserve">
+    <value>Этот табель уже утверждён</value>
+  </data>
+  <data name="Hr_TsApproved" xml:space="preserve">
+    <value>Табель успешно утверждён</value>
+  </data>
+  <data name="Hr_NoRowsToSave" xml:space="preserve">
+    <value>Нет строк для сохранения</value>
+  </data>
+  <data name="Hr_PrEntriesSaved" xml:space="preserve">
+    <value>Сохранено записей: {0}</value>
+  </data>
+  <data name="Hr_PrDuplicatesSkipped" xml:space="preserve">
+    <value>Пропущено строк-дубликатов (сотрудник/изделие/операция/дата): {0}</value>
+  </data>
+  <data name="Hr_PrUpdatedInserted" xml:space="preserve">
+    <value>Обновлено: {0}, добавлено: {1}</value>
+  </data>
+  <data name="Hr_PrCompanyTsApproved" xml:space="preserve">
+    <value>Табель за {0} (вся компания) уже утверждён. Изменение невозможно.</value>
+  </data>
+  <data name="Hr_PrOrgTsApproved" xml:space="preserve">
+    <value>Табель подразделения за {0} уже утверждён. Изменение невозможно.</value>
+  </data>
+  <data name="Hr_PrEntryEdit" xml:space="preserve">
+    <value>Редактирование сдельной записи</value>
+  </data>
+  <data name="Hr_EntryNotFound" xml:space="preserve">
+    <value>Запись не найдена</value>
+  </data>
+  <data name="Hr_EntryUpdated" xml:space="preserve">
+    <value>Запись обновлена</value>
+  </data>
+  <data name="Hr_EntryDeleted" xml:space="preserve">
+    <value>Запись удалена</value>
+  </data>
+  <data name="Hr_PrEntrySaved" xml:space="preserve">
+    <value>Сдельные данные успешно сохранены</value>
+  </data>
+  <data name="Hr_PrTariffLoadError" xml:space="preserve">
+    <value>Ошибка получения тарифа</value>
+  </data>
+  <data name="Hr_PrPayrollExists" xml:space="preserve">
+    <value>За этот месяц есть расчёты заработной платы. Сначала удалите их.</value>
+  </data>
+  <data name="Hr_PrCannotDeleteApproved" xml:space="preserve">
+    <value>Нельзя удалить утверждённый табель. Сначала отмените утверждение.</value>
+  </data>
+  <data name="Hr_PrEntriesDeleted" xml:space="preserve">
+    <value>Успешно удалено записей: {0}</value>
+  </data>
+  <data name="Js_Hr_RemoveRow" xml:space="preserve">
+    <value>Удалить строку</value>
+  </data>
+  <data name="Hr_EmployeeNotFound" xml:space="preserve">
+    <value>Сотрудник не найден</value>
+  </data>
 </root>

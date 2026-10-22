@@ -20,7 +20,7 @@
             // Edit: server .docx'ni HTML'ga aylantirib beradi; validatsiya xatosida — yuborilgan matn
             initialHtml: @Html.Raw(Json.Encode(Model.DocumentContent ?? "")),
             notify: true,
-            buttons: [{ selector: '#loadCurrentDocxBtn', url: function () { return loadUrl; }, missing: 'Joriy versiya fayli topilmadi' }],
+            buttons: [{ selector: '#loadCurrentDocxBtn', url: function () { return loadUrl; }, missing: '@L.Js("Hr_JdCurrentFileMissing")' }],
             fileButton: '#loadDocxBtn'
         });
     });

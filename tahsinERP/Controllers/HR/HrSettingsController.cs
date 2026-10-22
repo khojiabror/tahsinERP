@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.HR;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.HR
 {
@@ -74,7 +75,7 @@ namespace tahsinERP.Controllers.HR
 
             if (invalid.Any())
             {
-                TempData["Error"] = "Noto'g'ri sana: " + string.Join(", ", invalid) + " (format: 2026-01-01 yoki 01.01.2026)";
+                TempData["Error"] = L.T("Hr_SetInvalidDates", string.Join(", ", invalid));
                 return RedirectToAction("Index");
             }
 
@@ -89,7 +90,7 @@ namespace tahsinERP.Controllers.HR
 
             new UserActionLogger(User?.Identity?.Name ?? "System").Log("HrSettings", "Save",
                 $"IshKunlari: {string.Join(",", model.WorkDays ?? new List<int>())}, Me'yor: {model.DailyNormHours}, Koef: {model.OvertimeMultiplier}, Soliq: {model.DefaultIncomeTaxPercent}%, Bayramlar: {holidays.Count}");
-            TempData["Success"] = "Sozlamalar saqlandi. Yangi kiritilgan/o'zgargan tabel qatorlari va yangi hisoblar shu qoidalar bilan hisoblanadi.";
+            TempData["Success"] = L.T("Hr_SetSaved");
             return RedirectToAction("Index");
         }
     }

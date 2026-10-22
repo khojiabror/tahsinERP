@@ -9846,4 +9846,1549 @@
   <data name="Mes_TanA_N_SkippedForeign" xml:space="preserve">
     <value>Hisobga olinmagan boshqa valyutadagi tranzaksiyalar: {0} ta ({1}) — konvertatsiya qilinmaydi.</value>
   </data>
+  <data name="Hr_Attention" xml:space="preserve">
+    <value>Diqqat!</value>
+  </data>
+  <data name="Hr_DetailsCrumb" xml:space="preserve">
+    <value>Tafsilotlar</value>
+  </data>
+  <data name="Hr_Positions" xml:space="preserve">
+    <value>Lavozimlar</value>
+  </data>
+  <data name="Hr_PositionAdd" xml:space="preserve">
+    <value>Lavozim qo'shish</value>
+  </data>
+  <data name="Hr_PositionEdit" xml:space="preserve">
+    <value>Lavozimni tahrirlash</value>
+  </data>
+  <data name="Hr_PositionDelete" xml:space="preserve">
+    <value>Lavozimni o'chirish</value>
+  </data>
+  <data name="Hr_PositionDetails" xml:space="preserve">
+    <value>Lavozim tafsilotlari</value>
+  </data>
+  <data name="Hr_PositionDeleteConfirm" xml:space="preserve">
+    <value>Bu lavozimni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Hr_ManagerPosition" xml:space="preserve">
+    <value>Rahbariyat lavozimi</value>
+  </data>
+  <data name="Hr_Management" xml:space="preserve">
+    <value>Rahbariyat</value>
+  </data>
+  <data name="Hr_Regular" xml:space="preserve">
+    <value>Oddiy</value>
+  </data>
+  <data name="Hr_EmployeeCount" xml:space="preserve">
+    <value>Xodimlar soni</value>
+  </data>
+  <data name="Hr_InStaffingPlan" xml:space="preserve">
+    <value>Shtat jadvalida</value>
+  </data>
+  <data name="Hr_PositionInUse" xml:space="preserve">
+    <value>Bu lavozim {0} ta xodim va {1} ta shtat jadvalida ishlatilmoqda. O'chirish mumkin emas.</value>
+  </data>
+  <data name="Hr_SalaryGrade" xml:space="preserve">
+    <value>Tarif tarmog'i</value>
+  </data>
+  <data name="Hr_SalaryGrades" xml:space="preserve">
+    <value>Tarif tarmoqlari</value>
+  </data>
+  <data name="Hr_GradeAdd" xml:space="preserve">
+    <value>Tarif tarmog'ini qo'shish</value>
+  </data>
+  <data name="Hr_GradeEdit" xml:space="preserve">
+    <value>Tarif tarmog'ini tahrirlash</value>
+  </data>
+  <data name="Hr_GradeDetails" xml:space="preserve">
+    <value>Tarif tarmog'i tafsilotlari</value>
+  </data>
+  <data name="Hr_GradeDeleteQ" xml:space="preserve">
+    <value>Tarif tarmog'ini o'chirish?</value>
+  </data>
+  <data name="Hr_MinSalary" xml:space="preserve">
+    <value>Minimal maosh</value>
+  </data>
+  <data name="Hr_MaxSalary" xml:space="preserve">
+    <value>Maksimal maosh</value>
+  </data>
+  <data name="Hr_MinSalaryShort" xml:space="preserve">
+    <value>Min. maosh</value>
+  </data>
+  <data name="Hr_MaxSalaryShort" xml:space="preserve">
+    <value>Maks. maosh</value>
+  </data>
+  <data name="Hr_EffectiveFrom" xml:space="preserve">
+    <value>Amal qiladi</value>
+  </data>
+  <data name="Hr_EffectiveTo" xml:space="preserve">
+    <value>Amal qiladi (to)</value>
+  </data>
+  <data name="Hr_SelectCurrency" xml:space="preserve">
+    <value>Valyutani tanlang</value>
+  </data>
+  <data name="Hr_GradeMaxLessThanMin" xml:space="preserve">
+    <value>Maksimal maosh minimal maoshdan kichik bo'lmasligi kerak</value>
+  </data>
+  <data name="Hr_GradePeriodOverlap" xml:space="preserve">
+    <value>Bu tarif tarmog'i kodi uchun amal qilish davrlari ustma-ust tushmasligi kerak</value>
+  </data>
+  <data name="Hr_GradeInUse" xml:space="preserve">
+    <value>Shtat jadvalida ishlatilayotgan tarif tarmog'ini o'chirib bo'lmaydi</value>
+  </data>
+  <data name="Hr_Employee" xml:space="preserve">
+    <value>Xodim</value>
+  </data>
+  <data name="Hr_Employees" xml:space="preserve">
+    <value>Xodimlar</value>
+  </data>
+  <data name="Hr_Position" xml:space="preserve">
+    <value>Lavozim</value>
+  </data>
+  <data name="Hr_OrgUnit" xml:space="preserve">
+    <value>Bo'lim</value>
+  </data>
+  <data name="Hr_CountTa" xml:space="preserve">
+    <value>{0} ta</value>
+  </data>
+  <data name="Hr_NoAccess" xml:space="preserve">
+    <value>Ruxsat yo'q</value>
+  </data>
+  <data name="Hr_SaveError" xml:space="preserve">
+    <value>Saqlashda xatolik yuz berdi</value>
+  </data>
+  <data name="Hr_LoadError" xml:space="preserve">
+    <value>Ma'lumotlarni yuklashda xatolik</value>
+  </data>
+  <data name="Hr_OrgStructure" xml:space="preserve">
+    <value>Tashkiliy tuzilma</value>
+  </data>
+  <data name="Hr_OrgChart" xml:space="preserve">
+    <value>Tashkiliy sxema</value>
+  </data>
+  <data name="Hr_OrgTree" xml:space="preserve">
+    <value>Bo'limlar daraxti</value>
+  </data>
+  <data name="Hr_OrgUnitAdd" xml:space="preserve">
+    <value>Bo'lim qo'shish</value>
+  </data>
+  <data name="Hr_OrgUnitEdit" xml:space="preserve">
+    <value>Bo'limni tahrirlash</value>
+  </data>
+  <data name="Hr_OrgUnitDelete" xml:space="preserve">
+    <value>Bo'limni o'chirish</value>
+  </data>
+  <data name="Hr_OrgUnitDetails" xml:space="preserve">
+    <value>Bo'lim tafsilotlari</value>
+  </data>
+  <data name="Hr_OrgUnitDeleteConfirm" xml:space="preserve">
+    <value>Bu bo'limni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Hr_ParentOrgUnit" xml:space="preserve">
+    <value>Ota bo'lim</value>
+  </data>
+  <data name="Hr_OrgRoot" xml:space="preserve">
+    <value>Asosiy</value>
+  </data>
+  <data name="Hr_OrgRootUnit" xml:space="preserve">
+    <value>Asosiy bo'lim</value>
+  </data>
+  <data name="Hr_OrgLevel" xml:space="preserve">
+    <value>Daraja</value>
+  </data>
+  <data name="Hr_PlannedCount" xml:space="preserve">
+    <value>Rejalashtirilgan soni</value>
+  </data>
+  <data name="Hr_ActualCount" xml:space="preserve">
+    <value>Faktik soni</value>
+  </data>
+  <data name="Hr_OrgStaffPositions" xml:space="preserve">
+    <value>Shtatlar</value>
+  </data>
+  <data name="Hr_OrgTotalStaffPositions" xml:space="preserve">
+    <value>Jami shtatlar</value>
+  </data>
+  <data name="Hr_Occupied" xml:space="preserve">
+    <value>Egallangan</value>
+  </data>
+  <data name="Hr_Vacant" xml:space="preserve">
+    <value>Vakant</value>
+  </data>
+  <data name="Hr_StaffPositionName" xml:space="preserve">
+    <value>Shtat nomi</value>
+  </data>
+  <data name="Hr_ActiveEmployee" xml:space="preserve">
+    <value>Faol xodim</value>
+  </data>
+  <data name="Hr_OrgSelectHint" xml:space="preserve">
+    <value>Tafsilotlarni ko'rish uchun daraxtdan bo'limni tanlang</value>
+  </data>
+  <data name="Hr_PlanFact" xml:space="preserve">
+    <value>Reja: {0}, Fakt: {1}</value>
+  </data>
+  <data name="Hr_OrgMoveQ" xml:space="preserve">
+    <value>Bo'limni ko'chirish?</value>
+  </data>
+  <data name="Hr_OrgCycle" xml:space="preserve">
+    <value>Tsiklik bog'lanishga yo'l qo'yilmaydi</value>
+  </data>
+  <data name="Hr_OrgHasChildren" xml:space="preserve">
+    <value>Bo'limda quyi bo'limlar mavjud bo'lsa, uni o'chirib bo'lmaydi</value>
+  </data>
+  <data name="Hr_OrgHasEmployees" xml:space="preserve">
+    <value>Bo'limda xodimlar mavjud bo'lsa, uni o'chirib bo'lmaydi</value>
+  </data>
+  <data name="Hr_OrgNotFound" xml:space="preserve">
+    <value>Bo'lim topilmadi</value>
+  </data>
+  <data name="Hr_StaffingPlan" xml:space="preserve">
+    <value>Shtat jadvali</value>
+  </data>
+  <data name="Hr_SpAdd" xml:space="preserve">
+    <value>Shtat jadvaliga pozitsiya qo'shish</value>
+  </data>
+  <data name="Hr_SpAddPosition" xml:space="preserve">
+    <value>Pozitsiya qo'shish</value>
+  </data>
+  <data name="Hr_SpEdit" xml:space="preserve">
+    <value>Shtat jadvalini tahrirlash</value>
+  </data>
+  <data name="Hr_SpDetails" xml:space="preserve">
+    <value>Shtat jadvali tafsilotlari</value>
+  </data>
+  <data name="Hr_SpGenerateTitle" xml:space="preserve">
+    <value>Xodimlardan shtat jadvalini yaratish</value>
+  </data>
+  <data name="Hr_SpFromEmployees" xml:space="preserve">
+    <value>Xodimlardan yaratish</value>
+  </data>
+  <data name="Hr_SpProposals" xml:space="preserve">
+    <value>Shtat jadvaliga qo'shish uchun taklif qilingan pozitsiyalar</value>
+  </data>
+  <data name="Hr_SpCreateSelected" xml:space="preserve">
+    <value>Tanlangan pozitsiyalarni yaratish</value>
+  </data>
+  <data name="Hr_SpImportTitle" xml:space="preserve">
+    <value>Exceldan shtat jadvalini import qilish</value>
+  </data>
+  <data name="Hr_SpExcelFile" xml:space="preserve">
+    <value>Excel fayli (shtat-jadvali.xlsx)</value>
+  </data>
+  <data name="Hr_SpImportFormat" xml:space="preserve">
+    <value>Format: Excel fayl bilan ustunlar №, F.I.Sh, Tab.№, Lavozim, Hisoblash</value>
+  </data>
+  <data name="Hr_SpImportedCount" xml:space="preserve">
+    <value>{0} ta pozitsiya muvaffaqiyatli qo'shildi</value>
+  </data>
+  <data name="Hr_ImportFromExcel" xml:space="preserve">
+    <value>Exceldan import</value>
+  </data>
+  <data name="Hr_DoImport" xml:space="preserve">
+    <value>Import qilish</value>
+  </data>
+  <data name="Hr_ImportPreview" xml:space="preserve">
+    <value>Import ko'rib chiqish</value>
+  </data>
+  <data name="Hr_Preview" xml:space="preserve">
+    <value>Ko'rib chiqish</value>
+  </data>
+  <data name="Hr_ImportedRows" xml:space="preserve">
+    <value>Import qilingan ma'lumotlar ({0} ta qator)</value>
+  </data>
+  <data name="Hr_ConfirmAndSave" xml:space="preserve">
+    <value>Tasdiqlash va saqlash</value>
+  </data>
+  <data name="Hr_FileNotSelected" xml:space="preserve">
+    <value>Fayl tanlanmagan</value>
+  </data>
+  <data name="Hr_ImportError" xml:space="preserve">
+    <value>Import xatosi: {0}</value>
+  </data>
+  <data name="Hr_DataNotFound" xml:space="preserve">
+    <value>Ma'lumotlar topilmadi</value>
+  </data>
+  <data name="Hr_RowsWithErrors" xml:space="preserve">
+    <value>{0} ta qatorda xatolik yuz berdi</value>
+  </data>
+  <data name="Hr_TabNoShort" xml:space="preserve">
+    <value>Tab.№</value>
+  </data>
+  <data name="Hr_FullName" xml:space="preserve">
+    <value>F.I.O.</value>
+  </data>
+  <data name="Hr_Salary" xml:space="preserve">
+    <value>Maosh</value>
+  </data>
+  <data name="Hr_Actual" xml:space="preserve">
+    <value>Faktik</value>
+  </data>
+  <data name="Hr_PayType" xml:space="preserve">
+    <value>To'lov turi</value>
+  </data>
+  <data name="Hr_PayFixed" xml:space="preserve">
+    <value>Belgilangan</value>
+  </data>
+  <data name="Hr_PayHourly" xml:space="preserve">
+    <value>Soatbay</value>
+  </data>
+  <data name="Hr_PayPiece" xml:space="preserve">
+    <value>Ishbay</value>
+  </data>
+  <data name="Hr_PayFixedSalary" xml:space="preserve">
+    <value>Belgilangan maosh</value>
+  </data>
+  <data name="Hr_PayFixedMonthly" xml:space="preserve">
+    <value>Belgilangan oylik</value>
+  </data>
+  <data name="Hr_PayHourlyFull" xml:space="preserve">
+    <value>Soatbay to'lov</value>
+  </data>
+  <data name="Hr_PayPieceFull" xml:space="preserve">
+    <value>Ishbay to'lov</value>
+  </data>
+  <data name="Hr_AllOrgUnits" xml:space="preserve">
+    <value>Barcha bo'limlar</value>
+  </data>
+  <data name="Hr_AllPositions" xml:space="preserve">
+    <value>Barcha lavozimlar</value>
+  </data>
+  <data name="Hr_SelectOrgUnit" xml:space="preserve">
+    <value>Bo'limni tanlang</value>
+  </data>
+  <data name="Hr_SelectPosition" xml:space="preserve">
+    <value>Lavozimni tanlang</value>
+  </data>
+  <data name="Hr_SelectSalaryGrade" xml:space="preserve">
+    <value>Tarif tarmog'ini tanlang</value>
+  </data>
+  <data name="Hr_Val_SelectRequired" xml:space="preserve">
+    <value>"{0}" tanlanishi shart</value>
+  </data>
+  <data name="Hr_ConfirmDeletion" xml:space="preserve">
+    <value>O'chirishni tasdiqlash</value>
+  </data>
+  <data name="Hr_YesDelete" xml:space="preserve">
+    <value>Ha, o'chirish</value>
+  </data>
+  <data name="Hr_Deleting" xml:space="preserve">
+    <value>O'chirilmoqda...</value>
+  </data>
+  <data name="Hr_ErrorOccurred" xml:space="preserve">
+    <value>Xatolik yuz berdi: {0}</value>
+  </data>
+  <data name="Hr_Version" xml:space="preserve">
+    <value>Versiya</value>
+  </data>
+  <data name="Hr_VersionHistory" xml:space="preserve">
+    <value>Versiya tarixi</value>
+  </data>
+  <data name="Hr_CurrentVersion" xml:space="preserve">
+    <value>Joriy versiya</value>
+  </data>
+  <data name="Hr_NewVersion" xml:space="preserve">
+    <value>Yangi versiya</value>
+  </data>
+  <data name="Hr_FileName" xml:space="preserve">
+    <value>Fayl nomi</value>
+  </data>
+  <data name="Hr_CreatedDate" xml:space="preserve">
+    <value>Yaratilgan sana</value>
+  </data>
+  <data name="Hr_UpdatedDate" xml:space="preserve">
+    <value>Yangilangan sana</value>
+  </data>
+  <data name="Hr_Template" xml:space="preserve">
+    <value>Template</value>
+  </data>
+  <data name="Hr_AdditionalInfoPh" xml:space="preserve">
+    <value>Qo'shimcha ma'lumotlar...</value>
+  </data>
+  <data name="Hr_JdTitle" xml:space="preserve">
+    <value>Lavozim yo'riqnomalari</value>
+  </data>
+  <data name="Hr_JdListTitle" xml:space="preserve">
+    <value>Lavozim yo'riqnomalari ro'yxati</value>
+  </data>
+  <data name="Hr_JdAdd" xml:space="preserve">
+    <value>Yangi lavozim yo'riqnomasi qo'shish</value>
+  </data>
+  <data name="Hr_JdEdit" xml:space="preserve">
+    <value>Lavozim yo'riqnomasini tahrirlash</value>
+  </data>
+  <data name="Hr_JdDelete" xml:space="preserve">
+    <value>Lavozim yo'riqnomasini o'chirish</value>
+  </data>
+  <data name="Hr_JdDetails" xml:space="preserve">
+    <value>Lavozim yo'riqnomasi batafsil</value>
+  </data>
+  <data name="Hr_JdNew" xml:space="preserve">
+    <value>Yangi yo'riqnoma</value>
+  </data>
+  <data name="Hr_JdInfo" xml:space="preserve">
+    <value>Lavozim yo'riqnomasi ma'lumotlari</value>
+  </data>
+  <data name="Hr_JdEditInfo" xml:space="preserve">
+    <value>Lavozim yo'riqnomasi ma'lumotlarini tahrirlash</value>
+  </data>
+  <data name="Hr_JdNewInfo" xml:space="preserve">
+    <value>Yangi lavozim yo'riqnomasi ma'lumotlari</value>
+  </data>
+  <data name="Hr_JdDeleteWarn" xml:space="preserve">
+    <value>Siz quyidagi lavozim yo'riqnomasini o'chirmoqchisiz. Bu amalni qaytarib bo'lmaydi.</value>
+  </data>
+  <data name="Hr_JdCode" xml:space="preserve">
+    <value>Lavozim kodi</value>
+  </data>
+  <data name="Hr_JdName" xml:space="preserve">
+    <value>Lavozim nomi</value>
+  </data>
+  <data name="Hr_JdHrPosition" xml:space="preserve">
+    <value>HR Lavozim</value>
+  </data>
+  <data name="Hr_JdDownloadWord" xml:space="preserve">
+    <value>Word hujjatini yuklash (.docx)</value>
+  </data>
+  <data name="Hr_JdCodePh" xml:space="preserve">
+    <value>Masalan: JD-001</value>
+  </data>
+  <data name="Hr_JdCodeUnique" xml:space="preserve">
+    <value>Lavozim kodi takrorlanmasligi kerak</value>
+  </data>
+  <data name="Hr_JdNamePh" xml:space="preserve">
+    <value>Masalan: Ishlab chiqarish boshlig'i</value>
+  </data>
+  <data name="Hr_JdDeptPh" xml:space="preserve">
+    <value>Masalan: Ishlab chiqarish</value>
+  </data>
+  <data name="Hr_JdVersionHint" xml:space="preserve">
+    <value>Har safar tahrirlashda versiya avtomatik oshadi (v{0} + 0.01 = v{1})</value>
+  </data>
+  <data name="Hr_JdLinkHrPosition" xml:space="preserve">
+    <value>HR Lavozimga bog'lash</value>
+  </data>
+  <data name="Hr_JdContent" xml:space="preserve">
+    <value>Hujjat kontenti</value>
+  </data>
+  <data name="Hr_JdEditHintEdit" xml:space="preserve">
+    <value>Quyida Word hujjatini tahrirlashingiz mumkin. Matn orasiga rasmlar qo'shishingiz mumkin.</value>
+  </data>
+  <data name="Hr_JdEditHintNew" xml:space="preserve">
+    <value>Quyida hujjatni tahrirlashingiz mumkin. Template yuklash tugmasini bosing.</value>
+  </data>
+  <data name="Hr_JdLoadCurrent" xml:space="preserve">
+    <value>Joriy versiyani yuklash</value>
+  </data>
+  <data name="Hr_JdLoadTemplate" xml:space="preserve">
+    <value>Template yuklash</value>
+  </data>
+  <data name="Hr_JdUploadWordFile" xml:space="preserve">
+    <value>Word fayl yuklash</value>
+  </data>
+  <data name="Hr_JdUploadWord" xml:space="preserve">
+    <value>Word yuklash</value>
+  </data>
+  <data name="Hr_JdSaveNewVersion" xml:space="preserve">
+    <value>Saqlash (Yangi versiya yaratish)</value>
+  </data>
+  <data name="Hr_JdCurrentFileMissing" xml:space="preserve">
+    <value>Joriy versiya fayli topilmadi</value>
+  </data>
+  <data name="Hr_JdCodeRequired" xml:space="preserve">
+    <value>Lavozim kodi kiritilishi shart</value>
+  </data>
+  <data name="Hr_JdContentEmpty" xml:space="preserve">
+    <value>Hujjat kontenti bo'sh bo'lishi mumkin emas</value>
+  </data>
+  <data name="Hr_JdCreated" xml:space="preserve">
+    <value>Lavozim yo'riqnomasi muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Hr_JdUpdated" xml:space="preserve">
+    <value>Lavozim yo'riqnomasi muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Hr_JdDeleted" xml:space="preserve">
+    <value>Lavozim yo'riqnomasi muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Hr_SelectEmployee" xml:space="preserve">
+    <value>Xodimni tanlang</value>
+  </data>
+  <data name="Hr_From" xml:space="preserve">
+    <value>Dan</value>
+  </data>
+  <data name="Hr_To" xml:space="preserve">
+    <value>Gacha</value>
+  </data>
+  <data name="Hr_Timesheet" xml:space="preserve">
+    <value>Tabel</value>
+  </data>
+  <data name="Hr_Accrued" xml:space="preserve">
+    <value>Hisoblangan</value>
+  </data>
+  <data name="Hr_Paid" xml:space="preserve">
+    <value>To'langan</value>
+  </data>
+  <data name="Hr_Balance" xml:space="preserve">
+    <value>Qoldiq</value>
+  </data>
+  <data name="Hr_WorkedDays" xml:space="preserve">
+    <value>Ishlagan kun</value>
+  </data>
+  <data name="Hr_WorkedHours" xml:space="preserve">
+    <value>Ishlagan soat</value>
+  </data>
+  <data name="Hr_EmployeeNotSelected" xml:space="preserve">
+    <value>Xodim tanlanmagan</value>
+  </data>
+  <data name="Hr_InvalidDateRange" xml:space="preserve">
+    <value>Sana oralig'i noto'g'ri</value>
+  </data>
+  <data name="Hr_KorTitle" xml:space="preserve">
+    <value>Koreshok</value>
+  </data>
+  <data name="Hr_KorCalcTitle" xml:space="preserve">
+    <value>Koreshok hisoblash</value>
+  </data>
+  <data name="Hr_KorCalcButton" xml:space="preserve">
+    <value>Oylikni hisobla</value>
+  </data>
+  <data name="Hr_KorEmployeeTitle" xml:space="preserve">
+    <value>Xodim koreshogi</value>
+  </data>
+  <data name="Hr_KorSection" xml:space="preserve">
+    <value>Bo'lim</value>
+  </data>
+  <data name="Hr_KorHourlyPay" xml:space="preserve">
+    <value>Soatbay maoshi</value>
+  </data>
+  <data name="Hr_KorPiecePay" xml:space="preserve">
+    <value>Ishbay maoshi</value>
+  </data>
+  <data name="Hr_KorNote1" xml:space="preserve">
+    <value>Hisoblangan: avvalo ish haqi (payroll) bo'yicha (to'lovga summa); payroll bo'lmasa soatbay tabel + shtat rejasi va ishbay yozuvlar + tariflar bo'yicha HrPayroll bilan bir xil formulada taxminiy (soliqdan oldingi) summa.</value>
+  </data>
+  <data name="Hr_KorNote2" xml:space="preserve">
+    <value>Eslatma: to'langan summa FinTransactions'dagi xodimga bog'langan chiqimlar + HR_PAYROLL postlari bo'yicha xodim net summasidan olinadi.</value>
+  </data>
+  <data name="Hr_KorNote3" xml:space="preserve">
+    <value>Agar oyliklar umumiy provodka bilan (xodim IDsiz) o'tkazilgan bo'lsa, to'lovlar to'liq chiqmasligi mumkin.</value>
+  </data>
+  <data name="Hr_TabNumber" xml:space="preserve">
+    <value>Tabel raqami</value>
+  </data>
+  <data name="Hr_BaseSalary" xml:space="preserve">
+    <value>Asosiy maosh</value>
+  </data>
+  <data name="Hr_HireDate" xml:space="preserve">
+    <value>Qabul qilingan sana</value>
+  </data>
+  <data name="Hr_DismissalDate" xml:space="preserve">
+    <value>Ishdan bo'shatish sanasi</value>
+  </data>
+  <data name="Hr_Reason" xml:space="preserve">
+    <value>Sabab</value>
+  </data>
+  <data name="Hr_UntilToday" xml:space="preserve">
+    <value>shu kungacha</value>
+  </data>
+  <data name="Hr_StartDate" xml:space="preserve">
+    <value>Boshlanish sanasi</value>
+  </data>
+  <data name="Hr_EndDateOptional" xml:space="preserve">
+    <value>Tugash sanasi (ixtiyoriy)</value>
+  </data>
+  <data name="Hr_EndBeforeStart" xml:space="preserve">
+    <value>Tugash sanasi boshlanish sanasidan oldin bo'lmasligi kerak</value>
+  </data>
+  <data name="Hr_CurrentOrgUnit" xml:space="preserve">
+    <value>Joriy bo'lim</value>
+  </data>
+  <data name="Hr_CurrentPosition" xml:space="preserve">
+    <value>Joriy lavozim</value>
+  </data>
+  <data name="Hr_NewOrgUnit" xml:space="preserve">
+    <value>Yangi bo'lim</value>
+  </data>
+  <data name="Hr_NewPosition" xml:space="preserve">
+    <value>Yangi lavozim</value>
+  </data>
+  <data name="Hr_SelectOrgUnitFirst" xml:space="preserve">
+    <value>Avval bo'limni tanlang</value>
+  </data>
+  <data name="Hr_TransferDate" xml:space="preserve">
+    <value>O'tkazish sanasi</value>
+  </data>
+  <data name="Hr_MaterialRespAllowance" xml:space="preserve">
+    <value>Moddiy javobgarlik ustamasi</value>
+  </data>
+  <data name="Hr_MaterialRespPct" xml:space="preserve">
+    <value>Moddiy javobgarlik, %</value>
+  </data>
+  <data name="Hr_SpecialAllowance" xml:space="preserve">
+    <value>Maxsus ustama</value>
+  </data>
+  <data name="Hr_SpecialAllowancePct" xml:space="preserve">
+    <value>Maxsus ustama, %</value>
+  </data>
+  <data name="Hr_EmpAdd" xml:space="preserve">
+    <value>Xodim qo'shish</value>
+  </data>
+  <data name="Hr_EmpEdit" xml:space="preserve">
+    <value>Xodimni tahrirlash</value>
+  </data>
+  <data name="Hr_EmpDetails" xml:space="preserve">
+    <value>Xodim tafsilotlari</value>
+  </data>
+  <data name="Hr_EmpStartInPosition" xml:space="preserve">
+    <value>Ushbu lavozimda ish boshlagan sana</value>
+  </data>
+  <data name="Hr_EmpDismissedFromPosition" xml:space="preserve">
+    <value>Lavozimdan bo'shatilgan sana</value>
+  </data>
+  <data name="Hr_EmpCurrentStatus" xml:space="preserve">
+    <value>Hozirdagi status</value>
+  </data>
+  <data name="Hr_EmpWorking" xml:space="preserve">
+    <value>Ishlaydi</value>
+  </data>
+  <data name="Hr_EmpLeft" xml:space="preserve">
+    <value>Ishdan ketgan</value>
+  </data>
+  <data name="Hr_EmpHistory" xml:space="preserve">
+    <value>Xodim tarixi</value>
+  </data>
+  <data name="Hr_EmpNoHistory" xml:space="preserve">
+    <value>Xodim tarixi bo'yicha ma'lumotlar mavjud emas.</value>
+  </data>
+  <data name="Hr_EmpAddTenure" xml:space="preserve">
+    <value>Staj qo'shish</value>
+  </data>
+  <data name="Hr_EmpAddTenureTitle" xml:space="preserve">
+    <value>Ko'rsatilmayotgan staj davrini qo'shish</value>
+  </data>
+  <data name="Hr_EmpEndDateHint" xml:space="preserve">
+    <value>Bo'sh qoldirilsa "shu kungacha" deb olinadi.</value>
+  </data>
+  <data name="Hr_EmpTenureReasonPh" xml:space="preserve">
+    <value>Masalan: arxivdagi davrni tiklash</value>
+  </data>
+  <data name="Hr_EmpHiredDate" xml:space="preserve">
+    <value>Ishga kirgan sana</value>
+  </data>
+  <data name="Hr_EmpLeftDate" xml:space="preserve">
+    <value>Ishdan chiqqan sana</value>
+  </data>
+  <data name="Hr_EmpDismiss" xml:space="preserve">
+    <value>Mehnat shartnomasini bekor qilish</value>
+  </data>
+  <data name="Hr_EmpDismissWarn" xml:space="preserve">
+    <value>Bu amalni bekor qilib bo'lmaydi. Xodim ishdan chiqib ketgan deb belgilanadi.</value>
+  </data>
+  <data name="Hr_EmpDismissConfirm" xml:space="preserve">
+    <value>Xodimni ishdan bo'shatishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Hr_EmpTransfer" xml:space="preserve">
+    <value>Boshqa lavozimga o'tkazish</value>
+  </data>
+  <data name="Hr_EmpPositionHint" xml:space="preserve">
+    <value>Bo'lim tanlangandan so'ng faqat shu bo'limdagi lavozimlar ko'rsatiladi.</value>
+  </data>
+  <data name="Hr_EmpOnlySelectedOrgPositions" xml:space="preserve">
+    <value>Faqat tanlangan bo'limdagi lavozimlar.</value>
+  </data>
+  <data name="Hr_EmpNoPlannedPositions" xml:space="preserve">
+    <value>Ushbu bo'limda reja qilingan lavozimlar topilmadi.</value>
+  </data>
+  <data name="Hr_EmpPositionsLoadError" xml:space="preserve">
+    <value>Lavozimlarni yuklashda xatolik.</value>
+  </data>
+  <data name="Hr_EmpTabNoAuto" xml:space="preserve">
+    <value>Tabel raqami avtomatik generatsiya qilinadi</value>
+  </data>
+  <data name="Hr_EmpTenureAdded" xml:space="preserve">
+    <value>Staj davri muvaffaqiyatli qo'shildi</value>
+  </data>
+  <data name="Hr_EmpTabNoExists" xml:space="preserve">
+    <value>Bunday tabel raqami allaqachon mavjud</value>
+  </data>
+  <data name="Hr_EmpAlreadyDismissed" xml:space="preserve">
+    <value>Bu xodim allaqachon ishdan bo'shatilgan</value>
+  </data>
+  <data name="Hr_EmpDismissBeforeHire" xml:space="preserve">
+    <value>Bo'shatish sanasi ishga qabul sanasidan oldin bo'lishi mumkin emas</value>
+  </data>
+  <data name="Hr_EmpDismissed" xml:space="preserve">
+    <value>Xodim muvaffaqiyatli ishdan bo'shatildi</value>
+  </data>
+  <data name="Hr_EmpDismissedNoTransfer" xml:space="preserve">
+    <value>Ishdan bo'shatilgan xodimni transfer qilib bo'lmaydi</value>
+  </data>
+  <data name="Hr_EmpAlreadyInPosition" xml:space="preserve">
+    <value>Xodim allaqachon ushbu bo'lim va lavozimda</value>
+  </data>
+  <data name="Hr_EmpPositionNotPlanned" xml:space="preserve">
+    <value>Tanlangan lavozim ushbu bo'lim uchun reja qilinmagan. Iltimos, faqat tanlangan bo'limdagi lavozimlardan birini tanlang.</value>
+  </data>
+  <data name="Hr_EmpTransferred" xml:space="preserve">
+    <value>Xodim muvaffaqiyatli transfer qilindi</value>
+  </data>
+  <data name="Hr_EndDate" xml:space="preserve">
+    <value>Tugash sanasi</value>
+  </data>
+  <data name="Hr_ReasonPh" xml:space="preserve">
+    <value>Sababni kiriting (ixtiyoriy)</value>
+  </data>
+  <data name="Hr_SelectNewOrgUnit" xml:space="preserve">
+    <value>Yangi bo'limni tanlang</value>
+  </data>
+  <data name="Hr_SelectNewPosition" xml:space="preserve">
+    <value>Yangi lavozimni tanlang</value>
+  </data>
+  <data name="Hr_AllEmployees" xml:space="preserve">
+    <value>Barcha xodimlar</value>
+  </data>
+  <data name="Hr_ActiveEmployees" xml:space="preserve">
+    <value>Faol xodimlar</value>
+  </data>
+  <data name="Hr_LeftEmployees" xml:space="preserve">
+    <value>Chiqib ketganlar</value>
+  </data>
+  <data name="Hr_Tenure" xml:space="preserve">
+    <value>Staj</value>
+  </data>
+  <data name="Hr_TenureYears" xml:space="preserve">
+    <value>{0} yil</value>
+  </data>
+  <data name="Hr_TenureMonths" xml:space="preserve">
+    <value>{0} oy</value>
+  </data>
+  <data name="Hr_TenureDays" xml:space="preserve">
+    <value>{0} kun</value>
+  </data>
+  <data name="Hr_Last" xml:space="preserve">
+    <value>Oxirgi</value>
+  </data>
+  <data name="Hr_HistTitle" xml:space="preserve">
+    <value>Xodimlar staji</value>
+  </data>
+  <data name="Hr_HistAdd" xml:space="preserve">
+    <value>Xodim tarixini qo'shish</value>
+  </data>
+  <data name="Hr_HistEdit" xml:space="preserve">
+    <value>Xodimlar staji tahrirlash</value>
+  </data>
+  <data name="Hr_HistOnlyInactiveHint" xml:space="preserve">
+    <value>Faqat ishdan bo'shatilgan yoki nofaol xodimlarni tanlash mumkin</value>
+  </data>
+  <data name="Hr_HistStartHint" xml:space="preserve">
+    <value>Xodimning shu lavozimda ishlashni boshlagan sanasi</value>
+  </data>
+  <data name="Hr_HistEndHint" xml:space="preserve">
+    <value>Xodimning shu lavozimda ishlashni tugatgan sanasi</value>
+  </data>
+  <data name="Hr_HistPeriodHint" xml:space="preserve">
+    <value>Bu xodimning shu lavozimda ishlagan muddati</value>
+  </data>
+  <data name="Hr_HistActionHistory" xml:space="preserve">
+    <value>Ishlaganini qayd etish</value>
+  </data>
+  <data name="Hr_HistActionDismissal" xml:space="preserve">
+    <value>Ishdan bo'shatish</value>
+  </data>
+  <data name="Hr_HistCurrentPosition" xml:space="preserve">
+    <value>Hozirgi lavozim</value>
+  </data>
+  <data name="Hr_HistAdded" xml:space="preserve">
+    <value>Xodim tarixi muvaffaqiyatli qo'shildi.</value>
+  </data>
+  <data name="Hr_HistUpdated" xml:space="preserve">
+    <value>Xodim tarixi muvaffaqiyatli yangilandi.</value>
+  </data>
+  <data name="Hr_Year" xml:space="preserve">
+    <value>Yil</value>
+  </data>
+  <data name="Hr_Month" xml:space="preserve">
+    <value>Oy</value>
+  </data>
+  <data name="Hr_Planned" xml:space="preserve">
+    <value>Rejalashtirilgan</value>
+  </data>
+  <data name="Hr_Deviation" xml:space="preserve">
+    <value>Og'ish</value>
+  </data>
+  <data name="Hr_PayrollFund" xml:space="preserve">
+    <value>Ish haqi fondi</value>
+  </data>
+  <data name="Hr_DashTitle" xml:space="preserve">
+    <value>HR Boshqaruv paneli</value>
+  </data>
+  <data name="Hr_DashTotalEmployees" xml:space="preserve">
+    <value>Jami xodimlar</value>
+  </data>
+  <data name="Hr_DashMonthlyPayrollFund" xml:space="preserve">
+    <value>Oylik ish haqi fondi</value>
+  </data>
+  <data name="Hr_DashOvertimeHours" xml:space="preserve">
+    <value>Qo'shimcha ish soatlari</value>
+  </data>
+  <data name="Hr_DashTotalWorkedHours" xml:space="preserve">
+    <value>Jami ishlangan soat</value>
+  </data>
+  <data name="Hr_DashHourlyAccrued" xml:space="preserve">
+    <value>Soatbay hisoblangan</value>
+  </data>
+  <data name="Hr_DashPieceAccrued" xml:space="preserve">
+    <value>Ishbay hisoblangan</value>
+  </data>
+  <data name="Hr_DashSalaryPaidFin" xml:space="preserve">
+    <value>To'langan oylik (Fin)</value>
+  </data>
+  <data name="Hr_DashPieceQty" xml:space="preserve">
+    <value>Jami ishbay miqdor</value>
+  </data>
+  <data name="Hr_DashSalaryBalance" xml:space="preserve">
+    <value>Oylik bo'yicha qoldiq (hisoblangan - to'langan)</value>
+  </data>
+  <data name="Hr_DashHeadcountByOrg" xml:space="preserve">
+    <value>Bo'limlar bo'yicha shtat soni</value>
+  </data>
+  <data name="Hr_DashPayrollTrend" xml:space="preserve">
+    <value>Ish haqi fondi dinamikasi</value>
+  </data>
+  <data name="Hr_PayTitle" xml:space="preserve">
+    <value>Ish haqi hisobi</value>
+  </data>
+  <data name="Hr_PayCreateHourly" xml:space="preserve">
+    <value>Soatbay hisob yaratish</value>
+  </data>
+  <data name="Hr_PayCreatePiece" xml:space="preserve">
+    <value>Ishbay hisob yaratish</value>
+  </data>
+  <data name="Hr_SetCalendarCoefs" xml:space="preserve">
+    <value>Ish kalendari va koeffitsientlar</value>
+  </data>
+  <data name="Hr_AllMonths" xml:space="preserve">
+    <value>Barcha oylar</value>
+  </data>
+  <data name="Hr_AllStatuses" xml:space="preserve">
+    <value>Barcha holatlar</value>
+  </data>
+  <data name="Hr_AllTypes" xml:space="preserve">
+    <value>Barcha turlar</value>
+  </data>
+  <data name="Hr_PayStatus_Draft" xml:space="preserve">
+    <value>Qoralama</value>
+  </data>
+  <data name="Hr_PayStatus_Approved" xml:space="preserve">
+    <value>Tasdiqlangan</value>
+  </data>
+  <data name="Hr_PayStatus_Posted" xml:space="preserve">
+    <value>O'tkazilgan</value>
+  </data>
+  <data name="Hr_PayAmount" xml:space="preserve">
+    <value>To'lov summasi</value>
+  </data>
+  <data name="Hr_WholeCompany" xml:space="preserve">
+    <value>Butun kompaniya</value>
+  </data>
+  <data name="Hr_PayApproveConfirmDefault" xml:space="preserve">
+    <value>Hisobni tasdiqlab, moliya moduliga (standart hisob va oylik toifasi) chiqim sifatida yozilsinmi?</value>
+  </data>
+  <data name="Hr_PayApproveAndPost" xml:space="preserve">
+    <value>Tasdiqlash va moliyaga yozish</value>
+  </data>
+  <data name="Hr_PayDeleteQ" xml:space="preserve">
+    <value>Hisobni o'chirish?</value>
+  </data>
+  <data name="Hr_PayDelete" xml:space="preserve">
+    <value>Ish haqi hisobini o'chirish</value>
+  </data>
+  <data name="Hr_PayDeleteConfirm" xml:space="preserve">
+    <value>Bu ish haqi hisobini o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Hr_PayGenerate" xml:space="preserve">
+    <value>Ish haqi hisobini yaratish</value>
+  </data>
+  <data name="Hr_PayTimesheetSource" xml:space="preserve">
+    <value>Tabel (ma'lumot manbai)</value>
+  </data>
+  <data name="Hr_PaySelectApprovedTs" xml:space="preserve">
+    <value>Tasdiqlangan tabelni tanlang</value>
+  </data>
+  <data name="Hr_PaySelectApprovedTsHint" xml:space="preserve">
+    <value>Ish haqi hisobi uchun tasdiqlangan tabelni tanlang</value>
+  </data>
+  <data name="Hr_PayCreate" xml:space="preserve">
+    <value>Hisob yaratish</value>
+  </data>
+  <data name="Hr_PayDetails" xml:space="preserve">
+    <value>Ish haqi hisobi — batafsil</value>
+  </data>
+  <data name="Hr_PayEdit" xml:space="preserve">
+    <value>Ish haqi hisobini tahrirlash</value>
+  </data>
+  <data name="Hr_ToList" xml:space="preserve">
+    <value>Ro'yxatga</value>
+  </data>
+  <data name="Hr_YearN" xml:space="preserve">
+    <value>{0} yil</value>
+  </data>
+  <data name="Hr_TotalUpper" xml:space="preserve">
+    <value>JAMI</value>
+  </data>
+  <data name="Hr_TotalAccrued" xml:space="preserve">
+    <value>Jami hisoblangan</value>
+  </data>
+  <data name="Hr_TotalIncomeTax" xml:space="preserve">
+    <value>Jami daromad solig'i</value>
+  </data>
+  <data name="Hr_IncomeTax" xml:space="preserve">
+    <value>Daromad solig'i</value>
+  </data>
+  <data name="Hr_IncomeTaxPct" xml:space="preserve">
+    <value>Daromad solig'i (%)</value>
+  </data>
+  <data name="Hr_Bonuses" xml:space="preserve">
+    <value>Mukofotlar</value>
+  </data>
+  <data name="Hr_Penalties" xml:space="preserve">
+    <value>Jarimalar</value>
+  </data>
+  <data name="Hr_NetPay" xml:space="preserve">
+    <value>To'lovga</value>
+  </data>
+  <data name="Hr_HoursWorked" xml:space="preserve">
+    <value>Ishlangan soatlar</value>
+  </data>
+  <data name="Hr_Summary" xml:space="preserve">
+    <value>Xulosa</value>
+  </data>
+  <data name="Hr_PayApprovedNotPosted" xml:space="preserve">
+    <value>Tasdiqlangan (moliyaga yozilmagan)</value>
+  </data>
+  <data name="Hr_PayApprovedPosted" xml:space="preserve">
+    <value>Tasdiqlangan, moliyaga yozilgan</value>
+  </data>
+  <data name="Hr_PayApproveConfirm" xml:space="preserve">
+    <value>Hisobni tasdiqlab, moliya moduliga chiqim sifatida yozilsinmi?</value>
+  </data>
+  <data name="Hr_PayPostConfirm" xml:space="preserve">
+    <value>Hisob moliya moduliga chiqim sifatida yozilsinmi?</value>
+  </data>
+  <data name="Hr_PayFinAccount" xml:space="preserve">
+    <value>Moliya hisobi (kassa/bank)</value>
+  </data>
+  <data name="Hr_PayOtherCurrencyHint" xml:space="preserve">
+    <value>Boshqa valyutadagi satrlar shu valyutaning birinchi faol hisobiga yoziladi</value>
+  </data>
+  <data name="Hr_PayExpenseCategory" xml:space="preserve">
+    <value>Chiqim toifasi</value>
+  </data>
+  <data name="Hr_PayAutoCategory" xml:space="preserve">
+    <value>Avtomatik (oylik)</value>
+  </data>
+  <data name="Hr_PayPostToFin" xml:space="preserve">
+    <value>Moliyaga yozish</value>
+  </data>
+  <data name="Hr_CurrencyNotFound" xml:space="preserve">
+    <value>Valyuta topilmadi</value>
+  </data>
+  <data name="Hr_EntriesCount" xml:space="preserve">
+    <value>{0} ta yozuv</value>
+  </data>
+  <data name="Hr_PayAndMore" xml:space="preserve">
+    <value>va yana {0} ta</value>
+  </data>
+  <data name="Hr_PaySkippedAlreadyPaid" xml:space="preserve">
+    <value>{0} ta xodim shu oy uchun boshqa (bo'lim yoki butun kompaniya) hisobida allaqachon bor va qo'shilmadi: {1}</value>
+  </data>
+  <data name="Hr_PayUnapprovedEntries" xml:space="preserve">
+    <value>{0} ta ishbay yozuv tasdiqlanmagan bo'lim tabeliga tegishli va hisobga olinmadi</value>
+  </data>
+  <data name="Hr_PayEntriesWithoutTariff" xml:space="preserve">
+    <value>{0} ta ishbay yozuv uchun amaldagi tarif topilmadi (0 deb olindi)</value>
+  </data>
+  <data name="Hr_PayTsNotFoundOrNotApproved" xml:space="preserve">
+    <value>Tabel topilmadi yoki tasdiqlanmagan</value>
+  </data>
+  <data name="Hr_PayTsMismatchPeriod" xml:space="preserve">
+    <value>Tabel ma'lumotlari tanlangan davr yoki bo'limga mos kelmaydi</value>
+  </data>
+  <data name="Hr_PayHourlyExistsLocked" xml:space="preserve">
+    <value>Mavjud soatbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.</value>
+  </data>
+  <data name="Hr_PayPieceExistsLocked" xml:space="preserve">
+    <value>Mavjud ishbay hisob tasdiqlangan yoki o'tkazilgan. Qayta hisoblash uchun uni qoralama holatda yarating.</value>
+  </data>
+  <data name="Hr_PayTsLoadError" xml:space="preserve">
+    <value>Tabellarni yuklashda xatolik</value>
+  </data>
+  <data name="Hr_PayTsNotSelected" xml:space="preserve">
+    <value>Tabel tanlanmagan</value>
+  </data>
+  <data name="Hr_PayTsBadFormat" xml:space="preserve">
+    <value>Noto'g'ri tabel formati</value>
+  </data>
+  <data name="Hr_PayTsMismatch" xml:space="preserve">
+    <value>Tabel ma'lumotlari mos kelmaydi</value>
+  </data>
+  <data name="Hr_PayNoApprovedPieceTs" xml:space="preserve">
+    <value>Ushbu oy (bo'lim) uchun tasdiqlangan ishbay tabel topilmadi</value>
+  </data>
+  <data name="Hr_PayPieceCreated" xml:space="preserve">
+    <value>Ishbay ish haqi hisobi yaratildi: {0} ta xodim</value>
+  </data>
+  <data name="Hr_PayOnlyDraftLinesEditable" xml:space="preserve">
+    <value>Faqat qoralama, o'chirilmagan hisob bo'yicha satrlarni tahrirlash mumkin</value>
+  </data>
+  <data name="Hr_PayOnlyDraftTax" xml:space="preserve">
+    <value>Faqat qoralama hisobda soliqni o'zgartirish mumkin</value>
+  </data>
+  <data name="Hr_PayOnlyDraftApprove" xml:space="preserve">
+    <value>Faqat 'Qoralama' holatidagi hisoblarni tasdiqlash mumkin</value>
+  </data>
+  <data name="Hr_PayApprovedAndPosted" xml:space="preserve">
+    <value>Hisob tasdiqlandi va moliya moduliga chiqim sifatida yozildi</value>
+  </data>
+  <data name="Hr_PayOnlyApprovedPost" xml:space="preserve">
+    <value>Faqat tasdiqlangan (moliyaga yozilmagan) hisoblarni o'tkazish mumkin</value>
+  </data>
+  <data name="Hr_PayPostedToFin" xml:space="preserve">
+    <value>Hisob moliya moduliga muvaffaqiyatli o'tkazildi</value>
+  </data>
+  <data name="Hr_PayNoFinCategory" xml:space="preserve">
+    <value>Ish haqi uchun moliya toifasi topilmadi. Tasdiqlashda chiqim toifasini tanlang (yoki nomida 'oylik' bo'lgan toifa yarating).</value>
+  </data>
+  <data name="Hr_PayNoLines" xml:space="preserve">
+    <value>Hisobda satr yo'q</value>
+  </data>
+  <data name="Hr_PayNoFinAccountForCurrency" xml:space="preserve">
+    <value>{0} uchun faol moliya hisobi topilmadi</value>
+  </data>
+  <data name="Hr_PayStatusChanged" xml:space="preserve">
+    <value>Hisob holati o'zgargan (allaqachon tasdiqlangan yoki o'tkazilgan)</value>
+  </data>
+  <data name="Hr_PayFinPostError" xml:space="preserve">
+    <value>Moliyaga yozishda xatolik yuz berdi — hisob o'zgarmadi</value>
+  </data>
+  <data name="Hr_PaySheetName" xml:space="preserve">
+    <value>Hisob {0}-{1}</value>
+  </data>
+  <data name="Hr_PayFileName" xml:space="preserve">
+    <value>Hisob_{0}_{1}</value>
+  </data>
+  <data name="Hr_PayNotFoundOrDeleted" xml:space="preserve">
+    <value>Hisob topilmadi yoki allaqachon o'chirilgan</value>
+  </data>
+  <data name="Hr_PayCannotDeleteApproved" xml:space="preserve">
+    <value>Tasdiqlangan yoki o'tkazilgan hisobni o'chirib bo'lmaydi</value>
+  </data>
+  <data name="Hr_PayNoCurrencies" xml:space="preserve">
+    <value>Valyuta jadvalida hech qanday valyuta topilmadi. Iltimos, avval valyuta qo'shing.</value>
+  </data>
+  <data name="Hr_PayAllTsThisMonth" xml:space="preserve">
+    <value>Ushbu oydagi barcha tabellar ({0} ta tabel, {1} ta yozuv)</value>
+  </data>
+  <data name="Hr_PayCalcType" xml:space="preserve">
+    <value>Hisob turi</value>
+  </data>
+  <data name="Hr_CompiledBy" xml:space="preserve">
+    <value>Tuzuvchi</value>
+  </data>
+  <data name="Hr_ApprovedBy" xml:space="preserve">
+    <value>Tasdiqlovchi</value>
+  </data>
+  <data name="Hr_RepPayrollTitle" xml:space="preserve">
+    <value>ISH HAQI HISOBOTI</value>
+  </data>
+  <data name="Hr_RepTimesheetTitle" xml:space="preserve">
+    <value>ISH VAQTI HISOBOTI</value>
+  </data>
+  <data name="Hr_FundHours" xml:space="preserve">
+    <value>Oylik fond soati</value>
+  </data>
+  <data name="Hr_MonthDays" xml:space="preserve">
+    <value>Oy kunlari</value>
+  </data>
+  <data name="Hr_WorkDays" xml:space="preserve">
+    <value>Ish kunlari</value>
+  </data>
+  <data name="Hr_WorkHours" xml:space="preserve">
+    <value>Ish soatlari</value>
+  </data>
+  <data name="Hr_Overtime" xml:space="preserve">
+    <value>Qo'shimcha</value>
+  </data>
+  <data name="Hr_Absent" xml:space="preserve">
+    <value>Qatnashmagan</value>
+  </data>
+  <data name="Hr_TotalOvertimeHours" xml:space="preserve">
+    <value>Jami qo'shimcha soat</value>
+  </data>
+  <data name="Hr_TsStatus_Closed" xml:space="preserve">
+    <value>Yopilgan</value>
+  </data>
+  <data name="Hr_TsHourly" xml:space="preserve">
+    <value>Soatbay tabel</value>
+  </data>
+  <data name="Hr_TsCreate" xml:space="preserve">
+    <value>Tabel yaratish</value>
+  </data>
+  <data name="Hr_TsApproveQ" xml:space="preserve">
+    <value>Tabelni tasdiqlash?</value>
+  </data>
+  <data name="Hr_TsCloseQ" xml:space="preserve">
+    <value>Tabelni yopish?</value>
+  </data>
+  <data name="Hr_TsDeleteQ" xml:space="preserve">
+    <value>Tabelni o'chirish?</value>
+  </data>
+  <data name="Hr_TsOpenExisting" xml:space="preserve">
+    <value>Mavjud tabelni ochish</value>
+  </data>
+  <data name="Hr_TsAddEmployeesManually" xml:space="preserve">
+    <value>Qo'lda xodim qo'shish (ixtiyoriy)</value>
+  </data>
+  <data name="Hr_TsAddEmployeesHint" xml:space="preserve">
+    <value>Bir yoki bir nechta xodimni tanlab yuborsangiz, tabel ochilganda darrov qo'shiladi.</value>
+  </data>
+  <data name="Hr_SelectEmployees" xml:space="preserve">
+    <value>Xodimlarni tanlang</value>
+  </data>
+  <data name="Hr_TsNoFuture" xml:space="preserve">
+    <value>Kelajakka tabel kirita olmaysiz</value>
+  </data>
+  <data name="Hr_TsDelete" xml:space="preserve">
+    <value>Soatbay tabelni o'chirish</value>
+  </data>
+  <data name="Hr_TsDeleteConfirm" xml:space="preserve">
+    <value>Bu tabelni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Hr_TsPreview" xml:space="preserve">
+    <value>Tabel ko'rib chiqish</value>
+  </data>
+  <data name="Hr_GetPdf" xml:space="preserve">
+    <value>PDF olish</value>
+  </data>
+  <data name="Hr_OvertimeHours" xml:space="preserve">
+    <value>Qo'shimcha soat</value>
+  </data>
+  <data name="Hr_TsPrintTitle" xml:space="preserve">
+    <value>Tabel chop etish</value>
+  </data>
+  <data name="Hr_TsPdfFile" xml:space="preserve">
+    <value>soatbay-tabel-preview</value>
+  </data>
+  <data name="Hr_TsEdit" xml:space="preserve">
+    <value>Tabelni tahrirlash</value>
+  </data>
+  <data name="Hr_TsStatusIs" xml:space="preserve">
+    <value>Bu tabel holati</value>
+  </data>
+  <data name="Hr_TsOnlyDraftEditable" xml:space="preserve">
+    <value>Faqat &lt;strong&gt;Qoralama&lt;/strong&gt; holatidagi tabelni tahrirlash mumkin.</value>
+  </data>
+  <data name="Hr_TsSaveAllCells" xml:space="preserve">
+    <value>Barcha katakchalarni bazaga yozish</value>
+  </data>
+  <data name="Hr_SelectAll" xml:space="preserve">
+    <value>Barchasini tanlash</value>
+  </data>
+  <data name="Hr_TsDeleteLineConfirm" xml:space="preserve">
+    <value>{0} qatorini o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.</value>
+  </data>
+  <data name="Hr_TsAddEmployees" xml:space="preserve">
+    <value>Tabelga xodim qo'shish</value>
+  </data>
+  <data name="Hr_EmployeesMulti" xml:space="preserve">
+    <value>Xodimlar (bir nechta tanlash mumkin)</value>
+  </data>
+  <data name="Hr_TsImportTitle" xml:space="preserve">
+    <value>Exceldan tabel import qilish</value>
+  </data>
+  <data name="Hr_TsImportYearHint" xml:space="preserve">
+    <value>List nomidan yil aniqlanmasa, bu yil ishlatiladi</value>
+  </data>
+  <data name="Hr_OrgUnitOptional" xml:space="preserve">
+    <value>Bo'lim (ixtiyoriy)</value>
+  </data>
+  <data name="Hr_ExcelFile" xml:space="preserve">
+    <value>Excel fayli</value>
+  </data>
+  <data name="Hr_TsImportFormat" xml:space="preserve">
+    <value>Format: Excel fayl bilan tabel (iPack - TABEL.xlsx). Fayl yuklangandan keyin listlarni tanlash oynasi ochiladi.</value>
+  </data>
+  <data name="Hr_UploadFile" xml:space="preserve">
+    <value>Faylni yuklash</value>
+  </data>
+  <data name="Hr_TsSelectSheetTitle" xml:space="preserve">
+    <value>Excel listni tanlash</value>
+  </data>
+  <data name="Hr_TsSelectSheetCrumb" xml:space="preserve">
+    <value>Listni tanlash</value>
+  </data>
+  <data name="Hr_TsSelectSheet" xml:space="preserve">
+    <value>Listni tanlang</value>
+  </data>
+  <data name="Hr_TsNoSheets" xml:space="preserve">
+    <value>Excel fayl yuklanmagan yoki listlar topilmadi.</value>
+  </data>
+  <data name="Hr_TsSelectSheetHint" xml:space="preserve">
+    <value>Excel fayldagi list nomini tanlang</value>
+  </data>
+  <data name="Hr_RowNotFound" xml:space="preserve">
+    <value>Qator topilmadi</value>
+  </data>
+  <data name="Hr_RowDeleted" xml:space="preserve">
+    <value>Qator o'chirildi</value>
+  </data>
+  <data name="Hr_AbsentDays" xml:space="preserve">
+    <value>Kelmagan kun</value>
+  </data>
+  <data name="Hr_ImportDone" xml:space="preserve">
+    <value>Import yakunlandi</value>
+  </data>
+  <data name="Hr_TsExistsForMonth" xml:space="preserve">
+    <value>Bu oy uchun tabel allaqachon mavjud</value>
+  </data>
+  <data name="Hr_TsExistsForPeriod" xml:space="preserve">
+    <value>Ushbu davr uchun tabel allaqachon mavjud</value>
+  </data>
+  <data name="Hr_TsEmployeesAdded" xml:space="preserve">
+    <value>{0} ta xodim qo'shildi</value>
+  </data>
+  <data name="Hr_TsOnlyDraftAddEmployees" xml:space="preserve">
+    <value>Faqat qoralama tabelga xodim qo'shish mumkin</value>
+  </data>
+  <data name="Hr_TsNoNewEmployees" xml:space="preserve">
+    <value>Yangi xodim qo'shilmadi: tanlanganlar allaqachon tabelda bor</value>
+  </data>
+  <data name="Hr_TsNoDataToSave" xml:space="preserve">
+    <value>Saqlash uchun ma'lumot yuborilmadi</value>
+  </data>
+  <data name="Hr_TsBadDataFormat" xml:space="preserve">
+    <value>Ma'lumot formati noto'g'ri</value>
+  </data>
+  <data name="Hr_TsOnlyDraftSave" xml:space="preserve">
+    <value>Faqat qoralama holatidagi tabelni saqlash mumkin</value>
+  </data>
+  <data name="Hr_TsSaved" xml:space="preserve">
+    <value>Tabel ma'lumotlari bazaga saqlandi</value>
+  </data>
+  <data name="Hr_TsOnlyDraftEdit" xml:space="preserve">
+    <value>Faqat qoralama holatidagi tabelni tahrirlash mumkin</value>
+  </data>
+  <data name="Hr_TsBadDay" xml:space="preserve">
+    <value>Kun noto'g'ri</value>
+  </data>
+  <data name="Hr_TsOnlyDraftApprove" xml:space="preserve">
+    <value>Faqat qoralama tabel tasdiqlanadi</value>
+  </data>
+  <data name="Hr_TsOnlyApprovedClose" xml:space="preserve">
+    <value>Faqat tasdiqlangan tabel yopiladi</value>
+  </data>
+  <data name="Hr_TsOnlyDraftDelete" xml:space="preserve">
+    <value>Faqat qoralama tabel o'chiriladi</value>
+  </data>
+  <data name="Hr_TsHasPayroll" xml:space="preserve">
+    <value>Bu tabelga bog'langan ish haqi bor</value>
+  </data>
+  <data name="Hr_TsOnlyDraftLineDelete" xml:space="preserve">
+    <value>Faqat qoralama tabel satri o'chiriladi</value>
+  </data>
+  <data name="Hr_TsFileGoneReupload" xml:space="preserve">
+    <value>Fayl topilmadi, qayta yuklang</value>
+  </data>
+  <data name="Hr_TsSheetNotFound" xml:space="preserve">
+    <value>Tanlangan varaq topilmadi</value>
+  </data>
+  <data name="Hr_TsNotDraftNoImport" xml:space="preserve">
+    <value>{0} uchun tabel qoralama holatida emas — import qilib bo'lmaydi</value>
+  </data>
+  <data name="Hr_TsNoWorkPeriodInMonth" xml:space="preserve">
+    <value>tanlangan oyda ish davri topilmadi</value>
+  </data>
+  <data name="Hr_TsAlreadyInTimesheet" xml:space="preserve">
+    <value>allaqachon tabelda mavjud</value>
+  </data>
+  <data name="Hr_Salary2" xml:space="preserve">
+    <value>Ish haqi</value>
+  </data>
+  <data name="Hr_SetTitle" xml:space="preserve">
+    <value>HR sozlamalari</value>
+  </data>
+  <data name="Hr_SetWorkCalendar" xml:space="preserve">
+    <value>Ish kalendari</value>
+  </data>
+  <data name="Hr_SetWorkDaysHint" xml:space="preserve">
+    <value>Belgilanmagan kunlar dam olish kuni: tabelda "kelmagan kun" sanalmaydi, ishlangan soat to'liq qo'shimcha soat hisoblanadi.</value>
+  </data>
+  <data name="Hr_SetHolidays" xml:space="preserve">
+    <value>Bayram va qo'shimcha dam olish kunlari</value>
+  </data>
+  <data name="Hr_SetHolidaysHint" xml:space="preserve">
+    <value>Har qatorda bitta sana: 2026-03-21 yoki 21.03.2026.</value>
+  </data>
+  <data name="Hr_SetDailyNorm" xml:space="preserve">
+    <value>Kunlik me'yor (soat)</value>
+  </data>
+  <data name="Hr_SetDailyNormHint" xml:space="preserve">
+    <value>Ish kunida shundan oshgan soat — qo'shimcha soat.</value>
+  </data>
+  <data name="Hr_SetOvertimeCoef" xml:space="preserve">
+    <value>Qo'shimcha soat koeffitsienti</value>
+  </data>
+  <data name="Hr_SetDefaultTax" xml:space="preserve">
+    <value>Standart daromad solig'i (%)</value>
+  </data>
+  <data name="Hr_SetDefaultTaxHint" xml:space="preserve">
+    <value>Soatbay va ishbay hisoblarga qo'llanadi; hisobda o'zgartirish mumkin.</value>
+  </data>
+  <data name="Hr_SetExample" xml:space="preserve">
+    <value>{0} ta ish kuni, oylik fond — {1} soat (yangi tabel yaratishda standart fond soati shu tarzda hisoblanadi).</value>
+  </data>
+  <data name="Hr_SetInvalidDates" xml:space="preserve">
+    <value>Noto'g'ri sana: {0} (format: 2026-01-01 yoki 01.01.2026)</value>
+  </data>
+  <data name="Hr_SetSaved" xml:space="preserve">
+    <value>Sozlamalar saqlandi. Yangi kiritilgan/o'zgargan tabel qatorlari va yangi hisoblar shu qoidalar bilan hisoblanadi.</value>
+  </data>
+  <data name="Hr_Day_0" xml:space="preserve">
+    <value>Yakshanba</value>
+  </data>
+  <data name="Hr_Day_1" xml:space="preserve">
+    <value>Dushanba</value>
+  </data>
+  <data name="Hr_Day_2" xml:space="preserve">
+    <value>Seshanba</value>
+  </data>
+  <data name="Hr_Day_3" xml:space="preserve">
+    <value>Chorshanba</value>
+  </data>
+  <data name="Hr_Day_4" xml:space="preserve">
+    <value>Payshanba</value>
+  </data>
+  <data name="Hr_Day_5" xml:space="preserve">
+    <value>Juma</value>
+  </data>
+  <data name="Hr_Day_6" xml:space="preserve">
+    <value>Shanba</value>
+  </data>
+  <data name="Hr_Product" xml:space="preserve">
+    <value>Mahsulot</value>
+  </data>
+  <data name="Hr_AllProducts" xml:space="preserve">
+    <value>Barcha mahsulotlar</value>
+  </data>
+  <data name="Hr_SelectProduct" xml:space="preserve">
+    <value>Mahsulotni tanlang</value>
+  </data>
+  <data name="Hr_Operation" xml:space="preserve">
+    <value>Operatsiya</value>
+  </data>
+  <data name="Hr_SelectOperation" xml:space="preserve">
+    <value>Operatsiyani tanlang</value>
+  </data>
+  <data name="Hr_Unlimited" xml:space="preserve">
+    <value>Cheksiz</value>
+  </data>
+  <data name="Hr_ModifiedBy" xml:space="preserve">
+    <value>O'zgartirgan</value>
+  </data>
+  <data name="Hr_ModifiedAt" xml:space="preserve">
+    <value>O'zgartirilgan</value>
+  </data>
+  <data name="Hr_PrTimesheet" xml:space="preserve">
+    <value>Ishbay tabel</value>
+  </data>
+  <data name="Hr_PrTariffs" xml:space="preserve">
+    <value>Ishbay tariflari</value>
+  </data>
+  <data name="Hr_PrTariffAdd" xml:space="preserve">
+    <value>Ishbay tarif qo'shish</value>
+  </data>
+  <data name="Hr_PrTariffAddShort" xml:space="preserve">
+    <value>Tarif qo'shish</value>
+  </data>
+  <data name="Hr_PrTariffEdit" xml:space="preserve">
+    <value>Ishbay tarifni tahrirlash</value>
+  </data>
+  <data name="Hr_PrTariffDelete" xml:space="preserve">
+    <value>Ishbay tarifni o'chirish</value>
+  </data>
+  <data name="Hr_PrTariffDetails" xml:space="preserve">
+    <value>Ishbay tarif tafsilotlari</value>
+  </data>
+  <data name="Hr_PrTariffDeleteConfirm" xml:space="preserve">
+    <value>Bu tarifni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Hr_PrTariffDeleteQ" xml:space="preserve">
+    <value>Tarifni o'chirish?</value>
+  </data>
+  <data name="Hr_PrRatePerUnit" xml:space="preserve">
+    <value>Tarif (birlik uchun)</value>
+  </data>
+  <data name="Hr_PrValidFrom" xml:space="preserve">
+    <value>Amal qilishdan</value>
+  </data>
+  <data name="Hr_PrValidTo" xml:space="preserve">
+    <value>Amal qilishgacha</value>
+  </data>
+  <data name="Hr_PrEmptyAllPositions" xml:space="preserve">
+    <value>Bo'sh qoldirilsa, barcha lavozimlar uchun</value>
+  </data>
+  <data name="Hr_PrEmptyUnlimited" xml:space="preserve">
+    <value>Bo'sh qoldirilsa, cheksiz</value>
+  </data>
+  <data name="Hr_Enter" xml:space="preserve">
+    <value>Kiritish</value>
+  </data>
+  <data name="Hr_Tariff" xml:space="preserve">
+    <value>Tarif</value>
+  </data>
+  <data name="Hr_NotApproved" xml:space="preserve">
+    <value>Tasdiqlanmagan</value>
+  </data>
+  <data name="Hr_AddRow" xml:space="preserve">
+    <value>Yangi qator qo'shish</value>
+  </data>
+  <data name="Hr_DeleteQ" xml:space="preserve">
+    <value>O'chirilsinmi?</value>
+  </data>
+  <data name="Hr_TokenNotFound" xml:space="preserve">
+    <value>Token topilmadi</value>
+  </data>
+  <data name="Hr_DeleteError" xml:space="preserve">
+    <value>O'chirishda xatolik</value>
+  </data>
+  <data name="Hr_NetworkError" xml:space="preserve">
+    <value>Tarmoq xatosi</value>
+  </data>
+  <data name="Hr_PrEntryCreate" xml:space="preserve">
+    <value>Ishbay tabel kiritish</value>
+  </data>
+  <data name="Hr_PrOperation" xml:space="preserve">
+    <value>Ishbay operatsiyasi</value>
+  </data>
+  <data name="Hr_PrTariffAutoHint" xml:space="preserve">
+    <value>Tarif maxsulot va operatsiyaga qarab avtomatik tortiladi</value>
+  </data>
+  <data name="Hr_PrQuantityLabel" xml:space="preserve">
+    <value>Miqdor (operatsiya miqdori)</value>
+  </data>
+  <data name="Hr_PrTariffNotFound" xml:space="preserve">
+    <value>Tarif topilmadi</value>
+  </data>
+  <data name="Hr_PrDeleteEntries" xml:space="preserve">
+    <value>Ishbay ma'lumotlarni o'chirish</value>
+  </data>
+  <data name="Hr_PrDeleteEntriesWarn" xml:space="preserve">
+    <value>Bu amalni bekor qilib bo'lmaydi. Barcha ishbay ma'lumotlar o'chib ketadi.</value>
+  </data>
+  <data name="Hr_PrEntryCount" xml:space="preserve">
+    <value>Yozuvlar soni</value>
+  </data>
+  <data name="Hr_PrDeleteEntriesConfirm" xml:space="preserve">
+    <value>Bu oy uchun barcha ishbay ma'lumotlarni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Hr_PrDeleteEntriesQ" xml:space="preserve">
+    <value>Bu oy uchun barcha ishbay ma'lumotlarni o'chirish?</value>
+  </data>
+  <data name="Hr_PrDetails" xml:space="preserve">
+    <value>Ishbay tabel tafsilotlari</value>
+  </data>
+  <data name="Hr_PrPrintTitle" xml:space="preserve">
+    <value>Ishbay tabel chop etish</value>
+  </data>
+  <data name="Hr_PrPdfFile" xml:space="preserve">
+    <value>ishbay-tafsilot</value>
+  </data>
+  <data name="Hr_PrGridCreate" xml:space="preserve">
+    <value>Ishbay jadval kiritish</value>
+  </data>
+  <data name="Hr_PrGridEdit" xml:space="preserve">
+    <value>Ishbay jadval tahrirlash</value>
+  </data>
+  <data name="Hr_PrGridEditShort" xml:space="preserve">
+    <value>Grid tahrirlash</value>
+  </data>
+  <data name="Hr_PrEnterData" xml:space="preserve">
+    <value>Ishbay ma'lumot kiritish</value>
+  </data>
+  <data name="Hr_PrEnterViaGrid" xml:space="preserve">
+    <value>Jadval orqali kiritish</value>
+  </data>
+  <data name="Hr_PrAccruedPay" xml:space="preserve">
+    <value>Pullik haq hisoblangan</value>
+  </data>
+  <data name="Hr_PrApproveConfirm" xml:space="preserve">
+    <value>Bu tabelni tasdiqlashni xohlaysizmi?</value>
+  </data>
+  <data name="Hr_PrApplyMonth" xml:space="preserve">
+    <value>Oyni qo'llash</value>
+  </data>
+  <data name="Hr_NoApproveRight" xml:space="preserve">
+    <value>Sizda tasdiqlash huquqi yo'q</value>
+  </data>
+  <data name="Hr_BadMonthParam" xml:space="preserve">
+    <value>Noto'g'ri oy parametri</value>
+  </data>
+  <data name="Hr_PrNoDataForMonth" xml:space="preserve">
+    <value>Bu oy uchun ishbay ma'lumotlari topilmadi</value>
+  </data>
+  <data name="Hr_TsAlreadyApproved" xml:space="preserve">
+    <value>Bu tabel allaqachon tasdiqlangan</value>
+  </data>
+  <data name="Hr_TsApproved" xml:space="preserve">
+    <value>Tabel muvaffaqiyatli tasdiqlandi</value>
+  </data>
+  <data name="Hr_NoRowsToSave" xml:space="preserve">
+    <value>Saqlash uchun qator yo'q</value>
+  </data>
+  <data name="Hr_PrEntriesSaved" xml:space="preserve">
+    <value>{0} ta yozuv saqlandi</value>
+  </data>
+  <data name="Hr_PrDuplicatesSkipped" xml:space="preserve">
+    <value>{0} ta qator o'tkazildi: xodim/mahsulot/operatsiya/sana bo'yicha dublikat</value>
+  </data>
+  <data name="Hr_PrUpdatedInserted" xml:space="preserve">
+    <value>Yangilandi: {0}, qo'shildi: {1}</value>
+  </data>
+  <data name="Hr_PrCompanyTsApproved" xml:space="preserve">
+    <value>{0} uchun tabel (butun kompaniya) allaqachon tasdiqlangan. O'zgartirish mumkin emas.</value>
+  </data>
+  <data name="Hr_PrOrgTsApproved" xml:space="preserve">
+    <value>{0} uchun tegishli bo'lim tabeli allaqachon tasdiqlangan. O'zgartirish mumkin emas.</value>
+  </data>
+  <data name="Hr_PrEntryEdit" xml:space="preserve">
+    <value>Ishbay yozuvni tahrirlash</value>
+  </data>
+  <data name="Hr_EntryNotFound" xml:space="preserve">
+    <value>Yozuv topilmadi</value>
+  </data>
+  <data name="Hr_EntryUpdated" xml:space="preserve">
+    <value>Yozuv yangilandi</value>
+  </data>
+  <data name="Hr_EntryDeleted" xml:space="preserve">
+    <value>Yozuv o'chirildi</value>
+  </data>
+  <data name="Hr_PrEntrySaved" xml:space="preserve">
+    <value>Ishbay ma'lumot muvaffaqiyatli saqlandi</value>
+  </data>
+  <data name="Hr_PrTariffLoadError" xml:space="preserve">
+    <value>Tarifni olishda xatolik</value>
+  </data>
+  <data name="Hr_PrPayrollExists" xml:space="preserve">
+    <value>Bu oy uchun ish haqi hisobotlari mavjud. Avval ish haqi hisobotlarini o'chiring.</value>
+  </data>
+  <data name="Hr_PrCannotDeleteApproved" xml:space="preserve">
+    <value>Tasdiqlangan tabelni o'chirib bo'lmaydi. Avval tasdiqlashni bekor qiling.</value>
+  </data>
+  <data name="Hr_PrEntriesDeleted" xml:space="preserve">
+    <value>{0} ta yozuv muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Js_Hr_RemoveRow" xml:space="preserve">
+    <value>Qatorni olib tashlash</value>
+  </data>
+  <data name="Hr_EmployeeNotFound" xml:space="preserve">
+    <value>Xodim topilmadi</value>
+  </data>
 </root>
