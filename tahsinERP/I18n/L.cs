@@ -7,15 +7,15 @@ namespace tahsinERP.I18n
 {
     /// <summary>
     /// ERP matnlari: <c>@L.T("Key")</c> (view'larda namespace Views/web.config'da ulangan).
-    /// Qidiruv tartibi: Resources/ErpStrings (ERP) -> distributsiya DstStrings -> umumiy atamalar
-    /// (tahsinERP.Localization Common). Til — joriy so'rovning CurrentUICulture'i (<see cref="UiLanguage"/>).
+    /// Qidiruv tartibi: Resources/ErpStrings (ERP) -> umumiy atamalar (tahsinERP.Localization Common)
+    /// -> distributsiya DstStrings (DstLocalization'da o'z kalitlari birinchi). Til — joriy so'rovning CurrentUICulture'i (<see cref="UiLanguage"/>).
     /// Kalit qo'shish: tahsinERP.Localization/tools/resx_add.py Resources/ErpStrings strings_*.py
     /// </summary>
     public static class L
     {
         public static readonly ResourceManager Erp = new ResourceManager("tahsinERP.Resources.ErpStrings", typeof(L).Assembly);
 
-        public static readonly Translator Translator = new Translator(Erp, DstLocalization.ResourceManager, Translator.Common);
+        public static readonly Translator Translator = new Translator(Erp, Translator.Common, DstLocalization.ResourceManager);
 
         public static string T(string key) => Translator.T(key);
 
