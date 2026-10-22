@@ -37,7 +37,7 @@ IF @u IS NULL OR @whS IS NULL OR @whP IS NULL OR @whT IS NULL OR @locA IS NULL O
     THROW 50101, 'Demo operatsiyalar: 200_Demo_Master.sql natijasi topilmadi (demo user / omborlar / joylar)', 1;
 
 /* ---------------- mahsulotlar va narxlar ---------------- */
-CREATE TABLE #prod (ID int PRIMARY KEY, PNo varchar(15), Name varchar(50), UnitID int, IsRaw bit,
+CREATE TABLE #prod (ID int PRIMARY KEY, PNo varchar(15) COLLATE DATABASE_DEFAULT, Name varchar(50) COLLATE DATABASE_DEFAULT, UnitID int, IsRaw bit,
                     Price decimal(18,2), DailyQty int NULL, SupplierNo int NULL, FgIdx int NULL);
 INSERT INTO #prod (ID, PNo, Name, UnitID, IsRaw, Price, DailyQty, SupplierNo, FgIdx)
 SELECT p.ID, p.PNo, p.Name, p.UnitID, ISNULL(p.IsRawMaterial, 0), v.Price, v.DailyQty, v.SupplierNo, v.FgIdx
@@ -55,9 +55,9 @@ JOIN (VALUES
 WHERE p.IsDeleted = 0;
 IF (SELECT COUNT(*) FROM #prod) <> 24 THROW 50102, 'Demo operatsiyalar: 24 demo mahsulot topilmadi', 1;
 
-CREATE TABLE #sup (No int PRIMARY KEY, ID int, Name varchar(50));
+CREATE TABLE #sup (No int PRIMARY KEY, ID int, Name varchar(50) COLLATE DATABASE_DEFAULT);
 INSERT INTO #sup SELECT CAST(RIGHT(DUNS, 1) AS int), ID, Name FROM dbo.SUPPLIERS WHERE DUNS IN ('311111111','312222222','313333333','314444444','315555555');
-CREATE TABLE #cust (No int PRIMARY KEY, ID int, Name varchar(50));
+CREATE TABLE #cust (No int PRIMARY KEY, ID int, Name varchar(50) COLLATE DATABASE_DEFAULT);
 INSERT INTO #cust SELECT CAST(LEFT(DUNS, 3) AS int) - 300, ID, Name FROM dbo.CUSTOMERS WHERE DUNS IN ('301111111','302222222','303333333','304444444','305555555');
 
 -- Faol BOM (eng oxirgi VersionNo) — ProductionConsumptionService shu bo'yicha sarflaydi
@@ -112,7 +112,7 @@ WHERE p.IsRaw = 1;
 
 -- shartnoma: ta'minotchiga bitta, PC-{yyyy}-NNNN (PContractService), QQS 12% faqat shartnoma qatorida
 DECLARE @pcDate date = DATEADD(day, -95, @t);
-CREATE TABLE #pc (SupNo int PRIMARY KEY, ContractNo varchar(50), ID int NULL);
+CREATE TABLE #pc (SupNo int PRIMARY KEY, ContractNo varchar(50) COLLATE DATABASE_DEFAULT, ID int NULL);
 INSERT INTO #pc (SupNo, ContractNo)
 SELECT No, 'PC-' + CAST(YEAR(@pcDate) AS varchar(4)) + '-' + RIGHT('0000' + CAST(ROW_NUMBER() OVER (ORDER BY No) AS varchar(10)), 4)
 FROM #sup;
@@ -133,7 +133,7 @@ JOIN (SELECT ContractID, SUM(Price * Quantity + VATAmount) AS Amt FROM dbo.P_CON
 WHERE c.ID IN (SELECT ID FROM #pc);
 
 -- tur x ta'minotchi = bitta buyurtma + invoys + kirim
-CREATE TABLE #pi (K int IDENTITY PRIMARY KEY, R int, SupNo int, D date, OrderNo varchar(50), InvoiceNo varchar(50), DocNo varchar(50),
+CREATE TABLE #pi (K int IDENTITY PRIMARY KEY, R int, SupNo int, D date, OrderNo varchar(50) COLLATE DATABASE_DEFAULT, InvoiceNo varchar(50) COLLATE DATABASE_DEFAULT, DocNo varchar(50) COLLATE DATABASE_DEFAULT,
                   Net decimal(18,2), Gross decimal(18,2), Qty decimal(18,4), OrderID int NULL, InvID int NULL, IncID int NULL);
 INSERT INTO #pi (R, SupNo, D, Net, Gross, Qty)
 SELECT R, SupNo, D, SUM(Qty * Price), SUM(ROUND(Qty * Price * 1.12, 2)), SUM(Qty)
@@ -201,7 +201,7 @@ JOIN (SELECT c.K, SUM(ov.Q * l.Price) / MAX(c.Qty) AS Cost
 IF EXISTS (SELECT 1 FROM #tr WHERE Cost IS NULL) THROW 50103, 'Demo: o''tkazma uchun xarid qoldig''i yetmadi', 1;
 
 -- chiqim hujjati: hafta bo'yicha bitta, DocNo '{yyyyMM}_{n}'
-CREATE TABLE #trd (Wk int PRIMARY KEY, At datetime, DocNo varchar(50), ExpID int NULL, IncID int NULL);
+CREATE TABLE #trd (Wk int PRIMARY KEY, At datetime, DocNo varchar(50) COLLATE DATABASE_DEFAULT, ExpID int NULL, IncID int NULL);
 INSERT INTO #trd (Wk, At) SELECT Wk, MIN(At) FROM #tr GROUP BY Wk;
 ;WITH x AS (SELECT DocNo, At, ROW_NUMBER() OVER (PARTITION BY CONVERT(char(6), At, 112) ORDER BY Wk) AS N FROM #trd)
 UPDATE x SET DocNo = CONVERT(char(6), At, 112) + '_' + CAST(N AS varchar(10));
@@ -319,14 +319,14 @@ SELECT NULL, NULL, NULL, PPID, ProductID, Qty, Qty - Rejected, Rejected, NULL, '
 FROM #pp;
 
 /* ---------------- 6. PRODUCTION -> SALES o'tkazma (TransferProductionToSales): har haftaning qabul qilingani ---------------- */
-CREATE TABLE #ft (Wk int PRIMARY KEY, At datetime, DocNo varchar(50), Pnos varchar(400), ExpID int NULL, IncID int NULL);
+CREATE TABLE #ft (Wk int PRIMARY KEY, At datetime, DocNo varchar(50) COLLATE DATABASE_DEFAULT, Pnos varchar(400) COLLATE DATABASE_DEFAULT, ExpID int NULL, IncID int NULL);
 INSERT INTO #ft (Wk, At)
 SELECT DISTINCT Wk, DATEADD(hour, 7, CAST(DATEADD(day, 7 * (Wk + 1), @start) AS datetime)) FROM #pp WHERE Wk <= 6;
 UPDATE f SET DocNo = 'TRNSF_' + REPLACE(CONVERT(char(8), f.At, 3), '/', '') + '_1',
              Pnos = STUFF((SELECT ', ' + p.PNo FROM #prod p WHERE p.ID IN (SELECT ProductID FROM #pp WHERE Wk = f.Wk) ORDER BY p.PNo FOR XML PATH('')), 1, 2, '')
 FROM #ft f;
 
-CREATE TABLE #ftl (K int IDENTITY PRIMARY KEY, Wk int, ProductID int, UnitID int, Qty decimal(18,4), Comment varchar(4000), FirstLot int, EPID int NULL);
+CREATE TABLE #ftl (K int IDENTITY PRIMARY KEY, Wk int, ProductID int, UnitID int, Qty decimal(18,4), Comment varchar(4000) COLLATE DATABASE_DEFAULT, FirstLot int, EPID int NULL);
 INSERT INTO #ftl (Wk, ProductID, UnitID, Qty, Comment, FirstLot)
 SELECT pp.Wk, pp.ProductID, p.UnitID, SUM(pp.Qty - pp.Rejected),
        STUFF((SELECT '|ProdID:' + CAST(x.PPID AS varchar(12)) + ':' + CAST(x.Qty - x.Rejected AS varchar(12))
@@ -394,7 +394,7 @@ JOIN #ftl l ON l.Wk = b.S - 1 AND l.ProductID = b.ProductID
 JOIN #prod p ON p.ID = b.ProductID
 WHERE FLOOR(l.Qty * 0.85 / c.N / 10) * 10 > 0;
 
-CREATE TABLE #si (K int IDENTITY PRIMARY KEY, S int, CustNo int, D date, InvoiceNo nvarchar(100), OrderNo varchar(50), OrderID int NULL, InvID bigint NULL);
+CREATE TABLE #si (K int IDENTITY PRIMARY KEY, S int, CustNo int, D date, InvoiceNo nvarchar(100) COLLATE DATABASE_DEFAULT, OrderNo varchar(50) COLLATE DATABASE_DEFAULT, OrderID int NULL, InvID bigint NULL);
 INSERT INTO #si (S, CustNo, D)
 SELECT S, CustNo, DATEADD(day, 7 * S + (CustNo % 5) + 1, @start) FROM #sl GROUP BY S, CustNo ORDER BY DATEADD(day, 7 * S + (CustNo % 5) + 1, @start), CustNo;
 ;WITH o AS (SELECT K, ROW_NUMBER() OVER (ORDER BY D, CustNo) AS N FROM #si)
@@ -408,7 +408,7 @@ FROM #cp cp JOIN #prod p ON p.ID = cp.ProductID
 WHERE cp.CustNo <= 3 AND cp.ProductID IN (SELECT TOP 3 x.ProductID FROM #cp x WHERE x.CustNo = cp.CustNo ORDER BY x.ProductID);
 
 -- shartnomalar: mijozga bitta, miqdor = buyurtmalar x 1.3; 5-mijoz shartnomasi muddati o'tgan
-CREATE TABLE #sc (CustNo int PRIMARY KEY, ContractNo varchar(50), Issued date, Due date, ID int NULL);
+CREATE TABLE #sc (CustNo int PRIMARY KEY, ContractNo varchar(50) COLLATE DATABASE_DEFAULT, Issued date, Due date, ID int NULL);
 INSERT INTO #sc (CustNo, ContractNo, Issued, Due)
 SELECT No, 'DP-' + RIGHT('00' + CAST(No AS varchar(2)), 2) + '/' + CAST(YEAR(DATEADD(day, CASE WHEN No = 5 THEN -70 ELSE -110 END, @t)) AS varchar(4)),
        DATEADD(day, CASE WHEN No = 5 THEN -70 ELSE -110 END, @t),
@@ -470,7 +470,7 @@ SELECT si.InvID, ROW_NUMBER() OVER (PARTITION BY si.InvID ORDER BY l.ProductID),
 FROM #sl l JOIN #si si ON si.S = l.S AND si.CustNo = l.CustNo;
 
 -- WarehouseFlowService.DecreaseSalesStock: har qatorga bitta EXPENSES (narx — shartnoma narxi)
-CREATE TABLE #se (K int IDENTITY PRIMARY KEY, InvID bigint, InvoiceNo nvarchar(100), D date, ProductID int, PNo varchar(15), Qty decimal(18,3), Price decimal(18,2), UnitID int, ExpID int NULL);
+CREATE TABLE #se (K int IDENTITY PRIMARY KEY, InvID bigint, InvoiceNo nvarchar(100) COLLATE DATABASE_DEFAULT, D date, ProductID int, PNo varchar(15) COLLATE DATABASE_DEFAULT, Qty decimal(18,3), Price decimal(18,2), UnitID int, ExpID int NULL);
 INSERT INTO #se (InvID, InvoiceNo, D, ProductID, PNo, Qty, Price, UnitID)
 SELECT si.InvID, si.InvoiceNo, si.D, l.ProductID, p.PNo, l.Qty, l.Price, l.UnitID
 FROM #sl l JOIN #si si ON si.S = l.S AND si.CustNo = l.CustNo JOIN #prod p ON p.ID = l.ProductID

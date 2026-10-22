@@ -121,7 +121,9 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             else if (r.ExitCode != 0) throw new InvalidJobException($"New-TenantDb kod {r.ExitCode}: {err}");
         }
 
-        if (p.SampleData)
+        // Demo tenantda namuna foydalanuvchisi — ochiq demo kirishi (Reset bilan bir xil), boshqa tenantlarda o'chiriladi
+        if (p.Demo) await EnsureDemoUserAsync(p.DbName, log, ct);
+        else if (p.SampleData)
             log.Info($"namuna foydalanuvchisi '{SampleUserLogin}' o'chirib qo'yildi ({await sql.DisableSampleUserAsync(p.DbName, SampleUserLogin, p.AdminLogin, ct)})");
         if (!string.IsNullOrWhiteSpace(options.Sql.AppLogin)) log.Info(await sql.GrantAppLoginAsync(p.DbName, options.Sql.AppLogin!, ct));
         log.Info(await sql.WriteRegTokenAsync(p.DbName, regToken, ct));
@@ -164,17 +166,22 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
         if (RetryExitCodes.Contains(r.ExitCode)) throw new TransientJobException($"Invoke-DbMigrations kod {r.ExitCode}");
         if (r.ExitCode != 0) throw new InvalidJobException($"Invoke-DbMigrations kod {r.ExitCode}");
 
-        if (!string.IsNullOrEmpty(options.Demo.UserPassword))
-        {
-            await sql.EnsureDemoUserAsync(p.DbName, options.Demo.UserLogin, options.Demo.UserPassword, ct);
-            log.Info($"demo foydalanuvchi: {options.Demo.UserLogin} (parol agent sozlamasidan)");
-        }
-        else log.Info("demo foydalanuvchi — Database/Demo skriptidagi (demo / demo2026)");
+        await EnsureDemoUserAsync(p.DbName, log, ct);
         if (!string.IsNullOrWhiteSpace(options.Sql.AppLogin)) log.Info(await sql.GrantAppLoginAsync(p.DbName, options.Sql.AppLogin!, ct));
         if (lease.Secrets?.RegToken is { Length: > 0 } token) log.Info(await sql.WriteRegTokenAsync(p.DbName, token, ct));
         Tenants().Upsert(p.Slug, p.DbName, p.CompanyId, true);
         c.RegistryEnabled = true;
         log.Info(await sql.ProbeAsync(p.DbName, ct));
+    }
+
+    private async Task EnsureDemoUserAsync(string db, JobLog log, CancellationToken ct)
+    {
+        if (!string.IsNullOrEmpty(options.Demo.UserPassword))
+        {
+            await sql.EnsureDemoUserAsync(db, options.Demo.UserLogin, options.Demo.UserPassword, ct);
+            log.Info($"demo foydalanuvchi: {options.Demo.UserLogin} (parol agent sozlamasidan)");
+        }
+        else log.Info("demo foydalanuvchi — Database/Demo skriptidagi (demo / demo2026)");
     }
 
     /// <summary>Demo shabloni: New-TenantDb -Demo -NoAdmin -BackupTo (Database/Demo/*.sql), so'ng vaqtinchalik baza o'chiriladi.</summary>

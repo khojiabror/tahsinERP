@@ -551,6 +551,29 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
         Assert.NotNull(Erp(opts).ResolveHost($"{slug}.{PanelFactory.BaseDomain}"));
     }
 
+    /// <summary>
+    /// Prod (Lightsail): server collation SQL_Latin1_General_CP1_CI_AS, firma bazasi Cyrillic_General_CI_AS — #temp jadvallar tempdb
+    /// collation'ini oladi va migratsiya/demo skriptlari "collation conflict" bilan yiqilardi. Baza server collation'idan farqli bo'lsa ham
+    /// baseline + migratsiya + seed + Demo o'tishi kerak.
+    /// </summary>
+    [Fact]
+    public async Task NewTenantDb_Demo_Works_WhenDatabaseCollationDiffersFromServer()
+    {
+        var (sid, secret) = await ProvisioningQueueTests.CreateServerAsync(f, "it-srv4-" + _suffix);
+        var (_, opts) = Agent(sid, secret);
+        string dbName = "DB_coll_" + _suffix;
+        _databases.Add(dbName);
+        string serverCollation = (await ScalarAsync("master", "SELECT CAST(SERVERPROPERTY('Collation') AS nvarchar(128))"))!;
+        string collation = serverCollation.StartsWith("Cyrillic", StringComparison.OrdinalIgnoreCase) ? "SQL_Latin1_General_CP1_CI_AS" : "Cyrillic_General_CI_AS";
+
+        var r = await new ScriptRunner(opts).RunAsync("New-TenantDb.ps1",
+            ["-Server", f.SqlServer, "-DbName", dbName, "-Collation", collation, "-Demo", "-NoAdmin"], new Dictionary<string, string?>(), default);
+
+        Assert.True(r.ExitCode == 0, r.Log);
+        Assert.Equal(collation, await ScalarAsync("master", $"SELECT collation_name FROM sys.databases WHERE name = '{dbName}'"));
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCTS WHERE PNo = 'TM-011'"));
+    }
+
     [Fact]
     public async Task DemoReset_ScheduledByAgentAt3am_RestoresFromTemplate()
     {
@@ -561,11 +584,17 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
         var demo = await f.WithScopeAsync(async sp =>
         {
             var t = await sp.GetRequiredService<TenantService>().CreateAsync(
-                new Tenant { Slug = PanelFactory.DemoSlug, LegalName = "Demo", Deployment = DeploymentKind.SaaS, ServerId = sid, DbName = dbName }, true);
+                new Tenant { Slug = PanelFactory.DemoSlug, LegalName = "Demo", Deployment = DeploymentKind.SaaS, ServerId = sid, DbName = dbName, SampleData = true }, true);
             var job = (await sp.GetRequiredService<ProvisioningService>().EnqueueAsync(t, ProvisioningJobType.Create)).Job;
             return (t, job);
         });
         await RunAsync(worker, demo.job.Id);
+        // Demo tenantda namuna foydalanuvchisi o'chirilmaydi — birinchi kechagacha ham demo kirishi ishlaydi
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT CAST(IsActive AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
+        Assert.Equal("0", await ScalarAsync(dbName, "SELECT CAST(MustChangePassword AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
+        Assert.True(tahsinERP.Helpers.PasswordHasher.Verify("DemoParol-2026",
+            (await ScalarAsync(dbName, "SELECT Password FROM dbo.USERS WHERE Uname = 'demo'"))!,
+            (await ScalarAsync(dbName, "SELECT HashCode FROM dbo.USERS WHERE Uname = 'demo'"))!, out _));
         // Mehmon ma'lumot qo'shdi — reset'dan keyin yo'qolishi kerak
         await ScalarAsync(dbName, "INSERT INTO dbo.CUSTOMERS (Name, IsDeleted) VALUES ('Mehmon yozuvi', 0)");
 

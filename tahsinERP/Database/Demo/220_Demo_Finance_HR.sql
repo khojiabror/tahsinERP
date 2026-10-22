@@ -53,7 +53,7 @@ DECLARE @accAR int = (SELECT ID FROM dbo.FIN_ACCOUNTS WHERE Code = 'RECEIVABLES_
 /* ---------------- 2. ustav kapitali: aksiyador hissalari (naqd, kassaga) ---------------- */
 DECLARE @capDate date = DATEADD(day, -98, @t);
 DECLARE @capital decimal(18,2) = 1500000000;
-CREATE TABLE #sh (ShID int, Name nvarchar(200), Amount decimal(18,2), FinID int NULL, ContribID int NULL);
+CREATE TABLE #sh (ShID int, Name nvarchar(200) COLLATE DATABASE_DEFAULT, Amount decimal(18,2), FinID int NULL, ContribID int NULL);
 INSERT INTO #sh (ShID, Name, Amount)
 SELECT s.ID, s.FullName, ROUND(@capital * sp.SharePercent / 100, 2)
 FROM dbo.SHAREHOLDERS s JOIN dbo.SHAREHOLDER_SHARE_PERIODS sp ON sp.ShareholderID = s.ID AND sp.ToDate IS NULL
@@ -69,7 +69,7 @@ INSERT INTO dbo.SHAREHOLDER_CONTRIBUTIONS (ShareholderID, ContributionDate, Amou
 SELECT ShID, @capDate, Amount, @uzs, N'Ustav kapitaliga hissa', 1, FinID FROM #sh;
 
 /* ---------------- 3. xarid invoyslari: ko'zgu yozuv + to'lov (14 kundan keyin) ---------------- */
-CREATE TABLE #pinv (ID int PRIMARY KEY, InvoiceNo varchar(50), D date, SupplierID int, SupName varchar(50), SupDuns varchar(50), ContractNo varchar(50), Amount decimal(18,2));
+CREATE TABLE #pinv (ID int PRIMARY KEY, InvoiceNo varchar(50) COLLATE DATABASE_DEFAULT, D date, SupplierID int, SupName varchar(50) COLLATE DATABASE_DEFAULT, SupDuns varchar(50) COLLATE DATABASE_DEFAULT, ContractNo varchar(50) COLLATE DATABASE_DEFAULT, Amount decimal(18,2));
 INSERT INTO #pinv
 SELECT i.ID, i.InvoiceNo, i.InvoiceDate, i.SupplierID, s.Name, s.DUNS, c.ContractNo,
        ISNULL((SELECT SUM(CAST(x.TotalPrice AS decimal(18,2))) FROM dbo.INCOMES x WHERE x.InvoiceID = i.ID AND ISNULL(x.IsDeleted, 0) = 0), i.Amount)
@@ -100,7 +100,7 @@ SELECT D, @kassa, @catTransport, 2, 1200000, @uzs, NULL, NULL, 5, NULL, N'Yuk ta
 FROM #pinv WHERE @catTransport IS NOT NULL;
 
 /* ---------------- 4. sotuv invoyslari: ko'zgu yozuv + mijoz to'lovi (bank, ContractNo bilan) ---------------- */
-CREATE TABLE #sinv (ID bigint PRIMARY KEY, InvoiceNo nvarchar(100), D date, CustomerID int, CustName varchar(50), CustNo int, ContractNo varchar(50), Amount decimal(19,2));
+CREATE TABLE #sinv (ID bigint PRIMARY KEY, InvoiceNo nvarchar(100) COLLATE DATABASE_DEFAULT, D date, CustomerID int, CustName varchar(50) COLLATE DATABASE_DEFAULT, CustNo int, ContractNo varchar(50) COLLATE DATABASE_DEFAULT, Amount decimal(19,2));
 INSERT INTO #sinv
 SELECT i.ID, i.InvoiceNo, i.InvoiceDate, i.CustomerID, c.Name, TRY_CAST(LEFT(c.DUNS, 3) AS int) - 300, sc.ContractNo, i.TotalWithVAT
 FROM dbo.SALES_INVOICES i JOIN dbo.CUSTOMERS c ON c.ID = i.CustomerID LEFT JOIN dbo.S_CONTRACTS sc ON sc.ID = i.ContractID
@@ -160,7 +160,7 @@ VALUES (N'R1', N'Rahbar', 10000000, 18000000, 'UZS', @hrFrom, NULL, 0),
        (N'M1', N'Mutaxassis', 6500000, 10000000, 'UZS', @hrFrom, NULL, 0),
        (N'I1', N'Ishchi', 4500000, 7000000, 'UZS', @hrFrom, NULL, 0);
 
-CREATE TABLE #emp (TabNo nvarchar(50), FullName nvarchar(200), Org nvarchar(50), Pos nvarchar(50), Grade nvarchar(50), Salary decimal(18,2),
+CREATE TABLE #emp (TabNo nvarchar(50) COLLATE DATABASE_DEFAULT, FullName nvarchar(200) COLLATE DATABASE_DEFAULT, Org nvarchar(50) COLLATE DATABASE_DEFAULT, Pos nvarchar(50) COLLATE DATABASE_DEFAULT, Grade nvarchar(50) COLLATE DATABASE_DEFAULT, Salary decimal(18,2),
                    Hired date, MatPct decimal(5,2), SpecPct decimal(5,2), AbsentDays int, OtDays int, ID int NULL);
 INSERT INTO #emp (TabNo, FullName, Org, Pos, Grade, Salary, Hired, MatPct, SpecPct, AbsentDays, OtDays) VALUES
 (N'0001', N'Karimov Aziz Bahodirovich',   N'RAH', N'DIR', N'R1', 16000000, DATEADD(day, -110, @t), 0,  0, 0, 0),
