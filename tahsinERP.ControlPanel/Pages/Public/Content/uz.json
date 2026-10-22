@@ -1,0 +1,358 @@
+{
+  "lang": "uz",
+  "htmlLang": "uz",
+  "langName": "O'zbekcha",
+  "meta": {
+    "title": "tahsinERP — ishlab chiqarish, distributsiya va savdo uchun ERP tizimi",
+    "description": "Xarid, ombor, ishlab chiqarish, savdo, distributsiya, moliya va kadrlar — yagona tizimda. O'zbekiston korxonalari uchun yaratilgan bulutli ERP. 14 kunlik shaxsiy demo muhitini so'rang."
+  },
+  "nav": {
+    "product": "Imkoniyatlar",
+    "modules": "Modullar",
+    "distribution": "Distributsiya",
+    "process": "Joriy etish",
+    "pricing": "Paketlar",
+    "faq": "Savollar",
+    "login": "Kabinet",
+    "demo": "Demo so'rash"
+  },
+  "hero": {
+    "eyebrow": "O'zbekiston korxonalari uchun ERP platforma",
+    "titleA": "Korxonangizni",
+    "titleHi": "bitta tizimda",
+    "titleB": "boshqaring",
+    "subtitle": "Xariddan ishlab chiqarishgacha, ombordan Telegram orqali buyurtmagacha, tannarxdan foyda va zarargacha — tahsinERP butun korxonani real vaqtda ko'rsatadi va qarorni tezlashtiradi.",
+    "cta": "14 kunlik demo olish",
+    "cta2": "Modullarni ko'rish",
+    "points": ["Bulutda — o'rnatish shart emas", "O'zbek, rus, ingliz tillarida", "Shaxsiy demo muhit 1 kunda"],
+    "liveLabel": "Jonli",
+    "mock": {
+      "title": "Umumiy dashboard",
+      "kpi1": "Sotuv (oy)",
+      "kpi2": "Sof foyda",
+      "kpi3": "Reja / fakt",
+      "chart": "Kirim va chiqim, mln so'm",
+      "bars": "Sexlar bo'yicha ishlab chiqarish",
+      "feed": "Voqealar",
+      "events": [
+        "Telegram bot: yangi buyurtma #1042 — «Baraka Savdo»",
+        "Sex №2: 1 200 dona tayyor mahsulot omborga kirdi",
+        "To'lov qabul qilindi: 48 500 000 so'm",
+        "Xarid buyurtmasi PO-318 ta'minotchiga yuborildi",
+        "Reys #57: 14 ta nuqtaga yetkazildi",
+        "Tannarx qayta hisoblandi: −3.2%"
+      ],
+      "float1": "Foyda o'sishi",
+      "float2": "Yangi buyurtma"
+    }
+  },
+  "stats": [
+    { "value": "12", "suffix": "", "label": "o'zaro bog'langan modul" },
+    { "value": "14", "suffix": " kun", "label": "bepul sinov muddati" },
+    { "value": "2–8", "suffix": " hafta", "label": "birinchi amaliy natijagacha" },
+    { "value": "30", "suffix": "%", "label": "gacha qo'lda ish kamayadi" }
+  ],
+  "audience": {
+    "label": "Kimlar uchun",
+    "items": ["Ishlab chiqarish zavodlari", "Distribyutorlar", "Ulgurji savdo", "Qadoqlash va FMCG", "Qurilish materiallari", "Oziq-ovqat sanoati"]
+  },
+  "pains": {
+    "eyebrow": "Nega tahsinERP",
+    "title": "Og'riq nuqtasi → yechim → natija",
+    "subtitle": "Biz dasturni emas, boshqaruv natijasini sotamiz. Rahbar ko'radigan uchta asosiy o'zgarish:",
+    "painLabel": "Muammo",
+    "solutionLabel": "Yechim",
+    "resultLabel": "Natija",
+    "items": [
+      {
+        "icon": "trending",
+        "title": "Yo'qotilayotgan foydani topadi",
+        "pain": "Foyda qayerda «oqib ketayotgani» oy oxirida, Excel'lar yig'ilgandan keyin ham aniq emas.",
+        "solution": "Har bir partiya tannarxi, xarajat moddalari va reja/fakt bir joyda, real vaqtda hisoblanadi.",
+        "result": "Foyda va zarar har kuni ko'rinadi — keraksiz xarajat darhol topiladi."
+      },
+      {
+        "icon": "zap",
+        "title": "Buyurtmaga tez javob beradi",
+        "pain": "Buyurtma qabul qilish, xarid, ombor va ishlab chiqarish alohida yuritiladi — mijoz kutadi.",
+        "solution": "Savdo buyurtmasi → xarid → ombor → ishlab chiqarish → yetkazib berish bitta uzluksiz zanjir.",
+        "result": "Buyurtmadan jo'natmagacha vaqt qisqaradi, mijozga aniq muddat va'da qilinadi."
+      },
+      {
+        "icon": "eye",
+        "title": "Rahbarga aniq manzara beradi",
+        "pain": "«Hozir nima bo'lyapti?» savoliga javob uchun bir necha bo'limga qo'ng'iroq qilinadi.",
+        "solution": "Moliya, savdo, ishlab chiqarish, ombor, HR va vazifalar bo'yicha interaktiv dashboardlar.",
+        "result": "Qaror his-tuyg'u bilan emas, raqamlar asosida va tezroq qabul qilinadi."
+      }
+    ]
+  },
+  "modules": {
+    "eyebrow": "Modullar",
+    "title": "Korxonaning har bir jarayoni — bitta platformada",
+    "subtitle": "Bozordagi odatiy tizimlarda alohida dasturlar bilan qisman yechiladigan jarayonlarni tahsinERP yagona ma'lumotlar bazasida boshqaradi.",
+    "newLabel": "Yangi",
+    "items": [
+      {
+        "code": "srm", "icon": "cart", "name": "Xarid va ta'minot", "tag": "SRM",
+        "desc": "Talabnomadan shartnomagacha, yetkazib berish monitoringidan invoys va to'lov nazoratigacha yagona oqim.",
+        "features": ["Xarid talabnomalari va tenderlar", "Shartnoma, buyurtma, invoyslar", "Ta'minotchilar bazasi va akt-sverka", "Yuk yo'lda: buyurtma kuzatuvi"],
+        "img": "procurement"
+      },
+      {
+        "code": "warehouse", "icon": "box", "name": "Ombor", "tag": "WMS",
+        "desc": "Qoldiqlar, kirim-chiqim, omborlararo o'tkazmalar va inventarizatsiya — partiya va joylashuv kesimida.",
+        "features": ["Ko'p ombor va joylashuvlar", "FIFO bo'yicha tannarx", "Inventarizatsiya va farqlar", "Minimal qoldiq ogohlantirishi"],
+        "img": "warehouse"
+      },
+      {
+        "code": "mes", "icon": "factory", "name": "Ishlab chiqarish", "tag": "MES",
+        "desc": "Rejalashtirish, ishlab chiqarish jarayoni, sifat nazorati va brak hisobi real vaqtda.",
+        "features": ["Kunlik/oylik reja va fakt", "Sexlar va jarayonlar bo'yicha hisob", "Sifat nazorati va brak turlari", "Tayyor mahsulotni omborga topshirish"],
+        "img": "production"
+      },
+      {
+        "code": "engineering", "icon": "layers", "name": "BOM, norma va tannarx", "tag": "Engineering",
+        "desc": "Mahsulot tarkibi (BOM), sarf normalari va har bir mahsulotning haqiqiy tannarxi tahlili.",
+        "features": ["Ko'p bosqichli BOM", "Material sarfi normalari", "Tannarx kalkulyatsiyasi", "Tannarx analitikasi va o'zgarishlar"]
+      },
+      {
+        "code": "crm", "icon": "handshake", "name": "Savdo", "tag": "CRM",
+        "desc": "Mijozlar, shartnomalar, savdo buyurtmalari, invoyslar, to'lovlar, hisob-faktura va TTN.",
+        "features": ["Mijozlar bazasi va tarixi", "Shartnoma va buyurtmalar", "Hisob-faktura va TTN", "Debitorlik qarzi nazorati"],
+        "img": "sales"
+      },
+      {
+        "code": "distribution", "icon": "send", "name": "Distributsiya", "tag": "Telegram", "isNew": true,
+        "desc": "Har bir korxonaga o'z Telegram boti va Mini App: agentlar va mijozlar to'g'ridan-to'g'ri buyurtma beradi.",
+        "features": ["Agentlar va savdo nuqtalari", "Telegram bot + Mini App katalog", "Rezerv, yetkazish reyslari, KPI", "Mijoz qarzi va to'lov intizomi"]
+      },
+      {
+        "code": "finance", "icon": "wallet", "name": "Moliya va analitika", "tag": "Finance",
+        "desc": "Pul oqimi, foyda va zarar, reja-fakt, majburiyatlar va to'lov intizomi — vizual dashboardlarda.",
+        "features": ["Kassa va hisob raqamlar", "P&L va pul oqimi (Cash flow)", "Byudjet: reja va fakt", "Ko'p valyutali hisob"],
+        "img": "finance"
+      },
+      {
+        "code": "hr", "icon": "users", "name": "Kadrlar va ish haqi", "tag": "HR",
+        "desc": "Xodimlar, shtat jadvali, soatbay va ishbay tabellar, oylik hisob-kitobi.",
+        "features": ["Tashkiliy tuzilma va shtat", "Soatbay va ishbay tabel", "Oylik hisoblash", "Xodim tarixi va lavozimlar"],
+        "img": "hr"
+      },
+      {
+        "code": "logistics", "icon": "truck", "name": "Logistika", "tag": "TMS",
+        "desc": "Yuk tashish shartnomalari, transport va yetkazib berish zanjirini to'liq kuzatish.",
+        "features": ["Tashuvchilar va shartnomalar", "Yuk jo'natmalari", "Logistika xarajatlari", "Logistika dashboardi"]
+      },
+      {
+        "code": "docs", "icon": "file", "name": "Hujjat aylanmasi", "tag": "Docs",
+        "desc": "Buyruqlar, rasmiy xatlar va kelishuv bosqichlari — elektron, nazorat ostida.",
+        "features": ["Kiruvchi/chiquvchi xatlar", "Buyruqlar va kelishuv", "Ijro muddatlari", "Arxiv va qidiruv"]
+      },
+      {
+        "code": "tasks", "icon": "check", "name": "Vazifalar", "tag": "Tasks",
+        "desc": "Topshiriqlar, loyihalar, kanban doska va ijro intizomi nazorati.",
+        "features": ["Kanban va ro'yxat ko'rinishi", "Loyihalar va ustuvorlik", "Muddat va mas'ullar", "Ijro intizomi dashboardi"]
+      },
+      {
+        "code": "website", "icon": "globe", "name": "Sayt-katalog", "tag": "Web", "isNew": true,
+        "desc": "Mahsulotlaringiz katalogi bilan tayyor korporativ sayt — ERP'dagi narx va qoldiq bilan avtomatik sinxron.",
+        "features": ["Tayyor sayt o'z domeningizda", "Katalog ERP'dan avtomatik", "Saytdan buyurtma ERP'ga tushadi", "Alohida qo'shimcha xizmat"]
+      }
+    ]
+  },
+  "flow": {
+    "eyebrow": "Ekotizim",
+    "title": "Ma'lumot bir marta kiritiladi — butun korxona ko'radi",
+    "subtitle": "Har bir bo'lim o'z ishini qiladi, lekin hammasi bitta zanjirning bo'g'ini. Bitta buyurtma qanday yo'l bosishini ko'ring:",
+    "steps": [
+      { "icon": "send", "name": "Buyurtma", "desc": "Agent, Telegram bot yoki menejer orqali" },
+      { "icon": "cart", "name": "Xarid", "desc": "Yetishmagan xomashyo avtomatik so'raladi" },
+      { "icon": "box", "name": "Ombor", "desc": "Qoldiq rezerv qilinadi, FIFO tannarx" },
+      { "icon": "factory", "name": "Ishlab chiqarish", "desc": "Reja, jarayon, sifat nazorati" },
+      { "icon": "truck", "name": "Yetkazish", "desc": "Reys, TTN, hisob-faktura" },
+      { "icon": "wallet", "name": "Moliya", "desc": "To'lov, qarz, foyda va zarar" }
+    ]
+  },
+  "showcase": {
+    "eyebrow": "Tizim ichidan",
+    "title": "Haqiqiy ekranlar — taqdimot emas",
+    "subtitle": "Dashboard, ro'yxat, filtrlash, tasdiqlash va analitika — tahsinERP modullaridagi amaliy ekranlar.",
+    "tabs": [
+      { "img": "finance", "name": "Moliya", "desc": "Pul oqimi, foyda va zarar, kirim va chiqim tarixi, reja-fakt taqqoslash." },
+      { "img": "production", "name": "Ishlab chiqarish", "desc": "Reja va fakt, sexlar bo'yicha ishlab chiqarish, jarayon va sifat monitoringi." },
+      { "img": "procurement", "name": "Xarid", "desc": "Xarid buyurtmalari, ta'minotchilar bilan oldi-berdi, invoyslar va holat kuzatuvi." },
+      { "img": "warehouse", "name": "Ombor", "desc": "Qoldiq nazorati, omborlar kesimida harakat va o'tkazmalar." },
+      { "img": "sales", "name": "Savdo", "desc": "Buyurtma, shartnoma, invoys, hisob-faktura va TTN jarayonlari bir joyda." },
+      { "img": "hr", "name": "HR", "desc": "Xodimlar, tabel, oylik monitoringi, vazifalar va ijro intizomi." }
+    ]
+  },
+  "dist": {
+    "eyebrow": "Yangi · Distributsiya",
+    "title": "Mobil ilova shart emas — buyurtmalar Telegram'da",
+    "subtitle": "Har bir korxonaga o'z brendidagi Telegram bot va Mini App. Agentlaringiz va mijozlaringiz katalogdan buyurtma beradi, buyurtma bir zumda ERP'ga tushadi — rezerv, yetkazish va to'lov nazorati bilan.",
+    "features": [
+      { "icon": "send", "title": "O'z brendingizdagi bot", "desc": "Katalog, narxlar, qoldiq va buyurtma tarixi — Telegram ichida." },
+      { "icon": "mic", "title": "Ovozli buyurtma", "desc": "Agent buyurtmani ovozli xabar bilan qoldiradi, tizim qabul qiladi." },
+      { "icon": "route", "title": "Yetkazish reyslari", "desc": "Haydovchilar, reyslar, nuqtalar bo'yicha yetkazish va KPI." },
+      { "icon": "globe", "title": "Sayt-katalog", "desc": "Mahsulot katalogi bilan tayyor sayt — ERP bilan sinxron." }
+    ],
+    "phone": {
+      "bot": "Baraka Distribution",
+      "status": "bot",
+      "greeting": "Assalomu alaykum! Buyurtma berish uchun katalogni oching 👇",
+      "catalog": "🛒 Katalog",
+      "order": "Buyurtma #1042 qabul qilindi ✅\n3 pozitsiya · 4 860 000 so'm\nYetkazish: ertaga, 10:00–14:00",
+      "item1": "Qadoq plyonka 50 mkm",
+      "item2": "Stretch plyonka 23 mkm",
+      "price1": "38 000 so'm",
+      "price2": "52 000 so'm",
+      "add": "Qo'shish",
+      "total": "Jami",
+      "checkout": "Buyurtma berish"
+    }
+  },
+  "why": {
+    "eyebrow": "Afzalliklar",
+    "title": "Korxona darajasidagi ishonchlilik",
+    "items": [
+      { "icon": "cloud", "title": "Bulutda tayyor", "desc": "Server sotib olish va o'rnatish shart emas — brauzer orqali istalgan joydan ishlaysiz." },
+      { "icon": "shield", "title": "Xavfsizlik", "desc": "Har bir firma uchun alohida baza, rollar bo'yicha huquqlar, amallar jurnali va zaxira nusxalar." },
+      { "icon": "language", "title": "O'zbek tilida", "desc": "O'zbek, rus va ingliz tillari. Mahalliy hisob-faktura, TTN va soliq amaliyotiga mos." },
+      { "icon": "plug", "title": "API integratsiya", "desc": "Buxgalteriya, bank, marketpleys va boshqa tashqi tizimlar bilan API orqali ulanish." },
+      { "icon": "settings", "title": "Tez moslashuv", "desc": "Jarayoningizga mos o'zgartirishlar — oylar emas, kunlar ichida. Kod bizda, qaror sizda." },
+      { "icon": "headset", "title": "Yaqin qo'llab-quvvatlash", "desc": "Joriy etish, xodimlarni o'qitish va Telegram orqali tezkor yordam — o'z tilingizda." }
+    ]
+  },
+  "compare": {
+    "eyebrow": "Taqqoslash",
+    "title": "tahsinERP va bozordagi odatiy ERP",
+    "subtitle": "tahsinERP amalda beradigan imkoniyatlar va keng tarqalgan ERP paketlarida tez-tez uchraydigan cheklovlar.",
+    "colFeature": "Imkoniyat",
+    "colUs": "tahsinERP",
+    "colA": "Odatiy ERP A",
+    "colB": "Odatiy ERP B",
+    "colC": "Excel + 1C",
+    "rows": [
+      { "name": "Xarid + ishlab chiqarish + savdo + moliya — yagona real vaqt tizimi", "v": [1, 0, 0, 0] },
+      { "name": "Korxona jarayoniga moslashtirilgan zanjir", "v": [1, 0, 0, 0] },
+      { "name": "Tannarx tahlili va reja/fakt nazorati", "v": [1, 0, 1, 0] },
+      { "name": "Telegram bot va Mini App orqali buyurtma", "v": [1, 0, 0, 0] },
+      { "name": "Ombor va logistika oqimlarining yagona nazorati", "v": [1, 1, 1, 0] },
+      { "name": "Qaror uchun interaktiv dashboardlar", "v": [1, 0, 1, 0] },
+      { "name": "Talab bo'yicha tez moslashtirish (kod darajasida)", "v": [1, 0, 0, 0] },
+      { "name": "O'zbek tilidagi ishlab chiqarish ERP'si", "v": [1, 0, 0, 0] },
+      { "name": "Har qanday tashqi tizim bilan API integratsiya", "v": [1, 0, 0, 0] }
+    ]
+  },
+  "process": {
+    "eyebrow": "Joriy etish yo'li",
+    "title": "«Qancha vaqtda natija ko'ramiz?»",
+    "subtitle": "Aniq bosqichlar, aniq natijalar. Birinchi amaliy natija — 2–8 hafta ichida.",
+    "steps": [
+      { "when": "1-hafta", "title": "Audit va o'rganish", "desc": "Biznes oqimlari o'rganiladi, tahsinERP mavjud jarayonlaringizga moslashtiriladi." },
+      { "when": "2–4-hafta", "title": "Tez start modullar", "desc": "Moliya + SRM + BOM + MES (yoki biznesingizga mos to'plam) bilan operatsion nazorat yo'lga qo'yiladi." },
+      { "when": "1–2 oy", "title": "Kengaytirish", "desc": "CRM, distributsiya, hujjatlar, HR, vazifalar va tannarx bosqichma-bosqich qo'shiladi." },
+      { "when": "Doimiy", "title": "KPI va optimizatsiya", "desc": "Jarayonlar o'lchanadi, rahbariyat uchun doimiy boshqaruv paneli ishlaydi." }
+    ]
+  },
+  "plans": {
+    "eyebrow": "Paketlar",
+    "title": "Biznesingiz hajmiga mos paket",
+    "subtitle": "Har bir paket bulutda ishlaydi, yangilanishlar va qo'llab-quvvatlash bilan. Narx foydalanuvchilar soni va modullarga qarab — demo bilan birga taklif tayyorlaymiz.",
+    "usersLabel": "foydalanuvchigacha",
+    "popular": "Ko'p tanlanadi",
+    "priceLabel": "Narx — so'rov bo'yicha",
+    "cta": "Taklif olish",
+    "items": [
+      { "code": "START", "name": "Start", "for": "Kichik korxona: xarid, ombor va savdoni tartibga solish", "users": "5", "modules": ["Xarid va ombor (SRM)", "Savdo (CRM)", "Vazifalar"] },
+      { "code": "DIST", "name": "Distributsiya", "for": "Distribyutor va ulgurji savdo kompaniyalari", "users": "20", "modules": ["Start'dagi hammasi", "Distributsiya + Telegram bot", "Moliya va analitika"] },
+      { "code": "BIZNES", "name": "Biznes", "for": "Ishlab chiqarish korxonasi: reja, tannarx, moliya", "users": "20", "popular": true, "modules": ["Start'dagi hammasi", "Ishlab chiqarish (MES)", "BOM, norma va tannarx", "Moliya va analitika"] },
+      { "code": "KORP", "name": "Korporativ", "for": "Katta korxona: barcha modullar bitta konturda", "users": "50", "modules": ["Biznes'dagi hammasi", "Kadrlar va ish haqi", "Logistika, hujjatlar", "Distributsiya + Telegram bot"] }
+    ],
+    "addon": "Qo'shimcha xizmat: Sayt-katalog — istalgan paketga ulanadi."
+  },
+  "faq": {
+    "eyebrow": "Savollar",
+    "title": "Ko'p beriladigan savollar",
+    "items": [
+      { "q": "Joriy etish qancha vaqt oladi?", "a": "Korxona hajmiga qarab bosqichma-bosqich: birinchi amaliy natijalar 2–8 hafta ichida ko'rinadi. Demo muhit esa so'rovdan keyin 1 ish kunida tayyor bo'ladi." },
+      { "q": "Demo qanday ishlaydi?", "a": "So'rov qoldirasiz — mutaxassisimiz bog'lanadi va siz uchun alohida demo muhit ochadi: namuna ma'lumotlar bilan to'ldirilgan, barcha modullar ochiq, 14 kun bepul. Bu umumiy «ko'rgazma» emas — o'z ma'lumotlaringizni kiritib sinab ko'rishingiz mumkin." },
+      { "q": "Mavjud Excel jarayonlarini saqlab qolsa bo'ladimi?", "a": "Ha. Ma'lumotlar Excel'dan import qilinadi, o'tish davrida parallel ishlash modeli qo'llanadi va jamoa tizimga og'riqsiz o'tkaziladi." },
+      { "q": "Buxgalteriya dasturimizga ulasa bo'ladimi?", "a": "Ha. tahsinERP tashqi tizimlar bilan API orqali integratsiyalashadi — buxgalteriya, bank, marketpleys va boshqalar." },
+      { "q": "Ma'lumotlarimiz qayerda saqlanadi va xavfsizmi?", "a": "Har bir korxona uchun alohida ma'lumotlar bazasi, shifrlangan ulanish (HTTPS), rollar bo'yicha huquqlar va muntazam zaxira nusxalar. Kerak bo'lsa tizim korxonangiz serveriga ham o'rnatiladi." },
+      { "q": "Bu tizim sotuvga qanday ta'sir qiladi?", "a": "Buyurtmalar tezroq qayta ishlanadi, mijozga aniq muddat va'da qilinadi, Telegram orqali buyurtma 24/7 qabul qilinadi — bu sotuv hajmi va konversiyani oshiradi." }
+    ]
+  },
+  "demo": {
+    "eyebrow": "Demo",
+    "title": "Shaxsiy demo muhitingizni oling",
+    "subtitle": "Umumiy ko'rgazma emas — korxonangiz uchun alohida tizim: namuna ma'lumotlar bilan, barcha modullar ochiq, 14 kun bepul.",
+    "steps": [
+      { "title": "So'rov qoldiring", "desc": "1 daqiqa — quyidagi forma" },
+      { "title": "Mutaxassis bog'lanadi", "desc": "Ish vaqtida 1 soat ichida" },
+      { "title": "Demo muhit tayyor", "desc": "Sizning manzilingiz va loginingiz" }
+    ],
+    "form": {
+      "fullName": "Ismingiz",
+      "fullNamePh": "Ism, familiya",
+      "company": "Kompaniya",
+      "companyPh": "Kompaniya nomi",
+      "phone": "Telefon",
+      "phonePh": "+998 90 123 45 67",
+      "email": "Email",
+      "emailPh": "ixtiyoriy",
+      "industry": "Faoliyat turi",
+      "size": "Xodimlar soni",
+      "choose": "Tanlang",
+      "modules": "Qaysi yo'nalishlar qiziqtiradi?",
+      "message": "Izoh",
+      "messagePh": "Hozir qanday ishlaysiz, nimani hal qilmoqchisiz? (ixtiyoriy)",
+      "submit": "Demo so'rash",
+      "sending": "Yuborilmoqda…",
+      "consent": "Yuborish orqali siz biz bilan bog'lanish uchun ma'lumotlaringizni qayta ishlashga rozilik bildirasiz.",
+      "industries": {
+        "production": "Ishlab chiqarish",
+        "distribution": "Distributsiya / ulgurji",
+        "trade": "Savdo",
+        "services": "Xizmatlar",
+        "other": "Boshqa"
+      },
+      "moduleNames": {
+        "srm": "Xarid va ombor",
+        "crm": "Savdo",
+        "mes": "Ishlab chiqarish",
+        "finance": "Moliya",
+        "hr": "Kadrlar",
+        "logistics": "Logistika",
+        "docs": "Hujjatlar",
+        "tasks": "Vazifalar",
+        "distribution": "Distributsiya",
+        "website": "Sayt-katalog"
+      }
+    },
+    "okTitle": "Rahmat! So'rovingiz qabul qilindi.",
+    "okText": "Mutaxassisimiz tez orada siz bilan bog'lanadi va demo muhitingizni ochib beradi. Shoshilinch bo'lsa — qo'ng'iroq qiling.",
+    "errRequired": "Ism, kompaniya va telefonni to'ldiring.",
+    "errPhone": "Telefon raqami noto'g'ri.",
+    "errEmail": "Email noto'g'ri.",
+    "errThrottled": "So'rovlar juda ko'p. Iltimos, qo'ng'iroq qiling yoki Telegram'da yozing.",
+    "errGeneric": "Yuborib bo'lmadi. Qayta urinib ko'ring yoki qo'ng'iroq qiling.",
+    "orCall": "Yoki to'g'ridan-to'g'ri:"
+  },
+  "cta": {
+    "title": "Raqamlashtirishni bugun boshlang",
+    "subtitle": "14 kun bepul, majburiyatsiz. Korxonangizga mos joriy etish rejasini birga tuzamiz.",
+    "button": "Demo so'rash"
+  },
+  "footer": {
+    "about": "tahsinERP — SCHAIN jamoasi tomonidan O'zbekiston ishlab chiqarish va distributsiya korxonalari uchun yaratilgan ERP platforma.",
+    "product": "Mahsulot",
+    "company": "Kompaniya",
+    "contacts": "Aloqa",
+    "schain": "SCHAIN haqida",
+    "portal": "Mijoz kabineti",
+    "rights": "Barcha huquqlar himoyalangan.",
+    "address": "Toshkent, O'zbekiston"
+  }
+}

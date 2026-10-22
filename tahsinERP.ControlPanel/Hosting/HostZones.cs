@@ -5,11 +5,12 @@ using Microsoft.Extensions.Options;
 namespace tahsinERP.ControlPanel.Hosting;
 
 /// <summary>
-/// Bitta ilova, ikki zona: xodimlar paneli (<c>admin.&lt;domen&gt;</c>) va mijoz portali (<c>my.&lt;domen&gt;</c>).
+/// Bitta ilova, uch zona: xodimlar paneli (<c>admin.&lt;domen&gt;</c>), mijoz portali (<c>my.&lt;domen&gt;</c>) va ommaviy
+/// sayt (<c>&lt;domen&gt;</c>, <c>www.&lt;domen&gt;</c> — mahsulot sahifasi va demo so'rovi).
 /// Zona so'rov host'idan aniqlanadi; har sahifa endpoint'iga zona belgisi qo'yiladi va boshqa zonadagi host'da
 /// u sahifa umuman topilmaydi (404). API'lar (License/Agent/Telegram webhook, /health) zonasiz — har host'da.
 /// </summary>
-public enum Zone { None = 0, Admin = 1, Portal = 2 }
+public enum Zone { None = 0, Admin = 1, Portal = 2, Public = 3 }
 
 public class PanelHostOptions
 {
@@ -20,6 +21,11 @@ public class PanelHostOptions
     /// <summary>Mijoz portali host'i. Bo'sh — "my." + Domain.</summary>
     public string? PortalHost { get; set; }
     /// <summary>
+    /// Ommaviy sayt host'lari, vergul bilan. Bo'sh — Domain va "www." + Domain (Domain'da nuqta bo'lmasa, masalan
+    /// "localhost" — faqat "www.localhost": lokal ishlab chiqishda localhost admin zonasida qoladi).
+    /// </summary>
+    public string? PublicHosts { get; set; }
+    /// <summary>
     /// Boshqa host'lar (masalan "localhost", IP) qaysi zonaga tushadi: "Admin" (lokal ishlab chiqish, eski havolalar) yoki
     /// "None" (serverda tavsiya — hech qaysi sahifa ochilmaydi, faqat API).
     /// </summary>
@@ -29,6 +35,17 @@ public class PanelHostOptions
 
     public string EffectiveAdminHost => string.IsNullOrWhiteSpace(AdminHost) ? "admin." + Domain.Trim().Trim('.') : AdminHost.Trim();
     public string EffectivePortalHost => string.IsNullOrWhiteSpace(PortalHost) ? "my." + Domain.Trim().Trim('.') : PortalHost.Trim();
+
+    public IReadOnlyList<string> EffectivePublicHosts
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(PublicHosts))
+                return PublicHosts.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string d = Domain.Trim().Trim('.');
+            return d.Contains('.') ? [d, "www." + d] : ["www." + d];
+        }
+    }
 }
 
 /// <summary>Endpoint qaysi zonaga tegishli (Razor Pages konvensiyasi qo'yadi).</summary>
@@ -46,6 +63,7 @@ public static class HostZones
         string host = context.Request.Host.Host;
         Zone zone = string.Equals(host, o.EffectivePortalHost, StringComparison.OrdinalIgnoreCase) ? Zone.Portal
             : string.Equals(host, o.EffectiveAdminHost, StringComparison.OrdinalIgnoreCase) ? Zone.Admin
+            : o.EffectivePublicHosts.Contains(host, StringComparer.OrdinalIgnoreCase) ? Zone.Public
             : o.OtherHosts;
         context.Items[ItemKey] = zone;
         return zone;
@@ -64,26 +82,31 @@ public static class HostZones
 
 /// <summary>
 /// /Portal papkasidagi sahifalar: URL'dan "Portal/" prefiksi olib tashlanadi (my.&lt;domen&gt;/Invoices) va Portal zonasi
-/// belgilanadi; qolgan barcha sahifalar — Admin zonasi. /Error — zonasiz (ikkala tomondagi xato sahifasi).
+/// belgilanadi; /Public papkasi — xuddi shunday, Public zonasi (&lt;domen&gt;/, /ru, /en); qolgan barcha sahifalar — Admin
+/// zonasi. /Error — zonasiz (hamma tomondagi xato sahifasi).
 /// </summary>
 public sealed class ZonePageRouteConvention : IPageRouteModelConvention
 {
     public const string PortalFolder = "/Portal";
+    public const string PublicFolder = "/Public";
 
     public void Apply(PageRouteModel model)
     {
         if (model.ViewEnginePath == "/Error")
             return;
-        bool portal = model.ViewEnginePath.StartsWith(PortalFolder + "/", StringComparison.OrdinalIgnoreCase);
+        Zone zone = model.ViewEnginePath.StartsWith(PortalFolder + "/", StringComparison.OrdinalIgnoreCase) ? Zone.Portal
+            : model.ViewEnginePath.StartsWith(PublicFolder + "/", StringComparison.OrdinalIgnoreCase) ? Zone.Public
+            : Zone.Admin;
+        string? prefix = zone == Zone.Admin ? null : (zone == Zone.Portal ? PortalFolder : PublicFolder)[1..];
         foreach (var selector in model.Selectors)
         {
-            if (portal && selector.AttributeRouteModel?.Template is string t)
+            if (prefix is not null && selector.AttributeRouteModel?.Template is string t)
             {
-                string stripped = t.Equals("Portal", StringComparison.OrdinalIgnoreCase) ? ""
-                    : t.StartsWith("Portal/", StringComparison.OrdinalIgnoreCase) ? t["Portal/".Length..] : t;
+                string stripped = t.Equals(prefix, StringComparison.OrdinalIgnoreCase) ? ""
+                    : t.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase) ? t[(prefix.Length + 1)..] : t;
                 selector.AttributeRouteModel.Template = stripped;
             }
-            selector.EndpointMetadata.Add(new ZoneMetadata(portal ? Zone.Portal : Zone.Admin));
+            selector.EndpointMetadata.Add(new ZoneMetadata(zone));
         }
     }
 }

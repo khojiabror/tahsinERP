@@ -67,6 +67,7 @@ services.AddScoped<ExpiryReminderService>();
 services.AddScoped<ProvisioningService>();
 services.AddScoped<UsageService>();
 services.AddScoped<TractionService>();
+services.AddScoped<DemoRequestService>();
 services.AddScoped<tahsinERP.ControlPanel.Services.Bank.BankImportService>();
 // Didox e-hisob-faktura: PartnerToken/Password/MXIK berilmasa o'chiq (tugma ko'rinmaydi).
 services.AddSingleton<DidoxTokenCache>();
@@ -196,10 +197,15 @@ services.AddRateLimiter(o =>
         _ => new FixedWindowRateLimiterOptions { PermitLimit = config.GetValue("ControlPanel:Panel:LoginRateLimitPerMinute", 20), Window = TimeSpan.FromMinutes(1) }));
 });
 
+// Kirill/o'zbek matni HTML'da entity (&#x...;) bo'lib chiqmasin — ommaviy sahifa (ru) va panel uchun.
+services.Configure<Microsoft.Extensions.WebEncoders.WebEncoderOptions>(o =>
+    o.TextEncoderSettings = new System.Text.Encodings.Web.TextEncoderSettings(System.Text.Unicode.UnicodeRanges.All));
+
 services.AddRazorPages(o =>
 {
     o.Conventions.Add(new ZonePageRouteConvention());
     o.Conventions.AuthorizeFolder(ZonePageRouteConvention.PortalFolder, Policies.Portal);
+    o.Conventions.AllowAnonymousToFolder(ZonePageRouteConvention.PublicFolder); // tahsinerp.uz — mahsulot sahifasi
     o.Conventions.AuthorizeFolder("/Staff", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Servers", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Updates", Policies.Owner);

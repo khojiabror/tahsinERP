@@ -33,6 +33,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<AppRelease> AppReleases => Set<AppRelease>();
     public DbSet<UpdateJob> UpdateJobs => Set<UpdateJob>();
     public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
+    public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -370,6 +371,26 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Error).HasMaxLength(1000);
             e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Payment>().WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<DemoRequest>(e =>
+        {
+            e.HasIndex(x => new { x.Status, x.Id });
+            e.HasIndex(x => x.Phone);
+            e.Property(x => x.FullName).HasMaxLength(200);
+            e.Property(x => x.Company).HasMaxLength(300);
+            e.Property(x => x.Phone).HasMaxLength(50);
+            e.Property(x => x.Email).HasMaxLength(200);
+            e.Property(x => x.Industry).HasMaxLength(30);
+            e.Property(x => x.CompanySize).HasMaxLength(20);
+            e.Property(x => x.Modules).HasMaxLength(200);
+            e.Property(x => x.Plan).HasMaxLength(20);
+            e.Property(x => x.Message).HasMaxLength(2000);
+            e.Property(x => x.Lang).HasMaxLength(5);
+            e.Property(x => x.Ip).HasMaxLength(64);
+            e.Property(x => x.UserAgent).HasMaxLength(400);
+            e.Property(x => x.StaffNote).HasMaxLength(1000);
+            e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<InvoiceSequence>(e =>

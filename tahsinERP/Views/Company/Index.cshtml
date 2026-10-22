@@ -106,9 +106,9 @@
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Logo (PNG/JPG, 32×32 tavsiya, 200 KB gacha)</label>
+                                                                    <label>Firma logosi (PNG/JPG, kvadrat — masalan 256×256, 200 KB gacha). Chap menyuda va kirish sahifasida chiqadi; yuklanmasa — tahsinERP logosi.</label>
                                                                     <div class="d-flex align-items-center">
-                                                                        <img src="@(brandInfo.HasLogo ? Url.Action("Logo", "Branding", new { v = brandInfo.LogoVersion }) : Url.Content("~/app-assets/images/logo/logo-32x32.png"))" alt="" style="height:32px" class="mr-1" />
+                                                                        <img src="@(brandInfo.HasLogo ? Url.Action("Logo", "Branding", new { v = brandInfo.LogoVersion }) : Url.Content("~/app-assets/images/logo/logo-32x32.png"))" alt="" style="height:48px;width:48px;object-fit:contain;border-radius:10px" class="mr-1" />
                                                                         <input type="file" name="LogoFile" accept="image/png,image/jpeg" class="form-control-file" />
                                                                     </div>
                                                                     @if (brandInfo.HasLogo)

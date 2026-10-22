@@ -540,13 +540,49 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
     }
 
     [BindProperty] public TrialInput Input { get; set; } = new();
+    /// <summary>tahsinerp.uz demo so'rovi (Leads) — forma shundan to'ldiriladi, sinov ochilgach so'rov tenantga bog'lanadi.</summary>
+    [BindProperty(SupportsGet = true)] public int? Demo { get; set; }
     public List<SelectListItem> Servers { get; private set; } = [];
     public Tenant? Created { get; private set; }
     public ProvisioningJob? Job { get; private set; }
     public string? TempPassword { get; private set; }
     public string? TenantUrl { get; private set; }
 
-    public async Task OnGetAsync() => Servers = await ServerList.LoadAsync(db);
+    public async Task OnGetAsync()
+    {
+        Servers = await ServerList.LoadAsync(db);
+        if (Demo is int id && await db.DemoRequests.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id) is { } r)
+        {
+            Input.LegalName = r.Company;
+            Input.ContactName = r.FullName;
+            Input.Phone = r.Phone;
+            Input.Email = r.Email;
+            Input.Slug = SuggestSlug(r.Company);
+        }
+    }
+
+    /// <summary>Kompaniya nomidan subdomen taklifi: lotinga o'giriladi, faqat a-z/0-9/'-', ko'pi bilan 30 belgi.</summary>
+    public static string SuggestSlug(string name)
+    {
+        var map = new Dictionary<char, string>
+        {
+            ['а'] = "a", ['б'] = "b", ['в'] = "v", ['г'] = "g", ['д'] = "d", ['е'] = "e", ['ё'] = "yo", ['ж'] = "j", ['з'] = "z", ['и'] = "i",
+            ['й'] = "y", ['к'] = "k", ['л'] = "l", ['м'] = "m", ['н'] = "n", ['о'] = "o", ['п'] = "p", ['р'] = "r", ['с'] = "s", ['т'] = "t",
+            ['у'] = "u", ['ф'] = "f", ['х'] = "x", ['ц'] = "ts", ['ч'] = "ch", ['ш'] = "sh", ['щ'] = "sh", ['ы'] = "i", ['э'] = "e", ['ю'] = "yu",
+            ['я'] = "ya", ['ў'] = "o", ['қ'] = "q", ['ғ'] = "g", ['ҳ'] = "h",
+        };
+        var sb = new System.Text.StringBuilder();
+        foreach (char ch in name.ToLowerInvariant())
+        {
+            if (ch is >= 'a' and <= 'z' or >= '0' and <= '9') sb.Append(ch);
+            else if (map.TryGetValue(ch, out var lat)) sb.Append(lat);
+            else if (sb.Length > 0 && sb[^1] != '-') sb.Append('-');
+        }
+        string slug = sb.ToString().Trim('-');
+        foreach (var noise in new[] { "mchj-", "ooo-", "llc-", "-mchj", "-ooo", "-llc", "xk-", "-xk" })
+            slug = slug.StartsWith(noise) ? slug[noise.Length..] : slug.EndsWith(noise) ? slug[..^noise.Length] : slug;
+        return slug.Length > 30 ? slug[..30].TrimEnd('-') : slug;
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -571,6 +607,14 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
             FlashError = "Tashkilot va sinov obunasi yaratildi, lekin baza jobi qo'shilmadi: " +
                          string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
             return RedirectToPage("Details", new { id = t.Id });
+        }
+        if (Demo is int demoId && await db.DemoRequests.FindAsync(demoId) is { } demo)
+        {
+            demo.Status = DemoRequestStatus.TrialOpened;
+            demo.TenantId = t.Id;
+            demo.HandledByStaffId = StaffId;
+            demo.HandledAtUtc = DateTime.UtcNow;
+            await db.SaveChangesAsync();
         }
         Created = t;
         Job = r!.Job;

@@ -1,9 +1,11 @@
-@* Kirish ekranlari (xodim va mijoz) uchun "xavfsiz kirish terminali" qobig'i. _Layout / _PortalLayout login bo'lmaganda shu yerga uzatadi. *@
+@* Kirish ekranlari (xodim va mijoz) — tahsinerp.uz bosh sahifasi uslubida. _Layout / _PortalLayout login bo'lmaganda shu yerga uzatadi. *@
 @inject Microsoft.Extensions.Options.IOptions<tahsinERP.ControlPanel.Security.SecurityOptions> Security
+@inject Microsoft.Extensions.Options.IOptions<tahsinERP.ControlPanel.Hosting.PanelHostOptions> Hosts
 @{
     bool portal = (ViewData["AuthKind"] as string) == "portal";
     bool staffTotp = Security.Value.RequireStaffTotp;
-    string zone = portal ? "MIJOZ KABINETI" : "BOSHQARUV PANELI";
+    string domain = Hosts.Value.Domain.Trim().Trim('.');
+    string? siteUrl = domain.Contains('.') ? "https://" + domain : null; // lokal (localhost) — havola yo'q
 }
 <!DOCTYPE html>
 <html lang="uz">
@@ -14,53 +16,46 @@
     <title>@ViewData["Title"] · tahsinERP @(portal ? "Kabinet" : "Admin")</title>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="theme-color" content="#0a0f1d" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#060c1d" />
+    <link rel="stylesheet" href="~/fonts/fonts.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="auth">
 <partial name="_Icons" />
-<div class="auth-bg" aria-hidden="true">
-    <div class="auth-grid"></div>
-    <div class="auth-glow"></div>
-    <div class="auth-scan"></div>
-</div>
+<div class="auth-bg" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="auth-grid"></span></div>
 <header class="auth-top">
-    <a class="auth-brand" href="/">
-        <span class="logo-mark"><svg class="i"><use href="#i-shield" /></svg></span>
+    <a class="auth-brand" href="@(siteUrl ?? "/")">
+        <img src="/img/logo.png" alt="" width="36" height="36" />
         <span>tahsin<b>ERP</b></span>
     </a>
-    <span class="auth-zone">@zone · XAVFSIZ KIRISH</span>
-    <span class="auth-status"><i></i> TIZIM ONLINE</span>
-    <span class="auth-clock" data-clock>--:--:-- UTC</span>
+    <span class="auth-zone">@(portal ? "Mijoz kabineti" : "Boshqaruv paneli")</span>
+    @if (siteUrl is not null)
+    {
+        <a class="auth-home" href="@siteUrl"><svg class="i i-back"><use href="#i-arrow" /></svg>@domain</a>
+    }
 </header>
 <div class="auth-wrap">
-    <section class="auth-intro" aria-hidden="true">
-        <div class="radar">
-            <div class="radar-sweep"></div>
-            <svg viewBox="0 0 200 200" class="radar-rings">
-                <circle cx="100" cy="100" r="96" class="r1" />
-                <circle cx="100" cy="100" r="72" class="r2" />
-                <circle cx="100" cy="100" r="48" class="r3" />
-                <path d="M100 4v192M4 100h192" class="cross" />
-            </svg>
-            <div class="radar-core"><svg class="i"><use href="#i-@(portal ? "lock" : "shield")" /></svg></div>
-            <span class="blip b1"></span><span class="blip b2"></span><span class="blip b3"></span>
-        </div>
-        <h2>Himoyalangan hudud</h2>
-        <p>Faqat vakolatli @(portal ? "mijozlar" : "xodimlar") uchun.@(portal || staffTotp ? " Shaxsingiz ikki bosqichda tasdiqlanadi." : "")</p>
+    <section class="auth-intro">
+        <div class="auth-logo" aria-hidden="true"><span class="ring r1"></span><span class="ring r2"></span><img src="/img/logo.png" alt="" width="132" height="132" /></div>
+        <span class="auth-eyebrow">@(portal ? "Mijozlar uchun" : "tahsinERP jamoasi uchun")</span>
+        <h2>@(portal ? "Hisob, to'lov va litsenziya —" : "Firmalar, obunalar va kalitlar —") <span class="grad">bitta joyda</span></h2>
+        <p>@(portal
+            ? "Hisob-fakturalarni ko'ring, to'lov holatini kuzating, tarifni oshiring yoki uzaytiring va litsenziya kalitini oling."
+            : "Tashkilotlar, sinov muddatlari, hisob-fakturalar, demo so'rovlari, serverlar va yangilanishlarni bir paneldan boshqaring.")</p>
         <ul class="auth-feats">
             @if (portal)
             {
-                <li><svg class="i"><use href="#i-send" /></svg>Bir martalik kod — Telegram, SMS yoki email</li>
-                <li><svg class="i"><use href="#i-lock" /></svg>Shifrlangan ulanish (HTTPS)</li>
-                <li><svg class="i"><use href="#i-scan" /></svg>Ko'p marta xato urinishda hisob bloklanadi</li>
+                <li><svg class="i"><use href="#i-check" /></svg>Bir martalik kod — Telegram, SMS yoki email</li>
+                <li><svg class="i"><use href="#i-check" /></svg>Shifrlangan ulanish (HTTPS)</li>
+                <li><svg class="i"><use href="#i-check" /></svg>Ko'p marta xato urinishda hisob bloklanadi</li>
             }
             else
             {
-                @if (staffTotp) { <li><svg class="i"><use href="#i-scan" /></svg>Ikki bosqichli tasdiqlash (TOTP)</li> }
-                else { <li><svg class="i"><use href="#i-scan" /></svg>Ko'p marta xato urinishda hisob bloklanadi</li> }
-                <li><svg class="i"><use href="#i-activity" /></svg>Har bir kirish audit jurnaliga yoziladi</li>
-                <li><svg class="i"><use href="#i-lock" /></svg>Shifrlangan ulanish (HTTPS)</li>
+                @if (staffTotp) { <li><svg class="i"><use href="#i-check" /></svg>Ikki bosqichli tasdiqlash (TOTP)</li> }
+                else { <li><svg class="i"><use href="#i-check" /></svg>Ko'p marta xato urinishda hisob bloklanadi</li> }
+                <li><svg class="i"><use href="#i-check" /></svg>Har bir kirish audit jurnaliga yoziladi</li>
+                <li><svg class="i"><use href="#i-check" /></svg>Shifrlangan ulanish (HTTPS)</li>
             }
         </ul>
     </section>
@@ -69,8 +64,8 @@
     </main>
 </div>
 <footer class="auth-foot">
-    <span>Ruxsatsiz kirish taqiqlanadi. Barcha urinishlar qayd etiladi.</span>
-    <span>© @DateTime.UtcNow.Year tahsinERP</span>
+    <span>© @DateTime.UtcNow.Year tahsinERP · SCHAIN</span>
+    <span><svg class="i"><use href="#i-lock" /></svg>Ruxsatsiz kirish taqiqlanadi — barcha urinishlar qayd etiladi.</span>
 </footer>
 <script src="~/js/app.js" asp-append-version="true"></script>
 @if (portal) { <script src="~/js/portal.js" asp-append-version="true"></script> }

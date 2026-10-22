@@ -2,7 +2,7 @@
 @model tahsinERP.ControlPanel.Pages.Account.LoginModel
 @{ ViewData["Title"] = "Kirish"; }
 <div class="card login">
-    <div class="hud-head"><span>// IDENTIFIKATSIYA</span><span>AUTH-01</span></div>
+    <div class="hud-head"><span>Xavfsiz kirish</span><span>AUTH-01</span></div>
     <h1>Panelga kirish</h1>
     <p class="hud-sub">Xodim hisob ma'lumotlarini kiriting.</p>
     @if (Model.TotpRequired) { <ol class="steps"><li class="on">Parol</li><li>2FA kod</li><li>Kirish</li></ol> }
@@ -28,5 +28,5 @@
             <p class="hint">Keyingi qadam — autentifikator ilovasidagi 6 xonali kod (2FA majburiy).</p>
         }
     </form>
-    <div class="auth-meta"><span>SEANS: SHIFRLANGAN</span><span>AUDIT: YOQILGAN</span></div>
+    <div class="auth-meta"><span>Seans shifrlangan</span><span>Audit yoqilgan</span></div>
 </div>

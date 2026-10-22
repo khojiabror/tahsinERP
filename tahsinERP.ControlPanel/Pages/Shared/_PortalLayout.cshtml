@@ -26,15 +26,17 @@ else
     <title>@ViewData["Title"] · tahsinERP Kabinet</title>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#0a0f1d" />
     <script src="~/js/theme.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="~/fonts/fonts.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="app portal">
 <partial name="_Icons" />
 <aside class="sidebar" id="sidebar">
     <a class="sb-brand" href="/">
-        <span class="logo-mark"><svg class="i"><use href="#i-shield" /></svg></span>
+        <img class="logo-img" src="/img/logo.png" alt="" width="36" height="36" />
         <span class="sb-brand-t">tahsin<b>ERP</b><small>Mijoz kabineti</small></span>
     </a>
     @if (pm!.CurrentTenant is { } ct)

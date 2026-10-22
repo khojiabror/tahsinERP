@@ -1,0 +1,358 @@
+{
+  "lang": "en",
+  "htmlLang": "en",
+  "langName": "English",
+  "meta": {
+    "title": "tahsinERP — ERP for manufacturing, distribution and trade",
+    "description": "Procurement, inventory, production, sales, distribution, finance and HR in one system. A cloud ERP built for companies in Uzbekistan. Request your own 14-day demo environment."
+  },
+  "nav": {
+    "product": "Why us",
+    "modules": "Modules",
+    "distribution": "Distribution",
+    "process": "Rollout",
+    "pricing": "Plans",
+    "faq": "FAQ",
+    "login": "Account",
+    "demo": "Request a demo"
+  },
+  "hero": {
+    "eyebrow": "The ERP platform for companies in Uzbekistan",
+    "titleA": "Run your whole company",
+    "titleHi": "in one system",
+    "titleB": "",
+    "subtitle": "From purchasing to production, from the warehouse to Telegram orders, from unit cost to profit and loss — tahsinERP shows your entire business in real time and speeds up every decision.",
+    "cta": "Get a 14-day demo",
+    "cta2": "Explore modules",
+    "points": ["Cloud-based — nothing to install", "Uzbek, Russian and English", "Your own demo environment in 1 day"],
+    "liveLabel": "Live",
+    "mock": {
+      "title": "Executive dashboard",
+      "kpi1": "Sales (month)",
+      "kpi2": "Net profit",
+      "kpi3": "Plan vs actual",
+      "chart": "Inflow and outflow, mln UZS",
+      "bars": "Output by workshop",
+      "feed": "Activity",
+      "events": [
+        "Telegram bot: new order #1042 — Baraka Savdo",
+        "Workshop 2: 1,200 finished units received into stock",
+        "Payment received: 48,500,000 UZS",
+        "Purchase order PO-318 sent to supplier",
+        "Route #57: delivered to 14 outlets",
+        "Unit cost recalculated: −3.2%"
+      ],
+      "float1": "Profit growth",
+      "float2": "New order"
+    }
+  },
+  "stats": [
+    { "value": "12", "suffix": "", "label": "connected modules" },
+    { "value": "14", "suffix": " days", "label": "free trial" },
+    { "value": "2–8", "suffix": " weeks", "label": "to first results" },
+    { "value": "30", "suffix": "%", "label": "less manual work" }
+  ],
+  "audience": {
+    "label": "Built for",
+    "items": ["Manufacturing plants", "Distributors", "Wholesale", "Packaging & FMCG", "Building materials", "Food industry"]
+  },
+  "pains": {
+    "eyebrow": "Why tahsinERP",
+    "title": "Pain → solution → result",
+    "subtitle": "We don't sell software — we sell management results. Three key changes leadership will see:",
+    "painLabel": "Problem",
+    "solutionLabel": "Solution",
+    "resultLabel": "Result",
+    "items": [
+      {
+        "icon": "trending",
+        "title": "Finds the profit you're losing",
+        "pain": "Where profit leaks remains unclear even at month-end, after all the spreadsheets are merged.",
+        "solution": "Batch cost, expense lines and plan vs actual are calculated in one place, in real time.",
+        "result": "Profit and loss are visible every day — unnecessary costs surface immediately."
+      },
+      {
+        "icon": "zap",
+        "title": "Responds to orders fast",
+        "pain": "Order intake, purchasing, inventory and production live in separate tools — customers wait.",
+        "solution": "Sales order → purchasing → warehouse → production → delivery as one continuous chain.",
+        "result": "Order-to-shipment time drops and customers get a reliable delivery date."
+      },
+      {
+        "icon": "eye",
+        "title": "Gives leadership a clear picture",
+        "pain": "Answering “what's happening right now?” means calling several departments.",
+        "solution": "Interactive dashboards for finance, sales, production, inventory, HR and tasks.",
+        "result": "Decisions are made on numbers, not gut feeling — and faster."
+      }
+    ]
+  },
+  "modules": {
+    "eyebrow": "Modules",
+    "title": "Every business process — on one platform",
+    "subtitle": "What typical systems cover only partly, with separate tools, tahsinERP runs on a single database.",
+    "newLabel": "New",
+    "items": [
+      {
+        "code": "srm", "icon": "cart", "name": "Procurement & supply", "tag": "SRM",
+        "desc": "One flow from requisition to contract, from delivery tracking to invoice and payment control.",
+        "features": ["Purchase requisitions and tenders", "Contracts, orders, invoices", "Supplier base and reconciliation", "In-transit order tracking"],
+        "img": "procurement"
+      },
+      {
+        "code": "warehouse", "icon": "box", "name": "Inventory", "tag": "WMS",
+        "desc": "Stock levels, receipts and issues, transfers and stock-takes — by batch and location.",
+        "features": ["Multiple warehouses and bins", "FIFO costing", "Stock-takes and variances", "Minimum stock alerts"],
+        "img": "warehouse"
+      },
+      {
+        "code": "mes", "icon": "factory", "name": "Production", "tag": "MES",
+        "desc": "Planning, shop-floor execution, quality control and scrap tracking in real time.",
+        "features": ["Daily and monthly plan vs actual", "Tracking by workshop and process", "Quality control and defect types", "Finished goods into stock"],
+        "img": "production"
+      },
+      {
+        "code": "engineering", "icon": "layers", "name": "BOM, norms & costing", "tag": "Engineering",
+        "desc": "Bills of materials, consumption norms and true unit-cost analysis for every product.",
+        "features": ["Multi-level BOM", "Material consumption norms", "Cost calculation", "Cost analytics and changes"]
+      },
+      {
+        "code": "crm", "icon": "handshake", "name": "Sales", "tag": "CRM",
+        "desc": "Customers, contracts, sales orders, invoices, payments, tax invoices and waybills.",
+        "features": ["Customer base and history", "Contracts and orders", "Tax invoices and waybills", "Receivables control"],
+        "img": "sales"
+      },
+      {
+        "code": "distribution", "icon": "send", "name": "Distribution", "tag": "Telegram", "isNew": true,
+        "desc": "Every company gets its own Telegram bot and Mini App: agents and customers order directly.",
+        "features": ["Sales agents and outlets", "Telegram bot + Mini App catalog", "Reservations, delivery routes, KPIs", "Customer debt and payment discipline"]
+      },
+      {
+        "code": "finance", "icon": "wallet", "name": "Finance & analytics", "tag": "Finance",
+        "desc": "Cash flow, P&L, plan vs actual, obligations and payment discipline — on visual dashboards.",
+        "features": ["Cash desks and bank accounts", "P&L and cash flow", "Budget: plan vs actual", "Multi-currency accounting"],
+        "img": "finance"
+      },
+      {
+        "code": "hr", "icon": "users", "name": "HR & payroll", "tag": "HR",
+        "desc": "Employees, staffing plan, hourly and piece-rate timesheets, payroll.",
+        "features": ["Org structure and staffing", "Hourly and piece-rate timesheets", "Payroll calculation", "Employee history and positions"],
+        "img": "hr"
+      },
+      {
+        "code": "logistics", "icon": "truck", "name": "Logistics", "tag": "TMS",
+        "desc": "Freight contracts, transport and full visibility of the delivery chain.",
+        "features": ["Carriers and contracts", "Shipments", "Logistics costs", "Logistics dashboard"]
+      },
+      {
+        "code": "docs", "icon": "file", "name": "Document workflow", "tag": "Docs",
+        "desc": "Orders, official letters and approval stages — electronic and under control.",
+        "features": ["Incoming and outgoing letters", "Orders and approvals", "Execution deadlines", "Archive and search"]
+      },
+      {
+        "code": "tasks", "icon": "check", "name": "Tasks", "tag": "Tasks",
+        "desc": "Assignments, projects, kanban board and execution discipline.",
+        "features": ["Kanban and list views", "Projects and priorities", "Deadlines and owners", "Execution discipline dashboard"]
+      },
+      {
+        "code": "website", "icon": "globe", "name": "Website catalog", "tag": "Web", "isNew": true,
+        "desc": "A ready corporate website with your product catalog — prices and stock sync with the ERP automatically.",
+        "features": ["Ready site on your own domain", "Catalog straight from the ERP", "Website orders land in the ERP", "Separate add-on service"]
+      }
+    ]
+  },
+  "flow": {
+    "eyebrow": "Ecosystem",
+    "title": "Enter data once — the whole company sees it",
+    "subtitle": "Each department does its own job, yet all are links of one chain. Follow a single order:",
+    "steps": [
+      { "icon": "send", "name": "Order", "desc": "Via an agent, the Telegram bot or a manager" },
+      { "icon": "cart", "name": "Purchasing", "desc": "Missing materials are requested automatically" },
+      { "icon": "box", "name": "Warehouse", "desc": "Stock is reserved, FIFO costing" },
+      { "icon": "factory", "name": "Production", "desc": "Plan, process, quality control" },
+      { "icon": "truck", "name": "Delivery", "desc": "Route, waybill, tax invoice" },
+      { "icon": "wallet", "name": "Finance", "desc": "Payment, debt, profit and loss" }
+    ]
+  },
+  "showcase": {
+    "eyebrow": "Inside the product",
+    "title": "Real screens — not a slide deck",
+    "subtitle": "Dashboards, lists, filters, approvals and analytics — working screens from tahsinERP modules.",
+    "tabs": [
+      { "img": "finance", "name": "Finance", "desc": "Cash flow, P&L, inflow and outflow history, plan vs actual." },
+      { "img": "production", "name": "Production", "desc": "Plan vs actual, output by workshop, process and quality monitoring." },
+      { "img": "procurement", "name": "Purchasing", "desc": "Purchase orders, supplier settlements, invoices and status tracking." },
+      { "img": "warehouse", "name": "Inventory", "desc": "Stock control, movements and transfers across warehouses." },
+      { "img": "sales", "name": "Sales", "desc": "Orders, contracts, invoices, tax invoices and waybills in one place." },
+      { "img": "hr", "name": "HR", "desc": "Employees, timesheets, payroll monitoring, tasks and discipline." }
+    ]
+  },
+  "dist": {
+    "eyebrow": "New · Distribution",
+    "title": "No mobile app needed — orders come through Telegram",
+    "subtitle": "Every company gets a Telegram bot and Mini App under its own brand. Agents and customers order from the catalog and the order lands in the ERP instantly — with reservation, delivery and payment control.",
+    "features": [
+      { "icon": "send", "title": "Your branded bot", "desc": "Catalog, prices, stock and order history — inside Telegram." },
+      { "icon": "mic", "title": "Voice orders", "desc": "Agents leave an order as a voice message — the system takes it." },
+      { "icon": "route", "title": "Delivery routes", "desc": "Drivers, routes, outlet-by-outlet delivery and KPIs." },
+      { "icon": "globe", "title": "Website catalog", "desc": "A ready site with your catalog — synced with the ERP." }
+    ],
+    "phone": {
+      "bot": "Baraka Distribution",
+      "status": "bot",
+      "greeting": "Hello! Open the catalog to place an order 👇",
+      "catalog": "🛒 Catalog",
+      "order": "Order #1042 confirmed ✅\n3 items · 4,860,000 UZS\nDelivery: tomorrow, 10:00–14:00",
+      "item1": "Packaging film 50 µm",
+      "item2": "Stretch film 23 µm",
+      "price1": "38,000 UZS",
+      "price2": "52,000 UZS",
+      "add": "Add",
+      "total": "Total",
+      "checkout": "Place order"
+    }
+  },
+  "why": {
+    "eyebrow": "Advantages",
+    "title": "Enterprise-grade reliability",
+    "items": [
+      { "icon": "cloud", "title": "Ready in the cloud", "desc": "No servers to buy or set up — work from any browser, anywhere." },
+      { "icon": "shield", "title": "Security", "desc": "A separate database per company, role-based access, audit log and backups." },
+      { "icon": "language", "title": "Built for Uzbekistan", "desc": "Uzbek, Russian and English. Fits local tax invoice, waybill and tax practice." },
+      { "icon": "plug", "title": "API integrations", "desc": "Connect accounting, banks, marketplaces and other external systems via API." },
+      { "icon": "settings", "title": "Fast customization", "desc": "Changes tailored to your process in days, not months. We own the code; you make the call." },
+      { "icon": "headset", "title": "Support close by", "desc": "Rollout, staff training and fast help via Telegram — in your language." }
+    ]
+  },
+  "compare": {
+    "eyebrow": "Comparison",
+    "title": "tahsinERP vs a typical ERP",
+    "subtitle": "What tahsinERP delivers in practice — and limitations commonly found in widespread ERP packages.",
+    "colFeature": "Capability",
+    "colUs": "tahsinERP",
+    "colA": "Typical ERP A",
+    "colB": "Typical ERP B",
+    "colC": "Excel + 1C",
+    "rows": [
+      { "name": "Purchasing + production + sales + finance in one real-time system", "v": [1, 0, 0, 0] },
+      { "name": "Process chain tailored to your company", "v": [1, 0, 0, 0] },
+      { "name": "Cost analysis and plan vs actual control", "v": [1, 0, 1, 0] },
+      { "name": "Ordering via Telegram bot and Mini App", "v": [1, 0, 0, 0] },
+      { "name": "Unified control of inventory and logistics flows", "v": [1, 1, 1, 0] },
+      { "name": "Interactive dashboards for decision-making", "v": [1, 0, 1, 0] },
+      { "name": "Rapid customization on request (code level)", "v": [1, 0, 0, 0] },
+      { "name": "Manufacturing ERP in the Uzbek language", "v": [1, 0, 0, 0] },
+      { "name": "API integration with any external system", "v": [1, 0, 0, 0] }
+    ]
+  },
+  "process": {
+    "eyebrow": "Rollout",
+    "title": "“How soon will we see results?”",
+    "subtitle": "Clear stages, clear outcomes. First practical results within 2–8 weeks.",
+    "steps": [
+      { "when": "Week 1", "title": "Audit & discovery", "desc": "We study your business flows and fit tahsinERP to your existing processes." },
+      { "when": "Weeks 2–4", "title": "Quick-start modules", "desc": "Finance + SRM + BOM + MES (or the set that fits your business) put operations under control." },
+      { "when": "Months 1–2", "title": "Expansion", "desc": "CRM, distribution, documents, HR, tasks and costing are added step by step." },
+      { "when": "Ongoing", "title": "KPIs & optimization", "desc": "Processes become measurable; leadership gets a permanent control dashboard." }
+    ]
+  },
+  "plans": {
+    "eyebrow": "Plans",
+    "title": "A plan that fits your scale",
+    "subtitle": "Every plan runs in the cloud, with updates and support included. Pricing depends on users and modules — we'll prepare a quote along with your demo.",
+    "usersLabel": "users",
+    "popular": "Most popular",
+    "priceLabel": "Price on request",
+    "cta": "Get a quote",
+    "items": [
+      { "code": "START", "name": "Start", "for": "Small business: order in purchasing, inventory and sales", "users": "up to 5", "modules": ["Procurement & inventory (SRM)", "Sales (CRM)", "Tasks"] },
+      { "code": "DIST", "name": "Distribution", "for": "Distributors and wholesale companies", "users": "up to 20", "modules": ["Everything in Start", "Distribution + Telegram bot", "Finance & analytics"] },
+      { "code": "BIZNES", "name": "Business", "for": "Manufacturers: planning, costing, finance", "users": "up to 20", "popular": true, "modules": ["Everything in Start", "Production (MES)", "BOM, norms & costing", "Finance & analytics"] },
+      { "code": "KORP", "name": "Enterprise", "for": "Large companies: every module in one system", "users": "up to 50", "modules": ["Everything in Business", "HR & payroll", "Logistics, documents", "Distribution + Telegram bot"] }
+    ],
+    "addon": "Add-on: Website catalog — works with any plan."
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Frequently asked questions",
+    "items": [
+      { "q": "How long does implementation take?", "a": "It's staged by company size: first practical results within 2–8 weeks. Your demo environment is ready within 1 business day of your request." },
+      { "q": "How does the demo work?", "a": "Leave a request — a specialist contacts you and opens a separate demo environment just for you: filled with sample data, all modules enabled, free for 14 days. It's not a shared showroom — you can enter and test your own data." },
+      { "q": "Can we keep our current Excel processes?", "a": "Yes. Data is imported from Excel, a parallel-run model is used during the transition, and your team moves over painlessly." },
+      { "q": "Can it connect to our accounting software?", "a": "Yes. tahsinERP integrates with external systems via API — accounting, banks, marketplaces and more." },
+      { "q": "Where is our data stored, and is it secure?", "a": "A separate database per company, encrypted connections (HTTPS), role-based permissions and regular backups. If needed, the system can also be installed on your own server." },
+      { "q": "How does it affect sales?", "a": "Orders are processed faster, customers get a reliable delivery date, and Telegram takes orders 24/7 — increasing sales volume and conversion." }
+    ]
+  },
+  "demo": {
+    "eyebrow": "Demo",
+    "title": "Get your own demo environment",
+    "subtitle": "Not a shared showroom — a separate system for your company: sample data, all modules enabled, free for 14 days.",
+    "steps": [
+      { "title": "Leave a request", "desc": "1 minute — the form below" },
+      { "title": "A specialist calls", "desc": "Within an hour during business hours" },
+      { "title": "Your demo is ready", "desc": "Your own address and login" }
+    ],
+    "form": {
+      "fullName": "Your name",
+      "fullNamePh": "First and last name",
+      "company": "Company",
+      "companyPh": "Company name",
+      "phone": "Phone",
+      "phonePh": "+998 90 123 45 67",
+      "email": "Email",
+      "emailPh": "optional",
+      "industry": "Industry",
+      "size": "Number of employees",
+      "choose": "Select",
+      "modules": "Which areas interest you?",
+      "message": "Comment",
+      "messagePh": "How do you work today and what do you want to solve? (optional)",
+      "submit": "Request a demo",
+      "sending": "Sending…",
+      "consent": "By submitting, you agree to the processing of your data so we can contact you.",
+      "industries": {
+        "production": "Manufacturing",
+        "distribution": "Distribution / wholesale",
+        "trade": "Retail & trade",
+        "services": "Services",
+        "other": "Other"
+      },
+      "moduleNames": {
+        "srm": "Procurement & inventory",
+        "crm": "Sales",
+        "mes": "Production",
+        "finance": "Finance",
+        "hr": "HR",
+        "logistics": "Logistics",
+        "docs": "Documents",
+        "tasks": "Tasks",
+        "distribution": "Distribution",
+        "website": "Website catalog"
+      }
+    },
+    "okTitle": "Thank you! Your request has been received.",
+    "okText": "Our specialist will contact you shortly and set up your demo environment. If it's urgent, give us a call.",
+    "errRequired": "Please fill in your name, company and phone.",
+    "errPhone": "Invalid phone number.",
+    "errEmail": "Invalid email.",
+    "errThrottled": "Too many requests. Please call us or write on Telegram.",
+    "errGeneric": "Couldn't send. Please try again or call us.",
+    "orCall": "Or reach us directly:"
+  },
+  "cta": {
+    "title": "Start your digital transformation today",
+    "subtitle": "14 days free, no obligation. We'll build a rollout plan that fits your company together.",
+    "button": "Request a demo"
+  },
+  "footer": {
+    "about": "tahsinERP is an ERP platform built by the SCHAIN team for manufacturing and distribution companies in Uzbekistan.",
+    "product": "Product",
+    "company": "Company",
+    "contacts": "Contacts",
+    "schain": "About SCHAIN",
+    "portal": "Customer account",
+    "rights": "All rights reserved.",
+    "address": "Tashkent, Uzbekistan"
+  }
+}
