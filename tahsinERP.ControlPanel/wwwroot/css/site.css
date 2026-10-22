@@ -223,6 +223,17 @@ table.lines td:first-child { width: 55%; }
 .validation-summary-valid { display: none; }
 .field-validation-error { color: var(--bad); font-size: 12px; }
 .warnbox { border-color: var(--warn-line); background: var(--warn-soft); color: var(--warn); }
+.flash.info { background: var(--info-soft); border-color: var(--info-line); color: var(--info); }
+.flash.info::before { content: "i"; }
+.idle-warn {
+    position: fixed; right: 20px; bottom: 20px; z-index: 60; display: grid; gap: 6px; width: min(340px, calc(100vw - 32px));
+    padding: 16px 18px; border-radius: var(--radius); background: var(--surface); color: var(--text);
+    border: 1px solid var(--warn-line); box-shadow: var(--shadow-lg); animation: idle-in .2s ease-out;
+}
+.idle-warn b { color: var(--warn); }
+.idle-warn span { color: var(--text-2); font-size: 13px; font-variant-numeric: tabular-nums; }
+.idle-warn button { justify-self: start; margin-top: 4px; }
+@keyframes idle-in { from { opacity: 0; transform: translateY(8px); } }
 .warnbox.bad { border-color: var(--bad-line); background: var(--bad-soft); color: var(--bad); }
 
 /* ---------- Formalar ---------- */
@@ -467,6 +478,7 @@ body.auth::after { content: ""; position: fixed; inset: 0; pointer-events: none;
 .auth .qr { display: block; margin: 0 auto; box-shadow: 0 0 0 1px var(--hud-line), 0 0 30px -6px rgba(94, 225, 255, .6); }
 .auth .flash, .auth .validation-summary-errors { background: rgba(255, 80, 70, .08); border-color: rgba(255, 99, 88, .4); color: #ffb4ab; }
 .auth .flash.ok { background: rgba(52, 211, 153, .08); border-color: rgba(52, 211, 153, .4); color: #86efc1; }
+.auth .flash.info { background: rgba(94, 225, 255, .07); border-color: rgba(94, 225, 255, .4); color: #a5f0ff; }
 .auth-wrap > main > .flash { margin-bottom: 14px; }
 .auth-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 0; color: #4f5f7b; font: 600 10.5px/1 var(--mono); letter-spacing: .14em; }
 .auth-sep::before, .auth-sep::after { content: ""; flex: 1; height: 1px; background: #1d2a42; }
