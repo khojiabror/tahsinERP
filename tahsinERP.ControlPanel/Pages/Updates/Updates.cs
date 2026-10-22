@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Services;
 using tahsinERP.Provisioning.Contracts;
 
@@ -69,7 +70,7 @@ public class IndexModel(ControlDbContext db, UpdatesService updates, IReleaseSou
         if (await TryAsync(async () =>
         {
             int n = await updates.RefreshAsync(HttpContext.RequestAborted);
-            FlashOk = n > 0 ? $"Yangi relizlar: {n}." : "Yangi reliz yo'q.";
+            FlashOk = n > 0 ? L.T("Pnl_Upd_NewReleases", n) : L.T("Pnl_Upd_NoNewReleases");
         })) return RedirectToPage(new { ServerId });
         await LoadAsync();
         return Page();
@@ -89,7 +90,7 @@ public class IndexModel(ControlDbContext db, UpdatesService updates, IReleaseSou
         UpdateJob? job = null;
         if (await TryAsync(async () => job = await enqueue()))
         {
-            FlashOk = $"Navbatga qo'yildi: #{job!.Id}. Agent bir necha soniyada oladi.";
+            FlashOk = L.T("Pnl_Upd_Enqueued", job!.Id);
             return RedirectToPage("Job", new { id = job.Id });
         }
         await LoadAsync();
@@ -134,7 +135,7 @@ public class JobModel(ControlDbContext db, UpdatesService updates) : PanelPageMo
         if (!await LoadAsync(id)) return NotFound();
         if (await TryAsync(() => updates.CancelAsync(Job)))
         {
-            FlashOk = "Bekor qilindi.";
+            FlashOk = L.T("Pnl_Upd_Cancelled");
             return RedirectToPage(new { id });
         }
         return Page();
@@ -145,23 +146,23 @@ public static class UpdateLabels
 {
     public static string Of(UpdateAction a) => a switch
     {
-        UpdateAction.InstallApp => "O'rnatish",
-        UpdateAction.InstallTenant => "Firma ERP yangilash",
-        UpdateAction.CreateInstance => "Instance yaratish",
-        UpdateAction.RollbackApp => "Rollback",
-        UpdateAction.RollbackTenant => "Firma rollback",
-        UpdateAction.MigrateTenant => "Baza migratsiyasi",
+        UpdateAction.InstallApp => L.T("Pnl_Upd_Action_InstallApp"),
+        UpdateAction.InstallTenant => L.T("Pnl_Upd_Action_InstallTenant"),
+        UpdateAction.CreateInstance => L.T("Pnl_Upd_Action_CreateInstance"),
+        UpdateAction.RollbackApp => L.T("Pnl_Upd_Rollback"),
+        UpdateAction.RollbackTenant => L.T("Pnl_Upd_Action_RollbackTenant"),
+        UpdateAction.MigrateTenant => L.T("Pnl_Upd_Action_MigrateTenant"),
         _ => a.ToString(),
     };
 
     public static string Of(UpdateJobStatus s) => s switch
     {
-        UpdateJobStatus.Pending => "Navbatda",
-        UpdateJobStatus.Running => "Bajarilmoqda",
-        UpdateJobStatus.Succeeded => "Bajarildi",
-        UpdateJobStatus.Failed => "Xato",
-        UpdateJobStatus.RolledBack => "Xato — qaytarildi",
-        UpdateJobStatus.Cancelled => "Bekor qilindi",
+        UpdateJobStatus.Pending => L.T("Pnl_JobStatus_Pending"),
+        UpdateJobStatus.Running => L.T("Pnl_JobStatus_Running"),
+        UpdateJobStatus.Succeeded => L.T("Pnl_JobStatus_Succeeded"),
+        UpdateJobStatus.Failed => L.T("Pnl_JobStatus_Failed"),
+        UpdateJobStatus.RolledBack => L.T("Pnl_Upd_Status_RolledBack"),
+        UpdateJobStatus.Cancelled => L.T("Pnl_JobStatus_Cancelled"),
         _ => s.ToString(),
     };
 
@@ -171,5 +172,5 @@ public static class UpdateLabels
         UpdateJobStatus.Failed or UpdateJobStatus.RolledBack => "bad", _ => "muted",
     };
 
-    public static string Version(string? v) => v switch { null => "noma'lum", "legacy" => "eski (ajratilgan)", _ => v };
+    public static string Version(string? v) => v switch { null => L.T("Pnl_Upd_VersionUnknown"), "legacy" => L.T("Pnl_Upd_VersionLegacy"), _ => v };
 }

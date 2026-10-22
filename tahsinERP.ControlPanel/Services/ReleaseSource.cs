@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -70,10 +71,10 @@ public sealed class GitHubReleaseSource(HttpClient http, IOptions<UpdatesOptions
 
     public async Task<IReadOnlyList<ReleaseListing>> ListAsync(CancellationToken ct)
     {
-        if (!IsConfigured) throw new DomainException("GitHub token sozlanmagan (ControlPanel:Updates:GitHubToken).");
+        if (!IsConfigured) throw new DomainException(L.T("Pnl_Upd_Err_TokenNotConfiguredShort"));
         using var req = Request($"{O.ApiBase.TrimEnd('/')}/repos/{O.Repo}/releases?per_page=30", "application/vnd.github+json");
         using var r = await http.SendAsync(req, ct);
-        if (!r.IsSuccessStatusCode) throw new DomainException($"GitHub {(int)r.StatusCode}: relizlar o'qilmadi (token/repo huquqini tekshiring).");
+        if (!r.IsSuccessStatusCode) throw new DomainException(L.T("Pnl_Upd_Err_GitHubList", (int)r.StatusCode));
         var list = await r.Content.ReadFromJsonAsync<List<GhRelease>>(new JsonSerializerOptions(JsonSerializerDefaults.Web), ct) ?? [];
         return list.Select(x => new ReleaseListing(x.Tag, x.Name, x.Body, x.Prerelease, x.Draft, x.PublishedAt?.ToUniversalTime(),
             x.Assets.Select(a => new ReleaseAsset(a.Id, a.Name, a.Size)).ToList())).ToList();

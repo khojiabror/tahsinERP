@@ -3351,4 +3351,256 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Acc_SessionExpired" xml:space="preserve">
     <value>Сеанс закрыт из-за бездействия в течение {0} мин. Войдите снова.</value>
   </data>
+  <data name="Pnl_Upd_CheckNow" xml:space="preserve">
+    <value>Проверить релизы сейчас</value>
+  </data>
+  <data name="Pnl_Upd_TokenNotConfigured" xml:space="preserve">
+    <value>GitHub-токен не настроен</value>
+  </data>
+  <data name="Pnl_Upd_NoAgentServer" xml:space="preserve">
+    <value>Нет серверов с подключённым агентом (Серверы → Выпустить ключ агента, Install-Agent.ps1).</value>
+  </data>
+  <data name="Pnl_Upd_LastSeen" xml:space="preserve">
+    <value>последняя связь {0} UTC</value>
+  </data>
+  <data name="Pnl_Upd_Updater" xml:space="preserve">
+    <value>Updater</value>
+  </data>
+  <data name="Pnl_Upd_NotInstalled" xml:space="preserve">
+    <value>не установлен</value>
+  </data>
+  <data name="Pnl_Upd_InstallUpdaterHint" xml:space="preserve">
+    <value>Install-Updater.ps1 (однократно, вручную)</value>
+  </data>
+  <data name="Pnl_Upd_InventoryAt" xml:space="preserve">
+    <value>инвентаризация: {0} UTC</value>
+  </data>
+  <data name="Pnl_Upd_ServerApps" xml:space="preserve">
+    <value>Серверные приложения</value>
+  </data>
+  <data name="Pnl_Upd_App" xml:space="preserve">
+    <value>Приложение</value>
+  </data>
+  <data name="Pnl_Upd_Installed" xml:space="preserve">
+    <value>Установлено</value>
+  </data>
+  <data name="Pnl_Upd_Available" xml:space="preserve">
+    <value>Доступно</value>
+  </data>
+  <data name="Pnl_Upd_Changes" xml:space="preserve">
+    <value>Изменения</value>
+  </data>
+  <data name="Pnl_Upd_NoChanges" xml:space="preserve">
+    <value>{0} (без изменений)</value>
+  </data>
+  <data name="Pnl_Upd_Latest" xml:space="preserve">
+    <value>актуальная</value>
+  </data>
+  <data name="Pnl_Upd_ConfirmInstallApp" xml:space="preserve">
+    <value>Установить {0} {1}? Приложение будет остановлено на 30–60 секунд.</value>
+  </data>
+  <data name="Pnl_Upd_InstallVersion" xml:space="preserve">
+    <value>Установить {0}</value>
+  </data>
+  <data name="Pnl_Upd_ConfirmRollbackApp" xml:space="preserve">
+    <value>Откатить {0} к версии {1}?</value>
+  </data>
+  <data name="Pnl_Upd_Rollback" xml:space="preserve">
+    <value>Откат</value>
+  </data>
+  <data name="Pnl_Upd_TenantsErp" xml:space="preserve">
+    <value>ERP организаций</value>
+  </data>
+  <data name="Pnl_Upd_TenantsHint" xml:space="preserve">
+    <value>Каждая организация работает в собственном экземпляре IIS (сайт erp-&lt;slug&gt;) — обновляйте версию для каждой организации отдельно (сначала demo, затем остальные). При обновлении создаётся резервная копия (файлы + .bak базы), при ошибке выполняется автоматический откат.</value>
+  </data>
+  <data name="Pnl_Upd_Tenant" xml:space="preserve">
+    <value>Организация</value>
+  </data>
+  <data name="Pnl_Upd_ErpVersion" xml:space="preserve">
+    <value>Версия ERP</value>
+  </data>
+  <data name="Pnl_Upd_DbSchema" xml:space="preserve">
+    <value>Схема базы</value>
+  </data>
+  <data name="Pnl_Upd_SharedSite" xml:space="preserve">
+    <value>общий сайт</value>
+  </data>
+  <data name="Pnl_Upd_ConfirmCreateInstance" xml:space="preserve">
+    <value>Создать отдельный экземпляр ERP для {0}? Организация перейдёт с общего сайта на новый экземпляр.</value>
+  </data>
+  <data name="Pnl_Upd_NoErpRelease" xml:space="preserve">
+    <value>Нет релиза ERP</value>
+  </data>
+  <data name="Pnl_Upd_ConfirmInstallTenant" xml:space="preserve">
+    <value>Обновить ERP {0}? Организация будет недоступна несколько минут, база будет мигрирована.</value>
+  </data>
+  <data name="Pnl_Upd_Update" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="Pnl_Upd_MoreActions" xml:space="preserve">
+    <value>Другие действия</value>
+  </data>
+  <data name="Pnl_Upd_ConfirmRollbackTenant" xml:space="preserve">
+    <value>Откатить ERP {0} к версии {1}?</value>
+  </data>
+  <data name="Pnl_Upd_RestoreDbToo" xml:space="preserve">
+    <value>Также восстановить базу из резервной копии</value>
+  </data>
+  <data name="Pnl_Upd_DataLossWarn" xml:space="preserve">
+    <value>данные, внесённые после резервной копии, будут потеряны</value>
+  </data>
+  <data name="Pnl_Upd_ConfirmMigrate" xml:space="preserve">
+    <value>Повторно применить миграции к базе {0}?</value>
+  </data>
+  <data name="Pnl_Upd_MigrateDb" xml:space="preserve">
+    <value>Мигрировать базу</value>
+  </data>
+  <data name="Pnl_Upd_NoTenants" xml:space="preserve">
+    <value>На этом сервере нет организаций с созданной базой.</value>
+  </data>
+  <data name="Pnl_Upd_RecentJobs" xml:space="preserve">
+    <value>Последние обновления</value>
+  </data>
+  <data name="Pnl_Upd_AppOrTenant" xml:space="preserve">
+    <value>Приложение / организация</value>
+  </data>
+  <data name="Pnl_Upd_Backup" xml:space="preserve">
+    <value>резервная копия</value>
+  </data>
+  <data name="Pnl_Upd_NoJobs" xml:space="preserve">
+    <value>Обновлений ещё не было.</value>
+  </data>
+  <data name="Pnl_Upd_Releases" xml:space="preserve">
+    <value>Релизы</value>
+  </data>
+  <data name="Pnl_Upd_Commit" xml:space="preserve">
+    <value>Коммит</value>
+  </data>
+  <data name="Pnl_Upd_AppsChanged" xml:space="preserve">
+    <value>Приложения (* — изменено)</value>
+  </data>
+  <data name="Pnl_Upd_Prerelease" xml:space="preserve">
+    <value>пре-релиз</value>
+  </data>
+  <data name="Pnl_Upd_Invalid" xml:space="preserve">
+    <value>недействительна</value>
+  </data>
+  <data name="Pnl_Upd_NoReleases" xml:space="preserve">
+    <value>Релизы ещё не загружены.</value>
+  </data>
+  <data name="Pnl_Upd_JobTitle" xml:space="preserve">
+    <value>Обновление #{0}</value>
+  </data>
+  <data name="Pnl_Upd_PanelSelfUpdating" xml:space="preserve">
+    <value>Панель обновляет сама себя</value>
+  </data>
+  <data name="Pnl_Upd_PanelSelfUpdatingHint" xml:space="preserve">
+    <value>страница может не открываться 30–60 секунд, затем результат появится здесь.</value>
+  </data>
+  <data name="Pnl_Upd_FromBackup" xml:space="preserve">
+    <value>из резервной копии</value>
+  </data>
+  <data name="Pnl_Upd_Database" xml:space="preserve">
+    <value>База</value>
+  </data>
+  <data name="Pnl_Upd_RestoredFromBackup" xml:space="preserve">
+    <value>восстанавливается из резервной копии</value>
+  </data>
+  <data name="Pnl_Upd_Stage" xml:space="preserve">
+    <value>Этап</value>
+  </data>
+  <data name="Pnl_Upd_StartedFinished" xml:space="preserve">
+    <value>Начато / завершено</value>
+  </data>
+  <data name="Pnl_Upd_Log" xml:space="preserve">
+    <value>Журнал</value>
+  </data>
+  <data name="Pnl_Upd_NewReleases" xml:space="preserve">
+    <value>Новых релизов: {0}.</value>
+  </data>
+  <data name="Pnl_Upd_NoNewReleases" xml:space="preserve">
+    <value>Новых релизов нет.</value>
+  </data>
+  <data name="Pnl_Upd_Enqueued" xml:space="preserve">
+    <value>Поставлено в очередь: #{0}. Агент заберёт задачу через несколько секунд.</value>
+  </data>
+  <data name="Pnl_Upd_Cancelled" xml:space="preserve">
+    <value>Отменено.</value>
+  </data>
+  <data name="Pnl_Upd_Action_InstallApp" xml:space="preserve">
+    <value>Установка</value>
+  </data>
+  <data name="Pnl_Upd_Action_InstallTenant" xml:space="preserve">
+    <value>Обновление ERP организации</value>
+  </data>
+  <data name="Pnl_Upd_Action_CreateInstance" xml:space="preserve">
+    <value>Создать экземпляр</value>
+  </data>
+  <data name="Pnl_Upd_Action_RollbackTenant" xml:space="preserve">
+    <value>Откат организации</value>
+  </data>
+  <data name="Pnl_Upd_Action_MigrateTenant" xml:space="preserve">
+    <value>Миграция базы</value>
+  </data>
+  <data name="Pnl_Upd_Status_RolledBack" xml:space="preserve">
+    <value>Ошибка — откат выполнен</value>
+  </data>
+  <data name="Pnl_Upd_VersionUnknown" xml:space="preserve">
+    <value>неизвестно</value>
+  </data>
+  <data name="Pnl_Upd_VersionLegacy" xml:space="preserve">
+    <value>старая (выделенная)</value>
+  </data>
+  <data name="Pnl_Upd_Err_TokenNotConfigured" xml:space="preserve">
+    <value>GitHub-токен не настроен — релизы не загружаются (ControlPanel__Updates__GitHubToken).</value>
+  </data>
+  <data name="Pnl_Upd_Err_NoAgent" xml:space="preserve">
+    <value>На этом сервере не подключён агент.</value>
+  </data>
+  <data name="Pnl_Upd_Err_UnknownApp" xml:space="preserve">
+    <value>Неизвестное приложение: {0}</value>
+  </data>
+  <data name="Pnl_Upd_Err_TenantNotFound" xml:space="preserve">
+    <value>Организация не найдена.</value>
+  </data>
+  <data name="Pnl_Upd_Err_TenantOtherServer" xml:space="preserve">
+    <value>Организация находится на другом сервере.</value>
+  </data>
+  <data name="Pnl_Upd_Err_TenantNoDb" xml:space="preserve">
+    <value>База организации ещё не создана (provisioning).</value>
+  </data>
+  <data name="Pnl_Upd_Err_ReleaseNotFound" xml:space="preserve">
+    <value>Релиз {0} не найден.</value>
+  </data>
+  <data name="Pnl_Upd_Err_ReleaseInvalid" xml:space="preserve">
+    <value>Подпись релиза {0} недействительна — установка невозможна.</value>
+  </data>
+  <data name="Pnl_Upd_Err_ReleaseNoApp" xml:space="preserve">
+    <value>В релизе {0} нет {1}.</value>
+  </data>
+  <data name="Pnl_Upd_Err_InstanceExists" xml:space="preserve">
+    <value>Экземпляр уже существует.</value>
+  </data>
+  <data name="Pnl_Upd_Err_NoInstanceCreateFirst" xml:space="preserve">
+    <value>Экземпляра нет — сначала «Создать экземпляр».</value>
+  </data>
+  <data name="Pnl_Upd_Err_NotNewer" xml:space="preserve">
+    <value>Установлена {0} — версия {1} не новее (для возврата — Откат).</value>
+  </data>
+  <data name="Pnl_Upd_Err_NoInstance" xml:space="preserve">
+    <value>Экземпляра нет.</value>
+  </data>
+  <data name="Pnl_Upd_Err_AlreadyQueued" xml:space="preserve">
+    <value>Обновление для этого приложения/организации уже в очереди.</value>
+  </data>
+  <data name="Pnl_Upd_Err_OnlyPendingCancel" xml:space="preserve">
+    <value>Отменить можно только задачу в очереди (не начатую).</value>
+  </data>
+  <data name="Pnl_Upd_Err_TokenNotConfiguredShort" xml:space="preserve">
+    <value>GitHub-токен не настроен (ControlPanel:Updates:GitHubToken).</value>
+  </data>
+  <data name="Pnl_Upd_Err_GitHubList" xml:space="preserve">
+    <value>GitHub {0}: не удалось получить релизы (проверьте права токена/репозитория).</value>
+  </data>
 </root>

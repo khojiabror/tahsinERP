@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.Provisioning.Contracts;
 
 namespace tahsinERP.ControlPanel.Services;
@@ -28,7 +29,7 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
     /// <summary>GitHub'dan yangi relizlarni o'qib keshlaydi. Qaytaradi: yangi qo'shilganlar soni.</summary>
     public async Task<int> RefreshAsync(CancellationToken ct)
     {
-        if (!source.IsConfigured) throw new DomainException("GitHub token sozlanmagan — relizlar o'qilmaydi (ControlPanel__Updates__GitHubToken).");
+        if (!source.IsConfigured) throw new DomainException(L.T("Pnl_Upd_Err_TokenNotConfigured"));
         var listing = await source.ListAsync(ct);
         var known = (await db.AppReleases.Select(r => r.Tag).ToListAsync(ct)).ToHashSet(StringComparer.Ordinal);
         int added = 0;
@@ -131,18 +132,18 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
         CancellationToken ct = default)
     {
         app = app.ToLowerInvariant();
-        var server = await db.Servers.FirstOrDefaultAsync(s => s.Id == serverId, ct) ?? throw new DomainException("Server topilmadi.");
-        if (server.AgentSecretProtected is null) throw new DomainException("Bu serverda agent ulanmagan.");
+        var server = await db.Servers.FirstOrDefaultAsync(s => s.Id == serverId, ct) ?? throw new DomainException(L.T("Pnl_Srv_NotFound"));
+        if (server.AgentSecretProtected is null) throw new DomainException(L.T("Pnl_Upd_Err_NoAgent"));
         bool erp = action is UpdateAction.InstallTenant or UpdateAction.CreateInstance or UpdateAction.RollbackTenant or UpdateAction.MigrateTenant;
         if (erp) app = ReleaseApps.Erp;
-        else if (!ReleaseApps.ServerApps.Contains(app)) throw new DomainException($"Noma'lum ilova: {app}");
+        else if (!ReleaseApps.ServerApps.Contains(app)) throw new DomainException(L.T("Pnl_Upd_Err_UnknownApp", app));
 
         Tenant? tenant = null;
         if (erp)
         {
-            tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct) ?? throw new DomainException("Tashkilot topilmadi.");
-            if (tenant.ServerId != serverId) throw new DomainException("Tashkilot boshqa serverda.");
-            if (tenant.DbName is null) throw new DomainException("Tashkilot bazasi hali yaratilmagan (provisioning).");
+            tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct) ?? throw new DomainException(L.T("Pnl_Upd_Err_TenantNotFound"));
+            if (tenant.ServerId != serverId) throw new DomainException(L.T("Pnl_Upd_Err_TenantOtherServer"));
+            if (tenant.DbName is null) throw new DomainException(L.T("Pnl_Upd_Err_TenantNoDb"));
         }
         var (inv, _) = await InventoryAsync(serverId, ct);
         string? from = erp ? inv?.Instances.FirstOrDefault(i => i.Slug == tenant!.Slug)?.Version : inv?.Apps.FirstOrDefault(a => a.App == app)?.Version;
@@ -152,27 +153,27 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
             case UpdateAction.InstallApp or UpdateAction.InstallTenant or UpdateAction.CreateInstance:
             {
                 var rel = await db.AppReleases.AsNoTracking().FirstOrDefaultAsync(r => r.Version == version, ct)
-                    ?? throw new DomainException($"Reliz {version} topilmadi.");
-                if (!rel.SignatureValid) throw new DomainException($"Reliz {version} imzosi yaroqsiz — o'rnatilmaydi.");
-                if (!Contains(rel, app)) throw new DomainException($"Reliz {version} da {app} yo'q.");
-                if (action == UpdateAction.CreateInstance && hasInstance) throw new DomainException("Instance allaqachon bor.");
-                if (action == UpdateAction.InstallTenant && !hasInstance) throw new DomainException("Instance yo'q — avval «Instance yaratish».");
+                    ?? throw new DomainException(L.T("Pnl_Upd_Err_ReleaseNotFound", version));
+                if (!rel.SignatureValid) throw new DomainException(L.T("Pnl_Upd_Err_ReleaseInvalid", version));
+                if (!Contains(rel, app)) throw new DomainException(L.T("Pnl_Upd_Err_ReleaseNoApp", version, app));
+                if (action == UpdateAction.CreateInstance && hasInstance) throw new DomainException(L.T("Pnl_Upd_Err_InstanceExists"));
+                if (action == UpdateAction.InstallTenant && !hasInstance) throw new DomainException(L.T("Pnl_Upd_Err_NoInstanceCreateFirst"));
                 if (action != UpdateAction.CreateInstance && !ReleaseVerifier.IsNewer(version, from))
-                    throw new DomainException($"O'rnatilgan {from} — {version} undan yangi emas (orqaga — Rollback).");
+                    throw new DomainException(L.T("Pnl_Upd_Err_NotNewer", from, version));
                 break;
             }
             case UpdateAction.RollbackApp or UpdateAction.RollbackTenant or UpdateAction.MigrateTenant:
                 version = null;
-                if (erp && !hasInstance) throw new DomainException("Instance yo'q.");
+                if (erp && !hasInstance) throw new DomainException(L.T("Pnl_Upd_Err_NoInstance"));
                 break;
             default:
-                throw new DomainException("Noma'lum amal.");
+                throw new DomainException(L.T("Pnl_Ten_UnknownAction"));
         }
         string target = erp ? "erp:" + tenant!.Slug : app;
         var active = await db.UpdateJobs.Where(j => j.ServerId == serverId && (j.Status == UpdateJobStatus.Pending || j.Status == UpdateJobStatus.Running))
             .Select(j => new { j.App, j.Slug }).ToListAsync(ct);
         if (active.Any(j => (j.App == ReleaseApps.Erp ? "erp:" + j.Slug : j.App) == target))
-            throw new DomainException("Shu ilova/firma uchun yangilash allaqachon navbatda.");
+            throw new DomainException(L.T("Pnl_Upd_Err_AlreadyQueued"));
 
         var job = new UpdateJob
         {
@@ -189,7 +190,7 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
 
     public async Task CancelAsync(UpdateJob job, CancellationToken ct = default)
     {
-        if (job.Status != UpdateJobStatus.Pending) throw new DomainException("Faqat navbatdagi (boshlanmagan) job bekor qilinadi.");
+        if (job.Status != UpdateJobStatus.Pending) throw new DomainException(L.T("Pnl_Upd_Err_OnlyPendingCancel"));
         job.Status = UpdateJobStatus.Cancelled;
         job.FinishedAtUtc = clock.UtcNow;
         audit.Add("update.cancel", "UpdateJob", job.Id);

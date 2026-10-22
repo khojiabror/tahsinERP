@@ -2,31 +2,31 @@
 @model tahsinERP.ControlPanel.Pages.Updates.JobModel
 @using tahsinERP.ControlPanel.Pages.Updates
 @using tahsinERP.Provisioning.Contracts
-@{ var j = Model.Job; ViewData["Title"] = $"Yangilash #{j.Id}"; }
-<h1>Yangilash #@j.Id — @UpdateLabels.Of(j.Action) <span class="badge @UpdateLabels.Badge(j.Status)">@UpdateLabels.Of(j.Status)</span></h1>
+@{ var j = Model.Job; ViewData["Title"] = L.T("Pnl_Upd_JobTitle", j.Id); }
+<h1>@L.T("Pnl_Upd_JobTitle", j.Id) — @UpdateLabels.Of(j.Action) <span class="badge @UpdateLabels.Badge(j.Status)">@UpdateLabels.Of(j.Status)</span></h1>
 <div asp-validation-summary="ModelOnly"></div>
 <div class="actions">
-    <a class="btn secondary" href="/Updates?ServerId=@j.ServerId">← Yangilanishlar</a>
+    <a class="btn secondary" href="/Updates?ServerId=@j.ServerId">← @L.T("Pnl_NavUpdates")</a>
     @if (j.Status == UpdateJobStatus.Pending)
     {
-        <form method="post" asp-page-handler="Cancel" class="inline"><button type="submit" class="secondary">Bekor qilish</button></form>
+        <form method="post" asp-page-handler="Cancel" class="inline"><button type="submit" class="secondary">@L.T("Cancel")</button></form>
     }
 </div>
 @if (j.Status == UpdateJobStatus.Running && j.App == ReleaseApps.Panel)
 {
-    <div class="card"><span class="badge warn">Panel o'zi yangilanmoqda</span> — sahifa 30–60 soniya ochilmasligi mumkin, keyin natija shu yerda chiqadi.</div>
+    <div class="card"><span class="badge warn">@L.T("Pnl_Upd_PanelSelfUpdating")</span> — @L.T("Pnl_Upd_PanelSelfUpdatingHint")</div>
 }
 <div class="card">
     <dl class="props">
-        <dt>Server</dt><dd>@j.Server?.Name</dd>
-        <dt>Ilova / firma</dt><dd>@ReleaseApps.Title(j.App) @if (j.Slug is not null) { <code>@j.Slug</code> <span class="hint">@j.DbName</span> }</dd>
-        <dt>Versiya</dt><dd class="mono">@UpdateLabels.Version(j.FromVersion) → @(j.Version ?? j.InstalledVersion ?? "zaxiradagi")</dd>
-        @if (j.RestoreDatabase) { <dt>Baza</dt><dd><span class="badge bad">zaxiradan tiklanadi</span></dd> }
-        <dt>Bosqich</dt><dd>@j.Stage</dd>
-        <dt>Yaratdi</dt><dd>@(Model.CreatedBy ?? "tizim") — @j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm:ss") UTC</dd>
-        <dt>Boshlangan / tugagan</dt><dd>@j.StartedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss") — @j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
-        <dt>Xato</dt><dd class="mono">@j.Error</dd>
+        <dt>@L.T("Pnl_Server")</dt><dd>@j.Server?.Name</dd>
+        <dt>@L.T("Pnl_Upd_AppOrTenant")</dt><dd>@ReleaseApps.Title(j.App) @if (j.Slug is not null) { <code>@j.Slug</code> <span class="hint">@j.DbName</span> }</dd>
+        <dt>@L.T("Pnl_Version")</dt><dd class="mono">@UpdateLabels.Version(j.FromVersion) → @(j.Version ?? j.InstalledVersion ?? L.T("Pnl_Upd_FromBackup"))</dd>
+        @if (j.RestoreDatabase) { <dt>@L.T("Pnl_Upd_Database")</dt><dd><span class="badge bad">@L.T("Pnl_Upd_RestoredFromBackup")</span></dd> }
+        <dt>@L.T("Pnl_Upd_Stage")</dt><dd>@j.Stage</dd>
+        <dt>@L.T("Pnl_Prov_CreatedBy")</dt><dd>@(Model.CreatedBy ?? L.T("Pnl_Audit_System")) — @j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm:ss") UTC</dd>
+        <dt>@L.T("Pnl_Upd_StartedFinished")</dt><dd>@j.StartedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss") — @j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
+        <dt>@L.T("Pnl_Err_Title")</dt><dd class="mono">@j.Error</dd>
     </dl>
 </div>
-<h2>Log</h2>
+<h2>@L.T("Pnl_Upd_Log")</h2>
 <pre class="log">@j.Log</pre>
