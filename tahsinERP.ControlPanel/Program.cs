@@ -39,6 +39,7 @@ services.Configure<EskizOptions>(config.GetSection("ControlPanel:Eskiz"));
 services.Configure<SmtpOptions>(config.GetSection("ControlPanel:Smtp"));
 services.Configure<AppsOptions>(config.GetSection("ControlPanel:Apps"));
 services.Configure<UpdatesOptions>(config.GetSection("ControlPanel:Updates"));
+services.Configure<LeadsOptions>(config.GetSection("ControlPanel:Leads"));
 PanelFontResolver.ExtraFontsDir = config["ControlPanel:Pdf:FontsDir"];
 
 services.AddDbContext<ControlDbContext>(o => o.UseSqlServer(

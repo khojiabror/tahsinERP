@@ -445,6 +445,8 @@ body.auth h1, body.auth h2 { font-family: "Manrope", var(--font); }
 .auth-foot { display: flex; justify-content: space-between; gap: 16px; width: 100%; max-width: 1200px; margin: 0 auto; padding: 20px 24px; border-top: 1px solid rgba(148, 163, 184, .14); color: rgba(203, 213, 225, .6); font-size: 13px; }
 .auth-foot span { display: inline-flex; align-items: center; gap: 8px; }
 .auth-foot svg.i { width: 15px; height: 15px; }
+.auth-foot a { color: rgba(226, 232, 245, .85); text-decoration: underline; text-decoration-color: rgba(148, 163, 184, .4); text-underline-offset: 3px; }
+.auth-foot a:hover { color: #fff; }
 
 @media (max-width: 960px) {
     .auth-wrap { grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 16px 16px 40px; justify-items: center; }

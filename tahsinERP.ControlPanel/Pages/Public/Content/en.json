@@ -346,11 +346,11 @@
     "button": "Request a demo"
   },
   "footer": {
-    "about": "tahsinERP is an ERP platform built by the SCHAIN team for manufacturing and distribution companies in Uzbekistan.",
+    "about": "tahsinERP is an ERP platform for manufacturing and distribution companies in Uzbekistan, built by \"Taminot tizimi\" LLC.",
     "product": "Product",
     "company": "Company",
     "contacts": "Contacts",
-    "schain": "About SCHAIN",
+    "vendor": "\"Taminot tizimi\" LLC",
     "portal": "Customer account",
     "rights": "All rights reserved.",
     "address": "Tashkent, Uzbekistan"

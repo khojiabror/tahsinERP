@@ -14,9 +14,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <title>@ViewData["Title"] · tahsinERP @(portal ? "Kabinet" : "Admin")</title>
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href="~/favicon.ico" sizes="any" asp-append-version="true" />
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" asp-append-version="true" />
+    <link rel="apple-touch-icon" href="~/apple-touch-icon.png" asp-append-version="true" />
     <meta name="theme-color" content="#060c1d" />
     <link rel="stylesheet" href="~/fonts/fonts.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -64,7 +64,7 @@
     </main>
 </div>
 <footer class="auth-foot">
-    <span>© @DateTime.UtcNow.Year tahsinERP · SCHAIN</span>
+    <span>© @DateTime.UtcNow.Year tahsinERP · <a href="https://schain.uz" target="_blank" rel="noopener">"Taminot tizimi" MChJ</a></span>
     <span><svg class="i"><use href="#i-lock" /></svg>Ruxsatsiz kirish taqiqlanadi — barcha urinishlar qayd etiladi.</span>
 </footer>
 <script src="~/js/app.js" asp-append-version="true"></script>

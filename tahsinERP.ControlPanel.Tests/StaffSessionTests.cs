@@ -41,7 +41,7 @@ public class StaffSessionTests(PanelFactory f) : IClassFixture<PanelFactory>
         string html = Html(await c.GetAsync("/Account/Login?expired=true"));
         Assert.Contains("15 daqiqa harakatsizlik", html);
         Assert.Contains("tahsinERP Admin</title>", html);
-        Assert.Contains("href=\"/favicon.ico\"", html);
+        Assert.Contains("href=\"/favicon.ico?v=", html); // asp-append-version: brauzer keshi yangilanadi
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/favicon.ico")).StatusCode);
     }
 }

@@ -17,7 +17,8 @@ public class IndexModel(DemoRequestService demos, IOptions<PanelHostOptions> hos
     public const string PhoneHref = "tel:+998907706660";
     public const string Telegram = "https://t.me/khoji_abror";
     public const string TelegramChannel = "https://t.me/schainuz";
-    public const string SchainUrl = "https://schain.uz";
+    /// <summary>Ishlab chiquvchi — "Taminot tizimi" MChJ sayti.</summary>
+    public const string VendorUrl = "https://schain.uz";
 
     public string Lang { get; private set; } = "uz";
     public LandingContent C { get; private set; } = LandingContent.For("uz");
