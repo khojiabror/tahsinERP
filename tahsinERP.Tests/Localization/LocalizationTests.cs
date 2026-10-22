@@ -173,6 +173,7 @@ namespace tahsinERP.Tests.Localization
                 ["Ta'minotchilar"] = "Таъминотчилар",
                 ["&nbsp;Kirim"] = "&nbsp;Кирим",
                 ["info@tahsinerp.uz"] = "info@tahsinerp.uz",
+                ["Moliya Dashboard"] = "Молия Дашборд",
             };
             foreach (var c in cases)
                 Assert.AreEqual(c.Value, UzTransliterator.ToCyrillic(c.Key), c.Key);

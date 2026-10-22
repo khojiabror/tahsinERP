@@ -8,6 +8,9 @@
     var MAP = { a: 'а', b: 'б', c: 'с', d: 'д', f: 'ф', g: 'г', h: 'ҳ', i: 'и', j: 'ж', k: 'к', l: 'л', m: 'м', n: 'н', o: 'о', p: 'п',
         q: 'қ', r: 'р', s: 'с', t: 'т', u: 'у', v: 'в', w: 'в', x: 'х', y: 'й', z: 'з' };
     var APOS = "'ʻʼ‘’`";
+    // UzTransliterator.WordOverrides bilan bir xil
+    var OVERRIDES = { dashboard: 'дашборд', dashboardi: 'дашборди', dashboardga: 'дашбордга', kanban: 'канбан', traction: 'трекшн',
+        coverage: 'ковераж', engineering: 'инжиниринг', provisioning: 'провижининг', online: 'онлайн', offline: 'офлайн' };
 
     function isLatin(c) { return /[A-Za-z]/.test(c || ''); }
     function isApos(c) { return !!c && APOS.indexOf(c) >= 0; }
@@ -37,6 +40,8 @@
     }
 
     function word(w) {
+        var fx = OVERRIDES[w.toLowerCase()];
+        if (fx) return w === w.toUpperCase() && w.length > 1 ? fx.toUpperCase() : isUpper(w[0]) ? fx[0].toUpperCase() + fx.slice(1) : fx;
         var out = '', n = w.length, allUpper = w.length > 1 && w === w.toUpperCase();
         for (var i = 0; i < n; i++) {
             var c = w[i], lc = c.toLowerCase(), up = isUpper(c), next = i + 1 < n ? w[i + 1].toLowerCase() : '';

@@ -26,6 +26,14 @@ namespace tahsinERP.Localization
             "QQS", "STIR", "JSHSHIR", "MCHJ", "AJ", "XK", "YATT", "XT", "DSQ", "SHJ", "TTN", "HR", "AKT", "YO'Q", "HA", "VA"
         };
 
+        /// <summary>Qoidaga bo'ysunmaydigan o'zlashma so'zlar (kichik harfda; registr saqlanadi).</summary>
+        private static readonly Dictionary<string, string> WordOverrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["dashboard"] = "дашборд", ["dashboardi"] = "дашборди", ["dashboardga"] = "дашбордга",
+            ["kanban"] = "канбан", ["traction"] = "трекшн", ["coverage"] = "ковераж", ["engineering"] = "инжиниринг",
+            ["provisioning"] = "провижининг", ["online"] = "онлайн", ["offline"] = "офлайн"
+        };
+
         private static readonly ConcurrentDictionary<string, string> Cache = new ConcurrentDictionary<string, string>();
 
         /// <summary>Kesh bilan (resurs matnlari cheklangan to'plam).</summary>
@@ -125,6 +133,9 @@ namespace tahsinERP.Localization
 
         private static string Word(string w)
         {
+            if (WordOverrides.TryGetValue(w, out var fixedWord))
+                return IsAllUpper(w) ? fixedWord.ToUpperInvariant()
+                     : char.IsUpper(w[0]) ? char.ToUpperInvariant(fixedWord[0]) + fixedWord.Substring(1) : fixedWord;
             var sb = new StringBuilder(w.Length);
             bool allUpper = IsAllUpper(w);
             int n = w.Length;
